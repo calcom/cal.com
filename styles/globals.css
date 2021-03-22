@@ -1,16 +1,21 @@
-html,
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './components/buttons.css';
+@import './components/spinner.css';
+
 body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    background-color: #f3f4f6;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.text-white-important {
+    color: white !important;
 }
 
-* {
-  box-sizing: border-box;
+@layer utilities {
+    .transition-max-width {
+        -webkit-transition-property: max-width;
+        transition-property: max-width;
+    }
 }
