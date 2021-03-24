@@ -10,9 +10,11 @@
   "dependencies": {
     "@prisma/client": "2.18.0",
     "@tailwindcss/forms": "^0.2.1",
+    "bcryptjs": "^2.4.3",
     "dayjs": "^1.10.4",
     "googleapis": "^67.1.1",
     "next": "10.0.8",
+    "next-auth": "^3.13.2",
     "react": "17.0.1",
     "react-dom": "17.0.1"
   },

@@ -32,6 +32,7 @@ model User {
   username      String?
   name          String?
   email         String?   @unique
+  password      String?
   bio           String?
   avatar        String?
   createdDate   DateTime  @default(now()) @map(name: "created")
