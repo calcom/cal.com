@@ -1,34 +1,100 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<!-- PROJECT LOGO -->
+<p align="center">
+  <a href="https://github.com/calendso/calendso">
+    <img src="https://calendso.com/calendso-logo.svg" alt="Logo" width="80" height="80">
+  </a>
 
+  <h3 align="center">Calendso</h3>
+
+  <p align="center">
+    The open-source Calendly alternative.
+    <br />
+    <a href="https://calendso.com"><strong>Learn more »</strong></a>
+    <br />
+    <br />
+    <a href="https://join.slack.com/t/calendso/shared_invite/zt-mem978vn-RgOEELhA5bcnoGONxDCiHw">Slack</a>
+    ·
+    <a href="https://calendso.com">Website</a>
+    ·
+    <a href="https://github.com/calendso/calendso/issues">Issues</a>
+  </p>
+</p>
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+
+[![Calendso Screenshot][product-screenshot]](https://calendso.com)
+
+Let's face it: Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes and even calls with our families. However, most tools are very limited in terms of control and customisations. That's where Calendso comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data. Calendso is to Calendly what GitLab is to GitHub.
+
+### Built With
+
+* [Next.js](https://nextjs.org/)
+* [React](https://reactjs.org/)
+* [Tailwind](https://tailwindcss.com/)
+
+<!-- GETTING STARTED -->
 ## Getting Started
 
-First, run the development server:
+To get a local copy up and running, please follow these simple steps.
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+### Prerequisites
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Here is what you need to be able to run Calendso.
+* Node.js
+* PostgreSQL
+* Yarn _(recommended)_
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### Development Setup
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+1. Clone the repo
+   ```sh
+   git clone https://github.com/calendso/calendso.git
+   ```
+2. Install packages with yarn
+   ```sh
+   yarn install
+   ```
+3. Configure environment variables
+   ```
+   DATABASE_URL='postgresql://'
+   GOOGLE_API_CREDENTIALS='secret'
+   ```
+4. Set up the database using the Prisma schema
+   ```sh
+   npx prisma db push --preview-feature
+   ```
+5. Run (in development mode)
+   ```sh
+   yarn dev
+   ```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+<!-- ROADMAP -->
+## Roadmap
 
-## Learn More
+See the [open issues](https://github.com/calendso/calendso/issues) for a list of proposed features (and known issues).
 
-To learn more about Next.js, take a look at the following resources:
+<!-- CONTRIBUTING -->
+## Contributing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
 
-## Deploy on Vercel
+<!-- LICENSE -->
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+<!-- ACKNOWLEDGEMENTS -->
+## Acknowledgements
+Special thanks to these amazing projects which help power Calendso:
+* [Next.js](https://nextjs.org/)
+* [Day.js](https://day.js.org/)
+* [Tailwind CSS](https://tailwindcss.com/)
+
+[product-screenshot]: https://calendso.com/calendso-screenshot.jpg
