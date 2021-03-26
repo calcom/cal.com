@@ -8,14 +8,23 @@ export default async function handler(req, res) {
 
         if (!session) { res.status(401).json({message: 'You must be logged in to do this'}); return; }
 
-        // TODO: Add user ID so filtering works properly. User object does not include ID currently.
+        // TODO: Add user ID to user session object
+        const user = await prisma.user.findFirst({
+            where: {
+                email: session.user.email,
+            },
+            select: {
+                id: true
+            }
+        });
 
         const credentials = await prisma.credential.findMany({
             where: {
-                userId: session.user.id,
+                userId: user.id,
             },
             select: {
-                type: true
+                type: true,
+                key: true
             }
         });
 
