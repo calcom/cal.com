@@ -7,6 +7,11 @@ export default NextAuth({
     session: {
         jwt: true
     },
+    pages: {
+        signIn: '/auth/login',
+        signOut: '/auth/logout',
+        error: '/auth/error', // Error code passed in query string as ?error=
+    },
     providers: [
         Providers.Credentials({
             name: 'Calendso',
