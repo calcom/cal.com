@@ -65,6 +65,11 @@ export default function Home(props) {
                                         </div>
                                     </li>
                                 )}
+                                {props.credentials.length == 0 && 
+                                    <div className="text-center text-gray-400 py-2">
+                                        <p>You haven't added any integrations.</p>
+                                    </div>
+                                }
                             </ul>
                         </div>
                     </div>

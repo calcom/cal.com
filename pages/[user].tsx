@@ -17,20 +17,26 @@ export default function User(props) {
     return (
         <div>
             <Head>
-                <title>{props.user.name} | Calendso</title>
+                <title>{props.user.name || props.user.username} | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
             <main className="max-w-2xl mx-auto my-24">
                 <div className="mb-8 text-center">
-                    <img src={props.user.avatar} alt="Avatar" className="mx-auto w-24 h-24 rounded-full mb-4"/>
-                    <h1 className="text-3xl font-semibold text-gray-800 mb-1">{props.user.name}</h1>
+                    {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="mx-auto w-24 h-24 rounded-full mb-4"/>}
+                    <h1 className="text-3xl font-semibold text-gray-800 mb-1">{props.user.name || props.user.username}</h1>
                     <p className="text-gray-600">{props.user.bio}</p>
                 </div>
                 <div className="bg-white shadow overflow-hidden rounded-md">
                     <ul className="divide-y divide-gray-200">
                         {eventTypes}
                     </ul>
+                    {eventTypes.length == 0 && 
+                        <div className="p-8 text-center text-gray-400">
+                            <h2 className="font-semibold text-3xl text-gray-600">Uh oh!</h2>
+                            <p className="max-w-md mx-auto">This user hasn't set up any event types yet.</p>
+                        </div>
+                    }
                 </div>
             </main>
         </div>

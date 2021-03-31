@@ -89,7 +89,7 @@ export default function Type(props) {
     return (
         <div>
             <Head>
-                <title>{props.eventType.title} | {props.user.name} | Calendso</title>
+                <title>{props.eventType.title} | {props.user.name || props.user.username} | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
@@ -97,7 +97,7 @@ export default function Type(props) {
                 <div className="bg-white overflow-hidden shadow rounded-lg">
                     <div className="sm:flex px-4 py-5 sm:p-6">
                         <div className={"sm:border-r " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2')}>
-                            <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>
+                            {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>}
                             <h2 className="font-medium text-gray-500">{props.user.name}</h2>
                             <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
                             <p className="text-gray-500 mb-4">

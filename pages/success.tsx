@@ -11,7 +11,7 @@ export default function Success(props) {
     return(
         <div>
             <Head>
-                <title>Booking Confirmed | {props.eventType.title} with {props.user.name} | Calendso</title>
+                <title>Booking Confirmed | {props.eventType.title} with {props.user.name || props.user.username} | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
@@ -33,7 +33,7 @@ export default function Success(props) {
                                         </h3>
                                     <div className="mt-2">
                                         <p className="text-sm text-gray-500">
-                                            You are scheduled in with {props.user.name}.
+                                            You are scheduled in with {props.user.name || props.user.username}.
                                         </p>
                                     </div>
                                     <div className="mt-4 border-t border-b py-4">

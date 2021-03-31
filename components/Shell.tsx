@@ -56,7 +56,7 @@ export default function Shell(props) {
                                             <div>
                                                 <button onClick={toggleProfileDropdown} type="button" className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white" id="user-menu" aria-expanded="false" aria-haspopup="true">
                                                     <span className="sr-only">Open user menu</span>
-                                                    <img className="h-8 w-8 rounded-full" src={"https://eu.ui-avatars.com/api/?background=039be5&color=fff&name=" + encodeURIComponent(session.user.name || session.user.username)} alt="" />
+                                                    <img className="h-8 w-8 rounded-full" src={"https://eu.ui-avatars.com/api/?background=039be5&color=fff&name=" + encodeURIComponent(session.user.name || "")} alt="" />
                                                 </button>
                                             </div>
                                             {
