@@ -41,7 +41,7 @@ export default function Settings(props) {
     }
 
     return(
-        <Shell title="Profile">
+        <Shell heading="Profile">
             <Head>
                 <title>Profile | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />

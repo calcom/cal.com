@@ -39,7 +39,7 @@ export default function Settings(props) {
     }
 
     return(
-        <Shell title="Password">
+        <Shell heading="Password">
             <Head>
                 <title>Change Password | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
