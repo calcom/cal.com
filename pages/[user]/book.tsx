@@ -11,7 +11,7 @@ export default function Book(props) {
     const bookingHandler = event => {
         event.preventDefault()
         const res = fetch(
-            'http://localhost:3000/api/book/' + user,
+            '/api/book/' + user,
             {
                 body: JSON.stringify({
                     start: dayjs(date).format(),
