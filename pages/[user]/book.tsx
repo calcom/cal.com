@@ -6,12 +6,12 @@ const dayjs = require('dayjs')
 
 export default function Book(props) {
     const router = useRouter()
-    const { date } = router.query
+    const { date, user } = router.query
 
     const bookingHandler = event => {
         event.preventDefault()
         const res = fetch(
-            'http://localhost:3000/api/book/bailey',
+            'http://localhost:3000/api/book/' + user,
             {
                 body: JSON.stringify({
                     start: dayjs(date).format(),

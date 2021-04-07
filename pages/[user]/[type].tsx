@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import prisma from '../../lib/prisma'
+import { useRouter } from 'next/router'
 const dayjs = require('dayjs')
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore')
 dayjs.extend(isSameOrBefore)
@@ -12,6 +13,10 @@ export default function Type(props) {
     const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState([]);
+
+    // Get router variables
+    const router = useRouter()
+    const { user } = router.query
 
     // Handle month changes
     const incrementMonth = () => {
@@ -38,7 +43,7 @@ export default function Type(props) {
     // Handle date change
     useEffect(async () => {
         setLoading(true);
-        const res = await fetch('http://localhost:3000/api/availability/bailey?date=' + dayjs(selectedDate).format("YYYY-MM-DD"))
+        const res = await fetch('/api/availability/' + user + '?date=' + dayjs(selectedDate).format("YYYY-MM-DD"))
         const data = await res.json()
         setBusy(data.primary.busy)
         setLoading(false)
