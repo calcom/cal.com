@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '../../../lib/prisma'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import prisma from '../../../lib/prisma';
 const {google} = require('googleapis');
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS;

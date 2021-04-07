@@ -21,7 +21,7 @@ export default function Shell(props) {
                             <div className="flex items-center justify-between h-16 px-4 sm:px-0">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <img className="h-6" src="calendso-white.svg" alt="Calendso" />
+                                        <img className="h-6" src="/calendso-white.svg" alt="Calendso" />
                                     </div>
                                     <div className="hidden md:block">
                                         <div className="ml-10 flex items-baseline space-x-4">
@@ -37,8 +37,8 @@ export default function Shell(props) {
                                             <Link href="/integrations">
                                                 <a className={router.pathname.startsWith("/integrations") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Integrations</a>
                                             </Link>
-                                            <Link href="/">
-                                                <a className={router.pathname.startsWith("/team") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Team</a>
+                                            <Link href="/settings">
+                                                <a className={router.pathname.startsWith("/settings") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Settings</a>
                                             </Link>
                                         </div>
                                     </div>

@@ -1,15 +1,12 @@
-import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 
-export default function Error() {
-    const router = useRouter()
-    const { error } = router.query
+export default function Logout() {
 
     return (
         <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <Head>
-                <title>{error} - Calendso</title>
+                <title>Logged out - Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -23,11 +20,11 @@ export default function Error() {
                         </div>
                         <div className="mt-3 text-center sm:mt-5">
                             <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                {error}
+                                You've been logged out
                             </h3>
                             <div className="mt-2">
                                 <p className="text-sm text-gray-500">
-                                    An error occurred when logging you in. Head back to the login screen and try again.
+                                    We hope to see you again soon!
                                 </p>
                             </div>
                         </div>
