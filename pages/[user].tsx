@@ -57,6 +57,12 @@ export async function getServerSideProps(context) {
         }
     });
 
+    if (!user) {
+       return {
+           notFound: true,
+       }
+    }
+
     return {
         props: {
             user
