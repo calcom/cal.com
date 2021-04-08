@@ -28,10 +28,10 @@ export default function Shell(props) {
                                             <Link href="/">
                                                 <a className={router.pathname == "/" ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Dashboard</a>
                                             </Link>
-                                            <Link href="/">
+                                            {/* <Link href="/">
                                                 <a className={router.pathname.startsWith("/bookings") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Bookings</a>
-                                            </Link>
-                                            <Link href="/">
+                                            </Link> */}
+                                            <Link href="/availability">
                                                 <a className={router.pathname.startsWith("/availability") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Availability</a>
                                             </Link>
                                             <Link href="/integrations">
