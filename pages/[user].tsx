@@ -4,15 +4,15 @@ import prisma from '../lib/prisma'
 
 export default function User(props) {
     const eventTypes = props.user.eventTypes.map(type =>
-        <Link href={props.user.username + '/' + type.id.toString()}>
-            <a>
-                <li key={type.id} className="px-6 py-4">
+        <li key={type.id}>
+            <Link href={'/' + props.user.username + '/' + type.id.toString()}>
+                <a className="block px-6 py-4">
                     <div className="inline-block w-3 h-3 rounded-full bg-blue-600 mr-2"></div>
                     <h2 className="inline-block font-medium">{type.title}</h2>
                     <p className="inline-block text-gray-400 ml-2">{type.description}</p>
-                </li>
-            </a>
-        </Link>
+                </a>
+            </Link>
+        </li>
     );
     return (
         <div>

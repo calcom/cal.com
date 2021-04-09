@@ -35,7 +35,7 @@ export default function Type(props) {
     }
 
     const calendar = days.map((day) =>
-        <button onClick={(e) => setSelectedDate(dayjs().month(selectedMonth).date(day).format("YYYY-MM-DD"))} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
+        <button key={day} onClick={(e) => setSelectedDate(dayjs().month(selectedMonth).date(day).format("YYYY-MM-DD"))} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
         </button>
     );
@@ -84,7 +84,7 @@ export default function Type(props) {
 
     // Display available times
     const availableTimes = times.map((time) =>
-        <div>
+        <div key={time}>
             <Link href={"/" + props.user.username + "/book?date=" + selectedDate + "T" + dayjs(time).format("HH:mm:ss") + "Z&type=" + props.eventType.id}>
                 <a key={time} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).format("hh:mma")}</a>
             </Link>
@@ -133,12 +133,12 @@ export default function Type(props) {
                                 {calendar}
                             </div>
                         </div>
-                        <div className={"sm:pl-4 mt-8 sm:mt-0 text-center " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2 hidden')}>
+                        {selectedDate && <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3">
                             <div className="text-gray-600 font-light text-xl mb-4 text-left">
                                 <span className="w-1/2">{dayjs(selectedDate).format("dddd DD MMMM YYYY")}</span>
                             </div>
                             {!loading ? availableTimes : <div className="loader"></div>}
-                        </div>
+                        </div>}
                     </div>
                 </div>
             </main>
