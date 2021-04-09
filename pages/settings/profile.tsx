@@ -72,7 +72,7 @@ export default function Settings(props) {
                                     </div>
                                     <div className="w-1/2 ml-2">
                                         <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full name</label>
-                                        <input ref={nameRef} type="text" name="name" id="name" autoComplete="given-name" placeholder="Your name" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value={props.user.name} />
+                                        <input ref={nameRef} type="text" name="name" id="name" autoComplete="given-name" placeholder="Your name" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" defaultValue={props.user.name} />
                                     </div>
                                 </div>
 
