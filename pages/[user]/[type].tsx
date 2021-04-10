@@ -99,7 +99,7 @@ export default function Type(props) {
             </Head>
 
             <main className={"mx-auto my-24 transition-max-width ease-in-out duration-500 " + (selectedDate ? 'max-w-6xl' : 'max-w-3xl')}>
-                <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="bg-white overflow-hidden shadow rounded-lg md:max-h-96">
                     <div className="sm:flex px-4 py-5 sm:p-6">
                         <div className={"sm:border-r " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2')}>
                             {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>}
@@ -133,7 +133,7 @@ export default function Type(props) {
                                 {calendar}
                             </div>
                         </div>
-                        {selectedDate && <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3">
+                        {selectedDate && <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-96 overflow-y-scroll">
                             <div className="text-gray-600 font-light text-xl mb-4 text-left">
                                 <span className="w-1/2">{dayjs(selectedDate).format("dddd DD MMMM YYYY")}</span>
                             </div>
