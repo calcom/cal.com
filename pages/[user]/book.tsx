@@ -1,15 +1,15 @@
-import Head from 'next/head'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-import prisma from '../../lib/prisma'
-const dayjs = require('dayjs')
+import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import prisma from '../../lib/prisma';
+const dayjs = require('dayjs');
 
 export default function Book(props) {
-    const router = useRouter()
-    const { date, user } = router.query
+    const router = useRouter();
+    const { date, user } = router.query;
 
     const bookingHandler = event => {
-        event.preventDefault()
+        event.preventDefault();
         const res = fetch(
             '/api/book/' + user,
             {
@@ -25,8 +25,8 @@ export default function Book(props) {
                 },
                 method: 'POST'
             }
-        )
-        router.push("/success?date=" + date + "&type=" + props.eventType.id + "&user=" + props.user.username)
+        );
+        router.push("/success?date=" + date + "&type=" + props.eventType.id + "&user=" + props.user.username);
     }
 
     return (

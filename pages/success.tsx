@@ -1,12 +1,12 @@
-import Head from 'next/head'
-import Link from 'next/link'
-import prisma from '../lib/prisma'
-import { useRouter } from 'next/router'
-const dayjs = require('dayjs')
+import Head from 'next/head';
+import Link from 'next/link';
+import prisma from '../lib/prisma';
+import { useRouter } from 'next/router';
+const dayjs = require('dayjs');
 
 export default function Success(props) {
-    const router = useRouter()
-    const { date } = router.query
+    const router = useRouter();
+    const { date } = router.query;
 
     return(
         <div>

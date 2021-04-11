@@ -3,8 +3,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 export default function Error() {
-    const router = useRouter()
-    const { error } = router.query
+    const router = useRouter();
+    const { error } = router.query;
 
     return (
         <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">

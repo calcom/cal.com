@@ -1,11 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '../../../lib/prisma'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import prisma from '../../../lib/prisma';
 const {google} = require('googleapis');
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { user } = req.query
+    const { user } = req.query;
 
     const currentUser = await prisma.user.findFirst({
         where: {
@@ -16,14 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     });
 
-    authorise(bookEvent)
+    authorise(bookEvent);
 
     // Set up Google API credentials
     function authorise(callback) {
         const {client_secret, client_id, redirect_uris} = JSON.parse(credentials).web;
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
         oAuth2Client.setCredentials(currentUser.credentials[0].key);
-        callback(oAuth2Client)
+        callback(oAuth2Client);
     }
 
     function bookEvent(auth) {

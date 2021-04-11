@@ -1,6 +1,6 @@
-import Head from 'next/head'
-import Link from 'next/link'
-import prisma from '../lib/prisma'
+import Head from 'next/head';
+import Link from 'next/link';
+import prisma from '../lib/prisma';
 
 export default function User(props) {
     const eventTypes = props.user.eventTypes.map(type =>

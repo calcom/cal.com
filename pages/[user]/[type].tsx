@@ -1,11 +1,11 @@
-import {useEffect, useState} from 'react'
-import Head from 'next/head'
-import Link from 'next/link'
-import prisma from '../../lib/prisma'
-import { useRouter } from 'next/router'
-const dayjs = require('dayjs')
-const isSameOrBefore = require('dayjs/plugin/isSameOrBefore')
-dayjs.extend(isSameOrBefore)
+import {useEffect, useState} from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import prisma from '../../lib/prisma';
+import { useRouter } from 'next/router';
+const dayjs = require('dayjs');
+const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
+dayjs.extend(isSameOrBefore);
 
 export default function Type(props) {
     // Initialise state
@@ -15,23 +15,23 @@ export default function Type(props) {
     const [busy, setBusy] = useState([]);
 
     // Get router variables
-    const router = useRouter()
-    const { user } = router.query
+    const router = useRouter();
+    const { user } = router.query;
 
     // Handle month changes
     const incrementMonth = () => {
-        setSelectedMonth(selectedMonth + 1)
+        setSelectedMonth(selectedMonth + 1);
     }
 
     const decrementMonth = () => {
-        setSelectedMonth(selectedMonth - 1)
+        setSelectedMonth(selectedMonth - 1);
     }
 
     // Set up calendar
-    var daysInMonth = dayjs().month(selectedMonth).daysInMonth()
-    var days = []
+    var daysInMonth = dayjs().month(selectedMonth).daysInMonth();
+    var days = [];
     for (let i = 1; i <= daysInMonth; i++) {
-        days.push(i)
+        days.push(i);
     }
 
     const calendar = days.map((day) =>
@@ -43,14 +43,14 @@ export default function Type(props) {
     // Handle date change
     useEffect(async () => {
         setLoading(true);
-        const res = await fetch('/api/availability/' + user + '?date=' + dayjs(selectedDate).format("YYYY-MM-DD"))
-        const data = await res.json()
-        setBusy(data.primary.busy)
-        setLoading(false)
+        const res = await fetch('/api/availability/' + user + '?date=' + dayjs(selectedDate).format("YYYY-MM-DD"));
+        const data = await res.json();
+        setBusy(data.primary.busy);
+        setLoading(false);
     }, [selectedDate]);
 
     // Set up timeslots
-    let times = []
+    let times = [];
 
     // If we're looking at availability throughout the current date, work out the current number of minutes elapsed throughout the day
     if (selectedDate == dayjs().format("YYYY-MM-DD")) {
@@ -61,14 +61,14 @@ export default function Type(props) {
     
     // Until day end, push new times every x minutes
     for (;i < 1440; i += parseInt(props.eventType.length)) {
-        times.push(dayjs(selectedDate).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute').add(props.eventType.length, 'minute').format("YYYY-MM-DD HH:mm:ss"))
+        times.push(dayjs(selectedDate).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute').add(props.eventType.length, 'minute').format("YYYY-MM-DD HH:mm:ss"));
     }
 
     // Check for conflicts
     times.forEach(time => {
         busy.forEach(busyTime => {
-            let startTime = dayjs(busyTime.start)
-            let endTime = dayjs(busyTime.end)
+            let startTime = dayjs(busyTime.start);
+            let endTime = dayjs(busyTime.end);
 
             // Check if start times are the same
             if (dayjs(time).format('HH:mm') == startTime.format('HH:mm')) {
@@ -143,7 +143,7 @@ export default function Type(props) {
                 </div>
             </main>
         </div>
-    )
+    );
 }
 
 export async function getServerSideProps(context) {

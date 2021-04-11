@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from 'next-auth/client';
 import prisma from '../../../../lib/prisma';
 const {google} = require('googleapis');
@@ -6,7 +6,7 @@ const {google} = require('googleapis');
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { code } = req.query
+    const { code } = req.query;
 
     // Check that user is authenticated
     const session = await getSession({req: req});
