@@ -5,7 +5,9 @@ import prisma from '../../lib/prisma';
 import { useRouter } from 'next/router';
 const dayjs = require('dayjs');
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
+const isBetween = require('dayjs/plugin/isBetween');
 dayjs.extend(isSameOrBefore);
+dayjs.extend(isBetween);
 
 export default function Type(props) {
     // Initialise state
@@ -65,22 +67,27 @@ export default function Type(props) {
     }
 
     // Check for conflicts
-    times.forEach(time => {
+    for(i = times.length - 1; i >= 0; i -= 1) {
         busy.forEach(busyTime => {
             let startTime = dayjs(busyTime.start);
             let endTime = dayjs(busyTime.end);
 
-            // Check if start times are the same
-            if (dayjs(time).format('HH:mm') == startTime.format('HH:mm')) {
-                const conflictIndex = times.indexOf(time);
-                if (conflictIndex > -1) {
-                    times.splice(conflictIndex, 1);
-                }
+            // Check if time has passed
+            if (dayjs(times[i]).isBefore(dayjs())) {
+                times.splice(i, 1);
             }
 
-            // TODO: Check if time is between start and end times
+            // Check if start times are the same
+            if (dayjs(times[i]).format('HH:mm') == startTime.format('HH:mm')) {
+                times.splice(i, 1);
+            }
+
+            // Check if time is between start and end times
+            if (dayjs(times[i]).isBetween(startTime, endTime)) {
+                times.splice(i, 1);
+            }
         });
-    });
+    }
 
     // Display available times
     const availableTimes = times.map((time) =>
