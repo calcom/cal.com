@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calendso/calendso">
-    <img src="https://calendso.com/calendso-logo.svg" alt="Logo" width="80" height="80">
+    <img src="https://calendso.com/calendso-logo.svg" alt="Logo" width="160" height="160">
   </a>
 
   <h3 align="center">Calendso</h3>
