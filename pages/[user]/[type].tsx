@@ -58,11 +58,11 @@ export default function Type(props) {
     if (selectedDate == dayjs().format("YYYY-MM-DD")) {
         var i = (parseInt(dayjs().startOf('hour').format('H') * 60) + parseInt(dayjs().startOf('hour').format('m')));
     } else {
-        var i = 0;
+        var i = props.user.startTime;
     }
     
     // Until day end, push new times every x minutes
-    for (;i < 1440; i += parseInt(props.eventType.length)) {
+    for (;i < props.user.endTime; i += parseInt(props.eventType.length)) {
         times.push(dayjs(selectedDate).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute').add(props.eventType.length, 'minute').format("YYYY-MM-DD HH:mm:ss"));
     }
 
@@ -163,7 +163,9 @@ export async function getServerSideProps(context) {
             name: true,
             bio: true,
             avatar: true,
-            eventTypes: true
+            eventTypes: true,
+            startTime: true,
+            endTime: true
         }
     });
 
