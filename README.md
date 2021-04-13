@@ -55,20 +55,24 @@ Here is what you need to be able to run Calendso.
    ```sh
    yarn install
    ```
-3. Configure environment variables
+3. Copy .env.example to .env
+4. Configure environment variables in the .env file. Replace \<user\>, \<pass\>, \<db-host\>, \<db-port\> with their applicable values
    ```
-   DATABASE_URL='postgresql://'
+   DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
    GOOGLE_API_CREDENTIALS='secret'
    ```
-4. Set up the database using the Prisma schema
+5. Set up the database using the Prisma schema
    ```sh
    npx prisma db push --preview-feature
    ```
-5. Run (in development mode)
+6. Run (in development mode)
    ```sh
    yarn dev
    ```
-
+7. Open the prisma schema with [Prisma Studio](https://www.prisma.io/studio)
+8. Click on the user model to allow add a new user record.
+9. Fill out the fields \(remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)\) and click Save 1 Record to create your first user.
+10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your first user.
 <!-- ROADMAP -->
 ## Roadmap
 
