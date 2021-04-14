@@ -6,8 +6,13 @@ import { useRouter } from 'next/router';
 const dayjs = require('dayjs');
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isBetween = require('dayjs/plugin/isBetween');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function Type(props) {
     // Initialise state
@@ -60,10 +65,10 @@ export default function Type(props) {
     } else {
         var i = props.user.startTime;
     }
-    
+
     // Until day end, push new times every x minutes
     for (;i < props.user.endTime; i += parseInt(props.eventType.length)) {
-        times.push(dayjs(selectedDate).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute').add(props.eventType.length, 'minute').format("YYYY-MM-DD HH:mm:ss"));
+        times.push(dayjs(selectedDate).hour(Math.floor(i / 60) - (dayjs(selectedDate).tz(props.user.timezone).hour())).minute(i % 60).startOf(props.eventType.length, 'minute').format("YYYY-MM-DD HH:mm:ss"));
     }
 
     // Check for conflicts
@@ -165,7 +170,8 @@ export async function getServerSideProps(context) {
             avatar: true,
             eventTypes: true,
             startTime: true,
-            endTime: true
+            endTime: true,
+            timezone: true,
         }
     });
 

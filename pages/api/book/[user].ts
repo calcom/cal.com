@@ -1,8 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../../lib/prisma';
 const {google} = require('googleapis');
-
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { user } = req.query;
@@ -12,7 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           username: user,
         },
         select: {
-            credentials: true
+          credentials: true,
+          timezone: true,
         }
     });
 
@@ -31,12 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             'summary': 'Meeting with ' + req.body.name,
             'description': req.body.notes,
             'start': {
-              'dateTime': req.body.start,
-              'timeZone': 'Europe/London',
+              'dateTime': dayjs(req.body.start).tz(currentUser.timezone).format(),
             },
             'end': {
-              'dateTime': req.body.end,
-              'timeZone': 'Europe/London',
+              'dateTime': dayjs(req.body.end).tz(currentUser.timezone).format(),
             },
             'attendees': [
               {'email': req.body.email},
