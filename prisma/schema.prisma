@@ -35,6 +35,8 @@ model User {
   password      String?
   bio           String?
   avatar        String?
+  locale        String?
+  timezone      String?
   startTime     Int @default(0)
   endTime       Int @default(1440)
   createdDate   DateTime  @default(now()) @map(name: "created")
