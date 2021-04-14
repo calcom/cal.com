@@ -92,7 +92,7 @@ export default function Type(props) {
     // Display available times
     const availableTimes = times.map((time) =>
         <div key={time}>
-            <Link href={"/" + props.user.username + "/book?date=" + selectedDate + "T" + dayjs(time).format("HH:mm:ss") + "Z&type=" + props.eventType.id}>
+            <Link href={"/" + props.user.username + "/book?date=" + selectedDate + "T" + dayjs(time).format("HH:mm:ss") + "&type=" + props.eventType.id}>
                 <a key={time} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).format("hh:mma")}</a>
             </Link>
         </div>
