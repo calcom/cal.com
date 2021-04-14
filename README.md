@@ -101,4 +101,4 @@ Special thanks to these amazing projects which help power Calendso:
 * [Day.js](https://day.js.org/)
 * [Tailwind CSS](https://tailwindcss.com/)
 
-[product-screenshot]: https://calendso.com/calendso-screenshot.jpg
+[product-screenshot]: https://i.imgur.com/4yvFj2E.png
