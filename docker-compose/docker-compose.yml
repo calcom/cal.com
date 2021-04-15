@@ -14,7 +14,7 @@ services:
     image: calendso
     environment:
       DATABASE_URL: 'postgresql://postgres:p0stgr3s_pass@172.17.0.1:5432'
-      GOOGLE_API_CREDENTIALS: "${GOOGLE_API_CREDENTIALS}"
+      GOOGLE_API_CREDENTIALS: 'SECRET_KEY_HERE'
     depends_on:
       - postgres
     ports:
