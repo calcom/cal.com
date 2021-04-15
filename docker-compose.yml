@@ -1,0 +1,17 @@
+version: "3.1"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS:-changeme}
+
+  calendoso:
+    build: .
+    restart: always
+    ports:
+      - 3000:3000/tcp
+    environment: 
+      - DATABASE_URL='postgresql://root:${DB_PASS:-changeme}@db:5432'
+      - GOOGLE_API_CREDENTIALS='secret'

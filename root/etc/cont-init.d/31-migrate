@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv bash
+
+cd /app
+npx prisma db push --preview-feature

@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+
+#killall nginx
+
+if pgrep -f "[n]ginx:" > /dev/null; then
+  pkill -ef [n]ginx:
+fi
+
+exec nginx -c /etc/nginx/nginx.conf -g "daemon off;"
