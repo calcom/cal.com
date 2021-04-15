@@ -11,8 +11,9 @@ RUN \
  apk add --no-cache \
     nginx \
     npm &&\
- echo "**** Installing NPX ****" &&\
- npm install &&\
+ echo "**** Installing Yarn and Apps ****" &&\
+ npm install --global yarn &&\
+ yarn install &&\
  echo "**** Cleaning Up ****" &&\
  rm -rf \
 	/root/.cache \
