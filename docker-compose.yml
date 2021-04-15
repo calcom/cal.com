@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${DB_PASS:-changeme}
 
-  calendoso:
+  calendso:
     build: .
     restart: always
     ports:
