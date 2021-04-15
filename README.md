@@ -45,6 +45,8 @@ Here is what you need to be able to run Calendso.
 * PostgreSQL
 * Yarn _(recommended)_
 
+You will also need Google API credentials. You can get this from the [Google API Console](https://console.cloud.google.com/apis/dashboard). Simply create a new project, set the OAuth to use the calendar.events read and write permissions, and then set the callback URL to `<CALENDSO URL>/api/integrations/googlecalendar/callback`.
+
 ### Development Setup
 
 1. Clone the repo
@@ -69,7 +71,7 @@ Here is what you need to be able to run Calendso.
    ```sh
    yarn dev
    ```
-7. Open the prisma schema with [Prisma Studio](https://www.prisma.io/studio)
+7. Open the prisma schema (found in `prisma/schema.prisma`) with [Prisma Studio](https://www.prisma.io/studio)
 8. Click on the user model to allow add a new user record.
 9. Fill out the fields \(remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)\) and click Save 1 Record to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your first user.
