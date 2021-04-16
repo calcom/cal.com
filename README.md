@@ -32,6 +32,7 @@ Let's face it: Calendly and other scheduling tools are awesome. It made our live
 * [Next.js](https://nextjs.org/)
 * [React](https://reactjs.org/)
 * [Tailwind](https://tailwindcss.com/)
+* [Prisma](https://prisma.io/)
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -57,13 +58,13 @@ You will also need Google API credentials. You can get this from the [Google API
    ```sh
    yarn install
    ```
-3. Copy .env.example to .env
-4. Configure environment variables in the .env file. Replace \<user\>, \<pass\>, \<db-host\>, \<db-port\> with their applicable values
+3. Copy `.env.example` to `.env`
+4. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
    GOOGLE_API_CREDENTIALS='secret'
    ```
-5. Set up the database using the Prisma schema
+5. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
    ```sh
    npx prisma db push --preview-feature
    ```
@@ -71,10 +72,14 @@ You will also need Google API credentials. You can get this from the [Google API
    ```sh
    yarn dev
    ```
-7. Open the prisma schema (found in `prisma/schema.prisma`) with [Prisma Studio](https://www.prisma.io/studio)
-8. Click on the user model to allow add a new user record.
-9. Fill out the fields \(remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)\) and click Save 1 Record to create your first user.
-10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your first user.
+7. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
+   ```
+   npx prisma studio
+   ```
+9. Click on the `User` model to add a new user record.
+10. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+11. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
+
 <!-- ROADMAP -->
 ## Roadmap
 
@@ -88,9 +93,10 @@ Contributions are what make the open source community such an amazing place to b
 
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a pull request
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+5. Push to the branch (`git push origin feature/AmazingFeature`)
+6. Open a pull request
 
 
 ## Obtaining the Google API Credentials
@@ -115,9 +121,11 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
+
 Special thanks to these amazing projects which help power Calendso:
 * [Next.js](https://nextjs.org/)
 * [Day.js](https://day.js.org/)
 * [Tailwind CSS](https://tailwindcss.com/)
+* [Prisma](https://prisma.io/)
 
 [product-screenshot]: https://i.imgur.com/4yvFj2E.png
