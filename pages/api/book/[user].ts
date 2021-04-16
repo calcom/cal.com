@@ -12,7 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           username: user,
         },
         select: {
-            credentials: true
+            credentials: true,
+            timeZone: true,
         }
     });
 
@@ -32,11 +33,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             'description': req.body.notes,
             'start': {
               'dateTime': req.body.start,
-              'timeZone': 'Europe/London',
+              'timeZone': currentUser.timeZone,
             },
             'end': {
               'dateTime': req.body.end,
-              'timeZone': 'Europe/London',
+              'timeZone': currentUser.timeZone,
             },
             'attendees': [
               {'email': req.body.email},

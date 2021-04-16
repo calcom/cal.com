@@ -6,8 +6,12 @@ import { useRouter } from 'next/router';
 const dayjs = require('dayjs');
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isBetween = require('dayjs/plugin/isBetween');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function Type(props) {
     // Initialise state
@@ -61,9 +65,12 @@ export default function Type(props) {
         var i = props.user.startTime;
     }
     
+    // Adding first availability time
+    times.push(dayjs(selectedDate).tz(props.user.timeZone).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute'));
+
     // Until day end, push new times every x minutes
     for (;i < props.user.endTime; i += parseInt(props.eventType.length)) {
-        times.push(dayjs(selectedDate).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute').add(props.eventType.length, 'minute').format("YYYY-MM-DD HH:mm:ss"));
+        times.push(dayjs(selectedDate).tz(props.user.timeZone).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute').add(props.eventType.length, 'minute'));
     }
 
     // Check for conflicts
@@ -87,13 +94,23 @@ export default function Type(props) {
                 times.splice(i, 1);
             }
         });
+
+      // If event ends after endTime, remove the slot
+      if(dayjs(times[i]).add(props.eventType.length, 'minute') > dayjs(times[i]).hour(0).minute(0).add(props.user.endTime, 'minute') ) {
+        times.splice(i, 1);
+      }
+
+      //If slot starts before startTime, remove it
+      if(dayjs(times[i]) < dayjs(times[i]).hour(0).minute(0).add(props.user.startTime, 'minute') ) {
+        times.splice(i, 1);
+      }
     }
 
     // Display available times
     const availableTimes = times.map((time) =>
-        <div key={time}>
-            <Link href={"/" + props.user.username + "/book?date=" + selectedDate + "T" + dayjs(time).format("HH:mm:ss") + "&type=" + props.eventType.id}>
-                <a key={time} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).format("hh:mma")}</a>
+        <div key={time.format("YYYY-MM-DDTHH:mm:ss")}>
+            <Link href={`/${props.user.username}/book?date=${time.format("YYYY-MM-DDTHH:mm:ss")}&type=${props.eventType.id}`}>
+                <a key={time.format("YYYY-MM-DDTHH:mm:ss")} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(dayjs.tz.guess()).format("hh:mma")}</a>
             </Link>
         </div>
     );
@@ -165,6 +182,7 @@ export async function getServerSideProps(context) {
             avatar: true,
             eventTypes: true,
             startTime: true,
+            timeZone: true,
             endTime: true
         }
     });
