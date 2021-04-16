@@ -32,6 +32,7 @@ Let's face it: Calendly and other scheduling tools are awesome. It made our live
 * [Next.js](https://nextjs.org/)
 * [React](https://reactjs.org/)
 * [Tailwind](https://tailwindcss.com/)
+* [Prisma](https://prisma.io/)
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -108,5 +109,6 @@ Special thanks to these amazing projects which help power Calendso:
 * [Next.js](https://nextjs.org/)
 * [Day.js](https://day.js.org/)
 * [Tailwind CSS](https://tailwindcss.com/)
+* [Prisma](https://prisma.io/)
 
 [product-screenshot]: https://i.imgur.com/4yvFj2E.png
