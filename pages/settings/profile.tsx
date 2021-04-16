@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useRef, useState, ChangeEvent } from 'react';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
@@ -14,6 +14,7 @@ export default function Settings(props) {
     const nameRef = useRef();
     const descriptionRef = useRef();
     const timezoneRef = useRef();
+    const [avatarUrl, setAvatarUrl] = useState(props.user.avatar);
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -37,13 +38,53 @@ export default function Settings(props) {
 
         const response = await fetch('/api/user/profile', {
             method: 'PATCH',
-            body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, timeZone: enteredTimezone}),
+            body: JSON.stringify({username: enteredUsername, name: enteredName, bio: enteredDescription, timeZone: enteredTimezone, avatar: avatarUrl}),
             headers: {
                 'Content-Type': 'application/json'
             }
         });
 
         setSuccessModalOpen(true);
+    }
+
+    async function uploadAvatarHandler(event:ChangeEvent<HTMLInputElement>) {
+        event.preventDefault();
+
+        const file = event.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const response = await fetch('/api/user/avatar-upload-url', {
+            method: 'POST',
+            body: JSON.stringify({mime: file.type}),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const { url, fields, getUrl, message } = await response.json();
+
+        if (response.status !== 200) {
+            alert(message);
+            return;
+        }
+
+        const body = new FormData();
+
+        body.append('file', file);
+
+        Object.entries(fields).forEach(([key, val]) => {
+            body.set(key, val as string);
+        });
+
+        await fetch(url, {
+            method: 'POST',
+            body,
+        });
+
+        setAvatarUrl(getUrl);
     }
 
     return(
@@ -209,7 +250,7 @@ export default function Settings(props) {
                                 <div className="mt-1 lg:hidden">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 inline-block rounded-full overflow-hidden h-12 w-12" aria-hidden="true">
-                                            <img className="rounded-full h-full w-full" src={props.user.avatar} alt="" />
+                                            <img className="rounded-full h-full w-full" src={avatarUrl} alt="" />
                                         </div>
                                         <div className="ml-5 rounded-md shadow-sm">
                                             <div className="group relative border border-gray-300 rounded-md py-2 px-3 flex items-center justify-center hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
@@ -217,19 +258,19 @@ export default function Settings(props) {
                                                     <span>Change</span>
                                                     <span className="sr-only"> user photo</span>
                                                 </label>
-                                                <input id="user_photo" name="user_photo" type="file" className="absolute w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-md" />
+                                                <input id="user_photo" name="user_photo" onChange={uploadAvatarHandler} type="file" className="absolute w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-md" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="hidden relative rounded-full overflow-hidden lg:block">
-                                    {props.user.avatar && <img className="relative rounded-full w-40 h-40" src={props.user.avatar} alt="" />}
-                                    {!props.user.avatar && <div className="relative bg-blue-600 rounded-full w-40 h-40"></div>}
+                                    {avatarUrl && <img className="relative rounded-full w-40 h-40" src={avatarUrl} alt="" />}
+                                    {!avatarUrl && <div className="relative bg-blue-600 rounded-full w-40 h-40"></div>}
                                     <label htmlFor="user-photo" className="absolute inset-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center text-sm font-medium text-white opacity-0 hover:opacity-100 focus-within:opacity-100">
                                         <span>Change</span>
                                         <span className="sr-only"> user photo</span>
-                                        <input type="file" id="user-photo" name="user-photo" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-md" />
+                                        <input type="file" id="user-photo" name="user-photo" onChange={uploadAvatarHandler} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-md" />
                                     </label>
                                 </div>
                             </div>

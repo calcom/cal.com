@@ -23,21 +23,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!user) { res.status(404).json({message: 'User not found'}); return; }
 
-    const username = req.body.username;
-    const name = req.body.name;
-    const description = req.body.description;
-    const timeZone = req.body.timeZone;
+    // only update fields that are sent
+    const data = {};
+    ['username', 'name', 'bio', 'avatar', 'timeZone'].forEach(field => {
+        if (field in req.body) {
+            data[field] = req.body[field];
+        }
+    });
+
+    // TODO remove old avatar from s3
 
     const updateUser = await prisma.user.update({
         where: {
           id: user.id,
         },
-        data: {
-          username,
-          name,
-          bio: description,
-          timeZone: timeZone,
-        },
+        data,
     });
 
     res.status(200).json({message: 'Profile updated successfully'});

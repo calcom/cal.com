@@ -9,6 +9,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.13.0",
+    "@aws-sdk/s3-presigned-post": "^3.13.0",
     "@headlessui/react": "^1.0.0",
     "@heroicons/react": "^1.0.1",
     "@prisma/client": "2.21.2",
