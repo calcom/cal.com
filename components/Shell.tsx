@@ -7,9 +7,14 @@ export default function Shell(props) {
     const router = useRouter();
     const [ session, loading ] = useSession();
     const [ profileDropdownExpanded, setProfileDropdownExpanded ] = useState(false);
+    const [ mobileMenuExpanded, setMobileMenuExpanded ] = useState(false);
 
     const toggleProfileDropdown = () => {
         setProfileDropdownExpanded(!profileDropdownExpanded);
+    }
+
+    const toggleMobileMenu = () => {
+        setMobileMenuExpanded(!mobileMenuExpanded);
     }
 
     return (
@@ -72,27 +77,31 @@ export default function Shell(props) {
                                     </div>
                                 </div>
                                 <div className="-mr-2 flex md:hidden">
-                                    <button type="button" className="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                                    <button onClick={toggleMobileMenu} type="button" className="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
                                         <span className="sr-only">Open main menu</span>
-                                        <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        { !mobileMenuExpanded && <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                                        </svg>
-                                        <svg className="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        </svg> }
+                                        { mobileMenuExpanded && <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        </svg> }
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="border-b border-gray-700 md:hidden" id="mobile-menu">
+                    { mobileMenuExpanded && <div className="border-b border-gray-700 md:hidden" id="mobile-menu">
                         <div className="px-2 py-3 space-y-1 sm:px-3">
-                            <a href="#" className="bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
-                            <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Bookings</a>
-                            <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Availability</a>
-                            <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Integrations</a>
-                            <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Teams</a>
+                            <Link href="/">
+                                <a className={router.pathname == "/" ? "bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"}>Dashboard</a>
+                            </Link>
+                            <Link href="/availability">
+                                <a className={router.pathname.startsWith("/availability") ? "bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"}>Availability</a>
+                            </Link>
+                            <Link href="/integrations">
+                                <a className={router.pathname.startsWith("/integrations") ? "bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"}>Integrations</a>
+                            </Link>
                         </div>
                         <div className="pt-4 pb-3 border-t border-gray-700">
                             <div className="flex items-center px-5">
@@ -111,12 +120,17 @@ export default function Shell(props) {
                                 </button>
                             </div>
                             <div className="mt-3 px-2 space-y-1">
-                                <a href="#" className="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">Your Profile</a>
-                                <a href="#" className="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">Settings</a>
-                                <a href="#" className="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">Sign out</a>
+                                <Link href="/settings/profile">
+                                    <a className="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">Your Profile</a>
+                                </Link>
+                                <Link href="/settings">
+                                    <a className={router.pathname.startsWith("/settings") ? "bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"}>Settings</a>
+                                </Link>
+                                <button onClick={signOut} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">Sign out</button>
                             </div>
                         </div>
                     </div>
+                    }
                 </nav>
                 <header className="py-10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
