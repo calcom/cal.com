@@ -25,16 +25,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const username = req.body.username;
     const name = req.body.name;
-    const description = req.body.description;
+    const bio = req.body.description;
 
     const updateUser = await prisma.user.update({
         where: {
           id: user.id,
         },
         data: {
-          username: username,
-          name: name,
-          bio: description
+          username,
+          name,
+          bio
         },
     });
 
