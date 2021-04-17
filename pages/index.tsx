@@ -9,10 +9,10 @@ export default function Home(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
+    }
+    if (!session) {
+        window.location.href = "/auth/login";
+        return;
     }
 
     return(
