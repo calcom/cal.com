@@ -73,11 +73,11 @@ export default function Settings(props) {
 
         const body = new FormData();
 
-        body.append('file', file);
-
         Object.entries(fields).forEach(([key, val]) => {
             body.set(key, val as string);
         });
+
+        body.append('file', file);
 
         await fetch(url, {
             method: 'POST',

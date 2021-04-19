@@ -66,6 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         Expires: 120, // 2Min
         Conditions: [
             ["content-length-range", 1, 1048576], // 1MB
+            {"acl": "public-read" },
             {"content-type": mime},
         ],
     });
