@@ -1298,9 +1298,9 @@ jest-worker@24.9.0:
     supports-color "^6.1.0"
 
 jose@^1.27.2:
-  version "1.28.0"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-1.28.0.tgz#0803f8c71f43cd293a9d931c555c30531f5ca5dc"
-  integrity sha512-JmfDRzt/HSj8ipd9TsDtEHoLUnLYavG+7e8F6s1mx2jfVSfXOTaFQsJUydbjJpTnTDHP1+yKL9Ke7ktS/a0Eiw==
+  version "1.28.1"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-1.28.1.tgz#34a0f851a534be59ffab82a6e8845f6874e8c128"
+  integrity sha512-6JK28rFu5ENp/yxMwM+iN7YeaInnY9B9Bggjkz5fuwLiJhbVrl2O4SJr65bdNBPl9y27fdC3Mymh+FVCvozLIg==
   dependencies:
     "@panva/asn1.js" "^1.0.0"
 
