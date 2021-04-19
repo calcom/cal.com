@@ -33,8 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           id: user.id,
         },
         data: {
-          username: username,
-          name: name,
+          username,
+          name,
           bio: description,
           timeZone: timeZone,
         },
