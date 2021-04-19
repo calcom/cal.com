@@ -221,7 +221,7 @@ export default function Availability(props) {
                                         <button type="submit" className="btn btn-primary">
                                             Create
                                         </button>
-                                        <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
+                                        <button onClick={toggleAddModal} type="button" className="btn btn-white mr-2">
                                             Cancel
                                         </button>
                                     </div>
