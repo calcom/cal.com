@@ -12,7 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           username: user,
         },
         select: {
-            credentials: true
+            credentials: true,
+            timeZone: true
         }
     });
 
@@ -32,8 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const calendar = google.calendar({version: 'v3', auth});
         calendar.freebusy.query({
             requestBody: {
-                timeMin: req.query.date + "T00:00:00.00Z",
-                timeMax: req.query.date + "T23:59:59.59Z",
+                timeMin: req.query.dateFrom,
+                timeMax: req.query.dateTo,
                 items: [{
                     "id": "primary"
                 }]

@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useMemo} from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../../lib/prisma';
@@ -6,8 +6,14 @@ import { useRouter } from 'next/router';
 const dayjs = require('dayjs');
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isBetween = require('dayjs/plugin/isBetween');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+import getSlots from '../../lib/slots'
 
 export default function Type(props) {
     // Initialise state
@@ -29,6 +35,21 @@ export default function Type(props) {
         setSelectedMonth(selectedMonth - 1);
     }
 
+      // Need to define the bounds of the 24-hour window
+      const lowerBound = useMemo(() => {
+        if(!selectedDate) {
+          return 
+        }
+  
+        return selectedDate.startOf('day')
+      }, [selectedDate])
+  
+      const upperBound = useMemo(() => {
+        if(!selectedDate) return 
+        
+        return selectedDate.endOf('day')
+      }, [selectedDate])
+
     // Set up calendar
     var daysInMonth = dayjs().month(selectedMonth).daysInMonth();
     var days = [];
@@ -37,63 +58,57 @@ export default function Type(props) {
     }
 
     const calendar = days.map((day) =>
-        <button key={day} onClick={(e) => setSelectedDate(dayjs().month(selectedMonth).date(day).format("YYYY-MM-DD"))} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
+        <button key={day} onClick={(e) => setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
         </button>
     );
 
     // Handle date change
     useEffect(async () => {
+        if(!selectedDate) {
+          return
+        }
+
         setLoading(true);
-        const res = await fetch('/api/availability/' + user + '?date=' + dayjs(selectedDate).format("YYYY-MM-DD"));
+        const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
         const data = await res.json();
         setBusy(data.primary.busy);
         setLoading(false);
     }, [selectedDate]);
 
-    // Set up timeslots
-    let times = [];
 
-    // If we're looking at availability throughout the current date, work out the current number of minutes elapsed throughout the day
-    if (selectedDate == dayjs().format("YYYY-MM-DD")) {
-        var i = (parseInt(dayjs().startOf('hour').format('H') * 60) + parseInt(dayjs().startOf('hour').format('m')));
-    } else {
-        var i = props.user.startTime;
-    }
-    
-    // Until day end, push new times every x minutes
-    for (;i < props.user.endTime; i += parseInt(props.eventType.length)) {
-        times.push(dayjs(selectedDate).hour(Math.floor(i / 60)).minute(i % 60).startOf(props.eventType.length, 'minute').add(props.eventType.length, 'minute').format("YYYY-MM-DD HH:mm:ss"));
-    }
+    const times = getSlots({
+      calendarTimeZone: props.user.timeZone,
+      selectedTimeZone: dayjs.tz.guess(),
+      eventLength: props.eventType.length,
+      selectedDate: selectedDate,
+      dayStartTime: props.user.startTime,
+      dayEndTime: props.user.endTime,
+    })
 
     // Check for conflicts
-    for(i = times.length - 1; i >= 0; i -= 1) {
-        busy.forEach(busyTime => {
-            let startTime = dayjs(busyTime.start);
-            let endTime = dayjs(busyTime.end);
+    for(let i = times.length - 1; i >= 0; i -= 1) {
+      busy.forEach(busyTime => {
+          let startTime = dayjs(busyTime.start);
+          let endTime = dayjs(busyTime.end);
 
-            // Check if time has passed
-            if (dayjs(times[i]).isBefore(dayjs())) {
-                times.splice(i, 1);
-            }
+          // Check if start times are the same
+          if (dayjs(times[i]).format('HH:mm') == startTime.format('HH:mm')) {
+              times.splice(i, 1);
+          }
 
-            // Check if start times are the same
-            if (dayjs(times[i]).format('HH:mm') == startTime.format('HH:mm')) {
-                times.splice(i, 1);
-            }
-
-            // Check if time is between start and end times
-            if (dayjs(times[i]).isBetween(startTime, endTime)) {
-                times.splice(i, 1);
-            }
-        });
+          // Check if time is between start and end times
+          if (dayjs(times[i]).isBetween(startTime, endTime)) {
+              times.splice(i, 1);
+          }
+      });
     }
 
     // Display available times
     const availableTimes = times.map((time) =>
-        <div key={time}>
-            <Link href={"/" + props.user.username + "/book?date=" + selectedDate + "T" + dayjs(time).format("HH:mm:ss") + "&type=" + props.eventType.id}>
-                <a key={time} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).format("hh:mma")}</a>
+        <div key={dayjs(time).utc().format()}>
+            <Link href={`/${props.user.username}/book?date=${dayjs(time).utc().format()}&type=${props.eventType.id}`}>
+                <a key={dayjs(time).format("hh:mma")} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(dayjs.tz.guess()).format("hh:mma")}</a>
             </Link>
         </div>
     );
@@ -165,6 +180,7 @@ export async function getServerSideProps(context) {
             avatar: true,
             eventTypes: true,
             startTime: true,
+            timeZone: true,
             endTime: true
         }
     });
