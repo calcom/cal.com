@@ -123,9 +123,15 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## Acknowledgements
 
 Special thanks to these amazing projects which help power Calendso:
+
+[<img src="https://calendso.com/powered-by-vercel.svg">](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
+
+* [Vercel](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 * [Next.js](https://nextjs.org/)
 * [Day.js](https://day.js.org/)
 * [Tailwind CSS](https://tailwindcss.com/)
 * [Prisma](https://prisma.io/)
 
 [product-screenshot]: https://i.imgur.com/4yvFj2E.png
+
+
