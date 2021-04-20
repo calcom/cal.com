@@ -25,7 +25,7 @@ export default function Home(props) {
             <Shell heading="Dashboard">
                 <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
-                        <div className="bg-white shadow sm:rounded-lg">
+                        <div className="bg-white shadow rounded-lg">
                             <div className="px-4 py-5 sm:p-6">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                                     Welcome to Calendso!
@@ -44,7 +44,7 @@ export default function Home(props) {
                         </div>
                     </div>
                     <div>
-                        <div className="bg-white rounded-lg shadow px-5 py-6 sm:px-6">
+                        <div className="bg-white rounded-lg shadow px-5 py-6 md:py-7 sm:px-6">
                             <div className="mb-8 sm:flex sm:items-center sm:justify-between">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                                     Your integrations
