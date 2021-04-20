@@ -38,7 +38,7 @@ export default function EventType(props) {
             }
         });
 
-        console.log(response);
+        router.push('/availability');
     }
 
     async function deleteEventTypeHandler(event) {
