@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../../lib/prisma';
+import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
 import Router from 'next/router';
 import { useRef } from 'react';
@@ -10,6 +11,7 @@ import { useSession, getSession } from 'next-auth/client';
 export default function Availability(props) {
     const [ session, loading ] = useSession();
     const [showAddModal, setShowAddModal] = useState(false);
+    const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
     const titleRef = useRef();
     const descriptionRef = useRef();
@@ -35,6 +37,8 @@ export default function Availability(props) {
     function toggleChangeTimesModal() {
         setShowChangeTimesModal(!showChangeTimesModal);
     }
+
+    const closeSuccessModal = () => { Router.reload(); }
 
     function convertMinsToHrsMins (mins) {
         let h = Math.floor(mins / 60);
@@ -87,8 +91,8 @@ export default function Availability(props) {
             }
         });
 
-        console.log(response);
-        Router.reload();
+        setShowChangeTimesModal(false);
+        setSuccessModalOpen(true);
     }
 
     return(
@@ -295,6 +299,7 @@ export default function Availability(props) {
                         </div>
                     </div>
                 }
+                <Modal heading="Start and end times changed" description="The start and end times for your day have been changed successfully." open={successModalOpen} handleClose={closeSuccessModal} />
             </Shell>
         </div>
     );
