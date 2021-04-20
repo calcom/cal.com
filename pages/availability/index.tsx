@@ -61,8 +61,9 @@ export default function Availability(props) {
             }
         });
 
-        console.log(response);
-        Router.reload();
+        if (enteredTitle && enteredLength) {
+            Router.reload();
+        }
     }
 
     async function updateStartEndTimesHandler(event) {
@@ -217,6 +218,7 @@ export default function Availability(props) {
                                             </div>
                                         </div>
                                     </div>
+                                    {/* TODO: Add an error message when required input fields empty*/}
                                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                                         <button type="submit" className="btn btn-primary">
                                             Create
