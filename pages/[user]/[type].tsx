@@ -4,6 +4,8 @@ import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import { useRouter } from 'next/router';
 const dayjs = require('dayjs');
+import { Switch } from '@headlessui/react';
+import { GlobeIcon, ChevronDownIcon } from '@heroicons/react/solid';
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isBetween = require('dayjs/plugin/isBetween');
 const utc = require('dayjs/plugin/utc');
@@ -13,18 +15,26 @@ dayjs.extend(isBetween);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-import getSlots from '../../lib/slots'
+import getSlots from '../../lib/slots';
+
+function classNames(...classes) {
+    return classes.filter(Boolean).join(' ')
+}
 
 export default function Type(props) {
     // Initialise state
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
     const [loading, setLoading] = useState(false);
+    const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
+    const [is24h, setIs24h] = useState(false);
     const [busy, setBusy] = useState([]);
 
     // Get router variables
     const router = useRouter();
     const { user } = router.query;
+
+    const toggleTimeOptions = () => { setIsTimeOptionsOpen(!isTimeOptionsOpen); }
 
     // Handle month changes
     const incrementMonth = () => {
@@ -108,7 +118,7 @@ export default function Type(props) {
     const availableTimes = times.map((time) =>
         <div key={dayjs(time).utc().format()}>
             <Link href={`/${props.user.username}/book?date=${dayjs(time).utc().format()}&type=${props.eventType.id}`}>
-                <a key={dayjs(time).format("hh:mma")} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(dayjs.tz.guess()).format("hh:mma")}</a>
+                <a key={dayjs(time).format("hh:mma")} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(dayjs.tz.guess()).format(is24h ? "HH:mm" : "hh:mma")}</a>
             </Link>
         </div>
     );
@@ -123,17 +133,50 @@ export default function Type(props) {
             <main className={"mx-auto my-24 transition-max-width ease-in-out duration-500 " + (selectedDate ? 'max-w-6xl' : 'max-w-3xl')}>
                 <div className="bg-white overflow-hidden shadow rounded-lg md:max-h-96">
                     <div className="sm:flex px-4 py-5 sm:p-6">
-                        <div className={"sm:border-r " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2')}>
+                        <div className={"pr-8 sm:border-r " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2')}>
                             {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>}
                             <h2 className="font-medium text-gray-500">{props.user.name}</h2>
                             <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
-                            <p className="text-gray-500 mb-4">
+                            <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
                                 <svg className="inline-block w-4 h-4 mr-1 -mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                                 </svg>
                                 {props.eventType.length} minutes
                             </p>
-                            <p className="text-gray-600">{props.eventType.description}</p>
+                            <button onClick={toggleTimeOptions} className="text-gray-500 mb-1 hover:bg-gray-100 rounded-full px-2 -ml-2 cursor-pointer">
+                                <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1"/>
+                                {dayjs.tz.guess()} <ChevronDownIcon className="inline-block w-4 h-4 mb-1" />
+                            </button>
+                            { isTimeOptionsOpen && 
+                            <div className="bg-white rounded shadow p-4 absolute w-72">
+                                <Switch.Group as="div" className="flex items-center">
+                                    <Switch.Label as="span" className="mr-3">
+                                        <span className="text-sm text-gray-500">am/pm</span>
+                                    </Switch.Label>
+                                    <Switch
+                                    checked={is24h}
+                                    onChange={setIs24h}
+                                    className={classNames(
+                                        is24h ? 'bg-blue-600' : 'bg-gray-200',
+                                        'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                                    )}
+                                    >
+                                        <span className="sr-only">Use setting</span>
+                                        <span
+                                            aria-hidden="true"
+                                            className={classNames(
+                                            is24h ? 'translate-x-5' : 'translate-x-0',
+                                            'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200'
+                                            )}
+                                        />
+                                    </Switch>
+                                    <Switch.Label as="span" className="ml-3">
+                                        <span className="text-sm text-gray-500">24h</span>
+                                    </Switch.Label>
+                                </Switch.Group>
+                            </div>
+                            }
+                            <p className="text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
                         </div>
                         <div className={"mt-8 sm:mt-0 " + (selectedDate ? 'sm:w-1/3 border-r sm:px-4' : 'sm:w-1/2 sm:pl-4')}>
                             <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
