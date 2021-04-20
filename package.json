@@ -9,6 +9,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@headlessui/react": "^1.0.0",
+    "@heroicons/react": "^1.0.1",
     "@prisma/client": "2.21.2",
     "@tailwindcss/forms": "^0.2.1",
     "bcryptjs": "^2.4.3",

@@ -1,13 +1,15 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import prisma from '../../lib/prisma';
+import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
 import { signIn, useSession, getSession } from 'next-auth/client';
 
 export default function Settings(props) {
     const [ session, loading ] = useSession();
+    const [successModalOpen, setSuccessModalOpen] = useState(false);
     const usernameRef = useRef();
     const nameRef = useRef();
     const descriptionRef = useRef();
@@ -20,6 +22,8 @@ export default function Settings(props) {
             window.location.href = "/auth/login";
         }
     }
+
+    const closeSuccessModal = () => { setSuccessModalOpen(false); }
 
     async function updateProfileHandler(event) {
         event.preventDefault();
@@ -39,7 +43,7 @@ export default function Settings(props) {
             }
         });
 
-        console.log(response);
+        setSuccessModalOpen(true);
     }
 
     return(
@@ -636,6 +640,7 @@ export default function Settings(props) {
                         </div>
                     </div>
                 </form>
+                <Modal heading="Profile updated successfully" description="Your user profile has been updated successfully." open={successModalOpen} handleClose={closeSuccessModal} />
             </SettingsShell>
         </Shell>
     );
