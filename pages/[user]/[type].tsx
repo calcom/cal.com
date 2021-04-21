@@ -5,7 +5,7 @@ import prisma from '../../lib/prisma';
 import { useRouter } from 'next/router';
 const dayjs = require('dayjs');
 import { Switch } from '@headlessui/react';
-import { GlobeIcon, ChevronDownIcon } from '@heroicons/react/solid';
+import { ClockIcon, GlobeIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid';
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isBetween = require('dayjs/plugin/isBetween');
 const utc = require('dayjs/plugin/utc');
@@ -138,9 +138,7 @@ export default function Type(props) {
                             <h2 className="font-medium text-gray-500">{props.user.name}</h2>
                             <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
                             <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                                <svg className="inline-block w-4 h-4 mr-1 -mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                </svg>
+                                <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                                 {props.eventType.length} minutes
                             </p>
                             <button onClick={toggleTimeOptions} className="text-gray-500 mb-1 hover:bg-gray-100 rounded-full px-2 -ml-2 cursor-pointer">
@@ -183,14 +181,10 @@ export default function Type(props) {
                                 <span className="w-1/2">{dayjs().month(selectedMonth).format("MMMM YYYY")}</span>
                                 <div className="w-1/2 text-right">
                                     <button onClick={decrementMonth} className={"mr-4 " + (selectedMonth < dayjs().format('MM') && 'text-gray-400')} disabled={selectedMonth < dayjs().format('MM')}>
-                                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
+                                        <ChevronLeftIcon className="w-5 h-5" />
                                     </button>
                                     <button onClick={incrementMonth}>
-                                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                        </svg>
+                                        <ChevronRightIcon className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
