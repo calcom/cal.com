@@ -23,8 +23,8 @@ export default function Home(props) {
         setShowAddModal(!showAddModal);
     }
 
-    function googleCalendarHandler() {
-        fetch('/api/integrations/googlecalendar/add')
+    function integrationHandler(type) {
+        fetch('/api/integrations/' + type + '/add')
             .then((response) => response.json())
             .then((data) => window.location.href = data.url);
     }
@@ -47,18 +47,20 @@ export default function Home(props) {
                                             <div className="min-w-0 flex-1 flex items-center">
                                                 <div className="flex-shrink-0">
                                                     {integration.type == 'google_calendar' && <img className="h-10 w-10 mr-2" src="integrations/google-calendar.png" alt="Google Calendar" />}
+                                                    {integration.type == 'office365_calendar' && <img className="h-10 w-10 mr-2" src="integrations/office-365.png" alt="Office 365 / Outlook.com Calendar" />}
                                                 </div>
                                                 <div className="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
                                                     <div>
                                                         {integration.type == 'google_calendar' && <p className="text-sm font-medium text-blue-600 truncate">Google Calendar</p>}
-                                                        <p className="mt-2 flex items-center text-sm text-gray-500">
-                                                            {integration.type == 'google_calendar' && <span className="truncate">Calendar Integration</span>}
+                                                        {integration.type == 'office365_calendar' && <p className="text-sm font-medium text-blue-600 truncate">Office365 / Outlook.com Calendar</p>}
+                                                        <p className="flex items-center text-sm text-gray-500">
+                                                            {integration.type.endsWith('_calendar') && <span className="truncate">Calendar Integration</span>}
                                                         </p>
                                                     </div>
                                                     <div className="hidden md:block">
                                                         <div>
                                                             {integration.key &&
-                                                                <p className="mt-3 flex items-center text text-gray-500">
+                                                                <p className="mt-2 flex items-center text text-gray-500">
                                                                     <CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" />
                                                                     Connected
                                                                 </p>
@@ -105,7 +107,7 @@ export default function Home(props) {
                         </div>
                     }
                 </div>
-                {showAddModal && 
+                {showAddModal &&
                     <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         {/* <!--
@@ -150,6 +152,18 @@ export default function Home(props) {
                                 <ul className="divide-y divide-gray-200">
                                     <li className="flex py-4">
                                         <div className="w-1/12 mr-4 pt-2">
+                                            <img className="h-8 w-8 mr-2" src="integrations/office-365.png" alt="Office 365 / Outlook.com Calendar" />
+                                        </div>
+                                        <div className="w-10/12">
+                                            <h2 className="text-gray-800 font-medium">Office 365 / Outlook.com Calendar</h2>
+                                            <p className="text-gray-400 text-sm">For personal and business accounts</p>
+                                        </div>
+                                        <div className="w-2/12 text-right pt-2">
+                                            <button onClick={() => integrationHandler('office365calendar')} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
+                                        </div>
+                                    </li>
+                                    <li className="flex py-4">
+                                        <div className="w-1/12 mr-4 pt-2">
                                             <img className="h-8 w-8 mr-2" src="integrations/google-calendar.png" alt="Google Calendar" />
                                         </div>
                                         <div className="w-10/12">
@@ -157,7 +171,7 @@ export default function Home(props) {
                                             <p className="text-gray-400 text-sm">For personal and business accounts</p>
                                         </div>
                                         <div className="w-2/12 text-right pt-2">
-                                            <button onClick={googleCalendarHandler} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
+                                            <button onClick={() => integrationHandler('googlecalendar')} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
                                         </div>
                                     </li>
                                 </ul>

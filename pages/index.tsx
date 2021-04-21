@@ -56,16 +56,18 @@ export default function Home(props) {
                                 </div>
                             </div>
                             <ul className="divide-y divide-gray-200">
-                                {props.credentials.map((integration) => 
+                                {props.credentials.map((integration) =>
                                     <li className="pb-4 flex">
                                         {integration.type == 'google_calendar' && <img className="h-10 w-10 mr-2" src="integrations/google-calendar.png" alt="Google Calendar" />}
+                                        {integration.type == 'office365_calendar' && <img className="h-10 w-10 mr-2" src="integrations/office-365.png" alt="Office 365 / Outlook.com Calendar" />}
                                         <div className="ml-3">
+                                            {integration.type == 'office365_calendar' && <p className="text-sm font-medium text-gray-900">Office 365 / Outlook.com Calendar</p>}
                                             {integration.type == 'google_calendar' && <p className="text-sm font-medium text-gray-900">Google Calendar</p>}
-                                            {integration.type == 'google_calendar' && <p className="text-sm text-gray-500">Calendar Integration</p>}
+                                            <p className="text-sm text-gray-500">Calendar Integration</p>
                                         </div>
                                     </li>
                                 )}
-                                {props.credentials.length == 0 && 
+                                {props.credentials.length == 0 &&
                                     <div className="text-center text-gray-400 py-2">
                                         <p>You haven't added any integrations.</p>
                                     </div>
@@ -93,7 +95,7 @@ export async function getServerSideProps(context) {
                 id: true
             }
         });
-    
+
         credentials = await prisma.credential.findMany({
             where: {
                 userId: user.id,
