@@ -30,6 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const authUrl = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             scope: scopes,
+            // A refresh token is only returned the first time the user
+            // consents to providing access.  For illustration purposes,
+            // setting the prompt to 'consent' will force this consent
+            // every time, forcing a refresh_token to be returned.
+            prompt: 'consent',
         });
 
         res.status(200).json({url: authUrl});

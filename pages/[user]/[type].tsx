@@ -48,15 +48,15 @@ export default function Type(props) {
       // Need to define the bounds of the 24-hour window
       const lowerBound = useMemo(() => {
         if(!selectedDate) {
-          return 
+          return
         }
-  
+
         return selectedDate.startOf('day')
       }, [selectedDate])
-  
+
       const upperBound = useMemo(() => {
-        if(!selectedDate) return 
-        
+        if(!selectedDate) return
+
         return selectedDate.endOf('day')
       }, [selectedDate])
 
@@ -81,8 +81,8 @@ export default function Type(props) {
 
         setLoading(true);
         const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
-        const data = await res.json();
-        setBusy(data.primary.busy);
+        const busyTimes = await res.json();
+        if (busyTimes.length > 0) setBusy(busyTimes);
         setLoading(false);
     }, [selectedDate]);
 
@@ -145,7 +145,7 @@ export default function Type(props) {
                                 <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1"/>
                                 {dayjs.tz.guess()} <ChevronDownIcon className="inline-block w-4 h-4 mb-1" />
                             </button>
-                            { isTimeOptionsOpen && 
+                            { isTimeOptionsOpen &&
                             <div className="bg-white rounded shadow p-4 absolute w-72">
                                 <Switch.Group as="div" className="flex items-center">
                                     <Switch.Label as="span" className="mr-3">
