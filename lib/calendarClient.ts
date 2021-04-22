@@ -24,7 +24,7 @@ const o365Auth = (credential) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            'scope': 'Calendars.Read Calendars.ReadWrite',
+            'scope': 'User.Read Calendars.Read Calendars.ReadWrite',
             'client_id': process.env.MS_GRAPH_CLIENT_ID,
             'refresh_token': refreshToken,
             'grant_type': 'refresh_token',
