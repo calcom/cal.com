@@ -27,9 +27,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
     // Convert to token
-    oAuth2Client.getToken(code, async (err, token) => {
+    return new Promise( (resolve, reject) => oAuth2Client.getToken(code, async (err, token) => {
         if (err) return console.error('Error retrieving access token', err);
-        
+
         const credential = await prisma.credential.create({
             data: {
                 type: 'google_calendar',
@@ -37,9 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 userId: user.id
             }
         });
-    });
 
-    // Add the credential
-
-    res.redirect('/integrations');
+        res.redirect('/integrations');
+        resolve();
+    }));
 }
