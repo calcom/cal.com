@@ -106,7 +106,7 @@ const MicrosoftOffice365Calendar = (credential) => {
                 })
                 .then(handleErrors)
                 .then( responseBody => {
-                    return responseBody.value[0].scheduleItems.map( (evt) => ({ start: evt.start.dateTime, end: evt.end.dateTime }))
+                    return responseBody.value[0].scheduleItems.map( (evt) => ({ start: evt.start.dateTime + 'Z', end: evt.end.dateTime + 'Z' }))
                 })
             ).catch( (err) => {
                 console.log(err);
