@@ -7,9 +7,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const currentUser = await prisma.user.findFirst({
         where: {
-          username: user,
+            username: user,
         },
         select: {
+            name: true,
+            email: true,
             credentials: true,
             timeZone: true,
         }
@@ -21,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: req.body.start,
         endTime: req.body.end,
         timeZone: currentUser.timeZone,
+        organizer: { email: currentUser.email, name: currentUser.name },
         attendees: [
             { email: req.body.email, name: req.body.name }
         ]

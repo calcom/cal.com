@@ -50,7 +50,7 @@ interface CalendarEvent {
     endTime: string;
     description?: string;
     organizer: { name?: string, email: string };
-    attendees: { name?: string, email: string }[];
+    attendees: { name?: string, email: string, responseStatus?: string, organizer?: string }[];
 };
 
 const MicrosoftOffice365Calendar = (credential) => {
@@ -145,6 +145,12 @@ const GoogleCalendar = (credential) => {
             });
         }),
         createEvent: (event: CalendarEvent) => new Promise( (resolve, reject) => {
+            // Add organizator to invite in Google Calendar
+            event.attendees.push({
+                email: event.organizer.email,
+                responseStatus: 'accepted',
+                organizer: 'true',
+            });
             const payload = {
                 summary: event.title,
                 description: event.description,
@@ -155,6 +161,11 @@ const GoogleCalendar = (credential) => {
                 end: {
                     dateTime: event.endTime,
                     timeZone: event.timeZone,
+                },
+                conferenceData: {
+                    createRequest: {
+                        requestId: Math.random().toString()
+                    }
                 },
                 attendees: event.attendees,
                 reminders: {
@@ -170,6 +181,7 @@ const GoogleCalendar = (credential) => {
                 auth: myGoogleAuth,
                 calendarId: 'primary',
                 resource: payload,
+                conferenceDataVersion: 1,
             }, function(err, event) {
                 if (err) {
                     console.log('There was an error contacting the Calendar service: ' + err);
