@@ -34,6 +34,14 @@ Let's face it: Calendly and other scheduling tools are awesome. It made our live
 * [Tailwind](https://tailwindcss.com/)
 * [Prisma](https://prisma.io/)
 
+## Stay Up-to-Date
+
+Calendso is currently in alpha. Watch **releases** of this repository to be notified for future updates:
+
+![calendso-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
+
+
+
 <!-- GETTING STARTED -->
 ## Getting Started
 
