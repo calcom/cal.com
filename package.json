@@ -19,8 +19,10 @@
     "ics": "^2.27.0",
     "next": "10.0.8",
     "next-auth": "^3.13.2",
+    "next-transpile-modules": "^6.4.1",
     "react": "17.0.1",
-    "react-dom": "17.0.1"
+    "react-dom": "17.0.1",
+    "react-timezone-select": "^0.10.7"
   },
   "devDependencies": {
     "@types/node": "^14.14.33",

@@ -8,7 +8,7 @@ export default function SettingsShell(props) {
         <div>
             <main className="relative -mt-32">
                 <div>
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <div className="bg-white rounded-lg shadow">
                         <div className="divide-y divide-gray-200 lg:grid lg:grid-cols-12 lg:divide-y-0 lg:divide-x">
                             <aside className="py-6 lg:col-span-3">
                                 <nav className="space-y-1">

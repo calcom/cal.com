@@ -6,6 +6,7 @@ import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
 import { signIn, useSession, getSession } from 'next-auth/client';
+import TimezoneSelect from 'react-timezone-select';
 
 export default function Settings(props) {
     const [ session, loading ] = useSession();
@@ -13,7 +14,8 @@ export default function Settings(props) {
     const usernameRef = useRef();
     const nameRef = useRef();
     const descriptionRef = useRef();
-    const timezoneRef = useRef();
+
+    const [ selectedTimeZone, setSelectedTimeZone ] = useState({ value: props.user.timeZone });
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -31,13 +33,13 @@ export default function Settings(props) {
         const enteredUsername = usernameRef.current.value;
         const enteredName = nameRef.current.value;
         const enteredDescription = descriptionRef.current.value;
-        const enteredTimezone = timezoneRef.current.value;
+        const enteredTimeZone = selectedTimeZone.value;
 
         // TODO: Add validation
 
         const response = await fetch('/api/user/profile', {
             method: 'PATCH',
-            body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, timeZone: enteredTimezone}),
+            body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, timeZone: enteredTimeZone}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -95,109 +97,7 @@ export default function Settings(props) {
                                         Timezone
                                     </label>
                                     <div className="mt-1">
-                                        <select name="timezone" id="timeZone" defaultValue={props.user.timeZone} ref={timezoneRef} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md">
-                                          <option disabled style={{display: "none"}}>Time Zone...</option>
-
-                                          <optgroup label="Common">
-                                            <option value="GMT">Dublin, Edinburgh, Lisbon, London</option>
-                                            <option value="Europe/Brussels">Brussels, Copenhagen, Madrid, Paris</option>
-                                          </optgroup>
-                                          <optgroup label="America">
-                                            <option value="America/Juneau">Alaska</option>
-                                            <option value="America/Phoenix">Arizona</option>
-                                            <option value="America/Belize">Central America</option>
-                                            <option value="America/Bogota">Bogota, Lima, Quito</option>
-                                            <option value="America/Boise">Mountain Time (US and Canada)</option>
-                                            <option value="America/Argentina/Buenos_Aires">Buenos Aires, Georgetown</option>
-                                            <option value="America/Caracas">Caracas, La Paz</option>
-                                            <option value="America/Chicago">Chicago, Central Time</option>
-                                            <option value="America/Chihuahua">Chihuahua, La Paz, Mazatlan</option>
-                                            <option value="America/Dawson">Dawson</option>
-                                            <option value="America/Detroit">Detroit</option>
-                                            <option value="America/Glace_Bay">Atlantic Time, Canada</option>
-                                            <option value="America/Godthab">Greenland</option>
-                                            <option value="America/Indiana/Indianapolis">Indiana (East), Indianapolis</option>
-                                            <option value="America/Mexico_City">Guadalajara, Mexico City, Monterrey</option>
-                                            <option value="America/Regina">Saskatchewan</option>
-                                            <option value="America/Santiago">Santiago</option>
-                                            <option value="America/Sao_Paulo">Sao Paulo, Brasilia</option>
-                                            <option value="America/St_Johns">Newfoundland and Labrador</option>
-                                          </optgroup>
-
-                                          <optgroup label="Europe">
-                                            <option value="Europe/Amsterdam">Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>
-                                            <option value="Europe/Athens">Athens, Istanbul, Minsk</option>
-                                            <option value="Europe/Belgrade">Belgrade, Bratislava, Budapest, Ljubljana, Prague</option>
-                                            <option value="Europe/Brussels">Brussels, Copenhagen, Madrid, Paris</option>
-                                            <option value="Europe/Bucharest">Bucharest</option>
-                                            <option value="GMT">Dublin, Edinburgh, Lisbon, London</option>
-                                            <option value="Europe/Helsinki">Helsinki, Kiev, Riga, Sofia, Tallinn, Vilnius</option>
-                                            <option value="Europe/Moscow">Moscow, St. Petersburg, Volgograd</option>
-                                          </optgroup>
-
-                                          <optgroup label="Asia">
-                                            <option value="Asia/Almaty">Almaty, Novosibirsk</option>
-                                            <option value="Asia/Baghdad">Baghdad</option>
-                                            <option value="Asia/Baku">Baku, Tbilisi, Yerevan</option>
-                                            <option value="Asia/Bangkok">Bangkok, Hanoi, Jakarta</option>
-                                            <option value="Asia/Colombo">Sri Jayawardenepura</option>
-                                            <option value="Asia/Dhaka">Dhaka, Astana</option>
-                                            <option value="Asia/Dubai">Abu Dhabi, Muscat</option>
-                                            <option value="Asia/Irkutsk">Irkutsk, Ulaanbaatar</option>
-                                            <option value="Asia/Jerusalem">Jerusalem</option>
-                                            <option value="Asia/Kabul">Kabul</option>
-                                            <option value="Asia/Karachi">Karachi, Islamabad, Tashkent</option>
-                                            <option value="Asia/Kolkata">Kolkata, Chennai, Mumbai, New Delphi</option>
-                                            <option value="Asia/Krasnoyarsk">Krasnoyarsk</option>
-                                            <option value="Asia/Kuala_Lumpur">Kuala Lumpur, Singapore</option>
-                                            <option value="Asia/Kuwait">Kuwait</option>
-                                            <option value="Asia/Magadan">Magadan, Solomon Islands, New Caledonia</option>
-                                            <option value="Asia/Rangoon">Yangon Rangoon</option>
-                                            <option value="Asia/Seoul">Seoul</option>
-                                            <option value="Asia/Shanghai">Beijing, Chongqing, Hong Kong SAR, Urumqi</option>
-                                            <option value="Asia/Tehran">Tehran</option>
-                                            <option value="Asia/Tokyo">Tokyo, Osaka, Sapporo</option>
-                                            <option value="Asia/Vladivostok">Vladivostok</option>
-                                            <option value="Asia/Yakutsk">Yakutsk</option>
-                                            <option value="Asia/Yekaterinburg">Yekaterinburg</option>
-                                          </optgroup>
-
-                                          <optgroup label="Africa">
-                                            <option value="Africa/Cairo">Cairo</option>
-                                            <option value="Africa/Casablanca">Casablanca, Monrovia</option>
-                                            <option value="Africa/Algiers">West Central Africa</option>
-                                            <option value="Africa/Harare">Harare, Pretoria</option>
-                                            <option value="Africa/Nairobi">Nairobi</option>
-                                          </optgroup>
-
-                                          <optgroup label="Australia">
-                                            <option value="Australia/Adelaide">Adelaide</option>
-                                            <option value="Australia/Brisbane">Brisbane</option>
-                                            <option value="Australia/Darwin">Darwin</option>
-                                            <option value="Australia/Hobart">Hobart, Tasmania</option>
-                                            <option value="Australia/Perth">Perth</option>
-                                            <option value="Australia/Sydney">Sydney, Melbourne, Canberra</option>
-                                          </optgroup>
-
-                                          <optgroup label="Atlantic">
-                                            <option value="Atlantic/Azores">Azores</option>
-                                            <option value="Atlantic/Cape_Verde">Cape Verde Islands</option>
-                                            <option value="Atlantic/Canary">Canary Islands</option>
-                                            <option value="Etc/GMT+2">Mid-Atlantic</option>
-                                          </optgroup>
-
-                                          <optgroup label="Pacific">
-                                            <option value="Pacific/Auckland">Auckland, Wellington</option>
-                                            <option value="Pacific/Fiji">Fiji Islands, Kamchatka, Marshall Islands</option>
-                                            <option value="Pacific/Guam">Guam, Port Moresby</option>
-                                            <option value="Pacific/Tongatapu">Nuku'alofa</option>
-                                          </optgroup>
-
-                                          <optgroup label="Antarctica">
-                                            <option value="Antarctica/McMurdo">McMurdo, South Pole</option>
-                                          </optgroup>
-
-                                        </select>
+                                        <TimezoneSelect id="timeZone" value={selectedTimeZone} onChange={setSelectedTimeZone} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     </div>
                                 </div>
                                 </div>
