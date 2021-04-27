@@ -1,0 +1,7 @@
+name = "calendar"
+type = "javascript"
+workers_dev = true
+
+[site]
+bucket = "public"
+entry-point = "workers-site"
