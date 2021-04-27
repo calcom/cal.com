@@ -16,6 +16,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 import getSlots from '../../lib/slots';
+import {useTelemetry} from "../../lib/telemetry";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -29,6 +30,7 @@ export default function Type(props) {
     const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
     const [is24h, setIs24h] = useState(false);
     const [busy, setBusy] = useState([]);
+    const telemetry = useTelemetry();
 
     // Get router variables
     const router = useRouter();
@@ -68,7 +70,10 @@ export default function Type(props) {
     }
 
     const calendar = days.map((day) =>
-        <button key={day} onClick={(e) => setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
+        <button key={day} onClick={(e) => {
+            telemetry.withJitsu((jitsu) => jitsu.track('date_selected'))
+            setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))
+        }} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
         </button>
     );
