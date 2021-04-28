@@ -70,16 +70,16 @@ export default function Type(props) {
     
     // Create placeholder elements for empty days in first week
     const weekdayOfFirst = dayjs().month(selectedMonth).date(1).day();
-    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) => (
-      <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
-          {null}
-      </div>
-    ));
+    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) => 
+        <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
+            {null}
+        </div>
+    );
 
     // Combine placeholder days with actual days
     const calendar = [...emptyDays, ...days.map((day) =>
         <button key={day} onClick={(e) => setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
-          {day}
+            {day}
         </button>
     )];
 
