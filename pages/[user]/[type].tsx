@@ -199,6 +199,13 @@ export default function Type(props) {
                                 </div>
                             </div>
                             <div className="grid grid-cols-7 gap-y-4 text-center">
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Sun</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Mon</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Tue</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Wed</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Thu</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Fri</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Sat</div>
                                 {calendar}
                             </div>
                         </div>
