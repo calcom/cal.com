@@ -15,6 +15,7 @@ model EventType {
   title         String
   description   String?
   length        Int
+  hidden        Boolean @default(false)
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
 }

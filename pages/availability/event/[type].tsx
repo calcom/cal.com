@@ -12,6 +12,7 @@ export default function EventType(props) {
     const titleRef = useRef();
     const descriptionRef = useRef();
     const lengthRef = useRef();
+    const isHiddenRef = useRef();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -27,12 +28,13 @@ export default function EventType(props) {
         const enteredTitle = titleRef.current.value;
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
+        const enteredIsHidden = isHiddenRef.current.checked;
 
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'PATCH',
-            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, description: enteredDescription, length: enteredLength}),
+            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -88,6 +90,26 @@ export default function EventType(props) {
                                             </div>
                                         </div>
                                     </div>
+                                    <div className="my-8">
+                                        <div className="relative flex items-start">
+                                            <div className="flex items-center h-5">
+                                                <input
+                                                    ref={isHiddenRef}
+                                                    id="ishidden"
+                                                    name="ishidden"
+                                                    type="checkbox"
+                                                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                                    defaultChecked={props.eventType.hidden}
+                                                />
+                                            </div>
+                                            <div className="ml-3 text-sm">
+                                                <label htmlFor="ishidden" className="font-medium text-gray-700">
+                                                    Hide this event type
+                                                </label>
+                                                <p className="text-gray-500">Hide the event type from your page, so it can only be booked through it's URL.</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <button type="submit" className="btn btn-primary">Update</button>
                                     <Link href="/availability"><a className="ml-2 btn btn-white">Cancel</a></Link>
                                 </form>
@@ -129,7 +151,8 @@ export async function getServerSideProps(context) {
             id: true,
             title: true,
             description: true,
-            length: true
+            length: true,
+            hidden: true
         }
     });
 
