@@ -154,6 +154,7 @@ export default function Availability(props) {
                                                     {eventType.length} minutes
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    {eventType.hidden && <Link href={"/" + props.user.username + "/" + eventType.id}><a className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>}
                                                     <Link href={"/availability/event/" + eventType.id}><a className="text-blue-600 hover:text-blue-900">Edit</a></Link>
                                                 </td>
                                             </tr>
@@ -337,6 +338,7 @@ export async function getServerSideProps(context) {
         },
         select: {
             id: true,
+            username: true,
             startTime: true,
             endTime: true
         }
