@@ -24,6 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!user) { res.status(404).json({message: 'User not found'}); return; }
 
         const title = req.body.title;
+        const slug = req.body.slug;
         const description = req.body.description;
         const length = parseInt(req.body.length);
         const hidden = req.body.hidden;
@@ -31,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const createEventType = await prisma.eventType.create({
             data: {
                 title: title,
+                slug: slug,
                 description: description,
                 length: length,
                 hidden: hidden,
@@ -56,6 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const id = req.body.id;
         const title = req.body.title;
+        const slug = req.body.slug;
         const description = req.body.description;
         const length = parseInt(req.body.length);
         const hidden = req.body.hidden;
@@ -66,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             data: {
                 title: title,
+                slug: slug,
                 description: description,
                 length: length,
                 hidden: hidden

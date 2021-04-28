@@ -228,6 +228,7 @@ export async function getServerSideProps(context) {
           username: context.query.user,
         },
         select: {
+            id: true,
             username: true,
             name: true,
             bio: true,
@@ -239,9 +240,12 @@ export async function getServerSideProps(context) {
         }
     });
 
-    const eventType = await prisma.eventType.findUnique({
+    const eventType = await prisma.eventType.findFirst({
         where: {
-          id: parseInt(context.query.type),
+            userId: user.id,
+            slug: {
+                equals: context.query.type,
+            },
         },
         select: {
             id: true,

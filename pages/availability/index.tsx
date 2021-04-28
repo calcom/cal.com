@@ -15,6 +15,7 @@ export default function Availability(props) {
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
     const titleRef = useRef();
+    const slugRef = useRef();
     const descriptionRef = useRef();
     const lengthRef = useRef();
     const isHiddenRef = useRef();
@@ -54,6 +55,7 @@ export default function Availability(props) {
         event.preventDefault();
 
         const enteredTitle = titleRef.current.value;
+        const enteredSlug = slugRef.current.value;
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
         const enteredIsHidden = isHiddenRef.current.checked;
@@ -62,7 +64,7 @@ export default function Availability(props) {
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'POST',
-            body: JSON.stringify({title: enteredTitle, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
+            body: JSON.stringify({title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -154,7 +156,7 @@ export default function Availability(props) {
                                                     {eventType.length} minutes
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    {eventType.hidden && <Link href={"/" + props.user.username + "/" + eventType.id}><a className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>}
+                                                    {eventType.hidden && <Link href={"/" + props.user.username + "/" + eventType.slug}><a className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>}
                                                     <Link href={"/availability/event/" + eventType.id}><a className="text-blue-600 hover:text-blue-900">Edit</a></Link>
                                                 </td>
                                             </tr>
@@ -211,6 +213,23 @@ export default function Availability(props) {
                                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
                                             <div className="mt-1">
                                                 <input ref={titleRef} type="text" name="title" id="title" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" />
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <label htmlFor="slug" className="block text-sm font-medium text-gray-700">URL</label>
+                                            <div className="mt-1">
+                                                <div className="flex rounded-md shadow-sm">
+                                                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                                        {location.hostname}/{props.user.username}/
+                                                    </span>
+                                                    <input
+                                                        ref={slugRef}
+                                                        type="text"
+                                                        name="slug"
+                                                        id="slug"
+                                                        className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="mb-4">
@@ -351,6 +370,7 @@ export async function getServerSideProps(context) {
         select: {
             id: true,
             title: true,
+            slug: true,
             description: true,
             length: true,
             hidden: true

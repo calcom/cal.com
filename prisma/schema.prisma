@@ -13,6 +13,7 @@ generator client {
 model EventType {
   id            Int     @default(autoincrement()) @id
   title         String
+  slug          String
   description   String?
   length        Int
   hidden        Boolean @default(false)
