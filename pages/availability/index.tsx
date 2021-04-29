@@ -17,7 +17,7 @@ export default function Availability(props) {
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
-    const descriptionRef = useRef<HTMLInputElement>();
+    const descriptionRef = useRef<HTMLTextAreaElement>();
     const lengthRef = useRef<HTMLInputElement>();
     const isHiddenRef = useRef<HTMLInputElement>();
 
@@ -42,7 +42,7 @@ export default function Availability(props) {
         setShowChangeTimesModal(!showChangeTimesModal);
     }
 
-    const closeSuccessModal = () => { Router.reload(); }
+    const closeSuccessModal = () => { router.replace(router.asPath); }
 
     function convertMinsToHrsMins (mins) {
         let h = Math.floor(mins / 60);

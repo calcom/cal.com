@@ -15,7 +15,7 @@ export default function Settings(props) {
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const usernameRef = useRef<HTMLInputElement>();
     const nameRef = useRef<HTMLInputElement>();
-    const descriptionRef = useRef<HTMLInputElement>();
+    const descriptionRef = useRef<HTMLTextAreaElement>();
     const avatarRef = useRef<HTMLInputElement>();
 
     const [ selectedTimeZone, setSelectedTimeZone ] = useState({ value: props.user.timeZone });

@@ -11,7 +11,7 @@ export default function EventType(props) {
     const [ session, loading ] = useSession();
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
-    const descriptionRef = useRef<HTMLInputElement>();
+    const descriptionRef = useRef<HTMLTextAreaElement>();
     const lengthRef = useRef<HTMLInputElement>();
     const isHiddenRef = useRef<HTMLInputElement>();
 

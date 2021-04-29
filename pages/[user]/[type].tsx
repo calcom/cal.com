@@ -84,16 +84,19 @@ export default function Type(props) {
     )];
 
     // Handle date change
-    useEffect(async () => {
-        if(!selectedDate) {
-          return
+    useEffect(() => {
+        const changeDate = async () => {
+            if (!selectedDate) {
+                return
+            }
+    
+            setLoading(true);
+            const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
+            const busyTimes = await res.json();
+            if (busyTimes.length > 0) setBusy(busyTimes);
+            setLoading(false);
         }
-
-        setLoading(true);
-        const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
-        const busyTimes = await res.json();
-        if (busyTimes.length > 0) setBusy(busyTimes);
-        setLoading(false);
+        changeDate();
     }, [selectedDate]);
 
 
