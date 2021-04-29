@@ -3,9 +3,9 @@ import Link from 'next/link';
 import prisma from '../lib/prisma';
 
 export default function User(props) {
-    const eventTypes = props.user.eventTypes.map(type =>
+    const eventTypes = props.eventTypes.map(type =>
         <li key={type.id}>
-            <Link href={'/' + props.user.username + '/' + type.id.toString()}>
+            <Link href={'/' + props.user.username + '/' + type.slug}>
                 <a className="block px-6 py-4">
                     <div className="inline-block w-3 h-3 rounded-full bg-blue-600 mr-2"></div>
                     <h2 className="inline-block font-medium">{type.title}</h2>
@@ -46,9 +46,10 @@ export default function User(props) {
 export async function getServerSideProps(context) {
     const user = await prisma.user.findFirst({
         where: {
-          username: context.query.user,
+            username: context.query.user,
         },
         select: {
+            id: true,
             username: true,
             name: true,
             bio: true,
@@ -63,9 +64,17 @@ export async function getServerSideProps(context) {
        }
     }
 
+    const eventTypes = await prisma.eventType.findMany({
+        where: {
+            userId: user.id,
+            hidden: false
+        }
+    });
+
     return {
         props: {
-            user
+            user,
+            eventTypes
         },
     }
 }  

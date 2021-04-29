@@ -9,9 +9,11 @@ import { useSession, getSession } from 'next-auth/client';
 export default function EventType(props) {
     const router = useRouter();
     const [ session, loading ] = useSession();
-    const titleRef = useRef();
-    const descriptionRef = useRef();
-    const lengthRef = useRef();
+    const titleRef = useRef<HTMLInputElement>();
+    const slugRef = useRef<HTMLInputElement>();
+    const descriptionRef = useRef<HTMLTextAreaElement>();
+    const lengthRef = useRef<HTMLInputElement>();
+    const isHiddenRef = useRef<HTMLInputElement>();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -25,14 +27,16 @@ export default function EventType(props) {
         event.preventDefault();
 
         const enteredTitle = titleRef.current.value;
+        const enteredSlug = slugRef.current.value;
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
+        const enteredIsHidden = isHiddenRef.current.checked;
 
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'PATCH',
-            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, description: enteredDescription, length: enteredLength}),
+            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -74,6 +78,24 @@ export default function EventType(props) {
                                         </div>
                                     </div>
                                     <div className="mb-4">
+                                        <label htmlFor="slug" className="block text-sm font-medium text-gray-700">URL</label>
+                                        <div className="mt-1">
+                                            <div className="flex rounded-md shadow-sm">
+                                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                                    {location.hostname}/{props.user.username}/
+                                                </span>
+                                                <input
+                                                    ref={slugRef}
+                                                    type="text"
+                                                    name="slug"
+                                                    id="slug"
+                                                    className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                                    defaultValue={props.eventType.slug}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mb-4">
                                         <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
                                         <div className="mt-1">
                                             <textarea ref={descriptionRef} name="description" id="description" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="A quick video meeting." defaultValue={props.eventType.description}></textarea>
@@ -85,6 +107,26 @@ export default function EventType(props) {
                                             <input ref={lengthRef} type="number" name="length" id="length" className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" defaultValue={props.eventType.length} />
                                             <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
                                                 minutes
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="my-8">
+                                        <div className="relative flex items-start">
+                                            <div className="flex items-center h-5">
+                                                <input
+                                                    ref={isHiddenRef}
+                                                    id="ishidden"
+                                                    name="ishidden"
+                                                    type="checkbox"
+                                                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                                    defaultChecked={props.eventType.hidden}
+                                                />
+                                            </div>
+                                            <div className="ml-3 text-sm">
+                                                <label htmlFor="ishidden" className="font-medium text-gray-700">
+                                                    Hide this event type
+                                                </label>
+                                                <p className="text-gray-500">Hide the event type from your page, so it can only be booked through it's URL.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -120,6 +162,16 @@ export default function EventType(props) {
 }
 
 export async function getServerSideProps(context) {
+    const session = await getSession(context);
+
+    const user = await prisma.user.findFirst({
+        where: {
+            email: session.user.email,
+        },
+        select: {
+            username: true
+        }
+    });
 
     const eventType = await prisma.eventType.findUnique({
         where: {
@@ -128,13 +180,16 @@ export async function getServerSideProps(context) {
         select: {
             id: true,
             title: true,
+            slug: true,
             description: true,
-            length: true
+            length: true,
+            hidden: true
         }
     });
 
     return {
         props: {
+            user,
             eventType
         },
     }

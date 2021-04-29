@@ -26,6 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const username = req.body.username;
     const name = req.body.name;
     const description = req.body.description;
+    const avatar = req.body.avatar;
     const timeZone = req.body.timeZone;
 
     const updateUser = await prisma.user.update({
@@ -35,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: {
           username,
           name,
+          avatar,
           bio: description,
           timeZone: timeZone,
         },
