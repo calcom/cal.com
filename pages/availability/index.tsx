@@ -3,7 +3,7 @@ import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
-import Router from 'next/router';
+import { useRouter } from 'next/router';
 import { useRef } from 'react';
 import { useState } from 'react';
 import { useSession, getSession } from 'next-auth/client';
@@ -11,6 +11,7 @@ import { PlusIcon, ClockIcon } from '@heroicons/react/outline';
 
 export default function Availability(props) {
     const [ session, loading ] = useSession();
+    const router = useRouter();
     const [showAddModal, setShowAddModal] = useState(false);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
@@ -71,7 +72,8 @@ export default function Availability(props) {
         });
 
         if (enteredTitle && enteredLength) {
-            Router.reload();
+            router.replace(router.asPath);
+            toggleAddModal();
         }
     }
 
