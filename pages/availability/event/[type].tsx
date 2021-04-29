@@ -9,11 +9,11 @@ import { useSession, getSession } from 'next-auth/client';
 export default function EventType(props) {
     const router = useRouter();
     const [ session, loading ] = useSession();
-    const titleRef = useRef();
-    const slugRef = useRef();
-    const descriptionRef = useRef();
-    const lengthRef = useRef();
-    const isHiddenRef = useRef();
+    const titleRef = useRef<HTMLInputElement>();
+    const slugRef = useRef<HTMLInputElement>();
+    const descriptionRef = useRef<HTMLInputElement>();
+    const lengthRef = useRef<HTMLInputElement>();
+    const isHiddenRef = useRef<HTMLInputElement>();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;

@@ -13,10 +13,10 @@ export default function Settings(props) {
     const [ session, loading ] = useSession();
     const router = useRouter();
     const [successModalOpen, setSuccessModalOpen] = useState(false);
-    const usernameRef = useRef();
-    const nameRef = useRef();
-    const descriptionRef = useRef();
-    const avatarRef = useRef();
+    const usernameRef = useRef<HTMLInputElement>();
+    const nameRef = useRef<HTMLInputElement>();
+    const descriptionRef = useRef<HTMLInputElement>();
+    const avatarRef = useRef<HTMLInputElement>();
 
     const [ selectedTimeZone, setSelectedTimeZone ] = useState({ value: props.user.timeZone });
 

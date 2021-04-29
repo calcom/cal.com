@@ -15,16 +15,16 @@ export default function Availability(props) {
     const [showAddModal, setShowAddModal] = useState(false);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
-    const titleRef = useRef();
-    const slugRef = useRef();
-    const descriptionRef = useRef();
-    const lengthRef = useRef();
-    const isHiddenRef = useRef();
+    const titleRef = useRef<HTMLInputElement>();
+    const slugRef = useRef<HTMLInputElement>();
+    const descriptionRef = useRef<HTMLInputElement>();
+    const lengthRef = useRef<HTMLInputElement>();
+    const isHiddenRef = useRef<HTMLInputElement>();
 
-    const startHoursRef = useRef();
-    const startMinsRef = useRef();
-    const endHoursRef = useRef();
-    const endMinsRef = useRef();
+    const startHoursRef = useRef<HTMLInputElement>();
+    const startMinsRef = useRef<HTMLInputElement>();
+    const endHoursRef = useRef<HTMLInputElement>();
+    const endMinsRef = useRef<HTMLInputElement>();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
