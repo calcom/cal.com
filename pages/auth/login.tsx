@@ -1,7 +1,23 @@
 import Head from 'next/head';
-import { getCsrfToken } from 'next-auth/client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { signIn, useSession } from 'next-auth/client';
 
-export default function Login({ csrfToken }) {
+export default function Login() {
+  const router = useRouter();
+  const [ session, loading ] = useSession();
+  const [ email, setEmail ] = useState('');
+  const [ password, setPassword ] = useState('');
+
+  if (session) {
+    router.replace('/');
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    signIn('credentials-login', { email, password, callbackUrl: window.location.origin + router.basePath + '/' });
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <Head>
@@ -16,14 +32,13 @@ export default function Login({ csrfToken }) {
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                <form className="space-y-6" method="post" action="/api/auth/callback/credentials">
-                    <input name='csrfToken' type='hidden' defaultValue={csrfToken} hidden/>
+                <form className="space-y-6" onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                             Email address
                         </label>
                         <div className="mt-1">
-                            <input id="email" name="email" type="email" autoComplete="email" placeholder="john.doe@example.com" required className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                            <input id="email" name="email" type="email" autoComplete="email" onChange={(e) => setEmail(e.target.value)} value={email} placeholder="john.doe@example.com" required className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                         </div>
                     </div>
 
@@ -32,7 +47,7 @@ export default function Login({ csrfToken }) {
                             Password
                         </label>
                         <div className="mt-1">
-                            <input id="password" name="password" type="password" autoComplete="current-password" placeholder="•••••••••••••" required className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                            <input id="password" name="password" type="password" autoComplete="current-password" onChange={(e) => setPassword(e.target.value)} placeholder="•••••••••••••" required className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                         </div>
                     </div>
 
@@ -46,10 +61,4 @@ export default function Login({ csrfToken }) {
         </div>
     </div>
   )
-}
-
-Login.getInitialProps = async ({ req, res }) => {
-  return {
-    csrfToken: await getCsrfToken({ req })
-  }
 }

@@ -67,10 +67,10 @@ export default function Type(props) {
         days.push(i);
     }
 
-    
+
     // Create placeholder elements for empty days in first week
     const weekdayOfFirst = dayjs().month(selectedMonth).date(1).day();
-    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) => 
+    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) =>
         <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
             {null}
         </div>
@@ -89,9 +89,9 @@ export default function Type(props) {
             if (!selectedDate) {
                 return
             }
-    
+
             setLoading(true);
-            const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
+            const res = await fetch(`${router.basePath}/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
             const busyTimes = await res.json();
             if (busyTimes.length > 0) setBusy(busyTimes);
             setLoading(false);
@@ -242,6 +242,13 @@ export async function getServerSideProps(context) {
             endTime: true
         }
     });
+
+    // urls like <domain>/auth/dssd may match this url, so check if user.id exists before failing at "Cannot read property id of null"
+    if (!user) {
+        return {
+            notFound: true,
+        }
+    }
 
     const eventType = await prisma.eventType.findFirst({
         where: {

@@ -13,10 +13,6 @@ export default function integration(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/";
-        }
     }
 
     function toggleShowAPIKey() {
@@ -26,7 +22,7 @@ export default function integration(props) {
     async function deleteIntegrationHandler(event) {
         event.preventDefault();
 
-        const response = await fetch('/api/integrations', {
+        const response = await fetch(router.basePath + '/api/integrations', {
             method: 'DELETE',
             body: JSON.stringify({id: props.integration.id}),
             headers: {

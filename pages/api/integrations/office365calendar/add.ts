@@ -21,10 +21,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-        const hostname = 'x-forwarded-host' in req.headers ? 'https://' + req.headers['x-forwarded-host'] : 'host' in req.headers ? (req.secure ? 'https://' : 'http://') + req.headers['host'] : '';
+        let hostname = 'x-forwarded-host' in req.headers ? 'https://' + req.headers['x-forwarded-host'] : 'host' in req.headers ? (req.secure ? 'https://' : 'http://') + req.headers['host'] : '';
         if ( ! hostname || ! req.headers.referer.startsWith(hostname)) {
             throw new Error('Unable to determine external url, check server settings');
         }
+
+        hostname += process.env.BASE_PATH || '';
 
         function generateAuthUrl() {
             return 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=code&scope=' + scopes.join(' ') + '&client_id=' + process.env.MS_GRAPH_CLIENT_ID + '&redirect_uri=' + hostname + '/api/integrations/office365calendar/callback';

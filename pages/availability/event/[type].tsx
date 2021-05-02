@@ -17,10 +17,6 @@ export default function EventType(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     async function updateEventTypeHandler(event) {
@@ -34,7 +30,7 @@ export default function EventType(props) {
 
         // TODO: Add validation
 
-        const response = await fetch('/api/availability/eventtype', {
+        const response = await fetch(router.basePath + '/api/availability/eventtype', {
             method: 'PATCH',
             body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
             headers: {
@@ -48,7 +44,7 @@ export default function EventType(props) {
     async function deleteEventTypeHandler(event) {
         event.preventDefault();
 
-        const response = await fetch('/api/availability/eventtype', {
+        const response = await fetch(router.basePath + '/api/availability/eventtype', {
             method: 'DELETE',
             body: JSON.stringify({id: props.eventType.id}),
             headers: {

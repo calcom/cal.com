@@ -7,4 +7,14 @@ module.exports = withTM({
   typescript: {
     ignoreBuildErrors: true,
   },
+  basePath: process.env.BASE_PATH || '',
+  async redirects() {
+    return [
+      {
+        source: '/settings',
+        destination: '/settings/profile',
+        permanent: true,
+      }
+    ]
+  }
 });

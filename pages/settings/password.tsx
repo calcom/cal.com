@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
@@ -8,6 +9,7 @@ import SettingsShell from '../../components/Settings';
 import { signIn, useSession, getSession } from 'next-auth/client';
 
 export default function Settings(props) {
+    const router = useRouter();
     const [ session, loading ] = useSession();
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const oldPasswordRef = useRef<HTMLInputElement>();
@@ -15,10 +17,6 @@ export default function Settings(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }
@@ -31,7 +29,7 @@ export default function Settings(props) {
 
         // TODO: Add validation
 
-        const response = await fetch('/api/auth/changepw', {
+        const response = await fetch(router.basePath + '/api/auth/changepw', {
             method: 'PATCH',
             body: JSON.stringify({oldPassword: enteredOldPassword, newPassword: enteredNewPassword}),
             headers: {
@@ -91,6 +89,9 @@ export default function Settings(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if ( ! session ) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {

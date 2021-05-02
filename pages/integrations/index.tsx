@@ -3,6 +3,7 @@ import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Shell from '../../components/Shell';
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 import { useSession, getSession } from 'next-auth/client';
 import { CheckCircleIcon, XCircleIcon, ChevronRightIcon, PlusIcon } from '@heroicons/react/solid';
 import { InformationCircleIcon } from '@heroicons/react/outline';
@@ -10,13 +11,10 @@ import { InformationCircleIcon } from '@heroicons/react/outline';
 export default function Home(props) {
     const [session, loading] = useSession();
     const [showAddModal, setShowAddModal] = useState(false);
+    const router = useRouter();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/";
-        }
     }
 
     function toggleAddModal() {
@@ -24,7 +22,7 @@ export default function Home(props) {
     }
 
     function integrationHandler(type) {
-        fetch('/api/integrations/' + type + '/add')
+        fetch(router.basePath + '/api/integrations/' + type + '/add')
             .then((response) => response.json())
             .then((data) => window.location.href = data.url);
     }
@@ -192,6 +190,9 @@ export default function Home(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if ( ! session ) {
+      return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {

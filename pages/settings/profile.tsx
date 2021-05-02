@@ -22,10 +22,6 @@ export default function Settings(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }
@@ -41,7 +37,7 @@ export default function Settings(props) {
 
         // TODO: Add validation
 
-        const response = await fetch('/api/user/profile', {
+        const response = await fetch(router.basePath + '/api/user/profile', {
             method: 'PATCH',
             body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, avatar: enteredAvatar, timeZone: enteredTimeZone}),
             headers: {
@@ -78,7 +74,7 @@ export default function Settings(props) {
                                         </label>
                                         <div className="mt-1 rounded-md shadow-sm flex">
                                             <span className="bg-gray-50 border border-r-0 border-gray-300 rounded-l-md px-3 inline-flex items-center text-gray-500 sm:text-sm">
-                                                {window.location.hostname}/
+                                                {window.location.hostname}{router.basePath}/
                                             </span>
                                             <input ref={usernameRef} type="text" name="username" id="username" autoComplete="username" className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300" defaultValue={props.user.username} />
                                         </div>
@@ -162,7 +158,9 @@ export default function Settings(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
-
+    if ( ! session ) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
     const user = await prisma.user.findFirst({
         where: {
             email: session.user.email,

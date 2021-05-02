@@ -12,7 +12,7 @@ export default function Book(props) {
     const bookingHandler = event => {
         event.preventDefault();
         const res = fetch(
-            '/api/book/' + user,
+            router.basePath + '/api/book/' + user,
             {
                 body: JSON.stringify({
                     start: dayjs(date).format(),

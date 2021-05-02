@@ -10,10 +10,11 @@ export default NextAuth({
     pages: {
         signIn: '/auth/login',
         signOut: '/auth/logout',
-        error: '/auth/error', // Error code passed in query string as ?error=
+        error: (process.env.BASE_PATH || '') + '/auth/error', // Error code passed in the query as ?error=
     },
     providers: [
         Providers.Credentials({
+            id: 'credentials-login',
             name: 'Calendso',
             credentials: {
                 email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },

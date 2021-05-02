@@ -21,7 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const toUrlEncoded = payload => Object.keys(payload).map( (key) => key + '=' + encodeURIComponent(payload[ key ]) ).join('&');
-    const hostname = 'x-forwarded-host' in req.headers ? 'https://' + req.headers['x-forwarded-host'] : 'host' in req.headers ? (req.secure ? 'https://' : 'http://') + req.headers['host'] : '';
+    const basePath = process.env.BASE_PATH || '';
+
+    let hostname = 'x-forwarded-host' in req.headers ? 'https://' + req.headers['x-forwarded-host'] : 'host' in req.headers ? (req.secure ? 'https://' : 'http://') + req.headers['host'] : '';
+    hostname += basePath;
 
     const body = toUrlEncoded({ client_id: process.env.MS_GRAPH_CLIENT_ID, grant_type: 'authorization_code', code, scope: scopes.join(' '), redirect_uri: hostname + '/api/integrations/office365calendar/callback', client_secret: process.env.MS_GRAPH_CLIENT_SECRET });
 
@@ -32,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const responseBody = await response.json();
 
     if (!response.ok) {
-        return res.redirect('/integrations?error=' + JSON.stringify(responseBody));
+        return res.redirect(basePath + '/integrations?error=' + JSON.stringify(responseBody));
     }
 
     const whoami = await fetch('https://graph.microsoft.com/v1.0/me', { headers: { 'Authorization': 'Bearer ' + responseBody.access_token } });
@@ -50,5 +53,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     });
 
-    return res.redirect('/integrations');
+    return res.redirect(basePath + '/integrations');
 }

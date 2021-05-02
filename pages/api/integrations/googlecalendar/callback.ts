@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-        res.redirect('/integrations');
+        res.redirect( (process.env.BASE_PATH || '') + '/integrations');
         resolve();
     }));
 }

@@ -28,10 +28,6 @@ export default function Availability(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     function toggleAddModal() {
@@ -41,8 +37,6 @@ export default function Availability(props) {
     function toggleChangeTimesModal() {
         setShowChangeTimesModal(!showChangeTimesModal);
     }
-
-    const closeSuccessModal = () => { router.replace(router.asPath); }
 
     function convertMinsToHrsMins (mins) {
         let h = Math.floor(mins / 60);
@@ -63,7 +57,7 @@ export default function Availability(props) {
 
         // TODO: Add validation
 
-        const response = await fetch('/api/availability/eventtype', {
+        const response = await fetch(router.basePath + '/api/availability/eventtype', {
             method: 'POST',
             body: JSON.stringify({title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
             headers: {
@@ -90,7 +84,7 @@ export default function Availability(props) {
 
         // TODO: Add validation
 
-        const response = await fetch('/api/availability/day', {
+        const response = await fetch(router.basePath + '/api/availability/day', {
             method: 'PATCH',
             body: JSON.stringify({start: startMins, end: endMins}),
             headers: {
@@ -141,11 +135,11 @@ export default function Availability(props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {props.types.map((eventType) => 
+                                        {props.types.map((eventType) =>
                                             <tr>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {eventType.title}
-                                                    {eventType.hidden && 
+                                                    {eventType.hidden &&
                                                         <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                                                             Hidden
                                                         </span>
@@ -186,7 +180,7 @@ export default function Availability(props) {
                         </div>
                     </div>
                 </div>
-                {showAddModal && 
+                {showAddModal &&
                     <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
@@ -283,7 +277,7 @@ export default function Availability(props) {
                         </div>
                     </div>
                 }
-                {showChangeTimesModal && 
+                {showChangeTimesModal &&
                     <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
@@ -344,7 +338,7 @@ export default function Availability(props) {
                         </div>
                     </div>
                 }
-                <Modal heading="Start and end times changed" description="The start and end times for your day have been changed successfully." open={successModalOpen} handleClose={closeSuccessModal} />
+                <Modal heading="Start and end times changed" description="The start and end times for your day have been changed successfully." open={successModalOpen} handleClose={() => setSuccessModalOpen(false)} />
             </Shell>
         </div>
     );
@@ -352,6 +346,9 @@ export default function Availability(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if ( ! session ) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {
