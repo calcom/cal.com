@@ -3,6 +3,7 @@ import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
+import { UIButton } from '../../UIComponents';
 import { useRouter } from 'next/router';
 import { useRef } from 'react';
 import { useState } from 'react';
@@ -15,6 +16,7 @@ export default function Availability(props) {
     const [showAddModal, setShowAddModal] = useState(false);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
     const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -55,6 +57,10 @@ export default function Availability(props) {
     async function createEventTypeHandler(event) {
         event.preventDefault();
 
+        if(isLoading) {
+            return;
+        }
+
         const enteredTitle = titleRef.current.value;
         const enteredSlug = slugRef.current.value;
         const enteredDescription = descriptionRef.current.value;
@@ -62,6 +68,8 @@ export default function Availability(props) {
         const enteredIsHidden = isHiddenRef.current.checked;
 
         // TODO: Add validation
+
+        setIsLoading(true)
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'POST',
@@ -75,10 +83,16 @@ export default function Availability(props) {
             router.replace(router.asPath);
             toggleAddModal();
         }
+
+        setIsLoading(false)
     }
 
     async function updateStartEndTimesHandler(event) {
         event.preventDefault();
+
+        if(isLoading) {
+            return;
+        }
 
         const enteredStartHours = parseInt(startHoursRef.current.value);
         const enteredStartMins = parseInt(startMinsRef.current.value);
@@ -90,6 +104,8 @@ export default function Availability(props) {
 
         // TODO: Add validation
 
+        setIsLoading(true);
+
         const response = await fetch('/api/availability/day', {
             method: 'PATCH',
             body: JSON.stringify({start: startMins, end: endMins}),
@@ -100,6 +116,7 @@ export default function Availability(props) {
 
         setShowChangeTimesModal(false);
         setSuccessModalOpen(true);
+        setIsLoading(false);
     }
 
     return(
@@ -271,12 +288,8 @@ export default function Availability(props) {
                                     </div>
                                     {/* TODO: Add an error message when required input fields empty*/}
                                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                                        <button type="submit" className="btn btn-primary">
-                                            Create
-                                        </button>
-                                        <button onClick={toggleAddModal} type="button" className="btn btn-white mr-2">
-                                            Cancel
-                                        </button>
+                                        <UIButton type={"submit"} isLoading={isLoading} label="Create" />
+                                        <UIButton type={"button"} label="Cancel" onClick={toggleAddModal} className="mr-2" color="secondary"/>
                                     </div>
                                 </form>
                             </div>
@@ -332,12 +345,8 @@ export default function Availability(props) {
                                         </div>
                                     </div>
                                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                                        <button type="submit" className="btn btn-primary">
-                                            Update
-                                        </button>
-                                        <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
-                                            Cancel
-                                        </button>
+                                        <UIButton type={"submit"} label="Update" isLoading={isLoading} />
+                                        <UIButton onClick={toggleChangeTimesModal} type={"button"} label="Cancel" className="mr-2" color="secondary" />
                                     </div>
                                 </form>
                             </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
+import { UIButton } from '../../UIComponents'
 import SettingsShell from '../../components/Settings';
 import { signIn, useSession, getSession } from 'next-auth/client';
 import TimezoneSelect from 'react-timezone-select';
@@ -13,6 +14,7 @@ export default function Settings(props) {
     const [ session, loading ] = useSession();
     const router = useRouter();
     const [successModalOpen, setSuccessModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const usernameRef = useRef<HTMLInputElement>();
     const nameRef = useRef<HTMLInputElement>();
     const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -33,6 +35,10 @@ export default function Settings(props) {
     async function updateProfileHandler(event) {
         event.preventDefault();
 
+        if(isLoading) {
+            return;
+        }
+
         const enteredUsername = usernameRef.current.value;
         const enteredName = nameRef.current.value;
         const enteredDescription = descriptionRef.current.value;
@@ -40,6 +46,8 @@ export default function Settings(props) {
         const enteredTimeZone = selectedTimeZone.value;
 
         // TODO: Add validation
+
+        setIsLoading(true)
 
         const response = await fetch('/api/user/profile', {
             method: 'PATCH',
@@ -51,6 +59,7 @@ export default function Settings(props) {
 
         router.replace(router.asPath);
         setSuccessModalOpen(true);
+        setIsLoading(false);
     }
 
     return(
@@ -145,12 +154,8 @@ export default function Settings(props) {
                         </div>
                         <hr className="mt-8" />
                         <div className="py-4 flex justify-end">
-                            <button type="button" className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                Cancel
-                            </button>
-                            <button type="submit" className="ml-2 bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                Save
-                            </button>
+                            <UIButton type="button" label="Cancel" color="secondary" className="mr-2" />
+                            <UIButton type="submit" label="Save" isLoading={isLoading} />
                         </div>
                     </div>
                 </form>
