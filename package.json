@@ -9,7 +9,8 @@
     "postinstall": "prisma generate",
     "clean": "rm -Rf node_modules build yarn.lock",
     "docker:pg": "docker-compose up -d db",
-    "prisma:studio": "npx prisma studio"
+    "prisma:studio": "npx prisma studio",
+    "tunnel": "ngrok start dev --config=./ngrok.yml"
   },
   "dependencies": {
     "@headlessui/react": "^1.0.0",
@@ -31,6 +32,7 @@
     "@types/node": "^14.14.33",
     "@types/react": "^17.0.3",
     "autoprefixer": "^10.2.5",
+    "ngrok": "^4.0.1",
     "postcss": "^8.2.8",
     "prisma": "^2.21.2",
     "tailwindcss": "^2.0.3",
