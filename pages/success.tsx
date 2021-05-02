@@ -7,6 +7,11 @@ import { ClockIcon, CalendarIcon } from '@heroicons/react/solid';
 const dayjs = require('dayjs');
 const ics = require('ics');
 
+// TODO note(peer): replace this with either formatJS or next-inl 
+export function t(key: string){
+ return key
+}
+
 export default function Success(props) {
     const router = useRouter();
     const { date } = router.query;
@@ -51,7 +56,7 @@ export default function Success(props) {
                                     </div>
                                     <div className="mt-3 text-center sm:mt-5">
                                         <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                                            Booking confirmed
+                                            {t("booking_confirmed")}
                                         </h3>
                                     <div className="mt-2">
                                         <p className="text-sm text-gray-500">

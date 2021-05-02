@@ -2,6 +2,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../lib/prisma';
 
+// TODO note(peer): replace this with either formatJS or next-inl 
+export function t(key: string){
+ return key
+}
+
 export default function User(props) {
     const eventTypes = props.eventTypes.map(type =>
         <li key={type.id}>
@@ -34,7 +39,7 @@ export default function User(props) {
                     {eventTypes.length == 0 && 
                         <div className="p-8 text-center text-gray-400">
                             <h2 className="font-semibold text-3xl text-gray-600">Uh oh!</h2>
-                            <p className="max-w-md mx-auto">This user hasn't set up any event types yet.</p>
+                            <p className="max-w-md mx-auto">{t("this_user_hasnt_set_up_any")}</p>
                         </div>
                     }
                 </div>
