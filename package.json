@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "yarn docker:pg && npx prisma db push --preview-feature && next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "clean": "rm -Rf node_modules build yarn.lock",
+    "docker:pg": "docker-compose up -d db",
+    "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
     "@headlessui/react": "^1.0.0",

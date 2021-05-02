@@ -1,0 +1,18 @@
+version: "3.7"
+services:
+  db:
+    container_name: calendso_pg_server_container
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: $POSTGRES_DB
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    ports:
+      - "$POSTGRES_PORT:5432"
+    expose:
+      - $POSTGRES_PORT
+    volumes:
+      - calendso:/var/lib/mysql
+volumes:
+  calendso:
