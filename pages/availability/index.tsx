@@ -3,7 +3,7 @@ import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
-import { UIButton } from '../../UIComponents';
+import { UIButton } from '../../components';
 import { useRouter } from 'next/router';
 import { useRef } from 'react';
 import { useState } from 'react';

@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-import Loading from "./Loading";
+import Loading from "../Loading";
 
 type DefaultProps = {
   color: "primary" | "secondary";
