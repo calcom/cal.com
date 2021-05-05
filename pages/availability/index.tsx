@@ -158,7 +158,7 @@ export default function Availability(props) {
                                                     {eventType.length} minutes
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    {eventType.hidden && <Link href={"/" + props.user.username + "/" + eventType.slug}><a className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>}
+                                                    <Link href={"/" + props.user.username + "/" + eventType.slug}><a target="_blank" className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>
                                                     <Link href={"/availability/event/" + eventType.id}><a className="text-blue-600 hover:text-blue-900">Edit</a></Link>
                                                 </td>
                                             </tr>
