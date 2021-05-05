@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./Loading.module.css";
 
-import { RotateIcon } from "../../SvgComponents";
+import RotateIcon from "../RotateIcon";
 
 const Loading = props => {
   const { width = 24, height = 24, fill = "#ffffff" } = props;
