@@ -3,14 +3,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ClockIcon, CalendarIcon } from '@heroicons/react/solid';
 import prisma from '../../lib/prisma';
+import {useTelemetry} from "../../lib/telemetry";
+import {useEffect} from "react";
 const dayjs = require('dayjs');
 
 export default function Book(props) {
     const router = useRouter();
     const { date, user } = router.query;
+    const telemetry = useTelemetry();
+    useEffect(() => {
+        telemetry.withJitsu(jitsu => jitsu.track('time_selected'));
+    })
 
     const bookingHandler = event => {
         event.preventDefault();
+        telemetry.withJitsu(jitsu => jitsu.track('booking_confirmed'));
         const res = fetch(
             '/api/book/' + user,
             {
