@@ -68,27 +68,39 @@ export default function Type(props) {
     for (let i = 1; i <= daysInMonth; i++) {
         days.push(i);
     }
+    
+    // Create placeholder elements for empty days in first week
+    const weekdayOfFirst = dayjs().month(selectedMonth).date(1).day();
+    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) => 
+        <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
+            {null}
+        </div>
+    );
 
-    const calendar = days.map((day) =>
+    // Combine placeholder days with actual days
+    const calendar = [...emptyDays, ...days.map((day) =>
         <button key={day} onClick={(e) => {
             telemetry.withJitsu((jitsu) => jitsu.track('date_selected'))
             setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))
         }} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
         </button>
-    );
+    )];
 
     // Handle date change
-    useEffect(async () => {
-        if(!selectedDate) {
-          return
+    useEffect(() => {
+        const changeDate = async () => {
+            if (!selectedDate) {
+                return
+            }
+    
+            setLoading(true);
+            const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
+            const busyTimes = await res.json();
+            if (busyTimes.length > 0) setBusy(busyTimes);
+            setLoading(false);
         }
-
-        setLoading(true);
-        const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
-        const busyTimes = await res.json();
-        if (busyTimes.length > 0) setBusy(busyTimes);
-        setLoading(false);
+        changeDate();
     }, [selectedDate]);
 
 
@@ -137,7 +149,7 @@ export default function Type(props) {
 
             <main className={"mx-auto my-24 transition-max-width ease-in-out duration-500 " + (selectedDate ? 'max-w-6xl' : 'max-w-3xl')}>
                 <div className="bg-white overflow-hidden shadow rounded-lg md:max-h-96">
-                    <div className="sm:flex px-4 py-5 sm:p-6">
+                    <div className="sm:flex px-4 py-5 sm:p-4">
                         <div className={"pr-8 sm:border-r " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2')}>
                             {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>}
                             <h2 className="font-medium text-gray-500">{props.user.name}</h2>
@@ -194,6 +206,13 @@ export default function Type(props) {
                                 </div>
                             </div>
                             <div className="grid grid-cols-7 gap-y-4 text-center">
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Sun</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Mon</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Tue</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Wed</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Thu</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Fri</div>
+                                <div className="uppercase text-gray-400 text-xs tracking-widest">Sat</div>
                                 {calendar}
                             </div>
                         </div>
@@ -216,6 +235,7 @@ export async function getServerSideProps(context) {
           username: context.query.user,
         },
         select: {
+            id: true,
             username: true,
             name: true,
             bio: true,
@@ -227,9 +247,12 @@ export async function getServerSideProps(context) {
         }
     });
 
-    const eventType = await prisma.eventType.findUnique({
+    const eventType = await prisma.eventType.findFirst({
         where: {
-          id: parseInt(context.query.type),
+            userId: user.id,
+            slug: {
+                equals: context.query.type,
+            },
         },
         select: {
             id: true,

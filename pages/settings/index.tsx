@@ -13,7 +13,7 @@ export default function Settings() {
         }
     }
 
-    router.push('/settings/profile');
+    router.replace('/settings/profile');
 
     return null;
 }

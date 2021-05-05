@@ -81,7 +81,7 @@ export default function Book(props) {
                                 </div>
                                 <div>
                                     <button type="submit" className="btn btn-primary">Confirm</button>
-                                    <Link href={"/" + props.user.username + "/" + props.eventType.id}>
+                                    <Link href={"/" + props.user.username + "/" + props.eventType.slug}>
                                         <a className="ml-2 btn btn-white">Cancel</a>
                                     </Link>
                                 </div>
@@ -115,6 +115,7 @@ export async function getServerSideProps(context) {
         select: {
             id: true,
             title: true,
+            slug: true,
             description: true,
             length: true
         }

@@ -10,8 +10,8 @@ import { signIn, useSession, getSession } from 'next-auth/client';
 export default function Settings(props) {
     const [ session, loading ] = useSession();
     const [successModalOpen, setSuccessModalOpen] = useState(false);
-    const oldPasswordRef = useRef();
-    const newPasswordRef = useRef();
+    const oldPasswordRef = useRef<HTMLInputElement>();
+    const newPasswordRef = useRef<HTMLInputElement>();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
