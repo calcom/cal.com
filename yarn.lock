@@ -155,6 +155,11 @@
   resolved "https://registry.yarnpkg.com/@heroicons/react/-/react-1.0.1.tgz#66d25f6441920bd5c2146ea27fd33995885452dd"
   integrity sha512-uikw2gKCmqnvjVxitecWfFLMOKyL9BTFcU4VM3hHj9OMwpkCr5Ke+MRMyY2/aQVmsYs4VTq7NCFX05MYwAHi3g==
 
+"@jitsu/sdk-js@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@jitsu/sdk-js/-/sdk-js-2.0.1.tgz#7b400f314e042236f994f0cac766712320290fe9"
+  integrity sha512-PPtbNZosEGZ+rWefYodstAA69eJSHMgWfufqZ1ATiYUrobpbGQsLQBKxI0fJ+YvO1oryfYLlJqgJe0X12vNraQ==
+
 "@next-auth/prisma-legacy-adapter@canary":
   version "0.0.1-canary.115"
   resolved "https://registry.yarnpkg.com/@next-auth/prisma-legacy-adapter/-/prisma-legacy-adapter-0.0.1-canary.115.tgz#ef291c865f1ce9d85f660c85b0b0be16bd89c641"
@@ -168,11 +173,6 @@
     crypto-js "^4.0.0"
     require_optional "^1.0.1"
     typeorm "^0.2.30"
-    
-"@jitsu/sdk-js@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@jitsu/sdk-js/-/sdk-js-2.0.0.tgz#01ef96c602b3b2aa1e1a4bf87e868f7a5bfe3b35"
-  integrity sha512-+IQLEbzrIpuXKmP2bLbD7eAdF1WaEcZ2eaSMl6AAwcE0BEFctjNG8QhQYWsMgb+KahNKFz1ARll3aJegkqgrew==
 
 "@next/env@10.2.0":
   version "10.2.0"

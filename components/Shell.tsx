@@ -14,7 +14,7 @@ export default function Shell(props) {
 
     useEffect(() => {
         telemetry.withJitsu((jitsu) => {
-            return jitsu.track('page_view', {page_url: router.pathname})
+            return jitsu.track('page_view', {page_url: router.pathname, page_title: "", source_ip: ""})
         });
     }, [telemetry])
 

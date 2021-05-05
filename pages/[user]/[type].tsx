@@ -68,10 +68,10 @@ export default function Type(props) {
     for (let i = 1; i <= daysInMonth; i++) {
         days.push(i);
     }
-    
+
     // Create placeholder elements for empty days in first week
     const weekdayOfFirst = dayjs().month(selectedMonth).date(1).day();
-    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) => 
+    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) =>
         <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
             {null}
         </div>
@@ -80,7 +80,7 @@ export default function Type(props) {
     // Combine placeholder days with actual days
     const calendar = [...emptyDays, ...days.map((day) =>
         <button key={day} onClick={(e) => {
-            telemetry.withJitsu((jitsu) => jitsu.track('date_selected'))
+            telemetry.withJitsu((jitsu) => jitsu.track('date_selected', {page_title: "", source_ip: ""}))
             setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))
         }} disabled={selectedMonth < parseInt(dayjs().format('MM')) && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
@@ -93,7 +93,7 @@ export default function Type(props) {
             if (!selectedDate) {
                 return
             }
-    
+
             setLoading(true);
             const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
             const busyTimes = await res.json();
