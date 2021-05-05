@@ -3,19 +3,20 @@ import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import { useRouter } from 'next/router';
-const dayjs = require('dayjs');
+import dayjs, { Dayjs } from 'dayjs';
 import { Switch } from '@headlessui/react';
 import { ClockIcon, GlobeIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid';
-const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
-const isBetween = require('dayjs/plugin/isBetween');
-const utc = require('dayjs/plugin/utc');
-const timezone = require('dayjs/plugin/timezone');
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import isBetween from 'dayjs/plugin/isBetween';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 import getSlots from '../../lib/slots';
+import {useTelemetry} from "../../lib/telemetry";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -23,12 +24,13 @@ function classNames(...classes) {
 
 export default function Type(props) {
     // Initialise state
-    const [selectedDate, setSelectedDate] = useState('');
+    const [selectedDate, setSelectedDate] = useState<Dayjs>();
     const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
     const [loading, setLoading] = useState(false);
     const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
     const [is24h, setIs24h] = useState(false);
     const [busy, setBusy] = useState([]);
+    const telemetry = useTelemetry();
 
     // Get router variables
     const router = useRouter();
@@ -67,10 +69,9 @@ export default function Type(props) {
         days.push(i);
     }
 
-    
     // Create placeholder elements for empty days in first week
     const weekdayOfFirst = dayjs().month(selectedMonth).date(1).day();
-    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) => 
+    const emptyDays = Array(weekdayOfFirst).fill(null).map((day, i) =>
         <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
             {null}
         </div>
@@ -78,7 +79,10 @@ export default function Type(props) {
 
     // Combine placeholder days with actual days
     const calendar = [...emptyDays, ...days.map((day) =>
-        <button key={day} onClick={(e) => setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))} disabled={selectedMonth < dayjs().format('MM') && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
+        <button key={day} onClick={(e) => {
+            telemetry.withJitsu((jitsu) => jitsu.track('date_selected', {page_title: "", source_ip: ""}))
+            setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))
+        }} disabled={selectedMonth < parseInt(dayjs().format('MM')) && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
         </button>
     )];
@@ -89,7 +93,7 @@ export default function Type(props) {
             if (!selectedDate) {
                 return
             }
-    
+
             setLoading(true);
             const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
             const busyTimes = await res.json();
@@ -144,7 +148,7 @@ export default function Type(props) {
             </Head>
 
             <main className={"mx-auto my-24 transition-max-width ease-in-out duration-500 " + (selectedDate ? 'max-w-6xl' : 'max-w-3xl')}>
-                <div className="bg-white overflow-hidden shadow rounded-lg md:max-h-96">
+                <div className="bg-white shadow rounded-lg">
                     <div className="sm:flex px-4 py-5 sm:p-4">
                         <div className={"pr-8 sm:border-r " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2')}>
                             {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>}
@@ -193,7 +197,7 @@ export default function Type(props) {
                             <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
                                 <span className="w-1/2">{dayjs().month(selectedMonth).format("MMMM YYYY")}</span>
                                 <div className="w-1/2 text-right">
-                                    <button onClick={decrementMonth} className={"mr-4 " + (selectedMonth < dayjs().format('MM') && 'text-gray-400')} disabled={selectedMonth < dayjs().format('MM')}>
+                                    <button onClick={decrementMonth} className={"mr-4 " + (selectedMonth < parseInt(dayjs().format('MM')) && 'text-gray-400')} disabled={selectedMonth < parseInt(dayjs().format('MM'))}>
                                         <ChevronLeftIcon className="w-5 h-5" />
                                     </button>
                                     <button onClick={incrementMonth}>
@@ -212,7 +216,7 @@ export default function Type(props) {
                                 {calendar}
                             </div>
                         </div>
-                        {selectedDate && <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-96 overflow-y-scroll">
+                        {selectedDate && <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3  md:max-h-97 overflow-y-auto">
                             <div className="text-gray-600 font-light text-xl mb-4 text-left">
                                 <span className="w-1/2">{dayjs(selectedDate).format("dddd DD MMMM YYYY")}</span>
                             </div>

@@ -7,7 +7,7 @@ import { useSession, getSession } from 'next-auth/client';
 import { CheckCircleIcon, XCircleIcon, ChevronRightIcon, PlusIcon } from '@heroicons/react/solid';
 import { InformationCircleIcon } from '@heroicons/react/outline';
 
-export default function Home(props) {
+export default function Home({ integrations }) {
     const [session, loading] = useSession();
     const [showAddModal, setShowAddModal] = useState(false);
 
@@ -24,7 +24,7 @@ export default function Home(props) {
     }
 
     function integrationHandler(type) {
-        fetch('/api/integrations/' + type + '/add')
+        fetch('/api/integrations/' + type.replace('_', '') + '/add')
             .then((response) => response.json())
             .then((data) => window.location.href = data.url);
     }
@@ -38,73 +38,63 @@ export default function Home(props) {
 
             <Shell heading="Integrations">
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <ul className="divide-y divide-gray-200">
-                        {props.credentials.map((integration) =>
-                            <li>
-                                <Link href={"/integrations/" + integration.id}>
-                                    <a className="block hover:bg-gray-50">
-                                        <div className="flex items-center px-4 py-4 sm:px-6">
-                                            <div className="min-w-0 flex-1 flex items-center">
-                                                <div className="flex-shrink-0">
-                                                    {integration.type == 'google_calendar' && <img className="h-10 w-10 mr-2" src="integrations/google-calendar.png" alt="Google Calendar" />}
-                                                    {integration.type == 'office365_calendar' && <img className="h-10 w-10 mr-2" src="integrations/office-365.png" alt="Office 365 / Outlook.com Calendar" />}
+                    {integrations.filter( (ig) => ig.credential ).length !== 0 ? <ul className="divide-y divide-gray-200">
+                        {integrations.filter(ig => ig.credential).map( (ig) => (<li>
+                            <Link href={"/integrations/" + ig.credential.id}>
+                                <a className="block hover:bg-gray-50">
+                                    <div className="flex items-center px-4 py-4 sm:px-6">
+                                        <div className="min-w-0 flex-1 flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <img className="h-10 w-10 mr-2" src={ig.imageSrc} alt={ig.title} />
+                                            </div>
+                                            <div className="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
+                                                <div>
+                                                    <p className="text-sm font-medium text-blue-600 truncate">{ig.title}</p>
+                                                    <p className="flex items-center text-sm text-gray-500">
+                                                        {ig.type.endsWith('_calendar') && <span className="truncate">Calendar Integration</span>}
+                                                    </p>
                                                 </div>
-                                                <div className="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
-                                                    <div>
-                                                        {integration.type == 'google_calendar' && <p className="text-sm font-medium text-blue-600 truncate">Google Calendar</p>}
-                                                        {integration.type == 'office365_calendar' && <p className="text-sm font-medium text-blue-600 truncate">Office365 / Outlook.com Calendar</p>}
-                                                        <p className="flex items-center text-sm text-gray-500">
-                                                            {integration.type.endsWith('_calendar') && <span className="truncate">Calendar Integration</span>}
-                                                        </p>
-                                                    </div>
-                                                    <div className="hidden md:block">
-                                                        <div>
-                                                            {integration.key &&
-                                                                <p className="mt-2 flex items-center text text-gray-500">
-                                                                    <CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" />
-                                                                    Connected
-                                                                </p>
-                                                            }
-                                                            {!integration.key &&
-                                                                <p className="mt-3 flex items-center text text-gray-500">
-                                                                    <XCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" />
-                                                                Not connected
-                                                            </p>
-                                                            }
-                                                        </div>
-                                                    </div>
+                                                <div className="hidden md:block">
+                                                    {ig.credential.key && <p className="mt-2 flex items-center text text-gray-500">
+                                                        <CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" />
+                                                        Connected
+                                                    </p>}
+                                                    {!ig.credential.key && <p className="mt-3 flex items-center text text-gray-500">
+                                                        <XCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" />
+                                                        Not connected
+                                                    </p>}
                                                 </div>
                                             </div>
                                             <div>
                                                 <ChevronRightIcon className="h-5 w-5 text-gray-400" />
                                             </div>
                                         </div>
-                                    </a>
-                                </Link>
-                            </li>
-                        )}
+                                    </div>
+                                </a>
+                            </Link>
+                        </li>))}
                     </ul>
-                    {props.credentials.length == 0 &&
-                        <div className="bg-white shadow sm:rounded-lg">
-                            <div className="flex">
-                                <div className="py-9 pl-8">
-                                    <InformationCircleIcon className="text-blue-600 w-16" />
+                    :
+                    <div className="bg-white shadow sm:rounded-lg">
+                        <div className="flex">
+                            <div className="py-9 pl-8">
+                                <InformationCircleIcon className="text-blue-600 w-16" />
+                            </div>
+                            <div className="py-5 sm:p-6">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                     You don't have any integrations added.
+                                </h3>
+                                <div className="mt-2 text-sm text-gray-500">
+                                    <p>
+                                        You currently do not have any integrations set up. Add your first integration to get started.
+                                    </p>
                                 </div>
-                                <div className="py-5 sm:p-6">
-                                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                        You don't have any integrations added.
-                                    </h3>
-                                    <div className="mt-2 text-sm text-gray-500">
-                                        <p>
-                                            You currently do not have any integrations set up. Add your first integration to get started.
-                                        </p>
-                                    </div>
-                                    <div className="mt-3 text-sm">
-                                        <button onClick={toggleAddModal} className="font-medium text-blue-600 hover:text-blue-500"> Add your first integration <span aria-hidden="true">&rarr;</span></button>
-                                    </div>
+                                <div className="mt-3 text-sm">
+                                    <button onClick={toggleAddModal} className="font-medium text-blue-600 hover:text-blue-500"> Add your first integration <span aria-hidden="true">&rarr;</span></button>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     }
                 </div>
                 {showAddModal &&
@@ -150,30 +140,18 @@ export default function Home(props) {
                             </div>
                             <div className="my-4">
                                 <ul className="divide-y divide-gray-200">
-                                    <li className="flex py-4">
+                                    {integrations.filter( (integration) => integration.installed ).map( (integration) => (<li className="flex py-4">
                                         <div className="w-1/12 mr-4 pt-2">
-                                            <img className="h-8 w-8 mr-2" src="integrations/office-365.png" alt="Office 365 / Outlook.com Calendar" />
+                                            <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                                         </div>
                                         <div className="w-10/12">
-                                            <h2 className="text-gray-800 font-medium">Office 365 / Outlook.com Calendar</h2>
-                                            <p className="text-gray-400 text-sm">For personal and business accounts</p>
+                                            <h2 className="text-gray-800 font-medium">{ integration.title }</h2>
+                                            <p className="text-gray-400 text-sm">{ integration.description }</p>
                                         </div>
                                         <div className="w-2/12 text-right pt-2">
-                                            <button onClick={() => integrationHandler('office365calendar')} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
+                                            <button onClick={() => integrationHandler(integration.type)} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
                                         </div>
-                                    </li>
-                                    <li className="flex py-4">
-                                        <div className="w-1/12 mr-4 pt-2">
-                                            <img className="h-8 w-8 mr-2" src="integrations/google-calendar.png" alt="Google Calendar" />
-                                        </div>
-                                        <div className="w-10/12">
-                                            <h2 className="text-gray-800 font-medium">Google Calendar</h2>
-                                            <p className="text-gray-400 text-sm">For personal and business accounts</p>
-                                        </div>
-                                        <div className="w-2/12 text-right pt-2">
-                                            <button onClick={() => integrationHandler('googlecalendar')} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
-                                        </div>
-                                    </li>
+                                    </li>))}
                                 </ul>
                             </div>
                             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -188,6 +166,17 @@ export default function Home(props) {
             </Shell>
         </div>
     );
+}
+
+const validJson = (jsonString: string) => {
+    try {
+        const o = JSON.parse(jsonString);
+        if (o && typeof o === "object") {
+            return o;
+        }
+    }
+    catch (e) {}
+    return false;
 }
 
 export async function getServerSideProps(context) {
@@ -212,7 +201,24 @@ export async function getServerSideProps(context) {
             key: true
         }
     });
+
+    const integrations = [ {
+        installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
+        credential: credentials.find( (integration) => integration.type === "google_calendar" ) || null,
+        type: "google_calendar",
+        title: "Google Calendar",
+        imageSrc: "integrations/google-calendar.png",
+        description: "For personal and business accounts",
+    }, {
+        installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
+        type: "office365_calendar",
+        credential: credentials.find( (integration) => integration.type === "office365_calendar" ) || null,
+        title: "Office 365 / Outlook.com Calendar",
+        imageSrc: "integrations/office-365.png",
+        description: "For personal and business accounts",
+    } ];
+
     return {
-      props: {credentials}, // will be passed to the page component as props
+      props: {integrations},
     }
 }
