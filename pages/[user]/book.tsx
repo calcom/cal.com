@@ -3,14 +3,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ClockIcon, CalendarIcon } from '@heroicons/react/solid';
 import prisma from '../../lib/prisma';
+import {useTelemetry} from "../../lib/telemetry";
+import {useEffect} from "react";
 const dayjs = require('dayjs');
 
 export default function Book(props) {
     const router = useRouter();
     const { date, user } = router.query;
+    const telemetry = useTelemetry();
+    useEffect(() => {
+        telemetry.withJitsu(jitsu => jitsu.track('time_selected'));
+    })
 
     const bookingHandler = event => {
         event.preventDefault();
+        telemetry.withJitsu(jitsu => jitsu.track('booking_confirmed'));
         const res = fetch(
             '/api/book/' + user,
             {
@@ -59,13 +66,13 @@ export default function Book(props) {
                                 <div className="mb-4">
                                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">Your name</label>
                                     <div className="mt-1">
-                                        <input type="text" name="name" id="name" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="John Doe" />
+                                        <input type="text" name="name" id="name" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="John Doe" />
                                     </div>
                                 </div>
                                 <div className="mb-4">
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
                                     <div className="mt-1">
-                                        <input type="text" name="email" id="email" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" />
+                                        <input type="email" name="email" id="email" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" />
                                     </div>
                                 </div>
                                 <div className="mb-4">
