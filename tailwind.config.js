@@ -26,7 +26,10 @@ module.exports = {
           800: '#0277bd',
           900: '#01579b',
         },
-      }
+      },
+      maxHeight: {
+        97: '25rem',
+      },
     },
   },
   variants: {
