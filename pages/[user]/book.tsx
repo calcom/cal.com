@@ -12,12 +12,12 @@ export default function Book(props) {
     const { date, user } = router.query;
     const telemetry = useTelemetry();
     useEffect(() => {
-        telemetry.withJitsu(jitsu => jitsu.track('time_selected'));
+        telemetry.withJitsu(jitsu => jitsu.track('time_selected', { page_title: "", source_ip: "" }));
     })
 
     const bookingHandler = event => {
         event.preventDefault();
-        telemetry.withJitsu(jitsu => jitsu.track('booking_confirmed'));
+        telemetry.withJitsu(jitsu => jitsu.track('booking_confirmed', { page_title: "", source_ip: "" }));
         const res = fetch(
             '/api/book/' + user,
             {
