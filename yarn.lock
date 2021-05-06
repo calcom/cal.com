@@ -2625,10 +2625,10 @@ react-select@^4.2.1:
     react-input-autosize "^3.0.0"
     react-transition-group "^4.3.0"
 
-react-timezone-select@^0.10.10:
-  version "0.10.10"
-  resolved "https://registry.yarnpkg.com/react-timezone-select/-/react-timezone-select-0.10.10.tgz#853aeb73e84fcf00bd01eb57c35f2df1b84e1cc0"
-  integrity sha512-PEEQQkiL+fFW3940MmhrX6xNf2VMz16BW2UyF6Mu7jzCv89McwJ93Bp5mqE6ouhLPZSsyTnhjILifsEFUUMuFg==
+react-timezone-select@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-timezone-select/-/react-timezone-select-1.0.2.tgz#37e6d99bc15372bd3f9ebc7541bda6f3a10c852b"
+  integrity sha512-MDv4rmDkop3nZcIH27tLwIuIVovJE6ushmr9r0kR1SSzVErdydV01vI1ch8u4JAAFpnR5lYDt5PBqQW/lUS+Jg==
   dependencies:
     react-select "^4.2.1"
     spacetime "^6.14.0"
