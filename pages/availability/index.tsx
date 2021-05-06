@@ -30,14 +30,6 @@ export default function Availability(props) {
         return <p className="text-gray-400">Loading...</p>;
     }
 
-    function toggleAddModal() {
-        setShowAddModal(!showAddModal);
-    }
-
-    function toggleChangeTimesModal() {
-        setShowChangeTimesModal(!showChangeTimesModal);
-    }
-
     function convertMinsToHrsMins (mins) {
         let h = Math.floor(mins / 60);
         let m = mins % 60;
@@ -67,7 +59,7 @@ export default function Availability(props) {
 
         if (enteredTitle && enteredLength) {
             router.replace(router.asPath);
-            toggleAddModal();
+            setShowAddModal(false);
         }
     }
 
@@ -108,7 +100,7 @@ export default function Availability(props) {
                         Event Types
                     </h3>
                     <div className="mt-3 sm:mt-0 sm:ml-4">
-                        <button onClick={toggleAddModal} type="button" className="btn-sm btn-primary">
+                        <button onClick={() => setShowAddModal(true)} type="button" className="btn-sm btn-primary">
                             New event type
                         </button>
                     </div>
@@ -174,7 +166,7 @@ export default function Availability(props) {
                             </p>
                         </div>
                         <div className="mt-5">
-                            <button onClick={toggleChangeTimesModal} type="button" className="btn btn-primary">
+                            <button onClick={() => setShowChangeTimesModal(true)} type="button" className="btn btn-primary">
                                 Change available times
                             </button>
                         </div>
@@ -268,7 +260,7 @@ export default function Availability(props) {
                                         <button type="submit" className="btn btn-primary">
                                             Create
                                         </button>
-                                        <button onClick={toggleAddModal} type="button" className="btn btn-white mr-2">
+                                        <button onClick={() => setShowAddModal(false)} type="button" className="btn btn-white mr-2">
                                             Cancel
                                         </button>
                                     </div>
@@ -329,7 +321,7 @@ export default function Availability(props) {
                                         <button type="submit" className="btn btn-primary">
                                             Update
                                         </button>
-                                        <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
+                                        <button onClick={() => setShowChangeTimesModal(false)} type="button" className="btn btn-white mr-2">
                                             Cancel
                                         </button>
                                     </div>
