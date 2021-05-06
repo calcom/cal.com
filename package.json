@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "yarn docker:pg && npx prisma db push --preview-feature && next dev",
+    "dev": "yarn docker:pg && npx prisma db push && next dev",
     "build": "next build",
     "start": "next start",
     "postinstall": "prisma generate",
