@@ -5,4 +5,5 @@ COPY prisma prisma
 RUN yarn install
 COPY . .
 RUN yarn build
-CMD [ "/usr/src/app/start.sh" ]
+ENTRYPOINT [ "/usr/src/app/start.sh" ]
+CMD ["start"]

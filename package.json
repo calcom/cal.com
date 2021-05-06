@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "studio": "npx prisma studio"
   },
   "dependencies": {
     "@headlessui/react": "^1.0.0",

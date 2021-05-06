@@ -1,3 +1,3 @@
 #!/bin/sh
 npx prisma db push
-yarn dev
+yarn run $1

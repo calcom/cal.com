@@ -12,20 +12,13 @@ services:
       - calendso-db:/var/lib/postgresql/data
   prisma:
     build: .
-    environment:
-    - DATABASE_URL=postgresql://postgres:p0stgr3s_pass@postgres:5432/postgres
-    command: "npx prisma studio"
+    env_file: .env
+    command: "studio"
     ports: 
     - '5555:5555'
   calendso:
     build: .
-    environment:
-     - DATABASE_URL=postgresql://postgres:p0stgr3s_pass@postgres:5432/postgres
-     - GOOGLE_API_CREDENTIALS
-     - MS_GRAPH_CLIENT_ID
-     - MS_GRAPH_CLIENT_SECRET
-     - NEXTAUTH_URL
-     - NEXT_PUBLIC_TELEMETRY_KEY
+    env_file: .env
     depends_on:
       - postgres
     ports:
