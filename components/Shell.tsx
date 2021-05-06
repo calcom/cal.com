@@ -3,12 +3,20 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from 'next-auth/client';
 import { MenuIcon, XIcon } from '@heroicons/react/outline';
+import {TelemetryContext, useTelemetry} from "../lib/telemetry";
 
 export default function Shell(props) {
     const router = useRouter();
     const [ session, loading ] = useSession();
     const [ profileDropdownExpanded, setProfileDropdownExpanded ] = useState(false);
     const [ mobileMenuExpanded, setMobileMenuExpanded ] = useState(false);
+    let telemetry = useTelemetry();
+
+    useEffect(() => {
+        telemetry.withJitsu((jitsu) => {
+            return jitsu.track('page_view', {page_url: router.pathname, page_title: "", source_ip: ""})
+        });
+    }, [telemetry])
 
     const toggleProfileDropdown = () => {
         setProfileDropdownExpanded(!profileDropdownExpanded);
