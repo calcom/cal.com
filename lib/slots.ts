@@ -23,7 +23,7 @@ const getSlots = ({
 
   if(!selectedDate) return []
   
-  const lowerBound = selectedDate.startOf("day");
+  const lowerBound = selectedDate.tz(selectedTimeZone).startOf("day");
 
   // Simple case, same timezone
   if (calendarTimeZone === selectedTimeZone) {
@@ -42,7 +42,7 @@ const getSlots = ({
     return slots;
   }
 
-  const upperBound = selectedDate.endOf("day");
+  const upperBound = selectedDate.tz(selectedTimeZone).endOf("day");
 
   // We need to start generating slots from the start of the calendarTimeZone day
   const startDateTime = lowerBound
