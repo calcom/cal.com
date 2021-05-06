@@ -22,7 +22,10 @@ services:
     environment:
      - DATABASE_URL=postgresql://postgres:p0stgr3s_pass@postgres:5432/postgres
      - GOOGLE_API_CREDENTIALS
+     - MS_GRAPH_CLIENT_ID
+     - MS_GRAPH_CLIENT_SECRET
      - NEXTAUTH_URL
+     - NEXT_PUBLIC_TELEMETRY_KEY
     depends_on:
       - postgres
     ports:
