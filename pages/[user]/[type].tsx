@@ -5,6 +5,7 @@ import prisma from '../../lib/prisma';
 import { useRouter } from 'next/router';
 import dayjs, { Dayjs } from 'dayjs';
 import { Switch } from '@headlessui/react';
+import TimezoneSelect from 'react-timezone-select';
 import { ClockIcon, GlobeIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isBetween from 'dayjs/plugin/isBetween';
@@ -31,6 +32,14 @@ export default function Type(props) {
     const [is24h, setIs24h] = useState(false);
     const [busy, setBusy] = useState([]);
     const telemetry = useTelemetry();
+
+    const [selectedTimeZone, setSelectedTimeZone] = useState('');
+
+    useEffect(() => {
+      // Setting timezone only client-side
+      setSelectedTimeZone(dayjs.tz.guess())
+    }, [])
+
 
     // Get router variables
     const router = useRouter();
@@ -81,13 +90,13 @@ export default function Type(props) {
     const calendar = [...emptyDays, ...days.map((day) =>
         <button key={day} onClick={(e) => {
             telemetry.withJitsu((jitsu) => jitsu.track('date_selected', {page_title: "", source_ip: ""}))
-            setSelectedDate(dayjs().tz(dayjs.tz.guess()).month(selectedMonth).date(day))
+            setSelectedDate(dayjs().tz(selectedTimeZone).month(selectedMonth).date(day))
         }} disabled={selectedMonth < parseInt(dayjs().format('MM')) && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
         </button>
     )];
 
-    // Handle date change
+    // Handle date change and timezone change
     useEffect(() => {
         const changeDate = async () => {
             if (!selectedDate) {
@@ -101,17 +110,18 @@ export default function Type(props) {
             setLoading(false);
         }
         changeDate();
-    }, [selectedDate]);
+    }, [selectedDate, selectedTimeZone]);
 
-
-    const times = getSlots({
-      calendarTimeZone: props.user.timeZone,
-      selectedTimeZone: dayjs.tz.guess(),
-      eventLength: props.eventType.length,
-      selectedDate: selectedDate,
-      dayStartTime: props.user.startTime,
-      dayEndTime: props.user.endTime,
-    })
+    const times = useMemo(() =>
+      getSlots({
+        calendarTimeZone: props.user.timeZone,
+        selectedTimeZone: selectedTimeZone,
+        eventLength: props.eventType.length,
+        selectedDate: selectedDate,
+        dayStartTime: props.user.startTime,
+        dayEndTime: props.user.endTime,
+      })
+    , [selectedDate, selectedTimeZone])
 
     // Check for conflicts
     for(let i = times.length - 1; i >= 0; i -= 1) {
@@ -135,7 +145,7 @@ export default function Type(props) {
     const availableTimes = times.map((time) =>
         <div key={dayjs(time).utc().format()}>
             <Link href={`/${props.user.username}/book?date=${dayjs(time).utc().format()}&type=${props.eventType.id}`}>
-                <a key={dayjs(time).format("hh:mma")} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(dayjs.tz.guess()).format(is24h ? "HH:mm" : "hh:mma")}</a>
+                <a key={dayjs(time).format("hh:mma")} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(selectedTimeZone).format(is24h ? "HH:mm" : "hh:mma")}</a>
             </Link>
         </div>
     );
@@ -158,39 +168,37 @@ export default function Type(props) {
                                 <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                                 {props.eventType.length} minutes
                             </p>
-                            <button onClick={toggleTimeOptions} className="text-gray-500 mb-1 hover:bg-gray-100 rounded-full px-2 -ml-2 cursor-pointer">
-                                <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1"/>
-                                {dayjs.tz.guess()} <ChevronDownIcon className="inline-block w-4 h-4 mb-1" />
-                            </button>
-                            { isTimeOptionsOpen &&
-                            <div className="bg-white rounded shadow p-4 absolute w-72">
-                                <Switch.Group as="div" className="flex items-center">
-                                    <Switch.Label as="span" className="mr-3">
-                                        <span className="text-sm text-gray-500">am/pm</span>
-                                    </Switch.Label>
-                                    <Switch
-                                    checked={is24h}
-                                    onChange={setIs24h}
-                                    className={classNames(
-                                        is24h ? 'bg-blue-600' : 'bg-gray-200',
-                                        'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                                    )}
-                                    >
-                                        <span className="sr-only">Use setting</span>
-                                        <span
-                                            aria-hidden="true"
-                                            className={classNames(
-                                            is24h ? 'translate-x-5' : 'translate-x-0',
-                                            'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200'
-                                            )}
-                                        />
-                                    </Switch>
-                                    <Switch.Label as="span" className="ml-3">
-                                        <span className="text-sm text-gray-500">24h</span>
-                                    </Switch.Label>
-                                </Switch.Group>
-                            </div>
-                            }
+                            <p  className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                            <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1"/>
+                            <Switch.Group as="span" className="">
+                              <Switch.Label as="span" className="mr-3">
+                                  <span className="text-sm text-gray-500">am/pm</span>
+                              </Switch.Label>
+                              <Switch
+                                checked={is24h}
+                                onChange={setIs24h}
+                                className={classNames(
+                                    is24h ? 'bg-blue-600' : 'bg-gray-200',
+                                    'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                                )}
+                                >
+                                  <span className="sr-only">Use setting</span>
+                                  <span
+                                      aria-hidden="true"
+                                      className={classNames(
+                                      is24h ? 'translate-x-5' : 'translate-x-0',
+                                      'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200'
+                                      )}
+                                  />
+                              </Switch>
+                              <Switch.Label as="span" className="ml-3">
+                                  <span className="text-sm text-gray-500">24h</span>
+                              </Switch.Label>
+                            </Switch.Group>
+                            </p>
+                            <p className="mt-1 text-gray-500">
+                                <TimezoneSelect id="timeZone" value={selectedTimeZone} onChange={({ value }) =>setSelectedTimeZone(value)} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md" />
+                            </p>
                             <p className="text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
                         </div>
                         <div className={"mt-8 sm:mt-0 " + (selectedDate ? 'sm:w-1/3 border-r sm:px-4' : 'sm:w-1/2 sm:pl-4')}>
