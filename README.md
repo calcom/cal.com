@@ -107,19 +107,23 @@ You will also need Google API credentials. You can get this from the [Google API
 
 5. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
    ```sh
-   npx prisma db push --preview-feature
+   npx prisma db push
    ```
 6. Run (in development mode)
    ```sh
    yarn dev
    ```
-7. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
+7. Create your first user
+   ```sh
+   curl --request POST \
+    --url http://localhost:3000/api/auth/signup \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data username=example \
+    --data email=user@example.com \
+    --data password=Password1234
    ```
-   npx prisma studio
-   ```
-8. Click on the `User` model to add a new user record.
-9.  Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
+8. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
+
 
 <!-- ROADMAP -->
 ## Roadmap
