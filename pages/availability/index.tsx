@@ -8,13 +8,18 @@ import { useRef } from 'react';
 import { useState } from 'react';
 import { useSession, getSession } from 'next-auth/client';
 import { PlusIcon, ClockIcon } from '@heroicons/react/outline';
+import dayjs from 'dayjs';
 
 export default function Availability(props) {
     const [ session, loading ] = useSession();
     const router = useRouter();
+
+    const [startTime, setStartTime] = useState(dayjs().startOf('day').minute(props.user.startTime));
+    const [endTime, setEndTime] = useState(dayjs().startOf('day').minute(props.user.endTime));
     const [showAddModal, setShowAddModal] = useState(false);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
+
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
     const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -28,14 +33,6 @@ export default function Availability(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    }
-
-    function convertMinsToHrsMins (mins) {
-        let h = Math.floor(mins / 60);
-        let m = mins % 60;
-        h = h < 10 ? '0' + h : h;
-        m = m < 10 ? '0' + m : m;
-        return `${h}:${m}`;
     }
 
     async function createEventTypeHandler(event) {
@@ -66,13 +63,11 @@ export default function Availability(props) {
     async function updateStartEndTimesHandler(event) {
         event.preventDefault();
 
-        const enteredStartHours = parseInt(startHoursRef.current.value);
-        const enteredStartMins = parseInt(startMinsRef.current.value);
-        const enteredEndHours = parseInt(endHoursRef.current.value);
-        const enteredEndMins = parseInt(endMinsRef.current.value);
-
-        const startMins = enteredStartHours * 60 + enteredStartMins;
-        const endMins = enteredEndHours * 60 + enteredEndMins;
+        const currDate = dayjs().startOf('day');
+        const enteredStartTime = currDate.hour(startHoursRef.current.value).minute(startMinsRef.current.value);
+        const enteredEndTime = currDate.hour(endHoursRef.current.value).minute(endMinsRef.current.value);
+        const startMins = enteredStartTime.hour() * 60 + enteredStartTime.minute();
+        const endMins = enteredEndTime.hour() * 60 + enteredEndTime.minute();
 
         // TODO: Add validation
 
@@ -83,6 +78,9 @@ export default function Availability(props) {
                 'Content-Type': 'application/json'
             }
         });
+
+        setStartTime(enteredStartTime);
+        setEndTime(enteredEndTime);
 
         setShowChangeTimesModal(false);
         setSuccessModalOpen(true);
@@ -162,7 +160,7 @@ export default function Availability(props) {
                         </h3>
                         <div className="mt-2 max-w-xl text-sm text-gray-500">
                             <p>
-                                Currently, your day is set to start at {convertMinsToHrsMins(props.user.startTime)} and end at {convertMinsToHrsMins(props.user.endTime)}.
+                                Currently, your day is set to start at {startTime.format('HH:mm')} and end at {endTime.format('HH:mm')}.
                             </p>
                         </div>
                         <div className="mt-5">
@@ -297,24 +295,24 @@ export default function Availability(props) {
                                         <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
                                         <div>
                                             <label htmlFor="hours" className="sr-only">Hours</label>
-                                            <input ref={startHoursRef} type="number" name="hours" id="hours" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="9" defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[0]} />
+                                            <input ref={startHoursRef} type="number" name="hours" id="hours" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="9" defaultValue={startTime.format('H')} />
                                         </div>
                                         <span className="mx-2 pt-1">:</span>
                                         <div>
                                             <label htmlFor="minutes" className="sr-only">Minutes</label>
-                                            <input ref={startMinsRef} type="number" name="minutes" id="minutes" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="30" defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[1]} />
+                                            <input ref={startMinsRef} type="number" name="minutes" id="minutes" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="30" defaultValue={startTime.format('m')} />
                                         </div>
                                     </div>
                                     <div className="flex">
                                         <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
                                         <div>
                                             <label htmlFor="hours" className="sr-only">Hours</label>
-                                            <input ref={endHoursRef} type="number" name="hours" id="hours" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="17" defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[0]} />
+                                            <input ref={endHoursRef} type="number" name="hours" id="hours" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="17" defaultValue={endTime.format('H')} />
                                         </div>
                                         <span className="mx-2 pt-1">:</span>
                                         <div>
                                             <label htmlFor="minutes" className="sr-only">Minutes</label>
-                                            <input ref={endMinsRef} type="number" name="minutes" id="minutes" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="30" defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[1]} />
+                                            <input ref={endMinsRef} type="number" name="minutes" id="minutes" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="30" defaultValue={endTime.format('m')} />
                                         </div>
                                     </div>
                                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
