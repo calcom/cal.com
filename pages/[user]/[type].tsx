@@ -34,6 +34,10 @@ export default function Type(props) {
     const telemetry = useTelemetry();
 
     const [selectedTimeZone, setSelectedTimeZone] = useState('');
+    
+    function toggleTimeOptions() {
+        setIsTimeOptionsOpen(!isTimeOptionsOpen);
+    }
 
     useEffect(() => {
       // Setting timezone only client-side
@@ -44,8 +48,6 @@ export default function Type(props) {
     // Get router variables
     const router = useRouter();
     const { user } = router.query;
-
-    const toggleTimeOptions = () => { setIsTimeOptionsOpen(!isTimeOptionsOpen); }
 
     // Handle month changes
     const incrementMonth = () => {
@@ -168,37 +170,46 @@ export default function Type(props) {
                                 <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                                 {props.eventType.length} minutes
                             </p>
-                            <p  className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                            <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1"/>
-                            <Switch.Group as="span" className="">
-                              <Switch.Label as="span" className="mr-3">
-                                  <span className="text-sm text-gray-500">am/pm</span>
-                              </Switch.Label>
-                              <Switch
-                                checked={is24h}
-                                onChange={setIs24h}
-                                className={classNames(
-                                    is24h ? 'bg-blue-600' : 'bg-gray-200',
-                                    'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                                )}
-                                >
-                                  <span className="sr-only">Use setting</span>
-                                  <span
-                                      aria-hidden="true"
-                                      className={classNames(
-                                      is24h ? 'translate-x-5' : 'translate-x-0',
-                                      'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200'
-                                      )}
-                                  />
-                              </Switch>
-                              <Switch.Label as="span" className="ml-3">
-                                  <span className="text-sm text-gray-500">24h</span>
-                              </Switch.Label>
-                            </Switch.Group>
-                            </p>
-                            <p className="mt-1 text-gray-500">
-                                <TimezoneSelect id="timeZone" value={selectedTimeZone} onChange={({ value }) =>setSelectedTimeZone(value)} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md" />
-                            </p>
+                            <button onClick={toggleTimeOptions} className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                                <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                                {selectedTimeZone}
+                                <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                            </button>
+                            {isTimeOptionsOpen && 
+                                <div className="w-full rounded shadow border bg-white px-4 py-2">
+                                    <div className="flex mb-4">
+                                        <div className="w-1/2 font-medium">Time Options</div>
+                                        <div className="w-1/2">
+                                            <Switch.Group as="div" className="flex items-center justify-end">
+                                                <Switch.Label as="span" className="mr-3">
+                                                    <span className="text-sm text-gray-500">am/pm</span>
+                                                </Switch.Label>
+                                                <Switch
+                                                    checked={is24h}
+                                                    onChange={setIs24h}
+                                                    className={classNames(
+                                                        is24h ? 'bg-blue-600' : 'bg-gray-200',
+                                                        'relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                                                    )}
+                                                    >
+                                                    <span className="sr-only">Use setting</span>
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className={classNames(
+                                                        is24h ? 'translate-x-3' : 'translate-x-0',
+                                                        'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200'
+                                                        )}
+                                                    />
+                                                </Switch>
+                                                <Switch.Label as="span" className="ml-3">
+                                                    <span className="text-sm text-gray-500">24h</span>
+                                                </Switch.Label>
+                                            </Switch.Group>
+                                        </div>
+                                    </div>
+                                    <TimezoneSelect id="timeZone" value={selectedTimeZone} onChange={({ value }) =>setSelectedTimeZone(value)} className="mb-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                </div>
+                            }
                             <p className="text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
                         </div>
                         <div className={"mt-8 sm:mt-0 " + (selectedDate ? 'sm:w-1/3 border-r sm:px-4' : 'sm:w-1/2 sm:pl-4')}>
