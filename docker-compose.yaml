@@ -1,0 +1,31 @@
+version: "3.7"
+services:
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=p0stgr3s_pass
+    ports: 
+      - '5432:5432'
+    volumes:
+      - calendso-db:/var/lib/postgresql/data
+  prisma:
+    build: .
+    environment:
+    - DATABASE_URL=postgresql://postgres:p0stgr3s_pass@postgres:5432/postgres
+    command: "npx prisma studio"
+    ports: 
+    - '5555:5555'
+  calendso:
+    build: .
+    environment:
+     - DATABASE_URL=postgresql://postgres:p0stgr3s_pass@postgres:5432/postgres
+     - GOOGLE_API_CREDENTIALS
+     - NEXTAUTH_URL
+    depends_on:
+      - postgres
+    ports:
+      - '3000:3000'      
+volumes:
+  calendso-db:
