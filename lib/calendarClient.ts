@@ -142,14 +142,11 @@ const GoogleCalendar = (credential) => {
             calendar.calendarList
               .list()
               .then(cals => {
-                const items = cals.data.items.filter(
-                  item => !/calendar.google.com/.test(item.id)
-                );
                 calendar.freebusy.query({
                   requestBody: {
                       timeMin: dateFrom,
                       timeMax: dateTo,
-                      items: items
+                      items: cals.data.items
                   }
                 }, (err, apires) => {
                     if (err) {
