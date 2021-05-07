@@ -6,13 +6,8 @@ import { signIn, useSession, getSession } from 'next-auth/client';
 
 export default function Home(props) {
     const [ session, loading ] = useSession();
-
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    }
-    if (!session) {
-        window.location.href = "/auth/login";
-        return;
     }
 
     return(
