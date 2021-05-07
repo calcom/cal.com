@@ -316,7 +316,7 @@ export default function Type(props) {
           */}
           <div className="text-xs text-right pt-1">
             <Link href="/pricing">
-              <a className="text-white opacity-50 hover:opacity-100">
+              <a className="text-gray-800 opacity-50 hover:opacity-100">
                 powered by{" "}
                 <img
                   style={{ top: -2 }}
