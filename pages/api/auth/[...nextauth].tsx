@@ -40,4 +40,18 @@ export default NextAuth({
             }
         })
     ],
+    callbacks: {
+        async jwt(token, user, account, profile, isNewUser) {
+            // Add username to the token right after signin
+            if (user?.username) {
+                token.username = user.username
+            }
+            return token;
+        },
+        async session(session, token) {
+            session.user = session.user || {}
+            session.user.username = token.username;
+            return session;
+        },
+    },
 });

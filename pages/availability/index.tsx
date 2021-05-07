@@ -158,7 +158,7 @@ export default function Availability(props) {
                                                     {eventType.length} minutes
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    {eventType.hidden && <Link href={"/" + props.user.username + "/" + eventType.slug}><a className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>}
+                                                    <Link href={"/" + props.user.username + "/" + eventType.slug}><a target="_blank" className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>
                                                     <Link href={"/availability/event/" + eventType.id}><a className="text-blue-600 hover:text-blue-900">Edit</a></Link>
                                                 </td>
                                             </tr>
@@ -214,7 +214,7 @@ export default function Availability(props) {
                                         <div className="mb-4">
                                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
                                             <div className="mt-1">
-                                                <input ref={titleRef} type="text" name="title" id="title" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" />
+                                                <input ref={titleRef} type="text" name="title" id="title" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" />
                                             </div>
                                         </div>
                                         <div className="mb-4">
@@ -229,6 +229,7 @@ export default function Availability(props) {
                                                         type="text"
                                                         name="slug"
                                                         id="slug"
+                                                        required
                                                         className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
                                                     />
                                                 </div>
@@ -243,7 +244,7 @@ export default function Availability(props) {
                                         <div className="mb-4">
                                             <label htmlFor="length" className="block text-sm font-medium text-gray-700">Length</label>
                                             <div className="mt-1 relative rounded-md shadow-sm">
-                                                <input ref={lengthRef} type="number" name="length" id="length" className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" />
+                                                <input ref={lengthRef} type="number" name="length" id="length" required className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" />
                                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
                                                     minutes
                                                 </div>
