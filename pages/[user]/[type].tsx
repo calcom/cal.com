@@ -34,7 +34,7 @@ export default function Type(props) {
     const telemetry = useTelemetry();
 
     const [selectedTimeZone, setSelectedTimeZone] = useState('');
-    
+
     function toggleTimeOptions() {
         setIsTimeOptionsOpen(!isTimeOptionsOpen);
     }
@@ -175,7 +175,7 @@ export default function Type(props) {
                                 {selectedTimeZone}
                                 <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
                             </button>
-                            {isTimeOptionsOpen && 
+                            {isTimeOptionsOpen &&
                                 <div className="w-full rounded shadow border bg-white px-4 py-2">
                                     <div className="flex mb-4">
                                         <div className="w-1/2 font-medium">Time Options</div>
@@ -265,6 +265,12 @@ export async function getServerSideProps(context) {
             endTime: true
         }
     });
+
+    if (!user) {
+        return {
+            notFound: true,
+        }
+    }
 
     const eventType = await prisma.eventType.findFirst({
         where: {
