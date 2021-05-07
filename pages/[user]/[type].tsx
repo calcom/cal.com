@@ -17,7 +17,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 import getSlots from '../../lib/slots';
-import {useTelemetry} from "../../lib/telemetry";
+import {collectPageParameters, telemetryEventTypes, useTelemetry} from "../../lib/telemetry";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -34,7 +34,7 @@ export default function Type(props) {
     const telemetry = useTelemetry();
 
     const [selectedTimeZone, setSelectedTimeZone] = useState('');
-    
+
     function toggleTimeOptions() {
         setIsTimeOptionsOpen(!isTimeOptionsOpen);
     }
@@ -43,6 +43,10 @@ export default function Type(props) {
       // Setting timezone only client-side
       setSelectedTimeZone(dayjs.tz.guess())
     }, [])
+
+    useEffect(() => {
+        telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
+    })
 
 
     // Get router variables
@@ -91,7 +95,7 @@ export default function Type(props) {
     // Combine placeholder days with actual days
     const calendar = [...emptyDays, ...days.map((day) =>
         <button key={day} onClick={(e) => {
-            telemetry.withJitsu((jitsu) => jitsu.track('date_selected', {page_title: "", source_ip: ""}))
+            telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()))
             setSelectedDate(dayjs().tz(selectedTimeZone).month(selectedMonth).date(day))
         }} disabled={selectedMonth < parseInt(dayjs().format('MM')) && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
             {day}
@@ -161,7 +165,6 @@ export default function Type(props) {
           </title>
           <link rel="icon" href="/favicon.ico" />
         </Head>
-
         <main
           className={
             "mx-auto my-24 transition-max-width ease-in-out duration-500 " +
