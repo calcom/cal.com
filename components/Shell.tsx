@@ -27,11 +27,14 @@ export default function Shell(props) {
     }
 
     const logoutHandler = () => {
-        signOut();
-        router.push('/');
+        signOut({ redirect: false }).then( () => router.push('/auth/logout') );
     }
 
-    return (
+    if ( ! loading && ! session ) {
+        router.replace('/auth/login');
+    }
+
+    return session && (
         <div>
             <div className="bg-gray-800 pb-32">
                 <nav className="bg-gray-800">
