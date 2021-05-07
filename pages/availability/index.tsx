@@ -38,7 +38,7 @@ export default function Availability(props) {
         setShowChangeTimesModal(!showChangeTimesModal);
     }
 
-    const closeSuccessModal = () => { router.replace(router.asPath); }
+    const closeSuccessModal = () => { setSuccessModalOpen(false); router.replace(router.asPath); }
 
     function convertMinsToHrsMins (mins) {
         let h = Math.floor(mins / 60);
