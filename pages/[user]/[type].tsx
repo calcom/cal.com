@@ -153,98 +153,182 @@ export default function Type(props) {
     );
 
     return (
-        <div>
-            <Head>
-                <title>{props.eventType.title} | {props.user.name || props.user.username} | Calendso</title>
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
+      <div>
+        <Head>
+          <title>
+            {props.eventType.title} | {props.user.name || props.user.username} |
+            Calendso
+          </title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
 
-            <main className={"mx-auto my-24 transition-max-width ease-in-out duration-500 " + (selectedDate ? 'max-w-6xl' : 'max-w-3xl')}>
-                <div className="bg-white shadow rounded-lg">
-                    <div className="sm:flex px-4 py-5 sm:p-4">
-                        <div className={"pr-8 sm:border-r " + (selectedDate ? 'sm:w-1/3' : 'sm:w-1/2')}>
-                            {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>}
-                            <h2 className="font-medium text-gray-500">{props.user.name}</h2>
-                            <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
-                            <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                                <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                                {props.eventType.length} minutes
-                            </p>
-                            <button onClick={toggleTimeOptions} className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                                <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                                {selectedTimeZone}
-                                <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
-                            </button>
-                            {isTimeOptionsOpen && 
-                                <div className="w-full rounded shadow border bg-white px-4 py-2">
-                                    <div className="flex mb-4">
-                                        <div className="w-1/2 font-medium">Time Options</div>
-                                        <div className="w-1/2">
-                                            <Switch.Group as="div" className="flex items-center justify-end">
-                                                <Switch.Label as="span" className="mr-3">
-                                                    <span className="text-sm text-gray-500">am/pm</span>
-                                                </Switch.Label>
-                                                <Switch
-                                                    checked={is24h}
-                                                    onChange={setIs24h}
-                                                    className={classNames(
-                                                        is24h ? 'bg-blue-600' : 'bg-gray-200',
-                                                        'relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                                                    )}
-                                                    >
-                                                    <span className="sr-only">Use setting</span>
-                                                    <span
-                                                        aria-hidden="true"
-                                                        className={classNames(
-                                                        is24h ? 'translate-x-3' : 'translate-x-0',
-                                                        'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200'
-                                                        )}
-                                                    />
-                                                </Switch>
-                                                <Switch.Label as="span" className="ml-3">
-                                                    <span className="text-sm text-gray-500">24h</span>
-                                                </Switch.Label>
-                                            </Switch.Group>
-                                        </div>
-                                    </div>
-                                    <TimezoneSelect id="timeZone" value={selectedTimeZone} onChange={({ value }) =>setSelectedTimeZone(value)} className="mb-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md" />
-                                </div>
-                            }
-                            <p className="text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
-                        </div>
-                        <div className={"mt-8 sm:mt-0 " + (selectedDate ? 'sm:w-1/3 border-r sm:px-4' : 'sm:w-1/2 sm:pl-4')}>
-                            <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
-                                <span className="w-1/2">{dayjs().month(selectedMonth).format("MMMM YYYY")}</span>
-                                <div className="w-1/2 text-right">
-                                    <button onClick={decrementMonth} className={"mr-4 " + (selectedMonth < parseInt(dayjs().format('MM')) && 'text-gray-400')} disabled={selectedMonth < parseInt(dayjs().format('MM'))}>
-                                        <ChevronLeftIcon className="w-5 h-5" />
-                                    </button>
-                                    <button onClick={incrementMonth}>
-                                        <ChevronRightIcon className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-7 gap-y-4 text-center">
-                                <div className="uppercase text-gray-400 text-xs tracking-widest">Sun</div>
-                                <div className="uppercase text-gray-400 text-xs tracking-widest">Mon</div>
-                                <div className="uppercase text-gray-400 text-xs tracking-widest">Tue</div>
-                                <div className="uppercase text-gray-400 text-xs tracking-widest">Wed</div>
-                                <div className="uppercase text-gray-400 text-xs tracking-widest">Thu</div>
-                                <div className="uppercase text-gray-400 text-xs tracking-widest">Fri</div>
-                                <div className="uppercase text-gray-400 text-xs tracking-widest">Sat</div>
-                                {calendar}
-                            </div>
-                        </div>
-                        {selectedDate && <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3  md:max-h-97 overflow-y-auto">
-                            <div className="text-gray-600 font-light text-xl mb-4 text-left">
-                                <span className="w-1/2">{dayjs(selectedDate).format("dddd DD MMMM YYYY")}</span>
-                            </div>
-                            {!loading ? availableTimes : <div className="loader"></div>}
-                        </div>}
+        <main
+          className={
+            "mx-auto my-24 transition-max-width ease-in-out duration-500 " +
+            (selectedDate ? "max-w-6xl" : "max-w-3xl")
+          }
+        >
+          <div className="bg-white shadow rounded-lg">
+            <div className="sm:flex px-4 py-5 sm:p-4">
+              <div
+                className={
+                  "pr-8 sm:border-r " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                }
+              >
+                {props.user.avatar && (
+                  <img
+                    src={props.user.avatar}
+                    alt="Avatar"
+                    className="w-16 h-16 rounded-full mb-4"
+                  />
+                )}
+                <h2 className="font-medium text-gray-500">{props.user.name}</h2>
+                <h1 className="text-3xl font-semibold text-gray-800 mb-4">
+                  {props.eventType.title}
+                </h1>
+                <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {props.eventType.length} minutes
+                </p>
+                <button
+                  onClick={toggleTimeOptions}
+                  className="text-gray-500 mb-1 px-2 py-1 -ml-2"
+                >
+                  <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {selectedTimeZone}
+                  <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                </button>
+                {isTimeOptionsOpen && (
+                  <div className="w-full rounded shadow border bg-white px-4 py-2">
+                    <div className="flex mb-4">
+                      <div className="w-1/2 font-medium">Time Options</div>
+                      <div className="w-1/2">
+                        <Switch.Group
+                          as="div"
+                          className="flex items-center justify-end"
+                        >
+                          <Switch.Label as="span" className="mr-3">
+                            <span className="text-sm text-gray-500">am/pm</span>
+                          </Switch.Label>
+                          <Switch
+                            checked={is24h}
+                            onChange={setIs24h}
+                            className={classNames(
+                              is24h ? "bg-blue-600" : "bg-gray-200",
+                              "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            )}
+                          >
+                            <span className="sr-only">Use setting</span>
+                            <span
+                              aria-hidden="true"
+                              className={classNames(
+                                is24h ? "translate-x-3" : "translate-x-0",
+                                "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                              )}
+                            />
+                          </Switch>
+                          <Switch.Label as="span" className="ml-3">
+                            <span className="text-sm text-gray-500">24h</span>
+                          </Switch.Label>
+                        </Switch.Group>
+                      </div>
                     </div>
+                    <TimezoneSelect
+                      id="timeZone"
+                      value={selectedTimeZone}
+                      onChange={({ value }) => setSelectedTimeZone(value)}
+                      className="mb-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                  </div>
+                )}
+                <p className="text-gray-600 mt-3 mb-8">
+                  {props.eventType.description}
+                </p>
+              </div>
+              <div
+                className={
+                  "mt-8 sm:mt-0 " +
+                  (selectedDate
+                    ? "sm:w-1/3 border-r sm:px-4"
+                    : "sm:w-1/2 sm:pl-4")
+                }
+              >
+                <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
+                  <span className="w-1/2">
+                    {dayjs().month(selectedMonth).format("MMMM YYYY")}
+                  </span>
+                  <div className="w-1/2 text-right">
+                    <button
+                      onClick={decrementMonth}
+                      className={
+                        "mr-4 " +
+                        (selectedMonth < parseInt(dayjs().format("MM")) &&
+                          "text-gray-400")
+                      }
+                      disabled={selectedMonth < parseInt(dayjs().format("MM"))}
+                    >
+                      <ChevronLeftIcon className="w-5 h-5" />
+                    </button>
+                    <button onClick={incrementMonth}>
+                      <ChevronRightIcon className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
-            </main>
-        </div>
+                <div className="grid grid-cols-7 gap-y-4 text-center">
+                  <div className="uppercase text-gray-400 text-xs tracking-widest">
+                    Sun
+                  </div>
+                  <div className="uppercase text-gray-400 text-xs tracking-widest">
+                    Mon
+                  </div>
+                  <div className="uppercase text-gray-400 text-xs tracking-widest">
+                    Tue
+                  </div>
+                  <div className="uppercase text-gray-400 text-xs tracking-widest">
+                    Wed
+                  </div>
+                  <div className="uppercase text-gray-400 text-xs tracking-widest">
+                    Thu
+                  </div>
+                  <div className="uppercase text-gray-400 text-xs tracking-widest">
+                    Fri
+                  </div>
+                  <div className="uppercase text-gray-400 text-xs tracking-widest">
+                    Sat
+                  </div>
+                  {calendar}
+                </div>
+              </div>
+              {selectedDate && (
+                <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3  md:max-h-97 overflow-y-auto">
+                  <div className="text-gray-600 font-light text-xl mb-4 text-left">
+                    <span className="w-1/2">
+                      {dayjs(selectedDate).format("dddd DD MMMM YYYY")}
+                    </span>
+                  </div>
+                  {!loading ? availableTimes : <div className="loader"></div>}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* note(peer): 
+            you can remove calendso branding here, but we'd also appreciate it, if you don't <3 
+          */}
+          <div className="text-xs text-right pt-1">
+            <Link href="/pricing">
+              <a className="text-white opacity-50 hover:opacity-100">
+                powered by{" "}
+                <img
+                  style={{ top: -2 }}
+                  className="w-auto inline h-3 relative"
+                  src="calendso-logo-white-word.svg"
+                  alt="Calendso Logo"
+                />
+              </a>
+            </Link>
+          </div>
+        </main>
+      </div>
     );
 }
 
