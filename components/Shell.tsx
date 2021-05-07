@@ -56,7 +56,7 @@ export default function Shell(props) {
                                             <Link href="/integrations">
                                                 <a className={router.pathname.startsWith("/integrations") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Integrations</a>
                                             </Link>
-                                            <Link href="/settings">
+                                            <Link href="/settings/profile">
                                                 <a className={router.pathname.startsWith("/settings") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Settings</a>
                                             </Link>
                                         </div>
