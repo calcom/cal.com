@@ -3,7 +3,7 @@ import {useContext, useEffect, useState} from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from 'next-auth/client';
 import { MenuIcon, XIcon } from '@heroicons/react/outline';
-import {TelemetryContext, useTelemetry} from "../lib/telemetry";
+import {collectPageParameters, telemetryEventTypes, useTelemetry} from "../lib/telemetry";
 
 export default function Shell(props) {
     const router = useRouter();
@@ -14,7 +14,7 @@ export default function Shell(props) {
 
     useEffect(() => {
         telemetry.withJitsu((jitsu) => {
-            return jitsu.track('page_view', {page_url: router.pathname, page_title: "", source_ip: ""})
+            return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.pathname))
         });
     }, [telemetry])
 
