@@ -316,12 +316,15 @@ export default function Type(props) {
           */}
           <div className="text-xs text-right pt-1">
             <Link href="/pricing">
-              <a className="text-gray-800 opacity-50 hover:opacity-100">
+              <a
+                style={{ color: "#104D86" }}
+                className="opacity-50 hover:opacity-100"
+              >
                 powered by{" "}
                 <img
                   style={{ top: -2 }}
                   className="w-auto inline h-3 relative"
-                  src="calendso-logo-white-word.svg"
+                  src="/calendso-logo-word.svg"
                   alt="Calendso Logo"
                 />
               </a>
