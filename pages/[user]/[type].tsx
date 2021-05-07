@@ -356,6 +356,12 @@ export async function getServerSideProps(context) {
         }
     });
 
+    if (!user) {
+        return {
+            notFound: true,
+        }
+    }
+
     const eventType = await prisma.eventType.findFirst({
         where: {
             userId: user.id,
