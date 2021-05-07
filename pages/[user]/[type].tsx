@@ -315,7 +315,7 @@ export default function Type(props) {
             you can remove calendso branding here, but we'd also appreciate it, if you don't <3 
           */}
           <div className="text-xs text-right pt-1">
-            <Link href="/pricing">
+            <Link href="https://calendso.com">
               <a
                 style={{ color: "#104D86" }}
                 className="opacity-50 hover:opacity-100"
