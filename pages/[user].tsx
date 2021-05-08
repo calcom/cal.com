@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../lib/prisma';
+import Avatar from '../components/Avatar';
 
 export default function User(props) {
     const eventTypes = props.eventTypes.map(type =>
@@ -23,7 +24,7 @@ export default function User(props) {
 
             <main className="max-w-2xl mx-auto my-24">
                 <div className="mb-8 text-center">
-                    {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="mx-auto w-24 h-24 rounded-full mb-4"/>}
+                    <Avatar user={props.user} className="mx-auto w-24 h-24 rounded-full mb-4" />
                     <h1 className="text-3xl font-semibold text-gray-800 mb-1">{props.user.name || props.user.username}</h1>
                     <p className="text-gray-600">{props.user.bio}</p>
                 </div>
@@ -51,6 +52,7 @@ export async function getServerSideProps(context) {
         select: {
             id: true,
             username: true,
+            email:true,
             name: true,
             bio: true,
             avatar: true,

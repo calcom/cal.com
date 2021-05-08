@@ -11,6 +11,7 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isBetween from 'dayjs/plugin/isBetween';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import Avatar from '../../components/Avatar';
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
 dayjs.extend(utc);
@@ -178,13 +179,7 @@ export default function Type(props) {
                   "pr-8 sm:border-r " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                 }
               >
-                {props.user.avatar && (
-                  <img
-                    src={props.user.avatar}
-                    alt="Avatar"
-                    className="w-16 h-16 rounded-full mb-4"
-                  />
-                )}
+                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
                 <h2 className="font-medium text-gray-500">{props.user.name}</h2>
                 <h1 className="text-3xl font-semibold text-gray-800 mb-4">
                   {props.eventType.title}
@@ -347,6 +342,7 @@ export async function getServerSideProps(context) {
             id: true,
             username: true,
             name: true,
+            email: true,
             bio: true,
             avatar: true,
             eventTypes: true,
