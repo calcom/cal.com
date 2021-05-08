@@ -23,6 +23,8 @@
     "next-transpile-modules": "^7.0.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
+    "react-phone-number-input": "^3.1.21",
+    "react-select": "^4.3.0",
     "react-timezone-select": "^1.0.2"
   },
   "devDependencies": {

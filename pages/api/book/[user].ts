@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: req.body.start,
         endTime: req.body.end,
         timeZone: currentUser.timeZone,
+        location: req.body.location,
         attendees: [
             { email: req.body.email, name: req.body.name }
         ]

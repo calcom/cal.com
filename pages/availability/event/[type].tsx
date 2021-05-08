@@ -1,14 +1,22 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import Select, { OptionBase } from 'react-select';
 import prisma from '../../../lib/prisma';
+import { LocationType } from '../../../lib/location';
 import Shell from '../../../components/Shell';
 import { useSession, getSession } from 'next-auth/client';
+import { LocationMarkerIcon, PlusCircleIcon, XIcon, PhoneIcon } from '@heroicons/react/outline';
 
 export default function EventType(props) {
     const router = useRouter();
+
     const [ session, loading ] = useSession();
+    const [ showLocationModal, setShowLocationModal ] = useState(false);
+    const [ selectedLocation, setSelectedLocation ] = useState<OptionBase | undefined>(undefined);
+    const [ locations, setLocations ] = useState(props.eventType.locations || []);
+
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
     const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -27,12 +35,11 @@ export default function EventType(props) {
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
         const enteredIsHidden = isHiddenRef.current.checked;
-
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'PATCH',
-            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
+            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -54,6 +61,72 @@ export default function EventType(props) {
 
         router.push('/availability');
     }
+
+    // TODO: Tie into translations instead of abstracting to locations.ts
+    const locationOptions: OptionBase[] = [
+        { value: LocationType.InPerson, label: 'In-person meeting' },
+        { value: LocationType.Phone, label: 'Phone call', },
+    ];
+
+    const openLocationModal = (type: LocationType) => {
+        setSelectedLocation(locationOptions.find( (option) => option.value === type));
+        setShowLocationModal(true);
+    }
+
+    const closeLocationModal = () => {
+        setSelectedLocation(undefined);
+        setShowLocationModal(false);
+    };
+
+    const LocationOptions = () => {
+        if (!selectedLocation) {
+            return null;
+        }
+        switch (selectedLocation.value) {
+            case LocationType.InPerson:
+                const address = locations.find(
+                    (location) => location.type === LocationType.InPerson
+                )?.address;
+                return (
+                    <div>
+                        <label htmlFor="address" className="block text-sm font-medium text-gray-700">Set an address or place</label>
+                        <div className="mt-1">
+                            <input type="text" name="address" id="address" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" defaultValue={address} />
+                        </div>
+                    </div>
+                )
+            case LocationType.Phone:
+
+                 return (
+                    <p className="text-sm">Calendso will ask your invitee to enter a phone number before scheduling.</p>
+                )
+        }
+        return null;
+    };
+
+    const updateLocations = (e) => {
+        e.preventDefault();
+
+        let details = {};
+        if (e.target.location.value === LocationType.InPerson) {
+            details = { address: e.target.address.value };
+        }
+
+        const existingIdx = locations.findIndex( (loc) => e.target.location.value === loc.type );
+        if (existingIdx !== -1) {
+            let copy = locations;
+            copy[ existingIdx ] = { ...locations[ existingIdx ], ...details };
+            setLocations(copy);
+        } else {
+            setLocations(locations.concat({ type: e.target.location.value, ...details }));
+        }
+
+        setShowLocationModal(false);
+    };
+
+    const removeLocation = (selectedLocation) => {
+        setLocations(locations.filter( (location) => location.type !== selectedLocation.type ));
+    };
 
     return (
         <div>
@@ -91,6 +164,53 @@ export default function EventType(props) {
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
+                                        {locations.length === 0 && <div className="mt-1 mb-2">
+                                            <div className="flex rounded-md shadow-sm">
+                                                <Select
+                                                    name="location"
+                                                    id="location"
+                                                    options={locationOptions}
+                                                    isSearchable="false"
+                                                    className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                                    onChange={(e) => openLocationModal(e.value)}
+                                                />
+                                            </div>
+                                        </div>}
+                                        {locations.length > 0 && <ul className="w-96 mt-1">
+                                            {locations.map( (location) => (
+                                                <li key={location.type} className="bg-blue-50 mb-2 p-2 border">
+                                                    <div className="flex justify-between">
+                                                        {location.type === LocationType.InPerson && (
+                                                            <div className="flex-grow flex">
+                                                                <LocationMarkerIcon className="h-6 w-6" />
+                                                                <span className="ml-2 text-sm">{location.address}</span>
+                                                            </div>
+                                                        )}
+                                                        {location.type === LocationType.Phone && (
+                                                            <div className="flex-grow flex">
+                                                                <PhoneIcon className="h-6 w-6" />
+                                                                <span className="ml-2 text-sm">Phone call</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex">
+                                                            <button type="button" onClick={() => openLocationModal(location.type)} className="mr-2 text-sm text-blue-600">Edit</button>
+                                                            <button onClick={() => removeLocation(location)}>
+                                                                <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                            {locations.length > 0 && locations.length !== locationOptions.length && <li>
+                                                <button type="button" className="sm:flex sm:items-start text-sm text-blue-600" onClick={() => setShowLocationModal(true)}>
+                                                    <PlusCircleIcon className="h-6 w-6" />
+                                                    <span className="ml-1">Add another location option</span>
+                                                </button>
+                                            </li>}
+                                        </ul>}
                                     </div>
                                     <div className="mb-4">
                                         <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
@@ -153,6 +273,45 @@ export default function EventType(props) {
                         </div>
                     </div>
                 </div>
+                {showLocationModal &&
+                    <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+                            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                                <div className="sm:flex sm:items-start mb-4">
+                                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                                        <LocationMarkerIcon className="h-6 w-6 text-blue-600" />
+                                    </div>
+                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                        <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Edit location</h3>
+                                    </div>
+                                </div>
+                                <form onSubmit={updateLocations}>
+                                    <Select
+                                        name="location"
+                                        defaultValue={selectedLocation}
+                                        options={locationOptions}
+                                        isSearchable="false"
+                                        className="mb-2 flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                        onChange={setSelectedLocation}
+                                    />
+                                    <LocationOptions />
+                                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                        <button type="submit" className="btn btn-primary">
+                                            Update
+                                        </button>
+                                        <button onClick={closeLocationModal} type="button" className="btn btn-white mr-2">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
             </Shell>
         </div>
     );
@@ -182,7 +341,8 @@ export async function getServerSideProps(context) {
             slug: true,
             description: true,
             length: true,
-            hidden: true
+            hidden: true,
+            locations: true,
         }
     });
 

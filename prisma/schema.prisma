@@ -15,6 +15,7 @@ model EventType {
   title         String
   slug          String
   description   String?
+  locations     Json?
   length        Int
   hidden        Boolean @default(false)
   user          User?   @relation(fields: [userId], references: [id])

@@ -49,6 +49,7 @@ interface CalendarEvent {
     timeZone: string;
     endTime: string;
     description?: string;
+    location?: string;
     organizer: { name?: string, email: string };
     attendees: { name?: string, email: string }[];
 };
@@ -57,28 +58,37 @@ const MicrosoftOffice365Calendar = (credential) => {
 
     const auth = o365Auth(credential);
 
-    const translateEvent = (event: CalendarEvent) => ({
-        subject: event.title,
-        body: {
-            contentType: 'HTML',
-            content: event.description,
-        },
-        start: {
-            dateTime: event.startTime,
-            timeZone: event.timeZone,
-        },
-        end: {
-            dateTime: event.endTime,
-            timeZone: event.timeZone,
-        },
-        attendees: event.attendees.map(attendee => ({
-            emailAddress: {
-                address: attendee.email,
-                name: attendee.name
+    const translateEvent = (event: CalendarEvent) => {
+
+        let optional = {};
+        if (event.location) {
+            optional.location = { displayName: event.location };
+        }
+
+        return {
+            subject: event.title,
+            body: {
+                contentType: 'HTML',
+                content: event.description,
             },
-            type: "required"
-        }))
-    });
+            start: {
+                dateTime: event.startTime,
+                timeZone: event.timeZone,
+            },
+            end: {
+                dateTime: event.endTime,
+                timeZone: event.timeZone,
+            },
+            attendees: event.attendees.map(attendee => ({
+                emailAddress: {
+                    address: attendee.email,
+                    name: attendee.name
+                },
+                type: "required"
+            })),
+            ...optional
+        }
+    };
 
     return {
         getAvailability: (dateFrom, dateTo) => {
@@ -119,7 +129,7 @@ const MicrosoftOffice365Calendar = (credential) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(translateEvent(event))
-        }))
+        }).then(handleErrors))
     }
 };
 
@@ -164,6 +174,10 @@ const GoogleCalendar = (credential) => {
                     ],
                 },
             };
+
+            if (event.location) {
+                payload['location'] = event.location;
+            }
 
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth });
             calendar.events.insert({

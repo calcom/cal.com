@@ -1,22 +1,39 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ClockIcon, CalendarIcon } from '@heroicons/react/solid';
+import { ClockIcon, CalendarIcon, LocationMarkerIcon } from '@heroicons/react/solid';
 import prisma from '../../lib/prisma';
 import {collectPageParameters, telemetryEventTypes, useTelemetry} from "../../lib/telemetry";
-import {useEffect} from "react";
-const dayjs = require('dayjs');
+import { useEffect, useState } from "react";
+import dayjs from 'dayjs';
+import 'react-phone-number-input/style.css';
+import PhoneInput from 'react-phone-number-input';
+import { LocationType } from '../../lib/location';
 
 export default function Book(props) {
     const router = useRouter();
     const { date, user } = router.query;
+    const [ selectedLocation, setSelectedLocation ] = useState<LocationType>(props.eventType.locations.length === 1 ? props.eventType.locations[0].type : '');
     const telemetry = useTelemetry();
     useEffect(() => {
         telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
-    })
+    });
+
+    const locationInfo = (type: LocationType) => props.eventType.locations.find(
+        (location) => location.type === type
+    );
+
+    // TODO: Move to translations
+    const locationLabels = {
+        [LocationType.InPerson]: 'In-person meeting',
+        [LocationType.Phone]: 'Phone call',
+    };
 
     const bookingHandler = event => {
         event.preventDefault();
+
+        const locationText = selectedLocation === LocationType.Phone ? event.target.phone.value : locationInfo(selectedLocation).address;
+
         telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters()));
         const res = fetch(
             '/api/book/' + user,
@@ -26,6 +43,7 @@ export default function Book(props) {
                     end: dayjs(date).add(props.eventType.length, 'minute').format(),
                     name: event.target.name.value,
                     email: event.target.email.value,
+                    location: locationText,
                     notes: event.target.notes.value
                   }),
                 headers: {
@@ -34,7 +52,8 @@ export default function Book(props) {
                 method: 'POST'
             }
         );
-        router.push("/success?date=" + date + "&type=" + props.eventType.id + "&user=" + props.user.username);
+
+        router.push(`/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&location=${encodeURIComponent(locationText)}`);
     }
 
     return (
@@ -55,6 +74,10 @@ export default function Book(props) {
                                 <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                                 {props.eventType.length} minutes
                             </p>
+                            {selectedLocation === LocationType.InPerson && <p className="text-gray-500 mb-2">
+                                <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                                {locationInfo(selectedLocation).address}
+                            </p>}
                             <p className="text-blue-600 mb-4">
                                 <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                                 {dayjs(date).format("hh:mma, dddd DD MMMM YYYY")}
@@ -75,6 +98,23 @@ export default function Book(props) {
                                         <input type="email" name="email" id="email" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" />
                                     </div>
                                 </div>
+                                {props.eventType.locations.length > 1 && (
+                                    <div className="mb-4">
+                                        <span className="block text-sm font-medium text-gray-700">Location</span>
+                                        {props.eventType.locations.map( (location) => (
+                                            <label key={location.type} className="block">
+                                                <input type="radio" required onChange={(e) => setSelectedLocation(e.target.value)} className="location" name="location" value={location.type} checked={selectedLocation === location.type} />
+                                                <span className="text-sm ml-2">{locationLabels[location.type]}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                                {selectedLocation === LocationType.Phone && (<div className="mb-4">
+                                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
+                                   <div className="mt-1">
+                                       <PhoneInput name="phone" placeholder="Enter phone number" id="phone" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" onChange={() => {}} />
+                                   </div>
+                                </div>)}
                                 <div className="mb-4">
                                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Additional notes</label>
                                     <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting."></textarea>
@@ -117,7 +157,8 @@ export async function getServerSideProps(context) {
             title: true,
             slug: true,
             description: true,
-            length: true
+            length: true,
+            locations: true,
         }
     });
 
