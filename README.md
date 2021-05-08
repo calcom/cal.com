@@ -145,7 +145,7 @@ Contributions are what make the open source community such an amazing place to b
 1. Open [Google API Console](https://console.cloud.google.com/apis/dashboard). If you don't have a project in your Google Cloud subscription, you'll need to create one before proceeding further. Under Dashboard pane, select Enable APIS and Services.
 2. In the search box, type calendar and select the Google Calendar API search result.
 3. Enable the selected API.
-4. Next, go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) from the side pane. Select the app app type (Internal or External) and enter the basic app details on the first page.
+4. Next, go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) from the side pane. Select the app type (Internal or External) and enter the basic app details on the first page.
 5. In the second page on Scopes, select Add or Remove Scopes. Search for Calendar.event and select the scope with scope value `.../auth/calendar.events` and select Update.
 6. In the third page (Test Users), add the Google account(s) you'll using. Make sure the details are correct on the last page of the wizard and your consent screen will be configured.
 7. Now select [Credentials](https://console.cloud.google.com/apis/credentials) from the side pane and then select Create Credentials. Select the OAuth Client ID option.
@@ -181,5 +181,4 @@ Special thanks to these amazing projects which help power Calendso:
 * [Prisma](https://prisma.io/)
 
 [product-screenshot]: https://i.imgur.com/4yvFj2E.png
-
 
