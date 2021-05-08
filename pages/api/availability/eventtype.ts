@@ -4,99 +4,61 @@ import prisma from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getSession({req: req});
-
     if (!session) {
         res.status(401).json({message: "Not authenticated"});
         return;
     }
+    // TODO: Add user ID to user session object
+    const user = await prisma.user.findFirst({
+        where: {
+            email: session.user.email,
+        },
+        select: {
+            id: true
+        }
+    });
 
-    if (req.method == "POST") {
-        // TODO: Add user ID to user session object
-        const user = await prisma.user.findFirst({
-            where: {
-                email: session.user.email,
-            },
-            select: {
-                id: true
-            }
-        });
-
-        if (!user) { res.status(404).json({message: 'User not found'}); return; }
-
-        const title = req.body.title;
-        const slug = req.body.slug;
-        const description = req.body.description;
-        const length = parseInt(req.body.length);
-        const hidden = req.body.hidden;
-
-        const createEventType = await prisma.eventType.create({
-            data: {
-                title: title,
-                slug: slug,
-                description: description,
-                length: length,
-                hidden: hidden,
-                userId: user.id,
-            },
-        });
-
-        res.status(200).json({message: 'Event created successfully'});
+    if (!user) {
+        res.status(404).json({message: 'User not found'});
+        return;
     }
 
-    if (req.method == "PATCH") {
-        // TODO: Add user ID to user session object
-        const user = await prisma.user.findFirst({
-            where: {
-                email: session.user.email,
-            },
-            select: {
-                id: true
-            }
-        });
+    if (req.method == "PATCH" || req.method == "POST") {
 
-        if (!user) { res.status(404).json({message: 'User not found'}); return; }
+        const data = {
+            title: req.body.title,
+            slug: req.body.slug,
+            description: req.body.description,
+            length: parseInt(req.body.length),
+            hidden: req.body.hidden,
+            locations: req.body.locations,
+        };
 
-        const id = req.body.id;
-        const title = req.body.title;
-        const slug = req.body.slug;
-        const description = req.body.description;
-        const length = parseInt(req.body.length);
-        const hidden = req.body.hidden;
-
-        const updateEventType = await prisma.eventType.update({
-            where: {
-                id: id,
-            },
-            data: {
-                title: title,
-                slug: slug,
-                description: description,
-                length: length,
-                hidden: hidden
-            },
-        });
-
-        res.status(200).json({message: 'Event updated successfully'});
+        if (req.method == "POST") {
+            const createEventType = await prisma.eventType.create({
+                data: {
+                    userId: user.id,
+                    ...data,
+                },
+            });
+            res.status(200).json({message: 'Event created successfully'});
+        }
+        else if (req.method == "PATCH") {
+            const updateEventType = await prisma.eventType.update({
+                where: {
+                    id: req.body.id,
+                },
+                data,
+            });
+            res.status(200).json({message: 'Event updated successfully'});
+        }
     }
 
     if (req.method == "DELETE") {
-        // TODO: Add user ID to user session object
-        const user = await prisma.user.findFirst({
-            where: {
-                email: session.user.email,
-            },
-            select: {
-                id: true
-            }
-        });
-
-        if (!user) { res.status(404).json({message: 'User not found'}); return; }
-
-        const id = req.body.id;
 
         const deleteEventType = await prisma.eventType.delete({
             where: {
-                id: id,
+                id: req.body.id,
             },
         });
 
