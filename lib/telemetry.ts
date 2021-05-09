@@ -1,6 +1,16 @@
 import React, {useContext} from 'react'
 import {jitsuClient, JitsuClient} from "@jitsu/sdk-js";
 
+/**
+ * Enumeration of all event types that are being sent
+ * to telemetry collection.
+ */
+export const telemetryEventTypes = {
+    pageView: 'page_view',
+    dateSelected: 'date_selected',
+    timeSelected: 'time_selected',
+    bookingConfirmed: 'booking_confirmed'
+}
 
 /**
  * Telemetry client
@@ -21,6 +31,31 @@ function useTelemetry(): TelemetryClient {
     return useContext(TelemetryContext);
 }
 
+function isLocalhost(host: string) {
+    return "localhost" === host || "127.0.0.1" === host;
+}
+
+/**
+ * Collects page parameters and makes sure no sensitive data made it to telemetry
+ * @param route current next.js route
+ */
+export function collectPageParameters(route?: string): any {
+    let host = document.location.hostname;
+    let maskedHost = isLocalhost(host) ? "localhost" : "masked";
+    //starts with ''
+    let docPath = route ?? "";
+    return {
+        page_url: route,
+        page_title: "",
+        source_ip: "",
+        url: document.location.protocol + "//" + host + (docPath ?? ""),
+        doc_host: maskedHost,
+        doc_search: "",
+        doc_path: docPath,
+        referer: "",
+    }
+}
+
 function createTelemetryClient(): TelemetryClient {
     if (process.env.NEXT_PUBLIC_TELEMETRY_KEY) {
         return {
@@ -36,7 +71,7 @@ function createTelemetryClient(): TelemetryClient {
                     window['jitsu'] = jitsuClient({
                         log_level: 'ERROR',
                         tracking_host: "https://t.calendso.com",
-                        key: "js.2pvs2bbpqq1zxna97wcml.oi2jzirnbj1ev4tc57c5r",
+                        key: process.env.NEXT_PUBLIC_TELEMETRY_KEY,
                         cookie_name: "__clnds",
                         capture_3rd_party_cookies: false,
                     });

@@ -15,10 +15,6 @@ export default function Settings(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }
@@ -88,6 +84,9 @@ export default function Settings(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if (!session) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {

@@ -3,7 +3,7 @@ import {useContext, useEffect, useState} from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from 'next-auth/client';
 import { MenuIcon, XIcon } from '@heroicons/react/outline';
-import {TelemetryContext, useTelemetry} from "../lib/telemetry";
+import {collectPageParameters, telemetryEventTypes, useTelemetry} from "../lib/telemetry";
 
 export default function Shell(props) {
     const router = useRouter();
@@ -14,7 +14,7 @@ export default function Shell(props) {
 
     useEffect(() => {
         telemetry.withJitsu((jitsu) => {
-            return jitsu.track('page_view', {page_url: router.pathname, page_title: "", source_ip: ""})
+            return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.pathname))
         });
     }, [telemetry])
 
@@ -27,11 +27,14 @@ export default function Shell(props) {
     }
 
     const logoutHandler = () => {
-        signOut();
-        router.push('/');
+        signOut({ redirect: false }).then( () => router.push('/auth/logout') );
     }
 
-    return (
+    if ( ! loading && ! session ) {
+        router.replace('/auth/login');
+    }
+
+    return session && (
         <div>
             <div className="bg-gray-800 pb-32">
                 <nav className="bg-gray-800">
@@ -56,7 +59,7 @@ export default function Shell(props) {
                                             <Link href="/integrations">
                                                 <a className={router.pathname.startsWith("/integrations") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Integrations</a>
                                             </Link>
-                                            <Link href="/settings">
+                                            <Link href="/settings/profile">
                                                 <a className={router.pathname.startsWith("/settings") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Settings</a>
                                             </Link>
                                         </div>
