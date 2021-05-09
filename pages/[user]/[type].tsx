@@ -144,6 +144,11 @@ export default function Type(props) {
           if (dayjs(times[i]).isBetween(startTime, endTime)) {
               times.splice(i, 1);
           }
+
+          // Check if slot end time is between start and end time
+          if (dayjs(times[i]).add(props.eventType.length, 'minutes').isBetween(startTime, endTime)) {
+              times.splice(i, 1);
+          }
       });
     }
 
