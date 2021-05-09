@@ -13,13 +13,16 @@ import { LocationType } from '../../lib/location';
 export default function Book(props) {
     const router = useRouter();
     const { date, user } = router.query;
-    const [ selectedLocation, setSelectedLocation ] = useState<LocationType>(props.eventType.locations.length === 1 ? props.eventType.locations[0].type : '');
+
+    const locations = props.eventType.locations || [];
+
+    const [ selectedLocation, setSelectedLocation ] = useState<LocationType>(locations.length === 1 ? locations[0].type : '');
     const telemetry = useTelemetry();
     useEffect(() => {
         telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
     });
 
-    const locationInfo = (type: LocationType) => props.eventType.locations.find(
+    const locationInfo = (type: LocationType) => locations.find(
         (location) => location.type === type
     );
 
@@ -32,20 +35,23 @@ export default function Book(props) {
     const bookingHandler = event => {
         event.preventDefault();
 
-        const locationText = selectedLocation === LocationType.Phone ? event.target.phone.value : locationInfo(selectedLocation).address;
+        let payload = {
+            start: dayjs(date).format(),
+            end: dayjs(date).add(props.eventType.length, 'minute').format(),
+            name: event.target.name.value,
+            email: event.target.email.value,
+            notes: event.target.notes.value
+        };
+
+        if (selectedLocation) {
+            payload['location'] = selectedLocation === LocationType.Phone ? event.target.phone.value : locationInfo(selectedLocation).address;
+        }
 
         telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters()));
         const res = fetch(
             '/api/book/' + user,
             {
-                body: JSON.stringify({
-                    start: dayjs(date).format(),
-                    end: dayjs(date).add(props.eventType.length, 'minute').format(),
-                    name: event.target.name.value,
-                    email: event.target.email.value,
-                    location: locationText,
-                    notes: event.target.notes.value
-                  }),
+                body: JSON.stringify(payload),
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -53,7 +59,12 @@ export default function Book(props) {
             }
         );
 
-        router.push(`/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&location=${encodeURIComponent(locationText)}`);
+        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}`;
+        if (payload['location']) {
+            successUrl += "&location=" + encodeURIComponent(payload['location']);
+        }
+
+        router.push(successUrl);
     }
 
     return (
@@ -98,10 +109,10 @@ export default function Book(props) {
                                         <input type="email" name="email" id="email" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" />
                                     </div>
                                 </div>
-                                {props.eventType.locations.length > 1 && (
+                                {locations.length > 1 && (
                                     <div className="mb-4">
                                         <span className="block text-sm font-medium text-gray-700">Location</span>
-                                        {props.eventType.locations.map( (location) => (
+                                        {locations.map( (location) => (
                                             <label key={location.type} className="block">
                                                 <input type="radio" required onChange={(e) => setSelectedLocation(e.target.value)} className="location" name="location" value={location.type} checked={selectedLocation === location.type} />
                                                 <span className="text-sm ml-2">{locationLabels[location.type]}</span>
