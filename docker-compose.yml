@@ -1,0 +1,48 @@
+version: '3.2'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    volumes:
+      - .:/usr/src/app
+      - ./.env.example:/usr/src/app/.env
+      - /usr/src/app/node_modules
+    environment:
+      DATABASE_URL: 'postgresql://postgres:example@db:5432'
+      GOOGLE_API_CREDENTIALS: 'secret'
+    depends_on:
+      - "db"
+
+# npx prisma db push --preview-feature
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
+    environment:
+      POSTGRES_PASSWORD: example
+
+
+  prisma:
+    build:
+      context: .
+      dockerfile: Dockerfile-prisma
+    restart: always
+    ports:
+      - "5555:5555"
+    expose:
+      - 5555
+    volumes:
+      - .:/usr/src/app
+      - ./.env.example:/usr/src/app/.env
+      - /usr/src/app/node_modules
+    depends_on:
+      - "db"
