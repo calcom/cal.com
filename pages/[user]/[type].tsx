@@ -113,7 +113,7 @@ export default function Type(props) {
             setLoading(true);
             const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
             const busyTimes = await res.json();
-            if (busyTimes.length > 0) setBusy(busyTimes);
+            setBusy(busyTimes);
             setLoading(false);
         }
         changeDate();
@@ -127,36 +127,9 @@ export default function Type(props) {
         selectedDate: selectedDate,
         dayStartTime: props.user.startTime,
         dayEndTime: props.user.endTime,
+        busyTimes: busy,
       })
-    , [selectedDate, selectedTimeZone])
-
-    // Check for conflicts
-    for(let i = times.length - 1; i >= 0; i -= 1) {
-      busy.forEach(busyTime => {
-          let startTime = dayjs(busyTime.start);
-          let endTime = dayjs(busyTime.end);
-
-          // Check if start times are the same
-          if (dayjs(times[i]).format('HH:mm') == startTime.format('HH:mm')) {
-              times.splice(i, 1);
-          }
-
-          // Check if time is between start and end times
-          if (dayjs(times[i]).isBetween(startTime, endTime)) {
-              times.splice(i, 1);
-          }
-
-          // Check if slot end time is between start and end time
-          if (dayjs(times[i]).add(props.eventType.length, 'minutes').isBetween(startTime, endTime)) {
-              times.splice(i, 1);
-          }
-
-          // Check if startTime is between slot 
-          if(startTime.isBetween(dayjs(times[i]), dayjs(times[i]).add(props.eventType.length, 'minutes'))) {
-            times.splice(i, 1);
-          }
-      });
-    }
+    , [selectedDate, selectedTimeZone, busy])
 
     // Display available times
     const availableTimes = times.map((time) =>

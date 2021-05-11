@@ -12,17 +12,66 @@ const getMinutesFromMidnight = (date) => {
   return date.hour() * 60 + date.minute();
 };
 
+interface SlotAvailability {
+  available: boolean,
+  offset: number,
+}
+
+const isSlotAvailable = ({
+  slotStartTime,
+  slotEndTime,
+  busyTimes
+}): SlotAvailability => {
+  let slotAvailability: SlotAvailability = {
+    available: true,
+    offset: 0,
+  }
+
+  for (let i = 0; i < busyTimes.length; i += 1) {
+    const busyTimeStart = dayjs(busyTimes[i].start);
+    const busyTimeEnd = dayjs(busyTimes[i].end);
+
+    // Check if start times are the same
+    if (slotStartTime.format('HH:mm') == busyTimeStart.format('HH:mm')) {
+      slotAvailability.available = false;
+      slotAvailability.offset = busyTimeEnd.diff(slotStartTime, 'minute');
+    }
+
+    // Check if time is between start and end times
+    if (slotStartTime.isBetween(busyTimeStart, busyTimeEnd)) {
+      slotAvailability.available = false;
+      slotAvailability.offset = busyTimeEnd.diff(slotStartTime, 'minute');
+    }
+
+    // Check if slot end time is between start and end time
+    if (slotEndTime.isBetween(busyTimeStart, busyTimeEnd)) {
+      slotAvailability.available = false;
+      slotAvailability.offset = busyTimeEnd.diff(slotEndTime, 'minute');
+    }
+
+    // Check if startTime is between slot 
+    if (busyTimeStart.isBetween(slotStartTime, slotEndTime)) {
+      slotAvailability.available = false;
+      slotAvailability.offset = busyTimeEnd.diff(slotStartTime, 'minute')
+    }
+
+    if (!slotAvailability.available) return slotAvailability;
+  }
+  return slotAvailability;
+}
+
 const getSlots = ({
   calendarTimeZone,
   eventLength,
   selectedTimeZone,
   selectedDate,
   dayStartTime,
-  dayEndTime
+  dayEndTime,
+  busyTimes,
 }) => {
 
-  if(!selectedDate) return []
-  
+  if (!selectedDate) return []
+
   const lowerBound = selectedDate.tz(selectedTimeZone).startOf("day");
 
   // Simple case, same timezone
@@ -32,12 +81,20 @@ const getSlots = ({
     for (
       let minutes = dayStartTime;
       minutes <= dayEndTime - eventLength;
-      minutes += parseInt(eventLength, 10)
     ) {
       const slot = lowerBound.add(minutes, "minutes");
+
+
       if (slot > now) {
-        slots.push(slot);
+        const slotAvailablilty = isSlotAvailable({ slotStartTime: slot, slotEndTime: slot.add(eventLength, 'minutes'), busyTimes });
+        if (slotAvailablilty.available) {
+          slots.push(slot);
+        } else {
+          minutes += slotAvailablilty.offset;
+          continue;
+        }
       }
+      minutes += parseInt(eventLength, 10);
     }
     return slots;
   }
@@ -71,7 +128,6 @@ const getSlots = ({
   for (
     let minutes = phase;
     minutes <= maxMinutes;
-    minutes += parseInt(eventLength, 10)
   ) {
     const slot = startDateTime.add(minutes, "minutes");
 
@@ -82,10 +138,17 @@ const getSlots = ({
       minutesFromMidnight > dayEndTime - eventLength ||
       slot < now
     ) {
+      minutes += parseInt(eventLength, 10);
       continue;
     }
 
-    slots.push(slot.tz(selectedTimeZone));
+    const slotAvailablilty = isSlotAvailable({ slotStartTime: slot, slotEndTime: slot.add(eventLength, 'minutes'), busyTimes });
+    if (slotAvailablilty.available) {
+      slots.push(slot.tz(selectedTimeZone));
+      minutes += parseInt(eventLength, 10);
+      continue;
+    }
+    minutes += slotAvailablilty.offset;
   }
 
   return slots;
