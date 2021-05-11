@@ -219,7 +219,7 @@ const calendars = (withCredentials): [] => withCredentials.map( (cred) => {
 const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     calendars(withCredentials).map( c => c.getAvailability(dateFrom, dateTo) )
 ).then(
-    (results) => results.reduce( (acc, availability) => acc.concat(availability) )
+    (results) => results.reduce( (acc, availability) => acc.concat(availability), [])
 );
 
 const createEvent = (credential, evt: CalendarEvent) => calendars([ credential ])[0].createEvent(evt);
