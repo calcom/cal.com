@@ -22,4 +22,13 @@ module.exports = withTM({
   typescript: {
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/settings',
+        destination: '/settings/profile',
+        permanent: true,
+      }
+    ]
+  }
 });

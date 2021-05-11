@@ -10,16 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await getSession({req: req});
     if (!session) { res.status(401).json({message: 'You must be logged in to do this'}); return; }
 
-    // TODO: Add user ID to user session object
-    const user = await prisma.user.findFirst({
-        where: {
-            email: session.user.email,
-        },
-        select: {
-            id: true
-        }
-    });
-
     const toUrlEncoded = payload => Object.keys(payload).map( (key) => key + '=' + encodeURIComponent(payload[ key ]) ).join('&');
     const hostname = 'x-forwarded-host' in req.headers ? 'https://' + req.headers['x-forwarded-host'] : 'host' in req.headers ? (req.secure ? 'https://' : 'http://') + req.headers['host'] : '';
 
@@ -46,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: {
             type: 'office365_calendar',
             key: responseBody,
-            userId: user.id
+            userId: session.user.id
         }
     });
 

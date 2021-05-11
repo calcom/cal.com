@@ -36,8 +36,24 @@ export default NextAuth({
                     throw new Error('Incorrect password');
                 }
 
-                return {id: user.id, username: user.username, email: user.email, name: user.name};
+                return {id: user.id, username: user.username, email: user.email, name: user.name, image: user.avatar};
             }
         })
     ],
+    callbacks: {
+        async jwt(token, user, account, profile, isNewUser) {
+            // Add username to the token right after signin
+            if (user?.username) {
+                token.id = user.id;
+                token.username = user.username;
+            }
+            return token;
+        },
+        async session(session, token) {
+            session.user = session.user || {}
+            session.user.id = token.id;
+            session.user.username = token.username;
+            return session;
+        },
+    },
 });

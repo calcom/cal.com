@@ -6,6 +6,7 @@ import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
+import Avatar from '../../components/Avatar';
 import { signIn, useSession, getSession } from 'next-auth/client';
 import TimezoneSelect from 'react-timezone-select';
 
@@ -22,10 +23,6 @@ export default function Settings(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }
@@ -80,12 +77,12 @@ export default function Settings(props) {
                                             <span className="bg-gray-50 border border-r-0 border-gray-300 rounded-l-md px-3 inline-flex items-center text-gray-500 sm:text-sm">
                                                 {window.location.hostname}/
                                             </span>
-                                            <input ref={usernameRef} type="text" name="username" id="username" autoComplete="username" className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300" defaultValue={props.user.username} />
+                                            <input ref={usernameRef} type="text" name="username" id="username" autoComplete="username" required className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300" defaultValue={props.user.username} />
                                         </div>
                                     </div>
                                     <div className="w-1/2 ml-2">
                                         <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full name</label>
-                                        <input ref={nameRef} type="text" name="name" id="name" autoComplete="given-name" placeholder="Your name" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" defaultValue={props.user.name} />
+                                        <input ref={nameRef} type="text" name="name" id="name" autoComplete="given-name" placeholder="Your name" required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" defaultValue={props.user.name} />
                                     </div>
                                 </div>
 
@@ -114,7 +111,7 @@ export default function Settings(props) {
                                 <div className="mt-1 lg:hidden">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 inline-block rounded-full overflow-hidden h-12 w-12" aria-hidden="true">
-                                            <img className="rounded-full h-full w-full" src={props.user.avatar} alt="" />
+                                            <Avatar user={props.user} className="rounded-full h-full w-full" />
                                         </div>
                                         {/* <div className="ml-5 rounded-md shadow-sm">
                                             <div className="group relative border border-gray-300 rounded-md py-2 px-3 flex items-center justify-center hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
@@ -129,8 +126,11 @@ export default function Settings(props) {
                                 </div>
 
                                 <div className="hidden relative rounded-full overflow-hidden lg:block">
-                                    {props.user.avatar && <img className="relative rounded-full w-40 h-40" src={props.user.avatar} alt="" />}
-                                    {!props.user.avatar && <div className="relative bg-blue-600 rounded-full w-40 h-40"></div>}
+                                    <Avatar
+                                        user={props.user}
+                                        className="relative rounded-full w-40 h-40"
+                                        fallback={<div className="relative bg-blue-600 rounded-full w-40 h-40"></div>}
+                                    />
                                     {/* <label htmlFor="user-photo" className="absolute inset-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center text-sm font-medium text-white opacity-0 hover:opacity-100 focus-within:opacity-100">
                                         <span>Change</span>
                                         <span className="sr-only"> user photo</span>
@@ -159,6 +159,9 @@ export default function Settings(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if (!session) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {

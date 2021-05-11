@@ -11,24 +11,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method == "PATCH") {
-        // TODO: Add user ID to user session object
-        const user = await prisma.user.findFirst({
-            where: {
-                email: session.user.email,
-            },
-            select: {
-                id: true
-            }
-        });
-
-        if (!user) { res.status(404).json({message: 'User not found'}); return; }
-
         const startMins = req.body.start;
         const endMins = req.body.end;
 
         const updateDay = await prisma.user.update({
             where: {
-                id: user.id,
+                id: session.user.id,
             },
             data: {
                 startTime: startMins,
