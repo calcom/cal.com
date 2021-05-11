@@ -36,10 +36,10 @@ export default function Shell(props) {
 
     return session && (
         <div>
-            <div className="bg-gray-800 pb-32">
-                <nav className="bg-gray-800">
+            <div className="bg-gradient-to-b from-blue-600 via-blue-600 to-blue-300 pb-32">
+                <nav className="bg-blue-600">
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div className="border-b border-gray-700">
+                        <div className="border-b border-blue-500">
                             <div className="flex items-center justify-between h-16 px-4 sm:px-0">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
@@ -48,19 +48,19 @@ export default function Shell(props) {
                                     <div className="hidden md:block">
                                         <div className="ml-10 flex items-baseline space-x-4">
                                             <Link href="/">
-                                                <a className={router.pathname == "/" ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Dashboard</a>
+                                                <a className={router.pathname == "/" ? "bg-blue-500 transition-colors duration-300 ease-in-out text-white px-3 py-2 rounded-md text-sm font-medium" : "text-white hover:bg-blue-500 transition-colors duration-300 ease-in-out hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Dashboard</a>
                                             </Link>
                                             {/* <Link href="/">
-                                                <a className={router.pathname.startsWith("/bookings") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Bookings</a>
+                                                <a className={router.pathname.startsWith("/bookings") ? "bg-blue-500 transition-colors duration-300 ease-in-out text-white px-3 py-2 rounded-md text-sm font-medium" : "text-white hover:bg-blue-500 transition-colors duration-300 ease-in-out hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Bookings</a>
                                             </Link> */}
                                             <Link href="/availability">
-                                                <a className={router.pathname.startsWith("/availability") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Availability</a>
+                                                <a className={router.pathname.startsWith("/availability") ? "bg-blue-500 transition-colors duration-300 ease-in-out text-white px-3 py-2 rounded-md text-sm font-medium" : "text-white hover:bg-blue-500 transition-colors duration-300 ease-in-out hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Availability</a>
                                             </Link>
                                             <Link href="/integrations">
-                                                <a className={router.pathname.startsWith("/integrations") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Integrations</a>
+                                                <a className={router.pathname.startsWith("/integrations") ? "bg-blue-500 transition-colors duration-300 ease-in-out text-white px-3 py-2 rounded-md text-sm font-medium" : "text-white hover:bg-blue-500 transition-colors duration-300 ease-in-out hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Integrations</a>
                                             </Link>
                                             <Link href="/settings/profile">
-                                                <a className={router.pathname.startsWith("/settings") ? "bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Settings</a>
+                                                <a className={router.pathname.startsWith("/settings") ? "bg-blue-500 transition-colors duration-300 ease-in-out text-white px-3 py-2 rounded-md text-sm font-medium" : "text-white hover:bg-blue-500 transition-colors duration-300 ease-in-out hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Settings</a>
                                             </Link>
                                         </div>
                                     </div>
@@ -71,7 +71,7 @@ export default function Shell(props) {
                                             <div>
                                                 <button onClick={toggleProfileDropdown} type="button" className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white" id="user-menu" aria-expanded="false" aria-haspopup="true">
                                                     <span className="sr-only">Open user menu</span>
-                                                    <img className="h-8 w-8 rounded-full" src={"https://eu.ui-avatars.com/api/?background=039be5&color=fff&name=" + encodeURIComponent(session.user.name || "")} alt="" />
+                                                    <img className="h-8 w-8 rounded-full" src={session.user.image ? session.user.image : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" + encodeURIComponent(session.user.name || "")} alt="" />
                                                 </button>
                                             </div>
                                             {
