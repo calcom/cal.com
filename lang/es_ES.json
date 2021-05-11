@@ -1,0 +1,13 @@
+{
+  "loading": "Cargando...",
+  "welcome_to_calendso": "Bienvenido Calendso!",
+  "get_started_by_connecting": "Comience conectando su primera integración de calendario, lo que nos permitirá buscar su disponibilidad. Dirígete a la página de integraciones y haz clic en el enlace Agregar.",
+  "set_up_your_first": "Configura tu primera integración",
+  "your_integration": "Tus integraciones",
+  "view_more": "Ver más",
+  "calendar_integration": "Integración de Calendario",
+  "you_havent_added_any": "Todavía no tienes añadida ninguna integración.",
+  "this_user_hasnt_set_up_any": "Este usuario aún no ha configurado ningún tipo de evento.",
+  "booking_confirmed": "Reserva confirmada",
+  "you_are_scheduled_with": "Tienes una cita programada con "
+}
