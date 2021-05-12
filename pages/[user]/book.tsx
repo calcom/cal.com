@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';
 import { LocationType } from '../../lib/location';
+import Avatar from '../../components/Avatar';
 
 export default function Book(props) {
     const router = useRouter();
@@ -78,7 +79,7 @@ export default function Book(props) {
                 <div className="bg-white overflow-hidden shadow rounded-lg">
                     <div className="sm:flex px-4 py-5 sm:p-6">
                         <div className="sm:w-1/2 sm:border-r">
-                            {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="w-16 h-16 rounded-full mb-4"/>}
+                            <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
                             <h2 className="font-medium text-gray-500">{props.user.name}</h2>
                             <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
                             <p className="text-gray-500 mb-2">
@@ -153,6 +154,7 @@ export async function getServerSideProps(context) {
         select: {
             username: true,
             name: true,
+            email:true,
             bio: true,
             avatar: true,
             eventTypes: true

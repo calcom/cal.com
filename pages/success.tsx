@@ -4,8 +4,11 @@ import prisma from '../lib/prisma';
 import { useRouter } from 'next/router';
 import { CheckIcon } from '@heroicons/react/outline';
 import { ClockIcon, CalendarIcon, LocationMarkerIcon } from '@heroicons/react/solid';
-const dayjs = require('dayjs');
-const ics = require('ics');
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { createEvent } from 'ics';
+
+dayjs.extend(utc);
 
 export default function Success(props) {
     const router = useRouter();
@@ -22,7 +25,7 @@ export default function Success(props) {
             optional['location'] = location;
         }
 
-        const event = ics.createEvent({
+        const event = createEvent({
            start,
            startInputType: 'utc',
            title: props.eventType.title + ' with ' + props.user.name,
@@ -44,7 +47,6 @@ export default function Success(props) {
                 <title>Booking Confirmed | {props.eventType.title} with {props.user.name || props.user.username} | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-
             <main className="max-w-3xl mx-auto my-24">
                 <div className="fixed z-10 inset-0 overflow-y-auto">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">

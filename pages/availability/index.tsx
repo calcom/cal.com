@@ -110,7 +110,7 @@ export default function Availability(props) {
                         Event Types
                     </h3>
                     <div className="mt-3 sm:mt-0 sm:ml-4">
-                        <button onClick={toggleAddModal} type="button" className="btn-sm btn-primary">
+                        <button onClick={toggleAddModal} type="button" className="btn-sm btn-white">
                             New event type
                         </button>
                     </div>

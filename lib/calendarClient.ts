@@ -139,20 +139,30 @@ const GoogleCalendar = (credential) => {
     return {
         getAvailability: (dateFrom, dateTo) => new Promise( (resolve, reject) => {
             const calendar = google.calendar({ version: 'v3', auth: myGoogleAuth });
-            calendar.freebusy.query({
-                requestBody: {
-                    timeMin: dateFrom,
-                    timeMax: dateTo,
-                    items: [ {
-                        "id": "primary"
-                    } ]
-                }
-            }, (err, apires) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(apires.data.calendars.primary.busy)
-            });
+            calendar.calendarList
+              .list()
+              .then(cals => {
+                calendar.freebusy.query({
+                  requestBody: {
+                      timeMin: dateFrom,
+                      timeMax: dateTo,
+                      items: cals.data.items
+                  }
+                }, (err, apires) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(
+                      Object.values(apires.data.calendars).flatMap(
+                        (item) => item["busy"]
+                      )
+                    )
+                });
+              })
+              .catch((err) => {
+                reject(err);
+              });
+
         }),
         createEvent: (event: CalendarEvent) => new Promise( (resolve, reject) => {
             const payload = {

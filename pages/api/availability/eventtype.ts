@@ -8,20 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(401).json({message: "Not authenticated"});
         return;
     }
-    // TODO: Add user ID to user session object
-    const user = await prisma.user.findFirst({
-        where: {
-            email: session.user.email,
-        },
-        select: {
-            id: true
-        }
-    });
-
-    if (!user) {
-        res.status(404).json({message: 'User not found'});
-        return;
-    }
 
     if (req.method == "PATCH" || req.method == "POST") {
 
@@ -37,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (req.method == "POST") {
             const createEventType = await prisma.eventType.create({
                 data: {
-                    userId: user.id,
+                    userId: session.user.id,
                     ...data,
                 },
             });
