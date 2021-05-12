@@ -38,24 +38,27 @@ const isSlotAvailable = ({
     }
 
     // Check if time is between start and end times
-    if (slotStartTime.isBetween(busyTimeStart, busyTimeEnd)) {
+    else if (slotStartTime.isBetween(busyTimeStart, busyTimeEnd)) {
       slotAvailability.available = false;
       slotAvailability.offset = busyTimeEnd.diff(slotStartTime, 'minute');
     }
 
     // Check if slot end time is between start and end time
-    if (slotEndTime.isBetween(busyTimeStart, busyTimeEnd)) {
+    else if (slotEndTime.isBetween(busyTimeStart, busyTimeEnd)) {
       slotAvailability.available = false;
-      slotAvailability.offset = busyTimeEnd.diff(slotEndTime, 'minute');
+      slotAvailability.offset = busyTimeEnd.diff(slotStartTime, 'minute');
     }
 
     // Check if startTime is between slot 
-    if (busyTimeStart.isBetween(slotStartTime, slotEndTime)) {
+    else if (busyTimeStart.isBetween(slotStartTime, slotEndTime)) {
       slotAvailability.available = false;
-      slotAvailability.offset = busyTimeEnd.diff(slotStartTime, 'minute')
+      slotAvailability.offset = busyTimeEnd.diff(slotStartTime, 'minute');
     }
 
-    if (!slotAvailability.available) return slotAvailability;
+    if (!slotAvailability.available) {
+      if(slotAvailability.offset === 0) slotAvailability.offset = 5;
+      return slotAvailability
+    };
   }
   return slotAvailability;
 }
@@ -83,7 +86,6 @@ const getSlots = ({
       minutes <= dayEndTime - eventLength;
     ) {
       const slot = lowerBound.add(minutes, "minutes");
-
 
       if (slot > now) {
         const slotAvailablilty = isSlotAvailable({ slotStartTime: slot, slotEndTime: slot.add(eventLength, 'minutes'), busyTimes });
