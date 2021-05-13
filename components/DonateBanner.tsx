@@ -22,7 +22,7 @@ return null;
                   </span>
                   <span className="hidden md:inline">
                     You're using the free self-hosted version. Support the
-                    ongoing development.
+                    ongoing development by making a donation.
                   </span>
                 </p>
               </div>

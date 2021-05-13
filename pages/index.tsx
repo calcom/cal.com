@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import Shell from '../components/Shell';
 import { signIn, useSession, getSession } from 'next-auth/client';
 import { ClockIcon, CheckIcon, InformationCircleIcon } from '@heroicons/react/outline';
+import DonateBanner from '../components/DonateBanner';
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
