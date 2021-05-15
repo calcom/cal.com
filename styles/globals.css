@@ -19,3 +19,7 @@ body {
         transition-property: max-width;
     }
 }
+
+#timeZone input:focus {
+    box-shadow: none;
+}

@@ -7,10 +7,19 @@ export default async function handler(req, res) {
     }
 
     const data = req.body;
-
     const { username, email, password } = data;
 
-    if (!email || !email.includes('@') || !password || password.trim().length < 7) {
+    if (!username) {
+        res.status(422).json({message: 'Invalid username'});
+        return;
+    }
+
+    if (!email || !email.includes('@')) {
+        res.status(422).json({message: 'Invalid email'});
+        return;
+    }
+
+    if (!password || password.trim().length < 7) {
         res.status(422).json({message: 'Invalid input - password should be at least 7 characters long.'});
         return;
     }

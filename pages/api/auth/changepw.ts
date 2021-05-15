@@ -11,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
     }
 
-    // TODO: Add user ID to user session object
     const user = await prisma.user.findFirst({
         where: {
             email: session.user.email,

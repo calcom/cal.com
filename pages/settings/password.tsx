@@ -15,10 +15,6 @@ export default function Settings(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }
@@ -62,21 +58,18 @@ export default function Settings(props) {
                             <div className="w-1/2 mr-2">
                                 <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">Current Password</label>
                                 <div className="mt-1">
-                                    <input ref={oldPasswordRef} type="password" name="current_password" id="current_password" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your old password" />
+                                    <input ref={oldPasswordRef} type="password" name="current_password" id="current_password" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your old password" />
                                 </div>
                             </div>
                             <div className="w-1/2 ml-2">
                                 <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">New Password</label>
                                 <div className="mt-1">
-                                    <input ref={newPasswordRef} type="password" name="new_password" id="new_password" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your super secure new password" />
+                                    <input ref={newPasswordRef} type="password" name="new_password" id="new_password" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your super secure new password" />
                                 </div>
                             </div>
                         </div>
                         <hr className="mt-8" />
                         <div className="py-4 flex justify-end">
-                            <button type="button" className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                Cancel
-                            </button>
                             <button type="submit" className="ml-2 bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Save
                             </button>
@@ -91,6 +84,9 @@ export default function Settings(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if (!session) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {

@@ -28,10 +28,6 @@ export default function Availability(props) {
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
     }
 
     function toggleAddModal() {
@@ -42,7 +38,7 @@ export default function Availability(props) {
         setShowChangeTimesModal(!showChangeTimesModal);
     }
 
-    const closeSuccessModal = () => { router.replace(router.asPath); }
+    const closeSuccessModal = () => { setSuccessModalOpen(false); router.replace(router.asPath); }
 
     function convertMinsToHrsMins (mins) {
         let h = Math.floor(mins / 60);
@@ -114,7 +110,7 @@ export default function Availability(props) {
                         Event Types
                     </h3>
                     <div className="mt-3 sm:mt-0 sm:ml-4">
-                        <button onClick={toggleAddModal} type="button" className="btn-sm btn-primary">
+                        <button onClick={toggleAddModal} type="button" className="btn-sm btn-white">
                             New event type
                         </button>
                     </div>
@@ -141,11 +137,11 @@ export default function Availability(props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {props.types.map((eventType) => 
+                                        {props.types.map((eventType) =>
                                             <tr>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {eventType.title}
-                                                    {eventType.hidden && 
+                                                    {eventType.hidden &&
                                                         <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                                                             Hidden
                                                         </span>
@@ -158,7 +154,7 @@ export default function Availability(props) {
                                                     {eventType.length} minutes
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    {eventType.hidden && <Link href={"/" + props.user.username + "/" + eventType.slug}><a className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>}
+                                                    <Link href={"/" + props.user.username + "/" + eventType.slug}><a target="_blank" className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>
                                                     <Link href={"/availability/event/" + eventType.id}><a className="text-blue-600 hover:text-blue-900">Edit</a></Link>
                                                 </td>
                                             </tr>
@@ -186,7 +182,7 @@ export default function Availability(props) {
                         </div>
                     </div>
                 </div>
-                {showAddModal && 
+                {showAddModal &&
                     <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
@@ -214,7 +210,7 @@ export default function Availability(props) {
                                         <div className="mb-4">
                                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
                                             <div className="mt-1">
-                                                <input ref={titleRef} type="text" name="title" id="title" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" />
+                                                <input ref={titleRef} type="text" name="title" id="title" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" />
                                             </div>
                                         </div>
                                         <div className="mb-4">
@@ -229,6 +225,7 @@ export default function Availability(props) {
                                                         type="text"
                                                         name="slug"
                                                         id="slug"
+                                                        required
                                                         className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
                                                     />
                                                 </div>
@@ -243,7 +240,7 @@ export default function Availability(props) {
                                         <div className="mb-4">
                                             <label htmlFor="length" className="block text-sm font-medium text-gray-700">Length</label>
                                             <div className="mt-1 relative rounded-md shadow-sm">
-                                                <input ref={lengthRef} type="number" name="length" id="length" className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" />
+                                                <input ref={lengthRef} type="number" name="length" id="length" required className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" />
                                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
                                                     minutes
                                                 </div>
@@ -283,7 +280,7 @@ export default function Availability(props) {
                         </div>
                     </div>
                 }
-                {showChangeTimesModal && 
+                {showChangeTimesModal &&
                     <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
@@ -352,6 +349,9 @@ export default function Availability(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if (!session) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {
