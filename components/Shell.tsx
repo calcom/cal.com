@@ -88,7 +88,7 @@ export default function Shell(props) {
                                     </div>
                                 </div>
                                 <div className="-mr-2 flex md:hidden">
-                                    <button onClick={toggleMobileMenu} type="button" className="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                                    <button onClick={toggleMobileMenu} type="button" className=" inline-flex items-center justify-center p-2 rounded-md text-white focus:outline-none" aria-controls="mobile-menu" aria-expanded="false">
                                         <span className="sr-only">Open main menu</span>
                                         { !mobileMenuExpanded && <MenuIcon className="block h-6 w-6" /> }
                                         { mobileMenuExpanded && <XIcon className="block h-6 w-6" /> }
@@ -98,7 +98,7 @@ export default function Shell(props) {
                         </div>
                     </div>
 
-                    { mobileMenuExpanded && <div className="border-b border-gray-700 md:hidden" id="mobile-menu">
+                    { mobileMenuExpanded && <div className="border-b border-gray-700 md:hidden bg-gray-700" id="mobile-menu">
                         <div className="px-2 py-3 space-y-1 sm:px-3">
                             <Link href="/">
                                 <a className={router.pathname == "/" ? "bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"}>Dashboard</a>
@@ -110,7 +110,7 @@ export default function Shell(props) {
                                 <a className={router.pathname.startsWith("/integrations") ? "bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" : "text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"}>Integrations</a>
                             </Link>
                         </div>
-                        <div className="pt-4 pb-3 border-t border-gray-700">
+                        <div className="pt-4 pb-3 border-t border-gray-800">
                             <div className="flex items-center px-5">
                                 <div className="flex-shrink-0">
                                     <img className="h-10 w-10 rounded-full" src={"https://eu.ui-avatars.com/api/?background=039be5&color=fff&name=" + encodeURIComponent(session.user.name || session.user.username)} alt="" />
