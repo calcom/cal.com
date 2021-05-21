@@ -20,6 +20,7 @@ export default function Settings(props) {
     const avatarRef = useRef<HTMLInputElement>();
 
     const [ selectedTimeZone, setSelectedTimeZone ] = useState({ value: props.user.timeZone });
+    const [ selectedWeekStartDay, setSelectedWeekStartDay ] = useState(props.user.weekStart || 'Sunday');
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -35,12 +36,13 @@ export default function Settings(props) {
         const enteredDescription = descriptionRef.current.value;
         const enteredAvatar = avatarRef.current.value;
         const enteredTimeZone = selectedTimeZone.value;
+        const enteredWeekStartDay = selectedWeekStartDay;
 
         // TODO: Add validation
 
         const response = await fetch('/api/user/profile', {
             method: 'PATCH',
-            body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, avatar: enteredAvatar, timeZone: enteredTimeZone}),
+            body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, avatar: enteredAvatar, timeZone: enteredTimeZone, weekStart: enteredWeekStartDay}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -100,6 +102,17 @@ export default function Settings(props) {
                                     </label>
                                     <div className="mt-1">
                                         <TimezoneSelect id="timeZone" value={selectedTimeZone} onChange={setSelectedTimeZone} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
+                                        First Day of Week
+                                    </label>
+                                    <div className="mt-1">
+                                        <select id="weekStart" value={selectedWeekStartDay} onChange={e => setSelectedWeekStartDay(e.target.value)} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md">
+                                            <option value="Sunday">Sunday</option>
+                                            <option value="Monday">Monday</option>
+                                        </select>
                                     </div>
                                 </div>
                                 </div>
@@ -175,6 +188,7 @@ export async function getServerSideProps(context) {
             bio: true,
             avatar: true,
             timeZone: true,
+            weekStart: true,
         }
     });
 
