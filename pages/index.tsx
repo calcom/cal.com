@@ -270,9 +270,6 @@ export async function getServerSideProps(context) {
     let credentials = [];
     let eventTypes = [];
 
-    let eventTypeCount = 0;
-    let integrationCount = 0;
-
     if (session) {
         user = await prisma.user.findFirst({
             where: {
@@ -287,7 +284,7 @@ export async function getServerSideProps(context) {
 
         credentials = await prisma.credential.findMany({
             where: {
-                userId: user.id,
+                userId: session.user.id,
             },
             select: {
                 type: true
@@ -296,23 +293,11 @@ export async function getServerSideProps(context) {
 
         eventTypes = await prisma.eventType.findMany({
             where: {
-                userId: user.id,
-            }
-        });
-
-        eventTypeCount = await prisma.eventType.count({
-            where: {
-                userId: session.user.id
-            }
-        });
-
-        integrationCount = await prisma.credential.count({
-            where: {
-                userId: session.user.id
+                userId: session.user.id,
             }
         });
     }
     return {
-        props: { user, credentials, eventTypes, eventTypeCount, integrationCount }, // will be passed to the page component as props
+        props: { user, credentials, eventTypes, eventTypeCount: eventTypes.length, integrationCount: credentials.length }, // will be passed to the page component as props
     }
 }
