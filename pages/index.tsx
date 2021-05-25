@@ -27,7 +27,7 @@ export default function Home(props) {
     const stats = [
         { name: 'Event Types', stat: props.eventTypeCount },
         { name: 'Integrations', stat: props.integrationCount },
-        { name: 'Available Hours', stat: (props.user.endTime - props.user.startTime) / 60 + ' hours' },
+        { name: 'Available Hours', stat: Math.round(((props.user.endTime - props.user.startTime) / 60) * 100) / 100 + ' hours' },
     ];
 
     let timeline = [];
