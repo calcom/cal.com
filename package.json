@@ -16,7 +16,7 @@
     "@headlessui/react": "^1.0.0",
     "@heroicons/react": "^1.0.1",
     "@jitsu/sdk-js": "^2.0.1",
-    "@prisma/client": "2.22.1",
+    "@prisma/client": "^2.23.0",
     "@tailwindcss/forms": "^0.2.1",
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.10.4",
@@ -37,7 +37,7 @@
     "autoprefixer": "^10.2.5",
     "ngrok": "^4.0.1",
     "postcss": "^8.2.8",
-    "prisma": "^2.22.1",
+    "prisma": "^2.23.0",
     "tailwindcss": "^2.0.3",
     "typescript": "^4.2.3"
   }
