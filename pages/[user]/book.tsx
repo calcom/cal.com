@@ -6,20 +6,32 @@ import prisma from '../../lib/prisma';
 import {collectPageParameters, telemetryEventTypes, useTelemetry} from "../../lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';
 import { LocationType } from '../../lib/location';
 import Avatar from '../../components/Avatar';
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export default function Book(props) {
     const router = useRouter();
     const { date, user } = router.query;
+
+    const [ is24h, setIs24h ] = useState(false);
+    const [ preferredTimeZone, setPreferredTimeZone ] = useState('');
 
     const locations = props.eventType.locations || [];
 
     const [ selectedLocation, setSelectedLocation ] = useState<LocationType>(locations.length === 1 ? locations[0].type : '');
     const telemetry = useTelemetry();
     useEffect(() => {
+
+        setPreferredTimeZone(localStorage.getItem('timeOption.preferredTimeZone') || dayjs.tz.guess());
+        setIs24h(!!localStorage.getItem('timeOption.is24hClock'));
+
         telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
     });
 
@@ -92,7 +104,7 @@ export default function Book(props) {
                             </p>}
                             <p className="text-blue-600 mb-4">
                                 <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                                {dayjs(date).format("hh:mma, dddd DD MMMM YYYY")}
+                                {preferredTimeZone && dayjs(date).tz(preferredTimeZone).format( (is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
                             </p>
                             <p className="text-gray-600">{props.eventType.description}</p>
                         </div>
