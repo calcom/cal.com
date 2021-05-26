@@ -71,7 +71,7 @@ export default function Home(props) {
             </Head>
 
             <Shell heading="Dashboard">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="md:grid grid-cols-3 gap-4">
                     <div className="col-span-2">
                         <div className="rounded-lg bg-white shadow">
                             <div className="pt-5 pb-2 px-6 sm:flex sm:items-center sm:justify-between">
@@ -92,7 +92,7 @@ export default function Home(props) {
                                 ))}
                             </dl>
                         </div>
-                        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-md">
+                        <div className="mt-8 bg-white shadow overflow-hidden rounded-md">
                             <div className="pt-5 pb-2 px-6 sm:flex sm:items-center sm:justify-between">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                                     Your event types
@@ -126,13 +126,13 @@ export default function Home(props) {
                                 ))}
                             </ul>
                         </div>
-                        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-md p-6">
-                            <div className="flex">
-                                <div className="w-1/2 self-center">
+                        <div className="mt-8 bg-white shadow overflow-hidden rounded-md p-6 mb-8 md:mb-0">
+                            <div className="md:flex">
+                                <div className="md:w-1/2 self-center mb-8 md:mb-0">
                                     <h2 className="text-2xl font-semibold">Getting started</h2>
                                     <p className="text-gray-600 text-sm">Steps you should take to get started with Calendso.</p>
                                 </div>
-                                <div className="w-1/2">
+                                <div className="md:w-1/2">
                                     <div className="flow-root">
                                         <ul className="-mb-8">
                                             {timeline.map((event, eventIdx) => (

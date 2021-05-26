@@ -33,7 +33,7 @@ export default function Home({ integrations }) {
             </Head>
 
             <Shell heading="Integrations">
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="bg-white shadow overflow-hidden rounded-lg">
                     {integrations.filter( (ig) => ig.credential ).length !== 0 ? <ul className="divide-y divide-gray-200">
                         {integrations.filter(ig => ig.credential).map( (ig) => (<li>
                             <Link href={"/integrations/" + ig.credential.id}>
@@ -71,7 +71,7 @@ export default function Home({ integrations }) {
                         </li>))}
                     </ul>
                     :
-                    <div className="bg-white shadow sm:rounded-lg">
+                    <div className="bg-white shadow rounded-lg">
                         <div className="flex">
                             <div className="py-9 pl-8">
                                 <InformationCircleIcon className="text-blue-600 w-16" />
