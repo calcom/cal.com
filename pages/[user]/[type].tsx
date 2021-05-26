@@ -40,15 +40,45 @@ export default function Type(props) {
         setIsTimeOptionsOpen(!isTimeOptionsOpen);
     }
 
-    useEffect(() => {
-      // Setting timezone only client-side
-      setSelectedTimeZone(dayjs.tz.guess())
-    }, [])
+    function toggleClockSticky() {
+        localStorage.setItem('timeOption.is24hClock', (!is24h).toString());
+        setIs24h(!is24h);
+    }
+
+    function setPreferredTimeZoneSticky({ value }: string) {
+        localStorage.setItem('timeOption.preferredTimeZone', value);
+        setSelectedTimeZone(value);
+    }
+
+    function initializeTimeOptions() {
+        setSelectedTimeZone(localStorage.getItem('timeOption.preferredTimeZone') || dayjs.tz.guess());
+        setIs24h(!!localStorage.getItem('timeOption.is24hClock'));
+    }
 
     useEffect(() => {
         telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
-    })
+    });
 
+    // Handle date change and timezone change
+    useEffect(() => {
+
+        if ( ! selectedTimeZone ) {
+            initializeTimeOptions();
+        }
+
+        const changeDate = async () => {
+            if (!selectedDate) {
+                return
+            }
+
+            setLoading(true);
+            const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
+            const busyTimes = await res.json();
+            if (busyTimes.length > 0) setBusy(busyTimes);
+            setLoading(false);
+        }
+        changeDate();
+    }, [selectedDate, selectedTimeZone]);
 
     // Get router variables
     const router = useRouter();
@@ -107,22 +137,6 @@ export default function Type(props) {
             {day}
         </button>
     )];
-
-    // Handle date change and timezone change
-    useEffect(() => {
-        const changeDate = async () => {
-            if (!selectedDate) {
-                return
-            }
-
-            setLoading(true);
-            const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
-            const busyTimes = await res.json();
-            if (busyTimes.length > 0) setBusy(busyTimes);
-            setLoading(false);
-        }
-        changeDate();
-    }, [selectedDate, selectedTimeZone]);
 
     const times = useMemo(() =>
       getSlots({
@@ -225,7 +239,7 @@ export default function Type(props) {
                           </Switch.Label>
                           <Switch
                             checked={is24h}
-                            onChange={setIs24h}
+                            onChange={toggleClockSticky}
                             className={classNames(
                               is24h ? "bg-blue-600" : "bg-gray-200",
                               "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -249,7 +263,7 @@ export default function Type(props) {
                     <TimezoneSelect
                       id="timeZone"
                       value={selectedTimeZone}
-                      onChange={({ value }) => setSelectedTimeZone(value)}
+                      onChange={setPreferredTimeZoneSticky}
                       className="mb-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
                     />
                   </div>
