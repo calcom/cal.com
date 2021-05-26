@@ -3,14 +3,13 @@ import Link from 'next/link';
 import prisma from '../lib/prisma';
 import Shell from '../components/Shell';
 import { signIn, useSession, getSession } from 'next-auth/client';
-
-// TODO note(peer): replace this with either formatJS or next-inl 
-export function t(key: string){
- return key
-}
+import { useTranslation } from 'next-i18next'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 
 export default function Home(props) {
     const [ session, loading ] = useSession();
+    const { t, i18n } = useTranslation('common');
+    const locale = i18n.language;
 
     if (loading) {
       return <p className="text-gray-400">{t("loading")}</p>;
@@ -111,7 +110,6 @@ export default function Home(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
-
     let credentials = [];
 
     if (session) {
@@ -134,6 +132,9 @@ export async function getServerSideProps(context) {
         });
     }
     return {
-      props: {credentials}, // will be passed to the page component as props
+      props: {
+          credentials,
+          ...await serverSideTranslations(context.locale, ['common']),
+        }, // will be passed to the page component as props
     }
 }
