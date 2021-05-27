@@ -12,6 +12,7 @@ import 'react-phone-number-input/style.css';
 import PhoneInput from 'react-phone-number-input';
 import { LocationType } from '../../lib/location';
 import Avatar from '../../components/Avatar';
+import Button from '../../components/ui/Button';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -146,7 +147,7 @@ export default function Book(props) {
                                     <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting."></textarea>
                                 </div>
                                 <div>
-                                    <button type="submit" className="btn btn-primary">Confirm</button>
+                                    <Button type="submit" className="btn btn-primary">Confirm</Button>
                                     <Link href={"/" + props.user.username + "/" + props.eventType.slug}>
                                         <a className="ml-2 btn btn-white">Cancel</a>
                                     </Link>
