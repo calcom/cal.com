@@ -132,12 +132,12 @@ export default function Home(props) {
                             From: "opacity-100 translate-y-0 sm:scale-100"
                             To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         --> */}
-                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-start overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                             <div className="sm:flex sm:items-start">
                                 <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                                     <PlusIcon className="h-6 w-6 text-blue-600" />
                                 </div>
-                                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-start">
                                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                                         Add a new integration
                                     </h3>
@@ -158,7 +158,7 @@ export default function Home(props) {
                                             <h2 className="text-gray-800 font-medium">Office 365 / Outlook.com Calendar</h2>
                                             <p className="text-gray-400 text-sm">For personal and business accounts</p>
                                         </div>
-                                        <div className="w-2/12 text-right pt-2">
+                                        <div className="w-2/12 text-end pt-2">
                                             <button onClick={() => integrationHandler('office365calendar')} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
                                         </div>
                                     </li>
@@ -170,7 +170,7 @@ export default function Home(props) {
                                             <h2 className="text-gray-800 font-medium">Google Calendar</h2>
                                             <p className="text-gray-400 text-sm">For personal and business accounts</p>
                                         </div>
-                                        <div className="w-2/12 text-right pt-2">
+                                        <div className="w-2/12 text-end pt-2">
                                             <button onClick={() => integrationHandler('googlecalendar')} className="font-medium text-blue-600 hover:text-blue-500">Add</button>
                                         </div>
                                     </li>

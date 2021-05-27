@@ -192,7 +192,7 @@ export default function Type(props) {
                         <div className={"mt-8 sm:mt-0 " + (selectedDate ? 'sm:w-1/3 border-r sm:px-4' : 'sm:w-1/2 sm:pl-4')}>
                             <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
                                 <span className="w-1/2">{dayjs().month(selectedMonth).format("MMMM YYYY")}</span>
-                                <div className="w-1/2 text-right">
+                                <div className="w-1/2 text-end">
                                     <button onClick={decrementMonth} className={"mr-4 " + (selectedMonth < dayjs().format('MM') && 'text-gray-400')} disabled={selectedMonth < dayjs().format('MM')}>
                                         <ChevronLeftIcon className="w-5 h-5" />
                                     </button>
@@ -213,7 +213,7 @@ export default function Type(props) {
                             </div>
                         </div>
                         {selectedDate && <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-96 overflow-y-scroll">
-                            <div className="text-gray-600 font-light text-xl mb-4 text-left">
+                            <div className="text-gray-600 font-light text-xl mb-4 text-start">
                                 <span className="w-1/2">{dayjs(selectedDate).format("dddd DD MMMM YYYY")}</span>
                             </div>
                             {!loading ? availableTimes : <div className="loader"></div>}

@@ -126,13 +126,13 @@ export default function Availability(props) {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Name
                                             </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Description
                                             </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Length
                                             </th>
                                             <th scope="col" className="relative px-6 py-3">
@@ -157,7 +157,7 @@ export default function Availability(props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {eventType.length} minutes
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                                                     {eventType.hidden && <Link href={"/" + props.user.username + "/" + eventType.slug}><a className="text-blue-600 hover:text-blue-900 mr-2">View</a></Link>}
                                                     <Link href={"/availability/event/" + eventType.id}><a className="text-blue-600 hover:text-blue-900">Edit</a></Link>
                                                 </td>
@@ -193,12 +193,12 @@ export default function Availability(props) {
 
                             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-start overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                                 <div className="sm:flex sm:items-start mb-4">
                                     <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                                         <PlusIcon className="h-6 w-6 text-blue-600" />
                                     </div>
-                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-start">
                                         <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                                             Add a new event type
                                         </h3>
@@ -290,12 +290,12 @@ export default function Availability(props) {
 
                             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-start overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                                 <div className="sm:flex sm:items-start mb-4">
                                     <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                                         <ClockIcon className="h-6 w-6 text-blue-600" />
                                     </div>
-                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-start">
                                         <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                                             Change your available times
                                         </h3>

@@ -23,7 +23,8 @@
     "next-transpile-modules": "^7.0.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "react-timezone-select": "^0.10.10"
+    "react-timezone-select": "^0.10.10",
+    "tailwindcss-logical": "^1.4.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.33",

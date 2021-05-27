@@ -9,6 +9,10 @@ body {
     background-color: #f3f4f6;
 }
 
+.main-layout[lang='fa'] {
+    font-family: 'Shabnam', sans-serif;
+}
+
 .text-white-important {
     color: white !important;
 }

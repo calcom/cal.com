@@ -1,13 +1,13 @@
 {
-    "loading": "در حال بارگزاری...",
-    "welcome_to_calendso": "Welcome to Calendso!",
+    "loading": "در حال بارگزاری",
+    "welcome_to_calendso": "به کلندسو خوش آمدید!",
     "get_started_by_connecting": "Get started by connecting your first calendar integration, enabling us to fetch your availability. Head over to the integrations page, and click the add link.",
     "set_up_your_first": "Set up your first integration",
-    "your_integration": "Your integrations",
-    "view_more": "View more",
-    "calendar_integration": "Calendar Integration",
-    "you_havent_added_any": "You haven't added any integrations.",
-    "this_user_hasnt_set_up_any": "This user hasn't set up any event types yet.",
-    "booking_confirmed": "Booking confirmed",
-    "you_are_scheduled_with": "You are scheduled in with "
-}
+    "your_integration": "جلسات شما",
+    "view_more": "نمایش بیشتر",
+    "calendar_integration": "رخداد های تقویم",
+    "you_havent_added_any": "شما هنوز هیچ جلسه ای ندارید.",
+    "this_user_hasnt_set_up_any": "این کاربر هنوز رخدادی تنظیم نکرده است.",
+    "booking_confirmed": "رزرو تایید شد",
+    "you_are_scheduled_with": "شما یک جلسه دارید با "
+  }  

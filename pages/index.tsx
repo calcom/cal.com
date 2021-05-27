@@ -5,6 +5,7 @@ import Shell from '../components/Shell';
 import { signIn, useSession, getSession } from 'next-auth/client';
 import { useTranslation } from 'next-i18next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { RTL_LANGUAGES } from '../config';
 
 export default function Home(props) {
     const [ session, loading ] = useSession();
@@ -20,10 +21,14 @@ export default function Home(props) {
     }
 
     return (
-      <div>
+      <div className='main-layout' lang={locale} dir={RTL_LANGUAGES.includes(locale) ? "rtl": "ltr"}>
         <Head>
           <title>Calendso</title>
           <link rel="icon" href="/favicon.ico" />
+          { locale === 'fa' &&
+            <link href="https://cdn.jsdelivr.net/gh/rastikerdar/shabnam-font@v[X.Y.Z]/dist/font-face.css" rel="stylesheet" type="text/css" />
+          }
+
         </Head>
 
         <Shell heading="Dashboard">
