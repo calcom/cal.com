@@ -5,7 +5,9 @@ import { useRouter } from 'next/router';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
+import Loading from '../../components/Loading';
 import SettingsShell from '../../components/Settings';
+import Avatar from '../../components/Avatar';
 import { signIn, useSession, getSession } from 'next-auth/client';
 import TimezoneSelect from 'react-timezone-select';
 
@@ -19,13 +21,10 @@ export default function Settings(props) {
     const avatarRef = useRef<HTMLInputElement>();
 
     const [ selectedTimeZone, setSelectedTimeZone ] = useState({ value: props.user.timeZone });
+    const [ selectedWeekStartDay, setSelectedWeekStartDay ] = useState(props.user.weekStart || 'Sunday');
 
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/auth/login";
-        }
+        return <Loading/>;
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }
@@ -38,12 +37,13 @@ export default function Settings(props) {
         const enteredDescription = descriptionRef.current.value;
         const enteredAvatar = avatarRef.current.value;
         const enteredTimeZone = selectedTimeZone.value;
+        const enteredWeekStartDay = selectedWeekStartDay;
 
         // TODO: Add validation
 
         const response = await fetch('/api/user/profile', {
             method: 'PATCH',
-            body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, avatar: enteredAvatar, timeZone: enteredTimeZone}),
+            body: JSON.stringify({username: enteredUsername, name: enteredName, description: enteredDescription, avatar: enteredAvatar, timeZone: enteredTimeZone, weekStart: enteredWeekStartDay}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -80,12 +80,12 @@ export default function Settings(props) {
                                             <span className="bg-gray-50 border border-r-0 border-gray-300 rounded-l-md px-3 inline-flex items-center text-gray-500 sm:text-sm">
                                                 {window.location.hostname}/
                                             </span>
-                                            <input ref={usernameRef} type="text" name="username" id="username" autoComplete="username" className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300" defaultValue={props.user.username} />
+                                            <input ref={usernameRef} type="text" name="username" id="username" autoComplete="username" required className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300" defaultValue={props.user.username} />
                                         </div>
                                     </div>
-                                    <div className="w-1/2 ml-2">
+                                    <div className="w-1/2 mis-2">
                                         <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full name</label>
-                                        <input ref={nameRef} type="text" name="name" id="name" autoComplete="given-name" placeholder="Your name" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" defaultValue={props.user.name} />
+                                        <input ref={nameRef} type="text" name="name" id="name" autoComplete="given-name" placeholder="Your name" required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" defaultValue={props.user.name} />
                                     </div>
                                 </div>
 
@@ -105,18 +105,29 @@ export default function Settings(props) {
                                         <TimezoneSelect id="timeZone" value={selectedTimeZone} onChange={setSelectedTimeZone} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     </div>
                                 </div>
+                                <div>
+                                    <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
+                                        First Day of Week
+                                    </label>
+                                    <div className="mt-1">
+                                        <select id="weekStart" value={selectedWeekStartDay} onChange={e => setSelectedWeekStartDay(e.target.value)} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md">
+                                            <option value="Sunday">Sunday</option>
+                                            <option value="Monday">Monday</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 </div>
 
-                                <div className="mt-6 flex-grow lg:mt-0 lg:ml-6 lg:flex-grow-0 lg:flex-shrink-0">
+                                <div className="mt-6 flex-grow lg:mt-0 lg:mis-6 lg:flex-grow-0 lg:flex-shrink-0">
                                 <p className="mb-2 text-sm font-medium text-gray-700" aria-hidden="true">
                                     Photo
                                 </p>
                                 <div className="mt-1 lg:hidden">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 inline-block rounded-full overflow-hidden h-12 w-12" aria-hidden="true">
-                                            <img className="rounded-full h-full w-full" src={props.user.avatar} alt="" />
+                                            <Avatar user={props.user} className="rounded-full h-full w-full" />
                                         </div>
-                                        {/* <div className="ml-5 rounded-md shadow-sm">
+                                        {/* <div className="mis-5 rounded-md shadow-sm">
                                             <div className="group relative border border-gray-300 rounded-md py-2 px-3 flex items-center justify-center hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                                                 <label htmlFor="user_photo" className="relative text-sm leading-4 font-medium text-gray-700 pointer-events-none">
                                                     <span>Change</span>
@@ -129,8 +140,11 @@ export default function Settings(props) {
                                 </div>
 
                                 <div className="hidden relative rounded-full overflow-hidden lg:block">
-                                    {props.user.avatar && <img className="relative rounded-full w-40 h-40" src={props.user.avatar} alt="" />}
-                                    {!props.user.avatar && <div className="relative bg-blue-600 rounded-full w-40 h-40"></div>}
+                                    <Avatar
+                                        user={props.user}
+                                        className="relative rounded-full w-40 h-40"
+                                        fallback={<div className="relative bg-blue-600 rounded-full w-40 h-40"></div>}
+                                    />
                                     {/* <label htmlFor="user-photo" className="absolute inset-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center text-sm font-medium text-white opacity-0 hover:opacity-100 focus-within:opacity-100">
                                         <span>Change</span>
                                         <span className="sr-only"> user photo</span>
@@ -145,10 +159,7 @@ export default function Settings(props) {
                         </div>
                         <hr className="mt-8" />
                         <div className="py-4 flex justify-end">
-                            <button type="button" className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                Cancel
-                            </button>
-                            <button type="submit" className="ml-2 bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <button type="submit" className="mis-2 bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Save
                             </button>
                         </div>
@@ -162,6 +173,9 @@ export default function Settings(props) {
 
 export async function getServerSideProps(context) {
     const session = await getSession(context);
+    if (!session) {
+        return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
 
     const user = await prisma.user.findFirst({
         where: {
@@ -175,6 +189,7 @@ export async function getServerSideProps(context) {
             bio: true,
             avatar: true,
             timeZone: true,
+            weekStart: true,
         }
     });
 

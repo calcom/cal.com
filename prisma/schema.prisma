@@ -15,6 +15,7 @@ model EventType {
   title         String
   slug          String
   description   String?
+  locations     Json?
   length        Int
   hidden        Boolean @default(false)
   user          User?   @relation(fields: [userId], references: [id])
@@ -38,6 +39,7 @@ model User {
   bio           String?
   avatar        String?
   timeZone      String @default("Europe/London")
+  weekStart     String? @default("Sunday")
   startTime     Int @default(0)
   endTime       Int @default(1440)
   createdDate   DateTime  @default(now()) @map(name: "created")

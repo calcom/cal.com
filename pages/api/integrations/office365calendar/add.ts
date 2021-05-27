@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!session) { res.status(401).json({message: 'You must be logged in to do this'}); return; }
 
-        // TODO: Add user ID to user session object
+        // Get user
         const user = await prisma.user.findFirst({
             where: {
                 email: session.user.email,

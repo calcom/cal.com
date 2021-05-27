@@ -13,16 +13,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!session) { res.status(401).json({message: 'You must be logged in to do this'}); return; }
 
-    // TODO: Add user ID to user session object
-    const user = await prisma.user.findFirst({
-        where: {
-            email: session.user.email,
-        },
-        select: {
-            id: true
-        }
-    });
-
     const {client_secret, client_id, redirect_uris} = JSON.parse(credentials).web;
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
@@ -34,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             data: {
                 type: 'google_calendar',
                 key: token,
-                userId: user.id
+                userId: session.user.id
             }
         });
 

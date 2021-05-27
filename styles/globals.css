@@ -9,8 +9,14 @@ body {
     background-color: #f3f4f6;
 }
 
-.main-layout[lang='fa'] {
+html[lang='fa'] body {
+    direction: rtl;
     font-family: 'Shabnam', sans-serif;
+}
+
+.loading-box {
+    width: 100vw;
+    height: 100vh;
 }
 
 .text-white-important {
@@ -22,4 +28,8 @@ body {
         -webkit-transition-property: max-width;
         transition-property: max-width;
     }
+}
+
+#timeZone input:focus {
+    box-shadow: none;
 }

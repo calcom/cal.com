@@ -1,13 +1,38 @@
 {
     "loading": "در حال بارگزاری",
     "welcome_to_calendso": "به کلندسو خوش آمدید!",
-    "get_started_by_connecting": "Get started by connecting your first calendar integration, enabling us to fetch your availability. Head over to the integrations page, and click the add link.",
-    "set_up_your_first": "Set up your first integration",
-    "your_integration": "جلسات شما",
+    "get_started_by_connecting": "با وصل کردن اولین سرویس تقویم خود شروع کنید و به ما اجازه می‌دهید زمان های در دسترس بودنتان را پیدا کنیم. به صفحه متصل کردن بروید و روی لینک افزودن کلیک کنید.",
+    "set_up_your_first": "اولین سرویس خود را متصل کنید.",
+    "your_integration": "سرویس های متصل شما",
     "view_more": "نمایش بیشتر",
-    "calendar_integration": "رخداد های تقویم",
-    "you_havent_added_any": "شما هنوز هیچ جلسه ای ندارید.",
+    "calendar_integration": "اتصال به سرویس های تقویم",
+    "you_havent_added_any": "شما هنوز چیزی اضافه نکرده‌اید.",
     "this_user_hasnt_set_up_any": "این کاربر هنوز رخدادی تنظیم نکرده است.",
     "booking_confirmed": "رزرو تایید شد",
-    "you_are_scheduled_with": "شما یک جلسه دارید با "
-  }  
+    "you_are_scheduled_with": "شما یک جلسه دارید با ",
+
+    "general_minutes": "دقیقه",
+    "general_view_more": "نمایش بیشتر",
+    "general_view": "نمایش",
+    "general_in": " در ",
+    "general_configure": "تنظیم کردن",
+
+    "footer_donation_complete": "شما از نسخه رایگان استفاده می‌کنید. شما می‌توانید با کمک های مالی، از فرآیند توسعه پشتیبانی پشتیبانی و کمک کنید.",
+    "footer_donation_small": "از فرآیند توسعه حمایت کنید",
+    "footer_donate_button": "اهدا",
+
+    "page_title_dashboard": "داشبرد",
+    "page_title_availability": "دردسترس بودن",
+    "page_title_integrations": "اتصالات",
+    "page_title_settings": "تنظیمات",
+
+    "page_menu_item_public_page": "صفحه عمومی شما",
+    "page_menu_item_profile": "حساب کاربری",
+    "page_menu_item_login_and_security": "ورود و امنیت",
+    "page_menu_item_sign_out": "خروج",
+
+    "dashboard_getting_started_title": "شروع کن!",
+    "dashboard_getting_started_subtitle": "مراحلی که با کلندسو شروع می‌کنید.",
+    "dashboard_your_stat_title": "آمار شما",
+    "dashboard_your_day_title": "روز شما"
+}

@@ -1,6 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../lib/prisma';
+import Avatar from '../components/Avatar';
+import ChangeLanguage from '../components/ChangeLanguage';
 
 // TODO note(peer): replace this with either formatJS or next-inl 
 export function t(key: string){
@@ -12,9 +14,9 @@ export default function User(props) {
         <li key={type.id}>
             <Link href={'/' + props.user.username + '/' + type.slug}>
                 <a className="block px-6 py-4">
-                    <div className="inline-block w-3 h-3 rounded-full bg-blue-600 mr-2"></div>
+                    <div className="inline-block w-3 h-3 rounded-full mie-2" style={{backgroundColor:getRandomColorCode()}}></div>
                     <h2 className="inline-block font-medium">{type.title}</h2>
-                    <p className="inline-block text-gray-400 ml-2">{type.description}</p>
+                    <p className="inline-block text-gray-400 mis-2">{type.description}</p>
                 </a>
             </Link>
         </li>
@@ -27,8 +29,11 @@ export default function User(props) {
             </Head>
 
             <main className="max-w-2xl mx-auto my-24">
+                <div className="absolute top-5 right-5">
+                    <ChangeLanguage/>
+                </div>
                 <div className="mb-8 text-center">
-                    {props.user.avatar && <img src={props.user.avatar} alt="Avatar" className="mx-auto w-24 h-24 rounded-full mb-4"/>}
+                    <Avatar user={props.user} className="mx-auto w-24 h-24 rounded-full mb-4" />
                     <h1 className="text-3xl font-semibold text-gray-800 mb-1">{props.user.name || props.user.username}</h1>
                     <p className="text-gray-600">{props.user.bio}</p>
                 </div>
@@ -56,6 +61,7 @@ export async function getServerSideProps(context) {
         select: {
             id: true,
             username: true,
+            email:true,
             name: true,
             bio: true,
             avatar: true,
@@ -83,3 +89,13 @@ export async function getServerSideProps(context) {
         },
     }
 }  
+
+// Auxiliary methods
+
+export function getRandomColorCode() {
+    let color = '#';
+    for (let idx = 0; idx < 6; idx++) {
+        color += Math.floor(Math.random() * 10);
+    }
+    return color;
+}

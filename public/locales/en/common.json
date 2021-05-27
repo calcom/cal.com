@@ -9,5 +9,32 @@
     "you_havent_added_any": "You haven't added any integrations.",
     "this_user_hasnt_set_up_any": "This user hasn't set up any event types yet.",
     "booking_confirmed": "Booking confirmed",
-    "you_are_scheduled_with": "You are scheduled in with "
+    "you_are_scheduled_with": "You are scheduled in with ",
+
+    "general_minutes": "minutes",
+    "general_view_more": "View more",
+    "general_view": "view",
+    "general_in": "in",
+    "general_configure": "configure",
+
+    "donate_banner_note_complete": "You're using the free self-hosted version. Support the ongoing development by making a donation.",
+    "donate_banner_note_small": "Support the ongoing development",
+    "donate_banner_button": "Donate",
+
+    "page_title_dashboard": "Dashboard",
+    "page_title_availability": "Availability",
+    "page_title_integrations": "Integrations",
+    "page_title_settings": "Settings",
+
+    "page_menu_item_public_page": "Your Public Page",
+    "page_menu_item_profile": "Your Profile",
+    "page_menu_item_login_and_security": "Login and Secuirty",
+    "page_menu_item_sign_out": "Sign out",
+
+    "dashboard_getting_started_title": "Getting started",
+    "dashboard_getting_started_subtitle": "Steps you should take to get started with Calendso.",
+    "dashboard_your_stat_title": "Your stats",
+    "dashboard_your_day_title": "Your day"
+    
+
 }

@@ -2,6 +2,7 @@ import Head from 'next/head';
 import prisma from '../../lib/prisma';
 import { getIntegrationName, getIntegrationType } from '../../lib/integrations';
 import Shell from '../../components/Shell';
+import Loading from '../../components/Loading';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSession, getSession } from 'next-auth/client';
@@ -12,11 +13,7 @@ export default function integration(props) {
     const [showAPIKey, setShowAPIKey] = useState(false);
 
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
-    } else {
-        if (!session) {
-            window.location.href = "/";
-        }
+        return <Loading/>;
     }
 
     function toggleShowAPIKey() {
@@ -84,7 +81,7 @@ export default function integration(props) {
                                             <div>
                                                 <textarea name="apikey" rows={6} className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" readOnly>{JSON.stringify(props.integration.key)}</textarea>
                                             </div>}
-                                        <button onClick={toggleShowAPIKey} className="ml-2 font-medium text-blue-600 hover:text-blue-700">{!showAPIKey ? 'Show' : 'Hide'}</button>
+                                        <button onClick={toggleShowAPIKey} className="mis-2 font-medium text-blue-600 hover:text-blue-700">{!showAPIKey ? 'Show' : 'Hide'}</button>
                                     </dd>
                                 </div>
                             </dl>

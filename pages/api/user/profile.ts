@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
     }
 
-    // TODO: Add user ID to user session object
+    // Get user
     const user = await prisma.user.findFirst({
         where: {
             email: session.user.email,
@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const description = req.body.description;
     const avatar = req.body.avatar;
     const timeZone = req.body.timeZone;
+    const weekStart = req.body.weekStart;
 
     const updateUser = await prisma.user.update({
         where: {
@@ -39,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           avatar,
           bio: description,
           timeZone: timeZone,
+          weekStart: weekStart,
         },
     });
 

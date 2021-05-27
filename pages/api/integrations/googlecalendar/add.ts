@@ -4,7 +4,7 @@ import prisma from '../../../../lib/prisma';
 const {google} = require('googleapis');
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
-const scopes = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events'];
+const scopes = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events', 'https://www.googleapis.com/auth/calendar'];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!session) { res.status(401).json({message: 'You must be logged in to do this'}); return; }
 
-        // TODO: Add user ID to user session object
+        // Get user
         const user = await prisma.user.findFirst({
             where: {
                 email: session.user.email,
