@@ -37,7 +37,6 @@ const sendEmail = (calEvent: CalendarEvent, {
       text: text(calEvent),
     },
     (error, info) => {
-      console.log(info);
       if (error) {
         console.error("SEND_BOOKING_CONFIRMATION_ERROR", calEvent.attendees[0].email, error);
         return reject(new Error(error));
@@ -53,7 +52,7 @@ const html = (calEvent: CalendarEvent) => {
     <div>
       Hi ${calEvent.attendees[0].name},<br />
       <br />
-      Your ${calEvent.type} with ${calEvent.organizer.name} at ${inviteeStart.format('h:mma')} 
+      Your ${calEvent.type} with ${calEvent.organizer.name} at ${inviteeStart.format('h:mma')}
       (${calEvent.attendees[0].timeZone}) on ${inviteeStart.format('dddd, LL')} is scheduled.<br />
       <br />
       Additional notes:<br />
