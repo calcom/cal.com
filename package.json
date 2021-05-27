@@ -21,6 +21,7 @@
     "next": "^10.2.0",
     "next-auth": "^3.13.2",
     "next-transpile-modules": "^7.0.0",
+    "nodemailer": "^6.6.1",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-phone-number-input": "^3.1.21",
