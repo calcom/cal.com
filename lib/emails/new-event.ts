@@ -4,6 +4,7 @@ import dayjs, { Dayjs } from "dayjs";
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import toArray from 'dayjs/plugin/toArray';
 import { createEvent } from 'ics';
 import { CalendarEvent } from '../calendarClient';
 import { serverConfig } from '../serverConfig';
@@ -11,6 +12,7 @@ import { serverConfig } from '../serverConfig';
 dayjs.extend(localizedFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(toArray);
 
 export default function createNewEventEmail(calEvent: CalendarEvent, options: any = {}) {
   return sendEmail(calEvent, {
@@ -22,24 +24,9 @@ export default function createNewEventEmail(calEvent: CalendarEvent, options: an
   });
 }
 
-// converts "2021-05-27T16:59:09+01:00" to [ 2021, 5, 27, 15, 59, 9 ]
-const convertIsoDateToUtcDateArr = (isoDate: string): [] => {
-  const isoUtcDate: string = dayjs(isoDate).utc().format();
-  return Array.prototype.concat(
-    ...isoUtcDate.substr(0, isoUtcDate.indexOf('+')).split('T')
-      .map(
-        (parts) => parts.split('-').length > 1 ? parts.split('-').map(
-          (n) => parseInt(n, 10)
-        ) : parts.split(':').map(
-          (n) => parseInt(n, 10)
-        )
-      ));
-}
-
-
 const icalEventAsString = (calEvent: CalendarEvent): string => {
   const icsEvent = createEvent({
-    start: convertIsoDateToUtcDateArr(calEvent.startTime),
+    start: dayjs(calEvent.startTime).utc().toArray().slice(0, 6),
     startInputType: 'utc',
     productId: 'calendso/ics',
     title: `${calEvent.type} with ${calEvent.attendees[0].name}`,
