@@ -31,7 +31,7 @@ const sendEmail = (calEvent: CalendarEvent, {
   nodemailer.createTransport(transport).sendMail(
     {
       to: `${calEvent.attendees[0].name} <${calEvent.attendees[0].email}>`,
-      from,
+      from: `${calEvent.organizer.name} <${from}>`,
       subject: `Confirmed: ${calEvent.type} with ${calEvent.organizer.name} on ${inviteeStart.format('dddd, LL')}`,
       html: html(calEvent),
       text: text(calEvent),
@@ -52,7 +52,7 @@ const html = (calEvent: CalendarEvent) => {
     <div>
       Hi ${calEvent.attendees[0].name},<br />
       <br />
-      Your ${calEvent.type} with ${calEvent.organizer.name} at ${inviteeStart.format('h:mma')}
+      Your ${calEvent.type} with ${calEvent.organizer.name} at ${inviteeStart.format('h:mma')} 
       (${calEvent.attendees[0].timeZone}) on ${inviteeStart.format('dddd, LL')} is scheduled.<br />
       <br />
       Additional notes:<br />

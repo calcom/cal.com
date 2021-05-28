@@ -66,7 +66,7 @@ const sendEmail = (calEvent: CalendarEvent, {
         filename: 'event.ics',
         content: icalEventAsString(calEvent),
       },
-      from,
+      from: `Calendso <${from}>`,
       to: calEvent.organizer.email,
       subject: `New event: ${calEvent.attendees[0].name} - ${organizerStart.format('LT dddd, LL')} - ${calEvent.type}`,
       html: html(calEvent),
