@@ -54,7 +54,9 @@ export default function Book(props) {
             end: dayjs(date).add(props.eventType.length, 'minute').format(),
             name: event.target.name.value,
             email: event.target.email.value,
-            notes: event.target.notes.value
+            notes: event.target.notes.value,
+            timeZone: preferredTimeZone,
+            eventName: props.eventType.title,
         };
 
         if (selectedLocation) {
