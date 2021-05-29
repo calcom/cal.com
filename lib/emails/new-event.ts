@@ -78,9 +78,16 @@ const html = (evt: CalendarEvent) => `
     ${evt.type}<br />
     <br />
     <strong>Invitee Email:</strong><br />
-    <a href=\\"mailto:${evt.attendees[0].email}\\">${evt.attendees[0].email}</a><br />
-    <br />
-    <strong>Invitee Time Zone:</strong><br />
+    <a href="mailto:${evt.attendees[0].email}">${evt.attendees[0].email}</a><br />
+    <br />` +
+    (
+      evt.location ? `
+        <strong>Location:</strong><br />
+        ${evt.location}<br />
+        <br />
+      ` : ''
+    ) +
+    `<strong>Invitee Time Zone:</strong><br />
     ${evt.attendees[0].timeZone}<br />
     <br />
     <strong>Additional notes:</strong><br />
