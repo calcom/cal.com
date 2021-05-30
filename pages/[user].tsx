@@ -8,7 +8,7 @@ export default function User(props) {
         <li key={type.id}>
             <Link href={'/' + props.user.username + '/' + type.slug}>
                 <a className="block px-6 py-4">
-                    <div className="inline-block w-3 h-3 rounded-full bg-blue-600 mr-2"></div>
+                    <div className="inline-block w-3 h-3 rounded-full mr-2" style={{backgroundColor:getRandomColorCode()}}></div>
                     <h2 className="inline-block font-medium">{type.title}</h2>
                     <p className="inline-block text-gray-400 ml-2">{type.description}</p>
                 </a>
@@ -80,3 +80,13 @@ export async function getServerSideProps(context) {
         },
     }
 }  
+
+// Auxiliary methods
+
+export function getRandomColorCode() {
+    let color = '#';
+    for (let idx = 0; idx < 6; idx++) {
+        color += Math.floor(Math.random() * 10);
+    }
+    return color;
+}
