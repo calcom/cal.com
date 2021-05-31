@@ -54,8 +54,10 @@ const html = (calEvent: CalendarEvent) => {
       <br />
       Your ${calEvent.type} with ${calEvent.organizer.name} at ${inviteeStart.format('h:mma')} 
       (${calEvent.attendees[0].timeZone}) on ${inviteeStart.format('dddd, LL')} is scheduled.<br />
-      <br />
-      Additional notes:<br />
+      <br />` + (
+        calEvent.location ? `<strong>Location:</strong> ${calEvent.location}<br /><br />` : ''
+      ) +
+      `Additional notes:<br />
       ${calEvent.description}
     </div>
   `;
