@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import ActiveLink from '../components/ActiveLink';
 import { useRouter } from "next/router";
-import { UserCircleIcon, KeyIcon, CodeIcon } from '@heroicons/react/outline';
+import { UserCircleIcon, KeyIcon, CodeIcon, UserGroupIcon } from '@heroicons/react/outline';
 
 export default function SettingsShell(props) {
     const router = useRouter();
@@ -11,15 +11,11 @@ export default function SettingsShell(props) {
                     <div className="bg-white rounded-lg shadow">
                         <div className="divide-y divide-gray-200 lg:grid lg:grid-cols-12 lg:divide-y-0 lg:divide-x">
                             <aside className="py-6 lg:col-span-3">
-                                <nav className="space-y-1">
-                                    <Link href="/settings/profile">
-                                        <a className={router.pathname == "/settings/profile" ? "bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-50 hover:text-blue-700 group border-l-4 px-3 py-2 flex items-center text-sm font-medium" : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900 group border-l-4 px-3 py-2 flex items-center text-sm font-medium"} aria-current="page">
-                                            <UserCircleIcon className={router.pathname == "/settings/profile" ? "text-blue-500 group-hover:text-blue-500 flex-shrink-0 -ml-1 mr-3 h-6 w-6" : "text-gray-400 group-hover:text-gray-500 flex-shrink-0 -ml-1 mr-3 h-6 w-6"} />
-                                            <span className="truncate">
-                                                Profile
-                                            </span>
-                                        </a>
-                                    </Link>
+                                <nav id="nav--settings" className="space-y-1">
+
+                                    <ActiveLink href="/settings/profile">
+                                        <a><UserCircleIcon /> Profile</a>
+                                    </ActiveLink>
 
                                     {/* <Link href="/settings/account">
                                         <a className={router.pathname == "/settings/account" ? "bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-50 hover:text-blue-700 group border-l-4 px-3 py-2 flex items-center text-sm font-medium" : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900 group border-l-4 px-3 py-2 flex items-center text-sm font-medium"}>
@@ -33,23 +29,15 @@ export default function SettingsShell(props) {
                                         </a>
                                     </Link> */}
 
-                                    <Link href="/settings/password">
-                                        <a className={router.pathname == "/settings/password" ? "bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-50 hover:text-blue-700 group border-l-4 px-3 py-2 flex items-center text-sm font-medium" : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900 group border-l-4 px-3 py-2 flex items-center text-sm font-medium"}>
-                                            <KeyIcon className={router.pathname == "/settings/password" ? "text-blue-500 group-hover:text-blue-500 flex-shrink-0 -ml-1 mr-3 h-6 w-6" : "text-gray-400 group-hover:text-gray-500 flex-shrink-0 -ml-1 mr-3 h-6 w-6"} />
-                                            <span className="truncate">
-                                                Password
-                                            </span>
-                                        </a>
-                                    </Link>
-
-                                    <Link href="/settings/embed">
-                                        <a className={router.pathname == "/settings/embed" ? "bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-50 hover:text-blue-700 group border-l-4 px-3 py-2 flex items-center text-sm font-medium" : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900 group border-l-4 px-3 py-2 flex items-center text-sm font-medium"}>
-                                            <CodeIcon className={router.pathname == "/settings/embed" ? "text-blue-500 group-hover:text-blue-500 flex-shrink-0 -ml-1 mr-3 h-6 w-6" : "text-gray-400 group-hover:text-gray-500 flex-shrink-0 -ml-1 mr-3 h-6 w-6"} />
-                                            <span className="truncate">
-                                                Embed
-                                            </span>
-                                        </a>
-                                    </Link>
+                                    <ActiveLink href="/settings/password">
+                                        <a><KeyIcon /> Password</a>
+                                    </ActiveLink>
+                                    <ActiveLink href="/settings/embed">
+                                        <a><CodeIcon /> Embed</a>
+                                    </ActiveLink>
+                                    {/*<ActiveLink href="/settings/teams">
+                                        <a><UserGroupIcon /> Teams</a>
+                                    </ActiveLink>*/}
 
                                     {/* <Link href="/settings/notifications">
                                         <a className={router.pathname == "/settings/notifications" ? "bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-50 hover:text-blue-700 group border-l-4 px-3 py-2 flex items-center text-sm font-medium" : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900 group border-l-4 px-3 py-2 flex items-center text-sm font-medium"}>
