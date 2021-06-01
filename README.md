@@ -53,6 +53,8 @@ Calendso is currently in alpha. Watch **releases** of this repository to be noti
 
 To get a local copy up and running, please follow these simple steps.
 
+Here is a [awesome video on how to get calendso up]](https://www.youtube.com/watch?v=TaIQhG8AL0w) and running.
+
 ### Prerequisites
 
 Here is what you need to be able to run Calendso.
