@@ -135,7 +135,10 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(translateEvent(event))
-        }).then(handleErrors))
+        }).then(handleErrors).then( (responseBody) => ({
+            ...responseBody,
+            disableConfirmationEmail: true,
+        })))
     }
 };
 
@@ -228,14 +231,17 @@ const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     (results) => results.reduce( (acc, availability) => acc.concat(availability), [])
 );
 
-const createEvent = (credential, calEvent: CalendarEvent) => {
-    if (credential) {
-        return calendars([credential])[0].createEvent(calEvent);
-    }
-    // send email if no Calendar integration is found for now.
+const createEvent = (credential, calEvent: CalendarEvent): Promise<any> => {
+
     createNewEventEmail(
       calEvent,
     );
+
+    if (credential) {
+        return calendars([credential])[0].createEvent(calEvent);
+    }
+
+    return Promise.resolve({});
 };
 
 export { getBusyTimes, createEvent, CalendarEvent };
