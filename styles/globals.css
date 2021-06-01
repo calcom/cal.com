@@ -4,6 +4,7 @@
 
 @import './components/buttons.css';
 @import './components/spinner.css';
+@import './components/activelink.css';
 
 body {
     background-color: #f3f4f6;
