@@ -1,6 +1,6 @@
 
 const {google} = require('googleapis');
-const credentials = process.env.GOOGLE_API_CREDENTIALS;
+import createNewEventEmail from "./emails/new-event";
 
 const googleAuth = () => {
     const {client_secret, client_id, redirect_uris} = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
@@ -43,18 +43,24 @@ const o365Auth = (credential) => {
     };
 };
 
+interface Person { name?: string, email: string, timeZone: string }
 interface CalendarEvent {
+    type: string;
     title: string;
     startTime: string;
-    timeZone: string;
     endTime: string;
     description?: string;
     location?: string;
-    organizer: { name?: string, email: string };
-    attendees: { name?: string, email: string }[];
+    organizer: Person;
+    attendees: Person[];
 };
 
-const MicrosoftOffice365Calendar = (credential) => {
+interface CalendarApiAdapter {
+    createEvent(event: CalendarEvent): Promise<any>;
+    getAvailability(dateFrom, dateTo): Promise<any>;
+}
+
+const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
     const auth = o365Auth(credential);
 
@@ -73,11 +79,11 @@ const MicrosoftOffice365Calendar = (credential) => {
             },
             start: {
                 dateTime: event.startTime,
-                timeZone: event.timeZone,
+                timeZone: event.organizer.timeZone,
             },
             end: {
                 dateTime: event.endTime,
-                timeZone: event.timeZone,
+                timeZone: event.organizer.timeZone,
             },
             attendees: event.attendees.map(attendee => ({
                 emailAddress: {
@@ -129,11 +135,14 @@ const MicrosoftOffice365Calendar = (credential) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(translateEvent(event))
-        }).then(handleErrors))
+        }).then(handleErrors).then( (responseBody) => ({
+            ...responseBody,
+            disableConfirmationEmail: true,
+        })))
     }
 };
 
-const GoogleCalendar = (credential) => {
+const GoogleCalendar = (credential): CalendarApiAdapter => {
     const myGoogleAuth = googleAuth();
     myGoogleAuth.setCredentials(credential.key);
     return {
@@ -170,11 +179,11 @@ const GoogleCalendar = (credential) => {
                 description: event.description,
                 start: {
                     dateTime: event.startTime,
-                    timeZone: event.timeZone,
+                    timeZone: event.organizer.timeZone,
                 },
                 end: {
                     dateTime: event.endTime,
-                    timeZone: event.timeZone,
+                    timeZone: event.organizer.timeZone,
                 },
                 attendees: event.attendees,
                 reminders: {
@@ -206,7 +215,7 @@ const GoogleCalendar = (credential) => {
 };
 
 // factory
-const calendars = (withCredentials): [] => withCredentials.map( (cred) => {
+const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map( (cred) => {
     switch(cred.type) {
         case 'google_calendar': return GoogleCalendar(cred);
         case 'office365_calendar': return MicrosoftOffice365Calendar(cred);
@@ -219,9 +228,20 @@ const calendars = (withCredentials): [] => withCredentials.map( (cred) => {
 const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     calendars(withCredentials).map( c => c.getAvailability(dateFrom, dateTo) )
 ).then(
-    (results) => results.reduce( (acc, availability) => acc.concat(availability) )
+    (results) => results.reduce( (acc, availability) => acc.concat(availability), [])
 );
 
-const createEvent = (credential, evt: CalendarEvent) => calendars([ credential ])[0].createEvent(evt);
+const createEvent = (credential, calEvent: CalendarEvent): Promise<any> => {
+
+    createNewEventEmail(
+      calEvent,
+    );
+
+    if (credential) {
+        return calendars([credential])[0].createEvent(calEvent);
+    }
+
+    return Promise.resolve({});
+};
 
 export { getBusyTimes, createEvent, CalendarEvent };
