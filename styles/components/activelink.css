@@ -1,0 +1,16 @@
+
+nav#nav--settings > a {
+    @apply border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900 border-l-4 px-3 py-2 flex items-center text-sm font-medium;
+}
+
+nav#nav--settings > a svg {
+    @apply text-gray-400 group-hover:text-gray-500 flex-shrink-0 -ml-1 mr-3 h-6 w-6;
+}
+
+nav#nav--settings > a.active {
+    @apply bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-50 hover:text-blue-700;
+}
+
+nav#nav--settings > a.active svg {
+    @apply text-blue-500;
+}

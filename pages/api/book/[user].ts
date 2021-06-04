@@ -31,12 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ]
     };
 
-    // TODO: for now, first integration created; primary = obvious todo; ability to change primary.
     const result = await createEvent(currentUser.credentials[0], evt);
 
-    createConfirmBookedEmail(
-      evt
-    );
+    if (!result.disableConfirmationEmail) {
+        createConfirmBookedEmail(
+          evt
+        );
+    }
 
     res.status(200).json(result);
 }

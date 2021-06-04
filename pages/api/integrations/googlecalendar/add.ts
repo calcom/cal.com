@@ -4,7 +4,7 @@ import prisma from '../../../../lib/prisma';
 const {google} = require('googleapis');
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
-const scopes = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events', 'https://www.googleapis.com/auth/calendar'];
+const scopes = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events'];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {

@@ -146,7 +146,7 @@ export default function Book(props) {
                                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Additional notes</label>
                                     <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting."></textarea>
                                 </div>
-                                <div>
+                                <div className="flex items-start">
                                     <Button type="submit" className="btn btn-primary">Confirm</Button>
                                     <Link href={"/" + props.user.username + "/" + props.eventType.slug}>
                                         <a className="ml-2 btn btn-white">Cancel</a>
