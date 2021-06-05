@@ -1,16 +1,18 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type {NextApiRequest, NextApiResponse} from 'next';
 import prisma from '../../../lib/prisma';
-import { createEvent, CalendarEvent } from '../../../lib/calendarClient';
+import {createEvent, CalendarEvent} from '../../../lib/calendarClient';
 import createConfirmBookedEmail from "../../../lib/emails/confirm-booked";
+import sha256 from "../../../lib/sha256";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { user } = req.query;
+    const {user} = req.query;
 
     const currentUser = await prisma.user.findFirst({
         where: {
-          username: user,
+            username: user,
         },
         select: {
+            id: true,
             credentials: true,
             timeZone: true,
             email: true,
@@ -25,17 +27,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: req.body.start,
         endTime: req.body.end,
         location: req.body.location,
-        organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
+        organizer: {email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone},
         attendees: [
-            { email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }
+            {email: req.body.email, name: req.body.name, timeZone: req.body.timeZone}
         ]
     };
 
+    const eventType = await prisma.eventType.findFirst({
+        where: {
+            userId: currentUser.id,
+            title: evt.type
+        },
+        select: {
+            id: true
+        }
+    });
+
     const result = await createEvent(currentUser.credentials[0], evt);
+
+    const hashUID = sha256(JSON.stringify(evt));
+
+    await prisma.booking.create({
+        data: {
+            uid: hashUID,
+            userId: currentUser.id,
+            references: {
+                create: [
+                    //TODO Create references
+                ]
+            },
+            eventTypeId: eventType.id,
+
+            title: evt.title,
+            description: evt.description,
+            startTime: evt.startTime,
+            endTime: evt.endTime,
+
+            attendees: {
+                create: evt.attendees
+            }
+        }
+    });
 
     if (!result.disableConfirmationEmail) {
         createConfirmBookedEmail(
-          evt
+            evt
         );
     }
 
