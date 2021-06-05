@@ -72,14 +72,14 @@ export default function Teams(props) {
             </div>
             <div>
               {!!teams.length &&
-                <TeamList teams={teams}>
+                <TeamList teams={teams} onChange={loadTeams}>
                 </TeamList>
               }
 
               {!!invites.length && <div>
                 <h2 className="text-lg leading-6 font-medium text-gray-900">Open Invitations</h2>
                 <ul className="border px-2 rounded mt-2 mb-2 divide-y divide-gray-200">
-                  {invites.map( (team) => <TeamListItem key={team.id} team={team}></TeamListItem>)}
+                  {invites.map( (team) => <TeamListItem onChange={loadTeams} key={team.id} team={team}></TeamListItem>)}
                 </ul>
               </div>}
             </div>

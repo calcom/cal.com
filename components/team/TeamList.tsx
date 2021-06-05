@@ -24,12 +24,15 @@ export default function TeamList(props) {
   return (<div>
     <ul className="border px-2 mb-2 rounded divide-y divide-gray-200">
       {props.teams.map(
-        (team: any) => <TeamListItem key={team.id} team={team} onActionSelect={
+        (team: any) => <TeamListItem onChange={props.onChange} key={team.id} team={team} onActionSelect={
           (action: string) => selectAction(action, team)
         }></TeamListItem>
       )}
     </ul>
-    {showEditTeamModal && <EditTeamModal team={team} onExit={() => setShowEditTeamModal(false)}></EditTeamModal>}
+    {showEditTeamModal && <EditTeamModal team={team} onExit={() => {
+      props.onChange();
+      setShowEditTeamModal(false);
+    }}></EditTeamModal>}
     {showMemberInvitationModal &&
       <MemberInvitationModal
         team={team}

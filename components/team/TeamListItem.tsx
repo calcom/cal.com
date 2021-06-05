@@ -18,6 +18,7 @@ export default function TeamListItem(props) {
   }).then( () => {
     // success
     setTeam(null);
+    props.onChange();
   });
 
   return (team && <li className="mb-2 mt-2 divide-y">
