@@ -8,6 +8,9 @@ import { useRef } from 'react';
 import { useState } from 'react';
 import { useSession, getSession } from 'next-auth/client';
 import { PlusIcon, ClockIcon } from '@heroicons/react/outline';
+import 'react-dates/initialize';
+import moment from "moment";
+import { DateRangePicker } from 'react-dates';
 
 export default function Availability(props) {
     const [ session, loading ] = useSession();
@@ -15,6 +18,9 @@ export default function Availability(props) {
     const [showAddModal, setShowAddModal] = useState(false);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
+    const [timeRange, setTimeRange] = useState<'unlimited' | 'specific' | undefined>();
+    const [dates, setDates] = useState({ startDate: moment(new Date()), endDate: moment(new Date()) });
+    const [focusedInput, setFocusedInput] = useState();
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
     const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -56,12 +62,13 @@ export default function Availability(props) {
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
         const enteredIsHidden = isHiddenRef.current.checked;
+        const enteredDates = timeRange === 'specific' ? { start: dates.startDate, end: dates.endDate } : { start: null, end: null };
 
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'POST',
-            body: JSON.stringify({title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
+            body: JSON.stringify({title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, dates: enteredDates}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -189,7 +196,7 @@ export default function Availability(props) {
 
                             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full sm:p-6">
                                 <div className="sm:flex sm:items-start mb-4">
                                     <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                                         <PlusIcon className="h-6 w-6 text-blue-600" />
@@ -245,6 +252,52 @@ export default function Availability(props) {
                                                     minutes
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <span className="block text-sm font-medium text-gray-700">
+                                                Date range
+                                            </span>
+                                            <div className="flex space-between">
+                                                <label className="block text-sm mb-1 mr-4 font-medium text-gray-700">
+                                                    <input
+                                                        type="radio"
+                                                        className="form-radio"
+                                                        onChange={() => setTimeRange('specific')}
+                                                        name="dateRange"
+                                                        value="specific"
+                                                        checked={timeRange === 'specific'}
+                                                    />
+                                                    <span className="ml-2 text-xs">Range</span>
+                                                </label>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    <input
+                                                        type="radio"
+                                                        className="form-radio"
+                                                        onChange={() => setTimeRange('unlimited')}
+                                                        name="dateRange"
+                                                        value="unlimited"
+                                                        checked={timeRange === 'unlimited'}
+                                                    />
+                                                    <span className="ml-2 text-xs">No time limit</span>
+                                                </label>
+                                            </div>
+                                            {timeRange === 'specific' && (
+                                                <div className="my-2">
+                                                    <DateRangePicker
+                                                        startDate={dates.startDate}
+                                                        startDateId="your_unique_start_date_id"
+                                                        endDate={dates.endDate}
+                                                        endDateId="your_unique_end_date_id"
+                                                        onDatesChange={({ startDate, endDate }) => {
+                                                            setDates({ startDate, endDate })
+                                                        }}
+                                                        focusedInput={focusedInput}
+                                                        onFocusChange={(focusedInput) =>
+                                                            setFocusedInput(focusedInput)
+                                                        }
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="my-8">

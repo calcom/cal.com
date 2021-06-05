@@ -21,6 +21,18 @@ export default function EventType(props) {
     const [ showLocationModal, setShowLocationModal ] = useState(false);
     const [ selectedLocation, setSelectedLocation ] = useState<OptionBase | undefined>(undefined);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
+    const [ dates, setDates] = useState({ startDate: props.eventType.startDate !== null ? moment(new Date(props.eventType.startDate)) : moment(new Date()), endDate: props.eventType.endDate !== null ? moment(new Date(props.eventType.endDate)) : moment(new Date()) });
+    const [ focusedInput, setFocusedInput ] = useState();
+    const [ timeRange, setTimeRange ] = useState<'unlimited' | 'specific' | undefined>();
+
+    useEffect(() => {
+        if (props.eventType.startDate !== null) {
+            setTimeRange('specific');
+        }
+        else {
+            setTimeRange('unlimited');
+        }
+    }, [])
 
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -40,11 +52,12 @@ export default function EventType(props) {
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
         const enteredIsHidden = isHiddenRef.current.checked;
+        const enteredDates = timeRange === 'specific' ? { start: dates.startDate, end: dates.endDate } : { start: null, end: null };
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'PATCH',
-            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations }),
+            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations, dates: enteredDates }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -142,7 +155,7 @@ export default function EventType(props) {
         <Shell heading={'Event Type - ' + props.eventType.title}>
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-3 sm:col-span-2">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="bg-white overflow-auto shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <form onSubmit={updateEventTypeHandler}>
                     <div className="mb-4">
@@ -155,9 +168,9 @@ export default function EventType(props) {
                       <label htmlFor="slug" className="block text-sm font-medium text-gray-700">URL</label>
                       <div className="mt-1">
                         <div className="flex rounded-md shadow-sm">
-                                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                                                    {location.hostname}/{props.user.username}/
-                                                </span>
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                              {location.hostname}/{props.user.username}/
+                          </span>
                           <input
                             ref={slugRef}
                             type="text"
@@ -231,6 +244,52 @@ export default function EventType(props) {
                           minutes
                         </div>
                       </div>
+                    </div>
+                    <div className="mb-4">
+                                      <span className="block text-sm font-medium text-gray-700">
+                                          Date range
+                                      </span>
+                        <div className="flex space-between">
+                            <label className="block text-sm mb-1 mr-4 font-medium text-gray-700">
+                                <input
+                                    type="radio"
+                                    className="form-radio"
+                                    onChange={() => setTimeRange('specific')}
+                                    name="dateRange"
+                                    value="specific"
+                                    checked={timeRange === 'specific'}
+                                />
+                                <span className="ml-2 text-xs">Specific range</span>
+                            </label>
+                            <label className="block text-sm font-medium text-gray-700">
+                                <input
+                                    type="radio"
+                                    className="form-radio"
+                                    onChange={() => setTimeRange('unlimited')}
+                                    name="dateRange"
+                                    value="unlimited"
+                                    checked={timeRange === 'unlimited'}
+                                />
+                                <span className="ml-2 text-xs">No date limit</span>
+                            </label>
+                        </div>
+                        {timeRange === 'specific' && (
+                            <div className="my-2">
+                                <DateRangePicker
+                                    startDate={dates.startDate}
+                                    startDateId="your_unique_start_date_id"
+                                    endDate={dates.endDate}
+                                    endDateId="your_unique_end_date_id"
+                                    onDatesChange={({ startDate, endDate }) => {
+                                        setDates({ startDate, endDate })
+                                    }}
+                                    focusedInput={focusedInput}
+                                    onFocusChange={(focusedInput) =>
+                                        setFocusedInput(focusedInput)
+                                    }
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className="my-8">
                       <div className="relative flex items-start">
@@ -348,13 +407,15 @@ export async function getServerSideProps(context) {
             length: true,
             hidden: true,
             locations: true,
+            startDate: true,
+            endDate: true,
         }
     });
 
     return {
         props: {
             user,
-            eventType
+            eventType,
         },
     }
 }

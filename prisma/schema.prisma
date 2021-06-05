@@ -20,6 +20,8 @@ model EventType {
   hidden        Boolean @default(false)
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
+  startDate     DateTime?
+  endDate       DateTime?
   bookings      Booking[]
 }
 

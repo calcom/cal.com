@@ -35,6 +35,10 @@ export default function Type(props) {
     const telemetry = useTelemetry();
 
     const [selectedTimeZone, setSelectedTimeZone] = useState('');
+    const minDay = parseInt(dayjs(props.eventType.startDate).format('D')) || null;
+    const maxDay = parseInt(dayjs(props.eventType.endDate).format('D')) || null;
+    const minMonth = parseInt(dayjs(props.eventType.startDate).format('MM')) - 1 || null;
+    const maxMonth = parseInt(dayjs(props.eventType.endDate).format('MM')) - 1 || null;
 
     function toggleTimeOptions() {
         setIsTimeOptionsOpen(!isTimeOptionsOpen);
@@ -128,14 +132,33 @@ export default function Type(props) {
         </div>
     );
 
+    const checkAvailableDays = (day) => {
+      if (selectedMonth > minMonth && selectedMonth < maxMonth) {
+        return true 
+      }
+      else if (selectedMonth > minMonth && selectedMonth === maxMonth) {
+        return day <= maxDay
+      }
+      else if (selectedMonth === minMonth && selectedMonth < maxMonth) {
+        return day >= minDay
+      }
+      else if (selectedMonth === minMonth  && selectedMonth === maxMonth) {
+        return day >= minDay && day <= maxDay
+      }
+      else {
+        return false
+      }
+    }
+
     // Combine placeholder days with actual days
     const calendar = [...emptyDays, ...days.map((day) =>
-        <button key={day} onClick={(e) => {
-            telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()))
-            setSelectedDate(dayjs().tz(selectedTimeZone).month(selectedMonth).date(day))
-        }} disabled={selectedMonth < parseInt(dayjs().format('MM')) && dayjs().month(selectedMonth).format("D") > day} className={"text-center w-10 h-10 rounded-full mx-auto " + (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '')}>
-            {day}
-        </button>
+      <button key={day} onClick={(e) => {
+          telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()))
+          setSelectedDate(dayjs().tz(selectedTimeZone).month(selectedMonth).date(day))
+      }} disabled={selectedMonth < parseInt(dayjs().format('MM')) && dayjs().month(selectedMonth).format('D') > day || minDay !== null ? !checkAvailableDays(day) : null } 
+          className={"text-center w-10 h-10 rounded-full mx-auto " + (minDay === null ? dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light' : (checkAvailableDays(day) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light')) + (minDay !== null ? (day >= minDay && day <= maxDay && dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '') : (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : undefined))}>
+          {day}
+      </button>
     )];
 
     const times = useMemo(() =>
@@ -296,7 +319,14 @@ export default function Type(props) {
                     >
                       <ChevronLeftIcon className="w-5 h-5" />
                     </button>
-                    <button onClick={incrementMonth}>
+                    <button 
+                      onClick={incrementMonth} 
+                      className={
+                        minDay !== null &&
+                        selectedMonth >= maxMonth &&
+                          "text-gray-400"
+                      }
+                      disabled={minDay !== null && selectedMonth >= maxMonth}>
                       <ChevronRightIcon className="w-5 h-5" />
                     </button>
                   </div>
@@ -406,7 +436,9 @@ export async function getServerSideProps(context) {
             id: true,
             title: true,
             description: true,
-            length: true
+            length: true,
+            startDate: true,
+            endDate: true,
         }
     });
 
