@@ -46,6 +46,10 @@ const sendEmail = (calEvent: CalendarEvent, {
   )
 });
 
+//TODO: Get links
+const cancelLink = "TODO";
+const rescheduleLink = "TODO";
+
 const html = (calEvent: CalendarEvent) => {
   const inviteeStart: Dayjs = <Dayjs>dayjs(calEvent.startTime).tz(calEvent.attendees[0].timeZone);
   return `
@@ -58,7 +62,11 @@ const html = (calEvent: CalendarEvent) => {
         calEvent.location ? `<strong>Location:</strong> ${calEvent.location}<br /><br />` : ''
       ) +
       `Additional notes:<br />
-      ${calEvent.description}
+      ${calEvent.description}<br />
+      <br />
+      Need to change this event?<br />
+      Cancel: {cancelLink}<br />
+      Reschedule: {rescheduleLink}
     </div>
   `;
 };

@@ -69,7 +69,7 @@ model Attendee {
 
 model Booking {
   id            Int         @default(autoincrement()) @id
-  uid           String
+  uid           String      @unique
   user          User?       @relation(fields: [userId], references: [id])
   userId        Int?
   references    BookingReference[]
