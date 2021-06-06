@@ -49,7 +49,7 @@ export default function Type(props) {
         );
 
         if(res.status >= 200 && res.status < 300) {
-            router.push('/cancel/success');
+            router.push('/cancel/success?user=' + props.user.username + '&title=' + props.eventType.title);
         } else {
             setLoading(false);
             setError("An error with status code " + res.status + " occurred. Please try again later.");
