@@ -53,7 +53,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             userId: currentUser.id,
             references: {
                 create: [
-                    //TODO Create references
+                    {
+                        type: currentUser.credentials[0].type,
+                        uid: result.id
+                    }
                 ]
             },
             eventTypeId: eventType.id,

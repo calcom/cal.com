@@ -1,4 +1,3 @@
-
 const {google} = require('googleapis');
 import createNewEventEmail from "./emails/new-event";
 
@@ -9,7 +8,7 @@ const googleAuth = () => {
 
 function handleErrors(response) {
     if (!response.ok) {
-        response.json().then( console.log );
+        response.json().then(console.log);
         throw Error(response.statusText);
     }
     return response.json();
@@ -22,7 +21,7 @@ const o365Auth = (credential) => {
 
     const refreshAccessToken = (refreshToken) => fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams({
             'scope': 'User.Read Calendars.Read Calendars.ReadWrite',
             'client_id': process.env.MS_GRAPH_CLIENT_ID,
@@ -31,19 +30,24 @@ const o365Auth = (credential) => {
             'client_secret': process.env.MS_GRAPH_CLIENT_SECRET,
         })
     })
-    .then(handleErrors)
-    .then( (responseBody) => {
-        credential.key.access_token = responseBody.access_token;
-        credential.key.expiry_date = Math.round((+(new Date()) / 1000) + responseBody.expires_in);
-        return credential.key.access_token;
-    })
+        .then(handleErrors)
+        .then((responseBody) => {
+            credential.key.access_token = responseBody.access_token;
+            credential.key.expiry_date = Math.round((+(new Date()) / 1000) + responseBody.expires_in);
+            return credential.key.access_token;
+        })
 
     return {
-        getToken: () => ! isExpired(credential.key.expiry_date) ? Promise.resolve(credential.key.access_token) : refreshAccessToken(credential.key.refresh_token)
+        getToken: () => !isExpired(credential.key.expiry_date) ? Promise.resolve(credential.key.access_token) : refreshAccessToken(credential.key.refresh_token)
     };
 };
 
-interface Person { name?: string, email: string, timeZone: string }
+interface Person {
+    name?: string,
+    email: string,
+    timeZone: string
+}
+
 interface CalendarEvent {
     type: string;
     title: string;
@@ -57,6 +61,11 @@ interface CalendarEvent {
 
 interface CalendarApiAdapter {
     createEvent(event: CalendarEvent): Promise<any>;
+
+    updateEvent(uid: String, event: CalendarEvent);
+
+    deleteEvent(uid: String);
+
     getAvailability(dateFrom, dateTo): Promise<any>;
 }
 
@@ -68,7 +77,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
         let optional = {};
         if (event.location) {
-            optional.location = { displayName: event.location };
+            optional.location = {displayName: event.location};
         }
 
         return {
@@ -99,7 +108,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
     return {
         getAvailability: (dateFrom, dateTo) => {
             const payload = {
-                schedules: [ credential.key.email ],
+                schedules: [credential.key.email],
                 startTime: {
                     dateTime: dateFrom,
                     timeZone: 'UTC',
@@ -120,25 +129,34 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
                     },
                     body: JSON.stringify(payload)
                 })
-                .then(handleErrors)
-                .then( responseBody => {
-                    return responseBody.value[0].scheduleItems.map( (evt) => ({ start: evt.start.dateTime + 'Z', end: evt.end.dateTime + 'Z' }))
-                })
-            ).catch( (err) => {
+                    .then(handleErrors)
+                    .then(responseBody => {
+                        return responseBody.value[0].scheduleItems.map((evt) => ({
+                            start: evt.start.dateTime + 'Z',
+                            end: evt.end.dateTime + 'Z'
+                        }))
+                    })
+            ).catch((err) => {
                 console.log(err);
             });
         },
-        createEvent: (event: CalendarEvent) => auth.getToken().then( accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events', {
+        createEvent: (event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + accessToken,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(translateEvent(event))
-        }).then(handleErrors).then( (responseBody) => ({
+        }).then(handleErrors).then((responseBody) => ({
             ...responseBody,
             disableConfirmationEmail: true,
-        })))
+        }))),
+        deleteEvent: (uid: String) => {
+            //TODO Implement
+        },
+        updateEvent: (uid: String, event: CalendarEvent) => {
+            //TODO Implement
+        },
     }
 };
 
@@ -146,34 +164,34 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     const myGoogleAuth = googleAuth();
     myGoogleAuth.setCredentials(credential.key);
     return {
-        getAvailability: (dateFrom, dateTo) => new Promise( (resolve, reject) => {
-            const calendar = google.calendar({ version: 'v3', auth: myGoogleAuth });
+        getAvailability: (dateFrom, dateTo) => new Promise((resolve, reject) => {
+            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
             calendar.calendarList
-              .list()
-              .then(cals => {
-                calendar.freebusy.query({
-                  requestBody: {
-                      timeMin: dateFrom,
-                      timeMax: dateTo,
-                      items: cals.data.items
-                  }
-                }, (err, apires) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve(
-                      Object.values(apires.data.calendars).flatMap(
-                        (item) => item["busy"]
-                      )
-                    )
+                .list()
+                .then(cals => {
+                    calendar.freebusy.query({
+                        requestBody: {
+                            timeMin: dateFrom,
+                            timeMax: dateTo,
+                            items: cals.data.items
+                        }
+                    }, (err, apires) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(
+                            Object.values(apires.data.calendars).flatMap(
+                                (item) => item["busy"]
+                            )
+                        )
+                    });
+                })
+                .catch((err) => {
+                    reject(err);
                 });
-              })
-              .catch((err) => {
-                reject(err);
-              });
 
         }),
-        createEvent: (event: CalendarEvent) => new Promise( (resolve, reject) => {
+        createEvent: (event: CalendarEvent) => new Promise((resolve, reject) => {
             const payload = {
                 summary: event.title,
                 description: event.description,
@@ -198,12 +216,31 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                 payload['location'] = event.location;
             }
 
-            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth });
+            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
             calendar.events.insert({
                 auth: myGoogleAuth,
                 calendarId: 'primary',
                 resource: payload,
-            }, function(err, event) {
+            }, function (err, event) {
+                if (err) {
+                    console.log('There was an error contacting the Calendar service: ' + err);
+                    return reject(err);
+                }
+                return resolve(event.data);
+            });
+        }),
+        updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => {
+            //TODO implement
+        }),
+        deleteEvent: (uid: String) => new Promise( (resolve, reject) => {
+            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
+            calendar.events.delete({
+                auth: myGoogleAuth,
+                calendarId: 'primary',
+                eventId: uid,
+                sendNotifications: true,
+                sendUpdates: true,
+            }, function (err, event) {
                 if (err) {
                     console.log('There was an error contacting the Calendar service: ' + err);
                     return reject(err);
@@ -215,10 +252,12 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
 };
 
 // factory
-const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map( (cred) => {
-    switch(cred.type) {
-        case 'google_calendar': return GoogleCalendar(cred);
-        case 'office365_calendar': return MicrosoftOffice365Calendar(cred);
+const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map((cred) => {
+    switch (cred.type) {
+        case 'google_calendar':
+            return GoogleCalendar(cred);
+        case 'office365_calendar':
+            return MicrosoftOffice365Calendar(cred);
         default:
             return; // unknown credential, could be legacy? In any case, ignore
     }
@@ -226,15 +265,15 @@ const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map
 
 
 const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
-    calendars(withCredentials).map( c => c.getAvailability(dateFrom, dateTo) )
+    calendars(withCredentials).map(c => c.getAvailability(dateFrom, dateTo))
 ).then(
-    (results) => results.reduce( (acc, availability) => acc.concat(availability), [])
+    (results) => results.reduce((acc, availability) => acc.concat(availability), [])
 );
 
 const createEvent = (credential, calEvent: CalendarEvent): Promise<any> => {
 
     createNewEventEmail(
-      calEvent,
+        calEvent,
     );
 
     if (credential) {
@@ -244,4 +283,20 @@ const createEvent = (credential, calEvent: CalendarEvent): Promise<any> => {
     return Promise.resolve({});
 };
 
-export { getBusyTimes, createEvent, CalendarEvent };
+const updateEvent = (credential, uid: String, calEvent: CalendarEvent): Promise<any> => {
+    if (credential) {
+        return calendars([credential])[0].updateEvent(uid, calEvent);
+    }
+
+    return Promise.resolve({});
+};
+
+const deleteEvent = (credential, uid: String): Promise<any> => {
+    if (credential) {
+        return calendars([credential])[0].deleteEvent(uid);
+    }
+
+    return Promise.resolve({});
+};
+
+export {getBusyTimes, createEvent, CalendarEvent};

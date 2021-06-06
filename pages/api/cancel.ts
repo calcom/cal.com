@@ -28,6 +28,7 @@ export default async function handler(req, res) {
         });
 
         //TODO Delete booking from calendar integrations
+        //TODO Perhaps send emails to user and client to tell about the cancellation
 
         const deleteBooking = await prisma.booking.delete({
             where: {
