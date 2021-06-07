@@ -28,7 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const whoami = await fetch('https://graph.microsoft.com/v1.0/me', { headers: { 'Authorization': 'Bearer ' + responseBody.access_token } });
     const graphUser = await whoami.json();
 
-    responseBody.email = graphUser.mail;
+    // In some cases, graphUser.mail is null. Then graphUser.userPrincipalName most likely contains the email address.
+    responseBody.email = graphUser.mail ?? graphUser.userPrincipalName;
     responseBody.expiry_date = Math.round((+(new Date()) / 1000) + responseBody.expires_in); // set expiry date in seconds
     delete responseBody.expires_in;
 
