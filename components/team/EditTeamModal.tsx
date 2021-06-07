@@ -62,7 +62,8 @@ export default function EditTeamModal(props) {
                     <td className="text-right py-2 px-1">
                       {member.email !== session.user.email &&
                       <button
-                        onClick={() => removeMember(member)}
+                        type="button"
+                        onClick={(e) => removeMember(member)}
                         className="btn-sm text-xs bg-transparent px-3 py-1 rounded ml-2">
                         <UserRemoveIcon className="text-red-400 group-hover:text-gray-500 flex-shrink-0 -mt-1 mr-1 h-4 w-4 inline"/>
                       </button>
@@ -76,20 +77,20 @@ export default function EditTeamModal(props) {
             <div className="mb-4 border border-red-400 rounded p-2 px-4">
               <p className="block text-sm font-medium text-gray-700">Tick the box to disband this team.</p>
               <label className="mt-1">
-                <input type="checkbox" name="title" id="title" onChange={(e) => setCheckedDisbandTeam(e.target.checked)} required className="shadow-sm mr-2 focus:ring-blue-500 focus:border-blue-500  sm:text-sm border-gray-300 rounded-md" />
+                <input type="checkbox" onChange={(e) => setCheckedDisbandTeam(e.target.checked)} className="shadow-sm mr-2 focus:ring-blue-500 focus:border-blue-500  sm:text-sm border-gray-300 rounded-md" />
                 Disband this team
               </label>
             </div>
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            {!checkedDisbandTeam && <button type="submit" className="btn btn-primary">
+            {/*!checkedDisbandTeam && <button type="submit" className="btn btn-primary">
               Update
-            </button>}
+            </button>*/}
             {checkedDisbandTeam && <button onClick={deleteTeam} className="btn bg-red-700 rounded text-white px-2 font-medium text-sm">
               Disband Team
             </button>}
             <button onClick={props.onExit} type="button" className="btn btn-white mr-2">
-              Cancel
+              Close
             </button>
           </div>
         </form>

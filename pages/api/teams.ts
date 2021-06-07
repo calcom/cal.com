@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../lib/prisma';
 import {getSession} from "next-auth/client";
-import {create} from "domain";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
@@ -13,6 +12,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
+
+    // TODO: Prevent creating a team with identical names?
+
     const createTeam = await prisma.team.create({
       data: {
         name: req.body.name,

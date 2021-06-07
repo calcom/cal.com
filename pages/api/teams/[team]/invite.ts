@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!team) {
-    return res.status(404).json({message: "Unable to find team to invite user to."});
+    return res.status(404).json({message: "Invalid team"});
   }
 
   const invitee = await prisma.user.findFirst({
@@ -34,17 +34,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!invitee) {
-    return res.status(404).json({message: "Missing user, currently unsupported."});
+    return res.status(400).json({
+      message: `Invite failed because there is no corresponding user for ${req.body.usernameOrEmail}`});
   }
 
   // create provisional membership
-  const createMembership = await prisma.membership.create({
-    data: {
-      teamId: parseInt(req.query.team),
-      userId: invitee.id,
-      role: req.body.role,
-    },
-  });
+  try {
+    const createMembership = await prisma.membership.create({
+      data: {
+        teamId: parseInt(req.query.team),
+        userId: invitee.id,
+        role: req.body.role,
+      },
+    });
+  }
+  catch (err) {
+    if (err.code === "P2002") { // unique constraint violation
+      return res.status(409).json({
+        message: 'This user is a member of this team / has a pending invitation.',
+      });
+    } else {
+      throw err; // rethrow
+    }
+  };
 
   // inform user of membership by email
   if (req.body.sendEmailInvitation) {

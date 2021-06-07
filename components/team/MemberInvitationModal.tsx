@@ -1,7 +1,21 @@
-import {useEffect, useState} from "react";
-import {UsersIcon} from "@heroicons/react/outline";
+import { UsersIcon } from "@heroicons/react/outline";
+import { useState } from "react";
 
 export default function MemberInvitationModal(props) {
+
+  const [ errorMessage, setErrorMessage ] = useState('');
+
+  const handleError = async (res) => {
+
+    const responseData = await res.json();
+
+    if (res.ok === false) {
+      setErrorMessage(responseData.message);
+      throw new Error(responseData.message);
+    }
+
+    return responseData;
+  };
 
   const inviteMember = (e) => {
 
@@ -19,7 +33,9 @@ export default function MemberInvitationModal(props) {
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(props.onExit);
+    }).then(handleError).then(props.onExit).catch( (e) => {
+      // do nothing.
+    });
   };
 
   return (<div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -60,6 +76,7 @@ export default function MemberInvitationModal(props) {
               </label>
             </div>
           </div>
+          {errorMessage && <p className="text-red-700 text-sm"><span class="font-bold">Error: </span>{errorMessage}</p>}
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button type="submit" className="btn btn-primary">
               Invite
