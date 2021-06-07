@@ -49,7 +49,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const referencesToCreate = currentUser.credentials.length == 0 ? [] : [
         {
             type: currentUser.credentials[0].type,
-            uid: result.id
+            // Get the eventId. The Google API does not return it somewhere elso, so we need do it like this:
+            uid: result.htmlLink.replace("https://www.google.com/calendar/event?eid=", "")
         }
     ];
 
