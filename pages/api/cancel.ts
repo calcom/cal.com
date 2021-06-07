@@ -21,7 +21,7 @@ export default async function handler(req, res) {
             }
         });
 
-        await deleteEvent(bookingToDelete.user.credentials[0], uid);
+        const credentials = bookingToDelete.user.credentials[0];
 
         await prisma.attendee.deleteMany({
             where: {
@@ -35,7 +35,6 @@ export default async function handler(req, res) {
             }
         });
 
-        //TODO Delete booking from calendar integrations
         //TODO Perhaps send emails to user and client to tell about the cancellation
 
         const deleteBooking = await prisma.booking.delete({
@@ -43,6 +42,8 @@ export default async function handler(req, res) {
                 id: bookingToDelete.id,
             },
         });
+
+        await deleteEvent(credentials, uid);
 
         res.status(200).json({message: 'Booking deleted successfully'});
     }
