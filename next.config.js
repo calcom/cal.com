@@ -1,6 +1,11 @@
 
 const withTM = require('next-transpile-modules')(['react-timezone-select']);
 
+// TODO: Revisit this later with getStaticProps in App
+if (process.env.NEXTAUTH_URL) {
+    process.env.BASE_URL = process.env.NEXTAUTH_URL.replace('/api/auth', '');
+}
+
 if ( ! process.env.EMAIL_FROM ) {
     console.warn('\x1b[33mwarn', '\x1b[0m', 'EMAIL_FROM environment variable is not set, this may indicate mailing is currently disabled. Please refer to the .env.example file.');
 }
