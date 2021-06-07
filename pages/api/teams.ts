@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    return res.status(201).setHeader('Location', 'https://calendso.alexvanandel.com/api/teams/1').send(null);
+    return res.status(201).setHeader('Location', process.env.BASE_URL + '/api/teams/1').send(null);
   }
 
   res.status(404).send(null);
