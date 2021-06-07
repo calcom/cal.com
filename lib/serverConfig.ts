@@ -1,3 +1,5 @@
+const nodemailer = require("nodemailer");
+const aws = require("@aws-sdk/client-ses");
 
 function detectTransport(): string | any {
 
@@ -15,6 +17,19 @@ function detectTransport(): string | any {
         pass: process.env.EMAIL_SERVER_PASSWORD,
       },
       secure: (port === 465),
+    };
+
+    return transport;
+  }
+
+  if (process.env.AWS_ACCESS_KEY_ID) {
+    const ses = new aws.SES({
+      apiVersion: "2010-12-01",
+      region: process.env.AWS_SES_REGION_NAME,
+    });
+
+    const transport = {
+      SES: { ses, aws },
     };
 
     return transport;

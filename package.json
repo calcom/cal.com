@@ -9,6 +9,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.18.0",
     "@headlessui/react": "^1.0.0",
     "@heroicons/react": "^1.0.1",
     "@jitsu/sdk-js": "^2.0.1",
