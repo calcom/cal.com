@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from 'next-auth/client';
 import prisma from '../../../../lib/prisma';
 
-const scopes = ['User.Read', 'Calendars.Read', 'Calendars.ReadWrite'];
+const scopes = ['User.Read', 'Calendars.Read', 'Calendars.ReadWrite', 'offline_access'];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
