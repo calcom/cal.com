@@ -46,18 +46,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await createEvent(currentUser.credentials[0], evt);
 
     const hashUID = sha256(JSON.stringify(evt));
+    const referencesToCreate = currentUser.credentials.length == 0 ? [] : [
+        {
+            type: currentUser.credentials[0].type,
+            uid: result.id
+        }
+    ];
 
     await prisma.booking.create({
         data: {
             uid: hashUID,
             userId: currentUser.id,
             references: {
-                create: [
-                    {
-                        type: currentUser.credentials[0].type,
-                        uid: result.id
-                    }
-                ]
+                create: referencesToCreate
             },
             eventTypeId: eventType.id,
 

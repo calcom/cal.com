@@ -11,7 +11,11 @@ export default async function handler(req, res) {
             },
             select: {
                 id: true,
-                user: true,
+                user: {
+                    select: {
+                        credentials: true
+                    }
+                },
                 attendees: true,
                 references: true
             }
