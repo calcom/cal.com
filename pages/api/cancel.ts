@@ -17,11 +17,17 @@ export default async function handler(req, res) {
                     }
                 },
                 attendees: true,
-                references: true
+                references: {
+                    select: {
+                        uid: true
+                    }
+                }
             }
         });
 
         const credentials = bookingToDelete.user.credentials[0];
+        //TODO Delete from multiple references later
+        const refUid = bookingToDelete.references[0].uid;
 
         await prisma.attendee.deleteMany({
             where: {
@@ -43,7 +49,7 @@ export default async function handler(req, res) {
             },
         });
 
-        await deleteEvent(credentials, uid);
+        await deleteEvent(credentials, refUid);
 
         res.status(200).json({message: 'Booking deleted successfully'});
     }
