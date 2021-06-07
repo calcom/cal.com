@@ -299,4 +299,4 @@ const deleteEvent = (credential, uid: String): Promise<any> => {
     return Promise.resolve({});
 };
 
-export {getBusyTimes, createEvent, CalendarEvent};
+export {getBusyTimes, createEvent, updateEvent, deleteEvent, CalendarEvent};

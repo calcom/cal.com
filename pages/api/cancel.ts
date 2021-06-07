@@ -1,4 +1,5 @@
 import prisma from '../../lib/prisma';
+import {createEvent, deleteEvent} from "../../lib/calendarClient";
 
 export default async function handler(req, res) {
     if (req.method == "POST") {
@@ -10,10 +11,13 @@ export default async function handler(req, res) {
             },
             select: {
                 id: true,
+                user: true,
                 attendees: true,
                 references: true
             }
         });
+
+        await deleteEvent(bookingToDelete.user.credentials[0], uid);
 
         await prisma.attendee.deleteMany({
             where: {
