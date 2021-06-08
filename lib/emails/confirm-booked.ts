@@ -11,8 +11,8 @@ dayjs.extend(localizedFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function createConfirmBookedEmail(calEvent: CalendarEvent, options: any = {}) {
-  return sendEmail(calEvent, {
+export default function createConfirmBookedEmail(calEvent: CalendarEvent, uid: String, options: any = {}) {
+  return sendEmail(calEvent, uid, {
     provider: {
       transport: serverConfig.transport,
       from: serverConfig.from,
@@ -21,7 +21,7 @@ export default function createConfirmBookedEmail(calEvent: CalendarEvent, option
   });
 }
 
-const sendEmail = (calEvent: CalendarEvent, {
+const sendEmail = (calEvent: CalendarEvent, uid: String, {
   provider,
 }) => new Promise( (resolve, reject) => {
 
@@ -33,8 +33,8 @@ const sendEmail = (calEvent: CalendarEvent, {
       to: `${calEvent.attendees[0].name} <${calEvent.attendees[0].email}>`,
       from: `${calEvent.organizer.name} <${from}>`,
       subject: `Confirmed: ${calEvent.type} with ${calEvent.organizer.name} on ${inviteeStart.format('dddd, LL')}`,
-      html: html(calEvent),
-      text: text(calEvent),
+      html: html(calEvent, uid),
+      text: text(calEvent, uid),
     },
     (error, info) => {
       if (error) {
@@ -46,11 +46,10 @@ const sendEmail = (calEvent: CalendarEvent, {
   )
 });
 
-//TODO: Get links
-const cancelLink = "TODO";
-const rescheduleLink = "TODO";
+const html = (calEvent: CalendarEvent, uid: String) => {
+  const cancelLink = process.env.BASE_URL + '/cancel/' + uid;
+  const rescheduleLink = process.env.BASE_URL + '/reschedule/' + uid;
 
-const html = (calEvent: CalendarEvent) => {
   const inviteeStart: Dayjs = <Dayjs>dayjs(calEvent.startTime).tz(calEvent.attendees[0].timeZone);
   return `
     <div>
@@ -65,10 +64,10 @@ const html = (calEvent: CalendarEvent) => {
       ${calEvent.description}<br />
       <br />
       Need to change this event?<br />
-      Cancel: {cancelLink}<br />
-      Reschedule: {rescheduleLink}
+      Cancel: <a href="${cancelLink}">${cancelLink}</a><br />
+      Reschedule: <a href="${rescheduleLink}">${rescheduleLink}</a>
     </div>
   `;
 };
 
-const text = (evt: CalendarEvent) => html(evt).replace('<br />', "\n").replace(/<[^>]+>/g, '');
+const text = (evt: CalendarEvent, uid: String) => html(evt, uid).replace('<br />', "\n").replace(/<[^>]+>/g, '');

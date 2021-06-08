@@ -74,8 +74,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!result.disableConfirmationEmail) {
-        createConfirmBookedEmail(
-            evt
+        await createConfirmBookedEmail(
+            evt, hashUID
         );
     }
 
