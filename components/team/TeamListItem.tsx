@@ -27,7 +27,7 @@ export default function TeamListItem(props) {
         <UsersIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-4 mr-2 h-6 w-6 inline"/>
         <div className="inline-block -mt-1">
           <span className="font-bold text-blue-700 text-sm">{props.team.name}</span>
-          <span className="text-xs text-gray-400 font-bold -mt-1 block capitalize">{props.team.role.toLowerCase()}</span>
+          <span className="text-xs text-gray-400 -mt-1 block capitalize">{props.team.role.toLowerCase()}</span>
         </div>
       </div>
       {props.team.role === 'INVITEE' && <div>

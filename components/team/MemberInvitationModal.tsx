@@ -50,7 +50,12 @@ export default function MemberInvitationModal(props) {
             <UsersIcon className="h-6 w-6 text-blue-600" />
           </div>
           <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-            <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Member Invitation</h3>
+            <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Invite a new member</h3>
+            <div>
+              <p className="text-sm text-gray-400">
+                Invite someone to your team.
+              </p>
+            </div>
           </div>
         </div>
         <form onSubmit={inviteMember}>
@@ -70,13 +75,13 @@ export default function MemberInvitationModal(props) {
               </select>
             </div>
             <div className="mb-4">
-              <label className="mt-1">
-                <input type="checkbox" name="sendInviteEmail" defaultChecked id="sendInviteEmail" className="shadow-sm mr-2 focus:ring-blue-500 focus:border-blue-500  sm:text-sm border-gray-300 rounded-md" />
-                Send invite email
+              <label className="mt-1 text-gray-600">
+                <input type="checkbox" name="sendInviteEmail" defaultChecked id="sendInviteEmail" className="shadow-sm mr-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md" />
+                Send an invite email
               </label>
             </div>
           </div>
-          {errorMessage && <p className="text-red-700 text-sm"><span class="font-bold">Error: </span>{errorMessage}</p>}
+          {errorMessage && <p className="text-red-700 text-sm"><span className="font-bold">Error: </span>{errorMessage}</p>}
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button type="submit" className="btn btn-primary">
               Invite
