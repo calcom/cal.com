@@ -1,9 +1,7 @@
 import ActiveLink from '../components/ActiveLink';
-import { useRouter } from "next/router";
 import { UserCircleIcon, KeyIcon, CodeIcon, UserGroupIcon } from '@heroicons/react/outline';
 
 export default function SettingsShell(props) {
-    const router = useRouter();
     return (
         <div>
             <main className="relative -mt-32">
@@ -35,9 +33,9 @@ export default function SettingsShell(props) {
                                     <ActiveLink href="/settings/embed">
                                         <a><CodeIcon /> Embed</a>
                                     </ActiveLink>
-                                    {/*<ActiveLink href="/settings/teams">
+                                    <ActiveLink href="/settings/teams">
                                         <a><UserGroupIcon /> Teams</a>
-                                    </ActiveLink>*/}
+                                    </ActiveLink>
 
                                     {/* <Link href="/settings/notifications">
                                         <a className={router.pathname == "/settings/notifications" ? "bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-50 hover:text-blue-700 group border-l-4 px-3 py-2 flex items-center text-sm font-medium" : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900 group border-l-4 px-3 py-2 flex items-center text-sm font-medium"}>
