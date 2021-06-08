@@ -6,7 +6,7 @@ const googleAuth = () => {
     return new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 };
 
-function handleErrors(response) {
+function handleErrorsJson(response) {
     if (!response.ok) {
         response.json().then(console.log);
         throw Error(response.statusText);
@@ -14,6 +14,13 @@ function handleErrors(response) {
     return response.json();
 }
 
+function handleErrorsRaw(response) {
+    if (!response.ok) {
+        response.text().then(console.log);
+        throw Error(response.statusText);
+    }
+    return response.text();
+}
 
 const o365Auth = (credential) => {
 
@@ -30,7 +37,7 @@ const o365Auth = (credential) => {
             'client_secret': process.env.MS_GRAPH_CLIENT_SECRET,
         })
     })
-        .then(handleErrors)
+        .then(handleErrorsJson)
         .then((responseBody) => {
             credential.key.access_token = responseBody.access_token;
             credential.key.expiry_date = Math.round((+(new Date()) / 1000) + responseBody.expires_in);
@@ -129,7 +136,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
                     },
                     body: JSON.stringify(payload)
                 })
-                    .then(handleErrors)
+                    .then(handleErrorsJson)
                     .then(responseBody => {
                         return responseBody.value[0].scheduleItems.map((evt) => ({
                             start: evt.start.dateTime + 'Z',
@@ -147,13 +154,16 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(translateEvent(event))
-        }).then(handleErrors).then((responseBody) => ({
+        }).then(handleErrorsJson).then((responseBody) => ({
             ...responseBody,
             disableConfirmationEmail: true,
         }))),
-        deleteEvent: (uid: String) => {
-            //TODO Implement
-        },
+        deleteEvent: (uid: String) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events/' + uid, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        }).then(handleErrorsRaw)),
         updateEvent: (uid: String, event: CalendarEvent) => {
             //TODO Implement
         },
