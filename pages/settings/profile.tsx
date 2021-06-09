@@ -9,6 +9,8 @@ import SettingsShell from '../../components/Settings';
 import Avatar from '../../components/Avatar';
 import { signIn, useSession, getSession } from 'next-auth/client';
 import TimezoneSelect from 'react-timezone-select';
+import {UsernameInput} from "../../components/ui/UsernameInput";
+import ErrorAlert from "../../components/ui/alerts/Error";
 
 export default function Settings(props) {
     const [ session, loading ] = useSession();
@@ -22,11 +24,21 @@ export default function Settings(props) {
     const [ selectedTimeZone, setSelectedTimeZone ] = useState({ value: props.user.timeZone });
     const [ selectedWeekStartDay, setSelectedWeekStartDay ] = useState(props.user.weekStart || 'Sunday');
 
+    const [ hasErrors, setHasErrors ] = useState(false);
+    const [ errorMessage, setErrorMessage ] = useState('');
+
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }
+
+    const handleError = async (resp) => {
+      if (!resp.ok) {
+        const error = await resp.json();
+        throw new Error(error.message);
+      }
+    }
 
     async function updateProfileHandler(event) {
         event.preventDefault();
@@ -46,10 +58,10 @@ export default function Settings(props) {
             headers: {
                 'Content-Type': 'application/json'
             }
+        }).then(handleError).then( () => setSuccessModalOpen(true) ).catch( (err) => {
+          setHasErrors(true);
+          setErrorMessage(err.message);
         });
-
-        router.replace(router.asPath);
-        setSuccessModalOpen(true);
     }
 
     return(
@@ -60,6 +72,7 @@ export default function Settings(props) {
             </Head>
             <SettingsShell>
                 <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
+                    {hasErrors && <ErrorAlert message={errorMessage} />}
                     <div className="py-6 px-4 sm:p-6 lg:pb-8">
                         <div>
                             <h2 className="text-lg leading-6 font-medium text-gray-900">Profile</h2>
@@ -72,15 +85,7 @@ export default function Settings(props) {
                             <div className="flex-grow space-y-6">
                                 <div className="flex">
                                     <div className="w-1/2 mr-2">
-                                        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                                            Username
-                                        </label>
-                                        <div className="mt-1 rounded-md shadow-sm flex">
-                                            <span className="bg-gray-50 border border-r-0 border-gray-300 rounded-l-md px-3 inline-flex items-center text-gray-500 sm:text-sm">
-                                                {window.location.hostname}/
-                                            </span>
-                                            <input ref={usernameRef} type="text" name="username" id="username" autoComplete="username" required className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300" defaultValue={props.user.username} />
-                                        </div>
+                                        <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
                                     </div>
                                     <div className="w-1/2 ml-2">
                                         <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full name</label>
