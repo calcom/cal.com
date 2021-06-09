@@ -276,6 +276,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                 eventId: uid,
                 sendNotifications: true,
                 sendUpdates: 'all',
+                resource: payload
             }, function (err, event) {
                 if (err) {
                     console.log('There was an error contacting the Calendar service: ' + err);
