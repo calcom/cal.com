@@ -104,11 +104,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       bookingDeletes
     ]);
   } else {
-
-
-
-
-
     // Schedule event
     results = await async.mapLimit(currentUser.credentials, 5, async (credential) => {
       const response = await createEvent(credential, evt);
