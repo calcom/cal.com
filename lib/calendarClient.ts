@@ -164,9 +164,14 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
                 'Authorization': 'Bearer ' + accessToken
             }
         }).then(handleErrorsRaw)),
-        updateEvent: (uid: String, event: CalendarEvent) => {
-            //TODO Implement
-        },
+        updateEvent: (uid: String, event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events/' + uid, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(translateEvent(event))
+        }).then(handleErrorsRaw)),
     }
 };
 
