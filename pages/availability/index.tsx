@@ -8,9 +8,7 @@ import { useRef } from 'react';
 import { useState } from 'react';
 import { useSession, getSession } from 'next-auth/client';
 import { PlusIcon, ClockIcon } from '@heroicons/react/outline';
-import 'react-dates/initialize';
-import moment from "moment";
-import { DateRangePicker } from 'react-dates';
+import dayjs from 'dayjs';
 
 export default function Availability(props) {
     const [ session, loading ] = useSession();
@@ -19,7 +17,7 @@ export default function Availability(props) {
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
     const [timeRange, setTimeRange] = useState<'unlimited' | 'specific' | undefined>();
-    const [dates, setDates] = useState({ startDate: moment(new Date()), endDate: moment(new Date()) });
+    const [dates, setDates] = useState({ startDate: dayjs(new Date()), endDate: dayjs(new Date()) });
     const [focusedInput, setFocusedInput] = useState();
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -144,8 +142,8 @@ export default function Availability(props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {props.types.map((eventType) =>
-                                            <tr>
+                                        {props.types.map((eventType, index) =>
+                                            <tr key={index}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {eventType.title}
                                                     {eventType.hidden &&
@@ -282,20 +280,26 @@ export default function Availability(props) {
                                                 </label>
                                             </div>
                                             {timeRange === 'specific' && (
-                                                <div className="my-2">
-                                                    <DateRangePicker
-                                                        startDate={dates.startDate}
-                                                        startDateId="your_unique_start_date_id"
-                                                        endDate={dates.endDate}
-                                                        endDateId="your_unique_end_date_id"
-                                                        onDatesChange={({ startDate, endDate }) => {
-                                                            setDates({ startDate, endDate })
-                                                        }}
-                                                        focusedInput={focusedInput}
-                                                        onFocusChange={(focusedInput) =>
-                                                            setFocusedInput(focusedInput)
-                                                        }
-                                                    />
+                                                <div className="flex my-2">
+                                                    <div>
+                                                        <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">Start date</label>
+                                                        <input 
+                                                            id="start-date"
+                                                            type="date"
+                                                            className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mr-2 mt-1 shadow-sm"
+                                                            value={dates.startDate.format('YYYY-MM-DD')}
+                                                            onChange={e => setDates({...dates, startDate: dayjs(e.target.value)})}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">End date</label>
+                                                        <input 
+                                                            type="date"
+                                                            className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mt-1 shadow-sm"
+                                                            value={dates.endDate.format('YYYY-MM-DD')}
+                                                            onChange={e => setDates({...dates, endDate: dayjs(e.target.value)})}
+                                                        />
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

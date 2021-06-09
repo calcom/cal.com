@@ -13,6 +13,7 @@ import {
   XIcon,
   PhoneIcon,
 } from '@heroicons/react/outline';
+import dayjs from 'dayjs';
 
 export default function EventType(props) {
     const router = useRouter();
@@ -21,8 +22,7 @@ export default function EventType(props) {
     const [ showLocationModal, setShowLocationModal ] = useState(false);
     const [ selectedLocation, setSelectedLocation ] = useState<OptionBase | undefined>(undefined);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
-    const [ dates, setDates] = useState({ startDate: props.eventType.startDate !== null ? moment(new Date(props.eventType.startDate)) : moment(new Date()), endDate: props.eventType.endDate !== null ? moment(new Date(props.eventType.endDate)) : moment(new Date()) });
-    const [ focusedInput, setFocusedInput ] = useState();
+    const [ dates, setDates] = useState({ startDate: props.eventType.startDate !== null ? dayjs(new Date(props.eventType.startDate)) : dayjs(new Date()), endDate: props.eventType.endDate !== null ? dayjs(new Date(props.eventType.endDate)) : dayjs(new Date()) });
     const [ timeRange, setTimeRange ] = useState<'unlimited' | 'specific' | undefined>();
 
     useEffect(() => {
@@ -246,9 +246,9 @@ export default function EventType(props) {
                       </div>
                     </div>
                     <div className="mb-4">
-                                      <span className="block text-sm font-medium text-gray-700">
-                                          Date range
-                                      </span>
+                        <span className="block text-sm font-medium text-gray-700">
+                            Date range
+                        </span>
                         <div className="flex space-between">
                             <label className="block text-sm mb-1 mr-4 font-medium text-gray-700">
                                 <input
@@ -274,20 +274,26 @@ export default function EventType(props) {
                             </label>
                         </div>
                         {timeRange === 'specific' && (
-                            <div className="my-2">
-                                <DateRangePicker
-                                    startDate={dates.startDate}
-                                    startDateId="your_unique_start_date_id"
-                                    endDate={dates.endDate}
-                                    endDateId="your_unique_end_date_id"
-                                    onDatesChange={({ startDate, endDate }) => {
-                                        setDates({ startDate, endDate })
-                                    }}
-                                    focusedInput={focusedInput}
-                                    onFocusChange={(focusedInput) =>
-                                        setFocusedInput(focusedInput)
-                                    }
-                                />
+                            <div className="flex my-2">
+                                <div>
+                                    <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">Start date</label>
+                                    <input
+                                        id="start-date"
+                                        type="date"
+                                        className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mdr-2 mt-1 shadow-sm"
+                                        value={dates.startDate.format('YYYY-MM-DD')}
+                                        onChange={e => setDates({...dates, startDate: dayjs(e.target.value)})}
+                                    />
+                                </div>
+                                </div>
+                                    <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">End date</label>
+                                    <input
+                                        type="date"
+                                        className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mt-1 shadow-sm"
+                                        value={dates.endDate.format('YYYY-MM-DD')}
+                                        onChange={e => setDates({...dates, endDate: dayjs(e.target.value)})}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
@@ -295,12 +301,12 @@ export default function EventType(props) {
                       <div className="relative flex items-start">
                         <div className="flex items-center h-5">
                           <input
-                            ref={isHiddenRef}
-                            id="ishidden"
-                            name="ishidden"
-                            type="checkbox"
-                            className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                            defaultChecked={props.eventType.hidden}
+                              ref={isHiddenRef}
+                              id="ishidden"
+                              name="ishidden"
+                              type="checkbox"
+                              className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                              defaultChecked={props.eventType.hidden}
                           />
                         </div>
                         <div className="ml-3 text-sm">
@@ -341,6 +347,206 @@ export default function EventType(props) {
           <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <div>
+            <Head>
+                <title>{props.eventType.title} | Event Type | Calendso</title>
+                <link rel="icon" href="/favicon.ico" />
+            </Head>
+            <Shell heading={'Event Type - ' + props.eventType.title}>
+                <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2">
+                        <div className="bg-white overflow-auto shadow rounded-lg">
+                            <div className="px-4 py-5 sm:p-6">
+                                <form onSubmit={updateEventTypeHandler}>
+                                    <div className="mb-4">
+                                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
+                                        <div className="mt-1">
+                                            <input ref={titleRef} type="text" name="title" id="title" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" defaultValue={props.eventType.title} />
+                                        </div>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label htmlFor="slug" className="block text-sm font-medium text-gray-700">URL</label>
+                                        <div className="mt-1">
+                                            <div className="flex rounded-md shadow-sm">
+                                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                                    {location.hostname}/{props.user.username}/
+                                                </span>
+                                                <input
+                                                    ref={slugRef}
+                                                    type="text"
+                                                    name="slug"
+                                                    id="slug"
+                                                    required
+                                                    className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                                    defaultValue={props.eventType.slug}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
+                                        {locations.length === 0 && <div className="mt-1 mb-2">
+                                            <div className="flex rounded-md shadow-sm">
+                                                <Select
+                                                    name="location"
+                                                    id="location"
+                                                    options={locationOptions}
+                                                    isSearchable="false"
+                                                    className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                                    onChange={(e) => openLocationModal(e.value)}
+                                                />
+                                            </div>
+                                        </div>}
+                                        {locations.length > 0 && <ul className="w-96 mt-1">
+                                            {locations.map( (location) => (
+                                                <li key={location.type} className="bg-blue-50 mb-2 p-2 border">
+                                                    <div className="flex justify-between">
+                                                        {location.type === LocationType.InPerson && (
+                                                            <div className="flex-grow flex">
+                                                                <LocationMarkerIcon className="h-6 w-6" />
+                                                                <span className="ml-2 text-sm">{location.address}</span>
+                                                            </div>
+                                                        )}
+                                                        {location.type === LocationType.Phone && (
+                                                            <div className="flex-grow flex">
+                                                                <PhoneIcon className="h-6 w-6" />
+                                                                <span className="ml-2 text-sm">Phone call</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex">
+                                                            <button type="button" onClick={() => openLocationModal(location.type)} className="mr-2 text-sm text-blue-600">Edit</button>
+                                                            <button onClick={() => removeLocation(location)}>
+                                                                <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                            {locations.length > 0 && locations.length !== locationOptions.length && <li>
+                                                <button type="button" className="sm:flex sm:items-start text-sm text-blue-600" onClick={() => setShowLocationModal(true)}>
+                                                    <PlusCircleIcon className="h-6 w-6" />
+                                                    <span className="ml-1">Add another location option</span>
+                                                </button>
+                                            </li>}
+                                        </ul>}
+                                    </div>
+                                    <div className="mb-4">
+                                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                                        <div className="mt-1">
+                                            <textarea ref={descriptionRef} name="description" id="description" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="A quick video meeting." defaultValue={props.eventType.description}></textarea>
+                                        </div>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label htmlFor="length" className="block text-sm font-medium text-gray-700">Length</label>
+                                        <div className="mt-1 relative rounded-md shadow-sm">
+                                            <input ref={lengthRef} type="number" name="length" id="length" required className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" defaultValue={props.eventType.length} />
+                                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                                                minutes
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mb-4">
+                                        <span className="block text-sm font-medium text-gray-700">
+                                            Date range
+                                        </span>
+                                        <div className="flex space-between">
+                                            <label className="block text-sm mb-1 mr-4 font-medium text-gray-700">
+                                                <input
+                                                    type="radio"
+                                                    className="form-radio"
+                                                    onChange={() => setTimeRange('specific')}
+                                                    name="dateRange"
+                                                    value="specific"
+                                                    checked={timeRange === 'specific'}
+                                                />
+                                                <span className="ml-2 text-xs">Specific range</span>
+                                            </label>
+                                            <label className="block text-sm font-medium text-gray-700">
+                                            <input
+                                                type="radio"
+                                                className="form-radio"
+                                                onChange={() => setTimeRange('unlimited')}
+                                                name="dateRange"
+                                                value="unlimited"
+                                                checked={timeRange === 'unlimited'}
+                                            />
+                                            <span className="ml-2 text-xs">No date limit</span>
+                                            </label>
+                                        </div>
+                                        {timeRange === 'specific' && (
+                                            <div className="flex my-2">
+                                                <div>
+                                                    <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">Start date</label>
+                                                    <input
+                                                        id="start-date"
+                                                        type="date"
+                                                        className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mr-2 mt-1 shadow-sm"
+                                                        value={dates.startDate.format('YYYY-MM-DD')}
+                                                        onChange={e => setDates({...dates, startDate: dayjs(e.target.value)})}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">End date</label>
+                                                    <input
+                                                        type="date"
+                                                        className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mt-1 shadow-sm"
+                                                        value={dates.endDate.format('YYYY-MM-DD')}
+                                                        onChange={e => setDates({...dates, endDate: dayjs(e.target.value)})}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="my-8">
+                                        <div className="relative flex items-start">
+                                            <div className="flex items-center h-5">
+                                                <input
+                                                    ref={isHiddenRef}
+                                                    id="ishidden"
+                                                    name="ishidden"
+                                                    type="checkbox"
+                                                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                                    defaultChecked={props.eventType.hidden}
+                                                />
+                                            </div>
+                                            <div className="ml-3 text-sm">
+                                                <label htmlFor="ishidden" className="font-medium text-gray-700">
+                                                    Hide this event type
+                                                </label>
+                                                <p className="text-gray-500">Hide the event type from your page, so it can only be booked through it's URL.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="btn btn-primary">Update</button>
+                                    <Link href="/availability"><a className="ml-2 btn btn-white">Cancel</a></Link>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="bg-white shadow rounded-lg">
+                            <div className="px-4 py-5 sm:p-6">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                    Delete this event type
+                                </h3>
+                                <div className="mt-2 max-w-xl text-sm text-gray-500">
+                                    <p>
+                                        Once you delete this event type, it will be permanently removed.
+                                    </p>
+                                </div>
+                                <div className="mt-5">
+                                    <button onClick={deleteEventTypeHandler} type="button" className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
+                                        Delete event type
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {showLocationModal &&
+                    <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
