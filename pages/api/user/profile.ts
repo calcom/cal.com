@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const username = req.body.username;
   // username is changed: username is optional but it is necessary to be unique, enforce here
-  if (username !== user.username) {
+  if (username !== session.user.username) {
     const userConflict = await prisma.user.findFirst({
       where: {
         username,

@@ -58,7 +58,10 @@ export default function Settings(props) {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then(handleError).then( () => setSuccessModalOpen(true) ).catch( (err) => {
+        }).then(handleError).then( () => {
+          setSuccessModalOpen(true);
+          setHasErrors(false); // dismiss any open errors
+        }).catch( (err) => {
           setHasErrors(true);
           setErrorMessage(err.message);
         });
