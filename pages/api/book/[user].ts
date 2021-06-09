@@ -2,8 +2,11 @@ import type {NextApiRequest, NextApiResponse} from 'next';
 import prisma from '../../../lib/prisma';
 import {CalendarEvent, createEvent, updateEvent} from '../../../lib/calendarClient';
 import createConfirmBookedEmail from "../../../lib/emails/confirm-booked";
-import sha256 from "../../../lib/sha256";
 import async from 'async';
+import {v5 as uuidv5} from 'uuid';
+import short from 'short-uuid';
+
+const translator = short();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const {user} = req.query;
@@ -36,8 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]
   };
 
-  // TODO: Use UUID algorithm to shorten this
-  const hashUID = sha256(JSON.stringify(evt));
+  const hashUID = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
 
   const eventType = await prisma.eventType.findFirst({
     where: {
