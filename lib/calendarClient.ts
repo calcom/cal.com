@@ -245,6 +245,30 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             });
         }),
         updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => {
+            const payload = {
+                summary: event.title,
+                description: event.description,
+                start: {
+                    dateTime: event.startTime,
+                    timeZone: event.organizer.timeZone,
+                },
+                end: {
+                    dateTime: event.endTime,
+                    timeZone: event.organizer.timeZone,
+                },
+                attendees: event.attendees,
+                reminders: {
+                    useDefault: false,
+                    overrides: [
+                        {'method': 'email', 'minutes': 60}
+                    ],
+                },
+            };
+
+            if (event.location) {
+                payload['location'] = event.location;
+            }
+
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
             calendar.events.update({
                 auth: myGoogleAuth,
