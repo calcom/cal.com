@@ -246,7 +246,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
         }),
         updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => {
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.events.updateEvent({
+            calendar.events.update({
                 auth: myGoogleAuth,
                 calendarId: 'primary',
                 eventId: uid,
