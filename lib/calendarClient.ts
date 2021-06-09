@@ -245,7 +245,20 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             });
         }),
         updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => {
-            //TODO implement
+            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
+            calendar.events.updateEvent({
+                auth: myGoogleAuth,
+                calendarId: 'primary',
+                eventId: uid,
+                sendNotifications: true,
+                sendUpdates: 'all',
+            }, function (err, event) {
+                if (err) {
+                    console.log('There was an error contacting the Calendar service: ' + err);
+                    return reject(err);
+                }
+                return resolve(event.data);
+            });
         }),
         deleteEvent: (uid: String) => new Promise( (resolve, reject) => {
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
