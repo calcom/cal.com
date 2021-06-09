@@ -117,13 +117,13 @@ export default function Book(props) {
                                 <div className="mb-4">
                                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">Your name</label>
                                     <div className="mt-1">
-                                        <input type="text" name="name" id="name" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="John Doe" defaultValue={props.booking && props.booking.attendees[0].name} />
+                                        <input type="text" name="name" id="name" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="John Doe" defaultValue={props.booking ? props.booking.attendees[0].name : ''} />
                                     </div>
                                 </div>
                                 <div className="mb-4">
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
                                     <div className="mt-1">
-                                        <input type="email" name="email" id="email" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" defaultValue={props.booking && props.booking.attendees[0].email} />
+                                        <input type="email" name="email" id="email" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" defaultValue={props.booking ? props.booking.attendees[0].email : ''} />
                                     </div>
                                 </div>
                                 {locations.length > 1 && (
@@ -145,7 +145,7 @@ export default function Book(props) {
                                 </div>)}
                                 <div className="mb-4">
                                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Additional notes</label>
-                                    <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting." defaultValue={props.booking && props.booking.description}></textarea>
+                                    <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting." defaultValue={props.booking ? props.booking.description : ''}></textarea>
                                 </div>
                                 <div className="flex items-start">
                                     <Button type="submit" className="btn btn-primary">{rescheduleUid ? 'Reschedule' : 'Confirm'}</Button>
