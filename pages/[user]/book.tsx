@@ -19,7 +19,7 @@ dayjs.extend(timezone);
 
 export default function Book(props) {
     const router = useRouter();
-    const { date, user } = router.query;
+    const { date, user, rescheduleUid } = router.query;
 
     const [ is24h, setIs24h ] = useState(false);
     const [ preferredTimeZone, setPreferredTimeZone ] = useState('');
@@ -57,6 +57,7 @@ export default function Book(props) {
             notes: event.target.notes.value,
             timeZone: preferredTimeZone,
             eventName: props.eventType.title,
+            rescheduleUid: rescheduleUid
         };
 
         if (selectedLocation) {
@@ -75,7 +76,7 @@ export default function Book(props) {
             }
         );
 
-        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}`;
+        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=1`;
         if (payload['location']) {
             successUrl += "&location=" + encodeURIComponent(payload['location']);
         }
@@ -86,7 +87,7 @@ export default function Book(props) {
     return (
         <div>
             <Head>
-                <title>Confirm your {props.eventType.title} with {props.user.name || props.user.username} | Calendso</title>
+                <title>{rescheduleUid ? 'Reschedule' : 'Confirm'} your {props.eventType.title} with {props.user.name || props.user.username} | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
@@ -116,13 +117,13 @@ export default function Book(props) {
                                 <div className="mb-4">
                                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">Your name</label>
                                     <div className="mt-1">
-                                        <input type="text" name="name" id="name" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="John Doe" />
+                                        <input type="text" name="name" id="name" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="John Doe" defaultValue={props.booking.attendees[0].name} />
                                     </div>
                                 </div>
                                 <div className="mb-4">
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
                                     <div className="mt-1">
-                                        <input type="email" name="email" id="email" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" />
+                                        <input type="email" name="email" id="email" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="you@example.com" defaultValue={props.booking.attendees[0].email} />
                                     </div>
                                 </div>
                                 {locations.length > 1 && (
@@ -144,11 +145,11 @@ export default function Book(props) {
                                 </div>)}
                                 <div className="mb-4">
                                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Additional notes</label>
-                                    <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting."></textarea>
+                                    <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting." defaultValue={props.booking.description}></textarea>
                                 </div>
                                 <div className="flex items-start">
-                                    <Button type="submit" className="btn btn-primary">Confirm</Button>
-                                    <Link href={"/" + props.user.username + "/" + props.eventType.slug}>
+                                    <Button type="submit" className="btn btn-primary">{rescheduleUid ? 'Reschedule' : 'Confirm'}</Button>
+                                    <Link href={"/" + props.user.username + "/" + props.eventType.slug + (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")}>
                                         <a className="ml-2 btn btn-white">Cancel</a>
                                     </Link>
                                 </div>
@@ -190,10 +191,30 @@ export async function getServerSideProps(context) {
         }
     });
 
+    let booking = undefined;
+
+    if(context.query.rescheduleUid) {
+        booking = await prisma.booking.findFirst({
+            where: {
+                uid: context.query.rescheduleUid
+            },
+            select: {
+                description: true,
+                attendees: {
+                    select: {
+                        email: true,
+                        name: true
+                    }
+                }
+            }
+        });
+    }
+
     return {
         props: {
             user,
-            eventType
+            eventType,
+            booking
         },
     }
 }
