@@ -46,8 +46,31 @@ model User {
   createdDate   DateTime  @default(now()) @map(name: "created")
   eventTypes    EventType[]
   credentials   Credential[]
+  teams         Membership[]
   bookings      Booking[]
   @@map(name: "users")
+}
+
+model Team {
+  id            Int       @default(autoincrement()) @id
+  name          String?
+  members       Membership[]
+}
+
+enum MembershipRole {
+  MEMBER
+  OWNER
+}
+
+model Membership {
+  teamId        Int
+  userId        Int
+  accepted      Boolean         @default(false)
+  role          MembershipRole
+  team          Team            @relation(fields: [teamId], references: [id])
+  user          User            @relation(fields: [userId], references: [id])
+
+  @@id([userId,teamId])
 }
 
 model BookingReference {
