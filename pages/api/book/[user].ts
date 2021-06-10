@@ -141,8 +141,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
-  // If one of the integrations allows email confirmations, send it.
-  if (!results.every((result) => result.disableConfirmationEmail)) {
+  // If one of the integrations allows email confirmations or no integrations are added, send it.
+  if (currentUser.credentials.length === 0 || !results.every((result) => result.disableConfirmationEmail)) {
     await createConfirmBookedEmail(
       evt, hashUID
     );
