@@ -82,7 +82,7 @@ export default function Type(props) {
 
     // Get router variables
     const router = useRouter();
-    const { user } = router.query;
+    const { user, rescheduleUid } = router.query;
 
     // Handle month changes
     const incrementMonth = () => {
@@ -180,7 +180,7 @@ export default function Type(props) {
     // Display available times
     const availableTimes = times.map((time) =>
         <div key={dayjs(time).utc().format()}>
-            <Link href={`/${props.user.username}/book?date=${dayjs(time).utc().format()}&type=${props.eventType.id}`}>
+            <Link href={`/${props.user.username}/book?date=${dayjs(time).utc().format()}&type=${props.eventType.id}` + (rescheduleUid ? "&rescheduleUid=" + rescheduleUid : "")}>
                 <a key={dayjs(time).format("hh:mma")} className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(selectedTimeZone).format(is24h ? "HH:mm" : "hh:mma")}</a>
             </Link>
         </div>
@@ -190,7 +190,7 @@ export default function Type(props) {
       <div>
         <Head>
           <title>
-            {props.eventType.title} | {props.user.name || props.user.username} |
+            {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username} |
             Calendso
           </title>
           <link rel="icon" href="/favicon.ico" />
@@ -413,7 +413,7 @@ export async function getServerSideProps(context) {
     return {
         props: {
             user,
-            eventType
+            eventType,
         },
     }
 }
