@@ -32,6 +32,7 @@ const sendEmail = (calEvent: CalendarEvent, uid: String, {
     {
       to: `${calEvent.attendees[0].name} <${calEvent.attendees[0].email}>`,
       from: `${calEvent.organizer.name} <${from}>`,
+      replyTo: calEvent.organizer.email,
       subject: `Confirmed: ${calEvent.type} with ${calEvent.organizer.name} on ${inviteeStart.format('dddd, LL')}`,
       html: html(calEvent, uid),
       text: text(calEvent, uid),
