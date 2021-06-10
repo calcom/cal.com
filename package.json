@@ -14,6 +14,7 @@
     "@jitsu/sdk-js": "^2.0.1",
     "@prisma/client": "^2.23.0",
     "@tailwindcss/forms": "^0.2.1",
+    "async": "^3.2.0",
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.10.4",
     "googleapis": "^67.1.1",
@@ -26,7 +27,9 @@
     "react-dom": "17.0.1",
     "react-phone-number-input": "^3.1.21",
     "react-select": "^4.3.0",
-    "react-timezone-select": "^1.0.2"
+    "react-timezone-select": "^1.0.2",
+    "short-uuid": "^4.2.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/node": "^14.14.33",
