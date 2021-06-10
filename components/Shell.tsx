@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import {useContext, useEffect, useState} from "react";
-import { useRouter } from "next/router";
-import { signOut, useSession } from 'next-auth/client';
-import { MenuIcon, XIcon } from '@heroicons/react/outline';
+import {useEffect, useState} from "react";
+import {useRouter} from "next/router";
+import {signOut, useSession} from 'next-auth/client';
+import {MenuIcon, XIcon} from '@heroicons/react/outline';
 import {collectPageParameters, telemetryEventTypes, useTelemetry} from "../lib/telemetry";
 
 export default function Shell(props) {
@@ -133,7 +133,7 @@ export default function Shell(props) {
                     </div>
                     }
                 </nav>
-                <header className="py-10">
+                <header className={props.noPaddingBottom ? "pt-10" : "py-10"}>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <h1 className="text-3xl font-bold text-white">
                             {props.heading}
