@@ -19,13 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const authHeader = 'Basic ' + Buffer.from(client_id + ':' + client_secret).toString('base64');
 
     return new Promise( async (resolve, reject) => {
-      const result = await fetch('https://zoom.us/oauth/token', {
+      const result = await fetch('https://zoom.us/oauth/token?grant_type=authorization_code&code=' + code + '&redirect_uri=' + redirectUri, {
           method: 'POST',
-          body: JSON.stringify({
-              grant_type: 'authorization_code',
-              code,
-              redirect_uri: authUrl
-          }),
           headers: {
               Authorization: authHeader
           }
