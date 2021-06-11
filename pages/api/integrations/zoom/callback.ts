@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Convert to token
     const options = {
         method: 'POST',
-        qs: {
+        body: {
             grant_type: 'authorization_code',
             code,
             redirect_uri: authUrl
@@ -32,7 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     return new Promise( async (resolve, reject) => {
-      const result = await fetch('https://zoom.us/oauth/token', options);
+      const result = await fetch('https://zoom.us/oauth/token', options)
+        .then(res => res.text());
       console.log(result);
 
       /*const credential = await prisma.credential.create({
