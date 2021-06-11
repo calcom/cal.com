@@ -15,7 +15,7 @@ export default function Login({ csrfToken }) {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-            <div className="bg-white py-8 px-4 shadow rounded-lg sm:px-10">
+            <div className="bg-white py-8 px-4 mx-2 shadow rounded-lg sm:px-10">
                 <form className="space-y-6" method="post" action="/api/auth/callback/credentials">
                     <input name='csrfToken' type='hidden' defaultValue={csrfToken} hidden/>
                     <div>

@@ -20,6 +20,7 @@ model EventType {
   hidden        Boolean @default(false)
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
+  bookings      Booking[]
 }
 
 model Credential {
@@ -47,7 +48,7 @@ model User {
   eventTypes    EventType[]
   credentials   Credential[]
   teams         Membership[]
-
+  bookings      Booking[]
   @@map(name: "users")
 }
 
@@ -81,4 +82,41 @@ model VerificationRequest {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   @@unique([identifier, token])
+}
+
+model BookingReference {
+  id            Int         @default(autoincrement()) @id
+  type          String
+  uid           String
+  booking       Booking?    @relation(fields: [bookingId], references: [id])
+  bookingId     Int?
+}
+
+model Attendee {
+  id            Int         @default(autoincrement()) @id
+  email         String
+  name          String
+  timeZone      String
+  booking       Booking?    @relation(fields: [bookingId], references: [id])
+  bookingId     Int?
+}
+
+model Booking {
+  id            Int         @default(autoincrement()) @id
+  uid           String      @unique
+  user          User?       @relation(fields: [userId], references: [id])
+  userId        Int?
+  references    BookingReference[]
+  eventType     EventType?  @relation(fields: [eventTypeId], references: [id])
+  eventTypeId   Int?
+
+  title         String
+  description   String?
+  startTime     DateTime
+  endTime       DateTime
+
+  attendees     Attendee[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime?
 }

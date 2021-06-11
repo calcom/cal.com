@@ -2,10 +2,10 @@ import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Shell from '../../components/Shell';
-import { useState } from 'react';
-import { useSession, getSession } from 'next-auth/client';
-import { CheckCircleIcon, XCircleIcon, ChevronRightIcon, PlusIcon } from '@heroicons/react/solid';
-import { InformationCircleIcon } from '@heroicons/react/outline';
+import {useState} from 'react';
+import {getSession, useSession} from 'next-auth/client';
+import {CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon} from '@heroicons/react/solid';
+import {InformationCircleIcon} from '@heroicons/react/outline';
 
 export default function Home({ integrations }) {
     const [session, loading] = useSession();
@@ -32,7 +32,13 @@ export default function Home({ integrations }) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
-            <Shell heading="Integrations">
+            <Shell heading="Integrations" noPaddingBottom>
+                <div className="text-right py-2">
+                    <button onClick={toggleAddModal} type="button"
+                            className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Add new integration
+                    </button>
+                </div>
                 <div className="bg-white shadow overflow-hidden rounded-lg">
                     {integrations.filter( (ig) => ig.credential ).length !== 0 ? <ul className="divide-y divide-gray-200">
                         {integrations.filter(ig => ig.credential).map( (ig) => (<li>

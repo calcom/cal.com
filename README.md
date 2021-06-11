@@ -121,6 +121,40 @@ You will also need Google API credentials. You can get this from the [Google API
 9.  Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
+### Upgrading from earlier versions
+1. Pull the current version:
+   ```
+   git pull
+   ```
+2. Apply database migrations by running <b>one of</b> the following commands:
+   
+   In a development environment, run:
+   ```
+   npx prisma migrate dev
+   ```
+   (this can clear your development database in some cases)
+
+   In a production environment, run:
+   ```
+   npx prisma migrate deploy
+   ```
+3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
+   in your current `.env`, add them there.
+   
+   For the current version, especially check if the variable `BASE_URL` is present and properly set in your environment, for example:
+   ```
+   BASE_URL='https://yourdomain.com'
+   ```
+4. Start the server. In a development environment, just do:
+   ```
+   yarn dev
+   ```
+   For a production build, run for example:
+   ```
+   yarn build
+   yarn start
+   ```
+5. Enjoy the new version.
 <!-- ROADMAP -->
 ## Roadmap
 
