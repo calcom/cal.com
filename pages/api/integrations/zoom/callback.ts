@@ -1,6 +1,5 @@
 import type {NextApiRequest, NextApiResponse} from 'next';
 import {getSession} from "next-auth/client";
-import prisma from "../../../../lib/prisma";
 
 const client_id = process.env.ZOOM_CLIENT_ID;
 const client_secret = process.env.ZOOM_CLIENT_SECRET;
@@ -32,22 +31,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     };
 
-    return new Promise( (resolve, reject) => fetch('https://zoom.us/oauth/token', options)
-      .then((res) => res.text())
-      .then((text) => {
-          console.log(text);
-          const credential = await prisma.credential.create({
-              data: {
-                  type: 'google_calendar',
-                  key: 'lel',
-                  userId: session.user.id
-              }
-          });
+    return new Promise( async (resolve, reject) => {
+      const result = await fetch('https://zoom.us/oauth/token', options);
+      console.log(result);
 
-          res.redirect('/integrations');
-          resolve();
-      })
-      .catch((err) => {
-          if (err) throw new Error(err);
-      }));
+      /*const credential = await prisma.credential.create({
+        data: {
+          type: 'google_calendar',
+          key: 'lel',
+          userId: session.user.id
+        }
+      });*/
+
+      res.redirect('/integrations');
+      resolve();
+    });
 }
