@@ -10,7 +10,6 @@ import {InformationCircleIcon} from '@heroicons/react/outline';
 export default function Home({ integrations }) {
     const [session, loading] = useSession();
     const [showAddModal, setShowAddModal] = useState(false);
-
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
     }
@@ -39,7 +38,7 @@ export default function Home({ integrations }) {
                         Add new integration
                     </button>
                 </div>
-                <div className="bg-white shadow overflow-hidden rounded-lg">
+               <div className="bg-white shadow overflow-hidden rounded-lg">
                     {integrations.filter( (ig) => ig.credential ).length !== 0 ? <ul className="divide-y divide-gray-200">
                         {integrations.filter(ig => ig.credential).map( (ig) => (<li>
                             <Link href={"/integrations/" + ig.credential.id}>
@@ -219,6 +218,13 @@ export async function getServerSideProps(context) {
         credential: credentials.find( (integration) => integration.type === "office365_calendar" ) || null,
         title: "Office 365 / Outlook.com Calendar",
         imageSrc: "integrations/office-365.png",
+        description: "For personal and business accounts",
+    }, {
+        installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
+        type: "zoom",
+        credential: credentials.find( (integration) => integration.type === "zoom" ) || null,
+        title: "Zoom",
+        imageSrc: "integrations/zoom.png",
         description: "For personal and business accounts",
     } ];
 
