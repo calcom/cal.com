@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.credential.create({
         data: {
           type: 'zoom',
-          key: result.access_token,
+          key: result,
           userId: session.user.id
         }
       });
