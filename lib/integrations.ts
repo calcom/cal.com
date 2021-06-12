@@ -4,6 +4,8 @@ export function getIntegrationName(name: String) {
             return "Google Calendar";
         case "office365_calendar":
             return "Office 365 Calendar";
+        case "zoom":
+            return "Zoom";
         default:
             return "Unknown";
     }
