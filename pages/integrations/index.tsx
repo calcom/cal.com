@@ -53,6 +53,7 @@ export default function Home({ integrations }) {
                                                     <p className="text-sm font-medium text-blue-600 truncate">{ig.title}</p>
                                                     <p className="flex items-center text-sm text-gray-500">
                                                         {ig.type.endsWith('_calendar') && <span className="truncate">Calendar Integration</span>}
+                                                        {ig.type.endsWith('_video') && <span className="truncate">Video Conferencing</span>}
                                                     </p>
                                                 </div>
                                                 <div className="hidden md:block">
@@ -221,8 +222,8 @@ export async function getServerSideProps(context) {
         description: "For personal and business accounts",
     }, {
         installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-        type: "zoom",
-        credential: credentials.find( (integration) => integration.type === "zoom" ) || null,
+        type: "zoom_video",
+        credential: credentials.find( (integration) => integration.type === "zoom_video" ) || null,
         title: "Zoom",
         imageSrc: "integrations/zoom.png",
         description: "For personal and business accounts",
