@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-        const redirectUri = encodeURI(process.env.BASE_URL + '/api/integrations/zoom/callback');
+        const redirectUri = encodeURI(process.env.BASE_URL + '/api/integrations/zoomvideo/callback');
         const authUrl = 'https://zoom.us/oauth/authorize?response_type=code&client_id=' + client_id + '&redirect_uri=' + redirectUri;
 
         res.status(200).json({url: authUrl});

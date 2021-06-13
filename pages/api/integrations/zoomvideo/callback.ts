@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!session) { res.status(401).json({message: 'You must be logged in to do this'}); return; }
 
-    const redirectUri = encodeURI(process.env.BASE_URL + '/api/integrations/zoom/callback');
+    const redirectUri = encodeURI(process.env.BASE_URL + '/api/integrations/zoomvideo/callback');
     const authHeader = 'Basic ' + Buffer.from(client_id + ':' + client_secret).toString('base64');
 
     return new Promise( async (resolve, reject) => {
