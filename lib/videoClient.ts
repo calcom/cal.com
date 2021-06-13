@@ -165,7 +165,7 @@ const ZoomVideo = (credential): VideoApiAdapter => {
 // factory
 const videoIntegrations = (withCredentials): VideoApiAdapter[] => withCredentials.map((cred) => {
     switch (cred.type) {
-        case 'zoom':
+        case 'zoom_video':
             return ZoomVideo(cred);
         default:
             return; // unknown credential, could be legacy? In any case, ignore
