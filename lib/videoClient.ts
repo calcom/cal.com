@@ -17,7 +17,7 @@ function handleErrorsRaw(response) {
 const zoomAuth = (credential) => {
 
     const isExpired = (expiryDate) => expiryDate < +(new Date());
-    const authHeader = 'Basic ' + Buffer.from(process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET).toString('base64');
+    const authHeader = 'Basic ' + Buffer.from(process.env.ZOOM_CLIENT_ID + ':' + process.env.ZOOM_CLIENT_SECRET).toString('base64');
 
     const refreshAccessToken = (refreshToken) => fetch('https://zoom.us/oauth/token', {
         method: 'POST',
@@ -137,7 +137,7 @@ const ZoomVideo = (credential): VideoApiAdapter => {
             });*/
         },
         //TODO Also add the client user to the meeting after creation
-        createMeeting: (meeting: VideoMeeting) => auth.getToken().then(accessToken => fetch('https://zoom.us/users/me/meetings', {
+        createMeeting: (meeting: VideoMeeting) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/users/me/meetings', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + accessToken,
@@ -145,13 +145,13 @@ const ZoomVideo = (credential): VideoApiAdapter => {
             },
             body: JSON.stringify(translateMeeting(meeting))
         }).then(handleErrorsJson)),
-        deleteMeeting: (uid: String) => auth.getToken().then(accessToken => fetch('https://zoom.us/meetings/' + uid, {
+        deleteMeeting: (uid: String) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/meetings/' + uid, {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + accessToken
             }
         }).then(handleErrorsRaw)),
-        updateMeeting: (uid: String, meeting: VideoMeeting) => auth.getToken().then(accessToken => fetch('https://zoom.us/meetings/' + uid, {
+        updateMeeting: (uid: String, meeting: VideoMeeting) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/meetings/' + uid, {
             method: 'PATCH',
             headers: {
                 'Authorization': 'Bearer ' + accessToken,
