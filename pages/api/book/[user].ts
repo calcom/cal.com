@@ -5,6 +5,7 @@ import createConfirmBookedEmail from "../../../lib/emails/confirm-booked";
 import async from 'async';
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
+import {createMeeting, VideoMeeting} from "../../../lib/videoClient";
 
 const translator = short();
 
@@ -24,6 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
+  // Split credentials up into calendar credentials and video credentials
+  const calendarCredentials = currentUser.credentials.filter(cred => cred.type.endsWith('_calendar'));
+  const videoCredentials = currentUser.credentials.filter(cred => cred.type.endsWith('_video'));
+
   const rescheduleUid = req.body.rescheduleUid;
 
   const evt: CalendarEvent = {
@@ -39,6 +44,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]
   };
 
+  //TODO Only create meeting if integration exists.
+  const meeting: VideoMeeting = {
+    attendees: [
+      {email: req.body.email, name: req.body.name, timeZone: req.body.timeZone}
+    ],
+    endTime: req.body.end,
+    organizer: {email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone},
+    startTime: req.body.start,
+    timezone: currentUser.timeZone,
+    title: req.body.eventName + ' with ' + req.body.name,
+  };
+
   const hashUID = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
 
   const eventType = await prisma.eventType.findFirst({
@@ -51,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
-  let results = undefined;
+  let results = [];
   let referencesToCreate = undefined;
 
   if (rescheduleUid) {
@@ -73,10 +90,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Use all integrations
-    results = await async.mapLimit(currentUser.credentials, 5, async (credential) => {
+    results = await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return await updateEvent(credential, bookingRefUid, evt)
     });
+
+    //TODO: Reschedule with videoCredentials as well
 
     // Clone elements
     referencesToCreate = [...booking.references];
@@ -105,13 +124,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]);
   } else {
     // Schedule event
-    results = await async.mapLimit(currentUser.credentials, 5, async (credential) => {
+    results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const response = await createEvent(credential, evt);
       return {
         type: credential.type,
         response
       };
-    });
+    }));
+
+    results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
+      const response = await createMeeting(credential, meeting);
+      return {
+        type: credential.type,
+        response
+      };
+    }));
 
     referencesToCreate = results.map((result => {
       return {
