@@ -2,3 +2,7 @@
 table tbody tr:nth-child(odd) {
     @apply bg-gray-50;
 }
+
+.highlight-odd > *:nth-child(odd) {
+    @apply bg-gray-50;
+}

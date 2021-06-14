@@ -7,12 +7,20 @@ import prisma from '../../../lib/prisma';
 import { LocationType } from '../../../lib/location';
 import Shell from '../../../components/Shell';
 import { useSession, getSession } from 'next-auth/client';
+import {Scheduler} from "../../../components/ui/Scheduler";
+
 import {
   LocationMarkerIcon,
   PlusCircleIcon,
   XIcon,
   PhoneIcon,
 } from '@heroicons/react/outline';
+
+import dayjs, {Dayjs} from "dayjs";
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(timezone);
 
 export default function EventType(props) {
     const router = useRouter();
@@ -31,6 +39,8 @@ export default function EventType(props) {
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
     }
+
+    console.log(props);
 
     async function updateEventTypeHandler(event) {
         event.preventDefault();
@@ -142,7 +152,7 @@ export default function EventType(props) {
         <Shell heading={'Event Type - ' + props.eventType.title}>
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-3 sm:col-span-2">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="bg-white overflow-hidden shadow rounded-lg mb-4">
                 <div className="px-4 py-5 sm:p-6">
                   <form onSubmit={updateEventTypeHandler}>
                     <div className="mb-4">
@@ -232,7 +242,7 @@ export default function EventType(props) {
                         </div>
                       </div>
                     </div>
-                    <div className="my-8">
+                    <div className="my-6 mb-4">
                       <div className="relative flex items-start">
                         <div className="flex items-center h-5">
                           <input
@@ -252,9 +262,16 @@ export default function EventType(props) {
                         </div>
                       </div>
                     </div>
-                    <button type="submit" className="btn btn-primary">Update</button>
-                    <Link href="/availability"><a className="ml-2 btn btn-white">Cancel</a></Link>
                   </form>
+                  <hr className="my-4"/>
+                  <div>
+                    <h3 className="mb-2">How do you want to offer your availability for this event type?</h3>
+                    <Scheduler timeZone={props.user.timeZone} schedules={props.schedules} />
+                    <div className="py-4 flex justify-end">
+                      <Link href="/availability"><a className="mr-2 btn btn-white">Cancel</a></Link>
+                      <button type="submit" className="btn btn-primary">Update</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -332,7 +349,10 @@ export async function getServerSideProps(context) {
             email: session.user.email,
         },
         select: {
-            username: true
+          username: true,
+          timeZone: true,
+          startTime: true,
+          endTime: true,
         }
     });
 
@@ -351,10 +371,21 @@ export async function getServerSideProps(context) {
         }
     });
 
+    const utcOffset = dayjs().tz(user.timeZone).utcOffset();
+
+    const schedules = [
+      {
+        key: 0,
+        startDate: dayjs.utc().startOf('day').add(user.startTime - utcOffset, 'minutes').format(),
+        length: user.endTime,
+      }
+    ];
+
     return {
-        props: {
-            user,
-            eventType
-        },
+      props: {
+        user,
+        eventType,
+        schedules
+      },
     }
 }

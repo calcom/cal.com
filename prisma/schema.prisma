@@ -21,6 +21,7 @@ model EventType {
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
   bookings      Booking[]
+  availability  Interval[]
 }
 
 model Credential {
@@ -49,6 +50,8 @@ model User {
   credentials   Credential[]
   teams         Membership[]
   bookings      Booking[]
+  availability  Interval[]
+
   @@map(name: "users")
 }
 
@@ -119,4 +122,16 @@ model Booking {
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime?
+}
+
+model Interval {
+  id            Int      @default(autoincrement()) @id
+  label         String?
+  user          User?     @relation(fields: [userId], references: [id])
+  userId        Int?
+  eventType     EventType?  @relation(fields: [eventTypeId], references: [id])
+  eventTypeId   Int?
+  startTime     DateTime
+  length        Int
+  isOverride    Boolean  @default(false)
 }
