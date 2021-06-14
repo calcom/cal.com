@@ -2,27 +2,80 @@ import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Shell from '../../components/Shell';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {getSession, useSession} from 'next-auth/client';
-import {CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon} from '@heroicons/react/solid';
+import {CalendarIcon, CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon} from '@heroicons/react/solid';
 import {InformationCircleIcon} from '@heroicons/react/outline';
+import { Switch } from '@headlessui/react'
 
 export default function Home({ integrations }) {
     const [session, loading] = useSession();
     const [showAddModal, setShowAddModal] = useState(false);
-
-    if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
-    }
+    const [showSelectCalendarModal, setShowSelectCalendarModal] = useState(false);
+    const [selectableCalendars, setSelectableCalendars] = useState([]);
 
     function toggleAddModal() {
         setShowAddModal(!showAddModal);
+    }
+
+    function toggleShowCalendarModal() {
+        setShowSelectCalendarModal(!showSelectCalendarModal);
+    }
+
+    function loadCalendars() {
+        fetch('api/availability/calendar')
+          .then((response) => response.json())
+          .then(data => {
+              setSelectableCalendars(data)
+          });
     }
 
     function integrationHandler(type) {
         fetch('/api/integrations/' + type.replace('_', '') + '/add')
             .then((response) => response.json())
             .then((data) => window.location.href = data.url);
+    }
+
+    function calendarSelectionHandler(calendar) {
+        return (selected) => {
+            let cals = [...selectableCalendars];
+            let i = cals.findIndex(c => c.externalId === calendar.externalId);
+            cals[i].selected = selected;
+            setSelectableCalendars(cals);
+            if (selected) {
+                fetch('api/availability/calendar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(cals[i])
+                }).then((response) => response.json());
+            } else {
+                fetch('api/availability/calendar', {
+                    method: 'DELETE', headers: {
+                        'Content-Type': 'application/json'
+                    }, body: JSON.stringify(cals[i])
+                }).then((response) => response.json());
+            }
+        }
+    }
+
+    function getCalendarIntegrationImage(integrationType: string){
+        switch (integrationType) {
+            case "google_calendar": return "integrations/google-calendar.png";
+            case "office365_calendar": return "integrations/office-365.png";
+            default: return "";
+        }
+    }
+
+    function classNames(...classes) {
+        return classes.filter(Boolean).join(' ')
+    }
+
+    useEffect(loadCalendars, [integrations]);
+
+    if (loading) {
+        return <p className="text-gray-400">Loading...</p>;
     }
 
     return (
@@ -39,7 +92,7 @@ export default function Home({ integrations }) {
                         Add new integration
                     </button>
                 </div>
-                <div className="bg-white shadow overflow-hidden rounded-lg">
+                <div className="bg-white shadow overflow-hidden rounded-lg mb-8">
                     {integrations.filter( (ig) => ig.credential ).length !== 0 ? <ul className="divide-y divide-gray-200">
                         {integrations.filter(ig => ig.credential).map( (ig) => (<li>
                             <Link href={"/integrations/" + ig.credential.id}>
@@ -158,6 +211,104 @@ export default function Home({ integrations }) {
                             </div>
                             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                                 <button onClick={toggleAddModal} type="button" className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+                <div className="bg-white shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900">
+                            Select calendars
+                        </h3>
+                        <div className="mt-2 max-w-xl text-sm text-gray-500">
+                            <p>
+                               Select which calendars are checked for availability to prevent double bookings.
+                            </p>
+                        </div>
+                        <div className="mt-5">
+                            <button type="button" onClick={toggleShowCalendarModal} className="btn btn-primary">
+                                Select calendars
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {showSelectCalendarModal &&
+                <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        {/* <!--
+                          Background overlay, show/hide based on modal state.
+
+                          Entering: "ease-out duration-300"
+                            From: "opacity-0"
+                            To: "opacity-100"
+                          Leaving: "ease-in duration-200"
+                            From: "opacity-100"
+                            To: "opacity-0"
+                        --> */}
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        {/* <!--
+                          Modal panel, show/hide based on modal state.
+
+                          Entering: "ease-out duration-300"
+                            From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                            To: "opacity-100 translate-y-0 sm:scale-100"
+                          Leaving: "ease-in duration-200"
+                            From: "opacity-100 translate-y-0 sm:scale-100"
+                            To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        --> */}
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div className="sm:flex sm:items-start">
+                                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                                    <CalendarIcon className="h-6 w-6 text-blue-600" />
+                                </div>
+                                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                        Select calendars
+                                    </h3>
+                                    <div>
+                                        <p className="text-sm text-gray-400">
+                                            If no entry is selected, all calendars will be checked
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="my-4">
+                                <ul className="divide-y divide-gray-200">
+                                    {selectableCalendars.map( (calendar) => (<li className="flex py-4">
+                                        <div className="w-1/12 mr-4 pt-2">
+                                            <img className="h-8 w-8 mr-2" src={getCalendarIntegrationImage(calendar.integration)} alt={calendar.integration} />
+                                        </div>
+                                        <div className="w-10/12">
+                                            <h2 className="text-gray-800 font-medium">{ calendar.name }</h2>
+                                        </div>
+                                        <div className="w-2/12 text-right pt-2">
+                                            <Switch
+                                              checked={calendar.selected}
+                                              onChange={calendarSelectionHandler(calendar)}
+                                              className={classNames(
+                                                calendar.selected ? 'bg-indigo-600' : 'bg-gray-200',
+                                                'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                              )}
+                                            >
+                                                <span className="sr-only">Select calendar</span>
+                                                <span
+                                                  aria-hidden="true"
+                                                  className={classNames(
+                                                    calendar.selected ? 'translate-x-5' : 'translate-x-0',
+                                                    'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200'
+                                                  )}
+                                                />
+                                            </Switch>
+                                        </div>
+                                    </li>))}
+                                </ul>
+                            </div>
+                            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                <button onClick={toggleShowCalendarModal} type="button" className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
                                     Close
                                 </button>
                             </div>
