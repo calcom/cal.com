@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../../../lib/prisma';
 import createInvitationEmail from "../../../../lib/emails/invitation";
 import {getSession} from "next-auth/client";
+import {randomBytes} from "crypto";
+import {create} from "domain";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
@@ -34,8 +36,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!invitee) {
-    return res.status(400).json({
-      message: `Invite failed because there is no corresponding user for ${req.body.usernameOrEmail}`});
+    // liberal email match
+    const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+
+    if (!isEmail(req.body.usernameOrEmail)) {
+      return res.status(400).json({
+        message: `Invite failed because there is no corresponding user for ${req.body.usernameOrEmail}`
+      });
+    }
+    // valid email given, create User
+    const createUser = await prisma.user.create(
+      {
+        data: {
+          email: req.body.usernameOrEmail,
+        }
+      })
+      .then( (invitee) => prisma.membership.create(
+        {
+          data: {
+            teamId: parseInt(req.query.team),
+            userId: invitee.id,
+            role: req.body.role,
+          },
+        }));
+
+    const token: string = randomBytes(32).toString("hex");
+
+    const createVerificationRequest = await prisma.verificationRequest.create({
+      data: {
+        identifier: req.body.usernameOrEmail,
+        token,
+        expires: new Date((new Date()).setHours(168)) // +1 week
+      }
+    });
+
+    createInvitationEmail({
+      toEmail: req.body.usernameOrEmail,
+      from: session.user.name,
+      teamName: team.name,
+      token,
+    });
+
+    return res.status(201).json({});
   }
 
   // create provisional membership

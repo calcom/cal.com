@@ -44,7 +44,12 @@ export default function EditTeamModal(props) {
             <UsersIcon className="h-6 w-6 text-blue-600" />
           </div>
           <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-            <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Edit {props.team.name}</h3>
+            <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Edit the {props.team.name} team</h3>
+            <div>
+              <p className="text-sm text-gray-400">
+                Manage and delete your team.
+              </p>
+            </div>
           </div>
         </div>
         <form>
