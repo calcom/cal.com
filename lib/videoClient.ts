@@ -85,11 +85,11 @@ const ZoomVideo = (credential): VideoApiAdapter => {
 
     const translateMeeting = (meeting: VideoMeeting) => {
         // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
-        return {
+        const meet = {
             topic: meeting.title,
             type: 2,    // Means that this is a scheduled meeting
             start_time: meeting.startTime,
-            duration: 60,    //TODO calculate endTime - startTime (in minutes, int)
+            duration: ((new Date(meeting.endTime)).getTime() - (new Date(meeting.startTime)).getTime()) / 60000,
             //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
             timezone: meeting.timezone,
             //password: "string",       TODO: Should we use a password? Maybe generate a random one?
@@ -110,6 +110,8 @@ const ZoomVideo = (credential): VideoApiAdapter => {
                 registrants_email_notification: true
             }
         };
+
+        return meet;
     };
 
     return {
