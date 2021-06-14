@@ -282,10 +282,10 @@ export default function Home({ integrations }) {
                                         <div className="w-1/12 mr-4 pt-2">
                                             <img className="h-8 w-8 mr-2" src={getCalendarIntegrationImage(calendar.integration)} alt={calendar.integration} />
                                         </div>
-                                        <div className="w-10/12">
+                                        <div className="w-10/12 pt-3">
                                             <h2 className="text-gray-800 font-medium">{ calendar.name }</h2>
                                         </div>
-                                        <div className="w-2/12 text-right pt-2">
+                                        <div className="w-2/12 text-right pt-3">
                                             <Switch
                                               checked={calendar.selected}
                                               onChange={calendarSelectionHandler(calendar)}
