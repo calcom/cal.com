@@ -222,6 +222,40 @@ export default function Availability(props) {
                                             </div>
                                         </div>
                                         <div className="mb-4">
+                                            <label htmlFor="slug" className="block text-sm font-medium text-gray-700">URL</label>
+                                            <div className="mt-1">
+                                                <div className="flex rounded-md shadow-sm">
+                                                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                                        {location.hostname}/{props.user.username}/
+                                                    </span>
+                                                    <input
+                                                        ref={slugRef}
+                                                        type="text"
+                                                        name="slug"
+                                                        id="slug"
+                                                        required
+                                                        className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                                            <div className="mt-1">
+                                                <textarea ref={descriptionRef} name="description" id="description" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="A quick video meeting."></textarea>
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <label htmlFor="length" className="block text-sm font-medium text-gray-700">Length</label>
+                                            <div className="mt-1 relative rounded-md shadow-sm">
+                                                <input ref={lengthRef} type="number" name="length" id="length" required className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" />
+                                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                                                    minutes
+                                                </div>
+                                            </div>
+                                        </div>    
+                                        
+                                        <div className="mb-4">
                                             <span className="block text-sm font-medium text-gray-700">
                                                 Date range
                                             </span>
