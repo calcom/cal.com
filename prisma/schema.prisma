@@ -36,6 +36,7 @@ model User {
   username      String?
   name          String?
   email         String?   @unique
+  emailVerified DateTime?
   password      String?
   bio           String?
   avatar        String?
@@ -71,6 +72,16 @@ model Membership {
   user          User            @relation(fields: [userId], references: [id])
 
   @@id([userId,teamId])
+}
+
+model VerificationRequest {
+  id         Int      @default(autoincrement()) @id
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@unique([identifier, token])
 }
 
 model BookingReference {
