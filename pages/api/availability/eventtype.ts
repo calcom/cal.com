@@ -19,6 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             hidden: req.body.hidden,
             locations: req.body.locations,
             eventName: req.body.eventName,
+            startDate: req.body.dates.start,
+            endDate: req.body.dates.end,
             customInputs: !req.body.customInputs
               ? undefined
               : {
@@ -48,6 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
         };
 
+        const { availibility } = req.body;
+
         if (req.method == "POST") {
             const createEventType = await prisma.eventType.create({
                 data: {
@@ -55,6 +59,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     ...data,
                 },
             });
+
+            const createAsync = async (eventTypeId, dayIndex, slotIndex) => prisma.availibility.create({
+                data: {
+                    eventTypeId,
+                    day: availibility[dayIndex].day,
+                    startHour: availibility[dayIndex].slotsOfDay[slotIndex].startTime,
+                    endHour: availibility[dayIndex].slotsOfDay[slotIndex].endTime,
+                }
+            })
+
+            const createAvailibility = async () => {
+                return Promise.all(availibility
+                    .map((el, dayIndex) => 
+                        el.slotsOfDay
+                        .map((slot, slotIndex) => {
+                            createAsync(createEventType.id, dayIndex, slotIndex)
+                        })
+                    )
+                )
+            }
+
+            createAvailibility()
+
             res.status(200).json({message: 'Event created successfully'});
         }
         else if (req.method == "PATCH") {

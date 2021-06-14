@@ -23,6 +23,8 @@ model EventType {
   bookings      Booking[]
   eventName     String?
   customInputs  EventTypeCustomInput[]
+  startDate     DateTime?
+  endDate       DateTime?
 }
 
 model Credential {

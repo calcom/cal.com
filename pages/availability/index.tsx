@@ -7,6 +7,7 @@ import {useRouter} from 'next/router';
 import {useRef, useState} from 'react';
 import {getSession, useSession} from 'next-auth/client';
 import {ClockIcon, PlusIcon} from '@heroicons/react/outline';
+import dayjs from 'dayjs';
 
 export default function Availability(props) {
     const [ session, loading ] = useSession();
@@ -14,6 +15,8 @@ export default function Availability(props) {
     const [showAddModal, setShowAddModal] = useState(false);
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
+    const [timeRange, setTimeRange] = useState<'unlimited' | 'specific' | undefined>();
+    const [dates, setDates] = useState({ startDate: dayjs(new Date()), endDate: dayjs(new Date()) });
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
     const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -57,12 +60,13 @@ export default function Availability(props) {
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
         const enteredIsHidden = isHiddenRef.current.checked;
+        const enteredDates = timeRange === 'specific' ? { start: dates.startDate, end: dates.endDate } : { start: null, end: null };
 
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'POST',
-            body: JSON.stringify({title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden}),
+            body: JSON.stringify({title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, dates: enteredDates}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -193,7 +197,7 @@ export default function Availability(props) {
 
                             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full sm:p-6">
                                 <div className="sm:flex sm:items-start mb-4">
                                     <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                                         <PlusIcon className="h-6 w-6 text-blue-600" />
@@ -218,37 +222,56 @@ export default function Availability(props) {
                                             </div>
                                         </div>
                                         <div className="mb-4">
-                                            <label htmlFor="slug" className="block text-sm font-medium text-gray-700">URL</label>
-                                            <div className="mt-1">
-                                                <div className="flex rounded-md shadow-sm">
-                                                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                                                        {location.hostname}/{props.user.username}/
-                                                    </span>
+                                            <span className="block text-sm font-medium text-gray-700">
+                                                Date range
+                                            </span>
+                                            <div className="flex space-between">
+                                                <label className="block text-sm mb-1 mr-4 font-medium text-gray-700">
                                                     <input
-                                                        ref={slugRef}
-                                                        type="text"
-                                                        name="slug"
-                                                        id="slug"
-                                                        required
-                                                        className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                                        type="radio"
+                                                        className="form-radio"
+                                                        onChange={() => setTimeRange('specific')}
+                                                        name="dateRange"
+                                                        value="specific"
+                                                        checked={timeRange === 'specific'}
                                                     />
+                                                    <span className="ml-2 text-xs">Range</span>
+                                                </label>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    <input
+                                                        type="radio"
+                                                        className="form-radio"
+                                                        onChange={() => setTimeRange('unlimited')}
+                                                        name="dateRange"
+                                                        value="unlimited"
+                                                        checked={timeRange === 'unlimited'}
+                                                    />
+                                                    <span className="ml-2 text-xs">No time limit</span>
+                                                </label>
+                                            </div>
+                                            {timeRange === 'specific' && (
+                                                <div className="flex my-2">
+                                                    <div>
+                                                        <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">Start date</label>
+                                                        <input 
+                                                            id="start-date"
+                                                            type="date"
+                                                            className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mr-2 mt-1 shadow-sm"
+                                                            value={dates.startDate.format('YYYY-MM-DD')}
+                                                            onChange={e => setDates({...dates, startDate: dayjs(e.target.value)})}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">End date</label>
+                                                        <input 
+                                                            type="date"
+                                                            className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mt-1 shadow-sm"
+                                                            value={dates.endDate.format('YYYY-MM-DD')}
+                                                            onChange={e => setDates({...dates, endDate: dayjs(e.target.value)})}
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-                                            <div className="mt-1">
-                                                <textarea ref={descriptionRef} name="description" id="description" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="A quick video meeting."></textarea>
-                                            </div>
-                                        </div>
-                                        <div className="mb-4">
-                                            <label htmlFor="length" className="block text-sm font-medium text-gray-700">Length</label>
-                                            <div className="mt-1 relative rounded-md shadow-sm">
-                                                <input ref={lengthRef} type="number" name="length" id="length" required className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md" placeholder="15" />
-                                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
-                                                    minutes
-                                                </div>
-                                            </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="my-8">
@@ -392,7 +415,7 @@ export async function getServerSideProps(context) {
             slug: true,
             description: true,
             length: true,
-            hidden: true
+            hidden: true,
         }
     });
     return {

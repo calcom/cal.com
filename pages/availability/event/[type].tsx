@@ -13,6 +13,7 @@ import {
   XIcon,
   PhoneIcon,
 } from '@heroicons/react/outline';
+import dayjs from 'dayjs';
 import {EventTypeCustomInput, EventTypeCustomInputType} from "../../../lib/eventTypeInput";
 import {PlusIcon} from "@heroicons/react/solid";
 
@@ -35,6 +36,17 @@ export default function EventType(props) {
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
     const [ customInputs, setCustomInputs ] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
     const locationOptions = props.locationOptions
+    const [ dates, setDates] = useState({ startDate: props.eventType.startDate !== null ? dayjs(new Date(props.eventType.startDate)) : dayjs(new Date()), endDate: props.eventType.endDate !== null ? dayjs(new Date(props.eventType.endDate)) : dayjs(new Date()) });
+    const [ timeRange, setTimeRange ] = useState<'unlimited' | 'specific' | undefined>();
+
+    useEffect(() => {
+        if (props.eventType.startDate !== null) {
+            setTimeRange('specific');
+        }
+        else {
+            setTimeRange('unlimited');
+        }
+    }, [])
 
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -56,11 +68,12 @@ export default function EventType(props) {
         const enteredLength = lengthRef.current.value;
         const enteredIsHidden = isHiddenRef.current.checked;
         const enteredEventName = eventNameRef.current.value;
+        const enteredDates = timeRange === 'specific' ? { start: dates.startDate, end: dates.endDate } : { start: null, end: null };
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'PATCH',
-            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations, eventName: enteredEventName, customInputs }),
+            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations, dates: enteredDates, eventName: enteredEventName, customInputs }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -201,7 +214,7 @@ export default function EventType(props) {
         <Shell heading={'Event Type - ' + props.eventType.title}>
           <div>
             <div className="mb-8">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="bg-white overflow-auto shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <form onSubmit={updateEventTypeHandler}>
                     <div className="mb-4">
@@ -214,9 +227,9 @@ export default function EventType(props) {
                       <label htmlFor="slug" className="block text-sm font-medium text-gray-700">URL</label>
                       <div className="mt-1">
                         <div className="flex rounded-md shadow-sm">
-                                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                                                    {location.hostname}/{props.user.username}/
-                                                </span>
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                              {location.hostname}/{props.user.username}/
+                          </span>
                           <input
                             ref={slugRef}
                             type="text"
@@ -338,6 +351,58 @@ export default function EventType(props) {
                             </button>
                         </li>
                       </ul>
+                    </div>
+                    <div className="mb-4">
+                    <span className="block text-sm font-medium text-gray-700">
+                      Date range
+                    </span>
+                    <div className="flex space-between">
+                      <label className="block text-sm mb-1 mr-4 font-medium text-gray-700">
+                        <input
+                          type="radio"
+                          className="form-radio"
+                          onChange={() => setTimeRange('specific')}
+                          name="dateRange"
+                          value="specific"
+                          checked={timeRange === 'specific'}
+                        />
+                        <span className="ml-2 text-xs">Specific range</span>
+                      </label>
+                      <label className="block text-sm font-medium text-gray-700">
+                        <input
+                          type="radio"
+                          className="form-radio"
+                          onChange={() => setTimeRange('unlimited')}
+                          name="dateRange"
+                          value="unlimited"
+                          checked={timeRange === 'unlimited'}
+                        />
+                        <span className="ml-2 text-xs">No date limit</span>
+                      </label>
+                    </div>
+                    {timeRange === 'specific' && (
+                        <div className="flex my-2">
+                            <div>
+                                <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">Start date</label>
+                                <input 
+                                    id="start-date"
+                                    type="date"
+                                    className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mr-2 mt-1 shadow-sm"
+                                    value={dates.startDate.format('YYYY-MM-DD')}
+                                    onChange={e => setDates({...dates, startDate: dayjs(e.target.value)})}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">End date</label>
+                                <input 
+                                    type="date"
+                                    className="focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md mt-1 shadow-sm"
+                                    value={dates.endDate.format('YYYY-MM-DD')}
+                                    onChange={e => setDates({...dates, endDate: dayjs(e.target.value)})}
+                                />
+                            </div>
+                        </div>
+                      )}
                     </div>
                     <div className="my-8">
                       <div className="relative flex items-start">
@@ -573,15 +638,23 @@ export async function getServerSideProps(context) {
             length: true,
             hidden: true,
             locations: true,
+            startDate: true,
+            endDate: true,
             eventName: true,
             customInputs: true
         }
     });
 
+    // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
+    const eventTypeObj = Object.assign({}, eventType, {
+      startDate: eventType.startDate !== null ? eventType.startDate.toString() : eventType.startDate,
+      endDate: eventType.endDate !== null ? eventType.endDate.toString() : eventType.endDate
+    });
+
     return {
         props: {
             user,
-            eventType,
+            eventType: eventTypeObj,
             locationOptions
         },
     }

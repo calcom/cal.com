@@ -37,6 +37,11 @@ export default function Type(props): Type {
   const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
 
+  const minDay = parseInt(dayjs(props.eventType.startDate).format('D')) || null
+  const maxDay = parseInt(dayjs(props.eventType.endDate).format('D')) || null
+  const minMonth = parseInt(dayjs(props.eventType.startDate).format('MM')) - 1 || null
+  const maxMonth = parseInt(dayjs(props.eventType.endDate).format('MM')) - 1 || null
+
   useEffect((): void => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
@@ -76,6 +81,24 @@ export default function Type(props): Type {
     setSelectedDate(dayjs().month(selectedMonth).date(day));
   };
 
+  const checkAvailableDays = (day) => {
+    if (selectedMonth > minMonth && selectedMonth < maxMonth) {
+      return true
+    }
+    else if (selectedMonth > minMonth && selectedMonth === maxMonth) {
+      return day <= maxDay
+    }
+    else if (selectedMonth === minMonth && selectedMonth < maxMonth) {
+      return day >= minDay
+    }
+    else if (selectedMonth === minMonth  && selectedMonth === maxMonth) {
+      return day >= minDay && day <= maxDay
+    }
+    else {
+      return false
+    }
+  }
+
   // Combine placeholder days with actual days
   const calendar = [
     ...emptyDays,
@@ -83,18 +106,8 @@ export default function Type(props): Type {
       <button
         key={day}
         onClick={() => changeDate(day)}
-        disabled={
-          selectedMonth < parseInt(dayjs().format("MM")) && dayjs().month(selectedMonth).format("D") > day
-        }
-        className={
-          "text-center w-10 h-10 rounded-full mx-auto " +
-          (dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth))
-            ? "bg-blue-50 text-blue-600 font-medium"
-            : "text-gray-400 font-light") +
-          (dayjs(selectedDate).month(selectedMonth).format("D") == day
-            ? " bg-blue-600 text-white-important"
-            : "")
-        }>
+        disabled={selectedMonth < parseInt(dayjs().format('MM')) && dayjs().month(selectedMonth).format('D') > day || minDay !== null ? !checkAvailableDays(day) : '' } 
+        className={"text-center w-10 h-10 rounded-full mx-auto " + (minDay === null ? dayjs().isSameOrBefore(dayjs().date(day).month(selectedMonth)) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light' : checkAvailableDays(day) ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-400 font-light') + (minDay !== null ? (day >= minDay && day <= maxDay && dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : '') : (dayjs(selectedDate).month(selectedMonth).format("D") == day ? ' bg-blue-600 text-white-important' : undefined))}>
         {day}
       </button>
     )),
@@ -176,8 +189,15 @@ export default function Type(props): Type {
                     disabled={selectedMonth < parseInt(dayjs().format("MM"))}>
                     <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                  <button onClick={incrementMonth}>
-                    <ChevronRightIcon className="w-5 h-5" />
+                  <button 
+                    onClick={incrementMonth}
+                    className={
+                      minDay !== null &&
+                      selectedMonth >= maxMonth &&
+                        "text-gray-400"
+                    }
+                    disabled={minDay !== null && selectedMonth >= maxMonth}>
+                      <ChevronRightIcon className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -248,6 +268,25 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   });
 
+  const subEventTypes = user.eventTypes.map(el => {
+    if (el.startDate !== null) {
+      return {
+        startDate: el.startDate.toString(),
+        endDate: el.endDate.toString(),
+      }
+    }
+    else {
+      return { 
+        startDate: el.startDate,
+        endDate: el.endDate,
+      }
+    }
+  })
+
+  const userObj = Object.assign({}, user, {
+    eventTypes: subEventTypes
+  })
+
   if (!user) {
     return {
       notFound: true,
@@ -266,6 +305,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       title: true,
       description: true,
       length: true,
+      startDate: true,
+      endDate: true,
     },
   });
 
@@ -275,10 +316,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
+  const eventTypeObj = Object.assign({}, eventType, {
+    startDate: eventType.startDate !== null ? eventType.startDate.toString() : eventType.startDate,
+    endDate: eventType.endDate !== null ? eventType.endDate.toString() : eventType.endDate,
+  });
+
   return {
     props: {
-      user,
-      eventType,
+      user: userObj,
+      eventType: eventTypeObj
     },
   };
 };
