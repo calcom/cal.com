@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   let results = [];
-  let referencesToCreate = undefined;
+  let referencesToCreate = [];
 
   if (rescheduleUid) {
     // Reschedule event
@@ -135,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]);
   } else {
     // Schedule event
-    results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
+    results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const response = await createEvent(credential, appendLinksToEvents(evt));
       return {
         type: credential.type,
@@ -143,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     }));
 
-    results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
+    results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
       const response = await createMeeting(credential, meeting);
       return {
         type: credential.type,
@@ -154,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     referencesToCreate = results.map((result => {
       return {
         type: result.type,
-        uid: result.response.id
+        uid: result.response.uuid ?? result.response.id
       };
     }));
   }
