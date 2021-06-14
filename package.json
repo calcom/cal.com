@@ -30,6 +30,7 @@
     "react-select": "^4.3.0",
     "react-timezone-select": "^1.0.2",
     "short-uuid": "^4.2.0",
+    "superjson": "^1.7.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
