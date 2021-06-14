@@ -348,40 +348,40 @@ export default function EventType(props) {
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
 
-                      <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start mb-4">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <LocationMarkerIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Edit location</h3>
-                  </div>
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                            <div className="sm:flex sm:items-start mb-4">
+                                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                                    <LocationMarkerIcon className="h-6 w-6 text-blue-600" />
+                                </div>
+                                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Edit location</h3>
+                                </div>
+                            </div>
+                            <form onSubmit={updateLocations}>
+                                <Select
+                                    name="location"
+                                    defaultValue={selectedLocation}
+                                    options={locationOptions}
+                                    isSearchable="false"
+                                    className="mb-2 flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                    onChange={setSelectedLocation}
+                                />
+                                <LocationOptions />
+                                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                    <button type="submit" className="btn btn-primary">
+                                        Update
+                                    </button>
+                                    <button onClick={closeLocationModal} type="button" className="btn btn-white mr-2">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <form onSubmit={updateLocations}>
-                  <Select
-                    name="location"
-                    defaultValue={selectedLocation}
-                    options={locationOptions}
-                    isSearchable="false"
-                    className="mb-2 flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                    onChange={setSelectedLocation}
-                  />
-                  <LocationOptions />
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      Update
-                    </button>
-                    <button onClick={closeLocationModal} type="button" className="btn btn-white mr-2">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-          }
+            }
         </Shell>
       </div>
     );
