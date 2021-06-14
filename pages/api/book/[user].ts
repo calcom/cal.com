@@ -5,7 +5,7 @@ import createConfirmBookedEmail from "../../../lib/emails/confirm-booked";
 import async from 'async';
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
-import {createMeeting, VideoMeeting} from "../../../lib/videoClient";
+import {createMeeting, updateMeeting, VideoMeeting} from "../../../lib/videoClient";
 
 const translator = short();
 
@@ -101,12 +101,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Use all integrations
-    results = await async.mapLimit(calendarCredentials, 5, async (credential) => {
+    results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return await updateEvent(credential, bookingRefUid, appendLinksToEvents(evt))
-    });
+    }));
 
-    //TODO: Reschedule with videoCredentials as well
+    results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      return await updateMeeting(credential, bookingRefUid, meeting)  // TODO Maybe append links?
+    }));
 
     // Clone elements
     referencesToCreate = [...booking.references];
@@ -154,7 +157,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     referencesToCreate = results.map((result => {
       return {
         type: result.type,
-        uid: result.response.uuid ?? result.response.id
+        uid: result.response.id.toString()
       };
     }));
   }
