@@ -1,3 +1,5 @@
+import prisma from "./prisma";
+
 function handleErrorsJson(response) {
     if (!response.ok) {
         response.json().then(console.log);
@@ -31,7 +33,16 @@ const zoomAuth = (credential) => {
         })
     })
         .then(handleErrorsJson)
-        .then((responseBody) => {
+        .then(async (responseBody) => {
+            // Store new tokens in database.
+            await prisma.credential.update({
+                where: {
+                    id: credential.id
+                },
+                data: {
+                    key: responseBody
+                }
+            });
             credential.key.access_token = responseBody.access_token;
             credential.key.expires_in = Math.round((+(new Date()) / 1000) + responseBody.expires_in);
             return credential.key.access_token;
