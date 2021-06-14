@@ -35,7 +35,7 @@ export default function Success(props) {
         }
 
         const event = createEvent({
-           start: date.utc().toArray().slice(0, 6),
+           start: date.utc().toArray().slice(0, 6).map((v, i) => i === 1 ? v + 1 : v),
            startInputType: 'utc',
            title: props.eventType.title + ' with ' + props.user.name,
            description: props.eventType.description,
