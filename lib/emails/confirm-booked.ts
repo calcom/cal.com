@@ -1,8 +1,7 @@
-
 import nodemailer from 'nodemailer';
-import { serverConfig } from "../serverConfig";
-import { CalendarEvent } from "../calendarClient";
-import dayjs, { Dayjs } from "dayjs";
+import {serverConfig} from "../serverConfig";
+import {CalendarEvent} from "../calendarClient";
+import dayjs, {Dayjs} from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -11,8 +10,8 @@ dayjs.extend(localizedFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function createConfirmBookedEmail(calEvent: CalendarEvent, uid: String, options: any = {}) {
-  return sendEmail(calEvent, uid, {
+export default function createConfirmBookedEmail(calEvent: CalendarEvent, cancelLink: string, rescheduleLink: string, options: any = {}) {
+  return sendEmail(calEvent, cancelLink, rescheduleLink, {
     provider: {
       transport: serverConfig.transport,
       from: serverConfig.from,
@@ -21,7 +20,7 @@ export default function createConfirmBookedEmail(calEvent: CalendarEvent, uid: S
   });
 }
 
-const sendEmail = (calEvent: CalendarEvent, uid: String, {
+const sendEmail = (calEvent: CalendarEvent, cancelLink: string, rescheduleLink: string, {
   provider,
 }) => new Promise( (resolve, reject) => {
 
@@ -34,8 +33,8 @@ const sendEmail = (calEvent: CalendarEvent, uid: String, {
       from: `${calEvent.organizer.name} <${from}>`,
       replyTo: calEvent.organizer.email,
       subject: `Confirmed: ${calEvent.type} with ${calEvent.organizer.name} on ${inviteeStart.format('dddd, LL')}`,
-      html: html(calEvent, uid),
-      text: text(calEvent, uid),
+      html: html(calEvent, cancelLink, rescheduleLink),
+      text: text(calEvent, cancelLink, rescheduleLink),
     },
     (error, info) => {
       if (error) {
@@ -47,10 +46,7 @@ const sendEmail = (calEvent: CalendarEvent, uid: String, {
   )
 });
 
-const html = (calEvent: CalendarEvent, uid: String) => {
-  const cancelLink = process.env.BASE_URL + '/cancel/' + uid;
-  const rescheduleLink = process.env.BASE_URL + '/reschedule/' + uid;
-
+const html = (calEvent: CalendarEvent, cancelLink: string, rescheduleLink: string) => {
   const inviteeStart: Dayjs = <Dayjs>dayjs(calEvent.startTime).tz(calEvent.attendees[0].timeZone);
   return `
     <div>
@@ -71,4 +67,4 @@ const html = (calEvent: CalendarEvent, uid: String) => {
   `;
 };
 
-const text = (evt: CalendarEvent, uid: String) => html(evt, uid).replace('<br />', "\n").replace(/<[^>]+>/g, '');
+const text = (evt: CalendarEvent, cancelLink: string, rescheduleLink: string) => html(evt, cancelLink, rescheduleLink).replace('<br />', "\n").replace(/<[^>]+>/g, '');
