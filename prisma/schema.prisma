@@ -21,6 +21,7 @@ model EventType {
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
   bookings      Booking[]
+  eventName     String?
 }
 
 model Credential {
