@@ -235,7 +235,7 @@ export default function EventType(props) {
                       </div>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="eventName" className="block text-sm font-medium text-gray-700">Event name in calendar</label>
+                      <label htmlFor="eventName" className="block text-sm font-medium text-gray-700">Calendar entry name</label>
                       <div className="mt-1 relative rounded-md shadow-sm">
                         <input ref={eventNameRef} type="text" name="title" id="title" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Meeting with {USER}" defaultValue={props.eventType.eventName} />
                       </div>
