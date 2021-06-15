@@ -310,7 +310,14 @@ export async function getServerSideProps(context) {
             }
         });
     }
+    
+    // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
+    const eventTypesObj = eventTypes.map(el => Object.assign({}, el, {
+        startDate: el.startDate !== null ? el.startDate.toString() : el.startDate,
+        endDate: el.startDate !== null ? el.endDate.toString() : el.endDate,
+    }));
+
     return {
-        props: { user, credentials, eventTypes, eventTypeCount: eventTypes.length, integrationCount: credentials.length }, // will be passed to the page component as props
+        props: { user, credentials, eventTypes: eventTypesObj, eventTypeCount: eventTypesObj.length, integrationCount: credentials.length }, // will be passed to the page component as props
     }
 }

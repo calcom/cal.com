@@ -306,9 +306,34 @@ export async function getServerSideProps(context) {
         });
     }
 
+    const subEventTypes = user.eventTypes.map(el => {
+        if (el.startDate !== null) {
+          return {
+            startDate: el.startDate.toString(),
+            endDate: el.endDate.toString(),
+          }
+        }
+        else {
+          return { 
+            startDate: el.startDate,
+            endDate: el.endDate,
+          }
+        }
+    })
+  
+    const userObj = Object.assign({}, user, {
+        eventTypes: subEventTypes
+    })
+
+    // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
+    // const bookingObj = Object.assign({}, booking, {
+    //     startTime: booking.startTime.toString(),
+    //     endTime: booking.endTime.toString()
+    // });
+
     return {
         props: {
-            user,
+            user: userObj,
             eventType,
             booking
         },

@@ -248,84 +248,84 @@ export default function Type(props): Type {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await prisma.user.findFirst({
-    where: {
-      username: context.query.user.toLowerCase(),
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      eventTypes: true,
-      startTime: true,
-      timeZone: true,
-      endTime: true,
-      weekStart: true,
-    },
-  });
+export async function getServerSideProps(context) {
+    const user = await prisma.user.findFirst({
+        where: {
+          username: context.query.user,
+        },
+        select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+            bio: true,
+            avatar: true,
+            eventTypes: true,
+            startTime: true,
+            timeZone: true,
+            endTime: true,
+            weekStart: true,
+        }
+    });
 
-  const subEventTypes = user.eventTypes.map(el => {
-    if (el.startDate !== null) {
+    const subEventTypes = user.eventTypes.map(el => {
+      if (el.startDate !== null) {
+        return {
+          startDate: el.startDate.toString(),
+          endDate: el.endDate.toString(),
+        }
+      }
+      else {
+        return { 
+          startDate: el.startDate,
+          endDate: el.endDate,
+        }
+      }
+    })
+
+    const userObj = Object.assign({}, user, {
+      eventTypes: subEventTypes
+    })
+
+    if (!user) {
       return {
-        startDate: el.startDate.toString(),
-        endDate: el.endDate.toString(),
-      }
+        notFound: true,
+      };
     }
-    else {
-      return { 
-        startDate: el.startDate,
-        endDate: el.endDate,
-      }
-    }
-  })
 
-  const userObj = Object.assign({}, user, {
-    eventTypes: subEventTypes
-  })
-
-  if (!user) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      userId: user.id,
-      slug: {
-        equals: context.query.type,
+    const eventType = await prisma.eventType.findFirst({
+      where: {
+        userId: user.id,
+        slug: {
+          equals: context.query.type,
+        },
       },
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      length: true,
-      startDate: true,
-      endDate: true,
-    },
-  });
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        length: true,
+        startDate: true,
+        endDate: true,
+      },
+    });
 
-  if (!eventType) {
+    if (!eventType) {
+      return {
+        notFound: true,
+      };
+    }
+
+    // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
+    const eventTypeObj = Object.assign({}, eventType, {
+      startDate: eventType.startDate !== null ? eventType.startDate.toString() : eventType.startDate,
+      endDate: eventType.endDate !== null ? eventType.endDate.toString() : eventType.endDate,
+    });
+
     return {
-      notFound: true,
+      props: {
+        user: userObj,
+        eventType: eventTypeObj
+      },
     };
-  }
-
-  // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
-  const eventTypeObj = Object.assign({}, eventType, {
-    startDate: eventType.startDate !== null ? eventType.startDate.toString() : eventType.startDate,
-    endDate: eventType.endDate !== null ? eventType.endDate.toString() : eventType.endDate,
-  });
-
-  return {
-    props: {
-      user: userObj,
-      eventType: eventTypeObj
-    },
-  };
 };

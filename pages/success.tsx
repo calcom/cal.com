@@ -157,9 +157,28 @@ export async function getServerSideProps(context) {
         }
     });
 
+    const subEventTypes = user.eventTypes.map(el => {
+        if (el.startDate !== null) {
+          return {
+            startDate: el.startDate.toString(),
+            endDate: el.endDate.toString(),
+          }
+        }
+        else {
+          return { 
+            startDate: el.startDate,
+            endDate: el.endDate,
+          }
+        }
+      })
+  
+      const userObj = Object.assign({}, user, {
+        eventTypes: subEventTypes
+      })
+
     return {
         props: {
-            user,
+            user: userObj,
             eventType
         },
     }
