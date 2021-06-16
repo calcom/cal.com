@@ -1,22 +1,8 @@
-import {CalendarEvent} from "../calendarClient";
 import {createEvent} from "ics";
 import dayjs, {Dayjs} from "dayjs";
-import {serverConfig} from "../serverConfig";
-import nodemailer from 'nodemailer';
+import EventMail from "./EventMail";
 
-export default class EventOwnerMail {
-  calEvent: CalendarEvent;
-
-  /**
-   * An EventOwnerMail always consists of a CalendarEvent
-   * that stores the very basic data of the event (like date, title etc).
-   *
-   * @param calEvent
-   */
-  constructor(calEvent: CalendarEvent) {
-    this.calEvent = calEvent;
-  }
-
+export default class EventOwnerMail extends EventMail {
   /**
    * Returns the instance's event as an iCal event in string representation.
    * @protected
@@ -27,7 +13,7 @@ export default class EventOwnerMail {
       startInputType: 'utc',
       productId: 'calendso/ics',
       title: `${this.calEvent.type} with ${this.calEvent.attendees[0].name}`,
-      description: this.calEvent.description + this.stripHtml(this.getAdditionalBody()),
+      description: this.calEvent.description + this.stripHtml(this.getAdditionalBody()) + this.stripHtml(this.getAdditionalFooter()),
       duration: {minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), 'minute')},
       organizer: {name: this.calEvent.organizer.name, email: this.calEvent.organizer.email},
       attendees: this.calEvent.attendees.map((attendee: any) => ({name: attendee.name, email: attendee.email})),
@@ -69,82 +55,33 @@ export default class EventOwnerMail {
         <br />
         <strong>Additional notes:</strong><br />
         ${this.calEvent.description}
+      ` + this.getAdditionalFooter() + `   
       </div>
     `;
   }
 
   /**
-   * Returns the email text in a plain text representation
-   * by stripping off the HTML tags.
+   * Returns the payload object for the nodemailer.
    *
    * @protected
    */
-  protected getPlainTextRepresentation(): string {
-    return this.stripHtml(this.getHtmlRepresentation());
-  }
-
-  /**
-   * Strips off all HTML tags and leaves plain text.
-   *
-   * @param html
-   * @protected
-   */
-  protected stripHtml(html: string): string {
-    return html
-      .replace('<br />', "\n")
-      .replace(/<[^>]+>/g, '');
-  }
-
-  /**
-   * Sends the email to the event attendant and returns a Promise.
-   */
-  public sendEmail(): Promise<any> {
-    const options = this.getMailerOptions();
-    const {transport, from} = options;
+  protected getNodeMailerPayload(): Object {
     const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
 
-    return new Promise((resolve, reject) => nodemailer.createTransport(transport).sendMail(
-      {
-        icalEvent: {
-          filename: 'event.ics',
-          content: this.getiCalEventAsString(),
-        },
-        from: `Calendso <${from}>`,
-        to: this.calEvent.organizer.email,
-        subject: `New event: ${this.calEvent.attendees[0].name} - ${organizerStart.format('LT dddd, LL')} - ${this.calEvent.type}`,
-        html: this.getHtmlRepresentation(),
-        text: this.getPlainTextRepresentation(),
-      },
-      (error, info) => {
-        if (error) {
-          console.error("SEND_NEW_EVENT_NOTIFICATION_ERROR", this.calEvent.organizer.email, error);
-          reject(new Error(error));
-        } else {
-          resolve(info);
-        }
-      }));
-  }
-
-  /**
-   * Gathers the required provider information from the config.
-   *
-   * @protected
-   */
-  protected getMailerOptions(): any {
     return {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
+      icalEvent: {
+        filename: 'event.ics',
+        content: this.getiCalEventAsString(),
+      },
+      from: `Calendso <${this.getMailerOptions().from}>`,
+      to: this.calEvent.organizer.email,
+      subject: `New event: ${this.calEvent.attendees[0].name} - ${organizerStart.format('LT dddd, LL')} - ${this.calEvent.type}`,
+      html: this.getHtmlRepresentation(),
+      text: this.getPlainTextRepresentation(),
     };
   }
 
-  /**
-   * Can be used to include additional HTML or plain text
-   * content into the mail body and calendar event description.
-   * Leave it to an empty string if not desired.
-   *
-   * @protected
-   */
-  protected getAdditionalBody(): string {
-    return "";
+  protected printNodeMailerError(error: string): void {
+    console.error("SEND_NEW_EVENT_NOTIFICATION_ERROR", this.calEvent.organizer.email, error);
   }
 }

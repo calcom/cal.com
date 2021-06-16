@@ -176,7 +176,7 @@ const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     (results) => results.reduce((acc, availability) => acc.concat(availability), [])
 );
 
-const createMeeting = async (credential, calEvent: CalendarEvent): Promise<any> => {
+const createMeeting = async (credential, calEvent: CalendarEvent, hashUID: string): Promise<any> => {
     if(!credential) {
         throw new Error("Credentials must be set! Video platforms are optional, so this method shouldn't even be called.");
     }
@@ -190,7 +190,7 @@ const createMeeting = async (credential, calEvent: CalendarEvent): Promise<any> 
         url: creationResult.join_url,
     };
 
-    const mail = new VideoEventOwnerMail(calEvent, videoCallData);
+    const mail = new VideoEventOwnerMail(calEvent, hashUID, videoCallData);
     const sentMail = await mail.sendEmail();
 
     return {

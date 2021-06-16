@@ -5,8 +5,8 @@ import {formattedId, integrationTypeToName, VideoCallData} from "./confirm-booke
 export default class VideoEventOwnerMail extends EventOwnerMail {
   videoCallData: VideoCallData;
 
-  constructor(calEvent: CalendarEvent, videoCallData: VideoCallData) {
-    super(calEvent);
+  constructor(calEvent: CalendarEvent, uid: string, videoCallData: VideoCallData) {
+    super(calEvent, uid);
     this.videoCallData = videoCallData;
   }
 

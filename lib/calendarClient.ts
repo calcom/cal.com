@@ -324,8 +324,8 @@ const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     (results) => results.reduce((acc, availability) => acc.concat(availability), [])
 );
 
-const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> => {
-    const mail = new EventOwnerMail(calEvent);
+const createEvent = async (credential, calEvent: CalendarEvent, hashUID: string): Promise<any> => {
+    const mail = new EventOwnerMail(calEvent, hashUID);
     const sentMail = await mail.sendEmail();
 
     const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;

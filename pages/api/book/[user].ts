@@ -44,17 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const hashUID: string = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
-  const cancelLink: string = process.env.BASE_URL + '/cancel/' + hashUID;
-  const rescheduleLink:string = process.env.BASE_URL + '/reschedule/' + hashUID;
-  const appendLinksToEvents = (event: CalendarEvent) => {
-    const eventCopy = {...event};
-    eventCopy.description += "\n\n"
-      + "Need to change this event?\n"
-      + "Cancel: " + cancelLink + "\n"
-      + "Reschedule:" + rescheduleLink;
-
-    return eventCopy;
-  }
 
   const eventType = await prisma.eventType.findFirst({
     where: {
@@ -90,12 +79,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Use all integrations
     results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return await updateEvent(credential, bookingRefUid, appendLinksToEvents(evt))
+      return await updateEvent(credential, bookingRefUid, evt)
     }));
 
     results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return await updateMeeting(credential, bookingRefUid, evt)  // TODO Maybe append links?
+      return await updateMeeting(credential, bookingRefUid, evt)
     }));
 
     // Clone elements
@@ -126,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     // Schedule event
     results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
-      const response = await createEvent(credential, appendLinksToEvents(evt));
+      const response = await createEvent(credential, evt, hashUID);
       return {
         type: credential.type,
         response
@@ -134,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }));
 
     results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
-      const response = await createMeeting(credential, evt);
+      const response = await createMeeting(credential, evt, hashUID);
       return {
         type: credential.type,
         response
