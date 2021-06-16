@@ -18,7 +18,7 @@ export default class EventAttendeeMail extends EventMail {
         this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : ''
       ) +
       `<strong>Additional notes:</strong><br />
-      ${this.calEvent.description}
+      ${this.calEvent.description}<br />
       ` + this.getAdditionalFooter() + `
     </div>
   `;
