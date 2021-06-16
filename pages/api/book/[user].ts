@@ -5,6 +5,7 @@ import async from 'async';
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
 import {createMeeting, updateMeeting} from "../../../lib/videoClient";
+import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 
 const translator = short();
 
@@ -139,6 +140,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
   // UID generation should happen in the integration itself, not here.
   const hashUID = results.length > 0 ? results[0].response.uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
+  if(results.length === 0) {
+    // Legacy as well, as soon as we have a separate email integration class. Just used
+    // to send an email even if there is no integration at all.
+    const mail = new EventAttendeeMail(evt, hashUID);
+    await mail.sendEmail();
+  }
 
   await prisma.booking.create({
     data: {
