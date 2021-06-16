@@ -1,4 +1,9 @@
 import EventOwnerMail from "./emails/EventOwnerMail";
+import EventAttendeeMail from "./emails/EventAttendeeMail";
+import {v5 as uuidv5} from 'uuid';
+import short from 'short-uuid';
+
+const translator = short();
 
 const {google} = require('googleapis');
 
@@ -324,15 +329,22 @@ const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     (results) => results.reduce((acc, availability) => acc.concat(availability), [])
 );
 
-const createEvent = async (credential, calEvent: CalendarEvent, hashUID: string): Promise<any> => {
-    const mail = new EventOwnerMail(calEvent, hashUID);
-    const sentMail = await mail.sendEmail();
+const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> => {
+    const uid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
     const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
 
+    const ownerMail = new EventOwnerMail(calEvent, uid);
+    const attendeeMail = new EventAttendeeMail(calEvent, uid);
+    await ownerMail.sendEmail();
+
+    if(!creationResult || !creationResult.disableConfirmationEmail) {
+        await attendeeMail.sendEmail();
+    }
+
     return {
-        createdEvent: creationResult,
-        sentMail: sentMail
+        uid,
+        createdEvent: creationResult
     };
 };
 

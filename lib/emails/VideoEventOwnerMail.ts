@@ -1,6 +1,7 @@
 import {CalendarEvent} from "../calendarClient";
 import EventOwnerMail from "./EventOwnerMail";
-import {formattedId, integrationTypeToName, VideoCallData} from "./confirm-booked";
+import {VideoCallData} from "../videoClient";
+import {getFormattedMeetingId, getIntegrationName} from "./helpers";
 
 export default class VideoEventOwnerMail extends EventOwnerMail {
   videoCallData: VideoCallData;
@@ -18,8 +19,8 @@ export default class VideoEventOwnerMail extends EventOwnerMail {
    */
   protected getAdditionalBody(): string {
     return `
-      <strong>Video call provider:</strong> ${integrationTypeToName(this.videoCallData.type)}<br />
-      <strong>Meeting ID:</strong> ${formattedId(this.videoCallData)}<br />
+      <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
+      <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
       <strong>Meeting Password:</strong> ${this.videoCallData.password}<br />
       <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;

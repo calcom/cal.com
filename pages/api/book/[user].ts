@@ -43,8 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]
   };
 
-  const hashUID: string = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
-
   const eventType = await prisma.eventType.findFirst({
     where: {
       userId: currentUser.id,
@@ -115,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     // Schedule event
     results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
-      const response = await createEvent(credential, evt, hashUID);
+      const response = await createEvent(credential, evt);
       return {
         type: credential.type,
         response
@@ -123,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }));
 
     results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
-      const response = await createMeeting(credential, evt, hashUID);
+      const response = await createMeeting(credential, evt);
       return {
         type: credential.type,
         response
@@ -137,6 +135,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     }));
   }
+
+  // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
+  // UID generation should happen in the integration itself, not here.
+  const hashUID = results.length > 0 ? results[0].response.uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
 
   await prisma.booking.create({
     data: {
@@ -157,13 +159,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
   });
-
-  // If one of the integrations allows email confirmations or no integrations are added, send it.
-  /*if (currentUser.credentials.length === 0 || !results.every((result) => result.disableConfirmationEmail)) {
-    await createConfirmBookedEmail(
-      evt, cancelLink, rescheduleLink, {}, videoCallData
-    );
-  }*/
 
   res.status(200).json(results);
 }
