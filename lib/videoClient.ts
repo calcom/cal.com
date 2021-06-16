@@ -112,38 +112,24 @@ const ZoomVideo = (credential): VideoApiAdapter => {
 
   return {
     getAvailability: (dateFrom, dateTo) => {
-      /*const payload = {
-          schedules: [credential.key.email],
-          startTime: {
-              dateTime: dateFrom,
-              timeZone: 'UTC',
-          },
-          endTime: {
-              dateTime: dateTo,
-              timeZone: 'UTC',
-          },
-          availabilityViewInterval: 60
-      };
-
       return auth.getToken().then(
-          (accessToken) => fetch('https://graph.microsoft.com/v1.0/me/calendar/getSchedule', {
-              method: 'post',
-              headers: {
-                  'Authorization': 'Bearer ' + accessToken,
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(payload)
+        // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
+        (accessToken) => fetch('https://api.zoom.us/v2/users/me/meetings?type=scheduled&page_size=300', {
+          method: 'get',
+          headers: {
+            'Authorization': 'Bearer ' + accessToken
+          }
+        })
+          .then(handleErrorsJson)
+          .then(responseBody => {
+            return responseBody.meetings.map((meeting) => ({
+              start: meeting.start_time,
+              end: (new Date((new Date(meeting.start_time)).getTime() + meeting.duration * 60000)).toISOString()
+            }))
           })
-              .then(handleErrorsJson)
-              .then(responseBody => {
-                  return responseBody.value[0].scheduleItems.map((evt) => ({
-                      start: evt.start.dateTime + 'Z',
-                      end: evt.end.dateTime + 'Z'
-                  }))
-              })
       ).catch((err) => {
-          console.log(err);
-      });*/
+        console.log(err);
+      });
     },
     createMeeting: (event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/users/me/meetings', {
       method: 'POST',
@@ -181,7 +167,7 @@ const videoIntegrations = (withCredentials): VideoApiAdapter[] => withCredential
 }).filter(Boolean);
 
 
-const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
+const getBusyVideoTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
   videoIntegrations(withCredentials).map(c => c.getAvailability(dateFrom, dateTo))
 ).then(
   (results) => results.reduce((acc, availability) => acc.concat(availability), [])
@@ -207,7 +193,7 @@ const createMeeting = async (credential, calEvent: CalendarEvent): Promise<any> 
   const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData);
   await ownerMail.sendEmail();
 
-  if(!creationResult || !creationResult.disableConfirmationEmail) {
+  if (!creationResult || !creationResult.disableConfirmationEmail) {
     await attendeeMail.sendEmail();
   }
 
@@ -233,4 +219,4 @@ const deleteMeeting = (credential, uid: String): Promise<any> => {
   return Promise.resolve({});
 };
 
-export {getBusyTimes, createMeeting, updateMeeting, deleteMeeting};
+export {getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting};

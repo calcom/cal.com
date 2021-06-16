@@ -323,7 +323,7 @@ const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map
 }).filter(Boolean);
 
 
-const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
+const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     calendars(withCredentials).map(c => c.getAvailability(dateFrom, dateTo))
 ).then(
     (results) => results.reduce((acc, availability) => acc.concat(availability), [])
@@ -364,4 +364,4 @@ const deleteEvent = (credential, uid: String): Promise<any> => {
     return Promise.resolve({});
 };
 
-export {getBusyTimes, createEvent, updateEvent, deleteEvent, CalendarEvent};
+export {getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, CalendarEvent};
