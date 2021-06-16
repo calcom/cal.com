@@ -29,7 +29,7 @@ export default function Billing(props) {
           <div className="my-6">
             <iframe
               src="https://calendso.com/subscription-embed"
-              style={{ width: "100%", border: 0 }}
+              style={{minHeight: 800, width: "100%", border: 0 }}
             />
           </div>
         </div>
