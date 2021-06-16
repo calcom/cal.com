@@ -377,6 +377,7 @@ export async function getServerSideProps(context) {
       timeZone: true,
       startTime: true,
       endTime: true,
+      availability: true,
     }
   });
 
@@ -392,29 +393,19 @@ export async function getServerSideProps(context) {
       length: true,
       hidden: true,
       locations: true,
+      availability: true,
     }
   });
 
-  let schedules = await prisma.schedule.findMany({
-    where: {
-      eventTypeId: parseInt(context.query.type),
-    },
-  });
+  const getAvailability = (providesAvailability) => (
+    providesAvailability.availability && providesAvailability.availability.length
+  ) ? providesAvailability.availability : null;
 
-  if (!schedules.length) {
-    schedules = await prisma.schedule.findMany({
-      where: {
-        userId: user.id,
-      },
-    });
-    if (!schedules.length) {
-      schedules.push({
-        days: [ 1, 2, 3, 4, 5, 6, 7 ],
-        startTime: user.startTime,
-        length: user.endTime >= 1440 ? 1439 : user.endTime,
-      });
-    }
-  }
+  const schedules = getAvailability(eventType) || getAvailability(user) || [ {
+    days: [ 1, 2, 3, 4, 5, 6, 7 ],
+    startTime: user.startTime,
+    length: user.endTime >= 1440 ? 1439 : user.endTime,
+  } ];
 
   return {
     props: {
