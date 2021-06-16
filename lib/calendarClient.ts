@@ -1,5 +1,6 @@
+import EventOwnerMail from "./emails/EventOwnerMail";
+
 const {google} = require('googleapis');
-import createNewEventEmail from "./emails/new-event";
 
 const googleAuth = () => {
     const {client_secret, client_id, redirect_uris} = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
@@ -323,17 +324,16 @@ const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     (results) => results.reduce((acc, availability) => acc.concat(availability), [])
 );
 
-const createEvent = (credential, calEvent: CalendarEvent): Promise<any> => {
+const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> => {
+    const mail = new EventOwnerMail(calEvent);
+    const sentMail = await mail.sendEmail();
 
-    createNewEventEmail(
-        calEvent,
-    );
+    const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
 
-    if (credential) {
-        return calendars([credential])[0].createEvent(calEvent);
-    }
-
-    return Promise.resolve({});
+    return {
+        createdEvent: creationResult,
+        sentMail: sentMail
+    };
 };
 
 const updateEvent = (credential, uid: String, calEvent: CalendarEvent): Promise<any> => {

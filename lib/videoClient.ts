@@ -1,4 +1,7 @@
 import prisma from "./prisma";
+import {VideoCallData} from "./emails/confirm-booked";
+import {CalendarEvent} from "./calendarClient";
+import VideoEventOwnerMail from "./emails/VideoEventOwnerMail";
 
 function handleErrorsJson(response) {
     if (!response.ok) {
@@ -53,26 +56,10 @@ const zoomAuth = (credential) => {
     };
 };
 
-interface Person {
-    name?: string,
-    email: string,
-    timeZone: string
-}
-
-interface VideoMeeting {
-    title: string;
-    startTime: string;
-    endTime: string;
-    description?: string;
-    timezone: string;
-    organizer: Person;
-    attendees: Person[];
-}
-
 interface VideoApiAdapter {
-    createMeeting(meeting: VideoMeeting): Promise<any>;
+    createMeeting(event: CalendarEvent): Promise<any>;
 
-    updateMeeting(uid: String, meeting: VideoMeeting);
+    updateMeeting(uid: String, event: CalendarEvent);
 
     deleteMeeting(uid: String);
 
@@ -83,17 +70,17 @@ const ZoomVideo = (credential): VideoApiAdapter => {
 
     const auth = zoomAuth(credential);
 
-    const translateMeeting = (meeting: VideoMeeting) => {
+    const translateEvent = (event: CalendarEvent) => {
         // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
-        const meet = {
-            topic: meeting.title,
+        return {
+            topic: event.title,
             type: 2,    // Means that this is a scheduled meeting
-            start_time: meeting.startTime,
-            duration: ((new Date(meeting.endTime)).getTime() - (new Date(meeting.startTime)).getTime()) / 60000,
+            start_time: event.startTime,
+            duration: ((new Date(event.endTime)).getTime() - (new Date(event.startTime)).getTime()) / 60000,
             //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
-            timezone: meeting.timezone,
+            timezone: event.attendees[0].timeZone,
             //password: "string",       TODO: Should we use a password? Maybe generate a random one?
-            agenda: meeting.description,
+            agenda: event.description,
             settings: {
                 host_video: true,
                 participant_video: true,
@@ -110,8 +97,6 @@ const ZoomVideo = (credential): VideoApiAdapter => {
                 registrants_email_notification: true
             }
         };
-
-        return meet;
     };
 
     return {
@@ -149,13 +134,13 @@ const ZoomVideo = (credential): VideoApiAdapter => {
                 console.log(err);
             });*/
         },
-        createMeeting: (meeting: VideoMeeting) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/users/me/meetings', {
+        createMeeting: (event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/users/me/meetings', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + accessToken,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(translateMeeting(meeting))
+            body: JSON.stringify(translateEvent(event))
         }).then(handleErrorsJson)),
         deleteMeeting: (uid: String) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/meetings/' + uid, {
             method: 'DELETE',
@@ -163,13 +148,13 @@ const ZoomVideo = (credential): VideoApiAdapter => {
                 'Authorization': 'Bearer ' + accessToken
             }
         }).then(handleErrorsRaw)),
-        updateMeeting: (uid: String, meeting: VideoMeeting) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/meetings/' + uid, {
+        updateMeeting: (uid: String, event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/meetings/' + uid, {
             method: 'PATCH',
             headers: {
                 'Authorization': 'Bearer ' + accessToken,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(translateMeeting(meeting))
+            body: JSON.stringify(translateEvent(event))
         }).then(handleErrorsRaw)),
     }
 };
@@ -191,23 +176,32 @@ const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
     (results) => results.reduce((acc, availability) => acc.concat(availability), [])
 );
 
-const createMeeting = (credential, meeting: VideoMeeting): Promise<any> => {
-
-    //TODO Send email to event host
-    /*createNewMeetingEmail(
-      meeting,
-    );*/
-
-    if (credential) {
-        return videoIntegrations([credential])[0].createMeeting(meeting);
+const createMeeting = async (credential, calEvent: CalendarEvent): Promise<any> => {
+    if(!credential) {
+        throw new Error("Credentials must be set! Video platforms are optional, so this method shouldn't even be called.");
     }
 
-    return Promise.resolve({});
+    const creationResult = await videoIntegrations([credential])[0].createMeeting(calEvent);
+
+    const videoCallData: VideoCallData = {
+        type: credential.type,
+        id: creationResult.id,
+        password: creationResult.password,
+        url: creationResult.join_url,
+    };
+
+    const mail = new VideoEventOwnerMail(calEvent, videoCallData);
+    const sentMail = await mail.sendEmail();
+
+    return {
+        createdEvent: creationResult,
+        sentMail: sentMail
+    };
 };
 
-const updateMeeting = (credential, uid: String, meeting: VideoMeeting): Promise<any> => {
+const updateMeeting = (credential, uid: String, event: CalendarEvent): Promise<any> => {
     if (credential) {
-        return videoIntegrations([credential])[0].updateMeeting(uid, meeting);
+        return videoIntegrations([credential])[0].updateMeeting(uid, event);
     }
 
     return Promise.resolve({});
@@ -221,4 +215,4 @@ const deleteMeeting = (credential, uid: String): Promise<any> => {
     return Promise.resolve({});
 };
 
-export {getBusyTimes, createMeeting, updateMeeting, deleteMeeting, VideoMeeting};
+export {getBusyTimes, createMeeting, updateMeeting, deleteMeeting};

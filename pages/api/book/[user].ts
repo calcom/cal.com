@@ -1,11 +1,10 @@
 import type {NextApiRequest, NextApiResponse} from 'next';
 import prisma from '../../../lib/prisma';
 import {CalendarEvent, createEvent, updateEvent} from '../../../lib/calendarClient';
-import createConfirmBookedEmail, {VideoCallData} from "../../../lib/emails/confirm-booked";
 import async from 'async';
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
-import {createMeeting, updateMeeting, VideoMeeting} from "../../../lib/videoClient";
+import {createMeeting, updateMeeting} from "../../../lib/videoClient";
 
 const translator = short();
 
@@ -42,18 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     attendees: [
       {email: req.body.email, name: req.body.name, timeZone: req.body.timeZone}
     ]
-  };
-
-  //TODO Only create meeting if integration exists.
-  const meeting: VideoMeeting = {
-    attendees: [
-      {email: req.body.email, name: req.body.name, timeZone: req.body.timeZone}
-    ],
-    endTime: req.body.end,
-    organizer: {email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone},
-    startTime: req.body.start,
-    timezone: currentUser.timeZone,
-    title: req.body.eventName + ' with ' + req.body.name,
   };
 
   const hashUID: string = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
@@ -108,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return await updateMeeting(credential, bookingRefUid, meeting)  // TODO Maybe append links?
+      return await updateMeeting(credential, bookingRefUid, evt)  // TODO Maybe append links?
     }));
 
     // Clone elements
@@ -147,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }));
 
     results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
-      const response = await createMeeting(credential, meeting);
+      const response = await createMeeting(credential, evt);
       return {
         type: credential.type,
         response
@@ -157,7 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     referencesToCreate = results.map((result => {
       return {
         type: result.type,
-        uid: result.response.id.toString()
+        uid: result.response.createdEvent.id.toString()
       };
     }));
   }
@@ -182,20 +169,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
-  const videoResults = results.filter((res) => res.type.endsWith('_video'));
-  const videoCallData: VideoCallData = videoResults.length === 0 ? undefined : {
-    type: videoResults[0].type,
-    id: videoResults[0].response.id,
-    password: videoResults[0].response.password,
-    url: videoResults[0].response.join_url,
-  };
-
   // If one of the integrations allows email confirmations or no integrations are added, send it.
-  if (currentUser.credentials.length === 0 || !results.every((result) => result.disableConfirmationEmail)) {
+  /*if (currentUser.credentials.length === 0 || !results.every((result) => result.disableConfirmationEmail)) {
     await createConfirmBookedEmail(
       evt, cancelLink, rescheduleLink, {}, videoCallData
     );
-  }
+  }*/
 
   res.status(200).json(results);
 }
