@@ -97,8 +97,8 @@ const ZoomVideo = (credential): VideoApiAdapter => {
             settings: {
                 host_video: true,
                 participant_video: true,
-                cn_meeting: false,  // TODO: true if host meeting in china
-                in_meeting: false,  // TODO: true if host meeting in india
+                cn_meeting: false,  // TODO: true if host meeting in China
+                in_meeting: false,  // TODO: true if host meeting in India
                 join_before_host: true,
                 mute_upon_entry: false,
                 watermark: false,
@@ -149,7 +149,6 @@ const ZoomVideo = (credential): VideoApiAdapter => {
                 console.log(err);
             });*/
         },
-        //TODO Also add the client user to the meeting after creation
         createMeeting: (meeting: VideoMeeting) => auth.getToken().then(accessToken => fetch('https://api.zoom.us/v2/users/me/meetings', {
             method: 'POST',
             headers: {
@@ -194,7 +193,7 @@ const getBusyTimes = (withCredentials, dateFrom, dateTo) => Promise.all(
 
 const createMeeting = (credential, meeting: VideoMeeting): Promise<any> => {
 
-    //TODO Implement email template
+    //TODO Send email to event host
     /*createNewMeetingEmail(
       meeting,
     );*/

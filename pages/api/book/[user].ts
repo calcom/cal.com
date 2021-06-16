@@ -1,7 +1,7 @@
 import type {NextApiRequest, NextApiResponse} from 'next';
 import prisma from '../../../lib/prisma';
 import {CalendarEvent, createEvent, updateEvent} from '../../../lib/calendarClient';
-import createConfirmBookedEmail from "../../../lib/emails/confirm-booked";
+import createConfirmBookedEmail, {VideoCallData} from "../../../lib/emails/confirm-booked";
 import async from 'async';
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
@@ -182,10 +182,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
+  const videoResults = results.filter((res) => res.type.endsWith('_video'));
+  const videoCallData: VideoCallData = videoResults.length === 0 ? undefined : {
+    type: videoResults[0].type,
+    id: videoResults[0].response.id,
+    password: videoResults[0].response.password,
+    url: videoResults[0].response.join_url,
+  };
+
   // If one of the integrations allows email confirmations or no integrations are added, send it.
   if (currentUser.credentials.length === 0 || !results.every((result) => result.disableConfirmationEmail)) {
     await createConfirmBookedEmail(
-      evt, cancelLink, rescheduleLink
+      evt, cancelLink, rescheduleLink, {}, videoCallData
     );
   }
 

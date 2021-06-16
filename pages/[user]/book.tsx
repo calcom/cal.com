@@ -76,7 +76,7 @@ export default function Book(props) {
             }
         );
 
-        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=1`;
+        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=${!!rescheduleUid}`;
         if (payload['location']) {
             successUrl += "&location=" + encodeURIComponent(payload['location']);
         }
