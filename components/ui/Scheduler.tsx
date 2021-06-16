@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import TimezoneSelect from "react-timezone-select";
 import {PencilAltIcon, TrashIcon} from "@heroicons/react/outline";
-import {WeekdaySelect} from "./WeekdaySelect";
-import SetTimesModal from "../modal/SetTimesModal";
+import {WeekdaySelect, Weekday} from "./WeekdaySelect";
+import SetTimesModal from "./modal/SetTimesModal";
 import Schedule from '../../lib/schedule.model';
 import dayjs, {Dayjs} from "dayjs";
 import utc from 'dayjs/plugin/utc';
@@ -12,43 +12,44 @@ dayjs.extend(timezone);
 
 export const Scheduler = (props) => {
 
-  const [ showSetTimesModal, setShowSetTimesModal ]: boolean = useState(false);
-  const [ schedules, setSchedules ]: Schedule[] = useState(
-    props.schedules.map( (schedule, idx) => ({
-      startDate: dayjs(schedule.startDate),
-      endDate: dayjs(schedule.startDate).startOf('day').add(schedule.length, 'minutes'),
-      key: idx
-    }) )
-  );
+  const [ schedules, setSchedules ]: Schedule[] = useState(props.schedules.map( schedule => {
+    const startDate = schedule.isOverride ? dayjs(schedule.startDate) : dayjs.utc().startOf('day').add(schedule.startTime, 'minutes')
+    return (
+      {
+        days: schedule.days,
+        startDate,
+        endDate: startDate.add(schedule.length, 'minutes')
+      }
+    )
+  }));
 
   const [ timeZone, setTimeZone ] = useState(props.timeZone);
-  const [ selectedSchedule, setSelectedSchedule ]: Schedule | null = useState(null);
+  const [ editSchedule, setEditSchedule ] = useState(-1);
 
-  const addNewSchedule = () => {
-    setSelectedSchedule({
-      startDate: dayjs().startOf('day').add(0, 'minutes'),
-      endDate: dayjs().startOf('day').add(1439, 'minutes'),
-    });
-    setShowSetTimesModal(true);
+  useEffect( () => {
+    props.onChange(schedules);
+  }, [schedules])
+
+  const addNewSchedule = () => setEditSchedule(schedules.length);
+
+  const applyEditSchedule = (changed: Schedule) => {
+    const replaceWith = {
+      ...schedules[editSchedule],
+      ...changed
+    };
+    schedules.splice(editSchedule, 1, replaceWith);
+    setSchedules([].concat(schedules));
   }
 
-  const upsertSchedule = (changed: Schedule) => {
-    if (changed.key) {
-      schedules.splice(
-        schedules.findIndex( (schedule) => changed.key === schedule.key ), 1, changed
-      )
-      setSchedules([].concat(schedules)); // update
-    }
-    else {
-      console.log(changed);
-      setSchedules(schedules.concat([changed])); // insert
-    }
-  }
-
-  const removeSchedule = (toRemove: Schedule) => {
-    schedules.splice(schedules.findIndex( (schedule) => schedule.key === toRemove.key ), 1);
+  const removeScheduleAt = (toRemove: number) => {
+    schedules.splice(toRemove, 1);
     setSchedules([].concat(schedules));
   };
+
+  const setWeekdays = (idx: number, days: number[]) => {
+    schedules[idx].days = days;
+    setSchedules([].concat(schedules));
+  }
 
   return (
     <div>
@@ -63,15 +64,15 @@ export const Scheduler = (props) => {
             </div>
           </div>
           <ul>
-            {schedules.length > 0 && schedules.map( (schedule) =>
-              <li key={schedule.key} className="py-2 flex justify-between border-t">
+            {schedules.map( (schedule, idx) =>
+              <li key={idx} className="py-2 flex justify-between border-t">
               <div className="inline-flex ml-2">
-                <WeekdaySelect />
-                <button className="ml-2 text-sm px-2" type="button" onClick={() => { setSelectedSchedule(schedule); setShowSetTimesModal(true) }}>
+                <WeekdaySelect defaultValue={schedules[idx].days} onSelect={(days: number[]) => setWeekdays(idx, days)} />
+                <button className="ml-2 text-sm px-2" type="button" onClick={() => setEditSchedule(idx)}>
                   {schedule.startDate.format(schedule.startDate.minute() === 0 ? 'ha' : 'h:mma')} until {schedule.endDate.format(schedule.endDate.minute() === 0 ? 'ha' : 'h:mma')}
                 </button>
               </div>
-              <button type="button" onClick={() => removeSchedule(schedule)}
+              <button type="button" onClick={() => removeScheduleAt(idx)}
                       className="btn-sm bg-transparent px-2 py-1 ml-1">
                 <TrashIcon className="h-6 w-6 inline text-gray-400 -mt-1"  />
               </button>
@@ -88,10 +89,10 @@ export const Scheduler = (props) => {
           <button className="btn-sm btn-white">Add a date override</button>*/}
         </div>
       </div>
-      {showSetTimesModal &&
-        <SetTimesModal schedule={selectedSchedule}
-                       onChange={upsertSchedule}
-                       onExit={() => setShowSetTimesModal(false)} />
+      {editSchedule >= 0 &&
+        <SetTimesModal schedule={schedules[editSchedule]}
+                       onChange={applyEditSchedule}
+                       onExit={() => setEditSchedule(-1)} />
       }
       {/*{showDateOverrideModal &&
         <DateOverrideModal />

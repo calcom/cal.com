@@ -1,7 +1,7 @@
 import {Dayjs} from "dayjs";
 
 export default interface Schedule {
-  key: number;
+  id: number | null;
   startDate: Dayjs;
   endDate: Dayjs;
 }

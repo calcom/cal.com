@@ -1,14 +1,17 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 
 export const WeekdaySelect = (props) => {
 
-  const [ activeDays, setActiveDays ] = useState([false, true, true, true, true, true, false]);
+  const [ activeDays, setActiveDays ] = useState([1,2,3,4,5,6,7].map( (v) => (props.defaultValue || []).indexOf(v) !== -1));
   const days = [ 'S', 'M', 'T', 'W', 'T', 'F', 'S' ];
+
+  useEffect( () => {
+    props.onSelect(activeDays.map( (isActive, idx) => isActive ? idx + 1 : 0).filter( (v) => 0 !== v ));
+  }, [activeDays]);
 
   const toggleDay = (e, idx: number) => {
     e.preventDefault();
     activeDays[idx] = !activeDays[idx];
-    console.log(activeDays);
     setActiveDays([].concat(activeDays));
   }
 

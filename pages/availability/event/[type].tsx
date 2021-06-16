@@ -29,6 +29,7 @@ export default function EventType(props) {
     const [ showLocationModal, setShowLocationModal ] = useState(false);
     const [ selectedLocation, setSelectedLocation ] = useState<OptionBase | undefined>(undefined);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
+    const [ schedule, setSchedule ] = useState(undefined);
 
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -39,8 +40,6 @@ export default function EventType(props) {
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
     }
-
-    console.log(props);
 
     async function updateEventTypeHandler(event) {
         event.preventDefault();
@@ -59,6 +58,31 @@ export default function EventType(props) {
                 'Content-Type': 'application/json'
             }
         });
+
+        if (schedule) {
+
+          let schedulePayload = { "overrides": [], "timeZone": props.user.timeZone, "openingHours": [] };
+          schedule.forEach( (item) => {
+            if (item.isOverride) {
+              delete item.isOverride;
+              schedulePayload.overrides.push(item);
+            } else {
+              schedulePayload.openingHours.push({
+                days: item.days,
+                startTime: item.startDate.hour() * 60 + item.startDate.minute(),
+                endTime: item.endDate.hour() * 60 + item.endDate.minute()
+              });
+            }
+          });
+
+          const response = await fetch('/api/availability/schedule/' + props.eventType.id, {
+            method: 'PUT',
+            body: JSON.stringify(schedulePayload),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        }
 
         router.push('/availability');
     }
@@ -262,16 +286,16 @@ export default function EventType(props) {
                         </div>
                       </div>
                     </div>
-                  </form>
-                  <hr className="my-4"/>
-                  <div>
-                    <h3 className="mb-2">How do you want to offer your availability for this event type?</h3>
-                    <Scheduler timeZone={props.user.timeZone} schedules={props.schedules} />
-                    <div className="py-4 flex justify-end">
-                      <Link href="/availability"><a className="mr-2 btn btn-white">Cancel</a></Link>
-                      <button type="submit" className="btn btn-primary">Update</button>
+                    <hr className="my-4"/>
+                    <div>
+                      <h3 className="mb-2">How do you want to offer your availability for this event type?</h3>
+                      <Scheduler onChange={setSchedule} timeZone={props.user.timeZone} schedules={props.schedules} />
+                      <div className="py-4 flex justify-end">
+                        <Link href="/availability"><a className="mr-2 btn btn-white">Cancel</a></Link>
+                        <button type="submit" className="btn btn-primary">Update</button>
+                      </div>
                     </div>
-                  </div>
+                  </form>
                 </div>
               </div>
             </div>
@@ -340,52 +364,63 @@ export default function EventType(props) {
 }
 
 export async function getServerSideProps(context) {
-    const session = await getSession(context);
-    if (!session) {
-        return { redirect: { permanent: false, destination: '/auth/login' } };
+  const session = await getSession(context);
+  if (!session) {
+      return { redirect: { permanent: false, destination: '/auth/login' } };
+  }
+  const user = await prisma.user.findFirst({
+    where: {
+      email: session.user.email,
+    },
+    select: {
+      username: true,
+      timeZone: true,
+      startTime: true,
+      endTime: true,
     }
-    const user = await prisma.user.findFirst({
-        where: {
-            email: session.user.email,
-        },
-        select: {
-          username: true,
-          timeZone: true,
-          startTime: true,
-          endTime: true,
-        }
-    });
+  });
 
-    const eventType = await prisma.eventType.findUnique({
-        where: {
-          id: parseInt(context.query.type),
-        },
-        select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            length: true,
-            hidden: true,
-            locations: true,
-        }
-    });
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      id: parseInt(context.query.type),
+    },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      hidden: true,
+      locations: true,
+    }
+  });
 
-    const utcOffset = dayjs().tz(user.timeZone).utcOffset();
+  let schedules = await prisma.schedule.findMany({
+    where: {
+      eventTypeId: parseInt(context.query.type),
+    },
+  });
 
-    const schedules = [
-      {
-        key: 0,
-        startDate: dayjs.utc().startOf('day').add(user.startTime - utcOffset, 'minutes').format(),
-        length: user.endTime,
-      }
-    ];
-
-    return {
-      props: {
-        user,
-        eventType,
-        schedules
+  if (!schedules.length) {
+    schedules = await prisma.schedule.findMany({
+      where: {
+        userId: user.id,
       },
+    });
+    if (!schedules.length) {
+      schedules.push({
+        days: [ 1, 2, 3, 4, 5, 6, 7 ],
+        startTime: user.startTime,
+        length: user.endTime >= 1440 ? 1439 : user.endTime,
+      });
     }
+  }
+
+  return {
+    props: {
+      user,
+      eventType,
+      schedules
+    },
+  }
 }

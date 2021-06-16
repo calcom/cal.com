@@ -21,7 +21,7 @@ model EventType {
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
   bookings      Booking[]
-  availability  Interval[]
+  availability  Schedule[]
 }
 
 model Credential {
@@ -50,7 +50,7 @@ model User {
   credentials   Credential[]
   teams         Membership[]
   bookings      Booking[]
-  availability  Interval[]
+  availability  Schedule[]
 
   @@map(name: "users")
 }
@@ -124,14 +124,16 @@ model Booking {
   updatedAt     DateTime?
 }
 
-model Interval {
-  id            Int      @default(autoincrement()) @id
+model Schedule {
+  id            Int        @default(autoincrement()) @id
   label         String?
-  user          User?     @relation(fields: [userId], references: [id])
+  user          User?      @relation(fields: [userId], references: [id])
   userId        Int?
-  eventType     EventType?  @relation(fields: [eventTypeId], references: [id])
+  eventType     EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId   Int?
-  startTime     DateTime
+  days          Int[]
+  startTime     Int?
+  startDate     DateTime?  @db.Timestamptz(3)
   length        Int
-  isOverride    Boolean  @default(false)
+  isOverride    Boolean    @default(false)
 }
