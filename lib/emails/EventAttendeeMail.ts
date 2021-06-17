@@ -49,7 +49,7 @@ export default class EventAttendeeMail extends EventMail {
    *
    * @private
    */
-  private getInviteeStart(): Dayjs {
+  protected getInviteeStart(): Dayjs {
     return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
   }
 }

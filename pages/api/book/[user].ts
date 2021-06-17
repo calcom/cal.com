@@ -78,12 +78,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Use all integrations
     results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return await updateEvent(credential, bookingRefUid, evt)
+      const response = await updateEvent(credential, bookingRefUid, evt);
+
+      return {
+        type: credential.type,
+        response
+      };
     }));
 
     results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return await updateMeeting(credential, bookingRefUid, evt)
+      const response = await updateMeeting(credential, bookingRefUid, evt);
+      return {
+        type: credential.type,
+        response
+      };
     }));
 
     // Clone elements

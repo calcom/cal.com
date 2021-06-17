@@ -4,6 +4,8 @@ import VideoEventOwnerMail from "./emails/VideoEventOwnerMail";
 import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
+import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
+import EventOwnerRescheduledMail from "./emails/EventOwnerRescheduledMail";
 
 const translator = short();
 
@@ -203,12 +205,27 @@ const createMeeting = async (credential, calEvent: CalendarEvent): Promise<any> 
   };
 };
 
-const updateMeeting = (credential, uid: String, event: CalendarEvent): Promise<any> => {
-  if (credential) {
-    return videoIntegrations([credential])[0].updateMeeting(uid, event);
+const updateMeeting = async (credential, uidToUpdate: String, calEvent: CalendarEvent): Promise<any> => {
+  const newUid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+
+  if (!credential) {
+    throw new Error("Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set.");
   }
 
-  return Promise.resolve({});
+  const updateResult = credential ? await videoIntegrations([credential])[0].updateMeeting(uidToUpdate, calEvent) : null;
+
+  const ownerMail = new EventOwnerRescheduledMail(calEvent, newUid);
+  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
+  await ownerMail.sendEmail();
+
+  if (!updateResult || !updateResult.disableConfirmationEmail) {
+    await attendeeMail.sendEmail();
+  }
+
+  return {
+    uid: newUid,
+    updatedEvent: updateResult
+  };
 };
 
 const deleteMeeting = (credential, uid: String): Promise<any> => {
