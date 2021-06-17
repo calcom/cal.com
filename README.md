@@ -196,6 +196,30 @@ Contributions are what make the open source community such an amazing place to b
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attriubte
 
+## Obtaining Zoom Client ID and Secret
+1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
+2. On the upper right, click "Develop" => "Build App".
+3. On "OAuth", select "Create".
+4. Name your App.
+5. Choose "Account-level app" as the app type.
+6. De-select the option to publish the app on the Zoom App Marketplace.
+7. Click "Create".
+8. Now copy the Client ID and Client Secret to your .env file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
+4. Set the Redirect URL for OAuth `<CALENDSO URL>/api/integrations/zoomvideo/callback` replacing CALENDSO URL with the URI at which your application runs.
+5. Also add the redirect URL given above as a whitelist URL and enable "Subdomain check". Make sure, it says "saved" below the form.
+7. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". Search for and check the following scopes:
+   1. account:master
+   2. account:read:admin
+   3. account:write:admin
+   4. meeting:master
+   5. meeting:read:admin
+   6. meeting:write:admin
+   7. user:master
+   8. user:read:admin
+   9. user:write:admin
+8. Click "Done".
+9. You're good to go. Now you can easily add your Zoom integration in the Calendso settings.
+
 <!-- LICENSE -->
 ## License
 
