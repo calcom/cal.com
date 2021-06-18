@@ -15,6 +15,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     });
 
-    const availability = await getBusyTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo);
+    const selectedCalendars = (await prisma.selectedCalendar.findMany({
+        where: {
+            userId: currentUser.id
+        }
+    }));
+
+    const availability = await getBusyTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo, selectedCalendars);
     res.status(200).json(availability);
 }

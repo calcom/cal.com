@@ -55,9 +55,9 @@ export default function Type(props) {
         setIs24h(!!localStorage.getItem('timeOption.is24hClock'));
     }
 
-    useEffect(() => {
-        telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
-    });
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
+  }, []);
 
     // Handle date change and timezone change
     useEffect(() => {
