@@ -212,21 +212,21 @@ export async function getServerSideProps(context) {
         type: "google_calendar",
         title: "Google Calendar",
         imageSrc: "integrations/google-calendar.png",
-        description: "For personal and business accounts",
+        description: "For personal and business calendars",
     }, {
         installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
         type: "office365_calendar",
         credential: credentials.find( (integration) => integration.type === "office365_calendar" ) || null,
         title: "Office 365 / Outlook.com Calendar",
         imageSrc: "integrations/office-365.png",
-        description: "For personal and business accounts",
+        description: "For personal and business calendars",
     }, {
         installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
         type: "zoom_video",
         credential: credentials.find( (integration) => integration.type === "zoom_video" ) || null,
         title: "Zoom",
         imageSrc: "integrations/zoom.png",
-        description: "For personal and business accounts",
+        description: "Video Conferencing",
     } ];
 
     return {
