@@ -45,6 +45,7 @@ model User {
   weekStart     String? @default("Sunday")
   startTime     Int @default(0)
   endTime       Int @default(1440)
+  bufferTime    Int @default(0)
   createdDate   DateTime  @default(now()) @map(name: "created")
   eventTypes    EventType[]
   credentials   Credential[]
