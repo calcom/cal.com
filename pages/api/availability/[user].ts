@@ -17,7 +17,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     });
 
-    let availability = await getBusyTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo);
+    const selectedCalendars = (await prisma.selectedCalendar.findMany({
+        where: {
+            userId: currentUser.id
+        }
+    }));
+
+    let availability = await getBusyTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo, selectedCalendars);
 
     availability = availability.map(a => ({
         start: dayjs(a.start).subtract(currentUser.bufferTime, 'minute').toString(),
