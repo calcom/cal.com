@@ -186,7 +186,7 @@ Contributions are what make the open source community such an amazing place to b
 8. Select Web Application as the Application Type.
 9. Under Authorized redirect URI's, select Add URI and then add the URI  `<CALENDSO URL>/api/integrations/googlecalendar/callback` replacing CALENDSO URL with the URI at which your application runs.
 10. The key will be created and you will be redirected back to the Credentials page. Select the newly generated client ID under OAuth 2.0 Client IDs.
-11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key.
+11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key. Make sure that you have the correct redirect URI as the first value in the `"redirect_uris"` array ("http://localhost:3000/api/integrations/googlecalendar/callback").
 
 ## Obtaining Microsoft Graph Client ID and Secret
 1. Open [Azure App Registration](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps) and select New registration
