@@ -49,6 +49,7 @@ model User {
   credentials   Credential[]
   teams         Membership[]
   bookings      Booking[]
+  selectedCalendars      SelectedCalendar[]
   @@map(name: "users")
 }
 
@@ -119,4 +120,12 @@ model Booking {
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime?
+}
+
+model SelectedCalendar {
+  user          User       @relation(fields: [userId], references: [id])
+  userId        Int
+  integration   String
+  externalId    String
+  @@id([userId,integration,externalId])
 }
