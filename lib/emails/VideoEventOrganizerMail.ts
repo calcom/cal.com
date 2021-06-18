@@ -1,9 +1,9 @@
 import {CalendarEvent} from "../calendarClient";
-import EventOwnerMail from "./EventOwnerMail";
+import EventOrganizerMail from "./EventOrganizerMail";
 import {VideoCallData} from "../videoClient";
 import {getFormattedMeetingId, getIntegrationName} from "./helpers";
 
-export default class VideoEventOwnerMail extends EventOwnerMail {
+export default class VideoEventOrganizerMail extends EventOrganizerMail {
   videoCallData: VideoCallData;
 
   constructor(calEvent: CalendarEvent, uid: string, videoCallData: VideoCallData) {

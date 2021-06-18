@@ -1,8 +1,8 @@
-import EventOwnerMail from "./emails/EventOwnerMail";
+import EventOrganizerMail from "./emails/EventOrganizerMail";
 import EventAttendeeMail from "./emails/EventAttendeeMail";
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
-import EventOwnerRescheduledMail from "./emails/EventOwnerRescheduledMail";
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 
 const translator = short();
@@ -336,9 +336,9 @@ const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> =>
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
 
-  const ownerMail = new EventOwnerMail(calEvent, uid);
+  const organizerMail = new EventOrganizerMail(calEvent, uid);
   const attendeeMail = new EventAttendeeMail(calEvent, uid);
-  await ownerMail.sendEmail();
+  await organizerMail.sendEmail();
 
   if (!creationResult || !creationResult.disableConfirmationEmail) {
     await attendeeMail.sendEmail();
@@ -355,9 +355,9 @@ const updateEvent = async (credential, uidToUpdate: String, calEvent: CalendarEv
 
   const updateResult = credential ? await calendars([credential])[0].updateEvent(uidToUpdate, calEvent) : null;
 
-  const ownerMail = new EventOwnerRescheduledMail(calEvent, newUid);
+  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
   const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
-  await ownerMail.sendEmail();
+  await organizerMail.sendEmail();
 
   if (!updateResult || !updateResult.disableConfirmationEmail) {
     await attendeeMail.sendEmail();

@@ -1,7 +1,30 @@
+import {createEvent} from "ics";
 import dayjs, {Dayjs} from "dayjs";
-import EventOwnerMail from "./EventOwnerMail";
+import EventMail from "./EventMail";
 
-export default class EventOwnerRescheduledMail extends EventOwnerMail {
+export default class EventOrganizerMail extends EventMail {
+  /**
+   * Returns the instance's event as an iCal event in string representation.
+   * @protected
+   */
+  protected getiCalEventAsString(): string {
+    const icsEvent = createEvent({
+      start: dayjs(this.calEvent.startTime).utc().toArray().slice(0, 6),
+      startInputType: 'utc',
+      productId: 'calendso/ics',
+      title: `${this.calEvent.type} with ${this.calEvent.attendees[0].name}`,
+      description: this.calEvent.description + this.stripHtml(this.getAdditionalBody()) + this.stripHtml(this.getAdditionalFooter()),
+      duration: {minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), 'minute')},
+      organizer: {name: this.calEvent.organizer.name, email: this.calEvent.organizer.email},
+      attendees: this.calEvent.attendees.map((attendee: any) => ({name: attendee.name, email: attendee.email})),
+      status: "CONFIRMED",
+    });
+    if (icsEvent.error) {
+      throw icsEvent.error;
+    }
+    return icsEvent.value;
+  }
+
   /**
    * Returns the email text as HTML representation.
    *
@@ -12,7 +35,7 @@ export default class EventOwnerRescheduledMail extends EventOwnerMail {
       <div>
         Hi ${this.calEvent.organizer.name},<br />
         <br />
-        Your event has been rescheduled.<br />
+        A new event has been scheduled.<br />
         <br />
         <strong>Event Type:</strong><br />
         ${this.calEvent.type}<br />
@@ -52,13 +75,13 @@ export default class EventOwnerRescheduledMail extends EventOwnerMail {
       },
       from: `Calendso <${this.getMailerOptions().from}>`,
       to: this.calEvent.organizer.email,
-      subject: `Rescheduled event: ${this.calEvent.attendees[0].name} - ${organizerStart.format('LT dddd, LL')} - ${this.calEvent.type}`,
+      subject: `New event: ${this.calEvent.attendees[0].name} - ${organizerStart.format('LT dddd, LL')} - ${this.calEvent.type}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
   }
 
   protected printNodeMailerError(error: string): void {
-    console.error("SEND_RESCHEDULE_EVENT_NOTIFICATION_ERROR", this.calEvent.organizer.email, error);
+    console.error("SEND_NEW_EVENT_NOTIFICATION_ERROR", this.calEvent.organizer.email, error);
   }
 }

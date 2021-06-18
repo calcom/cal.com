@@ -1,11 +1,11 @@
 import prisma from "./prisma";
 import {CalendarEvent} from "./calendarClient";
-import VideoEventOwnerMail from "./emails/VideoEventOwnerMail";
+import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
 import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
 import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
-import EventOwnerRescheduledMail from "./emails/EventOwnerRescheduledMail";
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 
 const translator = short();
 
@@ -191,9 +191,9 @@ const createMeeting = async (credential, calEvent: CalendarEvent): Promise<any> 
     url: creationResult.join_url,
   };
 
-  const ownerMail = new VideoEventOwnerMail(calEvent, uid, videoCallData);
+  const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData);
   const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData);
-  await ownerMail.sendEmail();
+  await organizerMail.sendEmail();
 
   if (!creationResult || !creationResult.disableConfirmationEmail) {
     await attendeeMail.sendEmail();
@@ -214,9 +214,9 @@ const updateMeeting = async (credential, uidToUpdate: String, calEvent: Calendar
 
   const updateResult = credential ? await videoIntegrations([credential])[0].updateMeeting(uidToUpdate, calEvent) : null;
 
-  const ownerMail = new EventOwnerRescheduledMail(calEvent, newUid);
+  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
   const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
-  await ownerMail.sendEmail();
+  await organizerMail.sendEmail();
 
   if (!updateResult || !updateResult.disableConfirmationEmail) {
     await attendeeMail.sendEmail();
