@@ -142,8 +142,8 @@ export default function EventType(props) {
           <link rel="icon" href="/favicon.ico" />
         </Head>
         <Shell heading={'Event Type - ' + props.eventType.title}>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-3 sm:col-span-2">
+          <div>
+            <div className="mb-8">
               <div className="bg-white overflow-hidden shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <form onSubmit={updateEventTypeHandler}>
@@ -266,7 +266,7 @@ export default function EventType(props) {
                 </div>
               </div>
             </div>
-            <div className="col-span-3 sm:col-span-1">
+            <div>
               <div className="bg-white shadow sm:rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <h3 className="text-lg mb-2 leading-6 font-medium text-gray-900">
