@@ -23,6 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         start: dayjs(a.start).subtract(currentUser.bufferTime, 'minute').toString(),
         end: dayjs(a.end).add(currentUser.bufferTime, 'minute').toString()
     }));
-
+  
     res.status(200).json(availability);
 }
