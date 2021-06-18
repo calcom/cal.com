@@ -13,14 +13,25 @@ import {
   XIcon,
   PhoneIcon,
 } from '@heroicons/react/outline';
+import {EventTypeCustomInput, EventTypeCustomInputType} from "../../../lib/EventTypeInput";
+import {PlusIcon} from "@heroicons/react/solid";
 
 export default function EventType(props) {
     const router = useRouter();
 
+  const inputOptions: OptionBase[] = [
+    { value: EventTypeCustomInputType.Text, label: 'Text' },
+    { value: EventTypeCustomInputType.TextLong, label: 'Multiline Text' },
+    { value: EventTypeCustomInputType.Number, label: 'Number', },
+  ]
+
     const [ session, loading ] = useSession();
     const [ showLocationModal, setShowLocationModal ] = useState(false);
+    const [ showAddCustomModal, setShowAddCustomModal ] = useState(false);
     const [ selectedLocation, setSelectedLocation ] = useState<OptionBase | undefined>(undefined);
+    const [ selectedInputOption, setSelectedInputOption ] = useState<OptionBase>(inputOptions[0]);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
+  const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
 
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -44,7 +55,7 @@ export default function EventType(props) {
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'PATCH',
-            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations }),
+            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations, customInputs }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -82,6 +93,11 @@ export default function EventType(props) {
         setSelectedLocation(undefined);
         setShowLocationModal(false);
     };
+
+  const closeAddCustomModal = () => {
+    setSelectedInputOption(inputOptions[0]);
+    setShowAddCustomModal(false);
+  };
 
     const LocationOptions = () => {
         if (!selectedLocation) {
@@ -133,7 +149,22 @@ export default function EventType(props) {
         setLocations(locations.filter( (location) => location.type !== selectedLocation.type ));
     };
 
-    return (
+  const updateCustom = (e) => {
+    e.preventDefault();
+
+    const customInput: EventTypeCustomInput = {
+      label: e.target.label.value,
+      required: e.target.required.checked,
+      type: e.target.type.value
+    };
+
+    setCustomInputs(customInputs.concat(customInput));
+
+    console.log(customInput)
+    setShowAddCustomModal(false);
+  };
+
+  return (
       <div>
         <Head>
           <title>{props.eventType.title} | Event Type | Calendso</title>
@@ -232,6 +263,44 @@ export default function EventType(props) {
                         </div>
                       </div>
                     </div>
+                    <div className="mb-4">
+                      <label htmlFor="additionalFields" className="block text-sm font-medium text-gray-700">Additional Inputs</label>
+                      <ul className="w-96 mt-1">
+                        {customInputs.map( (customInput) => (
+                          <li key={customInput.type} className="bg-blue-50 mb-2 p-2 border">
+                            <div className="flex justify-between">
+                              <div>
+                                <div>
+                                  <span className="ml-2 text-sm">Label: {customInput.label}</span>
+                                </div>
+                                <div>
+                                  <span className="ml-2 text-sm">Type: {customInput.type}</span>
+                                </div>
+                                <div>
+                                  <span
+                                    className="ml-2 text-sm">{customInput.required ? "Required" : "Optional"}</span>
+                                </div>
+                              </div>
+                              <div className="flex">
+                                <button type="button" onClick={() => {
+                                }} className="mr-2 text-sm text-blue-600">Edit
+                                </button>
+                                <button onClick={() => {
+                                }}>
+                                  <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 "/>
+                                </button>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                        <li>
+                            <button type="button" className="sm:flex sm:items-start text-sm text-blue-600" onClick={() => setShowAddCustomModal(true)}>
+                                <PlusCircleIcon className="h-6 w-6" />
+                                <span className="ml-1">Add another input</span>
+                            </button>
+                        </li>
+                      </ul>
+                    </div>
                     <div className="my-8">
                       <div className="relative flex items-start">
                         <div className="flex items-center h-5">
@@ -317,6 +386,66 @@ export default function EventType(props) {
             </div>
           </div>
           }
+          {showAddCustomModal &&
+          <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"/>
+
+                  <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                  <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                      <div className="sm:flex sm:items-start mb-4">
+                          <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                              <PlusIcon className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                              <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Add new custom input field</h3>
+                              <div>
+                                  <p className="text-sm text-gray-400">
+                                      This input will be shown when booking this event
+                                  </p>
+                              </div>
+                          </div>
+                      </div>
+                      <form onSubmit={updateCustom}>
+                          <div className="mb-2">
+                            <label htmlFor="type" className="block text-sm font-medium text-gray-700">Input type</label>
+                            <Select
+                                name="type"
+                                defaultValue={selectedInputOption}
+                                options={inputOptions}
+                                isSearchable="false"
+                                required
+                                className="mb-2 flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300 mt-1"
+                                onChange={setSelectedInputOption}
+                            />
+                          </div>
+                          <div className="mb-2">
+                              <label htmlFor="label" className="block text-sm font-medium text-gray-700">Label</label>
+                              <div className="mt-1">
+                                  <input type="text" name="label" id="label" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                              </div>
+                          </div>
+                          <div className="flex items-center h-5">
+                              <input id="required" name="required" type="checkbox" className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" defaultChecked={true}/>
+                              <label htmlFor="required" className="block text-sm font-medium text-gray-700">
+                                  Is required
+                              </label>
+                          </div>
+
+                          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                              <button type="submit" className="btn btn-primary">
+                                  Save
+                              </button>
+                              <button onClick={closeAddCustomModal} type="button" className="btn btn-white mr-2">
+                                  Cancel
+                              </button>
+                          </div>
+                      </form>
+                  </div>
+              </div>
+          </div>
+          }
         </Shell>
       </div>
     );
@@ -348,6 +477,7 @@ export async function getServerSideProps(context) {
             length: true,
             hidden: true,
             locations: true,
+            customInputs: true
         }
     });
 
