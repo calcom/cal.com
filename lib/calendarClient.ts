@@ -153,12 +153,10 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
                         return Promise.resolve([]);
                     }
 
-                    console.log("selectedCalendarIds.length: " + selectedCalendarIds.length)
                     return (selectedCalendarIds.length == 0
                       ? listCalendars().then(cals => cals.map(e => e.externalId))
                       : Promise.resolve(selectedCalendarIds).then(x => x)).then((ids: string[]) => {
                         const urls = ids.map(calendarId => 'https://graph.microsoft.com/v1.0/me/calendars/' + calendarId + '/events' + filter)
-                        console.log("urls", urls)
                         return Promise.all(urls.map(url => fetch(url, {
                             method: 'get',
                             headers: {
