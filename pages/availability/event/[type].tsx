@@ -19,12 +19,12 @@ import {PlusIcon} from "@heroicons/react/solid";
 export default function EventType(props) {
     const router = useRouter();
 
-  const inputOptions: OptionBase[] = [
-    { value: EventTypeCustomInputType.Text, label: 'Text' },
-    { value: EventTypeCustomInputType.TextLong, label: 'Multiline Text' },
-    { value: EventTypeCustomInputType.Number, label: 'Number', },
-    { value: EventTypeCustomInputType.Bool, label: 'Checkbox', },
-  ]
+    const inputOptions: OptionBase[] = [
+      { value: EventTypeCustomInputType.Text, label: 'Text' },
+      { value: EventTypeCustomInputType.TextLong, label: 'Multiline Text' },
+      { value: EventTypeCustomInputType.Number, label: 'Number', },
+      { value: EventTypeCustomInputType.Bool, label: 'Checkbox', },
+    ]
 
     const [ session, loading ] = useSession();
     const [ showLocationModal, setShowLocationModal ] = useState(false);
@@ -32,7 +32,7 @@ export default function EventType(props) {
     const [ selectedLocation, setSelectedLocation ] = useState<OptionBase | undefined>(undefined);
     const [ selectedInputOption, setSelectedInputOption ] = useState<OptionBase>(inputOptions[0]);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
-  const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
+    const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
 
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -97,10 +97,10 @@ export default function EventType(props) {
         setShowLocationModal(false);
     };
 
-  const closeAddCustomModal = () => {
-    setSelectedInputOption(inputOptions[0]);
-    setShowAddCustomModal(false);
-  };
+    const closeAddCustomModal = () => {
+      setSelectedInputOption(inputOptions[0]);
+      setShowAddCustomModal(false);
+    };
 
     const LocationOptions = () => {
         if (!selectedLocation) {
@@ -152,22 +152,22 @@ export default function EventType(props) {
         setLocations(locations.filter( (location) => location.type !== selectedLocation.type ));
     };
 
-  const updateCustom = (e) => {
-    e.preventDefault();
+    const updateCustom = (e) => {
+      e.preventDefault();
 
-    const customInput: EventTypeCustomInput = {
-      label: e.target.label.value,
-      required: e.target.required.checked,
-      type: e.target.type.value
+      const customInput: EventTypeCustomInput = {
+        label: e.target.label.value,
+        required: e.target.required.checked,
+        type: e.target.type.value
+      };
+
+      setCustomInputs(customInputs.concat(customInput));
+
+      console.log(customInput)
+      setShowAddCustomModal(false);
     };
 
-    setCustomInputs(customInputs.concat(customInput));
-
-    console.log(customInput)
-    setShowAddCustomModal(false);
-  };
-
-  return (
+    return (
       <div>
         <Head>
           <title>{props.eventType.title} | Event Type | Calendso</title>

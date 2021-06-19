@@ -1,4 +1,3 @@
-
 export enum EventTypeCustomInputType {
     Text = 'text',
     TextLong = 'textLong',
@@ -12,4 +11,3 @@ export interface EventTypeCustomInput {
     label: string;
     required: boolean;
 }
-
