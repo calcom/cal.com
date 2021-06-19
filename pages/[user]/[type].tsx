@@ -389,26 +389,30 @@ export async function getServerSideProps(context) {
     }
   });
 
-  if (user) {
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        userId: user.id,
-        slug: {
-          equals: context.query.type,
-        },
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        length: true
-      }
-    });
-  }
-
-  if (!user || !eventType) {
+  if (!user ) {
     return {
       notFound: true,
+    }
+  }
+
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      userId: user.id,
+      slug: {
+        equals: context.query.type,
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true
+    }
+  });
+
+  if (!eventType) {
+    return {
+      notFound: true
     }
   }
 
