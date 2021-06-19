@@ -55,9 +55,9 @@ export default function Type(props) {
         setIs24h(!!localStorage.getItem('timeOption.is24hClock'));
     }
 
-    useEffect(() => {
-        telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
-    });
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
+  }, []);
 
     // Handle date change and timezone change
     useEffect(() => {
@@ -370,50 +370,56 @@ export default function Type(props) {
 }
 
 export async function getServerSideProps(context) {
-    const user = await prisma.user.findFirst({
-        where: {
-          username: context.query.user,
-        },
-        select: {
-            id: true,
-            username: true,
-            name: true,
-            email: true,
-            bio: true,
-            avatar: true,
-            eventTypes: true,
-            startTime: true,
-            timeZone: true,
-            endTime: true,
-            weekStart: true,
-        }
-    });
-
-    if (!user) {
-        return {
-            notFound: true,
-        }
+  const user = await prisma.user.findFirst({
+    where: {
+      username: context.query.user,
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      eventTypes: true,
+      startTime: true,
+      timeZone: true,
+      endTime: true,
+      weekStart: true,
     }
+  });
 
-    const eventType = await prisma.eventType.findFirst({
-        where: {
-            userId: user.id,
-            slug: {
-                equals: context.query.type,
-            },
-        },
-        select: {
-            id: true,
-            title: true,
-            description: true,
-            length: true
-        }
-    });
-
+  if (!user ) {
     return {
-        props: {
-            user,
-            eventType,
-        },
+      notFound: true,
     }
+  }
+
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      userId: user.id,
+      slug: {
+        equals: context.query.type,
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true
+    }
+  });
+
+  if (!eventType) {
+    return {
+      notFound: true
+    }
+  }
+
+  return {
+    props: {
+      user,
+      eventType,
+    },
+  }
 }

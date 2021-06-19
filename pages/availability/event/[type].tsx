@@ -38,6 +38,7 @@ export default function EventType(props) {
     const descriptionRef = useRef<HTMLTextAreaElement>();
     const lengthRef = useRef<HTMLInputElement>();
     const isHiddenRef = useRef<HTMLInputElement>();
+    const eventNameRef = useRef<HTMLInputElement>();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -51,11 +52,12 @@ export default function EventType(props) {
         const enteredDescription = descriptionRef.current.value;
         const enteredLength = lengthRef.current.value;
         const enteredIsHidden = isHiddenRef.current.checked;
+        const enteredEventName = eventNameRef.current.value;
         // TODO: Add validation
 
         const response = await fetch('/api/availability/eventtype', {
             method: 'PATCH',
-            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations, customInputs }),
+            body: JSON.stringify({id: props.eventType.id, title: enteredTitle, slug: enteredSlug, description: enteredDescription, length: enteredLength, hidden: enteredIsHidden, locations, eventName: enteredEventName, customInputs }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -171,8 +173,8 @@ export default function EventType(props) {
           <link rel="icon" href="/favicon.ico" />
         </Head>
         <Shell heading={'Event Type - ' + props.eventType.title}>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-3 sm:col-span-2">
+          <div>
+            <div className="mb-8">
               <div className="bg-white overflow-hidden shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <form onSubmit={updateEventTypeHandler}>
@@ -264,6 +266,12 @@ export default function EventType(props) {
                       </div>
                     </div>
                     <div className="mb-4">
+                      <label htmlFor="eventName" className="block text-sm font-medium text-gray-700">Calendar entry name</label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <input ref={eventNameRef} type="text" name="title" id="title" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Meeting with {USER}" defaultValue={props.eventType.eventName} />
+                      </div>
+                    </div>
+                    <div className="mb-4">
                       <label htmlFor="additionalFields" className="block text-sm font-medium text-gray-700">Additional Inputs</label>
                       <ul className="w-96 mt-1">
                         {customInputs.map( (customInput) => (
@@ -327,7 +335,7 @@ export default function EventType(props) {
                 </div>
               </div>
             </div>
-            <div className="col-span-3 sm:col-span-1">
+            <div>
               <div className="bg-white shadow sm:rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <h3 className="text-lg mb-2 leading-6 font-medium text-gray-900">
@@ -477,6 +485,7 @@ export async function getServerSideProps(context) {
             length: true,
             hidden: true,
             locations: true,
+            eventName: true,
             customInputs: true
         }
     });

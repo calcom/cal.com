@@ -26,7 +26,7 @@ export default function createNewEventEmail(calEvent: CalendarEvent, options: an
 
 const icalEventAsString = (calEvent: CalendarEvent): string => {
   const icsEvent = createEvent({
-    start: dayjs(calEvent.startTime).utc().toArray().slice(0, 6),
+    start: dayjs(calEvent.startTime).utc().toArray().slice(0, 6).map((v, i) => i === 1 ? v + 1 : v),
     startInputType: 'utc',
     productId: 'calendso/ics',
     title: `${calEvent.type} with ${calEvent.attendees[0].name}`,

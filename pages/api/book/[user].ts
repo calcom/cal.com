@@ -5,6 +5,7 @@ import createConfirmBookedEmail from "../../../lib/emails/confirm-booked";
 import async from 'async';
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
+import {getEventName} from "../../../lib/event";
 
 const translator = short();
 
@@ -26,9 +27,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const rescheduleUid = req.body.rescheduleUid;
 
+  const selectedEventType = await prisma.eventType.findFirst({
+    where: {
+      userId: currentUser.id,
+      id: req.body.eventTypeId
+    },
+    select: {
+      eventName: true,
+      title: true
+    }
+  });
+
   const evt: CalendarEvent = {
-    type: req.body.eventName,
-    title: req.body.eventName + ' with ' + req.body.name,
+    type: selectedEventType.title,
+    title: getEventName(req.body.name, selectedEventType.title, selectedEventType.eventName),
     description: req.body.notes,
     startTime: req.body.start,
     endTime: req.body.end,
