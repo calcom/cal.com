@@ -39,6 +39,7 @@ export default function EventType(props) {
     const [ selectedInputOption, setSelectedInputOption ] = useState<OptionBase>(inputOptions[0]);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
     const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
+    const locationOptions = props.locationOptions
 
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -46,32 +47,6 @@ export default function EventType(props) {
     const lengthRef = useRef<HTMLInputElement>();
     const isHiddenRef = useRef<HTMLInputElement>();
     const eventNameRef = useRef<HTMLInputElement>();
-
-    const [locationOptions, setLocationOptions] = useState(DEFAULT_LOCATION_OPTIONS)
-    
-    // Add user's enabled and connected integrations to location options
-    useEffect(() => {
-      if (!props.integrations) {
-        return
-      }
-
-      if (props.integrations && props.integrations?.length > 0) {
-        let optionsToAppend = []
-
-        const hasGoogleCalendarIntegration = props.integrations.find((i) => i.type === "google_calendar" && i.installed === true && i.enabled)
-        if (hasGoogleCalendarIntegration) {
-          optionsToAppend.push( { value: LocationType.GoogleMeet, label: 'Google Meet' })
-        }
-
-        const hasOfficeIntegration = props.integrations.find((i) => i.type === "office365_calendar" && i.installed === true && i.enabled)
-        if (hasOfficeIntegration) {
-          // TODO: Add default meeting option of the office integration.
-          // Assuming it's Microsoft Teams.
-        }
-
-        setLocationOptions([...locationOptions, ...optionsToAppend])
-      }
-    }, [])
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -533,20 +508,36 @@ export async function getServerSideProps(context) {
     });
 
     const integrations = [ {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      enabled: credentials.find( (integration) => integration.type === "google_calendar" ) != null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.png",
-      description: "For personal and business accounts",
-  }, {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      enabled: credentials.find( (integration) => integration.type === "office365_calendar" ) != null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/office-365.png",
-      description: "For personal and business accounts",
-  } ];
+        installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
+        enabled: credentials.find( (integration) => integration.type === "google_calendar" ) != null,
+        type: "google_calendar",
+        title: "Google Calendar",
+        imageSrc: "integrations/google-calendar.png",
+        description: "For personal and business accounts",
+    }, {
+        installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
+        type: "office365_calendar",
+        enabled: credentials.find( (integration) => integration.type === "office365_calendar" ) != null,
+        title: "Office 365 / Outlook.com Calendar",
+        imageSrc: "integrations/office-365.png",
+        description: "For personal and business accounts",
+    } ];
+
+    let locationOptions: OptionBase[] = [
+        { value: LocationType.InPerson, label: 'In-person meeting' },
+        { value: LocationType.Phone, label: 'Phone call', },
+      ];
+    
+      const hasGoogleCalendarIntegration = integrations.find((i) => i.type === "google_calendar" && i.installed === true && i.enabled)
+      if (hasGoogleCalendarIntegration) {
+        locationOptions.push( { value: LocationType.GoogleMeet, label: 'Google Meet' })
+      }
+
+      const hasOfficeIntegration = integrations.find((i) => i.type === "office365_calendar" && i.installed === true && i.enabled)
+      if (hasOfficeIntegration) {
+        // TODO: Add default meeting option of the office integration.
+        // Assuming it's Microsoft Teams.
+      }
 
     const eventType = await prisma.eventType.findUnique({
         where: {
@@ -570,6 +561,7 @@ export async function getServerSideProps(context) {
             user,
             eventType,
             integrations,
+            locationOptions
         },
     }
 }
