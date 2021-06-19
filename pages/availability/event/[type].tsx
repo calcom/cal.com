@@ -16,12 +16,6 @@ import {
 import {EventTypeCustomInput, EventTypeCustomInputType} from "../../../lib/eventTypeInput";
 import {PlusIcon} from "@heroicons/react/solid";
 
-// TODO: Tie into translations instead of abstracting to locations.ts
-const DEFAULT_LOCATION_OPTIONS: OptionBase[] = [
-  { value: LocationType.InPerson, label: 'In-person meeting' },
-  { value: LocationType.Phone, label: 'Phone call', },
-];
-
 export default function EventType(props) {
     const router = useRouter();
 
