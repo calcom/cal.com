@@ -134,38 +134,6 @@ export default function Type(props) {
 }
 
 export async function getServerSideProps(context) {
-    const user = await prisma.user.findFirst({
-        where: {
-            username: context.query.user,
-        },
-        select: {
-            id: true,
-            username: true,
-            name: true,
-        }
-    });
-
-    if (!user) {
-        return {
-            notFound: true,
-        }
-    }
-
-    const eventType = await prisma.eventType.findFirst({
-        where: {
-            userId: user.id,
-            slug: {
-                equals: context.query.type,
-            },
-        },
-        select: {
-            id: true,
-            title: true,
-            description: true,
-            length: true
-        }
-    });
-
     const booking = await prisma.booking.findFirst({
         where: {
             uid: context.query.uid,
@@ -176,7 +144,15 @@ export async function getServerSideProps(context) {
             description: true,
             startTime: true,
             endTime: true,
-            attendees: true
+            attendees: true,
+            eventType: true,
+            user: {
+                select: {
+                    id: true,
+                    username: true,
+                    name: true,
+                }
+            }
         }
     });
 
@@ -188,8 +164,8 @@ export async function getServerSideProps(context) {
 
     return {
         props: {
-            user,
-            eventType,
+            user: booking.user,
+            eventType: booking.eventType,
             booking: bookingObj
         },
     }
