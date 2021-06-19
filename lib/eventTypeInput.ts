@@ -3,6 +3,7 @@ export enum EventTypeCustomInputType {
     Text = 'text',
     TextLong = 'textLong',
     Number = 'number',
+    Bool = 'bool',
 }
 
 export interface EventTypeCustomInput {

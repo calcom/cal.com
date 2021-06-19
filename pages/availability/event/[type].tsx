@@ -13,7 +13,7 @@ import {
   XIcon,
   PhoneIcon,
 } from '@heroicons/react/outline';
-import {EventTypeCustomInput, EventTypeCustomInputType} from "../../../lib/EventTypeInput";
+import {EventTypeCustomInput, EventTypeCustomInputType} from "../../../lib/eventTypeInput";
 import {PlusIcon} from "@heroicons/react/solid";
 
 export default function EventType(props) {
@@ -23,6 +23,7 @@ export default function EventType(props) {
     { value: EventTypeCustomInputType.Text, label: 'Text' },
     { value: EventTypeCustomInputType.TextLong, label: 'Multiline Text' },
     { value: EventTypeCustomInputType.Number, label: 'Number', },
+    { value: EventTypeCustomInputType.Bool, label: 'Checkbox', },
   ]
 
     const [ session, loading ] = useSession();
