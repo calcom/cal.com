@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/client';
+import type {NextApiRequest, NextApiResponse} from 'next';
+import {getSession} from 'next-auth/client';
 import prisma from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -13,6 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method == "PATCH") {
         const startMins = req.body.start;
         const endMins = req.body.end;
+        const bufferMins = req.body.buffer;
 
         const updateDay = await prisma.user.update({
             where: {
@@ -20,7 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             data: {
                 startTime: startMins,
-                endTime: endMins
+                endTime: endMins,
+                bufferTime: bufferMins
             },
         });
 

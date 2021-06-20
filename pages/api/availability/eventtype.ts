@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/client';
+import type {NextApiRequest, NextApiResponse} from 'next';
+import {getSession} from 'next-auth/client';
 import prisma from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -18,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             length: parseInt(req.body.length),
             hidden: req.body.hidden,
             locations: req.body.locations,
+            eventName: req.body.eventName
         };
 
         if (req.method == "POST") {

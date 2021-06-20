@@ -9,14 +9,14 @@ export default class EventOrganizerMail extends EventMail {
    */
   protected getiCalEventAsString(): string {
     const icsEvent = createEvent({
-      start: dayjs(this.calEvent.startTime).utc().toArray().slice(0, 6),
+      start: dayjs(this.calEvent.startTime).utc().toArray().slice(0, 6).map((v, i) => i === 1 ? v + 1 : v),
       startInputType: 'utc',
       productId: 'calendso/ics',
       title: `${this.calEvent.type} with ${this.calEvent.attendees[0].name}`,
-      description: this.calEvent.description + this.stripHtml(this.getAdditionalBody()) + this.stripHtml(this.getAdditionalFooter()),
-      duration: {minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), 'minute')},
-      organizer: {name: this.calEvent.organizer.name, email: this.calEvent.organizer.email},
-      attendees: this.calEvent.attendees.map((attendee: any) => ({name: attendee.name, email: attendee.email})),
+      description: this.calEvent.description,
+      duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), 'minute') },
+      organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
+      attendees: this.calEvent.attendees.map( (attendee: any) => ({ name: attendee.name, email: attendee.email }) ),
       status: "CONFIRMED",
     });
     if (icsEvent.error) {

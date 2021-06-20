@@ -1,5 +1,5 @@
 import ActiveLink from '../components/ActiveLink';
-import { UserCircleIcon, KeyIcon, CodeIcon, UserGroupIcon } from '@heroicons/react/outline';
+import {CodeIcon, CreditCardIcon, KeyIcon, UserCircleIcon, UserGroupIcon} from '@heroicons/react/outline';
 
 export default function SettingsShell(props) {
     return (
@@ -35,6 +35,11 @@ export default function SettingsShell(props) {
                                     </ActiveLink>
                                     <ActiveLink href="/settings/teams">
                                         <a><UserGroupIcon /> Teams</a>
+                                    </ActiveLink>
+
+                                    {/* Change/remove me, if you're self-hosting */}
+                                    <ActiveLink href="/settings/billing">
+                                        <a><CreditCardIcon /> Billing</a>
                                     </ActiveLink>
 
                                     {/* <Link href="/settings/notifications">

@@ -56,7 +56,7 @@ export default function Book(props) {
             email: event.target.email.value,
             notes: event.target.notes.value,
             timeZone: preferredTimeZone,
-            eventName: props.eventType.title,
+            eventTypeId: props.eventType.id,
             rescheduleUid: rescheduleUid
         };
 
@@ -76,7 +76,7 @@ export default function Book(props) {
             }
         );
 
-        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=${!!rescheduleUid}`;
+        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=${!!rescheduleUid}&name=${payload.name}`;
         if (payload['location']) {
             successUrl += "&location=" + encodeURIComponent(payload['location']);
         }

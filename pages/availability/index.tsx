@@ -3,11 +3,10 @@ import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
-import { useRouter } from 'next/router';
-import { useRef } from 'react';
-import { useState } from 'react';
-import { useSession, getSession } from 'next-auth/client';
-import { PlusIcon, ClockIcon } from '@heroicons/react/outline';
+import {useRouter} from 'next/router';
+import {useRef, useState} from 'react';
+import {getSession, useSession} from 'next-auth/client';
+import {ClockIcon, PlusIcon} from '@heroicons/react/outline';
 
 export default function Availability(props) {
     const [ session, loading ] = useSession();
@@ -25,6 +24,8 @@ export default function Availability(props) {
     const startMinsRef = useRef<HTMLInputElement>();
     const endHoursRef = useRef<HTMLInputElement>();
     const endMinsRef = useRef<HTMLInputElement>();
+    const bufferHoursRef = useRef<HTMLInputElement>();
+    const bufferMinsRef = useRef<HTMLInputElement>();
 
     if (loading) {
         return <p className="text-gray-400">Loading...</p>;
@@ -80,15 +81,18 @@ export default function Availability(props) {
         const enteredStartMins = parseInt(startMinsRef.current.value);
         const enteredEndHours = parseInt(endHoursRef.current.value);
         const enteredEndMins = parseInt(endMinsRef.current.value);
+        const enteredBufferHours = parseInt(bufferHoursRef.current.value);
+        const enteredBufferMins = parseInt(bufferMinsRef.current.value);
 
         const startMins = enteredStartHours * 60 + enteredStartMins;
         const endMins = enteredEndHours * 60 + enteredEndMins;
+        const bufferMins = enteredBufferHours * 60 + enteredBufferMins;
 
         // TODO: Add validation
 
         const response = await fetch('/api/availability/day', {
             method: 'PATCH',
-            body: JSON.stringify({start: startMins, end: endMins}),
+            body: JSON.stringify({start: startMins, end: endMins, buffer: bufferMins}),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -298,7 +302,7 @@ export default function Availability(props) {
                                         </h3>
                                         <div>
                                             <p className="text-sm text-gray-500">
-                                                Set the start and end time of your day.
+                                                Set the start and end time of your day and a minimum buffer between your meetings.
                                             </p>
                                         </div>
                                     </div>
@@ -316,7 +320,7 @@ export default function Availability(props) {
                                             <input ref={startMinsRef} type="number" name="minutes" id="minutes" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="30" defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[1]} />
                                         </div>
                                     </div>
-                                    <div className="flex">
+                                    <div className="flex mb-4">
                                         <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
                                         <div>
                                             <label htmlFor="hours" className="sr-only">Hours</label>
@@ -326,6 +330,18 @@ export default function Availability(props) {
                                         <div>
                                             <label htmlFor="minutes" className="sr-only">Minutes</label>
                                             <input ref={endMinsRef} type="number" name="minutes" id="minutes" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="30" defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[1]} />
+                                        </div>
+                                    </div>
+                                    <div className="flex mb-4">
+                                        <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
+                                        <div>
+                                            <label htmlFor="hours" className="sr-only">Hours</label>
+                                            <input ref={bufferHoursRef} type="number" name="hours" id="hours" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="0" defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[0]} />
+                                        </div>
+                                        <span className="mx-2 pt-1">:</span>
+                                        <div>
+                                            <label htmlFor="minutes" className="sr-only">Minutes</label>
+                                            <input ref={bufferMinsRef} type="number" name="minutes" id="minutes" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="10" defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[1]} />
                                         </div>
                                     </div>
                                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -361,7 +377,8 @@ export async function getServerSideProps(context) {
             id: true,
             username: true,
             startTime: true,
-            endTime: true
+            endTime: true,
+            bufferTime: true
         }
     });
 
