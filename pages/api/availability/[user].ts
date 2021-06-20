@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../../lib/prisma';
 import { getBusyTimes } from '../../../lib/calendarClient';
+import dayjs from "dayjs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { user } = req.query
@@ -11,10 +12,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         select: {
             credentials: true,
-            timeZone: true
+            timeZone: true,
+            bufferTime: true
         }
     });
 
-    const availability = await getBusyTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo);
+    const selectedCalendars = (await prisma.selectedCalendar.findMany({
+        where: {
+            userId: currentUser.id
+        }
+    }));
+
+    let availability = await getBusyTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo, selectedCalendars);
+
+    availability = availability.map(a => ({
+        start: dayjs(a.start).subtract(currentUser.bufferTime, 'minute').toString(),
+        end: dayjs(a.end).add(currentUser.bufferTime, 'minute').toString()
+    }));
+  
     res.status(200).json(availability);
 }

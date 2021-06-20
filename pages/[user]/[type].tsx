@@ -32,7 +32,7 @@ export default function Type(props) {
   const telemetry = useTelemetry();
 
   useEffect(() => {
-      telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
+    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()))
   }, []);
 
   // Handle month changes
@@ -222,50 +222,56 @@ export default function Type(props) {
 }
 
 export async function getServerSideProps(context) {
-    const user = await prisma.user.findFirst({
-        where: {
-          username: context.query.user,
-        },
-        select: {
-            id: true,
-            username: true,
-            name: true,
-            email: true,
-            bio: true,
-            avatar: true,
-            eventTypes: true,
-            startTime: true,
-            timeZone: true,
-            endTime: true,
-            weekStart: true,
-        }
-    });
-
-    if (!user) {
-        return {
-            notFound: true,
-        }
+  const user = await prisma.user.findFirst({
+    where: {
+      username: context.query.user,
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      eventTypes: true,
+      startTime: true,
+      timeZone: true,
+      endTime: true,
+      weekStart: true,
     }
+  });
 
-    const eventType = await prisma.eventType.findFirst({
-        where: {
-            userId: user.id,
-            slug: {
-                equals: context.query.type,
-            },
-        },
-        select: {
-            id: true,
-            title: true,
-            description: true,
-            length: true
-        }
-    });
-
+  if (!user) {
     return {
-        props: {
-            user,
-            eventType,
-        },
+      notFound: true,
     }
+  }
+
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      userId: user.id,
+      slug: {
+        equals: context.query.type,
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true
+    }
+  });
+
+  if (!eventType) {
+    return {
+      notFound: true,
+    }
+  }
+
+  return {
+    props: {
+      user,
+      eventType,
+    },
+  }
 }

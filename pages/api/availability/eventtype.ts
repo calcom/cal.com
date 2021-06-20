@@ -18,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             length: parseInt(req.body.length),
             hidden: req.body.hidden,
             locations: req.body.locations,
+            eventName: req.body.eventName
         };
 
         if (req.method == "POST") {
