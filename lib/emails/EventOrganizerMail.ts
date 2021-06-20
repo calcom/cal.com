@@ -13,7 +13,7 @@ export default class EventOrganizerMail extends EventMail {
       startInputType: 'utc',
       productId: 'calendso/ics',
       title: `${this.calEvent.type} with ${this.calEvent.attendees[0].name}`,
-      description: this.calEvent.description,
+      description: this.calEvent.description + this.stripHtml(this.getAdditionalBody()) + this.stripHtml(this.getAdditionalFooter()),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), 'minute') },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
       attendees: this.calEvent.attendees.map( (attendee: any) => ({ name: attendee.name, email: attendee.email }) ),
