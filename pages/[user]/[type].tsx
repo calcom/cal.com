@@ -6,7 +6,14 @@ import { useRouter } from 'next/router';
 import dayjs, { Dayjs } from 'dayjs';
 import { Switch } from '@headlessui/react';
 import TimezoneSelect from 'react-timezone-select';
-import { ClockIcon, GlobeIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid';
+import {
+  ClockIcon,
+  GlobeIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  XCircleIcon, ExclamationIcon
+} from '@heroicons/react/solid';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isBetween from 'dayjs/plugin/isBetween';
 import utc from 'dayjs/plugin/utc';
@@ -29,6 +36,7 @@ export default function Type(props) {
     const [selectedDate, setSelectedDate] = useState<Dayjs>();
     const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
     const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
     const [is24h, setIs24h] = useState(false);
     const [busy, setBusy] = useState([]);
@@ -72,9 +80,16 @@ export default function Type(props) {
             }
 
             setLoading(true);
+            setError(false);
+
             const res = await fetch(`/api/availability/${user}?dateFrom=${lowerBound.utc().format()}&dateTo=${upperBound.utc().format()}`);
-            const busyTimes = await res.json();
-            if (busyTimes.length > 0) setBusy(busyTimes);
+            if (res.ok) {
+              const busyTimes = await res.json();
+              if (busyTimes.length > 0) setBusy(busyTimes);
+            } else {
+              setError(true);
+            }
+
             setLoading(false);
         }
         changeDate();
@@ -340,7 +355,24 @@ export default function Type(props) {
                       {dayjs(selectedDate).format("dddd DD MMMM YYYY")}
                     </span>
                   </div>
-                  {!loading ? availableTimes : <div className="loader"></div>}
+                  {!loading && !error && availableTimes}
+                  {loading && <div className="loader"/>}
+                  {error &&
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                      <div className="flex">
+                          <div className="flex-shrink-0">
+                              <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                          </div>
+                          <div className="ml-3">
+                              <p className="text-sm text-yellow-700">
+                                  Could not load the available time slots.{' '}
+                                  <a href={"mailto:" + props.user.email} className="font-medium underline text-yellow-700 hover:text-yellow-600">
+                                      Contact {props.user.name} via e-mail
+                                  </a>
+                              </p>
+                          </div>
+                      </div>
+                  </div>}
                 </div>
               )}
             </div>

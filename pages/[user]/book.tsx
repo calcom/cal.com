@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import {CalendarIcon, ClockIcon, LocationMarkerIcon} from '@heroicons/react/solid';
+import {CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon} from '@heroicons/react/solid';
 import prisma from '../../lib/prisma';
 import {collectPageParameters, telemetryEventTypes, useTelemetry} from "../../lib/telemetry";
 import {useEffect, useState} from "react";
@@ -23,6 +23,8 @@ export default function Book(props) {
 
     const [ is24h, setIs24h ] = useState(false);
     const [ preferredTimeZone, setPreferredTimeZone ] = useState('');
+    const [ loading, setLoading ] = useState(false);
+    const [ error, setError ] = useState(false);
 
     const locations = props.eventType.locations || [];
 
@@ -47,41 +49,51 @@ export default function Book(props) {
     };
 
     const bookingHandler = event => {
-        event.preventDefault();
+        const book = async () => {
+            setLoading(true);
+            setError(false);
+            let payload = {
+                start: dayjs(date).format(),
+                end: dayjs(date).add(props.eventType.length, 'minute').format(),
+                name: event.target.name.value,
+                email: event.target.email.value,
+                notes: event.target.notes.value,
+                timeZone: preferredTimeZone,
+                eventTypeId: props.eventType.id,
+                rescheduleUid: rescheduleUid
+            };
 
-        let payload = {
-            start: dayjs(date).format(),
-            end: dayjs(date).add(props.eventType.length, 'minute').format(),
-            name: event.target.name.value,
-            email: event.target.email.value,
-            notes: event.target.notes.value,
-            timeZone: preferredTimeZone,
-            eventTypeId: props.eventType.id,
-            rescheduleUid: rescheduleUid
-        };
-
-        if (selectedLocation) {
-            payload['location'] = selectedLocation === LocationType.Phone ? event.target.phone.value : locationInfo(selectedLocation).address;
-        }
-
-        telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters()));
-        const res = fetch(
-            '/api/book/' + user,
-            {
-                body: JSON.stringify(payload),
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                method: 'POST'
+            if (selectedLocation) {
+                payload['location'] = selectedLocation === LocationType.Phone ? event.target.phone.value : locationInfo(selectedLocation).address;
             }
-        );
 
-        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=1&name=${payload.name}`;
-        if (payload['location']) {
-            successUrl += "&location=" + encodeURIComponent(payload['location']);
+            telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters()));
+            const res = await fetch(
+              '/api/book/' + user,
+              {
+                  body: JSON.stringify(payload),
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  method: 'POST'
+              }
+            );
+
+            if (res.ok) {
+                let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=1&name=${payload.name}`;
+                if (payload['location']) {
+                    successUrl += "&location=" + encodeURIComponent(payload['location']);
+                }
+
+                await router.push(successUrl);
+            } else {
+                setLoading(false);
+                setError(true);
+            }
         }
 
-        router.push(successUrl);
+        event.preventDefault();
+        book();
     }
 
     return (
@@ -148,12 +160,27 @@ export default function Book(props) {
                                     <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting." defaultValue={props.booking ? props.booking.description : ''}></textarea>
                                 </div>
                                 <div className="flex items-start">
-                                    <Button type="submit" className="btn btn-primary">{rescheduleUid ? 'Reschedule' : 'Confirm'}</Button>
+                                    <Button type="submit" loading={loading} className="btn btn-primary">{rescheduleUid ? 'Reschedule' : 'Confirm'}</Button>
                                     <Link href={"/" + props.user.username + "/" + props.eventType.slug + (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")}>
                                         <a className="ml-2 btn btn-white">Cancel</a>
                                     </Link>
                                 </div>
                             </form>
+                            {error && <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-2">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-yellow-700">
+                                            Could not {rescheduleUid ? 'reschedule' : 'book'} the meeting. Please try again or{' '}
+                                            <a href={"mailto:" + props.user.email} className="font-medium underline text-yellow-700 hover:text-yellow-600">
+                                                Contact {props.user.name} via e-mail
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>}
                         </div>
                     </div>
                 </div>

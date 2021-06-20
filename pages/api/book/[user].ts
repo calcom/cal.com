@@ -98,8 +98,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Use all integrations
     results = await async.mapLimit(currentUser.credentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return await updateEvent(credential, bookingRefUid, appendLinksToEvents(evt))
+      return updateEvent(credential, bookingRefUid, appendLinksToEvents(evt))
+        .then(response => ({type: credential.type, success: true, response}))
+        .catch(e => {
+          console.error("createEvent failed", e)
+          return {type: credential.type, success: false}
+        });
     });
+
+    if (results.every(res => !res.success)) {
+      res.status(500).json({message: "Rescheduling failed"});
+      return;
+    }
 
     // Clone elements
     referencesToCreate = [...booking.references];
@@ -129,14 +139,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     // Schedule event
     results = await async.mapLimit(currentUser.credentials, 5, async (credential) => {
-      const response = await createEvent(credential, appendLinksToEvents(evt));
-      return {
-        type: credential.type,
-        response
-      };
+      return createEvent(credential, appendLinksToEvents(evt))
+        .then(response => ({type: credential.type, success: true, response}))
+        .catch(e => {
+          console.error("createEvent failed", e)
+          return {type: credential.type, success: false}
+        });
     });
 
-    referencesToCreate = results.map((result => {
+    if (results.every(res => !res.success)) {
+      res.status(500).json({message: "Booking failed"});
+      return;
+    }
+
+    referencesToCreate = results.filter(res => res.success).map((result => {
       return {
         type: result.type,
         uid: result.response.id
@@ -144,32 +160,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }));
   }
 
-  await prisma.booking.create({
-    data: {
-      uid: hashUID,
-      userId: currentUser.id,
-      references: {
-        create: referencesToCreate
-      },
-      eventTypeId: eventType.id,
+  let booking;
+  try {
+    booking = await prisma.booking.create({
+      data: {
+        uid: hashUID,
+        userId: currentUser.id,
+        references: {
+          create: referencesToCreate
+        },
+        eventTypeId: eventType.id,
 
-      title: evt.title,
-      description: evt.description,
-      startTime: evt.startTime,
-      endTime: evt.endTime,
+        title: evt.title,
+        description: evt.description,
+        startTime: evt.startTime,
+        endTime: evt.endTime,
 
-      attendees: {
-        create: evt.attendees
+        attendees: {
+          create: evt.attendees
+        }
       }
-    }
-  });
-
-  // If one of the integrations allows email confirmations or no integrations are added, send it.
-  if (currentUser.credentials.length === 0 || !results.every((result) => result.disableConfirmationEmail)) {
-    await createConfirmBookedEmail(
-      evt, cancelLink, rescheduleLink
-    );
+    });
+  } catch (e) {
+    console.error("Error when saving booking to db", e);
+    res.status(500).json({message: "Booking already exists"});
+    return;
   }
 
-  res.status(200).json(results);
+  try {
+    // If one of the integrations allows email confirmations or no integrations are added, send it.
+    // TODO: locally this is really slow (maybe only because the authentication for the mail service fails), so fire and forget would be nice here
+    if (currentUser.credentials.length === 0 || !results.every((result) => result.response.disableConfirmationEmail)) {
+      await createConfirmBookedEmail(
+        evt, cancelLink, rescheduleLink
+      );
+    }
+  } catch (e) {
+    console.error("createConfirmBookedEmail failed", e)
+  }
+
+  res.status(204).send({});
 }
