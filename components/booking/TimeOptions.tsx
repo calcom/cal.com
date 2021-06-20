@@ -8,29 +8,24 @@ function classNames(...classes) {
 }
 
 const TimeOptions = (props) => {
+
   const [selectedTimeZone, setSelectedTimeZone] = useState('');
   const [is24hClock, setIs24hClock] = useState(false);
-  const [isReady, setIsReady ] = useState(false);
 
   useEffect( () => {
     setIs24hClock(is24h());
     setSelectedTimeZone(timeZone());
-    setIsReady(true);
   }, []);
 
   useEffect( () => {
-    if (!isReady) {
-      return;
-    }
-    if (selectedTimeZone && selectedTimeZone !== timeZone()) {
-      props.onSelectTimeZone(selectedTimeZone)
-    }
-    if ([true,false].includes(is24h()) && is24hClock !== is24h()) {
-      props.onToggle24hFormat(is24hClock);
-    }
-  }, [is24hClock, selectedTimeZone]);
+    props.onSelectTimeZone(timeZone(selectedTimeZone));
+  }, [selectedTimeZone]);
 
-  return isReady && (
+  useEffect( () => {
+    props.onToggle24hClock(is24h(is24hClock));
+  }, [is24hClock]);
+
+  return selectedTimeZone !== "" && (
     <div className="w-full rounded shadow border bg-white px-4 py-2">
       <div className="flex mb-4">
         <div className="w-1/2 font-medium">Time Options</div>
