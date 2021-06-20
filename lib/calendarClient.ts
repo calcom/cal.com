@@ -1,14 +1,44 @@
+import prisma from "./prisma";
+
 const {google} = require('googleapis');
 import createNewEventEmail from "./emails/new-event";
 
-const googleAuth = () => {
+const googleAuth = (credential) => {
     const {client_secret, client_id, redirect_uris} = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
-    return new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    myGoogleAuth.setCredentials(credential.key);
+
+    const isExpired = () => myGoogleAuth.isTokenExpiring();
+
+    const refreshAccessToken = () => myGoogleAuth.refreshToken(credential.key.refresh_token).then(res => {
+        const token = res.res.data;
+        credential.key.access_token = token.access_token;
+        credential.key.expiry_date = token.expiry_date;
+        return prisma.credential.update({
+            where: {
+                id: credential.id
+            },
+            data: {
+                key: credential.key
+            }
+        }).then(() => {
+            myGoogleAuth.setCredentials(credential.key);
+            return myGoogleAuth;
+        });
+    }).catch(err => {
+        console.error("Error refreshing google token", err);
+        return myGoogleAuth;
+    });
+
+    return {
+        getToken: () => !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken()
+    };
+
 };
 
 function handleErrorsJson(response) {
     if (!response.ok) {
-        response.json().then(console.log);
+        response.json().then(e => console.error("O365 Error", e));
         throw Error(response.statusText);
     }
     return response.json();
@@ -16,7 +46,7 @@ function handleErrorsJson(response) {
 
 function handleErrorsRaw(response) {
     if (!response.ok) {
-        response.text().then(console.log);
+        response.text().then(e => console.error("O365 Error", e));
         throw Error(response.statusText);
     }
     return response.text();
@@ -24,25 +54,34 @@ function handleErrorsRaw(response) {
 
 const o365Auth = (credential) => {
 
-    const isExpired = (expiryDate) => expiryDate < +(new Date());
+    const isExpired = (expiryDate) => expiryDate < Math.round((+(new Date()) / 1000));
 
-    const refreshAccessToken = (refreshToken) => fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: new URLSearchParams({
-            'scope': 'User.Read Calendars.Read Calendars.ReadWrite',
-            'client_id': process.env.MS_GRAPH_CLIENT_ID,
-            'refresh_token': refreshToken,
-            'grant_type': 'refresh_token',
-            'client_secret': process.env.MS_GRAPH_CLIENT_SECRET,
+    const refreshAccessToken = (refreshToken) => {
+        return fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({
+                'scope': 'User.Read Calendars.Read Calendars.ReadWrite',
+                'client_id': process.env.MS_GRAPH_CLIENT_ID,
+                'refresh_token': refreshToken,
+                'grant_type': 'refresh_token',
+                'client_secret': process.env.MS_GRAPH_CLIENT_SECRET,
+            })
         })
-    })
-        .then(handleErrorsJson)
-        .then((responseBody) => {
-            credential.key.access_token = responseBody.access_token;
-            credential.key.expiry_date = Math.round((+(new Date()) / 1000) + responseBody.expires_in);
-            return credential.key.access_token;
-        })
+          .then(handleErrorsJson)
+          .then((responseBody) => {
+              credential.key.access_token = responseBody.access_token;
+              credential.key.expiry_date = Math.round((+(new Date()) / 1000) + responseBody.expires_in);
+              return prisma.credential.update({
+                  where: {
+                      id: credential.id
+                  },
+                  data: {
+                      key: credential.key
+                  }
+              }).then(() => credential.key.access_token)
+          })
+    }
 
     return {
         getToken: () => !isExpired(credential.key.expiry_date) ? Promise.resolve(credential.key.access_token) : refreshAccessToken(credential.key.refresh_token)
@@ -173,7 +212,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
                     })
                 }
             ).catch((err) => {
-                console.log(err);
+                console.error(err);
             });
         },
         createEvent: (event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events', {
@@ -206,32 +245,32 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 };
 
 const GoogleCalendar = (credential): CalendarApiAdapter => {
-    const myGoogleAuth = googleAuth();
-    myGoogleAuth.setCredentials(credential.key);
+    const auth = googleAuth(credential);
     const integrationType = "google_calendar";
 
     return {
-        getAvailability: (dateFrom, dateTo, selectedCalendars) => new Promise((resolve, reject) => {
+        getAvailability: (dateFrom, dateTo, selectedCalendars) => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.calendarList
-                .list()
-                .then(cals => {
-                    const filteredItems = cals.data.items.filter(i => selectedCalendars.findIndex(e => e.externalId === i.id) > -1)
-                    if (filteredItems.length == 0 && selectedCalendars.length > 0){
-                        // Only calendars of other integrations selected
-                        resolve([]);
-                    }
+            const selectedCalendarIds = selectedCalendars.filter(e => e.integration === integrationType).map(e => e.externalId);
+            if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0){
+                // Only calendars of other integrations selected
+                resolve([]);
+                return;
+            }
+
+            (selectedCalendarIds.length == 0
+              ? calendar.calendarList.list().then(cals => cals.data.items.map(cal => cal.id))
+              : Promise.resolve(selectedCalendarIds)).then(calsIds => {
                     calendar.freebusy.query({
                         requestBody: {
                             timeMin: dateFrom,
                             timeMax: dateTo,
-                            items: filteredItems.length > 0 ? filteredItems : cals.data.items
+                            items: calsIds.map(id => ({id: id}))
                         }
                     }, (err, apires) => {
                         if (err) {
                             reject(err);
                         }
-
                         resolve(
                             Object.values(apires.data.calendars).flatMap(
                                 (item) => item["busy"]
@@ -240,11 +279,12 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                     });
                 })
                 .catch((err) => {
+                    console.error('There was an error contacting google calendar service: ', err);
                     reject(err);
                 });
 
-        }),
-        createEvent: (event: CalendarEvent) => new Promise((resolve, reject) => {
+        })),
+        createEvent: (event: CalendarEvent) => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
             const payload = {
                 summary: event.title,
                 description: event.description,
@@ -276,13 +316,13 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                 resource: payload,
             }, function (err, event) {
                 if (err) {
-                    console.log('There was an error contacting the Calendar service: ' + err);
+                    console.error('There was an error contacting google calendar service: ', err);
                     return reject(err);
                 }
                 return resolve(event.data);
             });
-        }),
-        updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => {
+        })),
+        updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
             const payload = {
                 summary: event.title,
                 description: event.description,
@@ -317,13 +357,13 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                 resource: payload
             }, function (err, event) {
                 if (err) {
-                    console.log('There was an error contacting the Calendar service: ' + err);
+                    console.error('There was an error contacting google calendar service: ', err);
                     return reject(err);
                 }
                 return resolve(event.data);
             });
-        }),
-        deleteEvent: (uid: String) => new Promise( (resolve, reject) => {
+        })),
+        deleteEvent: (uid: String) => new Promise( (resolve, reject) => auth.getToken().then(myGoogleAuth => {
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
             calendar.events.delete({
                 auth: myGoogleAuth,
@@ -333,13 +373,13 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                 sendUpdates: 'all',
             }, function (err, event) {
                 if (err) {
-                    console.log('There was an error contacting the Calendar service: ' + err);
+                    console.error('There was an error contacting google calendar service: ', err);
                     return reject(err);
                 }
                 return resolve(event.data);
             });
-        }),
-        listCalendars: () => new Promise((resolve, reject) => {
+        })),
+        listCalendars: () => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
             calendar.calendarList
               .list()
@@ -352,9 +392,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                   }))
               })
               .catch((err) => {
+                  console.error('There was an error contacting google calendar service: ', err);
                   reject(err);
               });
-        })
+        }))
     };
 };
 
