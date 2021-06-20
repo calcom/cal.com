@@ -76,6 +76,18 @@ export default function Type(props) {
       </button>
   )];
 
+  const handleSelectTimeZone = (selectedTimeZone: string) => {
+    if (selectedDate) {
+      setSelectedDate(selectedDate.tz(selectedTimeZone))
+    }
+  };
+
+  const handleToggle24hClock = (is24hClock: boolean) => {
+    if (selectedDate) {
+      setTimeFormat(is24hClock ? 'HH:mm' : 'h:mma');
+    }
+  }
+
   return (
     <div>
       <Head>
@@ -115,12 +127,8 @@ export default function Type(props) {
                 {timeZone()}
                 <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
               </button>
-              {
-                isTimeOptionsOpen &&
-                <TimeOptions
-                  onSelectTimeZone={(selectedTimeZone: string) => setSelectedDate(selectedDate.tz(selectedTimeZone))}
-                  onToggle24hFormat={(is24hClock: boolean) => setTimeFormat(is24hClock ? 'HH:mm' : 'h:mma')}
-                />}
+              { isTimeOptionsOpen && <TimeOptions onSelectTimeZone={handleSelectTimeZone}
+                                                  onToggle24hClock={handleToggle24hClock} />}
               <p className="text-gray-600 mt-3 mb-8">
                 {props.eventType.description}
               </p>

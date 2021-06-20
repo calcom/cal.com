@@ -11,18 +11,7 @@ const AvailableTimes = (props) => {
 
   const router = useRouter();
   const { user, rescheduleUid } = router.query;
-  const [loading, setLoading] = useState(false);
-  const [busy, setBusy] = useState([]);
-
-  let availableTimes = [];
-
-  // Handle date change and timezone change
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/availability/${user}?dateFrom=${props.date.startOf('day').utc().format()}&dateTo=${props.date.endOf('day').utc().format()}`)
-      .then( res => res.json())
-      .then(setBusy);
-  }, [props.date]);
+  const [loaded, setLoaded] = useState(false);
 
   const times = useMemo(() =>
       getSlots({
@@ -35,11 +24,10 @@ const AvailableTimes = (props) => {
       })
     , [])
 
-  useEffect(() => {
-
+  const handleAvailableSlots = (busyTimes: []) => {
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
-      busy.forEach(busyTime => {
+      busyTimes.forEach(busyTime => {
         let startTime = dayjs(busyTime.start);
         let endTime = dayjs(busyTime.end);
 
@@ -64,23 +52,17 @@ const AvailableTimes = (props) => {
         }
       });
     }
-
     // Display available times
-    availableTimes = times.map((time) =>
-      <div key={dayjs(time).utc().format()}>
-        <Link
-          href={`/${props.user.username}/book?date=${dayjs(time).utc().format()}&type=${props.eventType.id}` + (rescheduleUid ? "&rescheduleUid=" + rescheduleUid : "")}>
-          <a key={dayjs(time).format("hh:mma")}
-             className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(timeZone()).format(props.timeFormat)}</a>
-        </Link>
-      </div>
-    );
+    setLoaded(true);
+  };
 
-    console.log(availableTimes);
-
-    setLoading(false);
-
-  }, [busy]);
+  // Re-render only when invitee changes date
+  useEffect(() => {
+    setLoaded(false);
+    fetch(`/api/availability/${user}?dateFrom=${props.date.startOf('day').utc().format()}&dateTo=${props.date.endOf('day').utc().format()}`)
+      .then( res => res.json())
+      .then(handleAvailableSlots);
+  }, [props.date]);
 
   return (
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3  md:max-h-97 overflow-y-auto">
@@ -89,7 +71,17 @@ const AvailableTimes = (props) => {
           {props.date.format("dddd DD MMMM YYYY")}
         </span>
       </div>
-      {!loading ? availableTimes : <div className="loader"></div>}
+      {
+        loaded ? times.map((time) =>
+          <div key={dayjs(time).utc().format()}>
+            <Link
+              href={`/${props.user.username}/book?date=${dayjs(time).utc().format()}&type=${props.eventType.id}` + (rescheduleUid ? "&rescheduleUid=" + rescheduleUid : "")}>
+              <a key={dayjs(time).format("hh:mma")}
+                 className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">{dayjs(time).tz(timeZone()).format(props.timeFormat)}</a>
+            </Link>
+          </div>
+        ) : <div className="loader"></div>
+      }
     </div>
   );
 }
