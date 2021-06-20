@@ -110,6 +110,17 @@ paths:
       summary: Deletes an event type
       tags:
         - Availability
+  /api/availability/calendars:
+    post:
+      description: Selects calendar for availability checking.
+      summary: Adds selected calendar
+      tags:
+        - Availability
+    delete:
+      description: Removes a calendar from availability checking.
+      summary: Deletes a selected calendar
+      tags:
+        - Availability
   /api/book/:user:
     post:
       description: Creates a booking in the user's calendar.
