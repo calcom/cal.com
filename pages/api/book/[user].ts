@@ -1,10 +1,11 @@
 import type {NextApiRequest, NextApiResponse} from 'next';
 import prisma from '../../../lib/prisma';
 import {CalendarEvent, createEvent, updateEvent} from '../../../lib/calendarClient';
-import createConfirmBookedEmail from "../../../lib/emails/confirm-booked";
 import async from 'async';
 import {v5 as uuidv5} from 'uuid';
 import short from 'short-uuid';
+import {createMeeting, updateMeeting} from "../../../lib/videoClient";
+import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import {getEventName} from "../../../lib/event";
 
 const translator = short();
@@ -24,6 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: true,
     }
   });
+
+  // Split credentials up into calendar credentials and video credentials
+  const calendarCredentials = currentUser.credentials.filter(cred => cred.type.endsWith('_calendar'));
+  const videoCredentials = currentUser.credentials.filter(cred => cred.type.endsWith('_video'));
 
   const rescheduleUid = req.body.rescheduleUid;
 
@@ -51,19 +56,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]
   };
 
-  const hashUID: string = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
-  const cancelLink: string = process.env.BASE_URL + '/cancel/' + hashUID;
-  const rescheduleLink:string = process.env.BASE_URL + '/reschedule/' + hashUID;
-  const appendLinksToEvents = (event: CalendarEvent) => {
-    const eventCopy = {...event};
-    eventCopy.description += "\n\n"
-      + "Need to change this event?\n"
-      + "Cancel: " + cancelLink + "\n"
-      + "Reschedule:" + rescheduleLink;
-
-    return eventCopy;
-  }
-
   const eventType = await prisma.eventType.findFirst({
     where: {
       userId: currentUser.id,
@@ -74,8 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
-  let results = undefined;
-  let referencesToCreate = undefined;
+  let results = [];
+  let referencesToCreate = [];
 
   if (rescheduleUid) {
     // Reschedule event
@@ -96,10 +88,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Use all integrations
-    results = await async.mapLimit(currentUser.credentials, 5, async (credential) => {
+    results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return await updateEvent(credential, bookingRefUid, appendLinksToEvents(evt))
-    });
+      const response = await updateEvent(credential, bookingRefUid, evt);
+
+      return {
+        type: credential.type,
+        response
+      };
+    }));
+
+    results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      const response = await updateMeeting(credential, bookingRefUid, evt);
+      return {
+        type: credential.type,
+        response
+      };
+    }));
 
     // Clone elements
     referencesToCreate = [...booking.references];
@@ -128,20 +134,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]);
   } else {
     // Schedule event
-    results = await async.mapLimit(currentUser.credentials, 5, async (credential) => {
-      const response = await createEvent(credential, appendLinksToEvents(evt));
+    results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
+      const response = await createEvent(credential, evt);
       return {
         type: credential.type,
         response
       };
-    });
+    }));
+
+    results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
+      const response = await createMeeting(credential, evt);
+      return {
+        type: credential.type,
+        response
+      };
+    }));
 
     referencesToCreate = results.map((result => {
       return {
         type: result.type,
-        uid: result.response.id
+        uid: result.response.createdEvent.id.toString()
       };
     }));
+  }
+
+  // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
+  // UID generation should happen in the integration itself, not here.
+  const hashUID = results.length > 0 ? results[0].response.uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
+  if(results.length === 0) {
+    // Legacy as well, as soon as we have a separate email integration class. Just used
+    // to send an email even if there is no integration at all.
+    const mail = new EventAttendeeMail(evt, hashUID);
+    await mail.sendEmail();
   }
 
   await prisma.booking.create({
@@ -163,13 +187,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
   });
-
-  // If one of the integrations allows email confirmations or no integrations are added, send it.
-  if (currentUser.credentials.length === 0 || !results.every((result) => result.disableConfirmationEmail)) {
-    await createConfirmBookedEmail(
-      evt, cancelLink, rescheduleLink
-    );
-  }
 
   res.status(200).json(results);
 }
