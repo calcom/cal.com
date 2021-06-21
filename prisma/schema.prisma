@@ -22,6 +22,7 @@ model EventType {
   userId        Int?
   bookings      Booking[]
   eventName     String?
+  customInputs  EventTypeCustomInput[]
 }
 
 model Credential {
@@ -131,3 +132,13 @@ model SelectedCalendar {
   externalId    String
   @@id([userId,integration,externalId])
 }
+
+model EventTypeCustomInput {
+  id          Int       @id @default(autoincrement())
+  eventTypeId Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id])
+  label       String
+  type        String
+  required    Boolean
+}
+
