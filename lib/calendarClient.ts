@@ -439,10 +439,18 @@ const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> =>
 
   const organizerMail = new EventOrganizerMail(calEvent, uid);
   const attendeeMail = new EventAttendeeMail(calEvent, uid);
-  await organizerMail.sendEmail();
+  try {
+    await organizerMail.sendEmail();
+  } catch (e) {
+    console.error("organizerMail.sendEmail failed", e)
+  }
 
   if (!creationResult || !creationResult.disableConfirmationEmail) {
-    await attendeeMail.sendEmail();
+    try {
+      await attendeeMail.sendEmail();
+    } catch (e) {
+      console.error("attendeeMail.sendEmail failed", e)
+    }
   }
 
   return {
@@ -458,10 +466,18 @@ const updateEvent = async (credential, uidToUpdate: String, calEvent: CalendarEv
 
   const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
   const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
-  await organizerMail.sendEmail();
+  try {
+    await organizerMail.sendEmail();
+  } catch (e) {
+    console.error("organizerMail.sendEmail failed", e)
+  }
 
   if (!updateResult || !updateResult.disableConfirmationEmail) {
-    await attendeeMail.sendEmail();
+    try {
+      await attendeeMail.sendEmail();
+    } catch (e) {
+      console.error("attendeeMail.sendEmail failed", e)
+    }
   }
 
   return {

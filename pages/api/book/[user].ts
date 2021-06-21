@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return updateEvent(credential, bookingRefUid, evt)
         .then(response => ({type: credential.type, success: true, response}))
         .catch(e => {
-          console.error("createEvent failed", e)
+          console.error("updateEvent failed", e)
           return {type: credential.type, success: false}
         });
     }));
@@ -103,12 +103,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return updateMeeting(credential, bookingRefUid, evt)
         .then(response => ({type: credential.type, success: true, response}))
         .catch(e => {
-          console.error("createEvent failed", e)
+          console.error("updateMeeting failed", e)
           return {type: credential.type, success: false}
         });
     }));
 
-    if (results.every(res => !res.success)) {
+    if (results.length > 0 && results.every(res => !res.success)) {
       res.status(500).json({message: "Rescheduling failed"});
       return;
     }
@@ -153,12 +153,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return createMeeting(credential, evt)
         .then(response => ({type: credential.type, success: true, response}))
         .catch(e => {
-          console.error("createEvent failed", e)
+          console.error("createMeeting failed", e)
           return {type: credential.type, success: false}
         });
     }));
 
-    if (results.every(res => !res.success)) {
+    if (results.length > 0 && results.every(res => !res.success)) {
       res.status(500).json({message: "Booking failed"});
       return;
     }
@@ -172,17 +172,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const hashUID = results.length > 0 ? results[0].response.uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
-  try {
-    // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
-    // UID generation should happen in the integration itself, not here.
-    if(results.length === 0) {
-      // Legacy as well, as soon as we have a separate email integration class. Just used
-      // to send an email even if there is no integration at all.
+  // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
+  // UID generation should happen in the integration itself, not here.
+  if(results.length === 0) {
+    // Legacy as well, as soon as we have a separate email integration class. Just used
+    // to send an email even if there is no integration at all.
+    try {
       const mail = new EventAttendeeMail(evt, hashUID);
       await mail.sendEmail();
+    } catch (e) {
+      console.error("Sending legacy event mail failed", e)
+      res.status(500).json({message: "Booking failed"});
+      return;
     }
-  } catch (e) {
-    console.error("send EventAttendeeMail failed", e)
   }
 
   let booking;
