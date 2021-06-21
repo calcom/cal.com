@@ -2,8 +2,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../lib/prisma';
 import Shell from '../components/Shell';
-import { signIn, useSession, getSession } from 'next-auth/client';
-import { ClockIcon, CheckIcon, InformationCircleIcon } from '@heroicons/react/outline';
+import {getSession, useSession} from 'next-auth/client';
+import {CheckIcon, ClockIcon, InformationCircleIcon} from '@heroicons/react/outline';
 import DonateBanner from '../components/DonateBanner';
 
 function classNames(...classes) {
@@ -206,10 +206,13 @@ export default function Home(props) {
                                     <li className="pb-4 flex">
                                         {integration.type == 'google_calendar' && <img className="h-10 w-10 mr-2" src="integrations/google-calendar.png" alt="Google Calendar" />}
                                         {integration.type == 'office365_calendar' && <img className="h-10 w-10 mr-2" src="integrations/office-365.png" alt="Office 365 / Outlook.com Calendar" />}
+                                        {integration.type == 'zoom_video' && <img className="h-10 w-10 mr-2" src="integrations/zoom.png" alt="Zoom" />}
                                         <div className="ml-3">
                                             {integration.type == 'office365_calendar' && <p className="text-sm font-medium text-gray-900">Office 365 / Outlook.com Calendar</p>}
                                             {integration.type == 'google_calendar' && <p className="text-sm font-medium text-gray-900">Google Calendar</p>}
-                                            <p className="text-sm text-gray-500">Calendar Integration</p>
+                                            {integration.type == 'zoom_video' && <p className="text-sm font-medium text-gray-900">Zoom</p>}
+                                            {integration.type.endsWith('_calendar') && <p className="text-sm text-gray-500">Calendar Integration</p>}
+                                            {integration.type.endsWith('_video') && <p className="text-sm text-gray-500">Video Conferencing</p>}
                                         </div>
                                     </li>
                                 )}

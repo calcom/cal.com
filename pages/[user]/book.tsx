@@ -13,6 +13,7 @@ import PhoneInput from 'react-phone-number-input';
 import {LocationType} from '../../lib/location';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/ui/Button';
+import {EventTypeCustomInputType} from "../../lib/eventTypeInput";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -49,12 +50,31 @@ export default function Book(props) {
     const bookingHandler = event => {
         event.preventDefault();
 
+        let notes = "";
+        if (props.eventType.customInputs) {
+            notes = props.eventType.customInputs.map(input => {
+                const data = event.target["custom_" + input.id];
+                if (!!data) {
+                    if (input.type === EventTypeCustomInputType.Bool) {
+                        return input.label + "\n" + (data.value ? "Yes" : "No")
+                    } else {
+                        return input.label + "\n" + data.value
+                    }
+                }
+            }).join("\n\n")
+        }
+        if (!!notes && !!event.target.notes.value) {
+            notes += "\n\nAdditional notes:\n" + event.target.notes.value;
+        } else {
+            notes += event.target.notes.value;
+        }
+
         let payload = {
             start: dayjs(date).format(),
             end: dayjs(date).add(props.eventType.length, 'minute').format(),
             name: event.target.name.value,
             email: event.target.email.value,
-            notes: event.target.notes.value,
+            notes: notes,
             timeZone: preferredTimeZone,
             eventTypeId: props.eventType.id,
             rescheduleUid: rescheduleUid
@@ -76,7 +96,7 @@ export default function Book(props) {
             }
         );
 
-        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=1&name=${payload.name}`;
+        let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=${!!rescheduleUid}&name=${payload.name}`;
         if (payload['location']) {
             successUrl += "&location=" + encodeURIComponent(payload['location']);
         }
@@ -143,9 +163,38 @@ export default function Book(props) {
                                        <PhoneInput name="phone" placeholder="Enter phone number" id="phone" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" onChange={() => {}} />
                                    </div>
                                 </div>)}
+                                {props.eventType.customInputs && props.eventType.customInputs.sort((a,b) => a.id - b.id).map(input => (
+                                  <div className="mb-4">
+                                      {input.type !== EventTypeCustomInputType.Bool &&
+                                      <label htmlFor={input.label} className="block text-sm font-medium text-gray-700 mb-1">{input.label}</label>}
+                                      {input.type === EventTypeCustomInputType.TextLong &&
+                                      <textarea name={"custom_" + input.id} id={"custom_" + input.id}
+                                                required={input.required}
+                                                rows={3}
+                                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                                placeholder=""/>}
+                                      {input.type === EventTypeCustomInputType.Text &&
+                                      <input type="text" name={"custom_" + input.id} id={"custom_" + input.id}
+                                             required={input.required}
+                                             className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                             placeholder=""/>}
+                                      {input.type === EventTypeCustomInputType.Number &&
+                                      <input type="number" name={"custom_" + input.id} id={"custom_" + input.id}
+                                             required={input.required}
+                                             className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                             placeholder=""/>}
+                                      {input.type === EventTypeCustomInputType.Bool &&
+                                      <div className="flex items-center h-5">
+                                          <input type="checkbox" name={"custom_" + input.id} id={"custom_" + input.id}
+                                             className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
+                                             placeholder=""/>
+                                          <label htmlFor={input.label} className="block text-sm font-medium text-gray-700">{input.label}</label>
+                                      </div>}
+                                  </div>
+                                ))}
                                 <div className="mb-4">
                                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Additional notes</label>
-                                    <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting." defaultValue={props.booking ? props.booking.description : ''}></textarea>
+                                    <textarea name="notes" id="notes" rows={3}  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Please share anything that will help prepare for our meeting." defaultValue={props.booking ? props.booking.description : ''}/>
                                 </div>
                                 <div className="flex items-start">
                                     <Button type="submit" className="btn btn-primary">{rescheduleUid ? 'Reschedule' : 'Confirm'}</Button>
@@ -188,6 +237,7 @@ export async function getServerSideProps(context) {
             description: true,
             length: true,
             locations: true,
+            customInputs: true,
         }
     });
 
