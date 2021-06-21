@@ -554,7 +554,6 @@ export async function getServerSideProps(context) {
         props: {
             user,
             eventType,
-            integrations,
             locationOptions
         },
     }
