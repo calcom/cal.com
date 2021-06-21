@@ -1,5 +1,5 @@
 import ActiveLink from '../components/ActiveLink';
-import { UserCircleIcon, KeyIcon, CodeIcon, UserGroupIcon, CreditCardIcon } from '@heroicons/react/outline';
+import {CodeIcon, CreditCardIcon, KeyIcon, UserCircleIcon, UserGroupIcon} from '@heroicons/react/outline';
 
 export default function SettingsShell(props) {
     return (

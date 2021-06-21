@@ -1,10 +1,10 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
-import Select, { OptionBase } from 'react-select';
+import {useRouter} from 'next/router';
+import {useRef, useState} from 'react';
+import Select, {OptionBase} from 'react-select';
 import prisma from '../../../lib/prisma';
-import { LocationType } from '../../../lib/location';
+import {LocationType} from '../../../lib/location';
 import Shell from '../../../components/Shell';
 import { useSession, getSession } from 'next-auth/client';
 import {
