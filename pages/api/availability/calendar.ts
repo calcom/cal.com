@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/client';
+import type {NextApiRequest, NextApiResponse} from 'next';
+import {getSession} from 'next-auth/client';
 import prisma from '../../../lib/prisma';
 import {IntegrationCalendar, listCalendars} from "../../../lib/calendarClient";
 

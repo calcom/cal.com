@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/client';
+import type {NextApiRequest, NextApiResponse} from 'next';
+import {getSession} from 'next-auth/client';
 import prisma from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -18,7 +18,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             length: parseInt(req.body.length),
             hidden: req.body.hidden,
             locations: req.body.locations,
-            eventName: req.body.eventName
+            eventName: req.body.eventName,
+            customInputs: !req.body.customInputs
+              ? undefined
+              : {
+                  createMany: {
+                      data: req.body.customInputs.filter(input => !input.id).map(input => ({
+                          type: input.type,
+                          label: input.label,
+                          required: input.required
+                      }))
+                  },
+                  update: req.body.customInputs.filter(input => !!input.id).map(input => ({
+                      data: {
+                          type: input.type,
+                          label: input.label,
+                          required: input.required
+                      },
+                      where: {
+                          id: input.id
+                      }
+                  }))
+              },
         };
 
         if (req.method == "POST") {

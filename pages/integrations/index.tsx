@@ -6,7 +6,7 @@ import {useEffect, useState} from 'react';
 import {getSession, useSession} from 'next-auth/client';
 import {CalendarIcon, CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon} from '@heroicons/react/solid';
 import {InformationCircleIcon} from '@heroicons/react/outline';
-import { Switch } from '@headlessui/react'
+import {Switch} from '@headlessui/react'
 
 export default function Home({ integrations }) {
     const [session, loading] = useSession();
@@ -107,6 +107,7 @@ export default function Home({ integrations }) {
                                                     <p className="text-sm font-medium text-blue-600 truncate">{ig.title}</p>
                                                     <p className="flex items-center text-sm text-gray-500">
                                                         {ig.type.endsWith('_calendar') && <span className="truncate">Calendar Integration</span>}
+                                                        {ig.type.endsWith('_video') && <span className="truncate">Video Conferencing</span>}
                                                     </p>
                                                 </div>
                                                 <div className="hidden md:block">
@@ -363,14 +364,21 @@ export async function getServerSideProps(context) {
         type: "google_calendar",
         title: "Google Calendar",
         imageSrc: "integrations/google-calendar.png",
-        description: "For personal and business accounts",
+        description: "For personal and business calendars",
     }, {
         installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
         type: "office365_calendar",
         credential: credentials.find( (integration) => integration.type === "office365_calendar" ) || null,
         title: "Office 365 / Outlook.com Calendar",
         imageSrc: "integrations/office-365.png",
-        description: "For personal and business accounts",
+        description: "For personal and business calendars",
+    }, {
+        installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
+        type: "zoom_video",
+        credential: credentials.find( (integration) => integration.type === "zoom_video" ) || null,
+        title: "Zoom",
+        imageSrc: "integrations/zoom.png",
+        description: "Video Conferencing",
     } ];
 
     return {

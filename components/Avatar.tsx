@@ -16,7 +16,7 @@ export default function Avatar({ user, className = '', fallback }: {
         return (
             <img
             onError={() => setGravatarAvailable(false)}
-            src={`https://www.gravatar.com/avatar/${md5(user.email)}?d=404&s=160`}
+            src={`https://www.gravatar.com/avatar/${md5(user.email)}?s=160&d=identicon&r=PG`}
             alt="Avatar"
             className={className}
             />
