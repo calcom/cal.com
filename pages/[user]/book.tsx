@@ -45,9 +45,10 @@ export default function Book(props) {
     const locationLabels = {
         [LocationType.InPerson]: 'In-person meeting',
         [LocationType.Phone]: 'Phone call',
+        [LocationType.GoogleMeet]: 'Google Meet',
     };
 
-    const bookingHandler = event => {
+    const bookingHandler = (event) => {
         event.preventDefault();
 
         let notes = "";
@@ -81,7 +82,19 @@ export default function Book(props) {
         };
 
         if (selectedLocation) {
-            payload['location'] = selectedLocation === LocationType.Phone ? event.target.phone.value : locationInfo(selectedLocation).address;
+            switch (selectedLocation) {
+                case LocationType.Phone:
+                    payload['location'] = event.target.phone.value
+                    break
+                
+                case LocationType.InPerson:
+                    payload['location'] = locationInfo(selectedLocation).address
+                    break
+                    
+                case LocationType.GoogleMeet:
+                    payload['location'] = LocationType.GoogleMeet
+                break
+            }
         }
 
         telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters()));
@@ -98,7 +111,12 @@ export default function Book(props) {
 
         let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=${!!rescheduleUid}&name=${payload.name}`;
         if (payload['location']) {
-            successUrl += "&location=" + encodeURIComponent(payload['location']);
+            if (payload['location'].includes('integration')) {
+                successUrl += "&location=" + encodeURIComponent("Web conferencing details to follow.");
+            }
+            else {
+                successUrl += "&location=" + encodeURIComponent(payload['location']);
+            }
         }
 
         router.push(successUrl);

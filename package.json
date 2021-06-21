@@ -22,6 +22,7 @@
     "dayjs": "^1.10.4",
     "googleapis": "^67.1.1",
     "ics": "^2.27.0",
+    "lodash.merge": "^4.6.2",
     "next": "^10.2.0",
     "next-auth": "^3.13.2",
     "next-transpile-modules": "^7.0.0",

@@ -1,8 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import {useRouter} from 'next/router';
-import {useRef, useState} from 'react';
-import Select, {OptionBase} from 'react-select';
+import { useRouter } from 'next/router';
+import { useRef, useState, useEffect } from 'react';
+import Select, { OptionBase } from 'react-select';
 import prisma from '../../../lib/prisma';
 import {LocationType} from '../../../lib/location';
 import Shell from '../../../components/Shell';
@@ -33,6 +33,7 @@ export default function EventType(props) {
     const [ selectedInputOption, setSelectedInputOption ] = useState<OptionBase>(inputOptions[0]);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
     const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
+    const locationOptions = props.locationOptions
 
     const titleRef = useRef<HTMLInputElement>();
     const slugRef = useRef<HTMLInputElement>();
@@ -81,12 +82,6 @@ export default function EventType(props) {
         router.push('/availability');
     }
 
-    // TODO: Tie into translations instead of abstracting to locations.ts
-    const locationOptions: OptionBase[] = [
-        { value: LocationType.InPerson, label: 'In-person meeting' },
-        { value: LocationType.Phone, label: 'Phone call', },
-    ];
-
     const openLocationModal = (type: LocationType) => {
         setSelectedLocation(locationOptions.find( (option) => option.value === type));
         setShowLocationModal(true);
@@ -123,6 +118,10 @@ export default function EventType(props) {
 
                  return (
                     <p className="text-sm">Calendso will ask your invitee to enter a phone number before scheduling.</p>
+                )
+            case LocationType.GoogleMeet:
+                 return (
+                    <p className="text-sm">Calendso will provide a Google Meet location.</p>
                 )
         }
         return null;
@@ -232,6 +231,12 @@ export default function EventType(props) {
                                 <div className="flex-grow flex">
                                   <PhoneIcon className="h-6 w-6" />
                                   <span className="ml-2 text-sm">Phone call</span>
+                                </div>
+                              )}
+                              {location.type === LocationType.GoogleMeet && (
+                                <div className="flex-grow flex">
+                                  <svg className="h-6 w-6" stroke="currentColor" fill="currentColor" stroke-width="0" role="img" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><title></title><path d="M12 0C6.28 0 1.636 4.641 1.636 10.364c0 5.421 4.945 9.817 10.364 9.817V24c6.295-3.194 10.364-8.333 10.364-13.636C22.364 4.64 17.72 0 12 0zM7.5 6.272h6.817a1.363 1.363 0 0 1 1.365 1.365v1.704l2.728-2.727v7.501l-2.726-2.726v1.703a1.362 1.362 0 0 1-1.365 1.365H7.5c-.35 0-.698-.133-.965-.4a1.358 1.358 0 0 1-.4-.965V7.637A1.362 1.362 0 0 1 7.5 6.272Z"></path></svg>
+                                  <span className="ml-2 text-sm">Google Meet</span>
                                 </div>
                               )}
                               <div className="flex">
@@ -460,6 +465,17 @@ export default function EventType(props) {
     );
 }
 
+const validJson = (jsonString: string) => {
+  try {
+      const o = JSON.parse(jsonString);
+      if (o && typeof o === "object") {
+          return o;
+      }
+  }
+  catch (e) {}
+  return false;
+}
+
 export async function getServerSideProps(context) {
     const session = await getSession(context);
     if (!session) {
@@ -473,6 +489,49 @@ export async function getServerSideProps(context) {
             username: true
         }
     });
+
+    const credentials = await prisma.credential.findMany({
+        where: {
+            userId: user.id,
+        },
+        select: {
+            id: true,
+            type: true,
+            key: true
+        }
+    });
+
+    const integrations = [ {
+        installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
+        enabled: credentials.find( (integration) => integration.type === "google_calendar" ) != null,
+        type: "google_calendar",
+        title: "Google Calendar",
+        imageSrc: "integrations/google-calendar.png",
+        description: "For personal and business accounts",
+    }, {
+        installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
+        type: "office365_calendar",
+        enabled: credentials.find( (integration) => integration.type === "office365_calendar" ) != null,
+        title: "Office 365 / Outlook.com Calendar",
+        imageSrc: "integrations/office-365.png",
+        description: "For personal and business accounts",
+    } ];
+
+    let locationOptions: OptionBase[] = [
+        { value: LocationType.InPerson, label: 'In-person meeting' },
+        { value: LocationType.Phone, label: 'Phone call', },
+      ];
+    
+      const hasGoogleCalendarIntegration = integrations.find((i) => i.type === "google_calendar" && i.installed === true && i.enabled)
+      if (hasGoogleCalendarIntegration) {
+        locationOptions.push( { value: LocationType.GoogleMeet, label: 'Google Meet' })
+      }
+
+      const hasOfficeIntegration = integrations.find((i) => i.type === "office365_calendar" && i.installed === true && i.enabled)
+      if (hasOfficeIntegration) {
+        // TODO: Add default meeting option of the office integration.
+        // Assuming it's Microsoft Teams.
+      }
 
     const eventType = await prisma.eventType.findUnique({
         where: {
@@ -494,7 +553,8 @@ export async function getServerSideProps(context) {
     return {
         props: {
             user,
-            eventType
+            eventType,
+            locationOptions
         },
     }
 }
