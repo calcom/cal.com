@@ -2,14 +2,14 @@ import Head from 'next/head';
 import Link from 'next/link';
 import prisma from '../lib/prisma';
 import {useEffect, useState} from "react";
-import { useRouter } from 'next/router';
-import { CheckIcon } from '@heroicons/react/outline';
-import { ClockIcon, CalendarIcon, LocationMarkerIcon } from '@heroicons/react/solid';
+import {useRouter} from 'next/router';
+import {CheckIcon} from '@heroicons/react/outline';
+import {CalendarIcon, ClockIcon, LocationMarkerIcon} from '@heroicons/react/solid';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import toArray from 'dayjs/plugin/toArray';
 import timezone from 'dayjs/plugin/timezone';
-import { createEvent } from 'ics';
+import {createEvent} from 'ics';
 import {getEventName} from "../lib/event";
 
 dayjs.extend(utc);

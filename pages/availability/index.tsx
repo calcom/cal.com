@@ -3,11 +3,10 @@ import Link from 'next/link';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
-import { useRouter } from 'next/router';
-import { useRef } from 'react';
-import { useState } from 'react';
-import { useSession, getSession } from 'next-auth/client';
-import { PlusIcon, ClockIcon } from '@heroicons/react/outline';
+import {useRouter} from 'next/router';
+import {useRef, useState} from 'react';
+import {getSession, useSession} from 'next-auth/client';
+import {ClockIcon, PlusIcon} from '@heroicons/react/outline';
 
 export default function Availability(props) {
     const [ session, loading ] = useSession();

@@ -1,11 +1,19 @@
+import EventOrganizerMail from "./emails/EventOrganizerMail";
+import EventAttendeeMail from "./emails/EventAttendeeMail";
+import {v5 as uuidv5} from 'uuid';
+import short from 'short-uuid';
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
+import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
+
+const translator = short();
+
 import prisma from "./prisma";
 
 const {google} = require('googleapis');
-import createNewEventEmail from "./emails/new-event";
 
 const googleAuth = (credential) => {
-    const {client_secret, client_id, redirect_uris} = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
-    const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  const {client_secret, client_id, redirect_uris} = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
+  const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
     myGoogleAuth.setCredentials(credential.key);
 
     const isExpired = () => myGoogleAuth.isTokenExpiring();
@@ -33,30 +41,29 @@ const googleAuth = (credential) => {
     return {
         getToken: () => !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken()
     };
-
 };
 
 function handleErrorsJson(response) {
-    if (!response.ok) {
-        response.json().then(e => console.error("O365 Error", e));
-        throw Error(response.statusText);
-    }
-    return response.json();
+  if (!response.ok) {
+    response.json().then(e => console.error("O365 Error", e));
+    throw Error(response.statusText);
+  }
+  return response.json();
 }
 
 function handleErrorsRaw(response) {
-    if (!response.ok) {
-        response.text().then(e => console.error("O365 Error", e));
-        throw Error(response.statusText);
-    }
-    return response.text();
+  if (!response.ok) {
+    response.text().then(e => console.error("O365 Error", e));
+    throw Error(response.statusText);
+  }
+  return response.text();
 }
 
 const o365Auth = (credential) => {
 
-    const isExpired = (expiryDate) => expiryDate < Math.round((+(new Date()) / 1000));
+  const isExpired = (expiryDate) => expiryDate < Math.round((+(new Date()) / 1000));
 
-    const refreshAccessToken = (refreshToken) => {
+  const refreshAccessToken = (refreshToken) => {
         return fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -83,26 +90,26 @@ const o365Auth = (credential) => {
           })
     }
 
-    return {
-        getToken: () => !isExpired(credential.key.expiry_date) ? Promise.resolve(credential.key.access_token) : refreshAccessToken(credential.key.refresh_token)
-    };
+  return {
+    getToken: () => !isExpired(credential.key.expiry_date) ? Promise.resolve(credential.key.access_token) : refreshAccessToken(credential.key.refresh_token)
+  };
 };
 
 interface Person {
-    name?: string,
-    email: string,
-    timeZone: string
+  name?: string,
+  email: string,
+  timeZone: string
 }
 
 interface CalendarEvent {
-    type: string;
-    title: string;
-    startTime: string;
-    endTime: string;
-    description?: string;
-    location?: string;
-    organizer: Person;
-    attendees: Person[];
+  type: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  description?: string;
+  location?: string;
+  organizer: Person;
+  attendees: Person[];
 };
 
 interface IntegrationCalendar {
@@ -113,11 +120,11 @@ interface IntegrationCalendar {
 }
 
 interface CalendarApiAdapter {
-    createEvent(event: CalendarEvent): Promise<any>;
+  createEvent(event: CalendarEvent): Promise<any>;
 
-    updateEvent(uid: String, event: CalendarEvent);
+  updateEvent(uid: String, event: CalendarEvent);
 
-    deleteEvent(uid: String);
+  deleteEvent(uid: String);
 
     getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<any>;
 
@@ -126,39 +133,39 @@ interface CalendarApiAdapter {
 
 const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
-    const auth = o365Auth(credential);
+  const auth = o365Auth(credential);
 
-    const translateEvent = (event: CalendarEvent) => {
+  const translateEvent = (event: CalendarEvent) => {
 
-        let optional = {};
-        if (event.location) {
-            optional.location = {displayName: event.location};
-        }
+    let optional = {};
+    if (event.location) {
+      optional.location = {displayName: event.location};
+    }
 
-        return {
-            subject: event.title,
-            body: {
-                contentType: 'HTML',
-                content: event.description,
-            },
-            start: {
-                dateTime: event.startTime,
-                timeZone: event.organizer.timeZone,
-            },
-            end: {
-                dateTime: event.endTime,
-                timeZone: event.organizer.timeZone,
-            },
-            attendees: event.attendees.map(attendee => ({
-                emailAddress: {
-                    address: attendee.email,
-                    name: attendee.name
-                },
-                type: "required"
-            })),
-            ...optional
-        }
-    };
+    return {
+      subject: event.title,
+      body: {
+        contentType: 'HTML',
+        content: event.description,
+      },
+      start: {
+        dateTime: event.startTime,
+        timeZone: event.organizer.timeZone,
+      },
+      end: {
+        dateTime: event.endTime,
+        timeZone: event.organizer.timeZone,
+      },
+      attendees: event.attendees.map(attendee => ({
+        emailAddress: {
+          address: attendee.email,
+          name: attendee.name
+        },
+        type: "required"
+      })),
+      ...optional
+    }
+  };
 
     const integrationType = "office365_calendar";
 
@@ -283,69 +290,69 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                     reject(err);
                 });
 
-        })),
-        createEvent: (event: CalendarEvent) => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
-            const payload = {
-                summary: event.title,
-                description: event.description,
-                start: {
-                    dateTime: event.startTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                end: {
-                    dateTime: event.endTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                attendees: event.attendees,
-                reminders: {
-                    useDefault: false,
-                    overrides: [
-                        {'method': 'email', 'minutes': 60}
-                    ],
-                },
-            };
+    })),
+    createEvent: (event: CalendarEvent) => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
+      const payload = {
+        summary: event.title,
+        description: event.description,
+        start: {
+          dateTime: event.startTime,
+          timeZone: event.organizer.timeZone,
+        },
+        end: {
+          dateTime: event.endTime,
+          timeZone: event.organizer.timeZone,
+        },
+        attendees: event.attendees,
+        reminders: {
+          useDefault: false,
+          overrides: [
+            {'method': 'email', 'minutes': 60}
+          ],
+        },
+      };
 
-            if (event.location) {
-                payload['location'] = event.location;
-            }
+      if (event.location) {
+        payload['location'] = event.location;
+      }
 
-            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.events.insert({
-                auth: myGoogleAuth,
-                calendarId: 'primary',
-                resource: payload,
-            }, function (err, event) {
-                if (err) {
-                    console.error('There was an error contacting google calendar service: ', err);
-                    return reject(err);
-                }
-                return resolve(event.data);
-            });
-        })),
-        updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
-            const payload = {
-                summary: event.title,
-                description: event.description,
-                start: {
-                    dateTime: event.startTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                end: {
-                    dateTime: event.endTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                attendees: event.attendees,
-                reminders: {
-                    useDefault: false,
-                    overrides: [
-                        {'method': 'email', 'minutes': 60}
-                    ],
-                },
-            };
+      const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
+      calendar.events.insert({
+        auth: myGoogleAuth,
+        calendarId: 'primary',
+        resource: payload,
+      }, function (err, event) {
+        if (err) {
+          console.error('There was an error contacting google calendar service: ', err);
+          return reject(err);
+        }
+        return resolve(event.data);
+      });
+    })),
+    updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => auth.getToken().then(myGoogleAuth => {
+      const payload = {
+        summary: event.title,
+        description: event.description,
+        start: {
+          dateTime: event.startTime,
+          timeZone: event.organizer.timeZone,
+        },
+        end: {
+          dateTime: event.endTime,
+          timeZone: event.organizer.timeZone,
+        },
+        attendees: event.attendees,
+        reminders: {
+          useDefault: false,
+          overrides: [
+            {'method': 'email', 'minutes': 60}
+          ],
+        },
+      };
 
-            if (event.location) {
-                payload['location'] = event.location;
-            }
+      if (event.location) {
+        payload['location'] = event.location;
+      }
 
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
             calendar.events.update({
@@ -401,17 +408,17 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
 
 // factory
 const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map((cred) => {
-    switch (cred.type) {
-        case 'google_calendar':
-            return GoogleCalendar(cred);
-        case 'office365_calendar':
-            return MicrosoftOffice365Calendar(cred);
-        default:
-            return; // unknown credential, could be legacy? In any case, ignore
-    }
+  switch (cred.type) {
+    case 'google_calendar':
+      return GoogleCalendar(cred);
+    case 'office365_calendar':
+      return MicrosoftOffice365Calendar(cred);
+    default:
+      return; // unknown credential, could be legacy? In any case, ignore
+  }
 }).filter(Boolean);
 
-const getBusyTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) => Promise.all(
+const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) => Promise.all(
     calendars(withCredentials).map(c => c.getAvailability(dateFrom, dateTo, selectedCalendars))
 ).then(
     (results) => {
@@ -425,33 +432,50 @@ const listCalendars = (withCredentials) => Promise.all(
   (results) => results.reduce((acc, calendars) => acc.concat(calendars), [])
 );
 
-const createEvent = (credential, calEvent: CalendarEvent): Promise<any> => {
+const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> => {
+  const uid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
-    createNewEventEmail(
-        calEvent,
-    );
+  const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
 
-    if (credential) {
-        return calendars([credential])[0].createEvent(calEvent);
-    }
+  const organizerMail = new EventOrganizerMail(calEvent, uid);
+  const attendeeMail = new EventAttendeeMail(calEvent, uid);
+  await organizerMail.sendEmail();
 
-    return Promise.resolve({});
+  if (!creationResult || !creationResult.disableConfirmationEmail) {
+    await attendeeMail.sendEmail();
+  }
+
+  return {
+    uid,
+    createdEvent: creationResult
+  };
 };
 
-const updateEvent = (credential, uid: String, calEvent: CalendarEvent): Promise<any> => {
-    if (credential) {
-        return calendars([credential])[0].updateEvent(uid, calEvent);
-    }
+const updateEvent = async (credential, uidToUpdate: String, calEvent: CalendarEvent): Promise<any> => {
+  const newUid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
-    return Promise.resolve({});
+  const updateResult = credential ? await calendars([credential])[0].updateEvent(uidToUpdate, calEvent) : null;
+
+  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
+  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
+  await organizerMail.sendEmail();
+
+  if (!updateResult || !updateResult.disableConfirmationEmail) {
+    await attendeeMail.sendEmail();
+  }
+
+  return {
+    uid: newUid,
+    updatedEvent: updateResult
+  };
 };
 
 const deleteEvent = (credential, uid: String): Promise<any> => {
-    if (credential) {
-        return calendars([credential])[0].deleteEvent(uid);
-    }
+  if (credential) {
+    return calendars([credential])[0].deleteEvent(uid);
+  }
 
-    return Promise.resolve({});
+  return Promise.resolve({});
 };
 
-export {getBusyTimes, createEvent, updateEvent, deleteEvent, CalendarEvent, listCalendars, IntegrationCalendar};
+export {getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, CalendarEvent, listCalendars, IntegrationCalendar};
