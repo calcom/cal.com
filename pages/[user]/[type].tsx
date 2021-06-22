@@ -96,6 +96,9 @@ export default function Type(props) {
           Calendso
         </title>
         <link rel="icon" href="/favicon.ico" />
+        <meta property="og:image" content={"https://og-image-inctrrupl-calend-so.vercel.app/" + encodeURIComponent("Book **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description) + ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" + encodeURIComponent(props.user.avatar)} />
+        <meta property="og:title" content={"Book " + (props.user.name || props.user.username)  + " via Calendso"}/>
+        <meta property="og:description" content={props.eventType.description}/>
       </Head>
       <main
         className={
