@@ -124,6 +124,11 @@ export default function Home(props) {
                                         </div>
                                     </li>
                                 ))}
+                                {props.eventTypes.length == 0 &&
+                                    <div className="text-center text-gray-400 py-12">
+                                        <p>You haven't created any event types.</p>
+                                    </div>
+                                }
                             </ul>
                         </div>
                         <div className="mt-8 bg-white shadow overflow-hidden rounded-md p-6 mb-8 md:mb-0">
@@ -254,6 +259,11 @@ export default function Home(props) {
                                         </div>
                                     </li>
                                 ))}
+                                {props.eventTypes.length == 0 &&
+                                    <div className="text-center text-gray-400 py-2">
+                                        <p>You haven't created any event types.</p>
+                                    </div>
+                                }
                             </ul>
                         </div>
                     </div>
