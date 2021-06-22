@@ -31,8 +31,9 @@ export default function EventType(props) {
     const [ showAddCustomModal, setShowAddCustomModal ] = useState(false);
     const [ selectedLocation, setSelectedLocation ] = useState<OptionBase | undefined>(undefined);
     const [ selectedInputOption, setSelectedInputOption ] = useState<OptionBase>(inputOptions[0]);
+    const [ selectedCustomInput, setSelectedCustomInput ] = useState<EventTypeCustomInput | undefined>(undefined);
     const [ locations, setLocations ] = useState(props.eventType.locations || []);
-    const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
+    const [ customInputs, setCustomInputs ] = useState<EventTypeCustomInput[]>(props.eventType.customInputs.sort((a, b) => a.id - b.id) || []);
     const locationOptions = props.locationOptions
 
     const titleRef = useRef<HTMLInputElement>();
@@ -95,7 +96,14 @@ export default function EventType(props) {
     const closeAddCustomModal = () => {
       setSelectedInputOption(inputOptions[0]);
       setShowAddCustomModal(false);
+      setSelectedCustomInput(undefined);
     };
+
+    const openEditCustomModel = (customInput: EventTypeCustomInput) => {
+      setSelectedCustomInput(customInput);
+      setSelectedInputOption(inputOptions.find(e => e.value === customInput.type));
+      setShowAddCustomModal(true);
+    }
 
     const LocationOptions = () => {
         if (!selectedLocation) {
@@ -160,11 +168,29 @@ export default function EventType(props) {
         type: e.target.type.value
       };
 
-      setCustomInputs(customInputs.concat(customInput));
-
-      console.log(customInput)
-      setShowAddCustomModal(false);
+      if (!!e.target.id?.value) {
+        const index = customInputs.findIndex(inp => inp.id === +e.target.id?.value);
+        if (index >= 0) {
+          const input = customInputs[index];
+          input.label = customInput.label;
+          input.required = customInput.required;
+          input.type = customInput.type;
+          setCustomInputs(customInputs);
+        }
+      } else{
+        setCustomInputs(customInputs.concat(customInput));
+      }
+      closeAddCustomModal();
     };
+
+    const removeCustom = (customInput, e) => {
+      e.preventDefault();
+      const index = customInputs.findIndex(inp => inp.id === customInput.id);
+      if (index >= 0){
+        customInputs.splice(index, 1);
+        setCustomInputs([...customInputs]);
+      }
+    }
 
     return (
       <div>
@@ -281,7 +307,7 @@ export default function EventType(props) {
                       <label htmlFor="additionalFields" className="block text-sm font-medium text-gray-700">Additional Inputs</label>
                       <ul className="w-96 mt-1">
                         {customInputs.map( (customInput) => (
-                          <li key={customInput.type} className="bg-blue-50 mb-2 p-2 border">
+                          <li key={customInput.label} className="bg-blue-50 mb-2 p-2 border">
                             <div className="flex justify-between">
                               <div>
                                 <div>
@@ -296,11 +322,9 @@ export default function EventType(props) {
                                 </div>
                               </div>
                               <div className="flex">
-                                <button type="button" onClick={() => {
-                                }} className="mr-2 text-sm text-blue-600">Edit
+                                <button type="button" onClick={() => openEditCustomModel(customInput)} className="mr-2 text-sm text-blue-600">Edit
                                 </button>
-                                <button onClick={() => {
-                                }}>
+                                <button onClick={(e) => removeCustom(customInput, e)}>
                                   <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 "/>
                                 </button>
                               </div>
@@ -437,15 +461,19 @@ export default function EventType(props) {
                           <div className="mb-2">
                               <label htmlFor="label" className="block text-sm font-medium text-gray-700">Label</label>
                               <div className="mt-1">
-                                  <input type="text" name="label" id="label" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                  <input type="text" name="label" id="label" required
+                                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                         defaultValue={selectedCustomInput?.label}/>
                               </div>
                           </div>
                           <div className="flex items-center h-5">
-                              <input id="required" name="required" type="checkbox" className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" defaultChecked={true}/>
+                              <input id="required" name="required" type="checkbox" className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" defaultChecked={selectedCustomInput?.required ?? true}/>
                               <label htmlFor="required" className="block text-sm font-medium text-gray-700">
                                   Is required
                               </label>
                           </div>
+
+                          <input type="hidden" name="id" id="id" value={selectedCustomInput?.id}/>
 
                           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                               <button type="submit" className="btn btn-primary">
