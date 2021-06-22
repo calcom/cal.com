@@ -20,6 +20,8 @@ export default function User(props) {
             <Head>
                 <title>{props.user.name || props.user.username} | Calendso</title>
                 <link rel="icon" href="/favicon.ico" />
+                <meta property="og:image" content={"https://og-image-one-pi.vercel.app/" + encodeURIComponent("Book **" + (props.user.name || props.user.username) + "**").replace(/'/g, "%27") + ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" + encodeURIComponent(props.user.avatar)} />
+                <meta property="og:title" content={"Book " + (props.user.name || props.user.username) + " via Calendso"}/>
             </Head>
 
             <main className="max-w-2xl mx-auto my-24">
