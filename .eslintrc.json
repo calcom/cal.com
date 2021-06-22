@@ -17,7 +17,8 @@
   "plugins": ["@typescript-eslint", "prettier", "react", "react-hooks"],
   "rules": {
     "prettier/prettier": ["error"],
-    "@typescript-eslint/no-unused-vars": "error"
+    "@typescript-eslint/no-unused-vars": "error",
+    "react/react-in-jsx-scope": "off"
   },
   "env": {
     "browser": true,
