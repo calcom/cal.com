@@ -28,7 +28,7 @@ export default function Type(props) {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-  const [timeFormat, setTimeFormat] = useState('hh:mm');
+  const [timeFormat, setTimeFormat] = useState('h:mma');
   const telemetry = useTelemetry();
 
   useEffect(() => {
