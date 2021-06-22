@@ -13,16 +13,14 @@ const AvailableTimes = (props) => {
   const { user, rescheduleUid } = router.query;
   const [loaded, setLoaded] = useState(false);
 
-  const times = useMemo(() =>
-      getSlots({
-        calendarTimeZone: props.user.timeZone,
-        selectedTimeZone: timeZone(),
-        eventLength: props.eventType.length,
-        selectedDate: props.date,
-        dayStartTime: props.user.startTime,
-        dayEndTime: props.user.endTime,
-      })
-    , [])
+  const times = getSlots({
+      calendarTimeZone: props.user.timeZone,
+      selectedTimeZone: timeZone(),
+      eventLength: props.eventType.length,
+      selectedDate: props.date,
+      dayStartTime: props.user.startTime,
+      dayEndTime: props.user.endTime,
+    });
 
   const handleAvailableSlots = (busyTimes: []) => {
     // Check for conflicts

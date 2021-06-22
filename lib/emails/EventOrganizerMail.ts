@@ -2,6 +2,15 @@ import {createEvent} from "ics";
 import dayjs, {Dayjs} from "dayjs";
 import EventMail from "./EventMail";
 
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import toArray from 'dayjs/plugin/toArray';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(toArray);
+dayjs.extend(localizedFormat);
+
 export default class EventOrganizerMail extends EventMail {
   /**
    * Returns the instance's event as an iCal event in string representation.
