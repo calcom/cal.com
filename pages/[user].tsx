@@ -85,7 +85,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 };
 
 // Auxiliary methods
-
 export function getRandomColorCode(): string {
   let color = "#";
   for (let idx = 0; idx < 6; idx++) {
