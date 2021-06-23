@@ -119,10 +119,21 @@ export default function Type(props): Type {
           {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username} |
           Calendso
         </title>
-        <link rel="icon" href="/favicon.ico" />
-        <meta property="og:image" content={"https://og-image-one-pi.vercel.app/" + encodeURIComponent("Book **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description).replace(/'/g, "%27") + ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" + encodeURIComponent(props.user.avatar)} />
-        <meta property="og:title" content={"Book " + (props.user.name || props.user.username)  + " via Calendso"}/>
+        <meta name="title" content={"Meet " + (props.user.name || props.user.username)  + " via Calendso"} />
+        <meta name="description" content={props.eventType.description} />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://calendso/" />
+        <meta property="og:title" content={"Meet " + (props.user.name || props.user.username)  + " via Calendso"}/>
         <meta property="og:description" content={props.eventType.description}/>
+        <meta property="og:image" content={"https://og-image-one-pi.vercel.app/" + encodeURIComponent("Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description).replace(/'/g, "%27") + ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" + encodeURIComponent(props.user.avatar)} />
+
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://calendso/" /> 
+        <meta property="twitter:title" content={"Meet " + (props.user.name || props.user.username)  + " via Calendso"} />
+        <meta property="twitter:description" content={props.eventType.description} />
+        <meta property="twitter:image" content={"https://og-image-one-pi.vercel.app/" + encodeURIComponent("Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description).replace(/'/g, "%27") + ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" + encodeURIComponent(props.user.avatar)} /> 
+            
       </Head>
       <main
         className={
