@@ -18,7 +18,6 @@
     "@prisma/client": "^2.23.0",
     "@tailwindcss/forms": "^0.2.1",
     "async": "^3.2.0",
-    "babel-plugin-superjson-next": "^0.3.0",
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.10.4",
     "googleapis": "^67.1.1",
@@ -34,7 +33,6 @@
     "react-select": "^4.3.0",
     "react-timezone-select": "^1.0.2",
     "short-uuid": "^4.2.0",
-    "superjson": "^1.7.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
