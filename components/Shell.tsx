@@ -30,9 +30,10 @@ export default function Shell(props) {
     signOut({ redirect: false }).then(() => router.push("/auth/logout"));
   };
 
-  if (!loading && !session) {
-    router.replace("/auth/login");
-  } else if (loading) {
+  if (!session) {
+    if (!loading) {
+      router.replace("/auth/login");
+    }
     return <p className="text-gray-400">Loading...</p>;
   }
 
