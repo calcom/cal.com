@@ -29,9 +29,7 @@ if (process.env.GOOGLE_API_CREDENTIALS && ! validJson(process.env.GOOGLE_API_CRE
 }
 
 module.exports = withTM({
-  future: {
-    webpack5: true,
-  },
+  webpack5: true,
   typescript: {
     ignoreBuildErrors: true,
   },

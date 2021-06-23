@@ -24,12 +24,12 @@
     "googleapis": "^67.1.1",
     "ics": "^2.27.0",
     "lodash.merge": "^4.6.2",
-    "next": "^10.2.0",
+    "next": "^11.0.1",
     "next-auth": "^3.13.2",
-    "next-transpile-modules": "^7.0.0",
+    "next-transpile-modules": "^8.0.0",
     "nodemailer": "^6.6.1",
-    "react": "17.0.1",
-    "react-dom": "17.0.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "react-phone-number-input": "^3.1.21",
     "react-select": "^4.3.0",
     "react-timezone-select": "^1.0.2",
@@ -54,7 +54,7 @@
     "prettier": "^2.3.1",
     "prisma": "^2.23.0",
     "tailwindcss": "^2.2.2",
-    "typescript": "^4.2.3"
+    "typescript": "^4.3.4"
   },
   "lint-staged": {
     "./{pages,components,lib}/**/*.{js,ts,jsx,tsx}": [
