@@ -21,6 +21,7 @@
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.10.4",
     "googleapis": "^67.1.1",
+    "handlebars": "^4.7.7",
     "ics": "^2.27.0",
     "lodash.merge": "^4.6.2",
     "next": "^10.2.0",
