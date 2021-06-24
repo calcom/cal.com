@@ -32,11 +32,9 @@ export default function Shell(props) {
 
   if (!loading && !session) {
     router.replace("/auth/login");
-  } else if (loading) {
-    return <p className="text-gray-400">Loading...</p>;
   }
 
-  return (
+  return session ? (
     <div>
       <div className="bg-gradient-to-b from-blue-600 via-blue-600 to-blue-300 pb-32">
         <nav className="bg-blue-600">
@@ -271,5 +269,5 @@ export default function Shell(props) {
         <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8">{props.children}</div>
       </main>
     </div>
-  );
+  ) : null;
 }
