@@ -22,6 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             customInputs: !req.body.customInputs
               ? undefined
               : {
+                  deleteMany: {
+                      eventTypeId: req.body.id,
+                      NOT: {
+                          id: {in: req.body.customInputs.filter(input => !!input.id).map(e => e.id)}
+                      }
+                  },
                   createMany: {
                       data: req.body.customInputs.filter(input => !input.id).map(input => ({
                           type: input.type,

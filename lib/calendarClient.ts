@@ -1,15 +1,14 @@
 import EventOrganizerMail from "./emails/EventOrganizerMail";
 import EventAttendeeMail from "./emails/EventAttendeeMail";
-import {v5 as uuidv5} from 'uuid';
-import short from 'short-uuid';
+import { v5 as uuidv5 } from "uuid";
+import short from "short-uuid";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 
 const translator = short();
 
+const { google } = require("googleapis");
 import prisma from "./prisma";
-
-const {google} = require('googleapis');
 
 const googleAuth = (credential) => {
   const {client_secret, client_id, redirect_uris} = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
@@ -60,7 +59,6 @@ function handleErrorsRaw(response) {
 }
 
 const o365Auth = (credential) => {
-
   const isExpired = (expiryDate) => expiryDate < Math.round((+(new Date()) / 1000));
 
   const refreshAccessToken = (refreshToken) => {
@@ -91,14 +89,17 @@ const o365Auth = (credential) => {
     }
 
   return {
-    getToken: () => !isExpired(credential.key.expiry_date) ? Promise.resolve(credential.key.access_token) : refreshAccessToken(credential.key.refresh_token)
+    getToken: () =>
+      !isExpired(credential.key.expiry_date)
+        ? Promise.resolve(credential.key.access_token)
+        : refreshAccessToken(credential.key.refresh_token),
   };
 };
 
 interface Person {
-  name?: string,
-  email: string,
-  timeZone: string
+  name?: string;
+  email: string;
+  timeZone: string;
 }
 
 interface CalendarEvent {
@@ -110,13 +111,18 @@ interface CalendarEvent {
   location?: string;
   organizer: Person;
   attendees: Person[];
-};
+  conferenceData?: ConferenceData;
+}
+
+interface ConferenceData {
+  createRequest: any;
+}
 
 interface IntegrationCalendar {
-    integration: string;
-    primary: boolean;
-    externalId: string;
-    name: string;
+  integration: string;
+  primary: boolean;
+  externalId: string;
+  name: string;
 }
 
 interface CalendarApiAdapter {
@@ -126,26 +132,28 @@ interface CalendarApiAdapter {
 
   deleteEvent(uid: String);
 
-    getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<any>;
+  getAvailability(
+    dateFrom,
+    dateTo,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<any>;
 
-    listCalendars(): Promise<IntegrationCalendar[]>;
+  listCalendars(): Promise<IntegrationCalendar[]>;
 }
 
 const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
-
   const auth = o365Auth(credential);
 
   const translateEvent = (event: CalendarEvent) => {
-
     let optional = {};
     if (event.location) {
-      optional.location = {displayName: event.location};
+      optional.location = { displayName: event.location };
     }
 
     return {
       subject: event.title,
       body: {
-        contentType: 'HTML',
+        contentType: "HTML",
         content: event.description,
       },
       start: {
@@ -156,99 +164,138 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
         dateTime: event.endTime,
         timeZone: event.organizer.timeZone,
       },
-      attendees: event.attendees.map(attendee => ({
+      attendees: event.attendees.map((attendee) => ({
         emailAddress: {
           address: attendee.email,
-          name: attendee.name
+          name: attendee.name,
         },
-        type: "required"
+        type: "required",
       })),
-      ...optional
-    }
+      ...optional,
+    };
   };
 
-    const integrationType = "office365_calendar";
+  const integrationType = "office365_calendar";
 
-    function listCalendars(): Promise<IntegrationCalendar[]> {
-        return auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendars', {
-              method: 'get',
-              headers: {
-                  'Authorization': 'Bearer ' + accessToken,
-                  'Content-Type': 'application/json'
-              },
-          }).then(handleErrorsJson)
-            .then(responseBody => {
-                return responseBody.value.map(cal => {
-                    const calendar: IntegrationCalendar = {
-                        externalId: cal.id, integration: integrationType, name: cal.name, primary: cal.isDefaultCalendar
-                    }
-                    return calendar;
-                });
-            })
-        )
-    }
-
-    return {
-        getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-            const filter = "?$filter=start/dateTime ge '" +  dateFrom + "' and end/dateTime le '" + dateTo + "'"
-            return auth.getToken().then(
-                (accessToken) => {
-                    const selectedCalendarIds = selectedCalendars.filter(e => e.integration === integrationType).map(e => e.externalId);
-                    if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0){
-                        // Only calendars of other integrations selected
-                        return Promise.resolve([]);
-                    }
-
-                    return (selectedCalendarIds.length == 0
-                      ? listCalendars().then(cals => cals.map(e => e.externalId))
-                      : Promise.resolve(selectedCalendarIds).then(x => x)).then((ids: string[]) => {
-                        const urls = ids.map(calendarId => 'https://graph.microsoft.com/v1.0/me/calendars/' + calendarId + '/events' + filter)
-                        return Promise.all(urls.map(url => fetch(url, {
-                            method: 'get',
-                            headers: {
-                                'Authorization': 'Bearer ' + accessToken,
-                                'Prefer': 'outlook.timezone="Etc/GMT"'
-                            }
-                        })
-                          .then(handleErrorsJson)
-                          .then(responseBody => responseBody.value.map((evt) => ({
-                                start: evt.start.dateTime + 'Z',
-                                end: evt.end.dateTime + 'Z'
-                            }))
-                          ))).then(results => results.reduce((acc, events) => acc.concat(events), []))
-                    })
-                }
-            ).catch((err) => {
-                console.error(err);
-            });
+  function listCalendars(): Promise<IntegrationCalendar[]> {
+    return auth.getToken().then((accessToken) =>
+      fetch("https://graph.microsoft.com/v1.0/me/calendars", {
+        method: "get",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
         },
-        createEvent: (event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(translateEvent(event))
-        }).then(handleErrorsJson).then((responseBody) => ({
+      })
+        .then(handleErrorsJson)
+        .then((responseBody) => {
+          return responseBody.value.map((cal) => {
+            const calendar: IntegrationCalendar = {
+              externalId: cal.id,
+              integration: integrationType,
+              name: cal.name,
+              primary: cal.isDefaultCalendar,
+            };
+            return calendar;
+          });
+        })
+    );
+  }
+
+  return {
+    getAvailability: (dateFrom, dateTo, selectedCalendars) => {
+      const filter =
+        "?$filter=start/dateTime ge '" +
+        dateFrom +
+        "' and end/dateTime le '" +
+        dateTo +
+        "'";
+      return auth
+        .getToken()
+        .then((accessToken) => {
+          const selectedCalendarIds = selectedCalendars
+            .filter((e) => e.integration === integrationType)
+            .map((e) => e.externalId);
+          if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0) {
+            // Only calendars of other integrations selected
+            return Promise.resolve([]);
+          }
+
+          return (
+            selectedCalendarIds.length == 0
+              ? listCalendars().then((cals) => cals.map((e) => e.externalId))
+              : Promise.resolve(selectedCalendarIds).then((x) => x)
+          ).then((ids: string[]) => {
+            const urls = ids.map(
+              (calendarId) =>
+                "https://graph.microsoft.com/v1.0/me/calendars/" +
+                calendarId +
+                "/events" +
+                filter
+            );
+            return Promise.all(
+              urls.map((url) =>
+                fetch(url, {
+                  method: "get",
+                  headers: {
+                    Authorization: "Bearer " + accessToken,
+                    Prefer: 'outlook.timezone="Etc/GMT"',
+                  },
+                })
+                  .then(handleErrorsJson)
+                  .then((responseBody) =>
+                    responseBody.value.map((evt) => ({
+                      start: evt.start.dateTime + "Z",
+                      end: evt.end.dateTime + "Z",
+                    }))
+                  )
+              )
+            ).then((results) =>
+              results.reduce((acc, events) => acc.concat(events), [])
+            );
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    createEvent: (event: CalendarEvent) =>
+      auth.getToken().then((accessToken) =>
+        fetch("https://graph.microsoft.com/v1.0/me/calendar/events", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        })
+          .then(handleErrorsJson)
+          .then((responseBody) => ({
             ...responseBody,
             disableConfirmationEmail: true,
-        }))),
-        deleteEvent: (uid: String) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events/' + uid, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken
-            }
-        }).then(handleErrorsRaw)),
-        updateEvent: (uid: String, event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events/' + uid, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(translateEvent(event))
-        }).then(handleErrorsRaw)),
-        listCalendars
-    }
+          }))
+      ),
+    deleteEvent: (uid: String) =>
+      auth.getToken().then((accessToken) =>
+        fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+          },
+        }).then(handleErrorsRaw)
+      ),
+    updateEvent: (uid: String, event: CalendarEvent) =>
+      auth.getToken().then((accessToken) =>
+        fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
+          method: "PATCH",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        }).then(handleErrorsRaw)
+      ),
+    listCalendars,
+  };
 };
 
 const GoogleCalendar = (credential): CalendarApiAdapter => {
@@ -312,9 +359,13 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
         },
       };
 
-      if (event.location) {
-        payload['location'] = event.location;
-      }
+        if (event.location) {
+          payload["location"] = event.location;
+        }
+
+        if (event.conferenceData) {
+          payload["conferenceData"] = event.conferenceData;
+        }
 
       const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
       calendar.events.insert({
@@ -350,9 +401,9 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
         },
       };
 
-      if (event.location) {
-        payload['location'] = event.location;
-      }
+        if (event.location) {
+          payload["location"] = event.location;
+        }
 
             const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
             calendar.events.update({
@@ -407,35 +458,50 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
 };
 
 // factory
-const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map((cred) => {
-  switch (cred.type) {
-    case 'google_calendar':
-      return GoogleCalendar(cred);
-    case 'office365_calendar':
-      return MicrosoftOffice365Calendar(cred);
-    default:
-      return; // unknown credential, could be legacy? In any case, ignore
-  }
-}).filter(Boolean);
+const calendars = (withCredentials): CalendarApiAdapter[] =>
+  withCredentials
+    .map((cred) => {
+      switch (cred.type) {
+        case "google_calendar":
+          return GoogleCalendar(cred);
+        case "office365_calendar":
+          return MicrosoftOffice365Calendar(cred);
+        default:
+          return; // unknown credential, could be legacy? In any case, ignore
+      }
+    })
+    .filter(Boolean);
 
-const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) => Promise.all(
-    calendars(withCredentials).map(c => c.getAvailability(dateFrom, dateTo, selectedCalendars))
-).then(
-    (results) => {
-        return results.reduce((acc, availability) => acc.concat(availability), [])
-    }
-);
+const getBusyCalendarTimes = (
+  withCredentials,
+  dateFrom,
+  dateTo,
+  selectedCalendars
+) =>
+  Promise.all(
+    calendars(withCredentials).map((c) =>
+      c.getAvailability(dateFrom, dateTo, selectedCalendars)
+    )
+  ).then((results) => {
+    return results.reduce((acc, availability) => acc.concat(availability), []);
+  });
 
-const listCalendars = (withCredentials) => Promise.all(
-  calendars(withCredentials).map(c => c.listCalendars())
-).then(
-  (results) => results.reduce((acc, calendars) => acc.concat(calendars), [])
-);
+const listCalendars = (withCredentials) =>
+  Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then(
+    (results) => results.reduce((acc, calendars) => acc.concat(calendars), [])
+  );
 
-const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> => {
-  const uid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+const createEvent = async (
+  credential,
+  calEvent: CalendarEvent
+): Promise<any> => {
+  const uid: string = translator.fromUUID(
+    uuidv5(JSON.stringify(calEvent), uuidv5.URL)
+  );
 
-  const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
+  const creationResult = credential
+    ? await calendars([credential])[0].createEvent(calEvent)
+    : null;
 
   const organizerMail = new EventOrganizerMail(calEvent, uid);
   const attendeeMail = new EventAttendeeMail(calEvent, uid);
@@ -455,14 +521,22 @@ const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> =>
 
   return {
     uid,
-    createdEvent: creationResult
+    createdEvent: creationResult,
   };
 };
 
-const updateEvent = async (credential, uidToUpdate: String, calEvent: CalendarEvent): Promise<any> => {
-  const newUid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+const updateEvent = async (
+  credential,
+  uidToUpdate: String,
+  calEvent: CalendarEvent
+): Promise<any> => {
+  const newUid: string = translator.fromUUID(
+    uuidv5(JSON.stringify(calEvent), uuidv5.URL)
+  );
 
-  const updateResult = credential ? await calendars([credential])[0].updateEvent(uidToUpdate, calEvent) : null;
+  const updateResult = credential
+    ? await calendars([credential])[0].updateEvent(uidToUpdate, calEvent)
+    : null;
 
   const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
   const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
@@ -482,7 +556,7 @@ const updateEvent = async (credential, uidToUpdate: String, calEvent: CalendarEv
 
   return {
     uid: newUid,
-    updatedEvent: updateResult
+    updatedEvent: updateResult,
   };
 };
 
@@ -494,4 +568,12 @@ const deleteEvent = (credential, uid: String): Promise<any> => {
   return Promise.resolve({});
 };
 
-export {getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, CalendarEvent, listCalendars, IntegrationCalendar};
+export {
+  getBusyCalendarTimes,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  CalendarEvent,
+  listCalendars,
+  IntegrationCalendar,
+};

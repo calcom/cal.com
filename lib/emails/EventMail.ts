@@ -127,7 +127,8 @@ export default abstract class EventMail {
   protected getAdditionalFooter(): string {
     return `
       <br/>
-      Need to change this event?<br />
+      <br/>
+      <strong>Need to change this event?</strong><br />
       Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a><br />
       Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
     `;
