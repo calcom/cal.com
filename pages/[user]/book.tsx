@@ -101,7 +101,8 @@ export default function Book(props) {
         }
 
             telemetry.withJitsu(jitsu => jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters()));
-            const res = await fetch(
+
+            /*const res = await */fetch(
               '/api/book/' + user,
               {
                   body: JSON.stringify(payload),
@@ -111,8 +112,8 @@ export default function Book(props) {
                   method: 'POST'
               }
             );
-
-            if (res.ok) {
+            // TODO When the endpoint is fixed, change this to await the result again
+            //if (res.ok) {
                 let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${props.user.username}&reschedule=${!!rescheduleUid}&name=${payload.name}`;
                 if (payload['location']) {
                     if (payload['location'].includes('integration')) {
@@ -124,10 +125,10 @@ export default function Book(props) {
                 }
 
                 await router.push(successUrl);
-            } else {
+            /*} else {
                 setLoading(false);
                 setError(true);
-            }
+            }*/
         }
 
         event.preventDefault();
