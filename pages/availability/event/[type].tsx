@@ -242,7 +242,7 @@ export default function EventType(props) {
                     <div className="mt-1">
                       <div className="flex rounded-md shadow-sm">
                         <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                          {location.hostname}/{props.user.username}/
+                          {typeof location !== "undefined" ? location.hostname : ""}/{props.user.username}/
                         </span>
                         <input
                           ref={slugRef}
