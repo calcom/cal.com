@@ -142,3 +142,11 @@ model EventTypeCustomInput {
   required    Boolean
 }
 
+model ResetPasswordRequest {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  email      String
+  expires    DateTime
+}
+

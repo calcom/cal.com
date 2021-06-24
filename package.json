@@ -23,6 +23,7 @@
     "googleapis": "^67.1.1",
     "handlebars": "^4.7.7",
     "ics": "^2.27.0",
+    "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.2",
     "next": "^10.2.0",
     "next-auth": "^3.13.2",
