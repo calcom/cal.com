@@ -1,21 +1,53 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
-import { CalendarEvent, createEvent, updateEvent } from "../../../lib/calendarClient";
+import { CalendarEvent, createEvent, updateEvent, getBusyCalendarTimes } from "../../../lib/calendarClient";
 import async from "async";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
-import { createMeeting, updateMeeting } from "../../../lib/videoClient";
+import { createMeeting, updateMeeting, getBusyVideoTimes } from "../../../lib/videoClient";
 import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "../../../lib/event";
 import { LocationType } from "../../../lib/location";
 import merge from "lodash.merge";
 const translator = short();
+import dayjs from "dayjs";
 
-interface p {
+const isAvailable = (busyTimes, time, length) => {
+  // Check for conflicts
+  let t = true;
+  busyTimes.forEach((busyTime) => {
+    const startTime = dayjs(busyTime.start);
+    const endTime = dayjs(busyTime.end);
+
+    // Check if start times are the same
+    if (dayjs(time).format("HH:mm") == startTime.format("HH:mm")) {
+      t = false;
+    }
+
+    // Check if time is between start and end times
+    if (dayjs(time).isBetween(startTime, endTime)) {
+      t = false;
+    }
+
+    // Check if slot end time is between start and end time
+    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      t = false;
+    }
+
+    // Check if startTime is between slot
+    if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
+      t = false;
+    }
+  });
+
+  return t;
+};
+
+interface GetLocationRequestFromIntegrationRequest {
   location: string;
 }
 
-const getLocationRequestFromIntegration = ({ location }: p) => {
+const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromIntegrationRequest) => {
   if (location === LocationType.GoogleMeet.valueOf()) {
     const requestId = uuidv5(location, uuidv5.URL);
 
@@ -47,9 +79,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  const selectedCalendars = await prisma.selectedCalendar.findMany({
+    where: {
+      userId: currentUser.id,
+    },
+  });
   // Split credentials up into calendar credentials and video credentials
   const calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
   const videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
+
+  const hasCalendarIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
+  const hasVideoIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_video")).length > 0;
+
+  const calendarAvailability = await getBusyCalendarTimes(
+    currentUser.credentials,
+    dayjs(req.body.start).startOf("day").utc().format(),
+    dayjs(req.body.end).endOf("day").utc().format(),
+    selectedCalendars
+  );
+  const videoAvailability = await getBusyVideoTimes(
+    currentUser.credentials,
+    dayjs(req.body.start).startOf("day").utc().format(),
+    dayjs(req.body.end).endOf("day").utc().format()
+  );
+  let commonAvailability = [];
+
+  if (hasCalendarIntegrations && hasVideoIntegrations) {
+    commonAvailability = calendarAvailability.filter((availability) =>
+      videoAvailability.includes(availability)
+    );
+  } else if (hasVideoIntegrations) {
+    commonAvailability = videoAvailability;
+  } else if (hasCalendarIntegrations) {
+    commonAvailability = calendarAvailability;
+  }
 
   const rescheduleUid = req.body.rescheduleUid;
 
@@ -61,6 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: {
       eventName: true,
       title: true,
+      length: true,
     },
   });
 
@@ -102,6 +168,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
     },
   });
+
+  const isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, selectedEventType.length);
+
+  if (!isAvailableToBeBooked) {
+    return res.status(400).json({ message: `${currentUser.name} is unavailable at this time.` });
+  }
 
   let results = [];
   let referencesToCreate = [];
