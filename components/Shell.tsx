@@ -59,9 +59,16 @@ export default function Shell(props) {
                           Dashboard
                         </a>
                       </Link>
-                      {/* <Link href="/">
-                                                <a className={router.pathname.startsWith("/bookings") ? "bg-blue-500 transition-colors duration-300 ease-in-out text-white px-3 py-2 rounded-md text-sm font-medium" : "text-white hover:bg-blue-500 transition-colors duration-300 ease-in-out hover:text-white px-3 py-2 rounded-md text-sm font-medium"}>Bookings</a>
-                                            </Link> */}
+                      <Link href="/bookings">
+                        <a
+                          className={
+                            router.pathname.startsWith("/bookings")
+                              ? "bg-blue-500 transition-colors duration-300 ease-in-out text-white px-3 py-2 rounded-md text-sm font-medium"
+                              : "text-white hover:bg-blue-500 transition-colors duration-300 ease-in-out hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                          }>
+                          Bookings
+                        </a>
+                      </Link>
                       <Link href="/availability">
                         <a
                           className={
