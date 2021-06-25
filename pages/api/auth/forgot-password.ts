@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (maybePreviousRequest && maybePreviousRequest?.length >= 1) {
       passwordRequest = maybePreviousRequest[0];
     } else {
-      const expiry = dayjs().tz(maybeUser.timeZone).add(6, "hours").toDate();
+      const expiry = dayjs().add(6, "hours").toDate();
       const createdResetPasswordRequest = await prisma.resetPasswordRequest.create({
         data: {
           email: rawEmail,
