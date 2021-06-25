@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 dayjs.extend(isBetween);
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import getSlots from "../../lib/slots";
 import Link from "next/link";
 import { timeZone } from "../../lib/clock";
@@ -14,14 +14,18 @@ const AvailableTimes = (props) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
-  const times = getSlots({
-    calendarTimeZone: props.user.timeZone,
-    selectedTimeZone: timeZone(),
-    eventLength: props.eventType.length,
-    selectedDate: props.date,
-    dayStartTime: props.user.startTime,
-    dayEndTime: props.user.endTime,
-  });
+  const times = useMemo(() => {
+    const slots = getSlots({
+      calendarTimeZone: props.user.timeZone,
+      selectedTimeZone: timeZone(),
+      eventLength: props.eventType.length,
+      selectedDate: props.date,
+      dayStartTime: props.user.startTime,
+      dayEndTime: props.user.endTime,
+    });
+
+    return slots;
+  }, [props.date]);
 
   const handleAvailableSlots = (busyTimes: []) => {
     // Check for conflicts
@@ -80,6 +84,7 @@ const AvailableTimes = (props) => {
       </div>
       {!error &&
         loaded &&
+        times.length > 0 &&
         times.map((time) => (
           <div key={dayjs(time).utc().format()}>
             <Link
@@ -95,6 +100,11 @@ const AvailableTimes = (props) => {
             </Link>
           </div>
         ))}
+      {!error && loaded && times.length == 0 && (
+        <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
+          <h1 className="text-xl font">{props.user.name} is all booked today.</h1>
+        </div>
+      )}
       {!error && !loaded && <div className="loader" />}
       {error && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
