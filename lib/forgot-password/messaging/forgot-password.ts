@@ -1,4 +1,4 @@
-import buildMessageTemplate from "../../../lib/emails/buildMessageTemplate";
+import buildMessageTemplate from "../../emails/buildMessageTemplate";
 
 export const forgotPasswordSubjectTemplate = "Forgot your password? - Calendso";
 

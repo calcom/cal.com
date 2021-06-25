@@ -3,7 +3,7 @@ import prisma from "../../../lib/prisma";
 import dayjs from "dayjs";
 import { User, ResetPasswordRequest } from "@prisma/client";
 import sendEmail from "../../../lib/emails/sendMail";
-import { buildForgotPasswordMessage } from "../../../src/forgot-password/messaging/forgot-password";
+import { buildForgotPasswordMessage } from "../../../lib/forgot-password/messaging/forgot-password";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
