@@ -1,15 +1,28 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { Fragment, MutableRefObject, useRef, useState } from "react";
 import Select, { OptionBase } from "react-select";
 import prisma from "../../../lib/prisma";
 import { LocationType } from "../../../lib/location";
 import Shell from "../../../components/Shell";
 import { getSession, useSession } from "next-auth/client";
-import { LocationMarkerIcon, PhoneIcon, PlusCircleIcon, XIcon } from "@heroicons/react/outline";
+import {
+  ChevronDownIcon,
+  LocationMarkerIcon,
+  PhoneIcon,
+  PlusCircleIcon,
+  XIcon,
+} from "@heroicons/react/outline";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "../../../lib/eventTypeInput";
-import { PlusIcon } from "@heroicons/react/solid";
+import { PlusIcon, SortAscendingIcon, UsersIcon } from "@heroicons/react/solid";
+import { Disclosure } from "@headlessui/react";
+import { Menu, Transition } from "@headlessui/react";
+import { EventPlaceholder, eventPlaceholders } from "../../../lib/event";
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
 export default function EventType(props: any): JSX.Element {
   const router = useRouter();
@@ -36,6 +49,8 @@ export default function EventType(props: any): JSX.Element {
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
+  const emailTextRef: React.MutableRefObject<HTMLTextAreaElement | undefined> = useRef<HTMLTextAreaElement>();
+  const emailTitleRef: React.MutableRefObject<HTMLInputElement | undefined> = useRef<HTMLInputElement>();
   const lengthRef = useRef<HTMLInputElement>();
   const isHiddenRef = useRef<HTMLInputElement>();
   const eventNameRef = useRef<HTMLInputElement>();
@@ -202,6 +217,16 @@ export default function EventType(props: any): JSX.Element {
       customInputs.splice(index, 1);
       setCustomInputs([...customInputs]);
     }
+  };
+
+  const insertVariable = (
+    inputRef: MutableRefObject<HTMLInputElement | HTMLTextAreaElement>,
+    variable: EventPlaceholder
+  ) => {
+    inputRef.current.value =
+      inputRef.current.value.substr(0, inputRef.current.selectionStart) +
+      variable.variable +
+      inputRef.current.value.substr(inputRef.current.selectionEnd);
   };
 
   return (
@@ -475,7 +500,7 @@ export default function EventType(props: any): JSX.Element {
                       </li>
                     </ul>
                   </div>
-                  <div className="my-8">
+                  <div className="mb-4">
                     <div className="relative flex items-start">
                       <div className="flex items-center h-5">
                         <input
@@ -497,6 +522,195 @@ export default function EventType(props: any): JSX.Element {
                       </div>
                     </div>
                   </div>
+                  <Disclosure as="div" key="notifications" className="my-8">
+                    {({ open }) => (
+                      <>
+                        <dt className="text-lg">
+                          <Disclosure.Button className="text-left w-full flex justify-between items-start text-gray-400">
+                            <span className="font-medium text-gray-900">Configure confirmation e-mail</span>
+                            <span className="ml-6 h-7 flex items-center">
+                              <ChevronDownIcon
+                                className={classNames(open ? "-rotate-180" : "rotate-0", "h-6 w-6 transform")}
+                                aria-hidden="true"
+                              />
+                            </span>
+                          </Disclosure.Button>
+                        </dt>
+                        <Disclosure.Panel as="dd" className="mt-2 pr-12">
+                          <div className="mb-4">
+                            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                              Title
+                            </label>
+                            <div className="mt-1">
+                              <div
+                                className="relative mr-1 ml-1 bg-white h-10"
+                                style={{ marginBottom: "-2.75rem", zIndex: 20 }}>
+                                <Menu as="div" className="relative inline-block text-left">
+                                  {({ open }) => (
+                                    <>
+                                      <div>
+                                        <Menu.Button
+                                          className="inline-flex justify-center w-full pr-40 outline-none px-4 py-2 bg-white text-sm font-medium text-gray-700">
+                                          + Variables
+                                        </Menu.Button>
+                                      </div>
+
+                                      <Transition
+                                        show={open}
+                                        as={Fragment}
+                                        enter="transition ease-out duration-100"
+                                        enterFrom="transform opacity-0 scale-95"
+                                        enterTo="transform opacity-100 scale-100"
+                                        leave="transition ease-in duration-75"
+                                        leaveFrom="transform opacity-100 scale-100"
+                                        leaveTo="transform opacity-0 scale-95">
+                                        <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                          <div className="py-1">
+                                            {eventPlaceholders.map((v) => (
+                                              <Menu.Item key={v.variable}>
+                                                {({ active }) => (
+                                                  <a
+                                                    onClick={() => insertVariable(emailTitleRef, v)}
+                                                    className={classNames(
+                                                      active ? "bg-gray-100 text-gray-900" : "text-gray-700",
+                                                      "relative block px-4 py-2 text-sm"
+                                                    )}>
+                                                    {v.label}
+                                                  </a>
+                                                )}
+                                              </Menu.Item>
+                                            ))}
+                                          </div>
+                                        </Menu.Items>
+                                      </Transition>
+                                    </>
+                                  )}
+                                </Menu>
+                              </div>
+                              <input
+                                ref={emailTitleRef}
+                                type="text"
+                                name="title"
+                                id="title"
+                                required
+                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md pt-10"
+                                placeholder="Quick Chat"
+                                defaultValue={props.eventType.title}
+                              />
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                              Description
+                            </label>
+                            <div className="mt-1">
+                              <div
+                                className="relative mr-1 ml-1 bg-white h-10"
+                                style={{ marginBottom: "-2.75rem", zIndex: 10 }}>
+                                <Menu as="div" className="relative inline-block text-left">
+                                  {({ open }) => (
+                                    <>
+                                      <div>
+                                        <Menu.Button className="relative inline-flex justify-center w-full pr-30 outline-none px-4 py-2 bg-white text-sm font-medium text-gray-700">
+                                          + Variables
+                                        </Menu.Button>
+                                      </div>
+
+                                      <Transition
+                                        show={open}
+                                        as={Fragment}
+                                        enter="transition ease-out duration-100"
+                                        enterFrom="transform opacity-0 scale-95"
+                                        enterTo="transform opacity-100 scale-100"
+                                        leave="transition ease-in duration-75"
+                                        leaveFrom="transform opacity-100 scale-100"
+                                        leaveTo="transform opacity-0 scale-95">
+                                        <Menu.Items
+                                          static
+                                          className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                          <div className="py-1">
+                                            {eventPlaceholders.map((v) => (
+                                              <Menu.Item key={v.variable}>
+                                                {({ active }) => (
+                                                  <a
+                                                    onClick={() => insertVariable(emailTextRef, v)}
+                                                    className={classNames(
+                                                      active ? "bg-gray-100 text-gray-900" : "text-gray-700",
+                                                      "block px-4 py-2 text-sm"
+                                                    )}>
+                                                    {v.label}
+                                                  </a>
+                                                )}
+                                              </Menu.Item>
+                                            ))}
+                                          </div>
+                                        </Menu.Items>
+                                      </Transition>
+                                    </>
+                                  )}
+                                </Menu>
+                              </div>
+                              <textarea
+                                ref={emailTextRef}
+                                rows={12}
+                                name="description"
+                                id="description"
+                                className="relative shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md pt-10"
+                                placeholder="A quick video meeting."
+                                defaultValue={props.eventType.description}
+                              />
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <div className="relative flex items-start">
+                              <div className="flex items-center h-5">
+                                <input
+                                  ref={isHiddenRef}
+                                  id="ishidden"
+                                  name="ishidden"
+                                  type="checkbox"
+                                  className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                  defaultChecked={props.eventType.hidden}
+                                />
+                              </div>
+                              <div className="ml-3 text-sm">
+                                <label htmlFor="ishidden" className="font-medium text-gray-700">
+                                  Include Cancellation Link
+                                </label>
+                                <p className="text-gray-500">
+                                  Hide the event type from your page, so it can only be booked through its
+                                  URL.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <div className="relative flex items-start">
+                              <div className="flex items-center h-5">
+                                <input
+                                  ref={isHiddenRef}
+                                  id="ishidden"
+                                  name="ishidden"
+                                  type="checkbox"
+                                  className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                  defaultChecked={props.eventType.hidden}
+                                />
+                              </div>
+                              <div className="ml-3 text-sm">
+                                <label htmlFor="ishidden" className="font-medium text-gray-700">
+                                  Include reschedule link
+                                </label>
+                                <p className="text-gray-500">
+                                  Hide the event type from your page, so it can only be booked through its
+                                  URL.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </Disclosure.Panel>
+                      </>
+                    )}
+                  </Disclosure>
                   <button type="submit" className="btn btn-primary">
                     Update
                   </button>
