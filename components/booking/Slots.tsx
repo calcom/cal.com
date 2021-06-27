@@ -3,7 +3,9 @@ import { useRouter } from "next/router";
 import getSlots from "../../lib/slots";
 import dayjs, {Dayjs} from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import utc from "dayjs/plugin/utc";
 dayjs.extend(isBetween);
+dayjs.extend(utc);
 
 type Props = {
   eventLength: number;
@@ -19,18 +21,25 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours }: Props)
   const { user } = router.query;
   const [slots, setSlots] = useState([]);
   const [isFullyBooked, setIsFullyBooked ] = useState(false);
+  const [hasErrors, setHasErrors ] = useState(false);
 
   useEffect(() => {
     setSlots([]);
     setIsFullyBooked(false);
+    setHasErrors(false);
     fetch(
-      `/api/availability/${user}?dateFrom=${date.startOf("day").utc().format()}&dateTo=${date
+      `/api/availability/${user}?dateFrom=${date.startOf("day").utc().startOf('day').format()}&dateTo=${date
         .endOf("day")
         .utc()
+        .endOf('day')
         .format()}`
     )
       .then((res) => res.json())
-      .then(handleAvailableSlots);
+      .then(handleAvailableSlots)
+      .catch( e => {
+        console.error(e);
+        setHasErrors(true);
+      })
   }, [date]);
 
   const handleAvailableSlots = (busyTimes: []) => {
@@ -47,26 +56,24 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours }: Props)
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
       busyTimes.forEach((busyTime) => {
-        const startTime = dayjs(busyTime.start);
-        const endTime = dayjs(busyTime.end);
+
+        const startTime = dayjs(busyTime.start).utc();
+        const endTime = dayjs(busyTime.end).utc();
 
         // Check if start times are the same
-        if (dayjs(times[i]).format("HH:mm") == startTime.format("HH:mm")) {
+        if (times[i].utc().format("HH:mm") == startTime.format("HH:mm")) {
           times.splice(i, 1);
         }
-
         // Check if time is between start and end times
-        if (dayjs(times[i]).isBetween(startTime, endTime)) {
+        else if (times[i].utc().isBetween(startTime, endTime)) {
           times.splice(i, 1);
         }
-
         // Check if slot end time is between start and end time
-        if (dayjs(times[i]).add(eventLength, "minutes").isBetween(startTime, endTime)) {
+        else if (times[i].utc().add(eventLength, "minutes").isBetween(startTime, endTime)) {
           times.splice(i, 1);
         }
-
         // Check if startTime is between slot
-        if (startTime.isBetween(dayjs(times[i]), dayjs(times[i]).add(eventLength, "minutes"))) {
+        else if (startTime.isBetween(times[i].utc(), times[i].utc().add(eventLength, "minutes"))) {
           times.splice(i, 1);
         }
       });
@@ -82,6 +89,7 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours }: Props)
   return {
     slots,
     isFullyBooked,
+    hasErrors,
   };
 };
 

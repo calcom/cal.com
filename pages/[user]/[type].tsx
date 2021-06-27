@@ -122,6 +122,7 @@ export default function Type(props): Type {
                 eventLength={props.eventType.length}
                 eventTypeId={props.eventType.id}
                 date={selectedDate}
+                user={props.user}
               />
             )}
           </div>

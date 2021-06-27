@@ -1,11 +1,11 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, {Dayjs} from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
 interface GetSlotsType {
   inviteeDate: Dayjs;
   frequency: number;
-  workingHours: { [WeekDay]: Boundary[] };
+  workingHours: [];
   minimumBookingNotice?: number;
 }
 
@@ -17,34 +17,30 @@ interface Boundary {
 const freqApply: number = (cb, value: number, frequency: number): number => cb(value / frequency) * frequency;
 
 const intersectBoundary = (a: Boundary, b: Boundary) => {
-  if (a.upperBound < b.lowerBound || a.lowerBound > b.upperBound) {
+  if (
+    a.upperBound < b.lowerBound || a.lowerBound > b.upperBound
+  ) {
     return;
   }
   return {
     lowerBound: Math.max(b.lowerBound, a.lowerBound),
-    upperBound: Math.min(b.upperBound, a.upperBound),
+    upperBound: Math.min(b.upperBound, a.upperBound)
   };
-};
+}
 
 // say invitee is -60,1380, and boundary is -120,240 - the overlap is -60,240
-const getOverlaps = (inviteeBoundary: Boundary, boundaries: Boundary[]) =>
-  boundaries.map((boundary) => intersectBoundary(inviteeBoundary, boundary)).filter(Boolean);
+const getOverlaps = (inviteeBoundary: Boundary, boundaries: Boundary[]) => boundaries
+  .map(
+    (boundary) => intersectBoundary(inviteeBoundary, boundary)
+  ).filter(Boolean);
 
 const organizerBoundaries = (workingHours: [], inviteeDate: Dayjs, inviteeBounds: Boundary): Boundary[] => {
   const boundaries: Boundary[] = [];
 
-  const startDay: number = +inviteeDate
-    .utc()
-    .startOf("day")
-    .add(inviteeBounds.lowerBound, "minutes")
-    .format("d");
-  const endDay: number = +inviteeDate
-    .utc()
-    .startOf("day")
-    .add(inviteeBounds.upperBound, "minutes")
-    .format("d");
+  const startDay: number = +inviteeDate.utc().startOf('day').add(inviteeBounds.lowerBound, 'minutes').format('d');
+  const endDay: number = +inviteeDate.utc().startOf('day').add(inviteeBounds.upperBound, 'minutes').format('d');
 
-  workingHours.forEach((item) => {
+  workingHours.forEach( (item) => {
     const lowerBound: number = item.startTime;
     const upperBound: number = lowerBound + item.length;
     if (startDay !== endDay) {
@@ -66,7 +62,7 @@ const organizerBoundaries = (workingHours: [], inviteeDate: Dayjs, inviteeBounds
         }
       }
     } else {
-      boundaries.push({ lowerBound, upperBound });
+      boundaries.push({lowerBound, upperBound});
     }
   });
   return boundaries;
@@ -76,33 +72,38 @@ const inviteeBoundary = (startTime: number, utcOffset: number, frequency: number
   const upperBound: number = freqApply(Math.floor, 1440 - utcOffset, frequency);
   const lowerBound: number = freqApply(Math.ceil, startTime - utcOffset, frequency);
   return {
-    lowerBound,
-    upperBound,
+    lowerBound, upperBound,
   };
 };
 
-const getSlotsBetweenBoundary = (frequency: number, { lowerBound, upperBound }: Boundary) => {
+const getSlotsBetweenBoundary = (frequency: number, {lowerBound,upperBound}: Boundary) => {
   const slots: Dayjs[] = [];
-  for (let minutes = 0; lowerBound + minutes <= upperBound - frequency; minutes += frequency) {
-    slots.push(
-      <Dayjs>dayjs
-        .utc()
-        .startOf("day")
-        .add(lowerBound + minutes, "minutes")
-    );
+  for (
+    let minutes = 0;
+    lowerBound + minutes <= upperBound - frequency;
+    minutes += frequency
+  ) {
+    slots.push(<Dayjs>dayjs.utc().startOf('day').add(lowerBound + minutes, 'minutes'));
   }
   return slots;
 };
 
-const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlotsType): Dayjs[] => {
-  const startTime = dayjs.utc().isSame(dayjs(inviteeDate), "day")
-    ? inviteeDate.hour() * 60 + inviteeDate.minute() + minimumBookingNotice
-    : 0;
+const getSlots = (
+  { inviteeDate, frequency, minimumBookingNotice, workingHours, }: GetSlotsType
+): Dayjs[] => {
+
+  const startTime = (
+    dayjs.utc().isSame(dayjs(inviteeDate), 'day') ? inviteeDate.hour() * 60 + inviteeDate.minute() + minimumBookingNotice : 0
+  );
 
   const inviteeBounds = inviteeBoundary(startTime, inviteeDate.utcOffset(), frequency);
-  return getOverlaps(inviteeBounds, organizerBoundaries(workingHours, inviteeDate, inviteeBounds))
-    .reduce((slots, boundary: Boundary) => [...slots, ...getSlotsBetweenBoundary(frequency, boundary)], [])
-    .map((slot) => slot.utcOffset(dayjs(inviteeDate).utcOffset()));
-};
+  return getOverlaps(
+    inviteeBounds, organizerBoundaries(workingHours, inviteeDate, inviteeBounds)
+  ).reduce(
+    (slots, boundary: Boundary) => [...slots, ...getSlotsBetweenBoundary(frequency, boundary) ], []
+  ).map(
+    (slot) => slot.utcOffset(dayjs(inviteeDate).utcOffset())
+  )
+}
 
 export default getSlots;
