@@ -5,7 +5,7 @@ import Slots from "./Slots";
 const AvailableTimes = ({ date, eventLength, eventTypeId, workingHours, timeFormat }) => {
   const router = useRouter();
   const { user, rescheduleUid } = router.query;
-  const { slots } = Slots({ date, eventLength, workingHours });
+  const { slots, isFullyBooked } = Slots({ date, eventLength, workingHours });
   return (
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3  md:max-h-97 overflow-y-auto">
       <div className="text-gray-600 font-light text-xl mb-4 text-left">
@@ -25,9 +25,12 @@ const AvailableTimes = ({ date, eventLength, eventTypeId, workingHours, timeForm
             </Link>
           </div>
         ))
-      ) : (
-        <div className="loader" />
-      )}
+      ) : isFullyBooked ?
+          <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
+            <h1 className="text-xl font">{user} is all booked today.</h1>
+          </div>
+          : <div className="loader" />
+      }
     </div>
   );
 };
