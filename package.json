@@ -22,7 +22,9 @@
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.10.4",
     "googleapis": "^67.1.1",
+    "handlebars": "^4.7.7",
     "ics": "^2.27.0",
+    "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.2",
     "next": "^10.2.0",
     "next-auth": "^3.13.2",
@@ -39,6 +41,7 @@
   "devDependencies": {
     "@types/jest": "^26.0.23",
     "@types/node": "^14.14.33",
+    "@types/nodemailer": "^6.4.2",
     "@types/react": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^4.27.0",
     "@typescript-eslint/parser": "^4.27.0",

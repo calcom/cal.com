@@ -1,38 +1,70 @@
-import type {NextApiRequest, NextApiResponse} from 'next';
-import prisma from '../../../lib/prisma';
-import {CalendarEvent, createEvent, updateEvent} from '../../../lib/calendarClient';
-import async from 'async';
-import {v5 as uuidv5} from 'uuid';
-import short from 'short-uuid';
-import {createMeeting, updateMeeting} from "../../../lib/videoClient";
+import type { NextApiRequest, NextApiResponse } from "next";
+import prisma from "../../../lib/prisma";
+import { CalendarEvent, createEvent, updateEvent, getBusyCalendarTimes } from "../../../lib/calendarClient";
+import async from "async";
+import { v5 as uuidv5 } from "uuid";
+import short from "short-uuid";
+import { createMeeting, updateMeeting, getBusyVideoTimes } from "../../../lib/videoClient";
 import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
-import {getEventName} from "../../../lib/event";
-import { LocationType } from '../../../lib/location';
-import merge from "lodash.merge"
+import { getEventName } from "../../../lib/event";
+import { LocationType } from "../../../lib/location";
+import merge from "lodash.merge";
 const translator = short();
+import dayjs from "dayjs";
 
-interface p {
-  location: string
+const isAvailable = (busyTimes, time, length) => {
+  // Check for conflicts
+  let t = true;
+  busyTimes.forEach((busyTime) => {
+    const startTime = dayjs(busyTime.start);
+    const endTime = dayjs(busyTime.end);
+
+    // Check if start times are the same
+    if (dayjs(time).format("HH:mm") == startTime.format("HH:mm")) {
+      t = false;
+    }
+
+    // Check if time is between start and end times
+    if (dayjs(time).isBetween(startTime, endTime)) {
+      t = false;
+    }
+
+    // Check if slot end time is between start and end time
+    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      t = false;
+    }
+
+    // Check if startTime is between slot
+    if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
+      t = false;
+    }
+  });
+
+  return t;
+};
+
+interface GetLocationRequestFromIntegrationRequest {
+  location: string;
 }
 
-const getLocationRequestFromIntegration = ({location}: p) => {
+const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromIntegrationRequest) => {
   if (location === LocationType.GoogleMeet.valueOf()) {
-    const requestId = uuidv5(location, uuidv5.URL)
+    const requestId = uuidv5(location, uuidv5.URL);
 
     return {
       conferenceData: {
         createRequest: {
-          requestId: requestId
-        }
-      }
-    }
+          requestId: requestId,
+        },
+      },
+    };
   }
 
-  return null
-}
+  return null;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const {user} = req.query;
+  const { user } = req.query;
 
   const currentUser = await prisma.user.findFirst({
     where: {
@@ -44,27 +76,61 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timeZone: true,
       email: true,
       name: true,
-    }
+    },
   });
 
+  const selectedCalendars = await prisma.selectedCalendar.findMany({
+    where: {
+      userId: currentUser.id,
+    },
+  });
   // Split credentials up into calendar credentials and video credentials
-  const calendarCredentials = currentUser.credentials.filter(cred => cred.type.endsWith('_calendar'));
-  const videoCredentials = currentUser.credentials.filter(cred => cred.type.endsWith('_video'));
+  const calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
+  const videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
+
+  const hasCalendarIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
+  const hasVideoIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_video")).length > 0;
+
+  const calendarAvailability = await getBusyCalendarTimes(
+    currentUser.credentials,
+    dayjs(req.body.start).startOf("day").utc().format(),
+    dayjs(req.body.end).endOf("day").utc().format(),
+    selectedCalendars
+  );
+  const videoAvailability = await getBusyVideoTimes(
+    currentUser.credentials,
+    dayjs(req.body.start).startOf("day").utc().format(),
+    dayjs(req.body.end).endOf("day").utc().format()
+  );
+  let commonAvailability = [];
+
+  if (hasCalendarIntegrations && hasVideoIntegrations) {
+    commonAvailability = calendarAvailability.filter((availability) =>
+      videoAvailability.includes(availability)
+    );
+  } else if (hasVideoIntegrations) {
+    commonAvailability = videoAvailability;
+  } else if (hasCalendarIntegrations) {
+    commonAvailability = calendarAvailability;
+  }
 
   const rescheduleUid = req.body.rescheduleUid;
 
   const selectedEventType = await prisma.eventType.findFirst({
     where: {
       userId: currentUser.id,
-      id: req.body.eventTypeId
+      id: req.body.eventTypeId,
     },
     select: {
       eventName: true,
-      title: true
-    }
+      title: true,
+      length: true,
+    },
   });
 
-  let rawLocation = req.body.location
+  const rawLocation = req.body.location;
 
   let evt: CalendarEvent = {
     type: selectedEventType.title,
@@ -72,39 +138,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     description: req.body.notes,
     startTime: req.body.start,
     endTime: req.body.end,
-    organizer: {email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone},
-    attendees: [
-      {email: req.body.email, name: req.body.name, timeZone: req.body.timeZone}
-    ]
+    organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
+    attendees: [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }],
   };
 
   // If phone or inPerson use raw location
   // set evt.location to req.body.location
-  if (!rawLocation.includes('integration')) {
-    evt.location = rawLocation
+  if (!rawLocation?.includes("integration")) {
+    evt.location = rawLocation;
   }
-  
 
   // If location is set to an integration location
   // Build proper transforms for evt object
   // Extend evt object with those transformations
-  if (rawLocation.includes('integration')) {
-    let maybeLocationRequestObject = getLocationRequestFromIntegration({
-      location: rawLocation
-    }) 
-    
-    evt = merge(evt, maybeLocationRequestObject)
+  if (rawLocation?.includes("integration")) {
+    const maybeLocationRequestObject = getLocationRequestFromIntegration({
+      location: rawLocation,
+    });
+
+    evt = merge(evt, maybeLocationRequestObject);
   }
-  
+
   const eventType = await prisma.eventType.findFirst({
     where: {
       userId: currentUser.id,
-      title: evt.type
+      title: evt.type,
     },
     select: {
-      id: true
-    }
+      id: true,
+    },
   });
+
+  // TODO isAvailable was throwing an error
+  const isAvailableToBeBooked = true;//isAvailable(commonAvailability, req.body.start, selectedEventType.length);
+
+  if (!isAvailableToBeBooked) {
+    return res.status(400).json({ message: `${currentUser.name} is unavailable at this time.` });
+  }
 
   let results = [];
   let referencesToCreate = [];
@@ -113,7 +183,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Reschedule event
     const booking = await prisma.booking.findFirst({
       where: {
-        uid: rescheduleUid
+        uid: rescheduleUid,
       },
       select: {
         id: true,
@@ -121,112 +191,144 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           select: {
             id: true,
             type: true,
-            uid: true
-          }
-        }
-      }
+            uid: true,
+          },
+        },
+      },
     });
 
     // Use all integrations
-    results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
-      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      const response = await updateEvent(credential, bookingRefUid, evt);
+    results = results.concat(
+      await async.mapLimit(calendarCredentials, 5, async (credential) => {
+        const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+        return updateEvent(credential, bookingRefUid, evt)
+          .then((response) => ({ type: credential.type, success: true, response }))
+          .catch((e) => {
+            console.error("updateEvent failed", e);
+            return { type: credential.type, success: false };
+          });
+      })
+    );
 
-      return {
-        type: credential.type,
-        response
-      };
-    }));
+    results = results.concat(
+      await async.mapLimit(videoCredentials, 5, async (credential) => {
+        const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+        return updateMeeting(credential, bookingRefUid, evt)
+          .then((response) => ({ type: credential.type, success: true, response }))
+          .catch((e) => {
+            console.error("updateMeeting failed", e);
+            return { type: credential.type, success: false };
+          });
+      })
+    );
 
-    results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
-      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      const response = await updateMeeting(credential, bookingRefUid, evt);
-      return {
-        type: credential.type,
-        response
-      };
-    }));
+    if (results.length > 0 && results.every((res) => !res.success)) {
+      res.status(500).json({ message: "Rescheduling failed" });
+      return;
+    }
 
     // Clone elements
     referencesToCreate = [...booking.references];
 
     // Now we can delete the old booking and its references.
-    let bookingReferenceDeletes = prisma.bookingReference.deleteMany({
+    const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
       where: {
-        bookingId: booking.id
-      }
+        bookingId: booking.id,
+      },
     });
-    let attendeeDeletes = prisma.attendee.deleteMany({
+    const attendeeDeletes = prisma.attendee.deleteMany({
       where: {
-        bookingId: booking.id
-      }
+        bookingId: booking.id,
+      },
     });
-    let bookingDeletes = prisma.booking.delete({
+    const bookingDeletes = prisma.booking.delete({
       where: {
-        uid: rescheduleUid
-      }
+        uid: rescheduleUid,
+      },
     });
 
-    await Promise.all([
-      bookingReferenceDeletes,
-      attendeeDeletes,
-      bookingDeletes
-    ]);
+    await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
   } else {
     // Schedule event
-    results = results.concat(await async.mapLimit(calendarCredentials, 5, async (credential) => {
-      const response = await createEvent(credential, evt);
-      return {
-        type: credential.type,
-        response
-      };
-    }));
+    results = results.concat(
+      await async.mapLimit(calendarCredentials, 5, async (credential) => {
+        return createEvent(credential, evt)
+          .then((response) => ({ type: credential.type, success: true, response }))
+          .catch((e) => {
+            console.error("createEvent failed", e);
+            return { type: credential.type, success: false };
+          });
+      })
+    );
 
-    results = results.concat(await async.mapLimit(videoCredentials, 5, async (credential) => {
-      const response = await createMeeting(credential, evt);
-      return {
-        type: credential.type,
-        response
-      };
-    }));
+    results = results.concat(
+      await async.mapLimit(videoCredentials, 5, async (credential) => {
+        return createMeeting(credential, evt)
+          .then((response) => ({ type: credential.type, success: true, response }))
+          .catch((e) => {
+            console.error("createMeeting failed", e);
+            return { type: credential.type, success: false };
+          });
+      })
+    );
 
-    referencesToCreate = results.map((result => {
+    if (results.length > 0 && results.every((res) => !res.success)) {
+      res.status(500).json({ message: "Booking failed" });
+      return;
+    }
+
+    referencesToCreate = results.map((result) => {
       return {
         type: result.type,
-        uid: result.response.createdEvent.id.toString()
+        uid: result.response.createdEvent.id.toString(),
       };
-    }));
+    });
   }
 
+  const hashUID =
+    results.length > 0
+      ? results[0].response.uid
+      : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
   // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
   // UID generation should happen in the integration itself, not here.
-  const hashUID = results.length > 0 ? results[0].response.uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
-  if(results.length === 0) {
+  if (results.length === 0) {
     // Legacy as well, as soon as we have a separate email integration class. Just used
     // to send an email even if there is no integration at all.
-    const mail = new EventAttendeeMail(evt, hashUID);
-    await mail.sendEmail();
+    try {
+      const mail = new EventAttendeeMail(evt, hashUID);
+      await mail.sendEmail();
+    } catch (e) {
+      console.error("Sending legacy event mail failed", e);
+      res.status(500).json({ message: "Booking failed" });
+      return;
+    }
   }
 
-  await prisma.booking.create({
-    data: {
-      uid: hashUID,
-      userId: currentUser.id,
-      references: {
-        create: referencesToCreate
+  try {
+    await prisma.booking.create({
+      data: {
+        uid: hashUID,
+        userId: currentUser.id,
+        references: {
+          create: referencesToCreate,
+        },
+        eventTypeId: eventType.id,
+
+        title: evt.title,
+        description: evt.description,
+        startTime: evt.startTime,
+        endTime: evt.endTime,
+
+        attendees: {
+          create: evt.attendees,
+        },
       },
-      eventTypeId: eventType.id,
+    });
+  } catch (e) {
+    console.error("Error when saving booking to db", e);
+    res.status(500).json({ message: "Booking already exists" });
+    return;
+  }
 
-      title: evt.title,
-      description: evt.description,
-      startTime: evt.startTime,
-      endTime: evt.endTime,
-
-      attendees: {
-        create: evt.attendees
-      }
-    }
-  });
-
-  res.status(200).json(results);
+  res.status(204).json({});
 }

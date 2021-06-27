@@ -58,7 +58,7 @@ export default abstract class EventMail {
    * Sends the email to the event attendant and returns a Promise.
    */
   public sendEmail(): Promise<any> {
-    return new Promise((resolve, reject) => nodemailer.createTransport(this.getMailerOptions().transport).sendMail(
+    new Promise((resolve, reject) => nodemailer.createTransport(this.getMailerOptions().transport).sendMail(
       this.getNodeMailerPayload(),
       (error, info) => {
         if (error) {
@@ -67,7 +67,9 @@ export default abstract class EventMail {
         } else {
           resolve(info);
         }
-      }));
+      })
+    ).catch((e) => console.error("sendEmail", e));
+    return new Promise((resolve) => resolve("send mail async"));
   }
 
   /**
@@ -127,7 +129,8 @@ export default abstract class EventMail {
   protected getAdditionalFooter(): string {
     return `
       <br/>
-      Need to change this event?<br />
+      <br/>
+      <strong>Need to change this event?</strong><br />
       Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a><br />
       Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
     `;

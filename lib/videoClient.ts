@@ -193,10 +193,18 @@ const createMeeting = async (credential, calEvent: CalendarEvent): Promise<any> 
 
   const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData);
   const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData);
-  await organizerMail.sendEmail();
+  try {
+    await organizerMail.sendEmail();
+  } catch (e) {
+    console.error("organizerMail.sendEmail failed", e)
+  }
 
   if (!creationResult || !creationResult.disableConfirmationEmail) {
-    await attendeeMail.sendEmail();
+    try {
+      await attendeeMail.sendEmail();
+    } catch (e) {
+      console.error("attendeeMail.sendEmail failed", e)
+    }
   }
 
   return {
@@ -216,10 +224,18 @@ const updateMeeting = async (credential, uidToUpdate: String, calEvent: Calendar
 
   const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
   const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
-  await organizerMail.sendEmail();
+  try {
+    await organizerMail.sendEmail();
+  } catch (e) {
+    console.error("organizerMail.sendEmail failed", e)
+  }
 
   if (!updateResult || !updateResult.disableConfirmationEmail) {
-    await attendeeMail.sendEmail();
+    try {
+      await attendeeMail.sendEmail();
+    } catch (e) {
+      console.error("attendeeMail.sendEmail failed", e)
+    }
   }
 
   return {

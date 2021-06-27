@@ -11,7 +11,7 @@ const DatePicker = ({ weekStart, onDatePicked, workingHours, disableToday }) => 
 
   useEffect(() => {
     if (selectedDate) onDatePicked(selectedDate);
-  }, [selectedDate, onDatePicked]);
+  }, [selectedDate]);
 
   // Handle month changes
   const incrementMonth = () => {

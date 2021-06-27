@@ -19,7 +19,8 @@ dayjs.extend(utc);
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(timezone);
 
-export default function EventType(props) {
+export default function EventType(props: any): JSX.Element {
+
   const router = useRouter();
 
   const inputOptions: OptionBase[] = [
@@ -35,6 +36,7 @@ export default function EventType(props) {
   const [selectedInputOption, setSelectedInputOption] = useState<OptionBase>(inputOptions[0]);
   const [locations, setLocations] = useState(props.eventType.locations || []);
   const [schedule, setSchedule] = useState(undefined);
+  const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     props.eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -131,41 +133,7 @@ export default function EventType(props) {
   const closeAddCustomModal = () => {
     setSelectedInputOption(inputOptions[0]);
     setShowAddCustomModal(false);
-  };
-
-  const LocationOptions = () => {
-    if (!selectedLocation) {
-      return null;
-    }
-    switch (selectedLocation.value) {
-      case LocationType.InPerson: {
-        const address = locations.find((location) => location.type === LocationType.InPerson)?.address;
-        return (
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              Set an address or place
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                name="address"
-                id="address"
-                required
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                defaultValue={address}
-              />
-            </div>
-          </div>
-        );
-      }
-      case LocationType.Phone:
-        return (
-          <p className="text-sm">Calendso will ask your invitee to enter a phone number before scheduling.</p>
-        );
-      case LocationType.GoogleMeet:
-        return <p className="text-sm">Calendso will provide a Google Meet location.</p>;
-    }
-    return null;
+    setSelectedCustomInput(undefined);
   };
 
   const updateLocations = (e) => {
@@ -192,6 +160,47 @@ export default function EventType(props) {
     setLocations(locations.filter((location) => location.type !== selectedLocation.type));
   };
 
+  const openEditCustomModel = (customInput: EventTypeCustomInput) => {
+    setSelectedCustomInput(customInput);
+    setSelectedInputOption(inputOptions.find((e) => e.value === customInput.type));
+    setShowAddCustomModal(true);
+  };
+
+  const LocationOptions = () => {
+    if (!selectedLocation) {
+      return null;
+    }
+    switch (selectedLocation.value) {
+      case LocationType.InPerson:
+        return (
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              Set an address or place
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                name="address"
+                id="address"
+                required
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                defaultValue={locations.find((location) => location.type === LocationType.InPerson)?.address}
+              />
+            </div>
+          </div>
+        );
+      case LocationType.Phone:
+        return (
+          <p className="text-sm">Calendso will ask your invitee to enter a phone number before scheduling.</p>
+        );
+      case LocationType.GoogleMeet:
+        return <p className="text-sm">Calendso will provide a Google Meet location.</p>;
+      case LocationType.Zoom:
+        return <p className="text-sm">Calendso will provide a Zoom meeting URL.</p>;
+    }
+    return null;
+  };
+
   const updateCustom = (e) => {
     e.preventDefault();
 
@@ -201,9 +210,28 @@ export default function EventType(props) {
       type: e.target.type.value,
     };
 
-    setCustomInputs(customInputs.concat(customInput));
+    if (e.target.id?.value) {
+      const index = customInputs.findIndex((inp) => inp.id === +e.target.id?.value);
+      if (index >= 0) {
+        const input = customInputs[index];
+        input.label = customInput.label;
+        input.required = customInput.required;
+        input.type = customInput.type;
+        setCustomInputs(customInputs);
+      }
+    } else {
+      setCustomInputs(customInputs.concat(customInput));
+    }
+    closeAddCustomModal();
+  };
 
-    setShowAddCustomModal(false);
+  const removeCustom = (customInput, e) => {
+    e.preventDefault();
+    const index = customInputs.findIndex((inp) => inp.id === customInput.id);
+    if (index >= 0) {
+      customInputs.splice(index, 1);
+      setCustomInputs([...customInputs]);
+    }
   };
 
   return (
@@ -309,6 +337,50 @@ export default function EventType(props) {
                                   <span className="ml-2 text-sm">Google Meet</span>
                                 </div>
                               )}
+                              {location.type === LocationType.Zoom && (
+                                <div className="flex-grow flex">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 1329.08 1329.08"
+                                    height="1.25em"
+                                    width="1.25em"
+                                    shapeRendering="geometricPrecision"
+                                    textRendering="geometricPrecision"
+                                    imageRendering="optimizeQuality"
+                                    fillRule="evenodd"
+                                    clipRule="evenodd">
+                                    <g id="Layer_x0020_1">
+                                      <g id="_2116467169744">
+                                        <path
+                                          d="M664.54 0c367.02 0 664.54 297.52 664.54 664.54s-297.52 664.54-664.54 664.54S0 1031.56 0 664.54 297.52 0 664.54 0z"
+                                          fill="#e5e5e4"
+                                          fillRule="nonzero"
+                                        />
+                                        <path
+                                          style={{
+                                            fill: "#fff",
+                                            fillRule: "nonzero",
+                                          }}
+                                          d="M664.54 12.94c359.87 0 651.6 291.73 651.6 651.6s-291.73 651.6-651.6 651.6-651.6-291.73-651.6-651.6 291.74-651.6 651.6-651.6z"
+                                        />
+                                        <path
+                                          d="M664.54 65.21c331 0 599.33 268.33 599.33 599.33 0 331-268.33 599.33-599.33 599.33-331 0-599.33-268.33-599.33-599.33 0-331 268.33-599.33 599.33-599.33z"
+                                          fill="#4a8cff"
+                                          fillRule="nonzero"
+                                        />
+                                        <path
+                                          style={{
+                                            fill: "#fff",
+                                            fillRule: "nonzero",
+                                          }}
+                                          d="M273.53 476.77v281.65c.25 63.69 52.27 114.95 115.71 114.69h410.55c11.67 0 21.06-9.39 21.06-20.81V570.65c-.25-63.69-52.27-114.95-115.7-114.69H294.6c-11.67 0-21.06 9.39-21.06 20.81zm573.45 109.87l169.5-123.82c14.72-12.18 26.13-9.14 26.13 12.94v377.56c0 25.12-13.96 22.08-26.13 12.94l-169.5-123.57V586.64z"
+                                        />
+                                      </g>
+                                    </g>
+                                  </svg>
+                                  <span className="ml-2 text-sm">Zoom Video</span>
+                                </div>
+                              )}
                               <div className="flex">
                                 <button
                                   type="button"
@@ -393,7 +465,7 @@ export default function EventType(props) {
                     </label>
                     <ul className="w-96 mt-1">
                       {customInputs.map((customInput) => (
-                        <li key={customInput.type} className="bg-blue-50 mb-2 p-2 border">
+                        <li key={customInput.label} className="bg-blue-50 mb-2 p-2 border">
                           <div className="flex justify-between">
                             <div>
                               <div>
@@ -409,10 +481,13 @@ export default function EventType(props) {
                               </div>
                             </div>
                             <div className="flex">
-                              <button type="button" className="mr-2 text-sm text-blue-600">
+                              <button
+                                type="button"
+                                onClick={() => openEditCustomModel(customInput)}
+                                className="mr-2 text-sm text-blue-600">
                                 Edit
                               </button>
-                              <button>
+                              <button onClick={(e) => removeCustom(customInput, e)}>
                                 <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
                               </button>
                             </div>
@@ -447,7 +522,7 @@ export default function EventType(props) {
                           Hide this event type
                         </label>
                         <p className="text-gray-500">
-                          Hide the event type from your page, so it can only be booked through it&apos;s URL.
+                          Hide the event type from your page, so it can only be booked through its URL.
                         </p>
                       </div>
                     </div>
@@ -599,6 +674,7 @@ export default function EventType(props) {
                         id="label"
                         required
                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        defaultValue={selectedCustomInput?.label}
                       />
                     </div>
                   </div>
@@ -608,13 +684,13 @@ export default function EventType(props) {
                       name="required"
                       type="checkbox"
                       className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
-                      defaultChecked={true}
+                      defaultChecked={selectedCustomInput?.required ?? true}
                     />
                     <label htmlFor="required" className="block text-sm font-medium text-gray-700">
                       Is required
                     </label>
                   </div>
-
+                  <input type="hidden" name="id" id="id" value={selectedCustomInput?.id} />
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
                       Save
@@ -640,7 +716,7 @@ const validJson = (jsonString: string) => {
       return o;
     }
   } catch (e) {
-    // no longer empty
+    console.log("Invalid JSON:", e);
   }
   return false;
 };
@@ -650,7 +726,6 @@ export async function getServerSideProps(context) {
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
-
   const user = await prisma.user.findFirst({
     where: {
       email: session.user.email,
@@ -715,6 +790,7 @@ export async function getServerSideProps(context) {
   const locationOptions: OptionBase[] = [
     { value: LocationType.InPerson, label: "In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
+    { value: LocationType.Zoom, label: "Zoom Video" },
   ];
 
   const hasGoogleCalendarIntegration = integrations.find(
@@ -746,7 +822,7 @@ export async function getServerSideProps(context) {
   const schedules = getAvailability(eventType) ||
     getAvailability(user) || [
       {
-        days: [1, 2, 3, 4, 5, 6, 7],
+        days: [0, 1, 2, 3, 4, 5, 6],
         startTime: user.startTime,
         length: user.endTime >= 1440 ? 1439 : user.endTime,
       },
