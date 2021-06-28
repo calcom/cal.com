@@ -21,7 +21,7 @@ model EventType {
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
   bookings      Booking[]
-  availability  Schedule[]
+  availability  Availability[]
   eventName     String?
   customInputs  EventTypeCustomInput[]
 }
@@ -53,7 +53,7 @@ model User {
   credentials   Credential[]
   teams         Membership[]
   bookings      Booking[]
-  availability  Schedule[]
+  availability  Availability[]
   selectedCalendars      SelectedCalendar[]
 
   @@map(name: "users")
@@ -128,7 +128,7 @@ model Booking {
   updatedAt     DateTime?
 }
 
-model Schedule {
+model Availability {
   id            Int        @default(autoincrement()) @id
   label         String?
   user          User?      @relation(fields: [userId], references: [id])
@@ -136,10 +136,9 @@ model Schedule {
   eventType     EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId   Int?
   days          Int[]
-  startTime     Int?
-  startDate     DateTime?  @db.Timestamptz(3)
-  length        Int
-  isOverride    Boolean    @default(false)
+  startTime     Int
+  endTime       Int
+  date          DateTime?  @db.Date
 }
 
 model SelectedCalendar {
@@ -157,13 +156,5 @@ model EventTypeCustomInput {
   label       String
   type        String
   required    Boolean
-}
-
-model ResetPasswordRequest {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  email      String
-  expires    DateTime
 }
 
