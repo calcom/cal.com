@@ -238,6 +238,9 @@ export default function Book(props: any): JSX.Element {
                         id="phone"
                         required
                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        onChange={() => {
+                          /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
+                        }}
                       />
                     </div>
                   </div>
