@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
-import { CalendarEvent, createEvent, updateEvent } from "../../../lib/calendarClient";
+import { CalendarEvent, createEvent, getBusyCalendarTimes, updateEvent } from "../../../lib/calendarClient";
 import async from "async";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
-import { createMeeting, updateMeeting } from "../../../lib/videoClient";
+import { createMeeting, getBusyVideoTimes, updateMeeting } from "../../../lib/videoClient";
 import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "../../../lib/event";
 import { LocationType } from "../../../lib/location";
@@ -13,37 +13,39 @@ import dayjs from "dayjs";
 
 const translator = short();
 
-// Commented out because unused and thus throwing an error in linter.
-// const isAvailable = (busyTimes, time, length) => {
-//   // Check for conflicts
-//   let t = true;
-//   busyTimes.forEach((busyTime) => {
-//     const startTime = dayjs(busyTime.start);
-//     const endTime = dayjs(busyTime.end);
-//
-//     // Check if start times are the same
-//     if (dayjs(time).format("HH:mm") == startTime.format("HH:mm")) {
-//       t = false;
-//     }
-//
-//     // Check if time is between start and end times
-//     if (dayjs(time).isBetween(startTime, endTime)) {
-//       t = false;
-//     }
-//
-//     // Check if slot end time is between start and end time
-//     if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-//       t = false;
-//     }
-//
-//     // Check if startTime is between slot
-//     if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-//       t = false;
-//     }
-//   });
-//
-//   return t;
-// };
+function isAvailable(busyTimes, time, length) {
+  // Check for conflicts
+  let t = true;
+
+  if (Array.isArray(busyTimes) && busyTimes.length > 0) {
+    busyTimes.forEach((busyTime) => {
+      const startTime = dayjs(busyTime.start);
+      const endTime = dayjs(busyTime.end);
+
+      // Check if start times are the same
+      if (dayjs(time).format("HH:mm") == startTime.format("HH:mm")) {
+        t = false;
+      }
+
+      // Check if time is between start and end times
+      if (dayjs(time).isBetween(startTime, endTime)) {
+        t = false;
+      }
+
+      // Check if slot end time is between start and end time
+      if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+        t = false;
+      }
+
+      // Check if startTime is between slot
+      if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
+        t = false;
+      }
+    });
+  }
+
+  return t;
+}
 
 interface GetLocationRequestFromIntegrationRequest {
   location: string;
@@ -91,46 +93,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  // Commented out because unused and thus throwing an error in linter.
-  // const selectedCalendars = await prisma.selectedCalendar.findMany({
-  //   where: {
-  //     userId: currentUser.id,
-  //   },
-  // });
+  const selectedCalendars = await prisma.selectedCalendar.findMany({
+    where: {
+      userId: currentUser.id,
+    },
+  });
+
   // Split credentials up into calendar credentials and video credentials
   let calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
   let videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
 
-  // Commented out because unused and thus throwing an error in linter.
-  // const hasCalendarIntegrations =
-  //   currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
-  // const hasVideoIntegrations =
-  //   currentUser.credentials.filter((cred) => cred.type.endsWith("_video")).length > 0;
+  const hasCalendarIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
+  const hasVideoIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_video")).length > 0;
 
-  // Commented out because unused and thus throwing an error in linter.
-  // const calendarAvailability = await getBusyCalendarTimes(
-  //   currentUser.credentials,
-  //   dayjs(req.body.start).startOf("day").utc().format(),
-  //   dayjs(req.body.end).endOf("day").utc().format(),
-  //   selectedCalendars
-  // );
-  // const videoAvailability = await getBusyVideoTimes(
-  //   currentUser.credentials,
-  //   dayjs(req.body.start).startOf("day").utc().format(),
-  //   dayjs(req.body.end).endOf("day").utc().format()
-  // );
-  // let commonAvailability = [];
+  const calendarAvailability = await getBusyCalendarTimes(
+    currentUser.credentials,
+    dayjs(req.body.start).startOf("day").utc().format(),
+    dayjs(req.body.end).endOf("day").utc().format(),
+    selectedCalendars
+  );
+  const videoAvailability = await getBusyVideoTimes(
+    currentUser.credentials,
+    dayjs(req.body.start).startOf("day").utc().format(),
+    dayjs(req.body.end).endOf("day").utc().format()
+  );
+  let commonAvailability = [];
 
-  // Commented out because unused and thus throwing an error in linter.
-  // if (hasCalendarIntegrations && hasVideoIntegrations) {
-  //   commonAvailability = calendarAvailability.filter((availability) =>
-  //     videoAvailability.includes(availability)
-  //   );
-  // } else if (hasVideoIntegrations) {
-  //   commonAvailability = videoAvailability;
-  // } else if (hasCalendarIntegrations) {
-  //   commonAvailability = calendarAvailability;
-  // }
+  if (hasCalendarIntegrations && hasVideoIntegrations) {
+    commonAvailability = calendarAvailability.filter((availability) =>
+      videoAvailability.includes(availability)
+    );
+  } else if (hasVideoIntegrations) {
+    commonAvailability = videoAvailability;
+  } else if (hasCalendarIntegrations) {
+    commonAvailability = calendarAvailability;
+  }
 
   // Now, get the newly stored credentials (new refresh token for example).
   currentUser = await prisma.user.findFirst({
@@ -201,8 +200,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  // TODO isAvailable was throwing an error
-  const isAvailableToBeBooked = true; //isAvailable(commonAvailability, req.body.start, selectedEventType.length);
+  let isAvailableToBeBooked = true;
+
+  try {
+    isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, selectedEventType.length);
+  } catch {
+    console.debug({
+      message: "Unable set isAvailableToBeBooked. Using true. ",
+    });
+  }
 
   if (!isAvailableToBeBooked) {
     return res.status(400).json({ message: `${currentUser.name} is unavailable at this time.` });
