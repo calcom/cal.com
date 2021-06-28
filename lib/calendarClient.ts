@@ -373,6 +373,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
               auth: myGoogleAuth,
               calendarId: "primary",
               resource: payload,
+              conferenceDataVersion: 1,
             },
             function (err, event) {
               if (err) {
