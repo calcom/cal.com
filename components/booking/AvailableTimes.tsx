@@ -102,7 +102,7 @@ const AvailableTimes = (props) => {
         ))}
       {!error && loaded && times.length == 0 && (
         <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
-          <h1 className="text-xl font">{props.user.name} is all booked today.</h1>
+          <h1 className="text-xl font">{props.user.name} isn&apos;t available at this time.</h1>
         </div>
       )}
       {!error && !loaded && <div className="loader" />}
