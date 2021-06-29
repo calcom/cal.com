@@ -50,13 +50,16 @@ export const Scheduler = ({
   const addNewSchedule = () => setEditSchedule(openingHours.length);
 
   const applyEditSchedule = (changed) => {
+    // new entry
     if (!changed.days) {
       changed.days = [1, 2, 3, 4, 5]; // Mon - Fri
+      setOpeningHours(openingHours.concat(changed));
+    } else {
+      // update
+      const replaceWith = { ...openingHours[editSchedule], ...changed };
+      openingHours.splice(editSchedule, 1, replaceWith);
+      setOpeningHours([].concat(openingHours));
     }
-
-    const replaceWith = { ...openingHours[editSchedule], ...changed };
-    openingHours.splice(editSchedule, 1, replaceWith);
-    setOpeningHours([].concat(openingHours));
   };
 
   const removeScheduleAt = (toRemove: number) => {
@@ -69,9 +72,15 @@ export const Scheduler = ({
       <div className="inline-flex ml-2">
         <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
         <button className="ml-2 text-sm px-2" type="button" onClick={() => setEditSchedule(idx)}>
-          {dayjs(item.startDate).format(item.startDate.minute() === 0 ? "ha" : "h:mma")}
+          {dayjs()
+            .startOf("day")
+            .add(item.startTime, "minutes")
+            .format(item.startTime % 60 === 0 ? "ha" : "h:mma")}
           &nbsp;until&nbsp;
-          {dayjs(item.endDate).format(item.endDate.minute() === 0 ? "ha" : "h:mma")}
+          {dayjs()
+            .startOf("day")
+            .add(item.endTime, "minutes")
+            .format(item.endTime % 60 === 0 ? "ha" : "h:mma")}
         </button>
       </div>
       <button
@@ -122,8 +131,9 @@ export const Scheduler = ({
       </div>
       {editSchedule >= 0 && (
         <SetTimesModal
-          schedule={{ ...openingHours[editSchedule], timeZone: selectedTimeZone }}
-          onChange={applyEditSchedule}
+          startTime={openingHours[editSchedule] ? openingHours[editSchedule].startTime : 540}
+          endTime={openingHours[editSchedule] ? openingHours[editSchedule].endTime : 1020}
+          onChange={(times) => applyEditSchedule({ ...(openingHours[editSchedule] || {}), ...times })}
           onExit={() => setEditSchedule(-1)}
         />
       )}

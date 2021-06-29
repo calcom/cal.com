@@ -118,16 +118,7 @@ export default function EventTypePage({
     };
 
     if (enteredAvailability) {
-      payload.availability = {
-        dateOverrides: [],
-        openingHours: enteredAvailability.openingHours.map((item): OpeningHours => {
-          item.startTime = item.startDate.hour() * 60 + item.startDate.minute();
-          delete item.startDate;
-          item.endTime = item.endDate.hour() * 60 + item.endDate.minute();
-          delete item.endDate;
-          return item;
-        }),
-      };
+      payload.availability = enteredAvailability;
     }
 
     await fetch("/api/availability/eventtype", {
@@ -855,7 +846,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       {
         days: [0, 1, 2, 3, 4, 5, 6],
         startTime: user.startTime,
-        length: user.endTime >= 1440 ? 1439 : user.endTime,
+        endTime: user.endTime,
       },
     ];
 

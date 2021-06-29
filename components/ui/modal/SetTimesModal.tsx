@@ -1,25 +1,9 @@
 import { ClockIcon } from "@heroicons/react/outline";
 import { useRef } from "react";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/utc";
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export default function SetTimesModal(props) {
-  const { startDate, endDate } = {
-    startDate: dayjs
-      .utc()
-      .startOf("day")
-      .add(props.schedule.startTime || 540, "minutes"),
-    endDate: dayjs
-      .utc()
-      .startOf("day")
-      .add(props.schedule.endTime || 1020, "minutes"),
-  };
-
-  startDate.tz(props.timeZone);
-  endDate.tz(props.timeZone);
+  const [startHours, startMinutes] = [Math.floor(props.startTime / 60), props.startTime % 60];
+  const [endHours, endMinutes] = [Math.floor(props.endTime / 60), props.endTime % 60];
 
   const startHoursRef = useRef<HTMLInputElement>();
   const startMinsRef = useRef<HTMLInputElement>();
@@ -35,8 +19,8 @@ export default function SetTimesModal(props) {
     const enteredEndMins = parseInt(endMinsRef.current.value);
 
     props.onChange({
-      startDate: startDate.minute(enteredStartMins).hour(enteredStartHours),
-      endDate: endDate.minute(enteredEndMins).hour(enteredEndHours),
+      startTime: enteredStartHours * 60 + enteredStartMins,
+      endTime: enteredEndHours * 60 + enteredEndMins,
     });
 
     props.onExit(0);
@@ -85,7 +69,7 @@ export default function SetTimesModal(props) {
                 id="startHours"
                 className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="9"
-                defaultValue={startDate.format("H")}
+                defaultValue={startHours}
               />
             </div>
             <span className="mx-2 pt-1">:</span>
@@ -104,7 +88,7 @@ export default function SetTimesModal(props) {
                 id="startMinutes"
                 className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="30"
-                defaultValue={startDate.format("m")}
+                defaultValue={startMinutes}
               />
             </div>
           </div>
@@ -124,7 +108,7 @@ export default function SetTimesModal(props) {
                 id="endHours"
                 className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="17"
-                defaultValue={endDate.format("H")}
+                defaultValue={endHours}
               />
             </div>
             <span className="mx-2 pt-1">:</span>
@@ -143,7 +127,7 @@ export default function SetTimesModal(props) {
                 id="endMinutes"
                 className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="30"
-                defaultValue={endDate.format("m")}
+                defaultValue={endMinutes}
               />
             </div>
           </div>
