@@ -3,56 +3,87 @@ import TimezoneSelect from "react-timezone-select";
 import { TrashIcon } from "@heroicons/react/outline";
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";
-import Schedule from "../../lib/schedule.model";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { Availability } from "@prisma/client";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export const Scheduler = (props) => {
-  const [schedules, setSchedules]: Schedule[] = useState(
-    props.schedules.map((schedule) => {
-      const startDate = schedule.isOverride
-        ? dayjs(schedule.startDate)
-        : dayjs.utc().startOf("day").add(schedule.startTime, "minutes").tz(props.timeZone);
-      return {
-        days: schedule.days,
-        startDate,
-        endDate: startDate.add(schedule.length, "minutes"),
-      };
-    })
-  );
+type Props = {
+  timeZone: string;
+  availability: Availability[];
+  setTimeZone: unknown;
+};
 
-  const [timeZone, setTimeZone] = useState(props.timeZone);
+export const Scheduler = ({
+  availability,
+  setAvailability,
+  timeZone: selectedTimeZone,
+  setTimeZone,
+}: Props) => {
   const [editSchedule, setEditSchedule] = useState(-1);
+  const [dateOverrides, setDateOverrides] = useState([]);
+  const [openingHours, setOpeningHours] = useState([]);
 
   useEffect(() => {
-    props.onChange(schedules);
-  }, [schedules]);
+    setOpeningHours(
+      availability
+        .filter((item: Availability) => item.days.length !== 0)
+        .map((item) => {
+          item.startDate = dayjs().utc().startOf("day").add(item.startTime, "minutes");
+          item.endDate = dayjs().utc().startOf("day").add(item.endTime, "minutes");
+          return item;
+        })
+    );
+    setDateOverrides(availability.filter((item: Availability) => item.date));
+  }, []);
 
-  const addNewSchedule = () => setEditSchedule(schedules.length);
+  // updates availability to how it should be formatted outside this component.
+  useEffect(() => {
+    setAvailability({
+      dateOverrides: dateOverrides,
+      openingHours: openingHours,
+    });
+  }, [dateOverrides, openingHours]);
 
-  const applyEditSchedule = (changed: Schedule) => {
-    const replaceWith = {
-      ...schedules[editSchedule],
-      ...changed,
-    };
+  const addNewSchedule = () => setEditSchedule(openingHours.length);
 
-    schedules.splice(editSchedule, 1, replaceWith);
+  const applyEditSchedule = (changed) => {
+    if (!changed.days) {
+      changed.days = [1, 2, 3, 4, 5]; // Mon - Fri
+    }
 
-    setSchedules([].concat(schedules));
+    const replaceWith = { ...openingHours[editSchedule], ...changed };
+    openingHours.splice(editSchedule, 1, replaceWith);
+    setOpeningHours([].concat(openingHours));
   };
 
   const removeScheduleAt = (toRemove: number) => {
-    schedules.splice(toRemove, 1);
-    setSchedules([].concat(schedules));
+    openingHours.splice(toRemove, 1);
+    setOpeningHours([].concat(openingHours));
   };
 
-  const setWeekdays = (idx: number, days: number[]) => {
-    schedules[idx].days = days;
-    setSchedules([].concat(schedules));
-  };
+  const OpeningHours = ({ idx, item }) => (
+    <li className="py-2 flex justify-between border-t">
+      <div className="inline-flex ml-2">
+        <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
+        <button className="ml-2 text-sm px-2" type="button" onClick={() => setEditSchedule(idx)}>
+          {dayjs(item.startDate).format(item.startDate.minute() === 0 ? "ha" : "h:mma")}
+          &nbsp;until&nbsp;
+          {dayjs(item.endDate).format(item.endDate.minute() === 0 ? "ha" : "h:mma")}
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={() => removeScheduleAt(idx)}
+        className="btn-sm bg-transparent px-2 py-1 ml-1">
+        <TrashIcon className="h-6 w-6 inline text-gray-400 -mt-1" />
+      </button>
+    </li>
+  );
+
+  console.log(selectedTimeZone);
 
   return (
     <div>
@@ -65,32 +96,15 @@ export const Scheduler = (props) => {
             <div className="mt-1">
               <TimezoneSelect
                 id="timeZone"
-                value={timeZone}
-                onChange={setTimeZone}
+                value={selectedTimeZone}
+                onChange={(tz) => setTimeZone(tz.value)}
                 className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
               />
             </div>
           </div>
           <ul>
-            {schedules.map((schedule, idx) => (
-              <li key={idx} className="py-2 flex justify-between border-t">
-                <div className="inline-flex ml-2">
-                  <WeekdaySelect
-                    defaultValue={schedules[idx].days}
-                    onSelect={(days: number[]) => setWeekdays(idx, days)}
-                  />
-                  <button className="ml-2 text-sm px-2" type="button" onClick={() => setEditSchedule(idx)}>
-                    {dayjs(schedule.startDate).format(schedule.startDate.minute() === 0 ? "ha" : "h:mma")}{" "}
-                    until {dayjs(schedule.endDate).format(schedule.endDate.minute() === 0 ? "ha" : "h:mma")}
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeScheduleAt(idx)}
-                  className="btn-sm bg-transparent px-2 py-1 ml-1">
-                  <TrashIcon className="h-6 w-6 inline text-gray-400 -mt-1" />
-                </button>
-              </li>
+            {openingHours.map((item, idx) => (
+              <OpeningHours key={idx} idx={idx} item={item} />
             ))}
           </ul>
           <hr />
@@ -108,7 +122,7 @@ export const Scheduler = (props) => {
       </div>
       {editSchedule >= 0 && (
         <SetTimesModal
-          schedule={schedules[editSchedule]}
+          schedule={{ ...openingHours[editSchedule], timeZone: selectedTimeZone }}
           onChange={applyEditSchedule}
           onExit={() => setEditSchedule(-1)}
         />

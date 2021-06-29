@@ -7,9 +7,15 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default function SetTimesModal(props) {
-  const { startDate, endDate } = props.schedule || {
-    startDate: dayjs.utc().startOf("day").add(540, "minutes"),
-    endDate: dayjs.utc().startOf("day").add(1020, "minutes"),
+  const { startDate, endDate } = {
+    startDate: dayjs
+      .utc()
+      .startOf("day")
+      .add(props.schedule.startTime || 540, "minutes"),
+    endDate: dayjs
+      .utc()
+      .startOf("day")
+      .add(props.schedule.endTime || 1020, "minutes"),
   };
 
   startDate.tz(props.timeZone);

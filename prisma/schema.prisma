@@ -24,6 +24,7 @@ model EventType {
   availability  Availability[]
   eventName     String?
   customInputs  EventTypeCustomInput[]
+  timeZone      String?
 }
 
 model Credential {

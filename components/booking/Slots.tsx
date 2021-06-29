@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import getSlots from "../../lib/slots";
-import dayjs, {Dayjs} from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(isBetween);
@@ -11,44 +11,43 @@ type Props = {
   eventLength: number;
   minimumBookingNotice?: number;
   date: Dayjs;
-}
+};
 
-const Slots = ({ eventLength, minimumBookingNotice, date, workingHours }: Props) => {
-
+const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organizerUtcOffset }: Props) => {
   minimumBookingNotice = minimumBookingNotice || 0;
 
   const router = useRouter();
   const { user } = router.query;
   const [slots, setSlots] = useState([]);
-  const [isFullyBooked, setIsFullyBooked ] = useState(false);
-  const [hasErrors, setHasErrors ] = useState(false);
+  const [isFullyBooked, setIsFullyBooked] = useState(false);
+  const [hasErrors, setHasErrors] = useState(false);
 
   useEffect(() => {
     setSlots([]);
     setIsFullyBooked(false);
     setHasErrors(false);
     fetch(
-      `/api/availability/${user}?dateFrom=${date.startOf("day").utc().startOf('day').format()}&dateTo=${date
+      `/api/availability/${user}?dateFrom=${date.startOf("day").utc().startOf("day").format()}&dateTo=${date
         .endOf("day")
         .utc()
-        .endOf('day')
+        .endOf("day")
         .format()}`
     )
       .then((res) => res.json())
       .then(handleAvailableSlots)
-      .catch( e => {
+      .catch((e) => {
         console.error(e);
         setHasErrors(true);
-      })
+      });
   }, [date]);
 
   const handleAvailableSlots = (busyTimes: []) => {
-
     const times = getSlots({
       frequency: eventLength,
       inviteeDate: date,
       workingHours,
       minimumBookingNotice,
+      organizerUtcOffset,
     });
 
     const timesLengthBeforeConflicts: number = times.length;
@@ -56,7 +55,6 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours }: Props)
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
       busyTimes.forEach((busyTime) => {
-
         const startTime = dayjs(busyTime.start).utc();
         const endTime = dayjs(busyTime.end).utc();
 
