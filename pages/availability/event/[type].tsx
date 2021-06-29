@@ -550,11 +550,11 @@ export default function EventType(props: any): JSX.Element {
                       </div>
                     </div>
                   </div>
-                  <Disclosure as="div" key="notifications" className="my-8">
+                  <Disclosure as="div" key="confirmation-email" className="my-8">
                     {({ open }) => (
                       <>
                         <dt className="text-lg">
-                          <Disclosure.Button className="text-left w-full flex justify-between items-start text-gray-400">
+                          <Disclosure.Button className="text-left w-full flex justify-between items-start text-gray-400 focus:ring-blue-500 focus:border-blue-500">
                             <span className="font-medium text-gray-900">Configure confirmation e-mail</span>
                             <span className="ml-6 h-7 flex items-center">
                               <ChevronDownIcon
@@ -564,7 +564,7 @@ export default function EventType(props: any): JSX.Element {
                             </span>
                           </Disclosure.Button>
                         </dt>
-                        <Disclosure.Panel as="dd" className="mt-2 pr-12">
+                        <Disclosure.Panel as="dd" className="mt-2">
                           <div className="mb-4">
                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                               Title
@@ -576,8 +576,7 @@ export default function EventType(props: any): JSX.Element {
                                 name="title"
                                 id="title"
                                 required
-                                //className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full rounded-none rounded-l-md pl-10 sm:text-sm border-gray-300"
+                                className="focus:ring-blue-500 focus:border-blue-500 block w-full rounded-none rounded-l-md sm:text-sm border-gray-300"
                                 placeholder="Quick Chat"
                                 defaultValue={
                                   props.eventType.emailTemplates?.find(
@@ -589,7 +588,7 @@ export default function EventType(props: any): JSX.Element {
                                 {({ open }) => (
                                   <>
                                     <div>
-                                      <Menu.Button className="space-x-2 px-4 py-2 w-36 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                      <Menu.Button className="space-x-2 px-4 py-2 w-36 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                         + Variables
                                       </Menu.Button>
                                     </div>
@@ -662,8 +661,8 @@ export default function EventType(props: any): JSX.Element {
                                       leaveTo="transform opacity-0 scale-95">
                                       <Menu.Items
                                         static
-                                        className="absolute bottom-0 mt-2 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                        <div className="py-1">
+                                        className="origin-top-right absolute right-0 mt-2 bottom-0 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                        <div className="py-1 w-60">
                                           {eventPlaceholders.map((v) => (
                                             <Menu.Item key={v.variable}>
                                               {({ active }) => (
