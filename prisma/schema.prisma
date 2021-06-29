@@ -23,6 +23,7 @@ model EventType {
   bookings      Booking[]
   eventName     String?
   customInputs  EventTypeCustomInput[]
+  emailTemplates EmailTemplate[]
 }
 
 model Credential {
@@ -148,5 +149,19 @@ model ResetPasswordRequest {
   updatedAt  DateTime @updatedAt
   email      String
   expires    DateTime
+}
+
+enum EmailTemplateType {
+  ATTENDEE
+  ORGANIZER
+}
+
+model EmailTemplate {
+  id          Int       @id @default(autoincrement())
+  eventTypeId Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id])
+  type        EmailTemplateType
+  body        String
+  subject     String
 }
 

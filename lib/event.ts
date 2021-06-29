@@ -8,7 +8,7 @@ export function getEventName(name: string, eventTitle: string, eventNameTemplate
 export interface EventPlaceholder {
   variable: string;
   label: string;
-  getValue: (event: CalendarEvent) => string;
+  getValue: (event: CalendarEvent, uid: string) => string;
 }
 
 function getInviteeStart(event: CalendarEvent): Dayjs {
@@ -17,6 +17,14 @@ function getInviteeStart(event: CalendarEvent): Dayjs {
 
 function getInviteeEnd(event: CalendarEvent): Dayjs {
   return <Dayjs>dayjs(event.endTime).tz(event.attendees[0].timeZone);
+}
+
+function getRescheduleLink(uid: string): string {
+  return process.env.BASE_URL + "/reschedule/" + uid;
+}
+
+function getCancelLink(uid: string): string {
+  return process.env.BASE_URL + "/cancel/" + uid;
 }
 
 export const eventPlaceholders: EventPlaceholder[] = [
@@ -28,8 +36,13 @@ export const eventPlaceholders: EventPlaceholder[] = [
   },
   { variable: "{YourName}", label: "Your Name", getValue: (event) => event.organizer.name },
   { variable: "{EventName}", label: "Event Name", getValue: (event) => event.type },
-  { variable: "{EventInputs}", label: "Event Inputs", getValue: (event) => "" },
-  { variable: "{EventLocation}", label: "Event Location", getValue: (event) => "" },
+  { variable: "{EventDescription}", label: "Event Description", getValue: (event) => event.description },
+  { variable: "{EventLocation}", label: "Event Location", getValue: (event) => event.location },
+  {
+    variable: "{EventLocationOptional}",
+    label: "Optional Event Location",
+    getValue: (event) => (event.location ? `<strong>Location:</strong> ${event.location}<br /><br />` : ""),
+  },
   {
     variable: "{EventDate}",
     label: "Event Date",
@@ -45,6 +58,36 @@ export const eventPlaceholders: EventPlaceholder[] = [
     label: "Event End Time",
     getValue: (event) => getInviteeEnd(event).format("h:mma"),
   },
-  { variable: "{EventRescheduleLink}", label: "Event Reschedule Link", getValue: (event) => "" },
-  { variable: "{EventCancellationLink}", label: "Event Cancellation Link", getValue: (event) => "" },
+  {
+    variable: "{EventRescheduleLink}",
+    label: "Event Reschedule Link",
+    getValue: (event, uid: string) => getRescheduleLink(uid),
+  },
+  {
+    variable: "{EventCancellationLink}",
+    label: "Event Cancellation Link",
+    getValue: (event, uid: string) => getCancelLink(uid),
+  },
 ];
+
+export function getDefaultHTMLTemplate(): string {
+  return `<div>
+  Hi {AttendeeName},<br />
+  <br />
+  Your {EventName} with {YourName} at {EventStartTime} 
+  ({AttendeeTimezone}) on {EventDate} is scheduled.<br />
+  <br />
+  {EventLocationOptional}
+  <strong>Additional notes:</strong><br />
+  {EventDescription}<br />
+  <br/>
+  <br/>
+  <strong>Need to change this event?</strong><br/>
+  Cancel: <a href="{EventCancellationLink}">{EventCancellationLink}</a><br />
+  Reschedule: <a href="{EventRescheduleLink}">{EventRescheduleLink}</a>
+</div>`;
+}
+
+export function getDefaultSubjectTemplate(): string {
+  return "Confirmed: {EventName} with {YourName} on {EventDate}";
+}

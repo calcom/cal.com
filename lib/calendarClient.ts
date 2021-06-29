@@ -10,6 +10,7 @@ const translator = short();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
 import prisma from "./prisma";
+import { EmailTemplate } from "@prisma/client";
 
 const googleAuth = (credential) => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
@@ -150,7 +151,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
   const auth = o365Auth(credential);
 
   const translateEvent = (event: CalendarEvent) => {
-    const optional = {};
+    const optional: { location?: { displayName: string } } = {};
     if (event.location) {
       optional.location = { displayName: event.location };
     }
@@ -506,13 +507,17 @@ const listCalendars = (withCredentials) =>
     results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> => {
+const createEvent = async (
+  credential,
+  calEvent: CalendarEvent,
+  emailTemplates: EmailTemplate[]
+): Promise<any> => {
   const uid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
 
-  const organizerMail = new EventOrganizerMail(calEvent, uid);
-  const attendeeMail = new EventAttendeeMail(calEvent, uid);
+  const organizerMail = new EventOrganizerMail(calEvent, uid, emailTemplates);
+  const attendeeMail = new EventAttendeeMail(calEvent, uid, emailTemplates);
   try {
     await organizerMail.sendEmail();
   } catch (e) {
@@ -540,8 +545,8 @@ const updateEvent = async (credential, uidToUpdate: string, calEvent: CalendarEv
     ? await calendars([credential])[0].updateEvent(uidToUpdate, calEvent)
     : null;
 
-  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
+  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid, []);
+  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid, []);
   try {
     await organizerMail.sendEmail();
   } catch (e) {
@@ -570,12 +575,5 @@ const deleteEvent = (credential, uid: string): Promise<any> => {
   return Promise.resolve({});
 };
 
-export {
-  getBusyCalendarTimes,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  CalendarEvent,
-  listCalendars,
-  IntegrationCalendar,
-};
+export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, listCalendars };
+export type { CalendarEvent, IntegrationCalendar };

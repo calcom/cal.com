@@ -12,6 +12,7 @@ import merge from "lodash.merge";
 const translator = short();
 import dayjs from "dayjs";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isAvailable = (busyTimes, time, length) => {
   // Check for conflicts
   let t = true;
@@ -113,6 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (hasVideoIntegrations) {
     commonAvailability = videoAvailability;
   } else if (hasCalendarIntegrations) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     commonAvailability = calendarAvailability;
   }
 
@@ -127,6 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       eventName: true,
       title: true,
       length: true,
+      emailTemplates: true,
     },
   });
 
@@ -170,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // TODO isAvailable was throwing an error
-  const isAvailableToBeBooked = true;//isAvailable(commonAvailability, req.body.start, selectedEventType.length);
+  const isAvailableToBeBooked = true; //isAvailable(commonAvailability, req.body.start, selectedEventType.length);
 
   if (!isAvailableToBeBooked) {
     return res.status(400).json({ message: `${currentUser.name} is unavailable at this time.` });
@@ -252,7 +255,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Schedule event
     results = results.concat(
       await async.mapLimit(calendarCredentials, 5, async (credential) => {
-        return createEvent(credential, evt)
+        return createEvent(credential, evt, selectedEventType.emailTemplates)
           .then((response) => ({ type: credential.type, success: true, response }))
           .catch((e) => {
             console.error("createEvent failed", e);
@@ -295,7 +298,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Legacy as well, as soon as we have a separate email integration class. Just used
     // to send an email even if there is no integration at all.
     try {
-      const mail = new EventAttendeeMail(evt, hashUID);
+      const mail = new EventAttendeeMail(evt, hashUID, selectedEventType.emailTemplates);
       await mail.sendEmail();
     } catch (e) {
       console.error("Sending legacy event mail failed", e);
