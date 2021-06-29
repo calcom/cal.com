@@ -67,7 +67,17 @@ const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromI
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { user } = req.query;
 
-  let currentUser = await prisma.user.findFirst({
+  const isTimeInPast = (time) => {
+    return dayjs(time).isBefore(new Date(), "day");
+  };
+
+  if (isTimeInPast(req.body.start)) {
+    return res
+      .status(400)
+      .json({ errorCode: "BookingDateInPast", message: "Attempting to create a meeting in the past." });
+  }
+
+  const currentUser = await prisma.user.findFirst({
     where: {
       username: user,
     },
