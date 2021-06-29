@@ -102,7 +102,7 @@ export default class CalEventParser {
    */
   public asRichEvent(): CalendarEvent {
     const eventCopy: CalendarEvent = { ...this.calEvent };
-    eventCopy.description = this.getRichDescription();
+    eventCopy.description = this.getRichDescriptionHtml();
     return eventCopy;
   }
 }
