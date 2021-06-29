@@ -61,7 +61,6 @@ export default class CalEventParser {
   public getRichDescriptionHtml(): string {
     return (
       `
-      <div>
         <strong>Event Type:</strong><br />
         ${this.calEvent.type}<br />
         <br />
@@ -81,10 +80,7 @@ export default class CalEventParser {
         <strong>Additional notes:</strong><br />
         ${this.calEvent.description}
       ` +
-      this.getChangeEventFooterHtml() +
-      `   
-      </div>
-    `
+      this.getChangeEventFooterHtml()
     );
   }
 
