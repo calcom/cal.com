@@ -66,6 +66,16 @@ const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromI
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { user } = req.query;
 
+  const isTimeInPast = (time) => {
+    return dayjs(time).isBefore(new Date(), "day");
+  };
+
+  if (isTimeInPast(req.body.start)) {
+    return res
+      .status(400)
+      .json({ errorCode: "BookingDateInPast", message: "Attempting to create a meeting in the past." });
+  }
+
   const currentUser = await prisma.user.findFirst({
     where: {
       username: user,
@@ -170,7 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // TODO isAvailable was throwing an error
-  const isAvailableToBeBooked = true;//isAvailable(commonAvailability, req.body.start, selectedEventType.length);
+  const isAvailableToBeBooked = true; //isAvailable(commonAvailability, req.body.start, selectedEventType.length);
 
   if (!isAvailableToBeBooked) {
     return res.status(400).json({ message: `${currentUser.name} is unavailable at this time.` });
