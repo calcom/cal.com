@@ -61,24 +61,24 @@ export default class CalEventParser {
   public getRichDescriptionHtml(): string {
     return (
       `
-        <strong>Event Type:</strong><br />
-        ${this.calEvent.type}<br />
-        <br />
-        <strong>Invitee Email:</strong><br />
-        <a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a><br />
-        <br />` +
+      <strong>Event Type:</strong><br />
+      ${this.calEvent.type}<br />
+      <br />
+      <strong>Invitee Email:</strong><br />
+      <a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a><br />
+      <br />` +
       (this.calEvent.location
         ? `
-            <strong>Location:</strong><br />
-            ${this.calEvent.location}<br />
-            <br />
+          <strong>Location:</strong><br />
+          ${this.calEvent.location}<br />
+          <br />
           `
         : "") +
       `<strong>Invitee Time Zone:</strong><br />
-        ${this.calEvent.attendees[0].timeZone}<br />
-        <br />
-        <strong>Additional notes:</strong><br />
-        ${this.calEvent.description}
+      ${this.calEvent.attendees[0].timeZone}<br />
+      <br />
+      <strong>Additional notes:</strong><br />
+      ${this.calEvent.description}
       ` +
       this.getChangeEventFooterHtml()
     );
