@@ -38,7 +38,9 @@ export default class CalEventParser {
    */
   public getChangeEventFooterHtml(): string {
     return `<br />
-<strong>Need to change this event?</strong><br />Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a><br />Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
+<strong>Need to change this event?</strong><br />
+Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a><br />
+Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
     `;
   }
 
