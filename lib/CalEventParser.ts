@@ -38,11 +38,10 @@ export default class CalEventParser {
    */
   public getChangeEventFooterHtml(): string {
     return `
-      <br/>
-      <br/>
-      <strong>Need to change this event?</strong><br />
-      Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a><br />
-      Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
+
+<strong>Need to change this event?</strong>
+Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a>
+Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
     `;
   }
 
@@ -59,27 +58,27 @@ export default class CalEventParser {
    * @protected
    */
   public getRichDescriptionHtml(): string {
+    // This odd indentation is necessary because otherwise the leading tabs will be applied into the event description.
     return (
       `
-      <strong>Event Type:</strong><br />
-      ${this.calEvent.type}<br />
-      <br />
-      <strong>Invitee Email:</strong><br />
-      <a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a><br />
-      <br />` +
+<strong>Event Type:</strong>
+${this.calEvent.type}
+
+<strong>Invitee Email:</strong>
+<a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a>
+
+` +
       (this.calEvent.location
-        ? `
-          <strong>Location:</strong><br />
-          ${this.calEvent.location}<br />
-          <br />
-          `
+        ? `<strong>Location:</strong>
+${this.calEvent.location}
+
+`
         : "") +
-      `<strong>Invitee Time Zone:</strong><br />
-      ${this.calEvent.attendees[0].timeZone}<br />
-      <br />
-      <strong>Additional notes:</strong><br />
-      ${this.calEvent.description}
-      ` +
+      `<strong>Invitee Time Zone:</strong>
+${this.calEvent.attendees[0].timeZone}
+
+<strong>Additional notes:</strong>
+${this.calEvent.description}` +
       this.getChangeEventFooterHtml()
     );
   }
