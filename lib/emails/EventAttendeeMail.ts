@@ -1,9 +1,9 @@
-import dayjs, {Dayjs} from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import EventMail from "./EventMail";
 
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
@@ -15,20 +15,28 @@ export default class EventAttendeeMail extends EventMail {
    * @protected
    */
   protected getHtmlRepresentation(): string {
-    return `
+    return (
+      `
     <div>
       Hi ${this.calEvent.attendees[0].name},<br />
       <br />
-      Your ${this.calEvent.type} with ${this.calEvent.organizer.name} at ${this.getInviteeStart().format('h:mma')} 
-      (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format('dddd, LL')} is scheduled.<br />
-      <br />` + this.getAdditionalBody() + (
-        this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : ''
-      ) +
+      Your ${this.calEvent.type} with ${this.calEvent.organizer.name} at ${this.getInviteeStart().format(
+        "h:mma"
+      )} 
+      (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format(
+        "dddd, LL"
+      )} is scheduled.<br />
+      <br />` +
+      this.getAdditionalBody() +
+      (this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : "") +
       `<strong>Additional notes:</strong><br />
       ${this.calEvent.description}<br />
-      ` + this.getAdditionalFooter() + `
+      ` +
+      this.getAdditionalFooter() +
+      `
     </div>
-  `;
+  `
+    );
   }
 
   /**
@@ -36,12 +44,14 @@ export default class EventAttendeeMail extends EventMail {
    *
    * @protected
    */
-  protected getNodeMailerPayload(): Object {
+  protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Confirmed: ${this.calEvent.type} with ${this.calEvent.organizer.name} on ${this.getInviteeStart().format('dddd, LL')}`,
+      subject: `Confirmed: ${this.calEvent.type} with ${
+        this.calEvent.organizer.name
+      } on ${this.getInviteeStart().format("dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
