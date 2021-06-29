@@ -9,6 +9,7 @@ import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "../../../lib/event";
 import { LocationType } from "../../../lib/location";
 import merge from "lodash.merge";
+import dayjs from "dayjs";
 
 const translator = short();
 
@@ -77,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .json({ errorCode: "BookingDateInPast", message: "Attempting to create a meeting in the past." });
   }
 
-  const currentUser = await prisma.user.findFirst({
+  let currentUser = await prisma.user.findFirst({
     where: {
       username: user,
     },
