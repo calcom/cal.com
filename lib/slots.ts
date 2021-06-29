@@ -4,20 +4,20 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-interface GetSlotsType {
+type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
   workingHours: [];
   minimumBookingNotice?: number;
-  organizerUtcOffset: number;
-}
+  organizerTimeZone: string;
+};
 
-interface Boundary {
+type Boundary = {
   lowerBound: number;
   upperBound: number;
-}
+};
 
-const freqApply: number = (cb, value: number, frequency: number): number => cb(value / frequency) * frequency;
+const freqApply = (cb, value: number, frequency: number): number => cb(value / frequency) * frequency;
 
 const intersectBoundary = (a: Boundary, b: Boundary) => {
   if (a.upperBound < b.lowerBound || a.lowerBound > b.upperBound) {
@@ -108,12 +108,13 @@ const getSlots = ({
   minimumBookingNotice,
   workingHours,
   organizerTimeZone,
-}: GetSlotsType): Dayjs[] => {
+}: GetSlots): Dayjs[] => {
   const startTime = dayjs.utc().isSame(dayjs(inviteeDate), "day")
     ? inviteeDate.hour() * 60 + inviteeDate.minute() + minimumBookingNotice
     : 0;
 
   const inviteeBounds = inviteeBoundary(startTime, inviteeDate.utcOffset(), frequency);
+
   return getOverlaps(
     inviteeBounds,
     organizerBoundaries(workingHours, inviteeDate, inviteeBounds, organizerTimeZone)
