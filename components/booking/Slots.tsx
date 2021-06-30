@@ -54,12 +54,11 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organize
 
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
-      busyTimes.forEach((busyTime) => {
+      busyTimes.every((busyTime): boolean => {
         const startTime = dayjs(busyTime.start).utc();
         const endTime = dayjs(busyTime.end).utc();
-
         // Check if start times are the same
-        if (times[i].utc().format("HH:mm") == startTime.format("HH:mm")) {
+        if (times[i].utc().isSame(startTime)) {
           times.splice(i, 1);
         }
         // Check if time is between start and end times
@@ -73,7 +72,10 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organize
         // Check if startTime is between slot
         else if (startTime.isBetween(times[i].utc(), times[i].utc().add(eventLength, "minutes"))) {
           times.splice(i, 1);
+        } else {
+          return true;
         }
+        return false;
       });
     }
 

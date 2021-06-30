@@ -126,7 +126,9 @@ const getSlots = ({
     organizerBoundaries(workingHours, inviteeDate, inviteeBounds, organizerTimeZone)
   )
     .reduce((slots, boundary: Boundary) => [...slots, ...getSlotsBetweenBoundary(frequency, boundary)], [])
-    .map((slot) => slot.utcOffset(dayjs(inviteeDate).utcOffset()));
+    .map((slot) =>
+      slot.month(inviteeDate.month()).date(inviteeDate.date()).utcOffset(inviteeDate.utcOffset())
+    );
 };
 
 export default getSlots;
