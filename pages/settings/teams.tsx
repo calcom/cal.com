@@ -21,8 +21,8 @@ export default function Teams(props) {
 
   const loadData = () => fetch('/api/user/membership').then((res: any) => res.json()).then(
     (data) => {
-      setTeams(data.membership && data.membership.filter((m) => m.role !== "INVITEE"));
-      setInvites(data.membership && data.membership.filter((m) => m.role === "INVITEE"));
+      setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
+      setInvites(data.membership.filter((m) => m.role === "INVITEE"));
     }
   );
 
