@@ -30,8 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    return res.status(201).setHeader('Location', process.env.BASE_URL + '/api/teams/1').send(null);
+    return res.status(201).json({ message: 'Team created' });
   }
 
-  res.status(404).send(null);
+  res.status(404).json({ message: 'Team not found' });
 }

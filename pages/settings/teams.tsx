@@ -1,3 +1,4 @@
+import { GetServerSideProps } from "next";
 import Head from 'next/head';
 import prisma from '../../lib/prisma';
 import Modal from '../../components/Modal';
@@ -18,14 +19,16 @@ export default function Teams(props) {
   const [invites, setInvites] = useState([]);
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
 
-  const loadTeams = () => fetch('/api/user/membership').then((res: any) => res.json()).then(
+  const loadData = () => fetch('/api/user/membership').then((res: any) => res.json()).then(
     (data) => {
-      setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
-      setInvites(data.membership.filter((m) => m.role === "INVITEE"));
+      setTeams(data.membership && data.membership.filter((m) => m.role !== "INVITEE"));
+      setInvites(data.membership && data.membership.filter((m) => m.role === "INVITEE"));
     }
   );
 
-  useEffect(() => { loadTeams(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   if (loading) {
     return <p className="text-gray-400">Loading...</p>;
@@ -40,7 +43,7 @@ export default function Teams(props) {
         'Content-Type': 'application/json'
       }
     }).then(() => {
-      loadTeams();
+      loadData();
       setShowCreateTeamModal(false);
     });
   }
@@ -86,14 +89,14 @@ export default function Teams(props) {
             </div>
             <div>
               {!!teams.length &&
-                <TeamList teams={teams} onChange={loadTeams}>
+                <TeamList teams={teams} onChange={loadData}>
                 </TeamList>
               }
 
               {!!invites.length && <div>
                 <h2 className="text-lg leading-6 font-medium text-gray-900">Open Invitations</h2>
                 <ul className="border px-2 rounded mt-2 mb-2 divide-y divide-gray-200">
-                  {invites.map((team) => <TeamListItem onChange={loadTeams} key={team.id} team={team}></TeamListItem>)}
+                  {invites.map((team) => <TeamListItem onChange={loadData} key={team.id} team={team}></TeamListItem>)}
                 </ul>
               </div>}
             </div>
@@ -154,3 +157,14 @@ export default function Teams(props) {
     </Shell>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context);
+  if (!session) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+
+  return {
+    props: { }, // will be passed to the page component as props
+  };
+};
