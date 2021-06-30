@@ -148,14 +148,6 @@ export default function Type(props): Type {
   );
 }
 
-interface WorkingHours {
-  days: number[];
-  startTime: number;
-  length: number;
-}
-
-type Availability = WorkingHours;
-
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const user = await prisma.user.findFirst({
     where: {
@@ -212,16 +204,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       ? providesAvailability.availability
       : null;
 
-  const workingHours: WorkingHours[] =
+  const workingHours: [] =
     getWorkingHours(eventType) ||
     getWorkingHours(user) ||
     [
       {
         days: [0, 1, 2, 3, 4, 5, 6],
         startTime: user.startTime,
-        length: user.endTime,
+        endTime: user.endTime,
       },
-    ].filter((availability: Availability): boolean => typeof availability["days"] !== "undefined");
+    ].filter((availability): boolean => typeof availability["days"] !== "undefined");
 
   return {
     props: {
