@@ -92,8 +92,6 @@ export const Scheduler = ({
     </li>
   );
 
-  console.log(selectedTimeZone);
-
   return (
     <div>
       <div className="rounded border flex">

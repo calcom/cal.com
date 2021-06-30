@@ -1,10 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { ClockIcon, GlobeIcon, ChevronDownIcon } from "@heroicons/react/solid";
 import prisma from "../../lib/prisma";
 import { useRouter } from "next/router";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 import AvailableTimes from "../../components/booking/AvailableTimes";
@@ -13,7 +13,6 @@ import Avatar from "../../components/Avatar";
 import { timeZone } from "../../lib/clock";
 import DatePicker from "../../components/booking/DatePicker";
 import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
-import getSlots from "@lib/slots";
 
 export default function Type(props): Type {
   // Get router variables
@@ -25,32 +24,20 @@ export default function Type(props): Type {
   const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
 
-  const today: string = dayjs().utc().format("YYYY-MM-DDTHH:mm");
-  const noSlotsToday = useMemo(
-    () =>
-      getSlots({
-        frequency: props.eventType.length,
-        inviteeDate: dayjs.utc(today) as Dayjs,
-        workingHours: props.workingHours,
-        organizerTimeZone: props.eventType.timeZone,
-        minimumBookingNotice: 0,
-      }).length === 0,
-    [today, props.eventType.length, props.workingHours]
-  );
-
   useEffect(() => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
   const changeDate = (date: Dayjs) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
-    setSelectedDate(date.tz(timeZone()));
+    setSelectedDate(date);
   };
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
     if (selectedDate) {
       setSelectedDate(selectedDate.tz(selectedTimeZone));
     }
+    setIsTimeOptionsOpen(false);
   };
 
   const handleToggle24hClock = (is24hClock: boolean) => {
@@ -136,10 +123,11 @@ export default function Type(props): Type {
               <p className="text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
             </div>
             <DatePicker
-              disableToday={noSlotsToday}
               weekStart={props.user.weekStart}
               onDatePicked={changeDate}
               workingHours={props.workingHours}
+              organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+              inviteeTimeZone={timeZone()}
             />
             {selectedDate && (
               <AvailableTimes

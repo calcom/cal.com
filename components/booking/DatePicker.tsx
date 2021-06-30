@@ -1,13 +1,20 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import { useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import isToday from "dayjs/plugin/isToday";
-dayjs.extend(isToday);
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import getSlots from "@lib/slots";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-const DatePicker = ({ weekStart, onDatePicked, workingHours, disableToday }) => {
-  const workingDays = workingHours.reduce((workingDays: number[], wh) => [...workingDays, ...wh.days], []);
-  const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
-  const [selectedDate, setSelectedDate] = useState();
+const DatePicker = ({ weekStart, onDatePicked, workingHours, organizerTimeZone, inviteeTimeZone }) => {
+  const [calendar, setCalendar] = useState([]);
+  const [selectedMonth, setSelectedMonth]: number = useState();
+  const [selectedDate, setSelectedDate]: Dayjs = useState();
+
+  useEffect(() => {
+    setSelectedMonth(dayjs().tz(inviteeTimeZone).month());
+  }, []);
 
   useEffect(() => {
     if (selectedDate) onDatePicked(selectedDate);
@@ -22,69 +29,80 @@ const DatePicker = ({ weekStart, onDatePicked, workingHours, disableToday }) => 
     setSelectedMonth(selectedMonth - 1);
   };
 
-  // Set up calendar
-  const daysInMonth = dayjs().month(selectedMonth).daysInMonth();
-  const days = [];
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(i);
-  }
+  useEffect(() => {
+    if (!selectedMonth) {
+      // wish next had a way of dealing with this magically;
+      return;
+    }
 
-  // Create placeholder elements for empty days in first week
-  let weekdayOfFirst = dayjs().month(selectedMonth).date(1).day();
-  if (weekStart === "Monday") {
-    weekdayOfFirst -= 1;
-    if (weekdayOfFirst < 0) weekdayOfFirst = 6;
-  }
-  const emptyDays = Array(weekdayOfFirst)
-    .fill(null)
-    .map((day, i) => (
-      <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
-        {null}
-      </div>
-    ));
+    const inviteeDate = dayjs().tz(inviteeTimeZone).month(selectedMonth);
 
-  const isDisabled = (day: number) => {
-    const date: Dayjs = dayjs().month(selectedMonth).date(day);
-    return (
-      date.isBefore(dayjs()) || !workingDays.includes(+date.format("d")) || (date.isToday() && disableToday)
-    );
-  };
+    const isDisabled = (day: number) => {
+      const date: Dayjs = inviteeDate.date(day);
+      return (
+        date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+        !getSlots({
+          inviteeDate: date,
+          frequency: 30,
+          workingHours,
+          organizerTimeZone,
+        }).length
+      );
+    };
 
-  // Combine placeholder days with actual days
-  const calendar = [
-    ...emptyDays,
-    ...days.map((day) => (
-      <button
-        key={day}
-        onClick={() => setSelectedDate(dayjs().month(selectedMonth).date(day))}
-        disabled={
-          (selectedMonth < parseInt(dayjs().format("MM")) &&
-            dayjs().month(selectedMonth).format("D") > day) ||
-          isDisabled(day)
-        }
-        className={
-          "text-center w-10 h-10 rounded-full mx-auto" +
-          (isDisabled(day) ? " text-gray-400 font-light" : " text-blue-600 font-medium") +
-          (selectedDate && selectedDate.isSame(dayjs().month(selectedMonth).date(day), "day")
-            ? " bg-blue-600 text-white-important"
-            : !isDisabled(day)
-            ? " bg-blue-50"
-            : "")
-        }>
-        {day}
-      </button>
-    )),
-  ];
+    // Set up calendar
+    const daysInMonth = inviteeDate.daysInMonth();
+    const days = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
 
-  return (
+    // Create placeholder elements for empty days in first week
+    let weekdayOfFirst = inviteeDate.date(1).day();
+    if (weekStart === "Monday") {
+      weekdayOfFirst -= 1;
+      if (weekdayOfFirst < 0) weekdayOfFirst = 6;
+    }
+    const emptyDays = Array(weekdayOfFirst)
+      .fill(null)
+      .map((day, i) => (
+        <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
+          {null}
+        </div>
+      ));
+
+    // Combine placeholder days with actual days
+    setCalendar([
+      ...emptyDays,
+      ...days.map((day) => (
+        <button
+          key={day}
+          onClick={() => setSelectedDate(inviteeDate.date(day))}
+          disabled={isDisabled(day)}
+          className={
+            "text-center w-10 h-10 rounded-full mx-auto" +
+            (isDisabled(day) ? " text-gray-400 font-light" : " text-blue-600 font-medium") +
+            (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
+              ? " bg-blue-600 text-white-important"
+              : !isDisabled(day)
+              ? " bg-blue-50"
+              : "")
+          }>
+          {day}
+        </button>
+      )),
+    ]);
+  }, [selectedMonth, inviteeTimeZone]);
+
+  return selectedMonth ? (
     <div className={"mt-8 sm:mt-0 " + (selectedDate ? "sm:w-1/3 border-r sm:px-4" : "sm:w-1/2 sm:pl-4")}>
       <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
         <span className="w-1/2">{dayjs().month(selectedMonth).format("MMMM YYYY")}</span>
         <div className="w-1/2 text-right">
           <button
             onClick={decrementMonth}
-            className={"mr-4 " + (selectedMonth < parseInt(dayjs().format("MM")) && "text-gray-400")}
-            disabled={selectedMonth < parseInt(dayjs().format("MM"))}>
+            className={"mr-4 " + (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400")}
+            disabled={selectedMonth <= dayjs().tz(inviteeTimeZone).month()}>
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
           <button onClick={incrementMonth}>
@@ -103,7 +121,7 @@ const DatePicker = ({ weekStart, onDatePicked, workingHours, disableToday }) => 
         {calendar}
       </div>
     </div>
-  );
+  ) : null;
 };
 
 export default DatePicker;
