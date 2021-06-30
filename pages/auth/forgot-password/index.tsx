@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 import React from "react";
 import { getCsrfToken } from "next-auth/client";
 import debounce from "lodash.debounce";
@@ -136,6 +137,15 @@ export default function Page({ csrfToken }) {
                     )}
                     Request Password Reset
                   </button>
+                </div>
+                <div className="space-y-2">
+                  <Link href="/auth/login">
+                    <button
+                      type="button"
+                      className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                      Login
+                    </button>
+                  </Link>
                 </div>
               </form>
             </>

@@ -41,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const avatar = req.body.avatar;
   const timeZone = req.body.timeZone;
   const weekStart = req.body.weekStart;
+  const hideBranding = req.body.hideBranding;
 
   const updateUser = await prisma.user.update({
     where: {
@@ -53,6 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       bio: description,
       timeZone: timeZone,
       weekStart: weekStart,
+      hideBranding: hideBranding,
     },
   });
 

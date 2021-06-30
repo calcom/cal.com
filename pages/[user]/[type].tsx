@@ -141,10 +141,7 @@ export default function Type(props): Type {
             )}
           </div>
         </div>
-        {/* note(peer):
-          you can remove calendso branding here, but we'd also appreciate it, if you don't <3
-        */}
-        <PoweredByCalendso />
+        {!props.user.hideBranding && <PoweredByCalendso />}
       </main>
     </div>
   );
@@ -176,6 +173,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       endTime: true,
       weekStart: true,
       availability: true,
+      hideBranding: true,
     },
   });
 
