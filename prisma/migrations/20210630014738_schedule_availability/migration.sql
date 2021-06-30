@@ -1,14 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `ResetPasswordRequest` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- AlterTable
 ALTER TABLE "EventType" ADD COLUMN     "timeZone" TEXT;
-
--- DropTable
-DROP TABLE "ResetPasswordRequest";
 
 -- CreateTable
 CREATE TABLE "Availability" (
