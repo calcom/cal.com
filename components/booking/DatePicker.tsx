@@ -92,7 +92,7 @@ const DatePicker = ({ weekStart, onDatePicked, workingHours, organizerTimeZone, 
         </button>
       )),
     ]);
-  }, [selectedMonth, inviteeTimeZone]);
+  }, [selectedMonth, inviteeTimeZone, selectedDate]);
 
   return selectedMonth ? (
     <div className={"mt-8 sm:mt-0 " + (selectedDate ? "sm:w-1/3 border-r sm:px-4" : "sm:w-1/2 sm:pl-4")}>
