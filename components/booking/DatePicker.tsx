@@ -7,7 +7,14 @@ import getSlots from "@lib/slots";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const DatePicker = ({ weekStart, onDatePicked, workingHours, organizerTimeZone, inviteeTimeZone }) => {
+const DatePicker = ({
+  weekStart,
+  onDatePicked,
+  workingHours,
+  organizerTimeZone,
+  inviteeTimeZone,
+  eventLength,
+}) => {
   const [calendar, setCalendar] = useState([]);
   const [selectedMonth, setSelectedMonth]: number = useState();
   const [selectedDate, setSelectedDate]: Dayjs = useState();
@@ -43,7 +50,7 @@ const DatePicker = ({ weekStart, onDatePicked, workingHours, organizerTimeZone, 
         date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
         !getSlots({
           inviteeDate: date,
-          frequency: 30,
+          frequency: eventLength,
           workingHours,
           organizerTimeZone,
         }).length

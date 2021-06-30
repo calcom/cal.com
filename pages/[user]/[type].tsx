@@ -128,6 +128,7 @@ export default function Type(props): Type {
               workingHours={props.workingHours}
               organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
               inviteeTimeZone={timeZone()}
+              eventLength={props.eventType.length}
             />
             {selectedDate && (
               <AvailableTimes
