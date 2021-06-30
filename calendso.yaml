@@ -28,8 +28,6 @@ tags:
     description: Manage integrations
   - name: User
     description: Manage the user's profile and settings
-  - name: Team
-    description: Group users into teams
 paths:
   /api/auth/signin:
     get:
@@ -158,9 +156,3 @@ paths:
       summary: Updates a user's profile
       tags:
         - User
-
-  /api/availability/schedule:
-    path:
-      description: "Updates a schedule"
-      tags:
-        - Availability
