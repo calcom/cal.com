@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
 import { useEffect, useState } from 'react';
-import { useSession } from "next-auth/client";
+import { useSession } from 'next-auth/client';
 import {
   UsersIcon,
 } from "@heroicons/react/outline";
@@ -26,11 +26,11 @@ export default function Teams() {
   const loadData = () => {
     fetch("/api/user/membership")
     .then(handleErrors)
-      .then((data) => {
+    .then((data) => {
       setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
       setInvites(data.membership.filter((m) => m.role === "INVITEE"));
-      })
-      .catch(console.log);
+    })
+    .catch(console.log);
   }
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function Teams() {
               {!!invites.length && <div>
                 <h2 className="text-lg leading-6 font-medium text-gray-900">Open Invitations</h2>
                 <ul className="border px-2 rounded mt-2 mb-2 divide-y divide-gray-200">
-                    {invites.map((team) => (
+                    {invites.map((team) => <TeamListItem onChange={loadData} key={team.id} team={team}></TeamListItem>)}
                 </ul>
               </div>}
             </div>

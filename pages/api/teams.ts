@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const createMembership = await prisma.membership.create({
+    await prisma.membership.create({
       data: {
         teamId: createTeam.id,
         userId: session.user.id,
@@ -33,5 +33,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json({ message: 'Team created' });
   }
 
-  res.status(404).json({ message: "Team not found" });
+  res.status(404).json({ message: 'Team not found' });
 }
