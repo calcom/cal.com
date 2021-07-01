@@ -29,7 +29,7 @@ export default function Teams() {
       .then((data) => {
       setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
       setInvites(data.membership.filter((m) => m.role === "INVITEE"));
-    })
+      })
       .catch(console.log);
   }
 
