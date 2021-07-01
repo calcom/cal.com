@@ -33,5 +33,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json({ message: 'Team created' });
   }
 
-  res.status(404).json({ message: 'Team not found' });
+  res.status(404).json({ message: "Team not found" });
 }
