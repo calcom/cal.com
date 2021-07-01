@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "build": "next build",
     "start": "next start",
     "postinstall": "prisma generate",
@@ -38,6 +39,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.23",
     "@types/node": "^14.14.33",
     "@types/nodemailer": "^6.4.2",
     "@types/react": "^17.0.3",
@@ -50,7 +52,9 @@
     "eslint-plugin-react": "^7.24.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "husky": "^6.0.0",
+    "jest": "^27.0.5",
     "lint-staged": "^11.0.0",
+    "mockdate": "^3.0.5",
     "postcss": "^8.2.8",
     "prettier": "^2.3.1",
     "prisma": "^2.23.0",
@@ -62,5 +66,19 @@
       "prettier --write",
       "eslint"
     ]
+  },
+  "jest": {
+    "verbose": true,
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "moduleNameMapper": {
+      "^@components(.*)$": "<rootDir>/components$1",
+      "^@lib(.*)$": "<rootDir>/lib$1"
+    }
   }
 }
