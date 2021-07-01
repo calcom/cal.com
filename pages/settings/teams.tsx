@@ -24,7 +24,7 @@ export default function Teams() {
   }
 
   const loadData = () => {
-    fetch('/api/user/membership')
+    fetch("/api/user/membership")
     .then(handleErrors)
     .then((data) => {
       setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
