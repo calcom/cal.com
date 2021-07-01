@@ -107,7 +107,7 @@ You will also need Google API credentials. You can get this from the [Google API
 
 5. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
    ```sh
-   npx prisma db push --preview-feature
+   npx prisma db push
    ```
 6. Run (in development mode)
    ```sh
