@@ -1,30 +1,37 @@
-import { GetServerSideProps } from "next";
 import Head from 'next/head';
-import prisma from '../../lib/prisma';
-import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
 import { useEffect, useState } from 'react';
-import { useSession, getSession } from 'next-auth/client';
+import { useSession } from 'next-auth/client';
 import {
   UsersIcon,
 } from "@heroicons/react/outline";
 import TeamList from "../../components/team/TeamList";
 import TeamListItem from "../../components/team/TeamListItem";
 
-export default function Teams(props) {
-
+export default function Teams() {
   const [session, loading] = useSession();
   const [teams, setTeams] = useState([]);
   const [invites, setInvites] = useState([]);
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
 
-  const loadData = () => fetch('/api/user/membership').then((res: any) => res.json()).then(
-    (data) => {
+  const handleErrors = async (resp) => {
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message);
+    }
+    return resp.json();
+  }
+
+  const loadData = () => {
+    fetch('/api/user/membership')
+    .then(handleErrors)
+    .then((data) => {
       setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
       setInvites(data.membership.filter((m) => m.role === "INVITEE"));
-    }
-  );
+    })
+    .catch(console.log);
+  }
 
   useEffect(() => {
     loadData();
@@ -36,6 +43,7 @@ export default function Teams(props) {
 
   const createTeam = (e) => {
     e.preventDefault();
+
     return fetch('/api/teams', {
       method: 'POST',
       body: JSON.stringify({ name: e.target.elements['name'].value }),
@@ -157,14 +165,3 @@ export default function Teams(props) {
     </Shell>
   );
 }
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  return {
-    props: { }, // will be passed to the page component as props
-  };
-};
