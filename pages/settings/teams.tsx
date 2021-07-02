@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
 import { useEffect, useState } from 'react';
-import type { Session } from "next-auth"
+import type { Session } from "next-auth";
 import { useSession, getSession } from 'next-auth/client';
 import {
   UsersIcon,
