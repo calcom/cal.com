@@ -511,7 +511,7 @@ const createEvent = async (
   credential,
   calEvent: CalendarEvent,
   emailTemplates: EmailTemplate[]
-): Promise<any> => {
+): Promise<unknown> => {
   const uid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
