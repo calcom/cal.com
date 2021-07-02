@@ -169,7 +169,7 @@ export default function Teams() {
 }
 
 // Export the `session` prop to use sessions with Server Side Rendering
-export const getServerSideProps: GetServerSideProps<{session: Session | null}> = async (context) => {
+export const getServerSideProps: GetServerSideProps<{ session: Session | null }> = async (context) => {
     const session = await getSession(context);
     if (!session) {
       return { redirect: { permanent: false, destination: '/auth/login' } };
