@@ -1,8 +1,10 @@
+import { GetServerSideProps } from "next"
 import Head from 'next/head';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/client';
+import type { Session } from "next-auth"
+import { useSession, getSession } from 'next-auth/client';
 import {
   UsersIcon,
 } from "@heroicons/react/outline";
@@ -164,4 +166,16 @@ export default function Teams() {
       </SettingsShell>
     </Shell>
   );
+}
+
+// Export the `session` prop to use sessions with Server Side Rendering
+export const getServerSideProps: GetServerSideProps<{session: Session | null}> = async (context) => {
+    const session = await getSession(context);
+    if (!session) {
+      return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
+
+    return {
+      props: { session }
+    }
 }
