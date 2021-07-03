@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-const PoweredByCalendso = (props) => (
-  <div className="text-xs text-right pt-1">
+const PoweredByCalendso = () => (
+  <div className="text-xs text-center sm:text-right pt-1">
     <Link href="https://calendso.com">
       <a
         style={{ color: "#104D86" }}
