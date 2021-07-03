@@ -850,6 +850,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       },
     ];
 
+  availability.sort((a, b) => a.startTime - b.startTime);
+
   return {
     props: {
       user,
