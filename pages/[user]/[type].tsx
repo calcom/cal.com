@@ -215,6 +215,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     ].filter((availability): boolean => typeof availability["days"] !== "undefined");
 
+  workingHours.sort((a, b) => a.startTime - b.startTime);
+
   return {
     props: {
       user,
