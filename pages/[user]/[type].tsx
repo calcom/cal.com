@@ -94,10 +94,10 @@ export default function Type(props): Type {
       </Head>
       <main
         className={
-          "mx-auto my-24 transition-max-width ease-in-out duration-500 " +
+          "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
           (selectedDate ? "max-w-6xl" : "max-w-3xl")
         }>
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white sm:shadow sm:rounded-lg">
           <div className="sm:flex px-4 py-5 sm:p-4">
             <div className={"pr-8 sm:border-r " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")}>
               <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
