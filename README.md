@@ -158,7 +158,11 @@ You will also need Google API credentials. You can get this from the [Google API
 5. Enjoy the new version.
 <!-- DEPLOYMENT -->
 ## Deployment
-
+### Docker
+The Docker configuration for Calendso is an effort powered by people within the community. Calendso does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+  
+The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
+### Railway
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fcalendso%2Fcalendso&plugins=postgresql&envs=GOOGLE_API_CREDENTIALS%2CBASE_URL%2CNEXTAUTH_URL%2CPORT&BASE_URLDefault=http%3A%2F%2Flocalhost%3A3000&NEXTAUTH_URLDefault=http%3A%2F%2Flocalhost%3A3000&PORTDefault=3000)
 
 You can deploy Calendso on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Calendso on their platform.
