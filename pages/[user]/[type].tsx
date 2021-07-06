@@ -13,6 +13,7 @@ import Avatar from "../../components/Avatar";
 import { timeZone } from "../../lib/clock";
 import DatePicker from "../../components/booking/DatePicker";
 import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
+import { assertString } from "../../core/assertions";
 
 export default function Type(props): Type {
   // Get router variables
@@ -48,28 +49,34 @@ export default function Type(props): Type {
     <div>
       <Head>
         <title>
-          {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username} |
-          Calendso
+          {rescheduleUid && "Reschedule"} {props.fetchedEventType.title} |{" "}
+          {props.fetchedUser.name || props.fetchedUser.username} | Calendso
         </title>
-        <meta name="title" content={"Meet " + (props.user.name || props.user.username) + " via Calendso"} />
-        <meta name="description" content={props.eventType.description} />
+        <meta
+          name="title"
+          content={"Meet " + (props.fetchedUser.name || props.fetchedUser.username) + " via Calendso"}
+        />
+        <meta name="description" content={props.fetchedEventType.description} />
 
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://calendso/" />
         <meta
           property="og:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
+          content={"Meet " + (props.fetchedUser.name || props.fetchedUser.username) + " via Calendso"}
         />
-        <meta property="og:description" content={props.eventType.description} />
+        <meta property="og:description" content={props.fetchedEventType.description} />
         <meta
           property="og:image"
           content={
             "https://og-image-one-pi.vercel.app/" +
             encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
+              "Meet **" +
+                (props.fetchedUser.name || props.fetchedUser.username) +
+                "** <br>" +
+                props.fetchedEventType.description
             ).replace(/'/g, "%27") +
             ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
+            encodeURIComponent(props.fetchedUser.avatar)
           }
         />
 
@@ -77,18 +84,21 @@ export default function Type(props): Type {
         <meta property="twitter:url" content="https://calendso/" />
         <meta
           property="twitter:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
+          content={"Meet " + (props.fetchedUser.name || props.fetchedUser.username) + " via Calendso"}
         />
-        <meta property="twitter:description" content={props.eventType.description} />
+        <meta property="twitter:description" content={props.fetchedEventType.description} />
         <meta
           property="twitter:image"
           content={
             "https://og-image-one-pi.vercel.app/" +
             encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
+              "Meet **" +
+                (props.fetchedUser.name || props.fetchedUser.username) +
+                "** <br>" +
+                props.fetchedEventType.description
             ).replace(/'/g, "%27") +
             ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
+            encodeURIComponent(props.fetchedUser.avatar)
           }
         />
       </Head>
@@ -100,12 +110,12 @@ export default function Type(props): Type {
         <div className="bg-white sm:shadow sm:rounded-lg">
           <div className="sm:flex px-4 py-5 sm:p-4">
             <div className={"pr-8 sm:border-r " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")}>
-              <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
-              <h2 className="font-medium text-gray-500">{props.user.name}</h2>
-              <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
+              <Avatar user={props.fetchedUser} className="w-16 h-16 rounded-full mb-4" />
+              <h2 className="font-medium text-gray-500">{props.fetchedUser.name}</h2>
+              <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.fetchedEventType.title}</h1>
               <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
                 <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                {props.eventType.length} minutes
+                {props.fetchedEventType.length} minutes
               </p>
               <button
                 onClick={() => setIsTimeOptionsOpen(!isTimeOptionsOpen)}
@@ -120,38 +130,47 @@ export default function Type(props): Type {
                   onToggle24hClock={handleToggle24hClock}
                 />
               )}
-              <p className="text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
+              <p className="text-gray-600 mt-3 mb-8">{props.fetchedEventType.description}</p>
             </div>
             <DatePicker
-              weekStart={props.user.weekStart}
+              weekStart={props.fetchedUser.weekStart}
               onDatePicked={changeDate}
               workingHours={props.workingHours}
-              organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+              organizerTimeZone={props.fetchedEventType.timeZone || props.fetchedUser.timeZone}
               inviteeTimeZone={timeZone()}
-              eventLength={props.eventType.length}
+              eventLength={props.fetchedEventType.length}
             />
             {selectedDate && (
               <AvailableTimes
                 workingHours={props.workingHours}
                 timeFormat={timeFormat}
-                eventLength={props.eventType.length}
-                eventTypeId={props.eventType.id}
+                eventLength={props.fetchedEventType.length}
+                eventTypeId={props.fetchedEventType.id}
                 date={selectedDate}
-                user={props.user}
+                user={props.fetchedUser}
               />
             )}
           </div>
         </div>
-        {!props.user.hideBranding && <PoweredByCalendso />}
+        {!props.fetchedUser.hideBranding && <PoweredByCalendso />}
       </main>
     </div>
   );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await prisma.user.findFirst({
+  const { user, type } = context.query;
+
+  try {
+    assertString(user);
+    assertString(type);
+  } catch (e) {
+    throw new Error("Invalid [user] or [type] parameter(s)");
+  }
+
+  const fetchedUser = await prisma.user.findFirst({
     where: {
-      username: context.query.user.toLowerCase(),
+      username: user,
     },
     select: {
       id: true,
@@ -170,17 +189,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   });
 
-  if (!user) {
+  if (!fetchedUser) {
     return {
       notFound: true,
     };
   }
 
-  const eventType = await prisma.eventType.findFirst({
+  const fetchedEventType = await prisma.eventType.findFirst({
     where: {
-      userId: user.id,
+      userId: fetchedUser.id,
       slug: {
-        equals: context.query.type,
+        equals: type,
       },
     },
     select: {
@@ -193,7 +212,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   });
 
-  if (!eventType) {
+  if (!fetchedEventType) {
     return {
       notFound: true,
     };
@@ -205,13 +224,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       : null;
 
   const workingHours: [] =
-    getWorkingHours(eventType) ||
-    getWorkingHours(user) ||
+    getWorkingHours(fetchedEventType) ||
+    getWorkingHours(fetchedUser) ||
     [
       {
         days: [0, 1, 2, 3, 4, 5, 6],
-        startTime: user.startTime,
-        endTime: user.endTime,
+        startTime: fetchedUser.startTime,
+        endTime: fetchedUser.endTime,
       },
     ].filter((availability): boolean => typeof availability["days"] !== "undefined");
 
@@ -219,8 +238,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      user,
-      eventType,
+      fetchedUser,
+      fetchedEventType,
       workingHours,
     },
   };

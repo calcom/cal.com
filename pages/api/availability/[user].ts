@@ -1,49 +1,65 @@
-import type {NextApiRequest, NextApiResponse} from 'next';
-import prisma from '../../../lib/prisma';
-import {getBusyCalendarTimes} from '../../../lib/calendarClient';
-import {getBusyVideoTimes} from '../../../lib/videoClient';
+import type { NextApiRequest, NextApiResponse } from "next";
+import prisma from "../../../lib/prisma";
+import { getBusyCalendarTimes } from "../../../lib/calendarClient";
+import { getBusyVideoTimes } from "../../../lib/videoClient";
 import dayjs from "dayjs";
+import { assertNonEmptyString } from "../../../core/assertions";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { user } = req.query
+  const { user } = req.query;
 
-    const currentUser = await prisma.user.findFirst({
-        where: {
-          username: user,
-        },
-        select: {
-            credentials: true,
-            timeZone: true,
-            bufferTime: true
-        }
-    });
+  assertNonEmptyString(user, new Error("[user] not provided"));
 
-    const selectedCalendars = (await prisma.selectedCalendar.findMany({
-        where: {
-            userId: currentUser.id
-        }
-    }));
+  const currentUser = await prisma.user.findFirst({
+    where: {
+      username: user,
+    },
+    select: {
+      credentials: true,
+      timeZone: true,
+      bufferTime: true,
+    },
+  });
 
-    const hasCalendarIntegrations = currentUser.credentials.filter((cred) => cred.type.endsWith('_calendar')).length > 0;
-    const hasVideoIntegrations = currentUser.credentials.filter((cred) => cred.type.endsWith('_video')).length > 0;
+  const selectedCalendars = await prisma.selectedCalendar.findMany({
+    where: {
+      userId: currentUser.id,
+    },
+  });
 
-    const calendarAvailability = await getBusyCalendarTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo, selectedCalendars);
-    const videoAvailability = await getBusyVideoTimes(currentUser.credentials, req.query.dateFrom, req.query.dateTo);
+  const hasCalendarIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
+  const hasVideoIntegrations =
+    currentUser.credentials.filter((cred) => cred.type.endsWith("_video")).length > 0;
 
-    let commonAvailability = [];
+  const calendarAvailability = await getBusyCalendarTimes(
+    currentUser.credentials,
+    req.query.dateFrom,
+    req.query.dateTo,
+    selectedCalendars
+  );
+  const videoAvailability = await getBusyVideoTimes(
+    currentUser.credentials,
+    req.query.dateFrom,
+    req.query.dateTo
+  );
 
-    if(hasCalendarIntegrations && hasVideoIntegrations) {
-        commonAvailability = calendarAvailability.filter(availability => videoAvailability.includes(availability));
-    } else if(hasVideoIntegrations) {
-        commonAvailability = videoAvailability;
-    } else if(hasCalendarIntegrations) {
-        commonAvailability = calendarAvailability;
-    }
+  let commonAvailability = [];
 
-    commonAvailability = commonAvailability.map(a => ({
-        start: dayjs(a.start).subtract(currentUser.bufferTime, 'minute').toString(),
-        end: dayjs(a.end).add(currentUser.bufferTime, 'minute').toString()
-    }));
+  if (hasCalendarIntegrations && hasVideoIntegrations) {
+    commonAvailability = calendarAvailability.filter((availability) =>
+      videoAvailability.includes(availability)
+    );
+  } else if (hasVideoIntegrations) {
+    commonAvailability = videoAvailability;
+  } else if (hasCalendarIntegrations) {
+    commonAvailability = calendarAvailability;
+  }
 
-    res.status(200).json(commonAvailability);
+  commonAvailability = commonAvailability.map((a) => ({
+    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
+    end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
+  }));
+
+  res.status(200).json(commonAvailability);
 }

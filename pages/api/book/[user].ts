@@ -10,6 +10,7 @@ import { getEventName } from "../../../lib/event";
 import { LocationType } from "../../../lib/location";
 import merge from "lodash.merge";
 import dayjs from "dayjs";
+import { assertNonEmptyString } from "../../../core/assertions";
 
 const translator = short();
 
@@ -67,6 +68,8 @@ const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromI
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { user } = req.query;
+
+  assertNonEmptyString(user, new Error("[user] not provided"));
 
   const isTimeInPast = (time) => {
     return dayjs(time).isBefore(new Date(), "day");

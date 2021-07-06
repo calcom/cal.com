@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { GetServerSideProps } from "next";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
 import prisma from "../../lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
@@ -14,6 +15,7 @@ import { LocationType } from "../../lib/location";
 import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
 import { EventTypeCustomInputType } from "../../lib/eventTypeInput";
+import { assertString } from "../../core/assertions";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -27,7 +29,7 @@ export default function Book(props: any): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  const locations = props.eventType.locations || [];
+  const locations = props.fetchedEventType.locations || [];
 
   const [selectedLocation, setSelectedLocation] = useState<LocationType>(
     locations.length === 1 ? locations[0].type : ""
@@ -55,8 +57,8 @@ export default function Book(props: any): JSX.Element {
       setLoading(true);
       setError(false);
       let notes = "";
-      if (props.eventType.customInputs) {
-        notes = props.eventType.customInputs
+      if (props.fetchedEventType.customInputs) {
+        notes = props.fetchedEventType.customInputs
           .map((input) => {
             const data = event.target["custom_" + input.id];
             if (data) {
@@ -77,12 +79,12 @@ export default function Book(props: any): JSX.Element {
 
       const payload = {
         start: dayjs(date).format(),
-        end: dayjs(date).add(props.eventType.length, "minute").format(),
+        end: dayjs(date).add(props.fetchedEventType.length, "minute").format(),
         name: event.target.name.value,
         email: event.target.email.value,
         notes: notes,
         timeZone: preferredTimeZone,
-        eventTypeId: props.eventType.id,
+        eventTypeId: props.fetchedEventType.id,
         rescheduleUid: rescheduleUid,
       };
 
@@ -115,8 +117,8 @@ export default function Book(props: any): JSX.Element {
       });
       // TODO When the endpoint is fixed, change this to await the result again
       //if (res.ok) {
-      let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${
-        props.user.username
+      let successUrl = `/success?date=${date}&type=${props.fetchedEventType.id}&user=${
+        props.fetchedUser.username
       }&reschedule=${!!rescheduleUid}&name=${payload.name}`;
       if (payload["location"]) {
         if (payload["location"].includes("integration")) {
@@ -141,8 +143,8 @@ export default function Book(props: any): JSX.Element {
     <div>
       <Head>
         <title>
-          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with{" "}
-          {props.user.name || props.user.username} | Calendso
+          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.fetchedEventType.title} with{" "}
+          {props.fetchedUser.name || props.fetchedUser.username} | Calendso
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -151,12 +153,12 @@ export default function Book(props: any): JSX.Element {
         <div className="bg-white overflow-hidden sm:shadow sm:rounded-lg">
           <div className="sm:flex px-4 py-5 sm:p-6">
             <div className="sm:w-1/2 sm:border-r">
-              <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
-              <h2 className="font-medium text-gray-500">{props.user.name}</h2>
-              <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
+              <Avatar user={props.fetchedUser} className="w-16 h-16 rounded-full mb-4" />
+              <h2 className="font-medium text-gray-500">{props.fetchedUser.name}</h2>
+              <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.fetchedEventType.title}</h1>
               <p className="text-gray-500 mb-2">
                 <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                {props.eventType.length} minutes
+                {props.fetchedEventType.length} minutes
               </p>
               {selectedLocation === LocationType.InPerson && (
                 <p className="text-gray-500 mb-2">
@@ -171,7 +173,7 @@ export default function Book(props: any): JSX.Element {
                     .tz(preferredTimeZone)
                     .format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
               </p>
-              <p className="text-gray-600 mb-8">{props.eventType.description}</p>
+              <p className="text-gray-600 mb-8">{props.fetchedEventType.description}</p>
             </div>
             <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
               <form onSubmit={bookingHandler}>
@@ -245,8 +247,8 @@ export default function Book(props: any): JSX.Element {
                     </div>
                   </div>
                 )}
-                {props.eventType.customInputs &&
-                  props.eventType.customInputs
+                {props.fetchedEventType.customInputs &&
+                  props.fetchedEventType.customInputs
                     .sort((a, b) => a.id - b.id)
                     .map((input) => (
                       <div className="mb-4" key={"input-" + input.label.toLowerCase}>
@@ -323,9 +325,9 @@ export default function Book(props: any): JSX.Element {
                   <Link
                     href={
                       "/" +
-                      props.user.username +
+                      props.fetchedUser.username +
                       "/" +
-                      props.eventType.slug +
+                      props.fetchedEventType.slug +
                       (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
                     }>
                     <a className="ml-2 btn btn-white">Cancel</a>
@@ -342,9 +344,9 @@ export default function Book(props: any): JSX.Element {
                       <p className="text-sm text-yellow-700">
                         Could not {rescheduleUid ? "reschedule" : "book"} the meeting. Please try again or{" "}
                         <a
-                          href={"mailto:" + props.user.email}
+                          href={"mailto:" + props.fetchedUser.email}
                           className="font-medium underline text-yellow-700 hover:text-yellow-600">
-                          Contact {props.user.name} via e-mail
+                          Contact {props.fetchedUser.name} via e-mail
                         </a>
                       </p>
                     </div>
@@ -359,10 +361,19 @@ export default function Book(props: any): JSX.Element {
   );
 }
 
-export async function getServerSideProps(context) {
-  const user = await prisma.user.findFirst({
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { user, type, rescheduleUid } = context.query;
+
+  try {
+    assertString(user);
+    assertString(type);
+  } catch (e) {
+    throw new Error("Invalid [user] or [type] parameter(s)");
+  }
+
+  const fetchedUser = await prisma.user.findFirst({
     where: {
-      username: context.query.user,
+      username: user,
     },
     select: {
       username: true,
@@ -374,9 +385,9 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const eventType = await prisma.eventType.findUnique({
+  const fetchedEventType = await prisma.eventType.findUnique({
     where: {
-      id: parseInt(context.query.type),
+      id: parseInt(type),
     },
     select: {
       id: true,
@@ -389,12 +400,18 @@ export async function getServerSideProps(context) {
     },
   });
 
-  let booking = null;
+  let fetchedBooking = null;
 
-  if (context.query.rescheduleUid) {
-    booking = await prisma.booking.findFirst({
+  if (rescheduleUid) {
+    try {
+      assertString(rescheduleUid);
+    } catch (e) {
+      throw new Error("Invalid [rescheduleUid]parameter");
+    }
+
+    fetchedBooking = await prisma.booking.findFirst({
       where: {
-        uid: context.query.rescheduleUid,
+        uid: rescheduleUid,
       },
       select: {
         description: true,
@@ -410,9 +427,9 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
-      user,
-      eventType,
-      booking,
+      fetchedUser,
+      fetchedEventType,
+      fetchedBooking,
     },
   };
-}
+};
