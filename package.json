@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "node node_modules/.bin/jest",
     "build": "next build",
     "start": "next start",
     "postinstall": "prisma generate",
