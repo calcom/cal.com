@@ -1,20 +1,23 @@
 
-import {it, expect} from '@jest/globals';
-import {whereAndSelect} from "@lib/prisma";
+import { it, expect } from '@jest/globals';
+import { whereAndSelect } from "@lib/prisma";
 
-it('can decorate using whereAndSelect', async () => {
-  whereAndSelect( (queryObj) => {
-    expect(queryObj).toStrictEqual({ where: { id: 1 }, select: { example: true } });
+it("can decorate using whereAndSelect", async () => {
+  whereAndSelect(
+    (queryObj) => {
+      expect(queryObj).toStrictEqual({ where: { id: 1 }, select: { example: true } });
     },
     { id: 1 },
     [
-      "example"
-    ])
+      "example",
+    ]
+  );
 });
 
-it('can do nested selects using . seperator', async () => {
+it("can do nested selects using . seperator", async () => {
 
-  whereAndSelect( (queryObj) => {
+  whereAndSelect(
+    (queryObj) => {
       expect(queryObj).toStrictEqual({
         where: {
           uid: 1,
@@ -27,7 +30,7 @@ it('can do nested selects using . seperator', async () => {
               name: true,
             },
           },
-        }
+        },
       });
     },
     { uid: 1 },
@@ -35,11 +38,13 @@ it('can do nested selects using . seperator', async () => {
       "description",
       "attendees.email",
       "attendees.name",
-    ])
-})
+    ]
+  );
+});
 
-it('can handle nesting deeply', async () => {
-  whereAndSelect( (queryObj) => {
+it("can handle nesting deeply", async () => {
+  whereAndSelect(
+    (queryObj) => {
       expect(queryObj).toStrictEqual({
         where: {
           uid: 1,
@@ -50,13 +55,13 @@ it('can handle nesting deeply', async () => {
             select: {
               email: {
                 select: {
-                  nested: true
+                  nested: true,
                 }
               },
               name: true,
             },
           },
-        }
+        },
       });
     },
     { uid: 1 },
@@ -64,11 +69,13 @@ it('can handle nesting deeply', async () => {
       "description",
       "attendees.email.nested",
       "attendees.name",
-    ])
+    ]
+  );
 });
 
-it('can handle nesting multiple', async () => {
-  whereAndSelect( (queryObj) => {
+it("can handle nesting multiple", async () => {
+  whereAndSelect(
+    (queryObj) => {
       expect(queryObj).toStrictEqual({
         where: {
           uid: 1,
@@ -97,5 +104,6 @@ it('can handle nesting multiple', async () => {
       "attendees.name",
       "bookings.id",
       "bookings.name",
-    ])
+    ]
+  );
 });
