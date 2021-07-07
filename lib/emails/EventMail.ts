@@ -1,10 +1,28 @@
-import {CalendarEvent} from "../calendarClient";
-import {serverConfig} from "../serverConfig";
-import nodemailer from 'nodemailer';
+import { CalendarEvent, ConferenceData } from "../calendarClient";
+import { serverConfig } from "../serverConfig";
+import nodemailer from "nodemailer";
+
+interface EntryPoint {
+  entryPointType?: string;
+  uri?: string;
+  label?: string;
+  pin?: string;
+  accessCode?: string;
+  meetingCode?: string;
+  passcode?: string;
+  password?: string;
+}
+
+interface AdditionInformation {
+  conferenceData?: ConferenceData;
+  entryPoints?: EntryPoint[];
+  hangoutLink?: string;
+}
 
 export default abstract class EventMail {
   calEvent: CalendarEvent;
   uid: string;
+  additionInformation?: AdditionInformation;
 
   /**
    * An EventMail always consists of a CalendarEvent
@@ -14,9 +32,10 @@ export default abstract class EventMail {
    * @param calEvent
    * @param uid
    */
-  constructor(calEvent: CalendarEvent, uid: string) {
+  constructor(calEvent: CalendarEvent, uid: string, additionInformation: AdditionInformation = null) {
     this.calEvent = calEvent;
     this.uid = uid;
+    this.additionInformation = additionInformation;
   }
 
   /**
@@ -43,31 +62,30 @@ export default abstract class EventMail {
    * @protected
    */
   protected stripHtml(html: string): string {
-    return html
-      .replace('<br />', "\n")
-      .replace(/<[^>]+>/g, '');
+    return html.replace("<br />", "\n").replace(/<[^>]+>/g, "");
   }
 
   /**
    * Returns the payload object for the nodemailer.
    * @protected
    */
-  protected abstract getNodeMailerPayload(): Object;
+  protected abstract getNodeMailerPayload();
 
   /**
    * Sends the email to the event attendant and returns a Promise.
    */
   public sendEmail(): Promise<any> {
-    new Promise((resolve, reject) => nodemailer.createTransport(this.getMailerOptions().transport).sendMail(
-      this.getNodeMailerPayload(),
-      (error, info) => {
-        if (error) {
-          this.printNodeMailerError(error);
-          reject(new Error(error));
-        } else {
-          resolve(info);
-        }
-      })
+    new Promise((resolve, reject) =>
+      nodemailer
+        .createTransport(this.getMailerOptions().transport)
+        .sendMail(this.getNodeMailerPayload(), (error, info) => {
+          if (error) {
+            this.printNodeMailerError(error);
+            reject(new Error(error));
+          } else {
+            resolve(info);
+          }
+        })
     ).catch((e) => console.error("sendEmail", e));
     return new Promise((resolve) => resolve("send mail async"));
   }
@@ -95,6 +113,8 @@ export default abstract class EventMail {
     return "";
   }
 
+  protected abstract getLocation(): string;
+
   /**
    * Prints out the desired information when an error
    * occured while sending the mail.
@@ -109,7 +129,7 @@ export default abstract class EventMail {
    * @protected
    */
   protected getRescheduleLink(): string {
-    return process.env.BASE_URL + '/reschedule/' + this.uid;
+    return process.env.BASE_URL + "/reschedule/" + this.uid;
   }
 
   /**
@@ -118,9 +138,8 @@ export default abstract class EventMail {
    * @protected
    */
   protected getCancelLink(): string {
-    return process.env.BASE_URL + '/cancel/' + this.uid;
+    return process.env.BASE_URL + "/cancel/" + this.uid;
   }
-
 
   /**
    * Defines a footer that will be appended to the email.

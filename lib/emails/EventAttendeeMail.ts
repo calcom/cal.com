@@ -1,9 +1,9 @@
-import dayjs, {Dayjs} from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import EventMail from "./EventMail";
 
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
@@ -15,20 +15,60 @@ export default class EventAttendeeMail extends EventMail {
    * @protected
    */
   protected getHtmlRepresentation(): string {
-    return `
+    return (
+      `
     <div>
       Hi ${this.calEvent.attendees[0].name},<br />
       <br />
-      Your ${this.calEvent.type} with ${this.calEvent.organizer.name} at ${this.getInviteeStart().format('h:mma')} 
-      (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format('dddd, LL')} is scheduled.<br />
-      <br />` + this.getAdditionalBody() + (
-        this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : ''
-      ) +
+      Your ${this.calEvent.type} with ${this.calEvent.organizer.name} at ${this.getInviteeStart().format(
+        "h:mma"
+      )} 
+      (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format(
+        "dddd, LL"
+      )} is scheduled.<br />
+      <br />` +
+      this.getAdditionalBody() +
+      "<br />" +
       `<strong>Additional notes:</strong><br />
       ${this.calEvent.description}<br />
-      ` + this.getAdditionalFooter() + `
+      ` +
+      this.getAdditionalFooter() +
+      `
     </div>
-  `;
+  `
+    );
+  }
+
+  /**
+   * Adds the video call information to the mail body.
+   *
+   * @protected
+   */
+  protected getLocation(): string {
+    if (this.additionInformation?.hangoutLink) {
+      return `<strong>Location:</strong> <a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
+    }
+
+    if (this.additionInformation?.entryPoints && this.additionInformation?.entryPoints.length > 0) {
+      const locations = this.additionInformation?.entryPoints
+        .map((entryPoint) => {
+          return `
+          Join by ${entryPoint.entryPointType}: <br />
+          <a href="${entryPoint.uri}">${entryPoint.label}</a> <br />
+        `;
+        })
+        .join("<br />");
+
+      return `<strong>Locations:</strong><br /> ${locations}`;
+    }
+
+    return this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : "";
+  }
+
+  protected getAdditionalBody(): string {
+    return `
+      ${this.getLocation()}
+    `;
   }
 
   /**
@@ -36,12 +76,14 @@ export default class EventAttendeeMail extends EventMail {
    *
    * @protected
    */
-  protected getNodeMailerPayload(): Object {
+  protected getNodeMailerPayload() {
     return {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Confirmed: ${this.calEvent.type} with ${this.calEvent.organizer.name} on ${this.getInviteeStart().format('dddd, LL')}`,
+      subject: `Confirmed: ${this.calEvent.type} with ${
+        this.calEvent.organizer.name
+      } on ${this.getInviteeStart().format("dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };

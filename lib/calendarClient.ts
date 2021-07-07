@@ -111,7 +111,7 @@ interface Person {
   timeZone: string;
 }
 
-interface CalendarEvent {
+export interface CalendarEvent {
   type: string;
   title: string;
   startTime: string;
@@ -123,18 +123,18 @@ interface CalendarEvent {
   conferenceData?: ConferenceData;
 }
 
-interface ConferenceData {
+export interface ConferenceData {
   createRequest: any;
 }
 
-interface IntegrationCalendar {
+export interface IntegrationCalendar {
   integration: string;
   primary: boolean;
   externalId: string;
   name: string;
 }
 
-interface CalendarApiAdapter {
+export interface CalendarApiAdapter {
   createEvent(event: CalendarEvent): Promise<any>;
 
   updateEvent(uid: string, event: CalendarEvent);
@@ -373,6 +373,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
               auth: myGoogleAuth,
               calendarId: "primary",
               resource: payload,
+              conferenceDataVersion: 1,
             },
             function (err, event) {
               if (err) {
@@ -511,8 +512,22 @@ const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> =>
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(calEvent) : null;
 
-  const organizerMail = new EventOrganizerMail(calEvent, uid);
-  const attendeeMail = new EventAttendeeMail(calEvent, uid);
+  const maybeHangoutLink = creationResult?.hangoutLink;
+  const maybeEntryPoints = creationResult?.entryPoints;
+  const maybeConferenceData = creationResult?.conferenceData;
+
+  const organizerMail = new EventOrganizerMail(calEvent, uid, {
+    hangoutLink: maybeHangoutLink,
+    conferenceData: maybeConferenceData,
+    entryPoints: maybeEntryPoints,
+  });
+
+  const attendeeMail = new EventAttendeeMail(calEvent, uid, {
+    hangoutLink: maybeHangoutLink,
+    conferenceData: maybeConferenceData,
+    entryPoints: maybeEntryPoints,
+  });
+
   try {
     await organizerMail.sendEmail();
   } catch (e) {
@@ -570,12 +585,4 @@ const deleteEvent = (credential, uid: string): Promise<any> => {
   return Promise.resolve({});
 };
 
-export {
-  getBusyCalendarTimes,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  CalendarEvent,
-  listCalendars,
-  IntegrationCalendar,
-};
+export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, listCalendars };
