@@ -2,6 +2,7 @@ import Head from "next/head";
 import prisma from "../../lib/prisma";
 import { getSession, useSession } from "next-auth/client";
 import Shell from "../../components/Shell";
+import dayjs from "dayjs";
 
 export default function Bookings({ bookings }) {
   const [session, loading] = useSession();
@@ -27,43 +28,39 @@ export default function Bookings({ bookings }) {
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Title
+                        Person
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Description
+                        Event
                       </th>
-                      <th
+                      {/* <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
+                        Date
+                      </th> */}
                       <th scope="col" className="relative px-6 py-3">
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">Actions</span>
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {bookings.map((booking) => (
-                      <tr key={booking.uid}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {booking.title}
+                      <tr key={booking.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{booking.attendees[0].name}</div>
+                          <div className="text-sm text-gray-500">{booking.attendees[0].email}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {booking.description}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{booking.title}</div>
+                          <div className="text-sm text-gray-500">{booking.description}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {booking.attendees[0].name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {booking.attendees[0].email}
-                        </td>
+                        {/* <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {dayjs(booking.startTime).format("D MMMM YYYY HH:mm")}
+                          </div>
+                        </td> */}
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <a
                             href={window.location.href + "/../reschedule/" + booking.uid}
@@ -114,6 +111,9 @@ export async function getServerSideProps(context) {
       title: true,
       description: true,
       attendees: true,
+    },
+    orderBy: {
+      startTime: "desc",
     },
   });
 

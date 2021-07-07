@@ -17,6 +17,7 @@ export default function Settings(props) {
   const nameRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const avatarRef = useRef<HTMLInputElement>();
+  const hideBrandingRef = useRef<HTMLInputElement>();
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState(props.user.weekStart || "Sunday");
 
@@ -43,6 +44,7 @@ export default function Settings(props) {
     const enteredAvatar = avatarRef.current.value;
     const enteredTimeZone = selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay;
+    const enteredHideBranding = hideBrandingRef.current.checked;
 
     // TODO: Add validation
 
@@ -55,6 +57,7 @@ export default function Settings(props) {
         avatar: enteredAvatar,
         timeZone: enteredTimeZone,
         weekStart: enteredWeekStartDay,
+        hideBranding: enteredHideBranding,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -154,6 +157,26 @@ export default function Settings(props) {
                     </select>
                   </div>
                 </div>
+                <div>
+                  <div className="relative flex items-start">
+                    <div className="flex items-center h-5">
+                      <input
+                        id="hide-branding"
+                        name="hide-branding"
+                        type="checkbox"
+                        ref={hideBrandingRef}
+                        defaultChecked={props.user.hideBranding}
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                        Disable Calendso branding
+                      </label>
+                      <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-6 flex-grow lg:mt-0 lg:ml-6 lg:flex-grow-0 lg:flex-shrink-0">
@@ -247,6 +270,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       avatar: true,
       timeZone: true,
       weekStart: true,
+      hideBranding: true,
     },
   });
 
