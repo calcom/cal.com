@@ -136,3 +136,23 @@ body {
 #timeZone input:focus {
     box-shadow: none;
 }
+
+.weekdaySelect {
+    font-family: "Courier New", sans-serif;
+}
+
+.weekdaySelect button.active:first-child {
+    margin-left: -1px !important;
+}
+
+.weekdaySelect button:not(.active) {
+    padding-left: calc(0.5rem + 0px);
+    margin-right: 1px;
+}
+
+.weekdaySelect button.active + button.active {
+    border-color: rgba(3, 169, 244, var(--tw-border-opacity))
+                  rgba(3, 169, 244, var(--tw-border-opacity))
+                  rgba(3, 169, 244, var(--tw-border-opacity))
+                  white;
+}

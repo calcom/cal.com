@@ -1,13 +1,31 @@
-import { CalendarEvent } from "../calendarClient";
-import { serverConfig } from "../serverConfig";
-import nodemailer from "nodemailer";
 import CalEventParser from "../CalEventParser";
 import { stripHtml } from "./helpers";
+import { CalendarEvent, ConferenceData } from "../calendarClient";
+import { serverConfig } from "../serverConfig";
+import nodemailer from "nodemailer";
+
+interface EntryPoint {
+  entryPointType?: string;
+  uri?: string;
+  label?: string;
+  pin?: string;
+  accessCode?: string;
+  meetingCode?: string;
+  passcode?: string;
+  password?: string;
+}
+
+interface AdditionInformation {
+  conferenceData?: ConferenceData;
+  entryPoints?: EntryPoint[];
+  hangoutLink?: string;
+}
 
 export default abstract class EventMail {
   calEvent: CalendarEvent;
   parser: CalEventParser;
   uid: string;
+  additionInformation?: AdditionInformation;
 
   /**
    * An EventMail always consists of a CalendarEvent
@@ -17,10 +35,11 @@ export default abstract class EventMail {
    * @param calEvent
    * @param uid
    */
-  constructor(calEvent: CalendarEvent, uid: string) {
+  constructor(calEvent: CalendarEvent, uid: string, additionInformation: AdditionInformation = null) {
     this.calEvent = calEvent;
     this.uid = uid;
     this.parser = new CalEventParser(calEvent);
+    this.additionInformation = additionInformation;
   }
 
   /**
@@ -87,6 +106,8 @@ export default abstract class EventMail {
   protected getAdditionalBody(): string {
     return "";
   }
+
+  protected abstract getLocation(): string;
 
   /**
    * Prints out the desired information when an error

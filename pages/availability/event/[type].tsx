@@ -1,17 +1,67 @@
+import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Select, { OptionBase } from "react-select";
-import prisma from "../../../lib/prisma";
-import { LocationType } from "../../../lib/location";
-import Shell from "../../../components/Shell";
-import { getSession, useSession } from "next-auth/client";
+import prisma from "@lib/prisma";
+import { LocationType } from "@lib/location";
+import Shell from "@components/Shell";
+import { getSession } from "next-auth/client";
+import { Scheduler } from "@components/ui/Scheduler";
+
 import { LocationMarkerIcon, PhoneIcon, PlusCircleIcon, XIcon } from "@heroicons/react/outline";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "../../../lib/eventTypeInput";
+import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeInput";
 import { PlusIcon } from "@heroicons/react/solid";
 
-export default function EventType(props: any): JSX.Element {
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { Availability, EventType, User } from "@prisma/client";
+import { validJson } from "@lib/jsonUtils";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+type Props = {
+  user: User;
+  eventType: EventType;
+  locationOptions: OptionBase[];
+  availability: Availability[];
+};
+
+type OpeningHours = {
+  days: number[];
+  startTime: number;
+  endTime: number;
+};
+
+type DateOverride = {
+  date: string;
+  startTime: number;
+  endTime: number;
+};
+
+type EventTypeInput = {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  length: number;
+  hidden: boolean;
+  locations: unknown;
+  eventName: string;
+  customInputs: EventTypeCustomInput[];
+  timeZone: string;
+  availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
+};
+
+export default function EventTypePage({
+  user,
+  eventType,
+  locationOptions,
+  availability,
+}: Props): JSX.Element {
   const router = useRouter();
 
   const inputOptions: OptionBase[] = [
@@ -21,17 +71,17 @@ export default function EventType(props: any): JSX.Element {
     { value: EventTypeCustomInputType.Bool, label: "Checkbox" },
   ];
 
-  const [, loading] = useSession();
+  const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
+  const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionBase | undefined>(undefined);
   const [selectedInputOption, setSelectedInputOption] = useState<OptionBase>(inputOptions[0]);
+  const [locations, setLocations] = useState(eventType.locations || []);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
-  const [locations, setLocations] = useState(props.eventType.locations || []);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
-    props.eventType.customInputs.sort((a, b) => a.id - b.id) || []
+    eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
-  const locationOptions = props.locationOptions;
 
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
@@ -40,34 +90,41 @@ export default function EventType(props: any): JSX.Element {
   const isHiddenRef = useRef<HTMLInputElement>();
   const eventNameRef = useRef<HTMLInputElement>();
 
-  if (loading) {
-    return <p className="text-gray-400">Loading...</p>;
-  }
+  useEffect(() => {
+    setSelectedTimeZone(eventType.timeZone || user.timeZone);
+  }, []);
 
   async function updateEventTypeHandler(event) {
     event.preventDefault();
 
-    const enteredTitle = titleRef.current.value;
-    const enteredSlug = slugRef.current.value;
-    const enteredDescription = descriptionRef.current.value;
-    const enteredLength = lengthRef.current.value;
-    const enteredIsHidden = isHiddenRef.current.checked;
-    const enteredEventName = eventNameRef.current.value;
+    const enteredTitle: string = titleRef.current.value;
+    const enteredSlug: string = slugRef.current.value;
+    const enteredDescription: string = descriptionRef.current.value;
+    const enteredLength: number = parseInt(lengthRef.current.value);
+    const enteredIsHidden: boolean = isHiddenRef.current.checked;
+    const enteredEventName: string = eventNameRef.current.value;
     // TODO: Add validation
+
+    const payload: EventTypeInput = {
+      id: eventType.id,
+      title: enteredTitle,
+      slug: enteredSlug,
+      description: enteredDescription,
+      length: enteredLength,
+      hidden: enteredIsHidden,
+      locations,
+      eventName: enteredEventName,
+      customInputs,
+      timeZone: selectedTimeZone,
+    };
+
+    if (enteredAvailability) {
+      payload.availability = enteredAvailability;
+    }
 
     await fetch("/api/availability/eventtype", {
       method: "PATCH",
-      body: JSON.stringify({
-        id: props.eventType.id,
-        title: enteredTitle,
-        slug: enteredSlug,
-        description: enteredDescription,
-        length: enteredLength,
-        hidden: enteredIsHidden,
-        locations,
-        eventName: enteredEventName,
-        customInputs,
-      }),
+      body: JSON.stringify(payload),
       headers: {
         "Content-Type": "application/json",
       },
@@ -81,7 +138,7 @@ export default function EventType(props: any): JSX.Element {
 
     await fetch("/api/availability/eventtype", {
       method: "DELETE",
-      body: JSON.stringify({ id: props.eventType.id }),
+      body: JSON.stringify({ id: eventType.id }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -104,6 +161,30 @@ export default function EventType(props: any): JSX.Element {
     setSelectedInputOption(inputOptions[0]);
     setShowAddCustomModal(false);
     setSelectedCustomInput(undefined);
+  };
+
+  const updateLocations = (e) => {
+    e.preventDefault();
+
+    let details = {};
+    if (e.target.location.value === LocationType.InPerson) {
+      details = { address: e.target.address.value };
+    }
+
+    const existingIdx = locations.findIndex((loc) => e.target.location.value === loc.type);
+    if (existingIdx !== -1) {
+      const copy = locations;
+      copy[existingIdx] = { ...locations[existingIdx], ...details };
+      setLocations(copy);
+    } else {
+      setLocations(locations.concat({ type: e.target.location.value, ...details }));
+    }
+
+    setShowLocationModal(false);
+  };
+
+  const removeLocation = (selectedLocation) => {
+    setLocations(locations.filter((location) => location.type !== selectedLocation.type));
   };
 
   const openEditCustomModel = (customInput: EventTypeCustomInput) => {
@@ -147,30 +228,6 @@ export default function EventType(props: any): JSX.Element {
     return null;
   };
 
-  const updateLocations = (e) => {
-    e.preventDefault();
-
-    let details = {};
-    if (e.target.location.value === LocationType.InPerson) {
-      details = { address: e.target.address.value };
-    }
-
-    const existingIdx = locations.findIndex((loc) => e.target.location.value === loc.type);
-    if (existingIdx !== -1) {
-      const copy = locations;
-      copy[existingIdx] = { ...locations[existingIdx], ...details };
-      setLocations(copy);
-    } else {
-      setLocations(locations.concat({ type: e.target.location.value, ...details }));
-    }
-
-    setShowLocationModal(false);
-  };
-
-  const removeLocation = (selectedLocation) => {
-    setLocations(locations.filter((location) => location.type !== selectedLocation.type));
-  };
-
   const updateCustom = (e) => {
     e.preventDefault();
 
@@ -207,13 +264,13 @@ export default function EventType(props: any): JSX.Element {
   return (
     <div>
       <Head>
-        <title>{props.eventType.title} | Event Type | Calendso</title>
+        <title>{eventType.title} | Event Type | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading={"Event Type - " + props.eventType.title}>
-        <div>
-          <div className="mb-8">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+      <Shell heading={"Event Type - " + eventType.title}>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-3 sm:col-span-2">
+            <div className="bg-white overflow-hidden shadow rounded-lg mb-4">
               <div className="px-4 py-5 sm:p-6">
                 <form onSubmit={updateEventTypeHandler}>
                   <div className="mb-4">
@@ -229,7 +286,7 @@ export default function EventType(props: any): JSX.Element {
                         required
                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="Quick Chat"
-                        defaultValue={props.eventType.title}
+                        defaultValue={eventType.title}
                       />
                     </div>
                   </div>
@@ -240,7 +297,7 @@ export default function EventType(props: any): JSX.Element {
                     <div className="mt-1">
                       <div className="flex rounded-md shadow-sm">
                         <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                          {location.hostname}/{props.user.username}/
+                          {typeof location !== "undefined" ? location.hostname : ""}/{user.username}/
                         </span>
                         <input
                           ref={slugRef}
@@ -249,7 +306,7 @@ export default function EventType(props: any): JSX.Element {
                           id="slug"
                           required
                           className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                          defaultValue={props.eventType.slug}
+                          defaultValue={eventType.slug}
                         />
                       </div>
                     </div>
@@ -390,7 +447,7 @@ export default function EventType(props: any): JSX.Element {
                         id="description"
                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="A quick video meeting."
-                        defaultValue={props.eventType.description}></textarea>
+                        defaultValue={eventType.description}></textarea>
                     </div>
                   </div>
                   <div className="mb-4">
@@ -406,7 +463,7 @@ export default function EventType(props: any): JSX.Element {
                         required
                         className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
                         placeholder="15"
-                        defaultValue={props.eventType.length}
+                        defaultValue={eventType.length}
                       />
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
                         minutes
@@ -425,7 +482,7 @@ export default function EventType(props: any): JSX.Element {
                         id="title"
                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="Meeting with {USER}"
-                        defaultValue={props.eventType.eventName}
+                        defaultValue={eventType.eventName}
                       />
                     </div>
                   </div>
@@ -484,7 +541,7 @@ export default function EventType(props: any): JSX.Element {
                           name="ishidden"
                           type="checkbox"
                           className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                          defaultChecked={props.eventType.hidden}
+                          defaultChecked={eventType.hidden}
                         />
                       </div>
                       <div className="ml-3 text-sm">
@@ -497,12 +554,24 @@ export default function EventType(props: any): JSX.Element {
                       </div>
                     </div>
                   </div>
-                  <button type="submit" className="btn btn-primary">
-                    Update
-                  </button>
-                  <Link href="/availability">
-                    <a className="ml-2 btn btn-white">Cancel</a>
-                  </Link>
+                  <hr className="my-4" />
+                  <div>
+                    <h3 className="mb-2">How do you want to offer your availability for this event type?</h3>
+                    <Scheduler
+                      setAvailability={setEnteredAvailability}
+                      setTimeZone={setSelectedTimeZone}
+                      timeZone={selectedTimeZone}
+                      availability={availability}
+                    />
+                    <div className="py-4 flex justify-end">
+                      <Link href="/availability">
+                        <a className="mr-2 btn btn-white">Cancel</a>
+                      </Link>
+                      <button type="submit" className="btn btn-primary">
+                        Update
+                      </button>
+                    </div>
+                  </div>
                 </form>
               </div>
             </div>
@@ -649,9 +718,7 @@ export default function EventType(props: any): JSX.Element {
                       Is required
                     </label>
                   </div>
-
                   <input type="hidden" name="id" id="id" value={selectedCustomInput?.id} />
-
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
                       Save
@@ -670,31 +737,54 @@ export default function EventType(props: any): JSX.Element {
   );
 }
 
-const validJson = (jsonString: string) => {
-  try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
-  } catch (e) {
-    console.log("Invalid JSON:", e);
-  }
-  return false;
-};
-
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
+export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query }) => {
+  const session = await getSession({ req });
   if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    };
   }
-  const user = await prisma.user.findFirst({
+
+  const user: User = await prisma.user.findFirst({
     where: {
       email: session.user.email,
     },
     select: {
       username: true,
+      timeZone: true,
+      startTime: true,
+      endTime: true,
+      availability: true,
     },
   });
+
+  const eventType: EventType | null = await prisma.eventType.findUnique({
+    where: {
+      id: parseInt(query.type as string),
+    },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      hidden: true,
+      locations: true,
+      eventName: true,
+      availability: true,
+      customInputs: true,
+      timeZone: true,
+    },
+  });
+
+  if (!eventType) {
+    return {
+      notFound: true,
+    };
+  }
 
   const credentials = await prisma.credential.findMany({
     where: {
@@ -747,28 +837,28 @@ export async function getServerSideProps(context) {
     // Assuming it's Microsoft Teams.
   }
 
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id: parseInt(context.query.type),
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      hidden: true,
-      locations: true,
-      eventName: true,
-      customInputs: true,
-    },
-  });
+  const getAvailability = (providesAvailability) =>
+    providesAvailability.availability && providesAvailability.availability.length
+      ? providesAvailability.availability
+      : null;
+
+  const availability: Availability[] = getAvailability(eventType) ||
+    getAvailability(user) || [
+      {
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startTime: user.startTime,
+        endTime: user.endTime,
+      },
+    ];
+
+  availability.sort((a, b) => a.startTime - b.startTime);
 
   return {
     props: {
       user,
       eventType,
       locationOptions,
+      availability,
     },
   };
-}
+};

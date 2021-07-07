@@ -102,15 +102,13 @@ const o365Auth = (credential) => {
   };
 };
 
-// eslint-disable-next-line
 interface Person {
   name?: string;
   email: string;
   timeZone: string;
 }
 
-// eslint-disable-next-line
-interface CalendarEvent {
+export interface CalendarEvent {
   type: string;
   title: string;
   startTime: string;
@@ -122,28 +120,25 @@ interface CalendarEvent {
   conferenceData?: ConferenceData;
 }
 
-// eslint-disable-next-line
-interface ConferenceData {
-  createRequest: any;
+export interface ConferenceData {
+  createRequest: unknown;
 }
 
-// eslint-disable-next-line
-interface IntegrationCalendar {
+export interface IntegrationCalendar {
   integration: string;
   primary: boolean;
   externalId: string;
   name: string;
 }
 
-// eslint-disable-next-line
-interface CalendarApiAdapter {
-  createEvent(event: CalendarEvent): Promise<any>;
+export interface CalendarApiAdapter {
+  createEvent(event: CalendarEvent): Promise<unknown>;
 
   updateEvent(uid: string, event: CalendarEvent);
 
   deleteEvent(uid: string);
 
-  getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<any>;
+  getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(): Promise<IntegrationCalendar[]>;
 }
@@ -375,6 +370,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
               auth: myGoogleAuth,
               calendarId: "primary",
               resource: payload,
+              conferenceDataVersion: 1,
             },
             function (err, event) {
               if (err) {
@@ -508,15 +504,29 @@ const listCalendars = (withCredentials) =>
     results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> => {
+const createEvent = async (credential, calEvent: CalendarEvent): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(richEvent) : null;
 
-  const organizerMail = new EventOrganizerMail(calEvent, uid);
-  const attendeeMail = new EventAttendeeMail(calEvent, uid);
+  const maybeHangoutLink = creationResult?.hangoutLink;
+  const maybeEntryPoints = creationResult?.entryPoints;
+  const maybeConferenceData = creationResult?.conferenceData;
+
+  const organizerMail = new EventOrganizerMail(calEvent, uid, {
+    hangoutLink: maybeHangoutLink,
+    conferenceData: maybeConferenceData,
+    entryPoints: maybeEntryPoints,
+  });
+
+  const attendeeMail = new EventAttendeeMail(calEvent, uid, {
+    hangoutLink: maybeHangoutLink,
+    conferenceData: maybeConferenceData,
+    entryPoints: maybeEntryPoints,
+  });
+
   try {
     await organizerMail.sendEmail();
   } catch (e) {
@@ -537,7 +547,7 @@ const createEvent = async (credential, calEvent: CalendarEvent): Promise<any> =>
   };
 };
 
-const updateEvent = async (credential, uidToUpdate: string, calEvent: CalendarEvent): Promise<any> => {
+const updateEvent = async (credential, uidToUpdate: string, calEvent: CalendarEvent): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
@@ -568,7 +578,7 @@ const updateEvent = async (credential, uidToUpdate: string, calEvent: CalendarEv
   };
 };
 
-const deleteEvent = (credential, uid: string): Promise<any> => {
+const deleteEvent = (credential, uid: string): Promise<unknown> => {
   if (credential) {
     return calendars([credential])[0].deleteEvent(uid);
   }

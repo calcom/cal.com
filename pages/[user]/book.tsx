@@ -147,8 +147,8 @@ export default function Book(props: any): JSX.Element {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="max-w-3xl mx-auto my-24">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+      <main className="max-w-3xl mx-auto my-0 sm:my-24">
+        <div className="bg-white overflow-hidden sm:shadow sm:rounded-lg">
           <div className="sm:flex px-4 py-5 sm:p-6">
             <div className="sm:w-1/2 sm:border-r">
               <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
@@ -171,9 +171,9 @@ export default function Book(props: any): JSX.Element {
                     .tz(preferredTimeZone)
                     .format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
               </p>
-              <p className="text-gray-600">{props.eventType.description}</p>
+              <p className="text-gray-600 mb-8">{props.eventType.description}</p>
             </div>
-            <div className="sm:w-1/2 pl-8 pr-4">
+            <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
               <form onSubmit={bookingHandler}>
                 <div className="mb-4">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700">
