@@ -6,6 +6,8 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import { stripHtml } from "./helpers";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(toArray);
@@ -28,11 +30,11 @@ export default class EventOrganizerMail extends EventMail {
       title: `${this.calEvent.type} with ${this.calEvent.attendees[0].name}`,
       description:
         this.calEvent.description +
-        this.stripHtml(this.getAdditionalBody()) +
-        this.stripHtml(this.getAdditionalFooter()),
+        stripHtml(this.getAdditionalBody()) +
+        stripHtml(this.getAdditionalFooter()),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
-      attendees: this.calEvent.attendees.map((attendee: any) => ({
+      attendees: this.calEvent.attendees.map((attendee: unknown) => ({
         name: attendee.name,
         email: attendee.email,
       })),
@@ -72,7 +74,7 @@ export default class EventOrganizerMail extends EventMail {
           ${this.calEvent.description}
         ` +
       this.getAdditionalFooter() +
-      `   
+      `
       </div>
     `
     );
@@ -114,7 +116,7 @@ export default class EventOrganizerMail extends EventMail {
    *
    * @protected
    */
-  protected getNodeMailerPayload() {
+  protected getNodeMailerPayload(): Record<string, unknown> {
     const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
 
     return {

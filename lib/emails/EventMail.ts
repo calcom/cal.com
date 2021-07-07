@@ -1,3 +1,5 @@
+import CalEventParser from "../CalEventParser";
+import { stripHtml } from "./helpers";
 import { CalendarEvent, ConferenceData } from "../calendarClient";
 import { serverConfig } from "../serverConfig";
 import nodemailer from "nodemailer";
@@ -21,6 +23,7 @@ interface AdditionInformation {
 
 export default abstract class EventMail {
   calEvent: CalendarEvent;
+  parser: CalEventParser;
   uid: string;
   additionInformation?: AdditionInformation;
 
@@ -35,6 +38,7 @@ export default abstract class EventMail {
   constructor(calEvent: CalendarEvent, uid: string, additionInformation: AdditionInformation = null) {
     this.calEvent = calEvent;
     this.uid = uid;
+    this.parser = new CalEventParser(calEvent);
     this.additionInformation = additionInformation;
   }
 
@@ -52,24 +56,14 @@ export default abstract class EventMail {
    * @protected
    */
   protected getPlainTextRepresentation(): string {
-    return this.stripHtml(this.getHtmlRepresentation());
-  }
-
-  /**
-   * Strips off all HTML tags and leaves plain text.
-   *
-   * @param html
-   * @protected
-   */
-  protected stripHtml(html: string): string {
-    return html.replace("<br />", "\n").replace(/<[^>]+>/g, "");
+    return stripHtml(this.getHtmlRepresentation());
   }
 
   /**
    * Returns the payload object for the nodemailer.
    * @protected
    */
-  protected abstract getNodeMailerPayload();
+  protected abstract getNodeMailerPayload(): Record<string, unknown>;
 
   /**
    * Sends the email to the event attendant and returns a Promise.
@@ -129,7 +123,7 @@ export default abstract class EventMail {
    * @protected
    */
   protected getRescheduleLink(): string {
-    return process.env.BASE_URL + "/reschedule/" + this.uid;
+    return this.parser.getRescheduleLink();
   }
 
   /**
@@ -138,7 +132,7 @@ export default abstract class EventMail {
    * @protected
    */
   protected getCancelLink(): string {
-    return process.env.BASE_URL + "/cancel/" + this.uid;
+    return this.parser.getCancelLink();
   }
 
   /**
@@ -146,12 +140,6 @@ export default abstract class EventMail {
    * @protected
    */
   protected getAdditionalFooter(): string {
-    return `
-      <br/>
-      <br/>
-      <strong>Need to change this event?</strong><br />
-      Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a><br />
-      Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
-    `;
+    return this.parser.getChangeEventFooterHtml();
   }
 }

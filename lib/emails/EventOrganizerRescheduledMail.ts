@@ -1,4 +1,4 @@
-import dayjs, {Dayjs} from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import EventOrganizerMail from "./EventOrganizerMail";
 
 export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
@@ -8,7 +8,8 @@ export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
    * @protected
    */
   protected getHtmlRepresentation(): string {
-    return `
+    return (
+      `
       <div>
         Hi ${this.calEvent.organizer.name},<br />
         <br />
@@ -19,22 +20,26 @@ export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
         <br />
         <strong>Invitee Email:</strong><br />
         <a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a><br />
-        <br />` + this.getAdditionalBody() +
-      (
-        this.calEvent.location ? `
+        <br />` +
+      this.getAdditionalBody() +
+      (this.calEvent.location
+        ? `
             <strong>Location:</strong><br />
             ${this.calEvent.location}<br />
             <br />
-          ` : ''
-      ) +
+          `
+        : "") +
       `<strong>Invitee Time Zone:</strong><br />
         ${this.calEvent.attendees[0].timeZone}<br />
         <br />
         <strong>Additional notes:</strong><br />
         ${this.calEvent.description}
-      ` + this.getAdditionalFooter() + `   
+      ` +
+      this.getAdditionalFooter() +
+      `   
       </div>
-    `;
+    `
+    );
   }
 
   /**
@@ -42,17 +47,19 @@ export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
    *
    * @protected
    */
-  protected getNodeMailerPayload(): Object {
+  protected getNodeMailerPayload(): Record<string, unknown> {
     const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
 
     return {
       icalEvent: {
-        filename: 'event.ics',
+        filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
       from: `Calendso <${this.getMailerOptions().from}>`,
       to: this.calEvent.organizer.email,
-      subject: `Rescheduled event: ${this.calEvent.attendees[0].name} - ${organizerStart.format('LT dddd, LL')} - ${this.calEvent.type}`,
+      subject: `Rescheduled event: ${this.calEvent.attendees[0].name} - ${organizerStart.format(
+        "LT dddd, LL"
+      )} - ${this.calEvent.type}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };

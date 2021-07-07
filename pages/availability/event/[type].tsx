@@ -10,16 +10,17 @@ import Shell from "@components/Shell";
 import { getSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
 
-import { LocationMarkerIcon, PlusCircleIcon, XIcon, PhoneIcon } from "@heroicons/react/outline";
+import { LocationMarkerIcon, PhoneIcon, PlusCircleIcon, XIcon } from "@heroicons/react/outline";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeInput";
 import { PlusIcon } from "@heroicons/react/solid";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-dayjs.extend(utc);
 import timezone from "dayjs/plugin/timezone";
-import { EventType, User, Availability } from "@prisma/client";
+import { Availability, EventType, User } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
+
+dayjs.extend(utc);
 dayjs.extend(timezone);
 
 type Props = {

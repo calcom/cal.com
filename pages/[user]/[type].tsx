@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
-import { ClockIcon, GlobeIcon, ChevronDownIcon } from "@heroicons/react/solid";
+import { ChevronDownIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import prisma from "../../lib/prisma";
 import { useRouter } from "next/router";
 import { Dayjs } from "dayjs";
