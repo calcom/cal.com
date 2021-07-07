@@ -97,12 +97,17 @@ export default function Type(props): Type {
           "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
           (selectedDate ? "max-w-6xl" : "max-w-3xl")
         }>
-        <div className="bg-white sm:shadow sm:rounded-lg">
+        <div className="dark:bg-gray-800 bg-white sm:shadow sm:rounded-lg">
           <div className="sm:flex px-4 py-5 sm:p-4">
-            <div className={"pr-8 sm:border-r " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")}>
+            <div
+              className={
+                "pr-8 sm:border-r sm:dark:border-gray-900 " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+              }>
               <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
-              <h2 className="font-medium text-gray-500">{props.user.name}</h2>
-              <h1 className="text-3xl font-semibold text-gray-800 mb-4">{props.eventType.title}</h1>
+              <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
+              <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
+                {props.eventType.title}
+              </h1>
               <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
                 <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                 {props.eventType.length} minutes
@@ -120,7 +125,7 @@ export default function Type(props): Type {
                   onToggle24hClock={handleToggle24hClock}
                 />
               )}
-              <p className="text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
+              <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
             </div>
             <DatePicker
               weekStart={props.user.weekStart}

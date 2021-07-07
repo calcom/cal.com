@@ -28,19 +28,19 @@ const TimeOptions = (props) => {
 
   return (
     selectedTimeZone !== "" && (
-      <div className="w-full rounded shadow border bg-white px-4 py-2">
+      <div className="w-full rounded shadow border dark:bg-gray-700 dark:border-0 bg-white px-4 py-2">
         <div className="flex mb-4">
-          <div className="w-1/2 font-medium">Time Options</div>
+          <div className="w-1/2 dark:text-white text-gray-600 font-medium">Time Options</div>
           <div className="w-1/2">
             <Switch.Group as="div" className="flex items-center justify-end">
               <Switch.Label as="span" className="mr-3">
-                <span className="text-sm text-gray-500">am/pm</span>
+                <span className="text-sm dark:text-white text-gray-500">am/pm</span>
               </Switch.Label>
               <Switch
                 checked={is24hClock}
                 onChange={setIs24hClock}
                 className={classNames(
-                  is24hClock ? "bg-blue-600" : "bg-gray-200",
+                  is24hClock ? "bg-blue-600" : "dark:bg-gray-600 bg-gray-200",
                   "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 )}>
                 <span className="sr-only">Use setting</span>
@@ -53,7 +53,7 @@ const TimeOptions = (props) => {
                 />
               </Switch>
               <Switch.Label as="span" className="ml-3">
-                <span className="text-sm text-gray-500">24h</span>
+                <span className="text-sm dark:text-white text-gray-500">24h</span>
               </Switch.Label>
             </Switch.Group>
           </div>
