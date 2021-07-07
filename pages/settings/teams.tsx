@@ -1,9 +1,9 @@
+import { GetServerSideProps } from "next";
 import Head from 'next/head';
-import prisma from '../../lib/prisma';
-import Modal from '../../components/Modal';
 import Shell from '../../components/Shell';
 import SettingsShell from '../../components/Settings';
 import { useEffect, useState } from 'react';
+import type { Session } from "next-auth";
 import { useSession, getSession } from 'next-auth/client';
 import {
   UsersIcon,
@@ -11,21 +11,33 @@ import {
 import TeamList from "../../components/team/TeamList";
 import TeamListItem from "../../components/team/TeamListItem";
 
-export default function Teams(props) {
-
+export default function Teams() {
   const [session, loading] = useSession();
   const [teams, setTeams] = useState([]);
   const [invites, setInvites] = useState([]);
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
 
-  const loadTeams = () => fetch('/api/user/membership').then((res: any) => res.json()).then(
-    (data) => {
+  const handleErrors = async (resp) => {
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message);
+    }
+    return resp.json();
+  }
+
+  const loadData = () => {
+    fetch("/api/user/membership")
+    .then(handleErrors)
+    .then((data) => {
       setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
       setInvites(data.membership.filter((m) => m.role === "INVITEE"));
-    }
-  );
+    })
+    .catch(console.log);
+  }
 
-  useEffect(() => { loadTeams(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   if (loading) {
     return <p className="text-gray-400">Loading...</p>;
@@ -33,6 +45,7 @@ export default function Teams(props) {
 
   const createTeam = (e) => {
     e.preventDefault();
+
     return fetch('/api/teams', {
       method: 'POST',
       body: JSON.stringify({ name: e.target.elements['name'].value }),
@@ -40,7 +53,7 @@ export default function Teams(props) {
         'Content-Type': 'application/json'
       }
     }).then(() => {
-      loadTeams();
+      loadData();
       setShowCreateTeamModal(false);
     });
   }
@@ -86,14 +99,14 @@ export default function Teams(props) {
             </div>
             <div>
               {!!teams.length &&
-                <TeamList teams={teams} onChange={loadTeams}>
+                <TeamList teams={teams} onChange={loadData}>
                 </TeamList>
               }
 
               {!!invites.length && <div>
                 <h2 className="text-lg leading-6 font-medium text-gray-900">Open Invitations</h2>
                 <ul className="border px-2 rounded mt-2 mb-2 divide-y divide-gray-200">
-                  {invites.map((team) => <TeamListItem onChange={loadTeams} key={team.id} team={team}></TeamListItem>)}
+                  {invites.map((team) => <TeamListItem onChange={loadData} key={team.id} team={team}></TeamListItem>)}
                 </ul>
               </div>}
             </div>
@@ -153,4 +166,16 @@ export default function Teams(props) {
       </SettingsShell>
     </Shell>
   );
+}
+
+// Export the `session` prop to use sessions with Server Side Rendering
+export const getServerSideProps: GetServerSideProps<{ session: Session | null }> = async (context) => {
+    const session = await getSession(context);
+    if (!session) {
+      return { redirect: { permanent: false, destination: '/auth/login' } };
+    }
+
+    return {
+      props: { session }
+    }
 }
