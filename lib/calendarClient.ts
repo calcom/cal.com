@@ -3,6 +3,7 @@ import EventAttendeeMail from "./emails/EventAttendeeMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 import prisma from "./prisma";
+import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -504,7 +505,7 @@ const listCalendars = (withCredentials) =>
     results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential, calEvent: CalendarEvent): Promise<unknown> => {
+const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
@@ -547,7 +548,11 @@ const createEvent = async (credential, calEvent: CalendarEvent): Promise<unknown
   };
 };
 
-const updateEvent = async (credential, uidToUpdate: string, calEvent: CalendarEvent): Promise<unknown> => {
+const updateEvent = async (
+  credential: Credential,
+  uidToUpdate: string,
+  calEvent: CalendarEvent
+): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
@@ -578,7 +583,7 @@ const updateEvent = async (credential, uidToUpdate: string, calEvent: CalendarEv
   };
 };
 
-const deleteEvent = (credential, uid: string): Promise<unknown> => {
+const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
   if (credential) {
     return calendars([credential])[0].deleteEvent(uid);
   }
