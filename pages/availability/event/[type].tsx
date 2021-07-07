@@ -330,7 +330,7 @@ export default function EventTypePage({
                       </div>
                     )}
                     {locations.length > 0 && (
-                      <ul className="w-96 mt-1">
+                      <ul className="mt-1">
                         {locations.map((location) => (
                           <li key={location.type} className="bg-blue-50 mb-2 p-2 border">
                             <div className="flex justify-between">
@@ -576,7 +576,7 @@ export default function EventTypePage({
               </div>
             </div>
           </div>
-          <div>
+          <div className="col-span-3 sm:col-span-1">
             <div className="bg-white shadow sm:rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg mb-2 leading-6 font-medium text-gray-900">Delete this event type</h3>
