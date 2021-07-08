@@ -13,7 +13,7 @@ function classNames(...classes) {
 export default function Home(props) {
     const [session, loading] = useSession();
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
+        return <div className="loader"></div>;
     }
 
     function convertMinsToHrsMins(mins) {

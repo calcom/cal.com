@@ -14,7 +14,7 @@ export default function Settings(props) {
     const newPasswordRef = useRef<HTMLInputElement>();
 
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
+        return <div className="loader"></div>;
     }
 
     const closeSuccessModal = () => { setSuccessModalOpen(false); }

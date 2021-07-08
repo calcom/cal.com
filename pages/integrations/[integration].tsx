@@ -12,7 +12,7 @@ export default function integration(props) {
     const [showAPIKey, setShowAPIKey] = useState(false);
 
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
+        return <div className="loader"></div>;
     }
 
     function toggleShowAPIKey() {

@@ -28,7 +28,7 @@ export default function Availability(props) {
     const bufferMinsRef = useRef<HTMLInputElement>();
 
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
+        return <div className="loader"></div>;
     }
 
     function toggleAddModal() {
@@ -169,22 +169,45 @@ export default function Availability(props) {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white shadow rounded-lg">
+
+                <div className="flex">
+                  <div className="w-1/2 mr-2 bg-white shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900">
-                            Change the start and end times of your day
-                        </h3>
-                        <div className="mt-2 max-w-xl text-sm text-gray-500">
-                            <p>
-                                Currently, your day is set to start at {convertMinsToHrsMins(props.user.startTime)} and end at {convertMinsToHrsMins(props.user.endTime)}.
-                            </p>
-                        </div>
-                        <div className="mt-5">
-                            <button onClick={toggleChangeTimesModal} type="button" className="btn btn-primary">
-                                Change available times
-                            </button>
-                        </div>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Change the start and end times of your day
+                      </h3>
+                      <div className="mt-2 max-w-xl text-sm text-gray-500">
+                        <p>
+                          Currently, your day is set to start at {convertMinsToHrsMins(props.user.startTime)} and end at {convertMinsToHrsMins(props.user.endTime)}.
+                        </p>
+                      </div>
+                      <div className="mt-5">
+                        <button onClick={toggleChangeTimesModal} type="button" className="btn btn-primary">
+                          Change available times
+                        </button>
+                      </div>
                     </div>
+                  </div>
+
+                  <div className="w-1/2 ml-2 bg-white shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Something doesn't look right?
+                      </h3>
+                      <div className="mt-2 max-w-xl text-sm text-gray-500">
+                        <p>
+                          Troubleshoot your availability to explore why your times are showing as they are.
+                        </p>
+                      </div>
+                      <div className="mt-5">
+                        <Link href="/availability/troubleshoot">
+                          <a className="btn btn-primary">
+                            Launch troubleshooter
+                          </a>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 {showAddModal &&
                     <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
