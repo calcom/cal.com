@@ -333,10 +333,18 @@ export async function getServerSideProps(context) {
       },
     });
 
-    eventTypes = await prisma.eventType.findMany({
-      where: {
-        userId: session.user.id,
-      },
+    eventTypes = (
+      await prisma.eventType.findMany({
+        where: {
+          userId: session.user.id,
+        },
+      })
+    ).map((eventType) => {
+      return {
+        ...eventType,
+        periodStartDate: eventType.periodStartDate?.toString() ?? null,
+        periodEndDate: eventType.periodEndDate?.toString() ?? null,
+      };
     });
   }
   return {
