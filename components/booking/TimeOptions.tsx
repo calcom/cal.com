@@ -1,7 +1,7 @@
 import { Switch } from "@headlessui/react";
 import TimezoneSelect from "react-timezone-select";
 import { useEffect, useState } from "react";
-import { timeZone, is24h } from "../../lib/clock";
+import { is24h, timeZone } from "../../lib/clock";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");

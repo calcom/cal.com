@@ -2,10 +2,9 @@ import Head from "next/head";
 import prisma from "../../lib/prisma";
 import { getSession, useSession } from "next-auth/client";
 import Shell from "../../components/Shell";
-import dayjs from "dayjs";
 
 export default function Bookings({ bookings }) {
-  const [session, loading] = useSession();
+  const [, loading] = useSession();
 
   if (loading) {
     return <p className="text-gray-400">Loading...</p>;
