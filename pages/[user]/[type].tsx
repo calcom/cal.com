@@ -134,6 +134,7 @@ export default function Type(props): Type {
               <AvailableTimes
                 workingHours={props.workingHours}
                 timeFormat={timeFormat}
+                organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
                 eventLength={props.eventType.length}
                 eventTypeId={props.eventType.id}
                 date={selectedDate}
