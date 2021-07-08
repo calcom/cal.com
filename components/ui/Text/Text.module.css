@@ -1,0 +1,55 @@
+/* strong {
+  @apply font-medium;
+} */
+
+.text {
+}
+
+.text--body {
+  @apply text-lg leading-relaxed;
+}
+
+.text--overline {
+  @apply text-sm uppercase font-semibold leading-snug tracking-wide;
+}
+
+.text--caption {
+  @apply text-sm text-gray-500 leading-tight;
+}
+
+.text--caption2 {
+  @apply text-xs italic text-gray-500 leading-tight;
+}
+
+.text--footnote {
+  @apply text-base  font-normal;
+}
+
+.text--headline {
+  /* @apply text-base  font-normal; */
+  @apply text-3xl leading-8 font-semibold tracking-tight text-gray-900 sm:text-4xl;
+}
+
+.text--subheadline {
+  @apply text-xl text-gray-500 leading-relaxed;
+}
+
+.text--largetitle {
+  @apply text-2xl  font-normal;
+}
+
+.text--subtitle {
+  @apply text-base  font-normal;
+}
+
+.text--title {
+  @apply text-base  font-normal;
+}
+
+.text--title2 {
+  @apply text-base  font-normal;
+}
+
+.text--title3 {
+  @apply text-xs font-semibold leading-tight;
+}
