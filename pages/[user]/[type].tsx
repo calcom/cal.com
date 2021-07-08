@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { ChevronDownIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
-import prisma from "../../lib/prisma";
 import { useRouter } from "next/router";
 import { Dayjs } from "dayjs";
 
+import prisma, { whereAndSelect } from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 import AvailableTimes from "../../components/booking/AvailableTimes";
 import TimeOptions from "../../components/booking/TimeOptions";
@@ -149,26 +149,27 @@ export default function Type(props): Type {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await prisma.user.findFirst({
-    where: {
+  const user = await whereAndSelect(
+    prisma.user.findFirst,
+    {
       username: context.query.user.toLowerCase(),
     },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      eventTypes: true,
-      startTime: true,
-      timeZone: true,
-      endTime: true,
-      weekStart: true,
-      availability: true,
-      hideBranding: true,
-    },
-  });
+    [
+      "id",
+      "username",
+      "name",
+      "email",
+      "bio",
+      "avatar",
+      "eventTypes",
+      "startTime",
+      "endTime",
+      "timeZone",
+      "weekStart",
+      "availability",
+      "hideBranding",
+    ]
+  );
 
   if (!user) {
     return {
@@ -176,22 +177,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
-  const eventType = await prisma.eventType.findFirst({
-    where: {
+  const eventType = await whereAndSelect(
+    prisma.eventType.findFirst,
+    {
       userId: user.id,
-      slug: {
-        equals: context.query.type,
-      },
+      slug: context.query.type,
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      length: true,
-      availability: true,
-      timeZone: true,
-    },
-  });
+    ["id", "title", "description", "length", "availability", "timeZone"]
+  );
 
   if (!eventType) {
     return {
