@@ -381,7 +381,7 @@ export async function getServerSideProps(context) {
     {
       username: context.query.user,
     },
-    ["username", "name", "email", "bio", "avatar", "eventTypes", "theme"]
+    ["username", "name", "email", "bio", "avatar", "theme"]
   );
 
   const eventType = await prisma.eventType.findUnique({
@@ -396,7 +396,17 @@ export async function getServerSideProps(context) {
       length: true,
       locations: true,
       customInputs: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
     },
+  });
+
+  const eventTypeObject = Object.assign({}, eventType, {
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
   let booking = null;
@@ -421,7 +431,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       user,
-      eventType,
+      eventType: eventTypeObject,
       booking,
     },
   };
