@@ -13,11 +13,14 @@ import Avatar from "../../components/Avatar";
 import { timeZone } from "../../lib/clock";
 import DatePicker from "../../components/booking/DatePicker";
 import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
+import Theme from "@components/Theme";
 
 export default function Type(props): Type {
   // Get router variables
   const router = useRouter();
   const { rescheduleUid } = router.query;
+
+  const { isReady } = Theme(props.user.theme);
 
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
@@ -44,7 +47,7 @@ export default function Type(props): Type {
     setTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
-  return (
+  return isReady && (
     <div>
       <Head>
         <title>
@@ -174,6 +177,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       "weekStart",
       "availability",
       "hideBranding",
+      "theme",
     ]
   );
 

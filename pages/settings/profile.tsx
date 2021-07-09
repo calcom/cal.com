@@ -1,12 +1,13 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
-import { useRef, useState } from "react";
-import prisma from "../../lib/prisma";
+import {useEffect, useRef, useState} from "react";
+import prisma, {whereAndSelect} from "@lib/prisma";
 import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
 import Avatar from "../../components/Avatar";
 import { getSession } from "next-auth/client";
+import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 import { UsernameInput } from "../../components/ui/UsernameInput";
 import ErrorAlert from "../../components/ui/alerts/Error";
@@ -18,11 +19,22 @@ export default function Settings(props) {
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const avatarRef = useRef<HTMLInputElement>();
   const hideBrandingRef = useRef<HTMLInputElement>();
+  const [selectedTheme, setSelectedTheme] = useState({ value: "" });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
-  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState(props.user.weekStart || "Sunday");
+  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: "" });
 
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const themeOptions = [
+    {value: 'light', label: 'Light'},
+    {value: 'dark', label: 'Dark'}
+  ];
+
+  useEffect( () => {
+    setSelectedTheme(props.user.theme ? themeOptions.find( (theme) => theme.value === props.user.theme ) : null);
+    setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
+  }, []);
 
   const closeSuccessModal = () => {
     setSuccessModalOpen(false);
@@ -43,7 +55,7 @@ export default function Settings(props) {
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
     const enteredTimeZone = selectedTimeZone.value;
-    const enteredWeekStartDay = selectedWeekStartDay;
+    const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
 
     // TODO: Add validation
@@ -58,6 +70,7 @@ export default function Settings(props) {
         timeZone: enteredTimeZone,
         weekStart: enteredWeekStartDay,
         hideBranding: enteredHideBranding,
+        theme: selectedTheme ? selectedTheme.value : null,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -124,8 +137,8 @@ export default function Settings(props) {
                       name="about"
                       placeholder="A little something about yourself."
                       rows={3}
+                      defaultValue={props.user.bio}
                       className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md">
-                      {props.user.bio}
                     </textarea>
                   </div>
                 </div>
@@ -147,14 +160,46 @@ export default function Settings(props) {
                     First Day of Week
                   </label>
                   <div className="mt-1">
-                    <select
+                    <Select
                       id="weekStart"
                       value={selectedWeekStartDay}
-                      onChange={(e) => setSelectedWeekStartDay(e.target.value)}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md">
-                      <option value="Sunday">Sunday</option>
-                      <option value="Monday">Monday</option>
-                    </select>
+                      onChange={setSelectedWeekStartDay}
+                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                      options={[
+                        { value:'Sunday', label:'Sunday' },
+                        { value:'Monday', label:'Monday' }
+                      ]} />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
+                    Single Theme
+                  </label>
+                  <div className="my-1">
+                    <Select
+                      id="theme"
+                      isDisabled={!selectedTheme}
+                      defaultValue={selectedTheme || themeOptions[0]}
+                      onChange={setSelectedTheme}
+                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                      options={themeOptions} />
+                  </div>
+                  <div className="relative flex items-start">
+                    <div className="flex items-center h-5">
+                      <input
+                        id="theme-adjust-os"
+                        name="theme-adjust-os"
+                        type="checkbox"
+                        onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
+                        defaultChecked={!selectedTheme}
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
+                        Automatically adjust theme based on invitee preferences
+                      </label>
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -257,22 +302,20 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      timeZone: true,
-      weekStart: true,
-      hideBranding: true,
-    },
-  });
+  const user = await whereAndSelect(prisma.user.findFirst, {
+      id: session.user.id,
+    }, [
+      "id",
+    "username",
+    "name",
+    "email",
+    "bio",
+    "avatar",
+    "timeZone",
+    "weekStart",
+    "hideBranding",
+    "theme"
+  ]);
 
   return {
     props: { user }, // will be passed to the page component as props

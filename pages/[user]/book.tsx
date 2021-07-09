@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
-import prisma from "../../lib/prisma";
+import prisma, {whereAndSelect} from "../../lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -14,6 +14,7 @@ import { LocationType } from "../../lib/location";
 import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
 import { EventTypeCustomInputType } from "../../lib/eventTypeInput";
+import Theme from "@components/Theme";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -32,7 +33,10 @@ export default function Book(props: any): JSX.Element {
   const [selectedLocation, setSelectedLocation] = useState<LocationType>(
     locations.length === 1 ? locations[0].type : ""
   );
+
+  const { isReady } = Theme(props.user.theme);
   const telemetry = useTelemetry();
+
   useEffect(() => {
     setPreferredTimeZone(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess());
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
@@ -137,7 +141,7 @@ export default function Book(props: any): JSX.Element {
     book();
   };
 
-  return (
+  return isReady && (
     <div>
       <Head>
         <title>
@@ -366,19 +370,19 @@ export default function Book(props: any): JSX.Element {
 }
 
 export async function getServerSideProps(context) {
-  const user = await prisma.user.findFirst({
-    where: {
+
+  const user = await whereAndSelect(prisma.user.findFirst, {
       username: context.query.user,
-    },
-    select: {
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      eventTypes: true,
-    },
-  });
+    }, [
+      "username",
+      "name",
+      "email",
+      "bio",
+      "avatar",
+      "eventTypes",
+      "theme",
+    ]
+  );
 
   const eventType = await prisma.eventType.findUnique({
     where: {

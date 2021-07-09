@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import prisma from "../lib/prisma";
+import prisma, {whereAndSelect} from "../lib/prisma";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
@@ -11,6 +11,7 @@ import toArray from "dayjs/plugin/toArray";
 import timezone from "dayjs/plugin/timezone";
 import { createEvent } from "ics";
 import { getEventName } from "../lib/event";
+import Theme from "@components/Theme";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -22,6 +23,7 @@ export default function Success(props) {
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(router.query.date));
+  const { isReady } = Theme(props.user.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
@@ -56,7 +58,7 @@ export default function Success(props) {
     return encodeURIComponent(event.value);
   }
 
-  return (
+  return isReady && (
     <div>
       <Head>
         <title>Booking Confirmed | {eventName} | Calendso</title>
@@ -212,32 +214,26 @@ export default function Success(props) {
 }
 
 export async function getServerSideProps(context) {
-  const user = await prisma.user.findFirst({
-    where: {
-      username: context.query.user,
-    },
-    select: {
-      username: true,
-      name: true,
-      bio: true,
-      avatar: true,
-      eventTypes: true,
-      hideBranding: true,
-    },
-  });
 
-  const eventType = await prisma.eventType.findUnique({
-    where: {
+  const user = (context.query.user) ? await whereAndSelect(prisma.user.findFirst, {
+      username: context.query.user,
+    }, [
+      "username", "name", "bio", "avatar", "eventTypes", "hideBranding", "theme"
+    ]
+  ) : null;
+
+  if (!user) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const eventType = await whereAndSelect(prisma.eventType.findUnique, {
       id: parseInt(context.query.type),
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      length: true,
-      eventName: true,
-    },
-  });
+    }, [
+      "id", "title", "description", "length", "eventName"
+    ]
+  );
 
   return {
     props: {

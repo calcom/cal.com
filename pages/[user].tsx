@@ -1,10 +1,14 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import prisma from "../lib/prisma";
+import prisma, {whereAndSelect} from "@lib/prisma";
 import Avatar from "../components/Avatar";
+import Theme from "@components/Theme";
 
 export default function User(props): User {
+
+  const { isReady } = Theme(props.user.theme);
+
   const eventTypes = props.eventTypes.map((type) => (
     <li
       key={type.id}
@@ -20,7 +24,7 @@ export default function User(props): User {
       </Link>
     </li>
   ));
-  return (
+  return isReady && (
     <div>
       <Head>
         <title>{props.user.name || props.user.username} | Calendso</title>
@@ -50,21 +54,13 @@ export default function User(props): User {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await prisma.user.findFirst({
-    where: {
-      username: context.query.user.toLowerCase(),
-    },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      name: true,
-      bio: true,
-      avatar: true,
-      eventTypes: true,
-    },
-  });
 
+  const user = await whereAndSelect(prisma.user.findFirst, {
+      username: context.query.user.toLowerCase(),
+    }, [
+      "id", "username", "email", "name", "bio", "avatar", "eventTypes", "theme"
+    ]
+  );
   if (!user) {
     return {
       notFound: true,
