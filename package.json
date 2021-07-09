@@ -36,6 +36,7 @@
     "react-select": "^4.3.0",
     "react-timezone-select": "^1.0.2",
     "short-uuid": "^4.2.0",
+    "tslog": "^3.2.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
