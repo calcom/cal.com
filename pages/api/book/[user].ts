@@ -208,7 +208,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const isAvailableToBeBooked = true;
+    let isAvailableToBeBooked = true;
+
+    try {
+      isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, selectedEventType.length);
+    } catch {
+      log.debug({
+        message: "Unable set isAvailableToBeBooked. Using true. ",
+      });
+    }
 
     if (!isAvailableToBeBooked) {
       const error = {
