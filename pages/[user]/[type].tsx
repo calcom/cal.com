@@ -156,6 +156,11 @@ export default function Type(props): Type {
               </div>
               <DatePicker
                 date={selectedDate}
+                periodType={props.eventType?.periodType}
+                periodStartDate={props.eventType?.periodStartDate}
+                periodEndDate={props.eventType?.periodEndDate}
+                periodDays={props.eventType?.periodDays}
+                periodCountCalendarDays={props.eventType?.periodCountCalendarDays}
                 weekStart={props.user.weekStart}
                 onDatePicked={changeDate}
                 workingHours={props.workingHours}
