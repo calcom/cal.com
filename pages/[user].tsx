@@ -6,14 +6,16 @@ import Avatar from "../components/Avatar";
 
 export default function User(props): User {
   const eventTypes = props.eventTypes.map((type) => (
-    <li key={type.id}>
+    <li
+      key={type.id}
+      className="dark:bg-gray-800 dark:opacity-90 dark:hover:opacity-100 dark:hover:bg-gray-800 bg-white hover:bg-gray-50 ">
       <Link href={`/${props.user.username}/${type.slug}`}>
         <a className="block px-6 py-4">
           <div
             className="inline-block w-3 h-3 rounded-full mr-2"
             style={{ backgroundColor: getRandomColorCode() }}></div>
-          <h2 className="inline-block font-medium">{type.title}</h2>
-          <p className="inline-block text-gray-400 ml-2">{type.description}</p>
+          <h2 className="inline-block font-medium dark:text-white">{type.title}</h2>
+          <p className="inline-block text-gray-400 dark:text-gray-100 ml-2">{type.description}</p>
         </a>
       </Link>
     </li>
@@ -28,15 +30,15 @@ export default function User(props): User {
       <main className="max-w-2xl mx-auto my-24">
         <div className="mb-8 text-center">
           <Avatar user={props.user} className="mx-auto w-24 h-24 rounded-full mb-4" />
-          <h1 className="text-3xl font-semibold text-gray-800 mb-1">
+          <h1 className="text-3xl font-semibold text-gray-800 dark:text-white mb-1">
             {props.user.name || props.user.username}
           </h1>
-          <p className="text-gray-600">{props.user.bio}</p>
+          <p className="text-gray-600 dark:text-white">{props.user.bio}</p>
         </div>
-        <div className="bg-white shadow overflow-hidden rounded-md">
-          <ul className="divide-y divide-gray-200">{eventTypes}</ul>
+        <div className="shadow overflow-hidden rounded-md">
+          <ul className="divide-y divide-gray-200 dark:divide-gray-900">{eventTypes}</ul>
           {eventTypes.length == 0 && (
-            <div className="p-8 text-center text-gray-400">
+            <div className="p-8 text-center text-gray-400 dark:text-white">
               <h2 className="font-semibold text-3xl text-gray-600">Uh oh!</h2>
               <p className="max-w-md mx-auto">This user hasn&apos;t set up any event types yet.</p>
             </div>
