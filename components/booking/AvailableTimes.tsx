@@ -3,10 +3,25 @@ import { useRouter } from "next/router";
 import Slots from "./Slots";
 import { ExclamationIcon } from "@heroicons/react/solid";
 
-const AvailableTimes = ({ date, eventLength, eventTypeId, workingHours, timeFormat, user }) => {
+const AvailableTimes = ({
+  date,
+  eventLength,
+  eventTypeId,
+  workingHours,
+  timeFormat,
+  user,
+  organizerTimeZone,
+}) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const { slots, isFullyBooked, hasErrors } = Slots({ date, eventLength, workingHours });
+
+  const { slots, isFullyBooked, hasErrors } = Slots({
+    date,
+    eventLength,
+    workingHours,
+    organizerTimeZone,
+  });
+
   return (
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3  md:max-h-97 overflow-y-auto">
       <div className="text-gray-600 font-light text-xl mb-4 text-left">

@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import getSlots from "../../lib/slots";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
-
 dayjs.extend(isBetween);
 dayjs.extend(utc);
 
@@ -12,9 +11,11 @@ type Props = {
   eventLength: number;
   minimumBookingNotice?: number;
   date: Dayjs;
+  workingHours: [];
+  organizerTimeZone: string;
 };
 
-const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organizerUtcOffset }: Props) => {
+const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organizerTimeZone }: Props) => {
   minimumBookingNotice = minimumBookingNotice || 0;
 
   const router = useRouter();
@@ -48,7 +49,7 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organize
       inviteeDate: date,
       workingHours,
       minimumBookingNotice,
-      organizerUtcOffset,
+      organizerTimeZone,
     });
 
     const timesLengthBeforeConflicts: number = times.length;
