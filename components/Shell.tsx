@@ -270,7 +270,7 @@ export default function Shell(props) {
       </div>
 
       <main className="-mt-32">
-        <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-">{props.children}</div>
+        <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8">{props.children}</div>
       </main>
     </div>
   ) : null;
