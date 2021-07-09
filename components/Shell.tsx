@@ -39,7 +39,7 @@ export default function Shell(props) {
       <div className="dark:from-gray-900 dark:to-gray-900  bg-gradient-to-b from-blue-600 via-blue-600 to-blue-300 pb-32">
         <nav className="dark:bg-gray-900 bg-blue-600">
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div className="border-b border-blue-500 dark:border-gray-">
+            <div className="border-b border-blue-500 dark:border-gray-400">
               <div className="flex items-center justify-between h-16 px-4 sm:px-0">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
