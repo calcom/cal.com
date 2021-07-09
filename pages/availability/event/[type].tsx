@@ -194,8 +194,8 @@ export default function EventTypePage({
     const enteredPeriodDays = parseInt(periodDaysRef?.current?.value);
     const enteredPeriodDaysType = Boolean(parseInt(periodDaysTypeRef?.current.value));
 
-    const enteredPeriodStartDate = periodStartDate.toDate();
-    const enteredPeriodEndDate = periodEndDate.toDate();
+    const enteredPeriodStartDate = periodStartDate ? periodStartDate.toDate() : null;
+    const enteredPeriodEndDate = periodEndDate ? periodEndDate.toDate() : null;
 
     console.log("values", {
       type,
