@@ -1,14 +1,21 @@
-import {CalendarEvent} from "../calendarClient";
+import { CalendarEvent } from "../calendarClient";
 import EventAttendeeMail from "./EventAttendeeMail";
-import {getFormattedMeetingId, getIntegrationName} from "./helpers";
-import {VideoCallData} from "../videoClient";
+import { getFormattedMeetingId, getIntegrationName } from "./helpers";
+import { VideoCallData } from "../videoClient";
+import { EmailTemplate } from "@prisma/client";
 
 export default class VideoEventAttendeeMail extends EventAttendeeMail {
   videoCallData: VideoCallData;
 
-  constructor(calEvent: CalendarEvent, uid: string, videoCallData: VideoCallData) {
+  constructor(
+    calEvent: CalendarEvent,
+    uid: string,
+    videoCallData: VideoCallData,
+    emailTemplates: EmailTemplate[] = []
+  ) {
     super(calEvent, uid);
     this.videoCallData = videoCallData;
+    this.emailTemplates = emailTemplates;
   }
 
   /**
@@ -16,7 +23,7 @@ export default class VideoEventAttendeeMail extends EventAttendeeMail {
    *
    * @protected
    */
-  protected getAdditionalBody(): string {
+  public getAdditionalBody(): string {
     return `
       <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
       <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />

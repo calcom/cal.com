@@ -321,7 +321,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       results = results.concat(
         await async.mapLimit(videoCredentials, 5, async (credential) => {
-          return createMeeting(credential, evt)
+          return createMeeting(credential, evt, selectedEventType.emailTemplates)
             .then((response) => ({ type: credential.type, success: true, response }))
             .catch((e) => {
               log.error("createMeeting failed", e, evt);

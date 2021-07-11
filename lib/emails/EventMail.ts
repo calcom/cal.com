@@ -38,7 +38,12 @@ export default abstract class EventMail {
    * @param uid
    * @param emailTemplates
    */
-  constructor(calEvent: CalendarEvent, uid: string, emailTemplates: EmailTemplate[] = [], additionInformation: AdditionInformation = null) {
+  constructor(
+    calEvent: CalendarEvent,
+    uid: string,
+    emailTemplates: EmailTemplate[] = [],
+    additionInformation: AdditionInformation = null
+  ) {
     this.calEvent = calEvent;
     this.uid = uid;
     this.emailTemplates = emailTemplates;
@@ -107,7 +112,7 @@ export default abstract class EventMail {
    *
    * @protected
    */
-  protected getAdditionalBody(): string {
+  public getAdditionalBody(): string {
     return "";
   }
 

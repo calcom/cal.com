@@ -159,7 +159,7 @@ export const eventPlaceholders: EventPlaceholder[] = [
   {
     variable: "{EventLocationOptional}",
     label: "Optional Event Location",
-    getValue: (eventMail) => eventMail.getLocation(),
+    getValue: (eventMail) => eventMail.getAdditionalBody(),
   },
   {
     variable: "{EventDate}",

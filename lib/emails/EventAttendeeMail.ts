@@ -97,7 +97,7 @@ export default class EventAttendeeMail extends EventMail {
     return this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : "";
   }
 
-  protected getAdditionalBody(): string {
+  public getAdditionalBody(): string {
     return `
       ${this.getLocation()}
     `;

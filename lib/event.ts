@@ -1,10 +1,7 @@
-import { CalendarEvent } from "./calendarClient";
-
-export function getEventName(name: string, eventTitle: string, eventNameTemplate?: string) {
+export function getEventName(name: string, eventTitle: string, eventNameTemplate?: string): string {
   return eventNameTemplate ? eventNameTemplate.replace("{USER}", name) : eventTitle + " with " + name;
 }
 
-// TODO must match default email content EventAttendeeMail.getDefaultHtmlRepresentation
 export function getDefaultHTMLTemplate(): string {
   return `<div>
   Hi {AttendeeName},<br />

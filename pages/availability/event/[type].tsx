@@ -121,8 +121,9 @@ export default function EventTypePage({
     const enteredIsHidden: boolean = isHiddenRef.current.checked;
     const enteredEventName: string = eventNameRef.current.value;
 
-    const emailTitleChanged = emailTitleRef.current.value !== getDefaultSubjectTemplate();
-    const emailTextChanged = emailTextRef.current.value !== getDefaultHTMLTemplate();
+    const emailTitleChanged =
+      emailTitleRef.current && emailTitleRef.current.value !== getDefaultSubjectTemplate();
+    const emailTextChanged = emailTextRef.current && emailTextRef.current.value !== getDefaultHTMLTemplate();
 
     const emailTemplates = eventType.emailTemplates;
 
