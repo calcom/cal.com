@@ -2,7 +2,7 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, MutableRefObject, useRef, useState } from "react";
+import { useEffect, MutableRefObject, useRef, useState, Fragment } from "react";
 import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
 import { LocationType } from "@lib/location";
@@ -21,12 +21,6 @@ import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeIn
 import { PlusIcon } from "@heroicons/react/solid";
 import { Disclosure } from "@headlessui/react";
 import { Menu, Transition } from "@headlessui/react";
-import {
-  EventPlaceholder,
-  eventPlaceholders,
-  getDefaultHTMLTemplate,
-  getDefaultSubjectTemplate,
-} from "../../../lib/event";
 import { EmailTemplateType } from "@prisma/client";
 
 function classNames(...classes) {
@@ -38,6 +32,8 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Availability, EventType, User } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
+import { EventPlaceholder, eventPlaceholders } from "@lib/CalEventParser";
+import { getDefaultHTMLTemplate, getDefaultSubjectTemplate } from "@lib/event";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -128,12 +124,12 @@ export default function EventTypePage({
     const emailTitleChanged = emailTitleRef.current.value !== getDefaultSubjectTemplate();
     const emailTextChanged = emailTextRef.current.value !== getDefaultHTMLTemplate();
 
-    const emailTemplates = props.eventType.emailTemplates;
+    const emailTemplates = eventType.emailTemplates;
 
     if (emailTitleChanged || emailTextChanged) {
       const emailTemplate = {
         type: 0,
-        eventTypeId: props.eventType.id,
+        eventTypeId: eventType.id,
         body: emailTextRef.current.value,
         subject: emailTitleRef.current.value,
       };
@@ -653,9 +649,8 @@ export default function EventTypePage({
                                 className="focus:ring-blue-500 focus:border-blue-500 block w-full rounded-none rounded-l-md sm:text-sm border-gray-300"
                                 placeholder="Quick Chat"
                                 defaultValue={
-                                  props.eventType.emailTemplates?.find(
-                                    (e) => e.type == EmailTemplateType.ATTENDEE
-                                  )?.subject ?? getDefaultSubjectTemplate()
+                                  eventType.emailTemplates?.find((e) => e.type == EmailTemplateType.ATTENDEE)
+                                    ?.subject ?? getDefaultSubjectTemplate()
                                 }
                               />
                               <Menu as="div" className="-ml-px">
@@ -712,9 +707,8 @@ export default function EventTypePage({
                                 id="description"
                                 className="relative shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                 defaultValue={
-                                  props.eventType.emailTemplates?.find(
-                                    (e) => e.type == EmailTemplateType.ATTENDEE
-                                  )?.body ?? getDefaultHTMLTemplate()
+                                  eventType.emailTemplates?.find((e) => e.type == EmailTemplateType.ATTENDEE)
+                                    ?.body ?? getDefaultHTMLTemplate()
                                 }
                               />
                               <Menu as="div" className="absolute right-0 bottom-0 mr-4 mb-4 ml-auto">

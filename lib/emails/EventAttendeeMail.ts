@@ -5,7 +5,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { EmailTemplateType } from "@prisma/client";
-import { eventPlaceholders } from "../event";
+import { eventPlaceholders } from "@lib/CalEventParser";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
@@ -21,7 +21,7 @@ export default class EventAttendeeMail extends EventMail {
     if (template) {
       let body = template.body;
       eventPlaceholders.forEach((placeholder) => {
-        body = body.split(placeholder.variable).join(placeholder.getValue(this.calEvent, this.uid));
+        body = body.split(placeholder.variable).join(placeholder.getValue(this));
       });
       return body;
     }
@@ -33,7 +33,7 @@ export default class EventAttendeeMail extends EventMail {
     if (template) {
       let subject = template.subject;
       eventPlaceholders.forEach((placeholder) => {
-        subject = subject.split(placeholder.variable).join(placeholder.getValue(this.calEvent, this.uid));
+        subject = subject.split(placeholder.variable).join(placeholder.getValue(this));
       });
       return subject;
     }
@@ -76,7 +76,7 @@ export default class EventAttendeeMail extends EventMail {
    *
    * @protected
    */
-  protected getLocation(): string {
+  public getLocation(): string {
     if (this.additionInformation?.hangoutLink) {
       return `<strong>Location:</strong> <a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
     }

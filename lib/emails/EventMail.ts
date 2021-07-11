@@ -24,10 +24,10 @@ interface AdditionInformation {
 
 export default abstract class EventMail {
   calEvent: CalendarEvent;
-  parser: CalEventParser;
+  public parser: CalEventParser;
   uid: string;
   emailTemplates: EmailTemplate[];
-  additionInformation?: AdditionInformation;
+  public additionInformation?: AdditionInformation;
 
   /**
    * An EventMail always consists of a CalendarEvent
@@ -38,7 +38,7 @@ export default abstract class EventMail {
    * @param uid
    * @param emailTemplates
    */
-  constructor(calEvent: CalendarEvent, uid: string, emailTemplates: EmailTemplate[], additionInformation: AdditionInformation = null) {
+  constructor(calEvent: CalendarEvent, uid: string, emailTemplates: EmailTemplate[] = [], additionInformation: AdditionInformation = null) {
     this.calEvent = calEvent;
     this.uid = uid;
     this.emailTemplates = emailTemplates;
@@ -111,7 +111,7 @@ export default abstract class EventMail {
     return "";
   }
 
-  protected abstract getLocation(): string;
+  abstract getLocation(): string;
 
   /**
    * Prints out the desired information when an error

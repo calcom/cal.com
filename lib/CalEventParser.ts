@@ -2,6 +2,8 @@ import { CalendarEvent } from "./calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
 import { stripHtml } from "./emails/helpers";
+import dayjs, { Dayjs } from "dayjs";
+import EventMail from "@lib/emails/EventMail";
 
 const translator = short();
 
@@ -90,4 +92,98 @@ Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a
     eventCopy.description = this.getRichDescriptionHtml();
     return eventCopy;
   }
+
+  public getInviteeStart(): Dayjs {
+    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
+  }
+
+  public getInviteeEnd(): Dayjs {
+    return <Dayjs>dayjs(this.calEvent.endTime).tz(this.calEvent.attendees[0].timeZone);
+  }
+
+  protected getLocation(): string {
+    if (this.additionInformation?.hangoutLink) {
+      return `<strong>Location:</strong> <a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
+    }
+
+    if (this.additionInformation?.entryPoints && this.additionInformation?.entryPoints.length > 0) {
+      const locations = this.additionInformation?.entryPoints
+        .map((entryPoint) => {
+          return `
+          Join by ${entryPoint.entryPointType}: <br />
+          <a href="${entryPoint.uri}">${entryPoint.label}</a> <br />
+        `;
+        })
+        .join("<br />");
+
+      return `<strong>Locations:</strong><br /> ${locations}`;
+    }
+
+    return this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : "";
+  }
 }
+
+export interface EventPlaceholder {
+  variable: string;
+  label: string;
+  getValue: (eventMail: EventMail) => string;
+}
+
+export const eventPlaceholders: EventPlaceholder[] = [
+  {
+    variable: "{AttendeeName}",
+    label: "Attendee Name",
+    getValue: (eventMail) => eventMail.parser.calEvent.attendees[0].name,
+  },
+  {
+    variable: "{AttendeeTimezone}",
+    label: "Attendee Timezone",
+    getValue: (eventMail) => eventMail.parser.calEvent.attendees[0].timeZone,
+  },
+  {
+    variable: "{YourName}",
+    label: "Your Name",
+    getValue: (eventMail) => eventMail.parser.calEvent.organizer.name,
+  },
+  { variable: "{EventName}", label: "Event Name", getValue: (eventParser) => eventParser.calEvent.type },
+  {
+    variable: "{EventDescription}",
+    label: "Event Description",
+    getValue: (eventMail) => eventMail.parser.calEvent.description,
+  },
+  {
+    variable: "{EventLocation}",
+    label: "Event Location",
+    getValue: (eventMail) => eventMail.parser.calEvent.location,
+  },
+  {
+    variable: "{EventLocationOptional}",
+    label: "Optional Event Location",
+    getValue: (eventMail) => eventMail.getLocation(),
+  },
+  {
+    variable: "{EventDate}",
+    label: "Event Date",
+    getValue: (eventMail) => eventMail.parser.getInviteeStart().format("dddd, LL"),
+  },
+  {
+    variable: "{EventStartTime}",
+    label: "Event Start Time",
+    getValue: (eventMail) => eventMail.parser.getInviteeStart().format("h:mma"),
+  },
+  {
+    variable: "{EventEndTime}",
+    label: "Event End Time",
+    getValue: (eventMail) => eventMail.parser.getInviteeEnd().format("h:mma"),
+  },
+  {
+    variable: "{EventRescheduleLink}",
+    label: "Event Reschedule Link",
+    getValue: (eventMail) => eventMail.parser.getRescheduleLink(),
+  },
+  {
+    variable: "{EventCancellationLink}",
+    label: "Event Cancellation Link",
+    getValue: (eventMail) => eventMail.parser.getCancelLink(),
+  },
+];

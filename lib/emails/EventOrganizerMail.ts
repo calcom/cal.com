@@ -85,7 +85,7 @@ export default class EventOrganizerMail extends EventMail {
    *
    * @protected
    */
-  protected getLocation(): string {
+  public getLocation(): string {
     if (this.additionInformation?.hangoutLink) {
       return `<strong>Location:</strong> <a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
     }

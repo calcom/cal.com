@@ -222,8 +222,8 @@ const updateMeeting = async (credential, uidToUpdate: String, calEvent: Calendar
 
   const updateResult = credential ? await videoIntegrations([credential])[0].updateMeeting(uidToUpdate, calEvent) : null;
 
-  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
+  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid, []);
+  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid, []);
   try {
     await organizerMail.sendEmail();
   } catch (e) {

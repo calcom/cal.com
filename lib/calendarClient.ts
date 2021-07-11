@@ -505,7 +505,11 @@ const listCalendars = (withCredentials) =>
     results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential: Credential, calEvent: CalendarEvent, emailTemplates: EmailTemplate[]): Promise<unknown> => {
+const createEvent = async (
+  credential: Credential,
+  calEvent: CalendarEvent,
+  emailTemplates: EmailTemplate[]
+): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
@@ -516,18 +520,16 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent, emai
   const maybeEntryPoints = creationResult?.entryPoints;
   const maybeConferenceData = creationResult?.conferenceData;
 
-  const organizerMail = new EventOrganizerMail(calEvent, uid, {
+  const organizerMail = new EventOrganizerMail(calEvent, uid, emailTemplates, {
     hangoutLink: maybeHangoutLink,
     conferenceData: maybeConferenceData,
     entryPoints: maybeEntryPoints,
-    emailTemplates
   });
 
-  const attendeeMail = new EventAttendeeMail(calEvent, uid, {
+  const attendeeMail = new EventAttendeeMail(calEvent, uid, emailTemplates, {
     hangoutLink: maybeHangoutLink,
     conferenceData: maybeConferenceData,
     entryPoints: maybeEntryPoints,
-    emailTemplates
   });
 
   try {
@@ -594,4 +596,3 @@ const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
 };
 
 export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, listCalendars };
-export type { CalendarEvent, IntegrationCalendar };
