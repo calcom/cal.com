@@ -131,7 +131,7 @@ const getSlots = ({
   )
     .reduce((slots, boundary: Boundary) => [...slots, ...getSlotsBetweenBoundary(frequency, boundary)], [])
     .map((slot) =>
-      slot.month(inviteeDate.month()).date(inviteeDate.date()).utcOffset(inviteeDate.utcOffset())
+      slot.utcOffset(inviteeDate.utcOffset()).month(inviteeDate.month()).date(inviteeDate.date())
     );
 };
 

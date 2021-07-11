@@ -25,6 +25,7 @@ export default function Type(props): Type {
   const telemetry = useTelemetry();
 
   useEffect(() => {
+    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
