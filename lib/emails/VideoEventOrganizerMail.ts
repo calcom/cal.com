@@ -1,7 +1,7 @@
-import {CalendarEvent} from "../calendarClient";
+import { CalendarEvent } from "../calendarClient";
 import EventOrganizerMail from "./EventOrganizerMail";
-import {VideoCallData} from "../videoClient";
-import {getFormattedMeetingId, getIntegrationName} from "./helpers";
+import { VideoCallData } from "../videoClient";
+import { getFormattedMeetingId, getIntegrationName } from "./helpers";
 
 export default class VideoEventOrganizerMail extends EventOrganizerMail {
   videoCallData: VideoCallData;
@@ -18,11 +18,12 @@ export default class VideoEventOrganizerMail extends EventOrganizerMail {
    * @protected
    */
   protected getAdditionalBody(): string {
+    // This odd indentation is necessary because otherwise the leading tabs will be applied into the event description.
     return `
-      <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
-      <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
-      <strong>Meeting Password:</strong> ${this.videoCallData.password}<br />
-      <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
+<strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
+<strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
+<strong>Meeting Password:</strong> ${this.videoCallData.password}<br />
+<strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
   }
 }

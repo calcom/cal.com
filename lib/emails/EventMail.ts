@@ -1,12 +1,33 @@
-import { CalendarEvent } from "../calendarClient";
+import CalEventParser from "../CalEventParser";
+import { stripHtml } from "./helpers";
+import { CalendarEvent, ConferenceData } from "../calendarClient";
 import { serverConfig } from "../serverConfig";
 import nodemailer from "nodemailer";
 import { EmailTemplate } from "@prisma/client";
 
+interface EntryPoint {
+  entryPointType?: string;
+  uri?: string;
+  label?: string;
+  pin?: string;
+  accessCode?: string;
+  meetingCode?: string;
+  passcode?: string;
+  password?: string;
+}
+
+interface AdditionInformation {
+  conferenceData?: ConferenceData;
+  entryPoints?: EntryPoint[];
+  hangoutLink?: string;
+}
+
 export default abstract class EventMail {
   calEvent: CalendarEvent;
+  parser: CalEventParser;
   uid: string;
   emailTemplates: EmailTemplate[];
+  additionInformation?: AdditionInformation;
 
   /**
    * An EventMail always consists of a CalendarEvent
@@ -17,10 +38,12 @@ export default abstract class EventMail {
    * @param uid
    * @param emailTemplates
    */
-  constructor(calEvent: CalendarEvent, uid: string, emailTemplates: EmailTemplate[]) {
+  constructor(calEvent: CalendarEvent, uid: string, emailTemplates: EmailTemplate[], additionInformation: AdditionInformation = null) {
     this.calEvent = calEvent;
     this.uid = uid;
     this.emailTemplates = emailTemplates;
+    this.parser = new CalEventParser(calEvent);
+    this.additionInformation = additionInformation;
   }
 
   /**
@@ -37,25 +60,14 @@ export default abstract class EventMail {
    * @protected
    */
   protected getPlainTextRepresentation(): string {
-    return this.stripHtml(this.getHtmlRepresentation());
-  }
-
-  /**
-   * Strips off all HTML tags and leaves plain text.
-   *
-   * @param html
-   * @protected
-   */
-  protected stripHtml(html: string): string {
-    return html.replace("<br />", "\n").replace(/<[^>]+>/g, "");
+    return stripHtml(this.getHtmlRepresentation());
   }
 
   /**
    * Returns the payload object for the nodemailer.
    * @protected
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  protected abstract getNodeMailerPayload(): Object;
+  protected abstract getNodeMailerPayload(): Record<string, unknown>;
 
   /**
    * Sends the email to the event attendant and returns a Promise.
@@ -99,6 +111,8 @@ export default abstract class EventMail {
     return "";
   }
 
+  protected abstract getLocation(): string;
+
   /**
    * Prints out the desired information when an error
    * occured while sending the mail.
@@ -113,7 +127,7 @@ export default abstract class EventMail {
    * @protected
    */
   protected getRescheduleLink(): string {
-    return process.env.BASE_URL + "/reschedule/" + this.uid;
+    return this.parser.getRescheduleLink();
   }
 
   /**
@@ -122,7 +136,7 @@ export default abstract class EventMail {
    * @protected
    */
   protected getCancelLink(): string {
-    return process.env.BASE_URL + "/cancel/" + this.uid;
+    return this.parser.getCancelLink();
   }
 
   /**
@@ -130,12 +144,6 @@ export default abstract class EventMail {
    * @protected
    */
   protected getAdditionalFooter(): string {
-    return `
-      <br/>
-      <br/>
-      <strong>Need to change this event?</strong><br />
-      Cancel: <a href="${this.getCancelLink()}">${this.getCancelLink()}</a><br />
-      Reschedule: <a href="${this.getRescheduleLink()}">${this.getRescheduleLink()}</a>
-    `;
+    return this.parser.getChangeEventFooterHtml();
   }
 }

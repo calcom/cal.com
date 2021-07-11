@@ -75,6 +75,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       res.status(200).json({ message: "Event created successfully" });
     } else if (req.method == "PATCH") {
+      if (req.body.timeZone) {
+        data.timeZone = req.body.timeZone;
+      }
+
+      if (req.body.availability) {
+        const openingHours = req.body.availability.openingHours || [];
+        // const overrides = req.body.availability.dateOverrides || [];
+
+        await prisma.availability.deleteMany({
+          where: {
+            eventTypeId: +req.body.id,
+          },
+        });
+        Promise.all(
+          openingHours.map((schedule) =>
+            prisma.availability.create({
+              data: {
+                eventTypeId: +req.body.id,
+                days: schedule.days,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+              },
+            })
+          )
+        ).catch((error) => {
+          console.log(error);
+        });
+      }
+
       await prisma.eventType.update({
         where: {
           id: req.body.id,

@@ -70,7 +70,7 @@ export default function Success(props) {
                 &#8203;
               </span>
               <div
-                className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6"
+                className="inline-block align-bottom dark:bg-gray-800 bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
@@ -79,17 +79,21 @@ export default function Success(props) {
                     <CheckIcon className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                    <h3
+                      className="text-lg leading-6 font-medium dark:text-white text-gray-900"
+                      id="modal-headline">
                       Booking confirmed
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-300">
                         You are scheduled in with {props.user.name || props.user.username}.
                       </p>
                     </div>
-                    <div className="mt-4 border-t border-b py-4">
-                      <h2 className="text-lg font-medium text-gray-600 mb-2">{eventName}</h2>
-                      <p className="text-gray-500 mb-1">
+                    <div className="mt-4 border-t border-b dark:border-gray-900 py-4">
+                      <h2 className="text-lg font-medium text-gray-600 dark:text-gray-100 mb-2">
+                        {eventName}
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-50 mb-1">
                         <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                         {props.eventType.length} minutes
                       </p>
@@ -99,7 +103,7 @@ export default function Success(props) {
                           {location}
                         </p>
                       )}
-                      <p className="text-gray-500">
+                      <p className="text-gray-500 dark:text-gray-50">
                         <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                         {date.format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
                       </p>
@@ -107,7 +111,7 @@ export default function Success(props) {
                   </div>
                 </div>
                 <div className="mt-5 sm:mt-0 pt-2 text-center">
-                  <span className="font-medium text-gray-500">Add to your calendar</span>
+                  <span className="font-medium text-gray-500 dark:text-gray-50">Add to your calendar</span>
                   <div className="flex mt-2">
                     <Link
                       href={
@@ -194,7 +198,7 @@ export default function Success(props) {
                   </div>
                 </div>
                 {!props.user.hideBranding && (
-                  <div className="mt-4 pt-4 border-t text-gray-400 text-center text-xs">
+                  <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                     <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
                   </div>
                 )}

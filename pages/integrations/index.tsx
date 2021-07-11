@@ -75,7 +75,7 @@ export default function Home({ integrations }) {
     useEffect(loadCalendars, [integrations]);
 
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
+        return <div className="loader"></div>;
     }
 
     return (

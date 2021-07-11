@@ -7,15 +7,21 @@ export default class EventAttendeeRescheduledMail extends EventAttendeeMail {
    * @protected
    */
   protected getHtmlRepresentation(): string {
-    return `
+    return (
+      `
     <div>
       Hi ${this.calEvent.attendees[0].name},<br />
       <br />
-      Your ${this.calEvent.type} with ${this.calEvent.organizer.name} has been rescheduled to ${this.getInviteeStart().format('h:mma')} 
-      (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format('dddd, LL')}.<br />
-      ` + this.getAdditionalFooter() + `
+      Your ${this.calEvent.type} with ${
+        this.calEvent.organizer.name
+      } has been rescheduled to ${this.getInviteeStart().format("h:mma")} 
+      (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format("dddd, LL")}.<br />
+      ` +
+      this.getAdditionalFooter() +
+      `
     </div>
-  `;
+  `
+    );
   }
 
   /**
@@ -23,12 +29,14 @@ export default class EventAttendeeRescheduledMail extends EventAttendeeMail {
    *
    * @protected
    */
-  protected getNodeMailerPayload(): Object {
+  protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Rescheduled: ${this.calEvent.type} with ${this.calEvent.organizer.name} on ${this.getInviteeStart().format('dddd, LL')}`,
+      subject: `Rescheduled: ${this.calEvent.type} with ${
+        this.calEvent.organizer.name
+      } on ${this.getInviteeStart().format("dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };

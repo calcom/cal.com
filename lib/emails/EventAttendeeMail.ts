@@ -48,13 +48,13 @@ export default class EventAttendeeMail extends EventMail {
       <br />
       Your ${this.calEvent.type} with ${this.calEvent.organizer.name} at ${this.getInviteeStart().format(
         "h:mma"
-      )} 
+      )}
       (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format(
         "dddd, LL"
       )} is scheduled.<br />
       <br />` +
       this.getAdditionalBody() +
-      (this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : "") +
+      "<br />" +
       `<strong>Additional notes:</strong><br />
       ${this.calEvent.description}<br />
       ` +
@@ -72,12 +72,43 @@ export default class EventAttendeeMail extends EventMail {
   }
 
   /**
+   * Adds the video call information to the mail body.
+   *
+   * @protected
+   */
+  protected getLocation(): string {
+    if (this.additionInformation?.hangoutLink) {
+      return `<strong>Location:</strong> <a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
+    }
+
+    if (this.additionInformation?.entryPoints && this.additionInformation?.entryPoints.length > 0) {
+      const locations = this.additionInformation?.entryPoints
+        .map((entryPoint) => {
+          return `
+          Join by ${entryPoint.entryPointType}: <br />
+          <a href="${entryPoint.uri}">${entryPoint.label}</a> <br />
+        `;
+        })
+        .join("<br />");
+
+      return `<strong>Locations:</strong><br /> ${locations}`;
+    }
+
+    return this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : "";
+  }
+
+  protected getAdditionalBody(): string {
+    return `
+      ${this.getLocation()}
+    `;
+  }
+
+  /**
    * Returns the payload object for the nodemailer.
    *
    * @protected
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  protected getNodeMailerPayload(): Object {
+  protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,

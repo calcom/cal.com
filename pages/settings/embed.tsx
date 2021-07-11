@@ -15,7 +15,7 @@ export default function Embed(props) {
     const router = useRouter();
 
     if (loading) {
-        return <p className="text-gray-400">Loading...</p>;
+        return <div className="loader"></div>;
     }
 
     return(
