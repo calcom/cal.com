@@ -1,12 +1,11 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import prisma, {whereAndSelect} from "@lib/prisma";
+import prisma, { whereAndSelect } from "@lib/prisma";
 import Avatar from "../components/Avatar";
 import Theme from "@components/Theme";
 
 export default function User(props): User {
-
   const { isReady } = Theme(props.user.theme);
 
   const eventTypes = props.eventTypes.map((type) => (
@@ -24,42 +23,44 @@ export default function User(props): User {
       </Link>
     </li>
   ));
-  return isReady && (
-    <div>
-      <Head>
-        <title>{props.user.name || props.user.username} | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+  return (
+    isReady && (
+      <div>
+        <Head>
+          <title>{props.user.name || props.user.username} | Calendso</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
 
-      <main className="max-w-2xl mx-auto my-24">
-        <div className="mb-8 text-center">
-          <Avatar user={props.user} className="mx-auto w-24 h-24 rounded-full mb-4" />
-          <h1 className="text-3xl font-semibold text-gray-800 dark:text-white mb-1">
-            {props.user.name || props.user.username}
-          </h1>
-          <p className="text-gray-600 dark:text-white">{props.user.bio}</p>
-        </div>
-        <div className="shadow overflow-hidden rounded-md">
-          <ul className="divide-y divide-gray-200 dark:divide-gray-900">{eventTypes}</ul>
-          {eventTypes.length == 0 && (
-            <div className="p-8 text-center text-gray-400 dark:text-white">
-              <h2 className="font-semibold text-3xl text-gray-600">Uh oh!</h2>
-              <p className="max-w-md mx-auto">This user hasn&apos;t set up any event types yet.</p>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+        <main className="max-w-2xl mx-auto my-24">
+          <div className="mb-8 text-center">
+            <Avatar user={props.user} className="mx-auto w-24 h-24 rounded-full mb-4" />
+            <h1 className="text-3xl font-semibold text-gray-800 dark:text-white mb-1">
+              {props.user.name || props.user.username}
+            </h1>
+            <p className="text-gray-600 dark:text-white">{props.user.bio}</p>
+          </div>
+          <div className="shadow overflow-hidden rounded-md">
+            <ul className="divide-y divide-gray-200 dark:divide-gray-900">{eventTypes}</ul>
+            {eventTypes.length == 0 && (
+              <div className="p-8 text-center text-gray-400 dark:text-white">
+                <h2 className="font-semibold text-3xl text-gray-600">Uh oh!</h2>
+                <p className="max-w-md mx-auto">This user hasn&apos;t set up any event types yet.</p>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    )
   );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-
-  const user = await whereAndSelect(prisma.user.findFirst, {
+  const user = await whereAndSelect(
+    prisma.user.findFirst,
+    {
       username: context.query.user.toLowerCase(),
-    }, [
-      "id", "username", "email", "name", "bio", "avatar", "eventTypes", "theme"
-    ]
+    },
+    ["id", "username", "email", "name", "bio", "avatar", "eventTypes", "theme"]
   );
   if (!user) {
     return {

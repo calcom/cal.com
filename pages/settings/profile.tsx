@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
-import {useEffect, useRef, useState} from "react";
-import prisma, {whereAndSelect} from "@lib/prisma";
+import { useEffect, useRef, useState } from "react";
+import prisma, { whereAndSelect } from "@lib/prisma";
 import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
@@ -27,12 +27,14 @@ export default function Settings(props) {
   const [errorMessage, setErrorMessage] = useState("");
 
   const themeOptions = [
-    {value: 'light', label: 'Light'},
-    {value: 'dark', label: 'Dark'}
+    { value: "light", label: "Light" },
+    { value: "dark", label: "Dark" },
   ];
 
-  useEffect( () => {
-    setSelectedTheme(props.user.theme ? themeOptions.find( (theme) => theme.value === props.user.theme ) : null);
+  useEffect(() => {
+    setSelectedTheme(
+      props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : null
+    );
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
   }, []);
 
@@ -138,8 +140,7 @@ export default function Settings(props) {
                       placeholder="A little something about yourself."
                       rows={3}
                       defaultValue={props.user.bio}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md">
-                    </textarea>
+                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
                   </div>
                 </div>
                 <div>
@@ -166,9 +167,10 @@ export default function Settings(props) {
                       onChange={setSelectedWeekStartDay}
                       className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
                       options={[
-                        { value:'Sunday', label:'Sunday' },
-                        { value:'Monday', label:'Monday' }
-                      ]} />
+                        { value: "Sunday", label: "Sunday" },
+                        { value: "Monday", label: "Monday" },
+                      ]}
+                    />
                   </div>
                 </div>
                 <div>
@@ -182,7 +184,8 @@ export default function Settings(props) {
                       defaultValue={selectedTheme || themeOptions[0]}
                       onChange={setSelectedTheme}
                       className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
-                      options={themeOptions} />
+                      options={themeOptions}
+                    />
                   </div>
                   <div className="relative flex items-start">
                     <div className="flex items-center h-5">
@@ -302,20 +305,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await whereAndSelect(prisma.user.findFirst, {
+  const user = await whereAndSelect(
+    prisma.user.findFirst,
+    {
       id: session.user.id,
-    }, [
-      "id",
-    "username",
-    "name",
-    "email",
-    "bio",
-    "avatar",
-    "timeZone",
-    "weekStart",
-    "hideBranding",
-    "theme"
-  ]);
+    },
+    ["id", "username", "name", "email", "bio", "avatar", "timeZone", "weekStart", "hideBranding", "theme"]
+  );
 
   return {
     props: { user }, // will be passed to the page component as props

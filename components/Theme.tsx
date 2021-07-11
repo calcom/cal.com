@@ -1,8 +1,8 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
-const Theme = (theme?: string) => {
+export default function Theme(theme?: string) {
   const [isReady, setIsReady] = useState(false);
-  useEffect( () => {
+  useEffect(() => {
     if (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches) {
       document.documentElement.classList.add("dark");
     } else {
@@ -12,8 +12,6 @@ const Theme = (theme?: string) => {
   }, []);
 
   return {
-    isReady
-  }
-};
-
-export default Theme;
+    isReady,
+  };
+}

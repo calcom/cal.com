@@ -47,113 +47,115 @@ export default function Type(props): Type {
     setTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
-  return isReady && (
-    <div>
-      <Head>
-        <title>
-          {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username} |
-          Calendso
-        </title>
-        <meta name="title" content={"Meet " + (props.user.name || props.user.username) + " via Calendso"} />
-        <meta name="description" content={props.eventType.description} />
+  return (
+    isReady && (
+      <div>
+        <Head>
+          <title>
+            {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username}{" "}
+            | Calendso
+          </title>
+          <meta name="title" content={"Meet " + (props.user.name || props.user.username) + " via Calendso"} />
+          <meta name="description" content={props.eventType.description} />
 
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://calendso/" />
-        <meta
-          property="og:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-        />
-        <meta property="og:description" content={props.eventType.description} />
-        <meta
-          property="og:image"
-          content={
-            "https://og-image-one-pi.vercel.app/" +
-            encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-            ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
-          }
-        />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content="https://calendso/" />
+          <meta
+            property="og:title"
+            content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
+          />
+          <meta property="og:description" content={props.eventType.description} />
+          <meta
+            property="og:image"
+            content={
+              "https://og-image-one-pi.vercel.app/" +
+              encodeURIComponent(
+                "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
+              ).replace(/'/g, "%27") +
+              ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
+              encodeURIComponent(props.user.avatar)
+            }
+          />
 
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://calendso/" />
-        <meta
-          property="twitter:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-        />
-        <meta property="twitter:description" content={props.eventType.description} />
-        <meta
-          property="twitter:image"
-          content={
-            "https://og-image-one-pi.vercel.app/" +
-            encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-            ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
-          }
-        />
-      </Head>
-      <main
-        className={
-          "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
-          (selectedDate ? "max-w-6xl" : "max-w-3xl")
-        }>
-        <div className="dark:bg-gray-800 bg-white sm:shadow sm:rounded-lg">
-          <div className="sm:flex px-4 py-5 sm:p-4">
-            <div
-              className={
-                "pr-8 sm:border-r sm:dark:border-gray-900 " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
-              }>
-              <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
-              <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
-              <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
-                {props.eventType.title}
-              </h1>
-              <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                {props.eventType.length} minutes
-              </p>
-              <button
-                onClick={() => setIsTimeOptionsOpen(!isTimeOptionsOpen)}
-                className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                {timeZone()}
-                <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
-              </button>
-              {isTimeOptionsOpen && (
-                <TimeOptions
-                  onSelectTimeZone={handleSelectTimeZone}
-                  onToggle24hClock={handleToggle24hClock}
+          <meta property="twitter:card" content="summary_large_image" />
+          <meta property="twitter:url" content="https://calendso/" />
+          <meta
+            property="twitter:title"
+            content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
+          />
+          <meta property="twitter:description" content={props.eventType.description} />
+          <meta
+            property="twitter:image"
+            content={
+              "https://og-image-one-pi.vercel.app/" +
+              encodeURIComponent(
+                "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
+              ).replace(/'/g, "%27") +
+              ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
+              encodeURIComponent(props.user.avatar)
+            }
+          />
+        </Head>
+        <main
+          className={
+            "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
+            (selectedDate ? "max-w-6xl" : "max-w-3xl")
+          }>
+          <div className="dark:bg-gray-800 bg-white sm:shadow sm:rounded-lg">
+            <div className="sm:flex px-4 py-5 sm:p-4">
+              <div
+                className={
+                  "pr-8 sm:border-r sm:dark:border-gray-900 " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                }>
+                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
+                <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
+                <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
+                  {props.eventType.title}
+                </h1>
+                <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {props.eventType.length} minutes
+                </p>
+                <button
+                  onClick={() => setIsTimeOptionsOpen(!isTimeOptionsOpen)}
+                  className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                  <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {timeZone()}
+                  <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                </button>
+                {isTimeOptionsOpen && (
+                  <TimeOptions
+                    onSelectTimeZone={handleSelectTimeZone}
+                    onToggle24hClock={handleToggle24hClock}
+                  />
+                )}
+                <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
+              </div>
+              <DatePicker
+                weekStart={props.user.weekStart}
+                onDatePicked={changeDate}
+                workingHours={props.workingHours}
+                organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+                inviteeTimeZone={timeZone()}
+                eventLength={props.eventType.length}
+              />
+              {selectedDate && (
+                <AvailableTimes
+                  workingHours={props.workingHours}
+                  timeFormat={timeFormat}
+                  organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+                  eventLength={props.eventType.length}
+                  eventTypeId={props.eventType.id}
+                  date={selectedDate}
+                  user={props.user}
                 />
               )}
-              <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
             </div>
-            <DatePicker
-              weekStart={props.user.weekStart}
-              onDatePicked={changeDate}
-              workingHours={props.workingHours}
-              organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
-              inviteeTimeZone={timeZone()}
-              eventLength={props.eventType.length}
-            />
-            {selectedDate && (
-              <AvailableTimes
-                workingHours={props.workingHours}
-                timeFormat={timeFormat}
-                organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
-                eventLength={props.eventType.length}
-                eventTypeId={props.eventType.id}
-                date={selectedDate}
-                user={props.user}
-              />
-            )}
           </div>
-        </div>
-        {!props.user.hideBranding && <PoweredByCalendso />}
-      </main>
-    </div>
+          {!props.user.hideBranding && <PoweredByCalendso />}
+        </main>
+      </div>
+    )
   );
 }
 
