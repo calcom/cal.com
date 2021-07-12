@@ -7,6 +7,8 @@ import { useSession, getSession } from "next-auth/client";
 export default function Embed() {
   const [session, loading] = useSession();
 
+  const baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL;
+
   if (loading) {
     return <div className="loader"></div>;
   }
@@ -34,7 +36,9 @@ export default function Embed() {
                   className="h-32 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                   placeholder="Loading..."
                   defaultValue={
-                    '<iframe src="https://calendso.com/' +
+                    '<iframe src="' +
+                    baseUrl +
+                    "/" +
                     session.user.username +
                     '" frameborder="0" allowfullscreen></iframe>'
                   }
@@ -52,7 +56,9 @@ export default function Embed() {
                   className="h-32 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                   placeholder="Loading..."
                   defaultValue={
-                    '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body><iframe src="https://calendso.com/' +
+                    '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body><iframe src="' +
+                    baseUrl +
+                    "/" +
                     session.user.username +
                     '" frameborder="0" allowfullscreen></iframe></body></html>'
                   }
