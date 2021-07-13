@@ -66,13 +66,13 @@ export default class EventOrganizerMail extends EventMail {
         <a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a><br />
         <br />` +
       this.getAdditionalBody() +
+      "<br />" +
       `<strong>Invitee Time Zone:</strong><br />
           ${this.calEvent.attendees[0].timeZone}<br />
           <br />
           <strong>Additional notes:</strong><br />
           ${this.calEvent.description}
         ` +
-      "<br />" +
       this.getAdditionalFooter() +
       `
       </div>
