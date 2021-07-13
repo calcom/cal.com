@@ -15,12 +15,19 @@ const DatePicker = ({
   organizerTimeZone,
   inviteeTimeZone,
   eventLength,
+  date,
 }) => {
   const [calendar, setCalendar] = useState([]);
-  const [selectedMonth, setSelectedMonth]: number = useState();
-  const [selectedDate, setSelectedDate]: Dayjs = useState();
+  const [selectedMonth, setSelectedMonth] = useState<number>();
+  const [selectedDate, setSelectedDate] = useState<Dayjs>();
 
   useEffect(() => {
+    if (date) {
+      setSelectedDate(dayjs(date).tz(inviteeTimeZone));
+      setSelectedMonth(dayjs(date).tz(inviteeTimeZone).month());
+      return;
+    }
+
     setSelectedMonth(dayjs().tz(inviteeTimeZone).month());
   }, []);
 
