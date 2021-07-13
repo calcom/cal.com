@@ -43,7 +43,7 @@ const AvailableTimes = ({
         ))}
       {isFullyBooked && (
         <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
-          <h1 className="text-xl font">{user.name} is all booked today.</h1>
+          <h1 className="text-xl font dark:text-white">{user.name} is all booked today.</h1>
         </div>
       )}
 
