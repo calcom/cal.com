@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { GetServerSideProps } from "next";
+import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { ChevronDownIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 import prisma, { whereAndSelect } from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
@@ -22,7 +22,9 @@ export default function Type(props): Type {
 
   const { isReady } = Theme(props.user.theme);
 
-  const [selectedDate, setSelectedDate] = useState<Dayjs>();
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
+    return props.date && dayjs(props.date).isValid() ? dayjs(props.date) : null;
+  });
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
@@ -36,6 +38,26 @@ export default function Type(props): Type {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
     setSelectedDate(date);
   };
+
+  useEffect(() => {
+    if (!selectedDate) {
+      return;
+    }
+
+    const formattedDate = selectedDate.utc().format("YYYY-MM-DD");
+
+    router.replace(
+      {
+        query: {
+          date: formattedDate,
+        },
+      },
+      undefined,
+      {
+        shallow: true,
+      }
+    );
+  }, [selectedDate]);
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
     if (selectedDate) {
@@ -133,6 +155,7 @@ export default function Type(props): Type {
                 <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
               </div>
               <DatePicker
+                date={selectedDate}
                 weekStart={props.user.weekStart}
                 onDatePicked={changeDate}
                 workingHours={props.workingHours}
@@ -160,7 +183,10 @@ export default function Type(props): Type {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
+  const dateQuery = context.query?.date ?? null;
+  const date = Array.isArray(dateQuery) && dateQuery.length > 0 ? dateQuery.pop() : dateQuery;
+
   const user = await whereAndSelect(
     prisma.user.findFirst,
     {
@@ -226,6 +252,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       user,
+      date,
       eventType,
       workingHours,
     },
