@@ -60,6 +60,10 @@ export default function Type(props) {
                                 </div>
                                 <div className="mt-5 sm:mt-6 text-center">
                                     <div className="mt-5">
+                                        <button onClick={() => router.push('/bookings')} type="button"
+                                                className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm mx-2 btn-white">
+                                            Return
+                                        </button>
                                         <button onClick={() => router.push('/' + props.user.username)} type="button"
                                                 className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm mx-2 btn-white">
                                             Pick another
