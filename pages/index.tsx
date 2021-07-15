@@ -80,52 +80,62 @@ export default function Home(props) {
               <div className="pt-5 pb-2 px-6 sm:flex sm:items-center sm:justify-between">
                 <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Your stats</h3>
               </div>
-              <div className="mt-8 bg-white shadow dark:bg-gray-800 overflow-hidden rounded-md">
-                <div className="pt-5 pb-2 px-6 sm:flex sm:items-center sm:justify-between">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                    Your event types
-                  </h3>
-                </div>
-                <ul className="divide-y divide-gray-200">
-                  {props.eventTypes.map((type) => (
-                    <li key={type.id}>
-                      <div className="px-4 py-4 flex items-center sm:px-6">
-                        <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
-                          <div className="truncate">
-                            <div className="flex text-sm">
-                              <p className="flex-shrink-0 font-medium text-blue-600 truncate">{type.title}</p>
-                              <p className="ml-1 font-normal text-gray-500 truncate">
-                                in {type.description}
-                              </p>
-                            </div>
-                            <div className="mt-2 flex">
-                              <div className="flex items-center text-sm text-gray-500">
-                                <ClockIcon
-                                  className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
-                                <p>{type.length} minutes</p>
-                              </div>
+              <dl className="grid grid-cols-1 overflow-hidden divide-y divide-gray-200 dark:divide-gray-900 md:grid-cols-3 md:divide-y-0 md:divide-x">
+                {stats.map((item) => (
+                  <div key={item.name} className="px-4 py-5 sm:p-6">
+                    <dt className="text-base font-normal dark:text-white text-gray-900">{item.name}</dt>
+                    <dd className="mt-1 flex justify-between items-baseline md:block lg:flex">
+                      <div className="flex items-baseline text-2xl font-semibold text-blue-600">
+                        {item.stat}
+                      </div>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <div className="mt-8 bg-white shadow dark:bg-gray-800 overflow-hidden rounded-md">
+              <div className="pt-5 pb-2 px-6 sm:flex sm:items-center sm:justify-between">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                  Your event types
+                </h3>
+              </div>
+              <ul className="divide-y divide-gray-200">
+                {props.eventTypes.map((type) => (
+                  <li key={type.id}>
+                    <div className="px-4 py-4 flex items-center sm:px-6">
+                      <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div className="truncate">
+                          <div className="flex text-sm">
+                            <p className="flex-shrink-0 font-medium text-blue-600 truncate">{type.title}</p>
+                            <p className="ml-1 font-normal text-gray-500 truncate">in {type.description}</p>
+                          </div>
+                          <div className="mt-2 flex">
+                            <div className="flex items-center text-sm text-gray-500">
+                              <ClockIcon
+                                className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+                                aria-hidden="true"
+                              />
+                              <p>{type.length} minutes</p>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className="ml-5 flex-shrink-0">
-                        <Link href={"/availability/event/" + type.id}>
-                          <a className="text-blue-600 hover:text-blue-900 mr-2 font-medium">Edit</a>
-                        </Link>
-                        <Link href={"/" + session.user.username + "/" + type.slug}>
-                          <a target="_blank" className="text-blue-600 hover:text-blue-900 mr-2 font-medium">
-                            View
-                          </a>
-                        </Link>
-                      </div>
+                    </div>
+                    <div className="ml-5 flex-shrink-0">
+                      <Link href={"/availability/event/" + type.id}>
+                        <a className="text-blue-600 hover:text-blue-900 mr-2 font-medium">Edit</a>
+                      </Link>
+                      <Link href={"/" + session.user.username + "/" + type.slug}>
+                        <a target="_blank" className="text-blue-600 hover:text-blue-900 mr-2 font-medium">
+                          View
+                        </a>
+                      </Link>
                     </div>
                   </li>
                 ))}
                 {props.eventTypes.length == 0 && (
                   <div className="text-center text-gray-400 py-12">
-                    <p>You haven't created any event types.</p>
+                    <p>You haven&apos;t created any event types.</p>
                   </div>
                 )}
               </ul>
@@ -213,7 +223,7 @@ export default function Home(props) {
               </div>
               <ul className="divide-y divide-gray-200">
                 {props.credentials.map((integration) => (
-                  <li className="pb-4 flex">
+                  <li key={integration.type} className="pb-4 flex">
                     {integration.type == "google_calendar" && (
                       <img
                         className="h-10 w-10 mr-2"
@@ -252,7 +262,7 @@ export default function Home(props) {
                 ))}
                 {props.credentials.length == 0 && (
                   <div className="text-center text-gray-400 py-2">
-                    <p>You haven't added any integrations.</p>
+                    <p>You haven&apos;t added any integrations.</p>
                   </div>
                 )}
               </ul>
@@ -291,14 +301,13 @@ export default function Home(props) {
                 ))}
                 {props.eventTypes.length == 0 && (
                   <div className="text-center text-gray-400 py-2">
-                    <p>You haven't created any event types.</p>
+                    <p>You haven&apos;t created any event types.</p>
                   </div>
                 )}
               </ul>
             </div>
           </div>
         </div>
-
         <DonateBanner />
       </Shell>
     </div>
