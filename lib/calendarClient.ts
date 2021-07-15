@@ -498,7 +498,9 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
     .filter(Boolean);
 
 const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) =>
-  Promise.all(calendars(withCredentials).map((c) => c.getAvailability(selectedCalendars))).then((results) => {
+  Promise.all(
+    calendars(withCredentials).map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
+  ).then((results) => {
     return results.reduce((acc, availability) => acc.concat(availability), []);
   });
 
