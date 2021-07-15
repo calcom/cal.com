@@ -156,6 +156,11 @@ export default function Type(props): Type {
               </div>
               <DatePicker
                 date={selectedDate}
+                periodType={props.eventType?.periodType}
+                periodStartDate={props.eventType?.periodStartDate}
+                periodEndDate={props.eventType?.periodEndDate}
+                periodDays={props.eventType?.periodDays}
+                periodCountCalendarDays={props.eventType?.periodCountCalendarDays}
                 weekStart={props.user.weekStart}
                 onDatePicked={changeDate}
                 workingHours={props.workingHours}
@@ -199,7 +204,6 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
       "email",
       "bio",
       "avatar",
-      "eventTypes",
       "startTime",
       "endTime",
       "timeZone",
@@ -222,7 +226,19 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
       userId: user.id,
       slug: context.query.type,
     },
-    ["id", "title", "description", "length", "availability", "timeZone"]
+    [
+      "id",
+      "title",
+      "description",
+      "length",
+      "availability",
+      "timeZone",
+      "periodType",
+      "periodDays",
+      "periodStartDate",
+      "periodEndDate",
+      "periodCountCalendarDays",
+    ]
   );
 
   if (!eventType) {
@@ -249,11 +265,16 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 
   workingHours.sort((a, b) => a.startTime - b.startTime);
 
+  const eventTypeObject = Object.assign({}, eventType, {
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
+  });
+
   return {
     props: {
       user,
       date,
-      eventType,
+      eventType: eventTypeObject,
       workingHours,
     },
   };

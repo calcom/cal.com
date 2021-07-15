@@ -25,6 +25,11 @@ model EventType {
   eventName     String?
   customInputs  EventTypeCustomInput[]
   timeZone      String?
+  periodType String? @default("unlimited") // unlimited | rolling | range
+  periodStartDate DateTime?
+  periodEndDate DateTime?
+  periodDays Int?
+  periodCountCalendarDays Boolean?
 }
 
 model Credential {

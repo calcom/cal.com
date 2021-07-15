@@ -60,7 +60,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     {
       username: context.query.user.toLowerCase(),
     },
-    ["id", "username", "email", "name", "bio", "avatar", "eventTypes", "theme"]
+    ["id", "username", "email", "name", "bio", "avatar", "theme"]
   );
   if (!user) {
     return {
@@ -72,6 +72,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     where: {
       userId: user.id,
       hidden: false,
+    },
+    select: {
+      slug: true,
+      title: true,
+      description: true,
     },
   });
 
