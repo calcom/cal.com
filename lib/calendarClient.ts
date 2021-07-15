@@ -5,6 +5,10 @@ import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail"
 import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
+import { EventResult } from "@lib/events/EventManager";
+import logger from "@lib/logger";
+
+const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -494,9 +498,7 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
     .filter(Boolean);
 
 const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) =>
-  Promise.all(
-    calendars(withCredentials).map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
-  ).then((results) => {
+  Promise.all(calendars(withCredentials).map((c) => c.getAvailability(selectedCalendars))).then((results) => {
     return results.reduce((acc, availability) => acc.concat(availability), []);
   });
 
@@ -505,12 +507,21 @@ const listCalendars = (withCredentials) =>
     results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<unknown> => {
+const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
 
-  const creationResult = credential ? await calendars([credential])[0].createEvent(richEvent) : null;
+  let success = true;
+
+  const creationResult = credential
+    ? await calendars([credential])[0]
+        .createEvent(richEvent)
+        .catch((e) => {
+          log.error("createEvent failed", e, calEvent);
+          success = false;
+        })
+    : null;
 
   const maybeHangoutLink = creationResult?.hangoutLink;
   const maybeEntryPoints = creationResult?.entryPoints;
@@ -543,8 +554,11 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
   }
 
   return {
+    type: credential.type,
+    success,
     uid,
     createdEvent: creationResult,
+    originalEvent: calEvent,
   };
 };
 
@@ -552,13 +566,20 @@ const updateEvent = async (
   credential: Credential,
   uidToUpdate: string,
   calEvent: CalendarEvent
-): Promise<unknown> => {
+): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
 
+  let success = true;
+
   const updateResult = credential
-    ? await calendars([credential])[0].updateEvent(uidToUpdate, richEvent)
+    ? await calendars([credential])[0]
+        .updateEvent(uidToUpdate, richEvent)
+        .catch((e) => {
+          log.error("updateEvent failed", e, calEvent);
+          success = false;
+        })
     : null;
 
   const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
@@ -578,8 +599,11 @@ const updateEvent = async (
   }
 
   return {
+    type: credential.type,
+    success,
     uid: newUid,
     updatedEvent: updateResult,
+    originalEvent: calEvent,
   };
 };
 

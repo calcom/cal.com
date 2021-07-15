@@ -1,16 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
-import { CalendarEvent, createEvent, getBusyCalendarTimes, updateEvent } from "../../../lib/calendarClient";
-import async from "async";
+import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
-import { createMeeting, getBusyVideoTimes, updateMeeting } from "../../../lib/videoClient";
+import { getBusyVideoTimes } from "@lib/videoClient";
 import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
-import { getEventName } from "../../../lib/event";
-import { LocationType } from "../../../lib/location";
+import { getEventName } from "@lib/event";
+import { LocationType } from "@lib/location";
 import merge from "lodash.merge";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
+import EventManager, { EventResult } from "@lib/events/EventManager";
+import { User } from "@prisma/client";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -63,6 +64,18 @@ const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromI
           requestId: requestId,
         },
       },
+      location,
+    };
+  } else if (location === LocationType.Zoom.valueOf()) {
+    const requestId = uuidv5(location, uuidv5.URL);
+
+    return {
+      conferenceData: {
+        createRequest: {
+          requestId: requestId,
+        },
+      },
+      location,
     };
   }
 
@@ -88,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json(error);
     }
 
-    let currentUser = await prisma.user.findFirst({
+    let currentUser: User = await prisma.user.findFirst({
       where: {
         username: user,
       },
@@ -106,10 +119,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: currentUser.id,
       },
     });
-
-    // Split credentials up into calendar credentials and video credentials
-    let calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    let videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
 
     const hasCalendarIntegrations =
       currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
@@ -152,9 +161,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name: true,
       },
     });
-    calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
 
+    // Initialize EventManager with credentials
+    const eventManager = new EventManager(currentUser.credentials);
     const rescheduleUid = req.body.rescheduleUid;
 
     const selectedEventType = await prisma.eventType.findFirst({
@@ -228,7 +237,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json(error);
     }
 
-    let results = [];
+    let results: Array<EventResult> = [];
     let referencesToCreate = [];
 
     if (rescheduleUid) {
@@ -249,30 +258,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      // Use all integrations
-      results = results.concat(
-        await async.mapLimit(calendarCredentials, 5, async (credential) => {
-          const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-          return updateEvent(credential, bookingRefUid, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("updateEvent failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
-
-      results = results.concat(
-        await async.mapLimit(videoCredentials, 5, async (credential) => {
-          const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-          return updateMeeting(credential, bookingRefUid, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("updateMeeting failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
+      // Use EventManager to conditionally use all needed integrations.
+      results = await eventManager.update(evt, booking);
 
       if (results.length > 0 && results.every((res) => !res.success)) {
         const error = {
@@ -306,28 +293,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
     } else {
-      // Schedule event
-      results = results.concat(
-        await async.mapLimit(calendarCredentials, 5, async (credential) => {
-          return createEvent(credential, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("createEvent failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
-
-      results = results.concat(
-        await async.mapLimit(videoCredentials, 5, async (credential) => {
-          return createMeeting(credential, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("createMeeting failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
+      // Use EventManager to conditionally use all needed integrations.
+      const results: Array<EventResult> = await eventManager.create(evt);
 
       if (results.length > 0 && results.every((res) => !res.success)) {
         const error = {
@@ -342,15 +309,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       referencesToCreate = results.map((result) => {
         return {
           type: result.type,
-          uid: result.response.createdEvent.id.toString(),
+          uid: result.createdEvent.id.toString(),
         };
       });
     }
 
     const hashUID =
-      results.length > 0
-        ? results[0].response.uid
-        : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
+      results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
     if (results.length === 0) {
