@@ -101,8 +101,8 @@ export default function Home(props) {
               </div>
               <ul className="divide-y divide-gray-200">
                 {props.eventTypes.map((type) => (
-                  <li key={type.id}>
-                    <div className="px-4 py-4 flex items-center sm:px-6">
+                  <li key={type.id} className="flex">
+                    <div className="px-4 py-4 flex items-center sm:px-6 w-2/3">
                       <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
                         <div className="truncate">
                           <div className="flex text-sm">
@@ -121,9 +121,9 @@ export default function Home(props) {
                         </div>
                       </div>
                     </div>
-                    <div className="ml-5 flex-shrink-0">
+                    <div className="ml-5 w-1/3 text-right pt-5 pr-4">
                       <Link href={"/availability/event/" + type.id}>
-                        <a className="text-blue-600 hover:text-blue-900 mr-2 font-medium">Edit</a>
+                        <a className="text-gray-400 hover:text-gray-900 mr-4 font-medium">Edit</a>
                       </Link>
                       <Link href={"/" + session.user.username + "/" + type.slug}>
                         <a target="_blank" className="text-blue-600 hover:text-blue-900 mr-2 font-medium">
