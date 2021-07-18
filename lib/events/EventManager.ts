@@ -45,9 +45,8 @@ export default class EventManager {
   }
 
   public async update(event: CalendarEvent, booking: PartialBooking): Promise<Array<EventResult>> {
-    const results: Array<EventResult> = [];
     // First, update all calendar events.
-    results.concat(await this.updateAllCalendarEvents(event, booking));
+    const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking);
 
     // If and only if event type is a video meeting, update the video meeting as well.
     if (EventManager.isIntegration(event.location)) {
@@ -95,7 +94,7 @@ export default class EventManager {
     booking: PartialBooking
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential) => {
-      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0]?.uid;
       return updateEvent(credential, bookingRefUid, event);
     });
   }
