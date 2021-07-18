@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
-import prisma from "../../lib/prisma";
+import prisma, { whereAndSelect } from "../../lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -14,6 +14,7 @@ import { LocationType } from "../../lib/location";
 import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
 import { EventTypeCustomInputType } from "../../lib/eventTypeInput";
+import Theme from "@components/Theme";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -32,7 +33,10 @@ export default function Book(props: any): JSX.Element {
   const [selectedLocation, setSelectedLocation] = useState<LocationType>(
     locations.length === 1 ? locations[0].type : ""
   );
+
+  const { isReady } = Theme(props.user.theme);
   const telemetry = useTelemetry();
+
   useEffect(() => {
     setPreferredTimeZone(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess());
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
@@ -138,247 +142,247 @@ export default function Book(props: any): JSX.Element {
   };
 
   return (
-    <div>
-      <Head>
-        <title>
-          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with{" "}
-          {props.user.name || props.user.username} | Calendso
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    isReady && (
+      <div>
+        <Head>
+          <title>
+            {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with{" "}
+            {props.user.name || props.user.username} | Calendso
+          </title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
 
-      <main className="max-w-3xl mx-auto my-0 sm:my-24">
-        <div className="dark:bg-gray-800 bg-white overflow-hidden sm:shadow sm:rounded-lg">
-          <div className="sm:flex px-4 py-5 sm:p-4">
-            <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-900">
-              <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
-              <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
-              <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
-                {props.eventType.title}
-              </h1>
-              <p className="text-gray-500 mb-2">
-                <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                {props.eventType.length} minutes
-              </p>
-              {selectedLocation === LocationType.InPerson && (
+        <main className="max-w-3xl mx-auto my-0 sm:my-24">
+          <div className="dark:bg-gray-800 bg-white overflow-hidden sm:shadow sm:rounded-lg">
+            <div className="sm:flex px-4 py-5 sm:p-4">
+              <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-900">
+                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
+                <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
+                <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
+                  {props.eventType.title}
+                </h1>
                 <p className="text-gray-500 mb-2">
-                  <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {locationInfo(selectedLocation).address}
+                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {props.eventType.length} minutes
                 </p>
-              )}
-              <p className="text-blue-600 mb-4">
-                <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                {preferredTimeZone &&
-                  dayjs(date)
-                    .tz(preferredTimeZone)
-                    .format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
-              </p>
-              <p className="dark:text-white text-gray-600 mb-8">{props.eventType.description}</p>
-            </div>
-            <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
-              <form onSubmit={bookingHandler}>
-                <div className="mb-4">
-                  <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
-                    Your name
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      required
-                      className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                      placeholder="John Doe"
-                      defaultValue={props.booking ? props.booking.attendees[0].name : ""}
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium dark:text-white text-gray-700">
-                    Email address
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      required
-                      className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                      placeholder="you@example.com"
-                      defaultValue={props.booking ? props.booking.attendees[0].email : ""}
-                    />
-                  </div>
-                </div>
-                {locations.length > 1 && (
-                  <div className="mb-4">
-                    <span className="block text-sm font-medium text-gray-700">Location</span>
-                    {locations.map((location) => (
-                      <label key={location.type} className="block">
-                        <input
-                          type="radio"
-                          required
-                          onChange={(e) => setSelectedLocation(e.target.value)}
-                          className="location"
-                          name="location"
-                          value={location.type}
-                          checked={selectedLocation === location.type}
-                        />
-                        <span className="text-sm ml-2">{locationLabels[location.type]}</span>
-                      </label>
-                    ))}
-                  </div>
+                {selectedLocation === LocationType.InPerson && (
+                  <p className="text-gray-500 mb-2">
+                    <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {locationInfo(selectedLocation).address}
+                  </p>
                 )}
-                {selectedLocation === LocationType.Phone && (
+                <p className="text-blue-600 mb-4">
+                  <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {preferredTimeZone &&
+                    dayjs(date)
+                      .tz(preferredTimeZone)
+                      .format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
+                </p>
+                <p className="dark:text-white text-gray-600 mb-8">{props.eventType.description}</p>
+              </div>
+              <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
+                <form onSubmit={bookingHandler}>
                   <div className="mb-4">
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium dark:text-white text-gray-700">
-                      Phone Number
+                    <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
+                      Your name
                     </label>
                     <div className="mt-1">
-                      <PhoneInput
-                        name="phone"
-                        placeholder="Enter phone number"
-                        id="phone"
+                      <input
+                        type="text"
+                        name="name"
+                        id="name"
                         required
                         className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        onChange={() => {
-                          /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
-                        }}
+                        placeholder="John Doe"
+                        defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
                     </div>
                   </div>
-                )}
-                {props.eventType.customInputs &&
-                  props.eventType.customInputs
-                    .sort((a, b) => a.id - b.id)
-                    .map((input) => (
-                      <div className="mb-4" key={"input-" + input.label.toLowerCase}>
-                        {input.type !== EventTypeCustomInputType.Bool && (
-                          <label
-                            htmlFor={input.label}
-                            className="block text-sm font-medium text-gray-700 mb-1">
-                            {input.label}
-                          </label>
-                        )}
-                        {input.type === EventTypeCustomInputType.TextLong && (
-                          <textarea
-                            name={"custom_" + input.id}
-                            id={"custom_" + input.id}
-                            required={input.required}
-                            rows={3}
-                            className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder=""
-                          />
-                        )}
-                        {input.type === EventTypeCustomInputType.Text && (
-                          <input
-                            type="text"
-                            name={"custom_" + input.id}
-                            id={"custom_" + input.id}
-                            required={input.required}
-                            className="shadow-sm dark:bg-gray-700 dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder=""
-                          />
-                        )}
-                        {input.type === EventTypeCustomInputType.Number && (
-                          <input
-                            type="number"
-                            name={"custom_" + input.id}
-                            id={"custom_" + input.id}
-                            required={input.required}
-                            className="shadow-sm dark:bg-gray-700 dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            placeholder=""
-                          />
-                        )}
-                        {input.type === EventTypeCustomInputType.Bool && (
-                          <div className="flex items-center h-5">
-                            <input
-                              type="checkbox"
-                              name={"custom_" + input.id}
-                              id={"custom_" + input.id}
-                              className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
-                              placeholder=""
-                            />
-                            <label htmlFor={input.label} className="block text-sm font-medium text-gray-700">
-                              {input.label}
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                <div className="mb-4">
-                  <label
-                    htmlFor="notes"
-                    className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
-                    Additional notes
-                  </label>
-                  <textarea
-                    name="notes"
-                    id="notes"
-                    rows={3}
-                    className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                    placeholder="Please share anything that will help prepare for our meeting."
-                    defaultValue={props.booking ? props.booking.description : ""}
-                  />
-                </div>
-                <div className="flex items-start">
-                  <Button type="submit" loading={loading} className="btn btn-primary">
-                    {rescheduleUid ? "Reschedule" : "Confirm"}
-                  </Button>
-                  <Link
-                    href={
-                      "/" +
-                      props.user.username +
-                      "/" +
-                      props.eventType.slug +
-                      (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
-                    }>
-                    <a className="ml-2 btn btn-white">Cancel</a>
-                  </Link>
-                </div>
-              </form>
-              {error && (
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-2">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-yellow-700">
-                        Could not {rescheduleUid ? "reschedule" : "book"} the meeting. Please try again or{" "}
-                        <a
-                          href={"mailto:" + props.user.email}
-                          className="font-medium underline text-yellow-700 hover:text-yellow-600">
-                          Contact {props.user.name} via e-mail
-                        </a>
-                      </p>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium dark:text-white text-gray-700">
+                      Email address
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        required
+                        className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        placeholder="you@example.com"
+                        defaultValue={props.booking ? props.booking.attendees[0].email : ""}
+                      />
                     </div>
                   </div>
-                </div>
-              )}
+                  {locations.length > 1 && (
+                    <div className="mb-4">
+                      <span className="block text-sm font-medium text-gray-700">Location</span>
+                      {locations.map((location) => (
+                        <label key={location.type} className="block">
+                          <input
+                            type="radio"
+                            required
+                            onChange={(e) => setSelectedLocation(e.target.value)}
+                            className="location"
+                            name="location"
+                            value={location.type}
+                            checked={selectedLocation === location.type}
+                          />
+                          <span className="text-sm ml-2">{locationLabels[location.type]}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {selectedLocation === LocationType.Phone && (
+                    <div className="mb-4">
+                      <label
+                        htmlFor="phone"
+                        className="block text-sm font-medium dark:text-white text-gray-700">
+                        Phone Number
+                      </label>
+                      <div className="mt-1">
+                        <PhoneInput
+                          name="phone"
+                          placeholder="Enter phone number"
+                          id="phone"
+                          required
+                          className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          onChange={() => {
+                            /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {props.eventType.customInputs &&
+                    props.eventType.customInputs
+                      .sort((a, b) => a.id - b.id)
+                      .map((input) => (
+                        <div className="mb-4" key={"input-" + input.label.toLowerCase}>
+                          {input.type !== EventTypeCustomInputType.Bool && (
+                            <label
+                              htmlFor={input.label}
+                              className="block text-sm font-medium text-gray-700 mb-1">
+                              {input.label}
+                            </label>
+                          )}
+                          {input.type === EventTypeCustomInputType.TextLong && (
+                            <textarea
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              required={input.required}
+                              rows={3}
+                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              placeholder=""
+                            />
+                          )}
+                          {input.type === EventTypeCustomInputType.Text && (
+                            <input
+                              type="text"
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              required={input.required}
+                              className="shadow-sm dark:bg-gray-700 dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              placeholder=""
+                            />
+                          )}
+                          {input.type === EventTypeCustomInputType.Number && (
+                            <input
+                              type="number"
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              required={input.required}
+                              className="shadow-sm dark:bg-gray-700 dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              placeholder=""
+                            />
+                          )}
+                          {input.type === EventTypeCustomInputType.Bool && (
+                            <div className="flex items-center h-5">
+                              <input
+                                type="checkbox"
+                                name={"custom_" + input.id}
+                                id={"custom_" + input.id}
+                                className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
+                                placeholder=""
+                              />
+                              <label
+                                htmlFor={input.label}
+                                className="block text-sm font-medium text-gray-700">
+                                {input.label}
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  <div className="mb-4">
+                    <label
+                      htmlFor="notes"
+                      className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
+                      Additional notes
+                    </label>
+                    <textarea
+                      name="notes"
+                      id="notes"
+                      rows={3}
+                      className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      placeholder="Please share anything that will help prepare for our meeting."
+                      defaultValue={props.booking ? props.booking.description : ""}
+                    />
+                  </div>
+                  <div className="flex items-start">
+                    <Button type="submit" loading={loading} className="btn btn-primary">
+                      {rescheduleUid ? "Reschedule" : "Confirm"}
+                    </Button>
+                    <Link
+                      href={
+                        "/" +
+                        props.user.username +
+                        "/" +
+                        props.eventType.slug +
+                        (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
+                      }>
+                      <a className="ml-2 btn btn-white">Cancel</a>
+                    </Link>
+                  </div>
+                </form>
+                {error && (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-2">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-yellow-700">
+                          Could not {rescheduleUid ? "reschedule" : "book"} the meeting. Please try again or{" "}
+                          <a
+                            href={"mailto:" + props.user.email}
+                            className="font-medium underline text-yellow-700 hover:text-yellow-600">
+                            Contact {props.user.name} via e-mail
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    )
   );
 }
 
 export async function getServerSideProps(context) {
-  const user = await prisma.user.findFirst({
-    where: {
+  const user = await whereAndSelect(
+    prisma.user.findFirst,
+    {
       username: context.query.user,
     },
-    select: {
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      eventTypes: true,
-    },
-  });
+    ["username", "name", "email", "bio", "avatar", "theme"]
+  );
 
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -392,7 +396,17 @@ export async function getServerSideProps(context) {
       length: true,
       locations: true,
       customInputs: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
     },
+  });
+
+  const eventTypeObject = Object.assign({}, eventType, {
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
   let booking = null;
@@ -417,7 +431,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       user,
-      eventType,
+      eventType: eventTypeObject,
       booking,
     },
   };

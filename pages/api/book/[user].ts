@@ -13,6 +13,14 @@ import logger from "../../../lib/logger";
 import EventManager, { EventResult } from "@lib/events/EventManager";
 import { User } from "@prisma/client";
 
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import dayjsBusinessDays from "dayjs-business-days";
+
+dayjs.extend(dayjsBusinessDays);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
@@ -48,6 +56,32 @@ function isAvailable(busyTimes, time, length) {
   }
 
   return t;
+}
+
+function isOutOfBounds(
+  time: dayjs.ConfigType,
+  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }
+): boolean {
+  const date = dayjs(time);
+
+  switch (periodType) {
+    case "rolling": {
+      const periodRollingEndDay = periodCountCalendarDays
+        ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
+        : dayjs().tz(timeZone).businessDaysAdd(periodDays, "days").endOf("day");
+      return date.endOf("day").isAfter(periodRollingEndDay);
+    }
+
+    case "range": {
+      const periodRangeStartDay = dayjs(periodStartDate).tz(timeZone).endOf("day");
+      const periodRangeEndDay = dayjs(periodEndDate).tz(timeZone).endOf("day");
+      return date.endOf("day").isBefore(periodRangeStartDay) || date.endOf("day").isAfter(periodRangeEndDay);
+    }
+
+    case "unlimited":
+    default:
+      return false;
+  }
 }
 
 interface GetLocationRequestFromIntegrationRequest {
@@ -131,11 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dayjs(req.body.end).endOf("day").utc().format(),
       selectedCalendars
     );
-    const videoAvailability = await getBusyVideoTimes(
-      currentUser.credentials,
-      dayjs(req.body.start).startOf("day").utc().format(),
-      dayjs(req.body.end).endOf("day").utc().format()
-    );
+    const videoAvailability = await getBusyVideoTimes(currentUser.credentials);
     let commonAvailability = [];
 
     if (hasCalendarIntegrations && hasVideoIntegrations) {
@@ -175,6 +205,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         eventName: true,
         title: true,
         length: true,
+        periodType: true,
+        periodDays: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        periodCountCalendarDays: true,
       },
     });
 
@@ -228,6 +263,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!isAvailableToBeBooked) {
+      const error = {
+        errorCode: "BookingUserUnAvailable",
+        message: `${currentUser.name} is unavailable at this time.`,
+      };
+
+      log.debug(`Booking ${user} failed`, error);
+      return res.status(400).json(error);
+    }
+
+    let timeOutOfBounds = false;
+
+    try {
+      timeOutOfBounds = isOutOfBounds(req.body.start, {
+        periodType: selectedEventType.periodType,
+        periodDays: selectedEventType.periodDays,
+        periodEndDate: selectedEventType.periodEndDate,
+        periodStartDate: selectedEventType.periodStartDate,
+        periodCountCalendarDays: selectedEventType.periodCountCalendarDays,
+        timeZone: currentUser.timeZone,
+      });
+    } catch {
+      log.debug({
+        message: "Unable set timeOutOfBounds. Using false. ",
+      });
+    }
+
+    if (timeOutOfBounds) {
       const error = {
         errorCode: "BookingUserUnAvailable",
         message: `${currentUser.name} is unavailable at this time.`,

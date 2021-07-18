@@ -70,7 +70,7 @@ export const Scheduler = ({
 
   const OpeningHours = ({ idx, item }) => (
     <li className="py-2 flex justify-between border-t">
-      <div className="inline-flex ml-2">
+      <div className="flex flex-col space-y-4 lg:inline-flex ml-2 ">
         <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
         <button className="ml-2 text-sm px-2" type="button" onClick={() => setEditSchedule(idx)}>
           {dayjs()
@@ -96,8 +96,8 @@ export const Scheduler = ({
   return (
     <div>
       <div className="rounded border flex">
-        <div className="w-3/5">
-          <div className="w-3/4 p-2">
+        <div className="w-full">
+          <div className=" p-2">
             <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
               Timezone
             </label>
@@ -120,13 +120,6 @@ export const Scheduler = ({
             Add another
           </button>
         </div>
-        <div className="border-l p-2 w-2/5 text-sm bg-gray-50">
-          {/*<p className="font-bold mb-2">Add date overrides</p>
-          <p className="mb-2">
-            Add dates when your availability changes from your weekly hours
-          </p>
-          <button className="btn-sm btn-white">Add a date override</button>*/}
-        </div>
       </div>
       {editSchedule >= 0 && (
         <SetTimesModal
@@ -136,9 +129,6 @@ export const Scheduler = ({
           onExit={() => setEditSchedule(-1)}
         />
       )}
-      {/*{showDateOverrideModal &&
-        <DateOverrideModal />
-      }*/}
     </div>
   );
 };

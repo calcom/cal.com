@@ -19,6 +19,13 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Availability, EventType, User } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
+import Text from "@components/ui/Text";
+import { RadioGroup } from "@headlessui/react";
+import classnames from "classnames";
+import throttle from "lodash.throttle";
+import "react-dates/initialize";
+import "react-dates/lib/css/_datepicker.css";
+import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -54,7 +61,27 @@ type EventTypeInput = {
   customInputs: EventTypeCustomInput[];
   timeZone: string;
   availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
+  periodType?: string;
+  periodDays?: number;
+  periodStartDate?: Date | string;
+  periodEndDate?: Date | string;
+  periodCountCalendarDays?: boolean;
 };
+
+const PERIOD_TYPES = [
+  {
+    type: "rolling",
+    suffix: "into the future",
+  },
+  {
+    type: "range",
+    prefix: "Within a date range",
+  },
+  {
+    type: "unlimited",
+    prefix: "Indefinitely into the future",
+  },
+];
 
 export default function EventTypePage({
   user,
@@ -64,12 +91,46 @@ export default function EventTypePage({
 }: Props): JSX.Element {
   const router = useRouter();
 
+  console.log(eventType);
   const inputOptions: OptionBase[] = [
     { value: EventTypeCustomInputType.Text, label: "Text" },
     { value: EventTypeCustomInputType.TextLong, label: "Multiline Text" },
     { value: EventTypeCustomInputType.Number, label: "Number" },
     { value: EventTypeCustomInputType.Bool, label: "Checkbox" },
   ];
+
+  const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
+  const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
+
+  const handleResizeEvent = () => {
+    const elementWidth = parseFloat(getComputedStyle(document.body).width);
+    const elementHeight = parseFloat(getComputedStyle(document.body).height);
+
+    setContentSize({
+      width: elementWidth,
+      height: elementHeight,
+    });
+  };
+
+  const throttledHandleResizeEvent = throttle(handleResizeEvent, 100);
+
+  useEffect(() => {
+    handleResizeEvent();
+
+    window.addEventListener("resize", throttledHandleResizeEvent);
+
+    return () => {
+      window.removeEventListener("resize", throttledHandleResizeEvent);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (contentSize.width < 500) {
+      setDatePickerOrientation("vertical");
+    } else {
+      setDatePickerOrientation("horizontal");
+    }
+  }, [contentSize]);
 
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -83,12 +144,37 @@ export default function EventTypePage({
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
 
+  const [periodStartDate, setPeriodStartDate] = useState(() => {
+    if (eventType.periodType === "range" && eventType?.periodStartDate) {
+      return toMomentObject(new Date(eventType.periodStartDate));
+    }
+
+    return null;
+  });
+
+  const [periodEndDate, setPeriodEndDate] = useState(() => {
+    if (eventType.periodType === "range" && eventType.periodEndDate) {
+      return toMomentObject(new Date(eventType?.periodEndDate));
+    }
+
+    return null;
+  });
+  const [focusedInput, setFocusedInput] = useState(null);
+  const [periodType, setPeriodType] = useState(() => {
+    return (
+      PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
+      PERIOD_TYPES.find((s) => s.type === "unlimited")
+    );
+  });
+
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const lengthRef = useRef<HTMLInputElement>();
   const isHiddenRef = useRef<HTMLInputElement>();
   const eventNameRef = useRef<HTMLInputElement>();
+  const periodDaysRef = useRef<HTMLInputElement>();
+  const periodDaysTypeRef = useRef<HTMLSelectElement>();
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || user.timeZone);
@@ -103,6 +189,22 @@ export default function EventTypePage({
     const enteredLength: number = parseInt(lengthRef.current.value);
     const enteredIsHidden: boolean = isHiddenRef.current.checked;
     const enteredEventName: string = eventNameRef.current.value;
+
+    const type = periodType.type;
+    const enteredPeriodDays = parseInt(periodDaysRef?.current?.value);
+    const enteredPeriodDaysType = Boolean(parseInt(periodDaysTypeRef?.current.value));
+
+    const enteredPeriodStartDate = periodStartDate ? periodStartDate.toDate() : null;
+    const enteredPeriodEndDate = periodEndDate ? periodEndDate.toDate() : null;
+
+    console.log("values", {
+      type,
+      periodDaysTypeRef,
+      enteredPeriodDays,
+      enteredPeriodDaysType,
+      enteredPeriodStartDate,
+      enteredPeriodEndDate,
+    });
     // TODO: Add validation
 
     const payload: EventTypeInput = {
@@ -116,6 +218,11 @@ export default function EventTypePage({
       eventName: enteredEventName,
       customInputs,
       timeZone: selectedTimeZone,
+      periodType: type,
+      periodDays: enteredPeriodDays,
+      periodStartDate: enteredPeriodStartDate,
+      periodEndDate: enteredPeriodEndDate,
+      periodCountCalendarDays: enteredPeriodDaysType,
     };
 
     if (enteredAvailability) {
@@ -268,8 +375,8 @@ export default function EventTypePage({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell heading={"Event Type - " + eventType.title}>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-3 sm:col-span-2">
+        <div className="max-w-5xl mx-auto">
+          <div className="">
             <div className="bg-white overflow-hidden shadow rounded-lg mb-4">
               <div className="px-4 py-5 sm:p-6">
                 <form onSubmit={updateEventTypeHandler}>
@@ -330,7 +437,7 @@ export default function EventTypePage({
                       </div>
                     )}
                     {locations.length > 0 && (
-                      <ul className="w-96 mt-1">
+                      <ul className="mt-1">
                         {locations.map((location) => (
                           <li key={location.type} className="bg-blue-50 mb-2 p-2 border">
                             <div className="flex justify-between">
@@ -451,26 +558,6 @@ export default function EventTypePage({
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label htmlFor="length" className="block text-sm font-medium text-gray-700">
-                      Length
-                    </label>
-                    <div className="mt-1 relative rounded-md shadow-sm">
-                      <input
-                        ref={lengthRef}
-                        type="number"
-                        name="length"
-                        id="length"
-                        required
-                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
-                        placeholder="15"
-                        defaultValue={eventType.length}
-                      />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
-                        minutes
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mb-4">
                     <label htmlFor="eventName" className="block text-sm font-medium text-gray-700">
                       Calendar entry name
                     </label>
@@ -554,29 +641,151 @@ export default function EventTypePage({
                       </div>
                     </div>
                   </div>
-                  <hr className="my-4" />
-                  <div>
-                    <h3 className="mb-2">How do you want to offer your availability for this event type?</h3>
-                    <Scheduler
-                      setAvailability={setEnteredAvailability}
-                      setTimeZone={setSelectedTimeZone}
-                      timeZone={selectedTimeZone}
-                      availability={availability}
-                    />
-                    <div className="py-4 flex justify-end">
-                      <Link href="/availability">
-                        <a className="mr-2 btn btn-white">Cancel</a>
-                      </Link>
-                      <button type="submit" className="btn btn-primary">
-                        Update
-                      </button>
-                    </div>
-                  </div>
+
+                  <fieldset className="my-8">
+                    <Text variant="largetitle">When can people book this event?</Text>
+                    <hr className="my-8" />
+                    <section className="space-y-12">
+                      <div className="mb-4">
+                        {/* <label htmlFor="period" className=""> */}
+                        <Text variant="subtitle">Date Range</Text>
+                        {/* </label> */}
+                        <Text variant="title3">Invitees can schedule...</Text>
+                        <div className="mt-1 relative ">
+                          <RadioGroup value={periodType} onChange={setPeriodType}>
+                            <RadioGroup.Label className="sr-only">Date Range</RadioGroup.Label>
+                            <div className="bg-white rounded-md -space-y-px">
+                              {PERIOD_TYPES.map((period) => (
+                                <RadioGroup.Option
+                                  key={period.type}
+                                  value={period}
+                                  className={({ checked }) =>
+                                    classnames(
+                                      checked ? "bg-indigo-50 border-indigo-200 z-10" : "border-gray-200",
+                                      "relative py-4 px-2 lg:p-4 min-h-20 lg:flex items-center cursor-pointer focus:outline-none"
+                                    )
+                                  }>
+                                  {({ active, checked }) => (
+                                    <>
+                                      <span
+                                        className={classnames(
+                                          checked
+                                            ? "bg-indigo-600 border-transparent"
+                                            : "bg-white border-gray-300",
+                                          active ? "ring-2 ring-offset-2 ring-indigo-500" : "",
+                                          "h-4 w-4 mt-0.5 cursor-pointer rounded-full border flex items-center justify-center"
+                                        )}
+                                        aria-hidden="true">
+                                        <span className="rounded-full bg-white w-1.5 h-1.5" />
+                                      </span>
+                                      <div className="lg:ml-3 flex flex-col">
+                                        <RadioGroup.Label
+                                          as="span"
+                                          className={classnames(
+                                            checked ? "text-indigo-900" : "text-gray-900",
+                                            "block text-sm font-light space-y-2 lg:space-y-0 lg:space-x-2"
+                                          )}>
+                                          <span>{period.prefix}</span>
+                                          {period.type === "rolling" && (
+                                            <div className="inline-flex">
+                                              <input
+                                                ref={periodDaysRef}
+                                                type="text"
+                                                name="periodDays"
+                                                id=""
+                                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-12 sm:text-sm border-gray-300 rounded-md"
+                                                placeholder="30"
+                                                defaultValue={eventType.periodDays || 30}
+                                              />
+                                              <select
+                                                ref={periodDaysTypeRef}
+                                                id=""
+                                                name="periodDaysType"
+                                                className=" block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                                defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
+                                                <option value="1">calendar days</option>
+                                                <option value="0">business days</option>
+                                              </select>
+                                            </div>
+                                          )}
+
+                                          {checked && period.type === "range" && (
+                                            <div className="inline-flex space-x-2">
+                                              <DateRangePicker
+                                                orientation={DATE_PICKER_ORIENTATION}
+                                                startDate={periodStartDate}
+                                                startDateId="your_unique_start_date_id"
+                                                endDate={periodEndDate}
+                                                endDateId="your_unique_end_date_id"
+                                                onDatesChange={({ startDate, endDate }) => {
+                                                  setPeriodStartDate(startDate);
+                                                  setPeriodEndDate(endDate);
+                                                }}
+                                                focusedInput={focusedInput}
+                                                onFocusChange={(focusedInput) => {
+                                                  setFocusedInput(focusedInput);
+                                                }}
+                                              />
+                                            </div>
+                                          )}
+
+                                          <span>{period.suffix}</span>
+                                        </RadioGroup.Label>
+                                      </div>
+                                    </>
+                                  )}
+                                </RadioGroup.Option>
+                              ))}
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+                      <hr className="my-8" />
+                      <div className="mb-4">
+                        <label htmlFor="length" className="block text-sm font-medium text-gray-700">
+                          <Text variant="caption">Duration</Text>
+                        </label>
+                        <div className="mt-1 relative rounded-md shadow-sm">
+                          <input
+                            ref={lengthRef}
+                            type="number"
+                            name="length"
+                            id="length"
+                            required
+                            className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
+                            placeholder="15"
+                            defaultValue={eventType.length}
+                          />
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                            minutes
+                          </div>
+                        </div>
+                      </div>
+                      <hr className="my-8" />
+                      <div>
+                        <h3 className="mb-2">
+                          How do you want to offer your availability for this event type?
+                        </h3>
+                        <Scheduler
+                          setAvailability={setEnteredAvailability}
+                          setTimeZone={setSelectedTimeZone}
+                          timeZone={selectedTimeZone}
+                          availability={availability}
+                        />
+                        <div className="py-4 flex justify-end">
+                          <Link href="/availability">
+                            <a className="mr-2 btn btn-white">Cancel</a>
+                          </Link>
+                          <button type="submit" className="btn btn-primary">
+                            Update
+                          </button>
+                        </div>
+                      </div>
+                    </section>
+                  </fieldset>
                 </form>
               </div>
             </div>
-          </div>
-          <div>
             <div className="bg-white shadow sm:rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg mb-2 leading-6 font-medium text-gray-900">Delete this event type</h3>
@@ -777,6 +986,11 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       availability: true,
       customInputs: true,
       timeZone: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
     },
   });
 
@@ -853,10 +1067,15 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
 
   availability.sort((a, b) => a.startTime - b.startTime);
 
+  const eventTypeObject = Object.assign({}, eventType, {
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
+  });
+
   return {
     props: {
       user,
-      eventType,
+      eventType: eventTypeObject,
       locationOptions,
       availability,
     },

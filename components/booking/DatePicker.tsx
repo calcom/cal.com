@@ -4,7 +4,9 @@ import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import getSlots from "@lib/slots";
+import dayjsBusinessDays from "dayjs-business-days";
 
+dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -15,13 +17,29 @@ const DatePicker = ({
   organizerTimeZone,
   inviteeTimeZone,
   eventLength,
+  date,
+  periodType = "unlimited",
+  periodStartDate,
+  periodEndDate,
+  periodDays,
+  periodCountCalendarDays,
 }) => {
   const [calendar, setCalendar] = useState([]);
-  const [selectedMonth, setSelectedMonth]: number = useState();
-  const [selectedDate, setSelectedDate]: Dayjs = useState();
+  const [selectedMonth, setSelectedMonth] = useState<number>();
+  const [selectedDate, setSelectedDate] = useState<Dayjs>();
 
   useEffect(() => {
-    setSelectedMonth(dayjs().tz(inviteeTimeZone).month());
+    if (date) {
+      setSelectedDate(dayjs(date).tz(inviteeTimeZone));
+      setSelectedMonth(dayjs(date).tz(inviteeTimeZone).month());
+      return;
+    }
+
+    if (periodType === "range") {
+      setSelectedMonth(dayjs(periodStartDate).tz(inviteeTimeZone).month());
+    } else {
+      setSelectedMonth(dayjs().tz(inviteeTimeZone).month());
+    }
   }, []);
 
   useEffect(() => {
@@ -47,15 +65,52 @@ const DatePicker = ({
 
     const isDisabled = (day: number) => {
       const date: Dayjs = inviteeDate.date(day);
-      return (
-        date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
-        !getSlots({
-          inviteeDate: date,
-          frequency: eventLength,
-          workingHours,
-          organizerTimeZone,
-        }).length
-      );
+
+      switch (periodType) {
+        case "rolling": {
+          const periodRollingEndDay = periodCountCalendarDays
+            ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
+            : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
+          return (
+            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isAfter(periodRollingEndDay) ||
+            !getSlots({
+              inviteeDate: date,
+              frequency: eventLength,
+              workingHours,
+              organizerTimeZone,
+            }).length
+          );
+        }
+
+        case "range": {
+          const periodRangeStartDay = dayjs(periodStartDate).tz(organizerTimeZone).endOf("day");
+          const periodRangeEndDay = dayjs(periodEndDate).tz(organizerTimeZone).endOf("day");
+          return (
+            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isBefore(periodRangeStartDay) ||
+            date.endOf("day").isAfter(periodRangeEndDay) ||
+            !getSlots({
+              inviteeDate: date,
+              frequency: eventLength,
+              workingHours,
+              organizerTimeZone,
+            }).length
+          );
+        }
+
+        case "unlimited":
+        default:
+          return (
+            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            !getSlots({
+              inviteeDate: date,
+              frequency: eventLength,
+              workingHours,
+              organizerTimeZone,
+            }).length
+          );
+      }
     };
 
     // Set up calendar

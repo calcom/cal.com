@@ -157,29 +157,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
       optional.location = { displayName: event.location };
     }
 
-    return {
-      subject: event.title,
-      body: {
-        contentType: "HTML",
-        content: event.description,
-      },
-      start: {
-        dateTime: event.startTime,
-        timeZone: event.organizer.timeZone,
-      },
-      end: {
-        dateTime: event.endTime,
-        timeZone: event.organizer.timeZone,
-      },
-      attendees: event.attendees.map((attendee) => ({
-        emailAddress: {
-          address: attendee.email,
-          name: attendee.name,
-        },
-        type: "required",
-      })),
-      ...optional,
-    };
+    return toRet;
   };
 
   const integrationType = "office365_calendar";
