@@ -29,11 +29,13 @@ export default async function handler(req, res) {
     });
 
     const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
-      const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0].uid;
-      if (credential.type.endsWith("_calendar")) {
-        return await deleteEvent(credential, bookingRefUid);
-      } else if (credential.type.endsWith("_video")) {
-        return await deleteMeeting(credential, bookingRefUid);
+      const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
+      if (bookingRefUid) {
+        if (credential.type.endsWith("_calendar")) {
+          return await deleteEvent(credential, bookingRefUid);
+        } else if (credential.type.endsWith("_video")) {
+          return await deleteMeeting(credential, bookingRefUid);
+        }
       }
     });
     const attendeeDeletes = prisma.attendee.deleteMany({

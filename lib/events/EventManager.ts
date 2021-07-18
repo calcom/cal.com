@@ -33,9 +33,8 @@ export default class EventManager {
   }
 
   public async create(event: CalendarEvent): Promise<Array<EventResult>> {
-    const results: Array<EventResult> = [];
     // First, create all calendar events.
-    results.concat(await this.createAllCalendarEvents(event));
+    const results: Array<EventResult> = await this.createAllCalendarEvents(event);
 
     // If and only if event type is a video meeting, create a video meeting as well.
     if (EventManager.isIntegration(event.location)) {
