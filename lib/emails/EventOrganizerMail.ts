@@ -54,28 +54,78 @@ export default class EventOrganizerMail extends EventMail {
   protected getHtmlRepresentation(): string {
     return (
       `
-      <div>
-        Hi ${this.calEvent.organizer.name},<br />
-        <br />
-        A new event has been scheduled.<br />
-        <br />
-        <strong>Event Type:</strong><br />
-        ${this.calEvent.type}<br />
-        <br />
-        <strong>Invitee Email:</strong><br />
-        <a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a><br />
-        <br />` +
+<body style="background: #f4f5f7; font-family: Helvetica, sans-serif">
+  <div
+    style="
+      margin: 0 auto;
+      max-width: 450px;
+      background: white;
+      border-radius: 0.75rem;
+      border: 1px solid #e5e7eb;
+      padding: 2rem 2rem 2rem 2rem;
+      text-align: center;
+      margin-top: 40px;
+    "
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      style="height: 60px; width: 60px; color: #31c48d"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+    <h1 style="font-weight: 500; color: #161e2e;">A new event has been scheduled.</h1>
+    <p style="color: #4b5563; margin-bottom: 30px;">You and any other attendees have been emailed with this information.</p>
+    <hr />
+    <table style="border-spacing: 20px; color: #161e2e; margin-bottom: 10px;">
+      <colgroup>
+        <col span="1" style="width: 40%;">
+        <col span="1" style="width: 60%;">
+     </colgroup>
+      <tr>
+        <td>What</td>
+        <td>${this.calEvent.type}</td>
+      </tr>
+      <tr>
+        <td>When</td>
+        <td>${this.getInviteeStart().format("dddd, LL")}<br>${this.getInviteeStart().format("h:mma")} (${
+        this.calEvent.attendees[0].timeZone
+      })</td>
+      </tr>
+      <tr>
+        <td>Who</td>
+        <td>${this.calEvent.attendees[0].name}<br /><small><a href="mailto:${
+        this.calEvent.attendees[0].email
+      }">${this.calEvent.attendees[0].email}</a></small></td>
+      </tr>
+      <tr>
+        <td>Where</td>
+        <td>${this.getLocation()}</td>
+      </tr>
+      <tr>
+        <td>Notes</td>
+        <td>${this.calEvent.description}</td>
+      </tr>
+    </table>
+    ` +
       this.getAdditionalBody() +
-      `<strong>Invitee Time Zone:</strong><br />
-          ${this.calEvent.attendees[0].timeZone}<br />
-          <br />
-          <strong>Additional notes:</strong><br />
-          ${this.calEvent.description}
-        ` +
       "<br />" +
+      `
+    <hr />
+    ` +
       this.getAdditionalFooter() +
       `
-      </div>
+  </div>
+  <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 12px;">
+    <img style="opacity: 0.25; width: 120px;" src="https://app.calendso.com/calendso-logo-word.svg" alt="Calendso Logo"></div>
+</body>
     `
     );
   }
@@ -87,7 +137,7 @@ export default class EventOrganizerMail extends EventMail {
    */
   protected getLocation(): string {
     if (this.additionInformation?.hangoutLink) {
-      return `<strong>Location:</strong> <a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
+      return `<a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
     }
 
     if (this.additionInformation?.entryPoints && this.additionInformation?.entryPoints.length > 0) {
@@ -100,16 +150,14 @@ export default class EventOrganizerMail extends EventMail {
         })
         .join("<br />");
 
-      return `<strong>Locations:</strong><br /> ${locations}`;
+      return `${locations}`;
     }
 
-    return this.calEvent.location ? `<strong>Location:</strong> ${this.calEvent.location}<br /><br />` : "";
+    return this.calEvent.location ? `${this.calEvent.location}<br /><br />` : "";
   }
 
   protected getAdditionalBody(): string {
-    return `
-      ${this.getLocation()}
-    `;
+    return ``;
   }
   /**
    * Returns the payload object for the nodemailer.
@@ -136,5 +184,14 @@ export default class EventOrganizerMail extends EventMail {
 
   protected printNodeMailerError(error: string): void {
     console.error("SEND_NEW_EVENT_NOTIFICATION_ERROR", this.calEvent.organizer.email, error);
+  }
+
+  /**
+   * Returns the inviteeStart value used at multiple points.
+   *
+   * @private
+   */
+  protected getInviteeStart(): Dayjs {
+    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
   }
 }
