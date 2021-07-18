@@ -176,3 +176,15 @@ model ResetPasswordRequest {
   email      String
   expires    DateTime
 }
+
+enum ReminderType {
+  PENDING_BOOKING_CONFIRMATION
+}
+
+model ReminderMail {
+  id             Int      @id @default(autoincrement())
+  referenceId    Int
+  reminderType   ReminderType
+  elapsedMinutes Int
+  createdAt      DateTime @default(now())
+}
