@@ -5,7 +5,7 @@ import { ReminderType } from "@prisma/client";
 import EventOrganizerRequestReminderMail from "@lib/emails/EventOrganizerRequestReminderMail";
 import { CalendarEvent } from "@lib/calendarClient";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const apiKey = req.query.apiKey;
   if (process.env.CRON_API_KEY != apiKey) {
     return res.status(401).json({ message: "Not authenticated" });

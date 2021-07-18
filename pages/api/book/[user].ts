@@ -248,7 +248,7 @@ export async function handleLegacyConfirmationMail(
   results: unknown[],
   selectedEventType: { requiresConfirmation: boolean },
   evt: CalendarEvent,
-  hashUID
+  hashUID: string
 ): Promise<{ error: Exception; message: string | null }> {
   if (results.length === 0 && !selectedEventType.requiresConfirmation) {
     // Legacy as well, as soon as we have a separate email integration class. Just used

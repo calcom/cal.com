@@ -5,7 +5,7 @@ import { handleLegacyConfirmationMail, scheduleEvent } from "./[user]";
 import { CalendarEvent } from "@lib/calendarClient";
 import EventRejectionMail from "@lib/emails/EventRejectionMail";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const session = await getSession({ req: req });
   if (!session) {
     return res.status(401).json({ message: "Not authenticated" });
