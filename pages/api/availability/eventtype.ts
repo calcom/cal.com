@@ -49,6 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 },
               })),
           },
+      periodType: req.body.periodType,
+      periodDays: req.body.periodDays,
+      periodStartDate: req.body.periodStartDate,
+      periodEndDate: req.body.periodEndDate,
+      periodCountCalendarDays: req.body.periodCountCalendarDays,
     };
 
     if (req.method == "POST") {

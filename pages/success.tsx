@@ -222,7 +222,7 @@ export async function getServerSideProps(context) {
         {
           username: context.query.user,
         },
-        ["username", "name", "bio", "avatar", "eventTypes", "hideBranding", "theme"]
+        ["username", "name", "bio", "avatar", "hideBranding", "theme"]
       )
     : null;
 
