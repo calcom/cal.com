@@ -20,7 +20,7 @@ const validJson = (jsonString) => {
             return o;
         }
     }
-    catch (e) {}
+    catch (e) { console.error(e); }
     return false;
 }
 

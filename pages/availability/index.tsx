@@ -142,7 +142,7 @@ export default function Availability(props) {
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {props.types.map((eventType) =>
-                                            <tr>
+                                            <tr key={eventType.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top">
                                                     {eventType.title}
                                                     {eventType.hidden &&
@@ -192,7 +192,7 @@ export default function Availability(props) {
                   <div className="w-1/2 ml-2 bg-white shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        Something doesn't look right?
+                        Something doesn&apos;t look right?
                       </h3>
                       <div className="mt-2 max-w-xl text-sm text-gray-500">
                         <p>
@@ -289,7 +289,7 @@ export default function Availability(props) {
                                                 <label htmlFor="ishidden" className="font-medium text-gray-700">
                                                     Hide this event type
                                                 </label>
-                                                <p className="text-gray-500">Hide the event type from your page, so it can only be booked through it's URL.</p>
+                                                <p className="text-gray-500">Hide the event type from your page, so it can only be booked through it&apos;s URL.</p>
                                             </div>
                                         </div>
                                     </div>

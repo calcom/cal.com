@@ -94,7 +94,7 @@ export default function Home({ integrations }) {
                 </div>
                 <div className="bg-white shadow overflow-hidden rounded-lg mb-8">
                     {integrations.filter( (ig) => ig.credential ).length !== 0 ? <ul className="divide-y divide-gray-200">
-                        {integrations.filter(ig => ig.credential).map( (ig) => (<li>
+                        {integrations.filter(ig => ig.credential).map( (ig) => (<li key={ig.id}>
                             <Link href={"/integrations/" + ig.credential.id}>
                                 <a className="block hover:bg-gray-50">
                                     <div className="flex items-center px-4 py-4 sm:px-6">
@@ -138,7 +138,7 @@ export default function Home({ integrations }) {
                             </div>
                             <div className="py-5 sm:p-6">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                     You don't have any integrations added.
+                                     You don&apos;t have any integrations added.
                                 </h3>
                                 <div className="mt-2 text-sm text-gray-500">
                                     <p>
@@ -196,7 +196,7 @@ export default function Home({ integrations }) {
                             </div>
                             <div className="my-4">
                                 <ul className="divide-y divide-gray-200">
-                                    {integrations.filter( (integration) => integration.installed ).map( (integration) => (<li className="flex py-4">
+                                    {integrations.filter( (integration) => integration.installed ).map( (integration) => (<li key={integration.type} className="flex py-4">
                                         <div className="w-1/12 mr-4 pt-2">
                                             <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                                         </div>
@@ -279,7 +279,7 @@ export default function Home({ integrations }) {
                             </div>
                             <div className="my-4">
                                 <ul className="divide-y divide-gray-200">
-                                    {selectableCalendars.map( (calendar) => (<li className="flex py-4">
+                                    {selectableCalendars.map( (calendar) => (<li key={calendar.name} className="flex py-4">
                                         <div className="w-1/12 mr-4 pt-2">
                                             <img className="h-8 w-8 mr-2" src={getCalendarIntegrationImage(calendar.integration)} alt={calendar.integration} />
                                         </div>
@@ -329,7 +329,7 @@ const validJson = (jsonString: string) => {
             return o;
         }
     }
-    catch (e) {}
+    catch (e) { console.error(e); }
     return false;
 }
 
