@@ -3,7 +3,7 @@ export default function DonateBanner() {
 
 if (location.hostname.endsWith(".calendso.com")) {
 return null;
-}  
+}
 
   return (
     <>
@@ -21,7 +21,7 @@ return null;
                     Support the ongoing development
                   </span>
                   <span className="hidden md:inline">
-                    You're using the free self-hosted version. Support the
+                    You&apos;re using the free self-hosted version. Support the
                     ongoing development by making a donation.
                   </span>
                 </p>
