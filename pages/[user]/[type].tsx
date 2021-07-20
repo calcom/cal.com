@@ -161,6 +161,7 @@ export default function Type(props): Type {
                 periodEndDate={props.eventType?.periodEndDate}
                 periodDays={props.eventType?.periodDays}
                 periodCountCalendarDays={props.eventType?.periodCountCalendarDays}
+                minimumAdvance={props.eventType.minimumAdvance}
                 weekStart={props.user.weekStart}
                 onDatePicked={changeDate}
                 workingHours={props.workingHours}
@@ -238,6 +239,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
       "periodStartDate",
       "periodEndDate",
       "periodCountCalendarDays",
+      "minimumAdvance",
     ]
   );
 

@@ -55,6 +55,7 @@ type EventTypeInput = {
   slug: string;
   description: string;
   length: number;
+  minimumAdvance: number;
   hidden: boolean;
   locations: unknown;
   eventName: string;
@@ -171,6 +172,7 @@ export default function EventTypePage({
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const lengthRef = useRef<HTMLInputElement>();
+  const minimumAdvanceRef = useRef<HTMLInputElement>();
   const isHiddenRef = useRef<HTMLInputElement>();
   const eventNameRef = useRef<HTMLInputElement>();
   const periodDaysRef = useRef<HTMLInputElement>();
@@ -187,6 +189,7 @@ export default function EventTypePage({
     const enteredSlug: string = slugRef.current.value;
     const enteredDescription: string = descriptionRef.current.value;
     const enteredLength: number = parseInt(lengthRef.current.value);
+    const enteredMinimumAdvance: number = parseInt(minimumAdvanceRef.current.value, 10);
     const enteredIsHidden: boolean = isHiddenRef.current.checked;
     const enteredEventName: string = eventNameRef.current.value;
 
@@ -213,6 +216,7 @@ export default function EventTypePage({
       slug: enteredSlug,
       description: enteredDescription,
       length: enteredLength,
+      minimumAdvance: enteredMinimumAdvance,
       hidden: enteredIsHidden,
       locations,
       eventName: enteredEventName,
@@ -555,6 +559,49 @@ export default function EventTypePage({
                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="A quick video meeting."
                         defaultValue={eventType.description}></textarea>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label htmlFor="length" className="block text-sm font-medium text-gray-700">
+                      Length
+                    </label>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <input
+                        ref={lengthRef}
+                        type="number"
+                        name="length"
+                        id="length"
+                        required
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
+                        placeholder="15"
+                        defaultValue={eventType.length}
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                        minutes
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label htmlFor="minimumAdvance" className="block text-sm font-medium text-gray-700">Minimum advance</label>
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Set the minimum number of days before people can book.
+                      </p>
+                    </div>
+                    <div className="mt-1 relative rounded-md shadow-sm">
+                      <input
+                        ref={minimumAdvanceRef}
+                        type="number"
+                        name="minimumAdvance"
+                        id="minimumAdvance"
+                        required
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
+                        placeholder="1"
+                        defaultValue={eventType.minimumAdvance}
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                        days
+                      </div>
                     </div>
                   </div>
                   <div className="mb-4">
@@ -991,6 +1038,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      minimumAdvance: true,
     },
   });
 

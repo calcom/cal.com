@@ -30,6 +30,7 @@ model EventType {
   periodEndDate DateTime?
   periodDays Int?
   periodCountCalendarDays Boolean?
+  minimumAdvance Int @default(1)
 }
 
 model Credential {

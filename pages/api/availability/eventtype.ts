@@ -14,10 +14,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       title: req.body.title,
       slug: req.body.slug,
       description: req.body.description,
-      length: parseInt(req.body.length),
+      length: parseInt(req.body.length, 10),
       hidden: req.body.hidden,
       locations: req.body.locations,
       eventName: req.body.eventName,
+      minimumAdvance: parseInt(req.body.minimumAdvance, 10),
       customInputs: !req.body.customInputs
         ? undefined
         : {

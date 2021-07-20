@@ -23,6 +23,7 @@ const DatePicker = ({
   periodEndDate,
   periodDays,
   periodCountCalendarDays,
+  minimumAdvance,
 }) => {
   const [calendar, setCalendar] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState<number>();
@@ -87,6 +88,7 @@ const DatePicker = ({
           const periodRangeStartDay = dayjs(periodStartDate).tz(organizerTimeZone).endOf("day");
           const periodRangeEndDay = dayjs(periodEndDate).tz(organizerTimeZone).endOf("day");
           return (
+            date.endOf("day").isBefore(dayjs().add(minimumAdvance, "day").endOf("day")) ||
             date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
             date.endOf("day").isBefore(periodRangeStartDay) ||
             date.endOf("day").isAfter(periodRangeEndDay) ||
@@ -102,6 +104,7 @@ const DatePicker = ({
         case "unlimited":
         default:
           return (
+            date.endOf("day").isBefore(dayjs().add(minimumAdvance, "day").endOf("day")) ||
             date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
             !getSlots({
               inviteeDate: date,
