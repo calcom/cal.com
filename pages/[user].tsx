@@ -81,7 +81,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const teamIdOrSlug = host ? host.split(".")[0] : null;
   log.debug(`{teamIdOrSlug} ${teamIdOrSlug}`);
 
-  if (!team && teamIdOrSlug && host.endsWith("calendso.com")) {
+  if (!team && teamIdOrSlug) {
     return {
       notFound: true,
     };
