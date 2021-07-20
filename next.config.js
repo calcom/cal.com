@@ -1,5 +1,5 @@
-import nextTranspileModules from "next-transpile-modules";
-const withTM = nextTranspileModules(["react-timezone-select"]);
+/* eslint-disable */
+const withTM = require("next-transpile-modules")(["react-timezone-select"]);
 
 // TODO: Revisit this later with getStaticProps in App
 if (process.env.NEXTAUTH_URL) {
