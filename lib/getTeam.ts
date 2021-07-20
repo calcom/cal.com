@@ -1,10 +1,15 @@
 import { Team } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import prisma from "./prisma";
+import logger from "./logger";
+
+const log = logger.getChildLogger({ prefix: ["[lib] getTeam"] });
 
 export const getTeam = async (context: GetServerSidePropsContext): Promise<Team | null> => {
   let teamIdOrSlug = null;
   let team = null;
+
+  log.debug(`{env} ${process.env.NODE_ENV}`);
 
   switch (process.env.NODE_ENV) {
     case "development": {
@@ -20,10 +25,13 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
     case "production":
     default: {
       const host = context.req.headers.host;
+      log.debug(`{host} ${host}`);
       teamIdOrSlug = host.split(".")[0];
       break;
     }
   }
+
+  log.debug(`{teamIdOrSlug} ${teamIdOrSlug}`);
 
   const teamSelectInput = {
     id: true,
@@ -61,6 +69,8 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
       select: teamSelectInput,
     });
   }
+
+  log.debug(`{team}`, { team });
 
   return team;
 };

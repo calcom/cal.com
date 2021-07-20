@@ -7,6 +7,7 @@ import Theme from "@components/Theme";
 import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
 import { getTeam } from "@lib/getTeam";
+import logger from "@lib/logger";
 
 export default function User(props): User {
   const { isReady } = Theme(props.user.theme);
@@ -71,10 +72,12 @@ export default function User(props): User {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  const log = logger.getChildLogger({ prefix: ["/pages/[user]"] });
   const team = await getTeam(context);
   let user;
 
   if (team) {
+    log.debug(`{team found}`, team);
     user = await prisma.user.findFirst({
       where: {
         username: context.query.user.toLowerCase(),
@@ -97,6 +100,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     });
   } else {
+    log.debug(`{team not found}`, team);
     user = await prisma.user.findFirst({
       where: {
         AND: [
