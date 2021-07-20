@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const withTM = require("next-transpile-modules")(["react-timezone-select"]);
 
 // TODO: Revisit this later with getStaticProps in App
