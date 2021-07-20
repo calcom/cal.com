@@ -76,8 +76,21 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const team = await getTeam(context);
   let user;
 
-  const host = context.req?.headers?.host;
+  let host = context.req?.headers?.host;
   log.debug(`{host} ${host}`);
+
+  // Testing here, staging throws off logic
+  // this will be a smarter check
+  // also should be in private fork
+
+  if (host.endsWith(".staging.calendso.com")) {
+    host = host.replace(".staging.calendso.com", "");
+  }
+
+  if (host.endsWith(".calendso.com")) {
+    host = host.replace("calendso.com", "");
+  }
+
   const teamIdOrSlug = host ? host.split(".")[0] : null;
   log.debug(`{teamIdOrSlug} ${teamIdOrSlug}`);
 
