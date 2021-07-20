@@ -155,7 +155,7 @@ export default function Availability(props) {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {props.types.map((eventType) => (
-                      <tr key={eventType}>
+                      <tr key={eventType.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top">
                           {eventType.title}
                           {eventType.hidden && (
@@ -341,7 +341,7 @@ export default function Availability(props) {
                           Hide this event type
                         </label>
                         <p className="text-gray-500">
-                          Hide the event type from your page, so it can only be booked through its URL.
+                          Hide the event type from your page, so it can only be booked through it&apos;s URL.
                         </p>
                       </div>
                     </div>

@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method == "PATCH" || req.method == "POST") {
     const data = {
       title: req.body.title,
-      slug: req.body.slug,
+      slug: req.body.slug.trim(),
       description: req.body.description,
       length: parseInt(req.body.length),
       hidden: req.body.hidden,

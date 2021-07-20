@@ -2,9 +2,6 @@
   @apply font-medium;
 } */
 
-.text {
-}
-
 .text--body {
   @apply text-lg leading-relaxed;
 }
