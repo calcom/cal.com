@@ -7,6 +7,7 @@ const log = logger.getChildLogger({ prefix: ["[lib] getTeam"] });
 
 export const getTeam = async (context: GetServerSidePropsContext): Promise<Team | null> => {
   let teamIdOrSlug = null;
+
   let team = null;
 
   log.debug(`{env} ${process.env.NODE_ENV}`);
@@ -24,7 +25,15 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
 
     case "production":
     default: {
-      const host = context.req?.headers?.host;
+      let host = context.req?.headers?.host;
+      if (host.endsWith("staging.calendso.com")) {
+        host = host.replace("staging.calendso.com", "");
+      }
+
+      if (host.endsWith("calendso.com")) {
+        host = host.replace("calendso.com", "");
+      }
+
       log.debug(`{host} ${host}`);
       teamIdOrSlug = host ? host.split(".")[0] : null;
       break;
