@@ -1,11 +1,12 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import prisma, { whereAndSelect } from "@lib/prisma";
+import prisma from "@lib/prisma";
 import Avatar from "../components/Avatar";
 import Theme from "@components/Theme";
 import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
+import { getTeam } from "@lib/getTeam";
 
 export default function User(props): User {
   const { isReady } = Theme(props.user.theme);
@@ -70,13 +71,52 @@ export default function User(props): User {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await whereAndSelect(
-    prisma.user.findFirst,
-    {
-      username: context.query.user.toLowerCase(),
-    },
-    ["id", "username", "email", "name", "bio", "avatar", "theme"]
-  );
+  const team = await getTeam(context);
+  let user;
+
+  if (team) {
+    user = await prisma.user.findFirst({
+      where: {
+        username: context.query.user.toLowerCase(),
+        teams: {
+          some: {
+            teamId: {
+              equals: team.id,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
+        bio: true,
+        avatar: true,
+        theme: true,
+      },
+    });
+  } else {
+    user = await prisma.user.findFirst({
+      where: {
+        AND: [
+          {
+            username: context.query.user.toLowerCase(),
+          },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
+        bio: true,
+        avatar: true,
+        theme: true,
+      },
+    });
+  }
+
   if (!user) {
     return {
       notFound: true,
