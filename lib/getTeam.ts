@@ -24,9 +24,9 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
 
     case "production":
     default: {
-      const host = context.req.headers.host;
+      const host = context.req?.headers?.host;
       log.debug(`{host} ${host}`);
-      teamIdOrSlug = host.split(".")[0];
+      teamIdOrSlug = host ? host.split(".")[0] : null;
       break;
     }
   }
