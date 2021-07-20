@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../lib/prisma";
 import { getSession } from "next-auth/client";
+import slugify from "slugify";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -11,11 +12,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    // TODO: Prevent creating a team with identical names?
+    const slugifiedName = slugify(req.body.name, {
+      lower: true,
+    });
+
+    const nameCollisions = await prisma.team.count({
+      where: {
+        OR: [{ name: req.body.name }, { slug: slugifiedName }],
+      },
+    });
+
+    if (nameCollisions > 0) {
+      return res.status(400).json({ errorCode: "TeamNameCollision", message: "Team created" });
+    }
 
     const createTeam = await prisma.team.create({
       data: {
         name: req.body.name,
+        slug: slugifiedName,
       },
     });
 
