@@ -83,11 +83,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   // this will be a smarter check
   // also should be in private fork
 
-  if (host.endsWith(".staging.calendso.com")) {
-    host = host.replace(".staging.calendso.com", "");
+  if (host.endsWith("staging.calendso.com")) {
+    host = host.replace("staging.calendso.com", "");
   }
 
-  if (host.endsWith(".calendso.com")) {
+  if (host.endsWith("calendso.com")) {
     host = host.replace("calendso.com", "");
   }
 
