@@ -76,6 +76,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const team = await getTeam(context);
   let user;
 
+  const host = context.req?.headers?.host;
+  log.debug(`{host} ${host}`);
+  const teamIdOrSlug = host ? host.split(".")[0] : null;
+  log.debug(`{teamIdOrSlug} ${teamIdOrSlug}`);
+
+  if (!team && teamIdOrSlug && host.endsWith("calendso.com")) {
+    return {
+      notFound: true,
+    };
+  }
+
   if (team) {
     log.debug(`{team found}`, team);
     user = await prisma.user.findFirst({
