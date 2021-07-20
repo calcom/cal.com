@@ -8,6 +8,8 @@ import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail"
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
+import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
+import { getIntegrationName } from "@lib/emails/helpers";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -224,8 +226,19 @@ const createMeeting = async (credential, calEvent: CalendarEvent): Promise<Event
     url: creationResult.join_url,
   };
 
-  const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData);
-  const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData);
+  const entryPoint: EntryPoint = {
+    entryPointType: getIntegrationName(videoCallData),
+    uri: videoCallData.url,
+    label: "Enter Meeting",
+    pin: videoCallData.password,
+  };
+
+  const additionInformation: AdditionInformation = {
+    entryPoints: [entryPoint],
+  };
+
+  const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
+  const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
   try {
     await organizerMail.sendEmail();
   } catch (e) {
