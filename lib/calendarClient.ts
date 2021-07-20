@@ -509,7 +509,11 @@ const listCalendars = (withCredentials) =>
     results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
+const createEvent = async (
+  credential: Credential,
+  calEvent: CalendarEvent,
+  noMail = false
+): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
@@ -529,29 +533,31 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
   const maybeEntryPoints = creationResult?.entryPoints;
   const maybeConferenceData = creationResult?.conferenceData;
 
-  const organizerMail = new EventOrganizerMail(calEvent, uid, {
-    hangoutLink: maybeHangoutLink,
-    conferenceData: maybeConferenceData,
-    entryPoints: maybeEntryPoints,
-  });
+  if (!noMail) {
+    const organizerMail = new EventOrganizerMail(calEvent, uid, {
+      hangoutLink: maybeHangoutLink,
+      conferenceData: maybeConferenceData,
+      entryPoints: maybeEntryPoints,
+    });
 
-  const attendeeMail = new EventAttendeeMail(calEvent, uid, {
-    hangoutLink: maybeHangoutLink,
-    conferenceData: maybeConferenceData,
-    entryPoints: maybeEntryPoints,
-  });
+    const attendeeMail = new EventAttendeeMail(calEvent, uid, {
+      hangoutLink: maybeHangoutLink,
+      conferenceData: maybeConferenceData,
+      entryPoints: maybeEntryPoints,
+    });
 
-  try {
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
-
-  if (!creationResult || !creationResult.disableConfirmationEmail) {
     try {
-      await attendeeMail.sendEmail();
+      await organizerMail.sendEmail();
     } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
+      console.error("organizerMail.sendEmail failed", e);
+    }
+
+    if (!creationResult || !creationResult.disableConfirmationEmail) {
+      try {
+        await attendeeMail.sendEmail();
+      } catch (e) {
+        console.error("attendeeMail.sendEmail failed", e);
+      }
     }
   }
 
@@ -567,7 +573,8 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
 const updateEvent = async (
   credential: Credential,
   uidToUpdate: string,
-  calEvent: CalendarEvent
+  calEvent: CalendarEvent,
+  noMail: false
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
@@ -584,19 +591,21 @@ const updateEvent = async (
         })
     : null;
 
-  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
-  try {
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
-
-  if (!updateResult || !updateResult.disableConfirmationEmail) {
+  if (!noMail) {
+    const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
+    const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
     try {
-      await attendeeMail.sendEmail();
+      await organizerMail.sendEmail();
     } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
+      console.error("organizerMail.sendEmail failed", e);
+    }
+
+    if (!updateResult || !updateResult.disableConfirmationEmail) {
+      try {
+        await attendeeMail.sendEmail();
+      } catch (e) {
+        console.error("attendeeMail.sendEmail failed", e);
+      }
     }
   }
 

@@ -356,7 +356,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
     } else {
       // Use EventManager to conditionally use all needed integrations.
-      const results: Array<EventResult> = await eventManager.create(evt);
+      results = await eventManager.create(evt);
 
       if (results.length > 0 && results.every((res) => !res.success)) {
         const error = {
