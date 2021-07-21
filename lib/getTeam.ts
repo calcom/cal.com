@@ -7,6 +7,7 @@ const log = logger.getChildLogger({ prefix: ["[lib] getTeam"] });
 
 export const getTeam = async (context: GetServerSidePropsContext): Promise<Team | null> => {
   let teamIdOrSlug = null;
+  let customDomain = null;
 
   let team = null;
 
@@ -26,6 +27,10 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
     case "production":
     default: {
       let host = context.req?.headers?.host;
+      if (!host.endsWith("calendso.com")) {
+        customDomain = host;
+      }
+
       if (host.endsWith("staging.calendso.com")) {
         host = host.replace("staging.calendso.com", "");
       }
@@ -36,6 +41,7 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
 
       log.debug(`{host} ${host}`);
       teamIdOrSlug = host ? host.split(".")[0] : null;
+
       break;
     }
   }
@@ -63,17 +69,31 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
     },
   };
 
-  if (teamIdOrSlug && parseInt(teamIdOrSlug)) {
+  if (teamIdOrSlug && parseInt(teamIdOrSlug) && !customDomain) {
+    log.debug(`{using int idOrSlug}`, { teamIdOrSlug });
     team = await prisma.team.findFirst({
       where: {
         id: parseInt(teamIdOrSlug),
       },
       select: teamSelectInput,
     });
-  } else if (teamIdOrSlug) {
+  }
+
+  if (teamIdOrSlug && !customDomain) {
+    log.debug(`{using string idOrSlug}`, { teamIdOrSlug });
     team = await prisma.team.findFirst({
       where: {
         slug: teamIdOrSlug,
+      },
+      select: teamSelectInput,
+    });
+  }
+
+  if (customDomain) {
+    log.debug(`{using custom domain}`, { customDomain });
+    team = await prisma.team.findFirst({
+      where: {
+        customDomain: customDomain,
       },
       select: teamSelectInput,
     });
