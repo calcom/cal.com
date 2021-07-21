@@ -561,7 +561,8 @@ const updateEvent = async (
 ): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
-  const richEvent: CalendarEvent = parser.asRichEventPlain();
+  const richEvent: CalendarEvent =
+    credential.type === "office365_calendar" ? parser.asRichEvent() : parser.asRichEventPlain();
 
   const updateResult = credential
     ? await calendars([credential])[0].updateEvent(uidToUpdate, richEvent)
