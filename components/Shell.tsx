@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/client";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../lib/telemetry";
 
 export default function Shell(props) {
@@ -12,15 +13,25 @@ export default function Shell(props) {
   const [mobileMenuExpanded, setMobileMenuExpanded] = useState(false);
   const telemetry = useTelemetry();
 
+  const handleResizeEvent = () => setProfileDropdownExpanded(false);
+
+  useEffect(() => {
+    if (profileDropdownExpanded) {
+      window.addEventListener("resize", handleResizeEvent);
+    } else {
+      window.removeEventListener("resize", handleResizeEvent);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResizeEvent);
+    };
+  }, [profileDropdownExpanded]);
+
   useEffect(() => {
     telemetry.withJitsu((jitsu) => {
       return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.pathname));
     });
   }, [telemetry]);
-
-  const toggleProfileDropdown = () => {
-    setProfileDropdownExpanded(!profileDropdownExpanded);
-  };
 
   const toggleMobileMenu = () => {
     setMobileMenuExpanded(!mobileMenuExpanded);
@@ -107,15 +118,12 @@ export default function Shell(props) {
                 <div className="hidden md:block">
                   <div className="ml-4 flex items-center md:ml-6">
                     <div className="ml-3 relative">
-                      <div>
-                        <button
-                          onClick={toggleProfileDropdown}
-                          type="button"
-                          className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
-                          id="user-menu"
-                          aria-expanded="false"
-                          aria-haspopup="true">
-                          <span className="sr-only">Open user menu</span>
+                      <DropdownMenu.Root
+                        open={profileDropdownExpanded}
+                        onOpenChange={setProfileDropdownExpanded}>
+                        <DropdownMenu.Trigger
+                          aria-label="Open user menu"
+                          className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
                           <img
                             className="h-8 w-8 rounded-full"
                             src={
@@ -126,44 +134,32 @@ export default function Shell(props) {
                             }
                             alt=""
                           />
-                        </button>
-                      </div>
-                      {profileDropdownExpanded && (
-                        <div
-                          className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
-                          role="menu"
-                          aria-orientation="vertical"
-                          aria-labelledby="user-menu">
-                          <Link href={"/" + session.user.username}>
-                            <a
-                              target="_blank"
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              role="menuitem">
-                              Your Public Page
-                            </a>
-                          </Link>
-                          <Link href="/settings/profile">
-                            <a
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              role="menuitem">
-                              Your Profile
-                            </a>
-                          </Link>
-                          <Link href="/settings/password">
-                            <a
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              role="menuitem">
-                              Login &amp; Security
-                            </a>
-                          </Link>
-                          <button
-                            onClick={logoutHandler}
-                            className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            role="menuitem">
+                        </DropdownMenu.Trigger>
+                        <DropdownMenu.Content
+                          className="mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                          align="end">
+                          <DropdownMenu.Item
+                            onSelect={() => router.push("/" + session.user.username)}
+                            className="block px-4 py-2 text-sm text-gray-700 cursor-default hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">
+                            Your Public Page
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={() => router.push("/settings/profile")}
+                            className="block px-4 py-2 text-sm text-gray-700 cursor-default hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">
+                            Your Public Profile
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={() => router.push("/settings/password")}
+                            className="block px-4 py-2 text-sm text-gray-700 cursor-default hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">
+                            Login &amp; Security
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={logoutHandler}
+                            className="block px-4 py-2 text-sm text-gray-700 cursor-default hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">
                             Sign out
-                          </button>
-                        </div>
-                      )}
+                          </DropdownMenu.Item>
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Root>
                     </div>
                   </div>
                 </div>
