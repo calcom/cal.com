@@ -6,4 +6,7 @@
 */
 -- AlterTable
 ALTER TABLE "EventType" ADD COLUMN     "coachProgramId" TEXT NOT NULL,
-ALTER COLUMN "timeZone" SET DEFAULT E'Asia/Singapore';
+ALTER COLUMN "timeZone" SET DEFAULT E'Asia/Kuala_Lumpur';
+
+-- AlterTable
+ALTER TABLE "users" ALTER COLUMN "timeZone" SET DEFAULT E'Asia/Kuala_Lumpur';

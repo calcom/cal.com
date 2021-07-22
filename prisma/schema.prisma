@@ -24,7 +24,7 @@ model EventType {
   availability  Availability[]
   eventName     String?
   customInputs  EventTypeCustomInput[]
-  timeZone      String? @default("Asia/Singapore")
+  timeZone      String? @default("Asia/Kuala_Lumpur")
   periodType String? @default("unlimited") // unlimited | rolling | range
   periodStartDate DateTime?
   periodEndDate DateTime?
@@ -50,7 +50,7 @@ model User {
   password      String?
   bio           String?
   avatar        String?
-  timeZone      String @default("Asia/Singapore")
+  timeZone      String @default("Asia/Kuala_Lumpur")
   weekStart     String? @default("Sunday")
   startTime     Int @default(0)
   endTime       Int @default(1440)
