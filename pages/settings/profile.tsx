@@ -12,6 +12,11 @@ import TimezoneSelect from "react-timezone-select";
 import { UsernameInput } from "../../components/ui/UsernameInput";
 import ErrorAlert from "../../components/ui/alerts/Error";
 
+const themeOptions = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
 export default function Settings(props) {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>();
@@ -19,17 +24,12 @@ export default function Settings(props) {
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const avatarRef = useRef<HTMLInputElement>();
   const hideBrandingRef = useRef<HTMLInputElement>();
-  const [selectedTheme, setSelectedTheme] = useState({ value: "" });
+  const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
-  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: "" });
+  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
 
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const themeOptions = [
-    { value: "light", label: "Light" },
-    { value: "dark", label: "Dark" },
-  ];
 
   useEffect(() => {
     setSelectedTheme(
@@ -182,6 +182,7 @@ export default function Settings(props) {
                       id="theme"
                       isDisabled={!selectedTheme}
                       defaultValue={selectedTheme || themeOptions[0]}
+                      value={selectedTheme || themeOptions[0]}
                       onChange={setSelectedTheme}
                       className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
                       options={themeOptions}
