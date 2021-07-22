@@ -17,6 +17,7 @@
     "@heroicons/react": "^1.0.1",
     "@jitsu/sdk-js": "^2.0.1",
     "@prisma/client": "^2.23.0",
+    "@radix-ui/react-collapsible": "^0.0.16",
     "@tailwindcss/forms": "^0.2.1",
     "async": "^3.2.0",
     "bcryptjs": "^2.4.3",
