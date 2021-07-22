@@ -42,7 +42,7 @@ export default function Embed(props) {
                                     id="iframe"
                                     className="h-32 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                     placeholder="Loading..."
-                                    defaultValue={'<iframe src="https://calendso.com/' + session.user.username + '" frameborder="0" allowfullscreen></iframe>'}
+                                    defaultValue={'<iframe src="' + props.BASE_URL + '/' + session.user.username + '" frameborder="0" allowfullscreen></iframe>'}
                                     readOnly
                                 />
                             </div>
@@ -56,7 +56,7 @@ export default function Embed(props) {
                                     id="fullscreen"
                                     className="h-32 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                     placeholder="Loading..."
-                                    defaultValue={'<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body><iframe src="https://calendso.com/' + session.user.username + '" frameborder="0" allowfullscreen></iframe></body></html>'}
+                                    defaultValue={'<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body><iframe src="' + props.BASE_URL + '/' + session.user.username + '" frameborder="0" allowfullscreen></iframe></body></html>'}
                                     readOnly
                                 />
                             </div>
@@ -97,7 +97,9 @@ export async function getServerSideProps(context) {
         }
     });
 
+    const BASE_URL = process.env.BASE_URL;
+
     return {
-      props: {user}, // will be passed to the page component as props
+      props: {user, BASE_URL}, // will be passed to the page component as props
     }
 }
