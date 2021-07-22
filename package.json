@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8081",
     "test": "node node_modules/.bin/jest",
     "build": "next build",
     "start": "next start",

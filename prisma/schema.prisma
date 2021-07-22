@@ -24,12 +24,13 @@ model EventType {
   availability  Availability[]
   eventName     String?
   customInputs  EventTypeCustomInput[]
-  timeZone      String?
+  timeZone      String? @default("Asia/Singapore")
   periodType String? @default("unlimited") // unlimited | rolling | range
   periodStartDate DateTime?
   periodEndDate DateTime?
   periodDays Int?
   periodCountCalendarDays Boolean?
+  coachProgramId String
 }
 
 model Credential {
@@ -49,7 +50,7 @@ model User {
   password      String?
   bio           String?
   avatar        String?
-  timeZone      String @default("Europe/London")
+  timeZone      String @default("Asia/Singapore")
   weekStart     String? @default("Sunday")
   startTime     Int @default(0)
   endTime       Int @default(1440)
@@ -114,6 +115,7 @@ model Attendee {
   timeZone      String
   booking       Booking?    @relation(fields: [bookingId], references: [id])
   bookingId     Int?
+  tenantId      String
 }
 
 model Booking {
