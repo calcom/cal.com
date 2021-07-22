@@ -2,12 +2,27 @@ import Head from "next/head";
 import prisma from "../../lib/prisma";
 import { getSession, useSession } from "next-auth/client";
 import Shell from "../../components/Shell";
+import { useRouter } from "next/router";
 
 export default function Bookings({ bookings }) {
   const [, loading] = useSession();
+  const router = useRouter();
 
   if (loading) {
     return <p className="text-gray-400">Loading...</p>;
+  }
+
+  async function confirmBookingHandler(booking, confirm: boolean) {
+    const res = await fetch("/api/book/confirm", {
+      method: "PATCH",
+      body: JSON.stringify({ id: booking.id, confirmed: confirm }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (res.ok) {
+      await router.replace(router.asPath);
+    }
   }
 
   return (
@@ -45,35 +60,72 @@ export default function Bookings({ bookings }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {bookings.map((booking) => (
-                      <tr key={booking.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{booking.attendees[0].name}</div>
-                          <div className="text-sm text-gray-500">{booking.attendees[0].email}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{booking.title}</div>
-                          <div className="text-sm text-gray-500">{booking.description}</div>
-                        </td>
-                        {/* <td className="px-6 py-4 whitespace-nowrap">
+                    {bookings
+                      .filter((booking) => !booking.confirmed && !booking.rejected)
+                      .concat(bookings.filter((booking) => booking.confirmed || booking.rejected))
+                      .map((booking) => (
+                        <tr key={booking.id}>
+                          <td
+                            className={
+                              "px-6 py-4 whitespace-nowrap" + (booking.rejected ? " line-through" : "")
+                            }>
+                            {!booking.confirmed && !booking.rejected && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-600 text-gray-100">
+                                Unconfirmed
+                              </span>
+                            )}
+                            <div className="text-sm font-medium text-gray-900">
+                              {booking.attendees[0].name}
+                            </div>
+                            <div className="text-sm text-gray-500">{booking.attendees[0].email}</div>
+                          </td>
+                          <td
+                            className={
+                              "px-6 py-4 whitespace-nowrap" + (booking.rejected ? " line-through" : "")
+                            }>
+                            <div className="text-sm text-gray-900">{booking.title}</div>
+                            <div className="text-sm text-gray-500">{booking.description}</div>
+                          </td>
+                          {/* <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
                             {dayjs(booking.startTime).format("D MMMM YYYY HH:mm")}
                           </div>
                         </td> */}
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <a
-                            href={window.location.href + "/../reschedule/" + booking.uid}
-                            className="text-blue-600 hover:text-blue-900">
-                            Reschedule
-                          </a>
-                          <a
-                            href={window.location.href + "/../cancel/" + booking.uid}
-                            className="ml-4 text-blue-600 hover:text-blue-900">
-                            Cancel
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            {!booking.confirmed && !booking.rejected && (
+                              <>
+                                <a
+                                  onClick={() => confirmBookingHandler(booking, true)}
+                                  className="cursor-pointer text-blue-600 hover:text-blue-900">
+                                  Confirm
+                                </a>
+                                <a
+                                  onClick={() => confirmBookingHandler(booking, false)}
+                                  className="cursor-pointer ml-4 text-blue-600 hover:text-blue-900">
+                                  Reject
+                                </a>
+                              </>
+                            )}
+                            {booking.confirmed && !booking.rejected && (
+                              <>
+                                <a
+                                  href={window.location.href + "/../reschedule/" + booking.uid}
+                                  className="text-blue-600 hover:text-blue-900">
+                                  Reschedule
+                                </a>
+                                <a
+                                  href={window.location.href + "/../cancel/" + booking.uid}
+                                  className="ml-4 text-blue-600 hover:text-blue-900">
+                                  Cancel
+                                </a>
+                              </>
+                            )}
+                            {!booking.confirmed && booking.rejected && (
+                              <div className="text-sm text-gray-500">Rejected</div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -110,6 +162,9 @@ export async function getServerSideProps(context) {
       title: true,
       description: true,
       attendees: true,
+      confirmed: true,
+      rejected: true,
+      id: true,
     },
     orderBy: {
       startTime: "desc",

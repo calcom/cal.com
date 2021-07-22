@@ -15,6 +15,8 @@ import logger from "../../../lib/logger";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import dayjsBusinessDays from "dayjs-business-days";
+import { Exception } from "handlebars";
+import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
@@ -102,6 +104,164 @@ const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromI
 
   return null;
 };
+
+async function rescheduleEvent(
+  rescheduleUid: string | string[],
+  results: unknown[],
+  calendarCredentials: unknown[],
+  evt: CalendarEvent,
+  videoCredentials: unknown[],
+  referencesToCreate: { type: string; uid: string }[]
+): Promise<{
+  referencesToCreate: { type: string; uid: string }[];
+  results: unknown[];
+  error: { errorCode: string; message: string } | null;
+}> {
+  // Reschedule event
+  const booking = await prisma.booking.findFirst({
+    where: {
+      uid: rescheduleUid,
+    },
+    select: {
+      id: true,
+      references: {
+        select: {
+          id: true,
+          type: true,
+          uid: true,
+        },
+      },
+    },
+  });
+
+  // Use all integrations
+  results = results.concat(
+    await async.mapLimit(calendarCredentials, 5, async (credential) => {
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      return updateEvent(credential, bookingRefUid, evt)
+        .then((response) => ({ type: credential.type, success: true, response }))
+        .catch((e) => {
+          log.error("updateEvent failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
+
+  results = results.concat(
+    await async.mapLimit(videoCredentials, 5, async (credential) => {
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      return updateMeeting(credential, bookingRefUid, evt)
+        .then((response) => ({ type: credential.type, success: true, response }))
+        .catch((e) => {
+          log.error("updateMeeting failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
+
+  if (results.length > 0 && results.every((res) => !res.success)) {
+    const error = {
+      errorCode: "BookingReschedulingMeetingFailed",
+      message: "Booking Rescheduling failed",
+    };
+
+    return { referencesToCreate: [], results: [], error: error };
+  }
+
+  // Clone elements
+  referencesToCreate = [...booking.references];
+
+  // Now we can delete the old booking and its references.
+  const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
+    where: {
+      bookingId: booking.id,
+    },
+  });
+  const attendeeDeletes = prisma.attendee.deleteMany({
+    where: {
+      bookingId: booking.id,
+    },
+  });
+  const bookingDeletes = prisma.booking.delete({
+    where: {
+      uid: rescheduleUid,
+    },
+  });
+
+  await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+  return { error: undefined, results, referencesToCreate };
+}
+
+export async function scheduleEvent(
+  results: unknown[],
+  calendarCredentials: unknown[],
+  evt: CalendarEvent,
+  videoCredentials: unknown[],
+  referencesToCreate: { type: string; uid: string }[]
+): Promise<{
+  referencesToCreate: { type: string; uid: string }[];
+  results: unknown[];
+  error: { errorCode: string; message: string } | null;
+}> {
+  // Schedule event
+  results = results.concat(
+    await async.mapLimit(calendarCredentials, 5, async (credential) => {
+      return createEvent(credential, evt)
+        .then((response) => ({ type: credential.type, success: true, response }))
+        .catch((e) => {
+          log.error("createEvent failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
+
+  results = results.concat(
+    await async.mapLimit(videoCredentials, 5, async (credential) => {
+      return createMeeting(credential, evt)
+        .then((response) => ({ type: credential.type, success: true, response }))
+        .catch((e) => {
+          log.error("createMeeting failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
+
+  if (results.length > 0 && results.every((res) => !res.success)) {
+    const error = {
+      errorCode: "BookingCreatingMeetingFailed",
+      message: "Booking failed",
+    };
+
+    return { referencesToCreate: [], results: [], error: error };
+  }
+
+  referencesToCreate = results.map((result) => {
+    return {
+      type: result.type,
+      uid: result.response.createdEvent.id.toString(),
+    };
+  });
+  return { error: undefined, results, referencesToCreate };
+}
+
+export async function handleLegacyConfirmationMail(
+  results: unknown[],
+  selectedEventType: { requiresConfirmation: boolean },
+  evt: CalendarEvent,
+  hashUID: string
+): Promise<{ error: Exception; message: string | null }> {
+  if (results.length === 0 && !selectedEventType.requiresConfirmation) {
+    // Legacy as well, as soon as we have a separate email integration class. Just used
+    // to send an email even if there is no integration at all.
+    try {
+      const mail = new EventAttendeeMail(evt, hashUID);
+      await mail.sendEmail();
+    } catch (e) {
+      return { error: e, message: "Booking failed" };
+    }
+  }
+  return null;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { user } = req.query;
@@ -205,6 +365,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         periodStartDate: true,
         periodEndDate: true,
         periodCountCalendarDays: true,
+        requiresConfirmation: true,
       },
     });
 
@@ -298,119 +459,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let referencesToCreate = [];
 
     if (rescheduleUid) {
-      // Reschedule event
-      const booking = await prisma.booking.findFirst({
-        where: {
-          uid: rescheduleUid,
-        },
-        select: {
-          id: true,
-          references: {
-            select: {
-              id: true,
-              type: true,
-              uid: true,
-            },
-          },
-        },
-      });
-
-      // Use all integrations
-      results = results.concat(
-        await async.mapLimit(calendarCredentials, 5, async (credential) => {
-          const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-          return updateEvent(credential, bookingRefUid, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("updateEvent failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
+      const __ret = await rescheduleEvent(
+        rescheduleUid,
+        results,
+        calendarCredentials,
+        evt,
+        videoCredentials,
+        referencesToCreate
       );
-
-      results = results.concat(
-        await async.mapLimit(videoCredentials, 5, async (credential) => {
-          const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-          return updateMeeting(credential, bookingRefUid, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("updateMeeting failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
-
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingReschedulingMeetingFailed",
-          message: "Booking Rescheduling failed",
-        };
-
-        log.error(`Booking ${user} failed`, error, results);
-        return res.status(500).json(error);
+      if (__ret.error) {
+        log.error(`Booking ${user} failed`, __ret.error, results);
+        return res.status(500).json(__ret.error);
       }
-
-      // Clone elements
-      referencesToCreate = [...booking.references];
-
-      // Now we can delete the old booking and its references.
-      const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-      const attendeeDeletes = prisma.attendee.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-      const bookingDeletes = prisma.booking.delete({
-        where: {
-          uid: rescheduleUid,
-        },
-      });
-
-      await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
-    } else {
-      // Schedule event
-      results = results.concat(
-        await async.mapLimit(calendarCredentials, 5, async (credential) => {
-          return createEvent(credential, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("createEvent failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
+      results = __ret.results;
+      referencesToCreate = __ret.referencesToCreate;
+    } else if (!selectedEventType.requiresConfirmation) {
+      const __ret = await scheduleEvent(
+        results,
+        calendarCredentials,
+        evt,
+        videoCredentials,
+        referencesToCreate
       );
-
-      results = results.concat(
-        await async.mapLimit(videoCredentials, 5, async (credential) => {
-          return createMeeting(credential, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("createMeeting failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
-
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingCreatingMeetingFailed",
-          message: "Booking failed",
-        };
-
-        log.error(`Booking ${user} failed`, error, results);
-        return res.status(500).json(error);
+      if (__ret.error) {
+        log.error(`Booking ${user} failed`, __ret.error, results);
+        return res.status(500).json(__ret.error);
       }
-
-      referencesToCreate = results.map((result) => {
-        return {
-          type: result.type,
-          uid: result.response.createdEvent.id.toString(),
-        };
-      });
+      results = __ret.results;
+      referencesToCreate = __ret.referencesToCreate;
     }
 
     const hashUID =
@@ -419,18 +495,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
-    if (results.length === 0) {
-      // Legacy as well, as soon as we have a separate email integration class. Just used
-      // to send an email even if there is no integration at all.
-      try {
-        const mail = new EventAttendeeMail(evt, hashUID);
-        await mail.sendEmail();
-      } catch (e) {
-        log.error("Sending legacy event mail failed", e);
-        log.error(`Booking ${user} failed`);
-        res.status(500).json({ message: "Booking failed" });
-        return;
-      }
+    const legacyMailError = await handleLegacyConfirmationMail(results, selectedEventType, evt, hashUID);
+    if (legacyMailError) {
+      log.error("Sending legacy event mail failed", legacyMailError.error);
+      log.error(`Booking ${user} failed`);
+      res.status(500).json({ message: legacyMailError.message });
+      return;
     }
 
     try {
@@ -449,12 +519,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           attendees: {
             create: evt.attendees,
           },
+          confirmed: !selectedEventType.requiresConfirmation,
         },
       });
     } catch (e) {
       log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
       res.status(500).json({ message: "Booking already exists" });
       return;
+    }
+
+    if (selectedEventType.requiresConfirmation) {
+      await new EventOrganizerRequestMail(evt, hashUID).sendEmail();
     }
 
     log.debug(`Booking ${user} completed`);
