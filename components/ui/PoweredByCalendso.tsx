@@ -2,8 +2,7 @@ import Link from "next/link";
 
 const PoweredByCalendso = () => (
   <div className="text-xs text-center sm:text-right pt-1">
-    <Link
-      href={`https://calendso.com?utm_source=${process.env.BASE_URL}&utm_medium=powered-by-button&utm_campaign=embed`}>
+    <Link href={`https://calendso.com?utm_source=embed&utm_medium=powered-by-button`}>
       <a target="_blank" className="dark:text-white text-gray-500 opacity-50 hover:opacity-100">
         powered by{" "}
         <img
