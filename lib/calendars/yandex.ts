@@ -77,7 +77,10 @@ export class YandexCalendar implements CalendarApiAdapter {
       .replace(/<p.+?>|<\/p>/g, "");
   }
 
-  async getEvents(calId: string, start: string, end: string): Promise<string, unknown> {
+  async getEvents(calId: string, dateFrom: string, dateTo: string): Promise<string, unknown> {
+    const start = dateFrom.toString().replace(/-|:/g, "");
+    const end = dateTo.toString().replace(/-|:/g, "");
+
     const body = `<?xml version="1.0" encoding="utf-8" ?>
       <C:calendar-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
         <D:prop>
@@ -126,7 +129,7 @@ export class YandexCalendar implements CalendarApiAdapter {
       let endDate = new Date(event.endDate.toUnixTime() * 1000);
 
       if (event.isRecurring()) {
-        const foundEvent = CalDavClient.findNextRecurrentEvent(event, start, end);
+        const foundEvent = CalDavClient.findNextRecurrentEvent(event, dateFrom, dateTo);
 
         if (foundEvent) {
           startDate = foundEvent.startDate;
@@ -171,11 +174,8 @@ export class YandexCalendar implements CalendarApiAdapter {
 
     const events = [];
 
-    const start = dateFrom.toString().replace(/-|:/g, "");
-    const end = dateTo.toString().replace(/-|:/g, "");
-
     for (const calId of selectedCalendarIds) {
-      const calEvents = await this.getEvents(calId, start, end);
+      const calEvents = await this.getEvents(calId, dateFrom, dateTo);
 
       for (const ev of calEvents) {
         events.push({ start: ev.startDate, end: ev.endDate });
