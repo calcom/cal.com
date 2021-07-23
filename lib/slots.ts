@@ -126,8 +126,12 @@ const getSlots = ({
     inviteeDate = inviteeDate.startOf("day");
   }
 
-  const startTime = startDate.isAfter(inviteeDate) ? inviteeDate.hour() * 60 + inviteeDate.minute() : 0;
-
+  const startTime = startDate.isAfter(inviteeDate)
+    ? // block out everything when inviteeDate is less than startDate
+      startDate.date() > inviteeDate.date()
+      ? 1440
+      : startDate.hour() * 60 + startDate.minute()
+    : 0;
   const inviteeBounds = inviteeBoundary(startTime, inviteeDate.utcOffset(), frequency);
 
   return getOverlaps(
