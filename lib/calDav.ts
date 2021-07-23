@@ -59,7 +59,7 @@ export class CalDavClient {
     dateFrom: string,
     dateTo: string
   ): NextRecurrentEvent {
-    const start = ICAL.Time.fromJSDate(new Date(dateFrom));
+    const start = ICAL.Time.fromJSDate(new Date(dayjs(dateFrom).add(1, "day")));
     const end = ICAL.Time.fromJSDate(new Date(dateTo));
 
     const iter = event.iterator();
@@ -67,7 +67,7 @@ export class CalDavClient {
     let i = 0;
     let matched = null;
 
-    while (i <= RECURRENT_EVENTS_SEARCH_MAX_ITERATIONS) {
+    while (i < RECURRENT_EVENTS_SEARCH_MAX_ITERATIONS) {
       const occurrence = event.getOccurrenceDetails(iter.next());
 
       if (occurrence.startDate.compare(start) > -1 && occurrence.endDate.compare(end) < 1) {
