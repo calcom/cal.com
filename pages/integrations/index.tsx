@@ -64,6 +64,7 @@ export default function Home({ integrations }) {
         switch (integrationType) {
             case "google_calendar": return "integrations/google-calendar.png";
             case "office365_calendar": return "integrations/office-365.png";
+            case "yandex_calendar": return "integrations/zoom.png";
             default: return "";
         }
     }
@@ -371,6 +372,13 @@ export async function getServerSideProps(context) {
         credential: credentials.find( (integration) => integration.type === "office365_calendar" ) || null,
         title: "Office 365 / Outlook.com Calendar",
         imageSrc: "integrations/office-365.png",
+        description: "For personal and business calendars",
+    }, {
+        installed: !!(process.env.YANDEX_OAUTH_ID && process.env.YANDEX_OAUTH_SECRET),
+        type: "yandex_calendar",
+        credential: credentials.find( (integration) => integration.type === "yandex_calendar" ) || null,
+        title: "Yandex Calendar",
+        imageSrc: "integrations/yandex-calendar.png",
         description: "For personal and business calendars",
     }, {
         installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),

@@ -25,6 +25,7 @@
     "dayjs-business-days": "^1.0.4",
     "googleapis": "^67.1.1",
     "handlebars": "^4.7.7",
+    "ical.js": "^1.4.0",
     "ics": "^2.27.0",
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.2",
@@ -41,7 +42,8 @@
     "react-timezone-select": "^1.0.2",
     "short-uuid": "^4.2.0",
     "tslog": "^3.2.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",

@@ -208,6 +208,16 @@ Contributions are what make the open source community such an amazing place to b
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attriubte
 
+## Obtaining Yandex CalDav App password
+1. Open [Yandex Passport ID](https://passport.yandex.by/profile) and sign in with your Yandex account.
+2. Scroll down to "Passwords and authorization" section.
+3. Select "App Passwords".
+4. Click "Create a new password".
+5. Select "Calendar CalDav" app type.
+6. Name your app.
+7. Click "Create".
+8. Now copy the Password and your Email Address to your .env file into the `YANDEX_CALDAV_PASSWORD` and `YANDEX_CALDAV_USER` fields.
+
 ## Obtaining Zoom Client ID and Secret
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
 2. On the upper right, click "Develop" => "Build App".

@@ -5,6 +5,7 @@ import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail"
 import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
+import { YandexCalendar } from "./calendars";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -487,6 +488,8 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
           return GoogleCalendar(cred);
         case "office365_calendar":
           return MicrosoftOffice365Calendar(cred);
+        case "yandex_calendar":
+          return new YandexCalendar(cred);
         default:
           return; // unknown credential, could be legacy? In any case, ignore
       }
