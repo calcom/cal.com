@@ -1,12 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import withMiddleware from "../../../lib/amili/middleware";
+import runMiddleware, { checkAmiliAuth } from "../../../lib/amili/middleware";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { method } = req;
+  const { method, url } = req;
 
-  console.log({ method });
-
+  console.log({ method, path: url });
+  await runMiddleware(req, res, checkAmiliAuth);
   res.status(201).json({ message: "Test middleware" });
 };
 
-export default withMiddleware(handler);
+export default handler;
