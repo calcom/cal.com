@@ -33,11 +33,23 @@ export default class EventManager {
   calendarCredentials: Array<Credential>;
   videoCredentials: Array<Credential>;
 
+  /**
+   * Takes an array of credentials and initializes a new instance of the EventManager.
+   *
+   * @param credentials
+   */
   constructor(credentials: Array<Credential>) {
     this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
   }
 
+  /**
+   * Takes a CalendarEvent and creates all necessary integration entries for it.
+   * When a video integration is chosen as the event's location, a video integration
+   * event will be scheduled for it as well.
+   *
+   * @param event
+   */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const isVideo = EventManager.isIntegration(event.location);
 
@@ -62,6 +74,13 @@ export default class EventManager {
     };
   }
 
+  /**
+   * Takes a calendarEvent and a rescheduleUid and updates the event that has the
+   * given uid using the data delivered in the given CalendarEvent.
+   *
+   * @param event
+   * @param rescheduleUid
+   */
   public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
     // Get details of existing booking.
     const booking = await prisma.booking.findFirst({
@@ -132,6 +151,12 @@ export default class EventManager {
     });
   }
 
+  /**
+   * Checks which video integration is needed for the event's location and returns
+   * credentials for that - if existing.
+   * @param event
+   * @private
+   */
   private getVideoCredential(event: CalendarEvent): Credential | undefined {
     const integrationName = event.location.replace("integrations:", "");
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
