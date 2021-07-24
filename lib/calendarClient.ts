@@ -513,8 +513,7 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
    * We need HTML there. Google Calendar understands newlines and Apple Calendar cannot show HTML, so no HTML should
    * be used for Google and Apple Calendar.
    */
-  const richEvent: CalendarEvent =
-    credential.type === "office365_calendar" ? parser.asRichEvent() : parser.asRichEventPlain();
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(richEvent) : null;
 
@@ -561,8 +560,7 @@ const updateEvent = async (
 ): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
-  const richEvent: CalendarEvent =
-    credential.type === "office365_calendar" ? parser.asRichEvent() : parser.asRichEventPlain();
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   const updateResult = credential
     ? await calendars([credential])[0].updateEvent(uidToUpdate, richEvent)
