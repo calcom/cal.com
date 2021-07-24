@@ -2,6 +2,7 @@ import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import { Credential } from "@prisma/client";
 import async from "async";
 import { createMeeting, updateMeeting } from "@lib/videoClient";
+import prisma from "@lib/prisma";
 
 export interface EventResult {
   type: string;
@@ -12,13 +13,18 @@ export interface EventResult {
   originalEvent: CalendarEvent;
 }
 
+export interface CreateUpdateResult {
+  results: Array<EventResult>;
+  referencesToCreate: Array<PartialReference>;
+}
+
 export interface PartialBooking {
   id: number;
   references: Array<PartialReference>;
 }
 
 export interface PartialReference {
-  id: number;
+  id?: number;
   type: string;
   uid: string;
 }
@@ -32,7 +38,7 @@ export default class EventManager {
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
   }
 
-  public async create(event: CalendarEvent): Promise<Array<EventResult>> {
+  public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const isVideo = EventManager.isIntegration(event.location);
 
     // First, create all calendar events. If this is a video event, don't send a mail right here.
@@ -43,10 +49,37 @@ export default class EventManager {
       results.push(await this.createVideoEvent(event));
     }
 
-    return results;
+    const referencesToCreate: Array<PartialReference> = results.map((result) => {
+      return {
+        type: result.type,
+        uid: result.createdEvent.id.toString(),
+      };
+    });
+
+    return {
+      results,
+      referencesToCreate,
+    };
   }
 
-  public async update(event: CalendarEvent, booking: PartialBooking): Promise<Array<EventResult>> {
+  public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
+    // Get details of existing booking.
+    const booking = await prisma.booking.findFirst({
+      where: {
+        uid: rescheduleUid,
+      },
+      select: {
+        id: true,
+        references: {
+          select: {
+            id: true,
+            type: true,
+            uid: true,
+          },
+        },
+      },
+    });
+
     const isVideo = EventManager.isIntegration(event.location);
 
     // First, update all calendar events. If this is a video event, don't send a mail right here.
@@ -57,7 +90,30 @@ export default class EventManager {
       results.push(await this.updateVideoEvent(event, booking));
     }
 
-    return results;
+    // Now we can delete the old booking and its references.
+    const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
+      where: {
+        bookingId: booking.id,
+      },
+    });
+    const attendeeDeletes = prisma.attendee.deleteMany({
+      where: {
+        bookingId: booking.id,
+      },
+    });
+    const bookingDeletes = prisma.booking.delete({
+      where: {
+        uid: rescheduleUid,
+      },
+    });
+
+    // Wait for all deletions to be applied.
+    await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+
+    return {
+      results,
+      referencesToCreate: [...booking.references],
+    };
   }
 
   /**

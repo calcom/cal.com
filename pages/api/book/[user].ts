@@ -10,12 +10,14 @@ import { LocationType } from "@lib/location";
 import merge from "lodash.merge";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
-import EventManager, { EventResult } from "@lib/events/EventManager";
+import EventManager, { CreateUpdateResult, EventResult } from "@lib/events/EventManager";
 import { User } from "@prisma/client";
 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import dayjsBusinessDays from "dayjs-business-days";
+import { Exception } from "handlebars";
+import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
@@ -116,6 +118,25 @@ const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromI
   return null;
 };
 
+export async function handleLegacyConfirmationMail(
+  results: Array<EventResult>,
+  selectedEventType: { requiresConfirmation: boolean },
+  evt: CalendarEvent,
+  hashUID: string
+): Promise<{ error: Exception; message: string | null }> {
+  if (results.length === 0 && !selectedEventType.requiresConfirmation) {
+    // Legacy as well, as soon as we have a separate email integration class. Just used
+    // to send an email even if there is no integration at all.
+    try {
+      const mail = new EventAttendeeMail(evt, hashUID);
+      await mail.sendEmail();
+    } catch (e) {
+      return { error: e, message: "Booking failed" };
+    }
+  }
+  return null;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const { user } = req.query;
   log.debug(`Booking ${user} started`);
@@ -210,6 +231,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         periodStartDate: true,
         periodEndDate: true,
         periodCountCalendarDays: true,
+        requiresConfirmation: true,
       },
     });
 
@@ -303,25 +325,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let referencesToCreate = [];
 
     if (rescheduleUid) {
-      // Reschedule event
-      const booking = await prisma.booking.findFirst({
-        where: {
-          uid: rescheduleUid,
-        },
-        select: {
-          id: true,
-          references: {
-            select: {
-              id: true,
-              type: true,
-              uid: true,
-            },
-          },
-        },
-      });
-
       // Use EventManager to conditionally use all needed integrations.
-      results = await eventManager.update(evt, booking);
+      const updateResults: CreateUpdateResult = await eventManager.update(evt, rescheduleUid);
 
       if (results.length > 0 && results.every((res) => !res.success)) {
         const error = {
@@ -333,30 +338,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json(error);
       }
 
-      // Clone elements
-      referencesToCreate = [...booking.references];
-
-      // Now we can delete the old booking and its references.
-      const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-      const attendeeDeletes = prisma.attendee.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-      const bookingDeletes = prisma.booking.delete({
-        where: {
-          uid: rescheduleUid,
-        },
-      });
-
-      await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
-    } else {
+      // Forward results
+      results = updateResults.results;
+      referencesToCreate = updateResults.referencesToCreate;
+    } else if (!selectedEventType.requiresConfirmation) {
       // Use EventManager to conditionally use all needed integrations.
-      results = await eventManager.create(evt);
+      const createResults: CreateUpdateResult = await eventManager.create(evt);
 
       if (results.length > 0 && results.every((res) => !res.success)) {
         const error = {
@@ -368,30 +355,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json(error);
       }
 
-      referencesToCreate = results.map((result) => {
-        return {
-          type: result.type,
-          uid: result.createdEvent.id.toString(),
-        };
-      });
+      // Forward results
+      results = createResults.results;
+      referencesToCreate = createResults.referencesToCreate;
     }
 
     const hashUID =
       results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
-    if (results.length === 0) {
-      // Legacy as well, as soon as we have a separate email integration class. Just used
-      // to send an email even if there is no integration at all.
-      try {
-        const mail = new EventAttendeeMail(evt, hashUID);
-        await mail.sendEmail();
-      } catch (e) {
-        log.error("Sending legacy event mail failed", e);
-        log.error(`Booking ${user} failed`);
-        res.status(500).json({ message: "Booking failed" });
-        return;
-      }
+    const legacyMailError = await handleLegacyConfirmationMail(results, selectedEventType, evt, hashUID);
+    if (legacyMailError) {
+      log.error("Sending legacy event mail failed", legacyMailError.error);
+      log.error(`Booking ${user} failed`);
+      res.status(500).json({ message: legacyMailError.message });
+      return;
     }
 
     try {
@@ -410,12 +388,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           attendees: {
             create: evt.attendees,
           },
+          confirmed: !selectedEventType.requiresConfirmation,
         },
       });
     } catch (e) {
       log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
       res.status(500).json({ message: "Booking already exists" });
       return;
+    }
+
+    if (selectedEventType.requiresConfirmation) {
+      await new EventOrganizerRequestMail(evt, hashUID).sendEmail();
     }
 
     log.debug(`Booking ${user} completed`);

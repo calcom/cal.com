@@ -574,7 +574,7 @@ const updateEvent = async (
   credential: Credential,
   uidToUpdate: string,
   calEvent: CalendarEvent,
-  noMail: false
+  noMail = false
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
@@ -626,12 +626,4 @@ const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
   return Promise.resolve({});
 };
 
-export {
-  getBusyCalendarTimes,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  CalendarEvent,
-  listCalendars,
-  IntegrationCalendar,
-};
+export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, listCalendars };

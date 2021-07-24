@@ -46,6 +46,31 @@ export default class EventOrganizerMail extends EventMail {
     return icsEvent.value;
   }
 
+  protected getBodyHeader(): string {
+    return "A new event has been scheduled.";
+  }
+
+  protected getBodyText(): string {
+    return "You and any other attendees have been emailed with this information.";
+  }
+
+  protected getImage(): string {
+    return `<svg
+      xmlns="http://www.w3.org/2000/svg"
+      style="height: 60px; width: 60px; color: #31c48d"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>`;
+  }
+
   /**
    * Returns the email text as HTML representation.
    *
@@ -67,22 +92,9 @@ export default class EventOrganizerMail extends EventMail {
       margin-top: 40px;
     "
   >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      style="height: 60px; width: 60px; color: #31c48d"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-    <h1 style="font-weight: 500; color: #161e2e;">A new event has been scheduled.</h1>
-    <p style="color: #4b5563; margin-bottom: 30px;">You and any other attendees have been emailed with this information.</p>
+    ${this.getImage()}
+    <h1 style="font-weight: 500; color: #161e2e;">${this.getBodyHeader()}</h1>
+    <p style="color: #4b5563; margin-bottom: 30px;">${this.getBodyText()}</p>
     <hr />
     <table style="border-spacing: 20px; color: #161e2e; margin-bottom: 10px;">
       <colgroup>
@@ -165,8 +177,6 @@ export default class EventOrganizerMail extends EventMail {
    * @protected
    */
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
-
     return {
       icalEvent: {
         filename: "event.ics",
@@ -174,12 +184,17 @@ export default class EventOrganizerMail extends EventMail {
       },
       from: `Calendso <${this.getMailerOptions().from}>`,
       to: this.calEvent.organizer.email,
-      subject: `New event: ${this.calEvent.attendees[0].name} - ${organizerStart.format("LT dddd, LL")} - ${
-        this.calEvent.type
-      }`,
+      subject: this.getSubject(),
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
+  }
+
+  protected getSubject(): string {
+    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    return `New event: ${this.calEvent.attendees[0].name} - ${organizerStart.format("LT dddd, LL")} - ${
+      this.calEvent.type
+    }`;
   }
 
   protected printNodeMailerError(error: string): void {
