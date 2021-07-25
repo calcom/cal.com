@@ -235,7 +235,7 @@ export default class EventManager {
    * @private
    */
   private static isIntegration(location: string): boolean {
-    return location.includes("integrations:");
+    return location?.includes("integrations:");
   }
 
   /**
