@@ -64,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: booking.endTime.toISOString(),
       organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
       attendees: booking.attendees,
+      location: booking.location,
     };
 
     if (req.body.confirmed) {
