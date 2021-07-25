@@ -42,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         endTime: true,
         confirmed: true,
         attendees: true,
+        location: true,
         userId: true,
         id: true,
         uid: true,

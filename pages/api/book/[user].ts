@@ -336,6 +336,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           attendees: {
             create: evt.attendees,
           },
+          location: evt.location, // This is the raw location that can be processed by the EventManager.
           confirmed: !selectedEventType.requiresConfirmation,
         },
       });

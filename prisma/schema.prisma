@@ -132,6 +132,7 @@ model Booking {
   endTime       DateTime
 
   attendees     Attendee[]
+  location      String?
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime?
