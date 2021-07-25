@@ -512,10 +512,11 @@ const listCalendars = (withCredentials) =>
 const createEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  noMail = false
+  noMail = false,
+  maybeUid: string = null
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
-  const uid: string = parser.getUid();
+  const uid: string = maybeUid ?? parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
 
   let success = true;

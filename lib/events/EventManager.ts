@@ -54,19 +54,21 @@ export default class EventManager {
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
    * event will be scheduled for it as well.
+   * An optional uid can be set to override the auto-generated uid.
    *
    * @param event
+   * @param maybeUid
    */
-  public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+  public async create(event: CalendarEvent, maybeUid: string = null): Promise<CreateUpdateResult> {
     event = EventManager.processLocation(event);
     const isVideo = EventManager.isIntegration(event.location);
 
     // First, create all calendar events. If this is a video event, don't send a mail right here.
-    const results: Array<EventResult> = await this.createAllCalendarEvents(event, isVideo);
+    const results: Array<EventResult> = await this.createAllCalendarEvents(event, isVideo, maybeUid);
 
     // If and only if event type is a video meeting, create a video meeting as well.
     if (isVideo) {
-      results.push(await this.createVideoEvent(event));
+      results.push(await this.createVideoEvent(event, maybeUid));
     }
 
     const referencesToCreate: Array<PartialReference> = results.map((result) => {
@@ -151,13 +153,20 @@ export default class EventManager {
    * a video meeting because then the mail containing the video credentials will be
    * more important than the mails created for these bare calendar events.
    *
+   * When the optional uid is set, it will be used instead of the auto generated uid.
+   *
    * @param event
    * @param noMail
+   * @param maybeUid
    * @private
    */
-  private createAllCalendarEvents(event: CalendarEvent, noMail: boolean): Promise<Array<EventResult>> {
+  private createAllCalendarEvents(
+    event: CalendarEvent,
+    noMail: boolean,
+    maybeUid: string = null
+  ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      return createEvent(credential, event, noMail);
+      return createEvent(credential, event, noMail, maybeUid);
     });
   }
 
@@ -175,14 +184,17 @@ export default class EventManager {
   /**
    * Creates a video event entry for the selected integration location.
    *
+   * When optional uid is set, it will be used instead of the auto generated uid.
+   *
    * @param event
+   * @param maybeUid
    * @private
    */
-  private createVideoEvent(event: CalendarEvent): Promise<EventResult> {
+  private createVideoEvent(event: CalendarEvent, maybeUid: string = null): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
-      return createMeeting(credential, event);
+      return createMeeting(credential, event, maybeUid);
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }

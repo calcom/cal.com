@@ -201,8 +201,12 @@ const getBusyVideoTimes = (withCredentials) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-const createMeeting = async (credential, calEvent: CalendarEvent): Promise<EventResult> => {
-  const uid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+const createMeeting = async (
+  credential,
+  calEvent: CalendarEvent,
+  maybeUid: string = null
+): Promise<EventResult> => {
+  const uid: string = maybeUid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
   if (!credential) {
     throw new Error(
