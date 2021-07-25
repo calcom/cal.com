@@ -39,7 +39,7 @@ export default abstract class EventMail {
   constructor(calEvent: CalendarEvent, uid: string, additionInformation: AdditionInformation = null) {
     this.calEvent = calEvent;
     this.uid = uid;
-    this.parser = new CalEventParser(calEvent);
+    this.parser = new CalEventParser(calEvent, uid);
     this.additionInformation = additionInformation;
   }
 

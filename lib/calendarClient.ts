@@ -515,8 +515,8 @@ const createEvent = async (
   noMail = false,
   maybeUid: string = null
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
-  const uid: string = maybeUid ?? parser.getUid();
+  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
+  const uid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEvent();
 
   let success = true;

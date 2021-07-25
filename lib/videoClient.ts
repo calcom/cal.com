@@ -10,6 +10,7 @@ import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
 import { getIntegrationName } from "@lib/emails/helpers";
+import CalEventParser from "@lib/CalEventParser";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -206,7 +207,8 @@ const createMeeting = async (
   calEvent: CalendarEvent,
   maybeUid: string = null
 ): Promise<EventResult> => {
-  const uid: string = maybeUid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
+  const uid: string = parser.getUid();
 
   if (!credential) {
     throw new Error(
