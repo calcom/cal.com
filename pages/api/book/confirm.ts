@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.body.confirmed) {
       const eventManager = new EventManager(currentUser.credentials);
-      const scheduleResult = await eventManager.create(evt);
+      const scheduleResult = await eventManager.create(evt, booking.uid);
 
       await handleLegacyConfirmationMail(
         scheduleResult.results,
