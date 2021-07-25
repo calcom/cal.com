@@ -3,6 +3,9 @@ import { Credential } from "@prisma/client";
 import async from "async";
 import { createMeeting, updateMeeting } from "@lib/videoClient";
 import prisma from "@lib/prisma";
+import { LocationType } from "@lib/location";
+import { v5 as uuidv5 } from "uuid";
+import merge from "lodash.merge";
 
 export interface EventResult {
   type: string;
@@ -29,6 +32,10 @@ export interface PartialReference {
   uid: string;
 }
 
+interface GetLocationRequestFromIntegrationRequest {
+  location: string;
+}
+
 export default class EventManager {
   calendarCredentials: Array<Credential>;
   videoCredentials: Array<Credential>;
@@ -51,6 +58,7 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    event = EventManager.processLocation(event);
     const isVideo = EventManager.isIntegration(event.location);
 
     // First, create all calendar events. If this is a video event, don't send a mail right here.
@@ -82,6 +90,8 @@ export default class EventManager {
    * @param rescheduleUid
    */
   public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
+    event = EventManager.processLocation(event);
+
     // Get details of existing booking.
     const booking = await prisma.booking.findFirst({
       where: {
@@ -226,5 +236,53 @@ export default class EventManager {
    */
   private static isIntegration(location: string): boolean {
     return location.includes("integrations:");
+  }
+
+  /**
+   * Helper function for processLocation: Returns the conferenceData object to be merged
+   * with the CalendarEvent.
+   *
+   * @param locationObj
+   * @private
+   */
+  private static getLocationRequestFromIntegration(locationObj: GetLocationRequestFromIntegrationRequest) {
+    const location = locationObj.location;
+
+    if (location === LocationType.GoogleMeet.valueOf() || location === LocationType.Zoom.valueOf()) {
+      const requestId = uuidv5(location, uuidv5.URL);
+
+      return {
+        conferenceData: {
+          createRequest: {
+            requestId: requestId,
+          },
+        },
+        location,
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Takes a CalendarEvent and adds a ConferenceData object to the event
+   * if the event has an integration-related location.
+   *
+   * @param event
+   * @private
+   */
+  private static processLocation(event: CalendarEvent): CalendarEvent {
+    // If location is set to an integration location
+    // Build proper transforms for evt object
+    // Extend evt object with those transformations
+    if (event.location?.includes("integration")) {
+      const maybeLocationRequestObject = EventManager.getLocationRequestFromIntegration({
+        location: event.location,
+      });
+
+      event = merge(event, maybeLocationRequestObject);
+    }
+
+    return event;
   }
 }

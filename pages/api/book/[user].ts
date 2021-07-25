@@ -6,8 +6,6 @@ import short from "short-uuid";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "@lib/event";
-import { LocationType } from "@lib/location";
-import merge from "lodash.merge";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
 import EventManager, { CreateUpdateResult, EventResult } from "@lib/events/EventManager";
@@ -85,38 +83,6 @@ function isOutOfBounds(
       return false;
   }
 }
-
-interface GetLocationRequestFromIntegrationRequest {
-  location: string;
-}
-
-const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromIntegrationRequest) => {
-  if (location === LocationType.GoogleMeet.valueOf()) {
-    const requestId = uuidv5(location, uuidv5.URL);
-
-    return {
-      conferenceData: {
-        createRequest: {
-          requestId: requestId,
-        },
-      },
-      location,
-    };
-  } else if (location === LocationType.Zoom.valueOf()) {
-    const requestId = uuidv5(location, uuidv5.URL);
-
-    return {
-      conferenceData: {
-        createRequest: {
-          requestId: requestId,
-        },
-      },
-      location,
-    };
-  }
-
-  return null;
-};
 
 export async function handleLegacyConfirmationMail(
   results: Array<EventResult>,
@@ -235,9 +201,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const rawLocation = req.body.location;
-
-    let evt: CalendarEvent = {
+    const evt: CalendarEvent = {
       type: selectedEventType.title,
       title: getEventName(req.body.name, selectedEventType.title, selectedEventType.eventName),
       description: req.body.notes,
@@ -245,24 +209,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: req.body.end,
       organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
       attendees: [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }],
+      location: req.body.location, // Will be processed by the EventManager later.
     };
-
-    // If phone or inPerson use raw location
-    // set evt.location to req.body.location
-    if (!rawLocation?.includes("integration")) {
-      evt.location = rawLocation;
-    }
-
-    // If location is set to an integration location
-    // Build proper transforms for evt object
-    // Extend evt object with those transformations
-    if (rawLocation?.includes("integration")) {
-      const maybeLocationRequestObject = getLocationRequestFromIntegration({
-        location: rawLocation,
-      });
-
-      evt = merge(evt, maybeLocationRequestObject);
-    }
 
     const eventType = await prisma.eventType.findFirst({
       where: {
