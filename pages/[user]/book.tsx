@@ -264,7 +264,7 @@ export default function Book(props: any): JSX.Element {
                           {input.type !== EventTypeCustomInputType.Bool && (
                             <label
                               htmlFor={input.label}
-                              className="block text-sm font-medium text-gray-700 mb-1">
+                              className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                               {input.label}
                             </label>
                           )}
@@ -284,7 +284,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-gray-700 dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                               placeholder=""
                             />
                           )}
@@ -294,7 +294,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-gray-700 dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                               placeholder=""
                             />
                           )}
