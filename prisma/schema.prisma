@@ -31,6 +31,7 @@ model EventType {
   periodDays Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation Boolean @default(false)
+  minimumBookingNotice Int @default(120)
 }
 
 model Credential {
