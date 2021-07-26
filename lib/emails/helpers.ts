@@ -25,5 +25,11 @@ export function getFormattedMeetingId(videoCallData: VideoCallData): string {
 }
 
 export function stripHtml(html: string): string {
-  return html.replace("<br />", "\n").replace(/<[^>]+>/g, "");
+  const aMailToRegExp = /<a[\s\w="_:#;]*href="mailto:([^<>"]*)"[\s\w="_:#;]*>([^<>]*)<\/a>/g;
+  const aLinkRegExp = /<a[\s\w="_:#;]*href="([^<>"]*)"[\s\w="_:#;]*>([^<>]*)<\/a>/g;
+  return html
+    .replace(/<br\s?\/>/g, "\n")
+    .replace(aMailToRegExp, "$1")
+    .replace(aLinkRegExp, "$2: $1")
+    .replace(/<[^>]+>/g, "");
 }

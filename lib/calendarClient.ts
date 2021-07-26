@@ -508,7 +508,12 @@ const listCalendars = (withCredentials) =>
 const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
-  const richEvent: CalendarEvent = parser.asRichEvent();
+  /*
+   * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
+   * We need HTML there. Google Calendar understands newlines and Apple Calendar cannot show HTML, so no HTML should
+   * be used for Google and Apple Calendar.
+   */
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(richEvent) : null;
 
@@ -555,7 +560,7 @@ const updateEvent = async (
 ): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
-  const richEvent: CalendarEvent = parser.asRichEvent();
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   const updateResult = credential
     ? await calendars([credential])[0].updateEvent(uidToUpdate, richEvent)

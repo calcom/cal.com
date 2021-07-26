@@ -86,4 +86,13 @@ export default class CalEventParser {
     eventCopy.description = this.getRichDescriptionHtml();
     return eventCopy;
   }
+
+  /**
+   * Returns a calendar event with rich description as plain text.
+   */
+  public asRichEventPlain(): CalendarEvent {
+    const eventCopy: CalendarEvent = { ...this.calEvent };
+    eventCopy.description = this.getRichDescription();
+    return eventCopy;
+  }
 }
