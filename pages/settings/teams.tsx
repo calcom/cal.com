@@ -33,6 +33,21 @@ export default function Teams() {
       .catch(console.log);
   };
 
+  const updateTeam = (team) => {
+    fetch(`/api/teams/${team.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ data: team }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then(handleErrors)
+      .then(() => {
+        loadData();
+      })
+      .catch(console.log);
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -54,6 +69,10 @@ export default function Teams() {
       loadData();
       setShowCreateTeamModal(false);
     });
+  };
+
+  const onSave = (team) => {
+    updateTeam(team);
   };
 
   return (
@@ -97,7 +116,7 @@ export default function Teams() {
               )}
             </div>
             <div>
-              {!!teams.length && <TeamList teams={teams} onChange={loadData}></TeamList>}
+              {!!teams.length && <TeamList teams={teams} onChange={loadData} onSave={onSave}></TeamList>}
 
               {!!invites.length && (
                 <div>
@@ -110,18 +129,6 @@ export default function Teams() {
                 </div>
               )}
             </div>
-            {/*{teamsLoaded && <div className="flex justify-between">
-              <div>
-                <h2 className="text-lg leading-6 font-medium text-gray-900 mb-1">Transform account</h2>
-                <p className="text-sm text-gray-500 mb-1">
-                  {membership.length !== 0 && "You cannot convert this account into a team until you leave all teams that you’re a member of."}
-                  {membership.length === 0 && "A user account can be turned into a team, as a team ...."}
-                </p>
-              </div>
-              <div>
-                <button className="mt-2 btn-sm btn-primary opacity-50 cursor-not-allowed" disabled>Convert {session.user.username} into a team</button>
-              </div>
-            </div>}*/}
           </div>
         </div>
         {showCreateTeamModal && (
