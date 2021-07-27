@@ -4,8 +4,8 @@ export default function Page() {
       <main className="flex-grow flex flex-col justify-center max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex-shrink-0 flex justify-center">
           <a href="/" className="inline-flex">
-            <span className="sr-only">Workflow</span>
-            <img className="h-12 w-auto" src="/calendso-white.svg" alt="" />
+            <span className="sr-only">Calendso</span>
+            <img className="h-12 w-auto" src="/calendso-white.svg" alt="Calendso Logo" />
           </a>
         </div>
         <div className="py-16">
