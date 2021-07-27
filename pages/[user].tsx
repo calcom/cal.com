@@ -6,7 +6,7 @@ import Avatar from "../components/Avatar";
 import Theme from "@components/Theme";
 import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
-import { getTeam } from "@lib/getTeam";
+import { getTeamFromContext } from "@lib/getTeam";
 import logger from "@lib/logger";
 
 export default function User(props): User {
@@ -73,15 +73,14 @@ export default function User(props): User {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const log = logger.getChildLogger({ prefix: ["/pages/[user]"] });
-  const team = await getTeam(context);
+  const team = await getTeamFromContext(context);
   let user;
 
   let host = context.req?.headers?.host;
-  log.debug(`{host} ${host}`);
 
-  // Testing here, staging throws off logic
-  // this will be a smarter check
-  // also should be in private fork
+  if (host.endsWith("app.calendso.com")) {
+    host = host.replace("app.calendso.com", "");
+  }
 
   if (host.endsWith("staging.calendso.com")) {
     host = host.replace("staging.calendso.com", "");

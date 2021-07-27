@@ -1,10 +1,10 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import prisma from "@lib/prisma";
 import Avatar from "@components/Avatar";
 import Theme from "@components/Theme";
 import Text from "@components/ui/Text";
+import { getTeam } from "../../lib/getTeam";
 
 export default function Page(props) {
   const { isReady } = Theme();
@@ -53,50 +53,11 @@ export default function Page(props) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  let team;
   const teamIdOrSlug = Array.isArray(context.query?.idOrSlug)
     ? context.query.idOrSlug.pop()
     : context.query.idOrSlug;
 
-  const teamSelectInput = {
-    id: true,
-    name: true,
-    slug: true,
-    members: {
-      where: {
-        accepted: true,
-      },
-      select: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            name: true,
-            bio: true,
-            avatar: true,
-            theme: true,
-          },
-        },
-      },
-    },
-  };
-
-  if (teamIdOrSlug && parseInt(teamIdOrSlug)) {
-    team = await prisma.team.findFirst({
-      where: {
-        id: parseInt(teamIdOrSlug),
-      },
-      select: teamSelectInput,
-    });
-  } else if (teamIdOrSlug) {
-    team = await prisma.team.findFirst({
-      where: {
-        slug: teamIdOrSlug,
-      },
-      select: teamSelectInput,
-    });
-  }
+  const team = await getTeam(teamIdOrSlug);
 
   if (!team) {
     return {

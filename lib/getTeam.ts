@@ -5,7 +5,7 @@ import logger from "./logger";
 
 const log = logger.getChildLogger({ prefix: ["[lib] getTeam"] });
 
-export const getTeam = async (context: GetServerSidePropsContext): Promise<Team | null> => {
+export const getTeamFromContext = async (context: GetServerSidePropsContext): Promise<Team | null> => {
   let teamIdOrSlug = null;
   let customDomain = null;
 
@@ -29,13 +29,11 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
       let host = context.req?.headers?.host;
       if (!host.endsWith("calendso.com")) {
         customDomain = host;
-      }
-
-      if (host.endsWith("staging.calendso.com")) {
+      } else if (host.endsWith("staging.calendso.com")) {
         host = host.replace("staging.calendso.com", "");
-      }
-
-      if (host.endsWith("calendso.com")) {
+      } else if (host.endsWith("app.calendso.com")) {
+        host = host.replace("app.calendso.com", "");
+      } else if (host.endsWith("calendso.com")) {
         host = host.replace("calendso.com", "");
       }
 
@@ -69,26 +67,6 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
     },
   };
 
-  if (teamIdOrSlug && parseInt(teamIdOrSlug) && !customDomain) {
-    log.debug(`{using int idOrSlug}`, { teamIdOrSlug });
-    team = await prisma.team.findFirst({
-      where: {
-        id: parseInt(teamIdOrSlug),
-      },
-      select: teamSelectInput,
-    });
-  }
-
-  if (teamIdOrSlug && !customDomain) {
-    log.debug(`{using string idOrSlug}`, { teamIdOrSlug });
-    team = await prisma.team.findFirst({
-      where: {
-        slug: teamIdOrSlug,
-      },
-      select: teamSelectInput,
-    });
-  }
-
   if (customDomain) {
     log.debug(`{using custom domain}`, { customDomain });
     team = await prisma.team.findFirst({
@@ -97,7 +75,71 @@ export const getTeam = async (context: GetServerSidePropsContext): Promise<Team 
       },
       select: teamSelectInput,
     });
+  } else if (teamIdOrSlug) {
+    team = await prisma.team.findFirst({
+      where: {
+        OR: [
+          {
+            id: parseInt(teamIdOrSlug) || undefined,
+          },
+          {
+            slug: teamIdOrSlug,
+          },
+        ],
+      },
+      select: teamSelectInput,
+    });
   }
+
+  log.debug(`{team}`, { team });
+
+  return team;
+};
+
+export const getTeam = async (idOrSlug: string): Promise<Team | null> => {
+  const teamIdOrSlug = idOrSlug;
+
+  let team = null;
+
+  log.debug(`{teamIdOrSlug} ${teamIdOrSlug}`);
+
+  const teamSelectInput = {
+    id: true,
+    name: true,
+    slug: true,
+    members: {
+      where: {
+        accepted: true,
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            name: true,
+            bio: true,
+            avatar: true,
+            theme: true,
+          },
+        },
+      },
+    },
+  };
+
+  team = await prisma.team.findFirst({
+    where: {
+      OR: [
+        {
+          id: parseInt(teamIdOrSlug) || undefined,
+        },
+        {
+          slug: teamIdOrSlug,
+        },
+      ],
+    },
+    select: teamSelectInput,
+  });
 
   log.debug(`{team}`, { team });
 
