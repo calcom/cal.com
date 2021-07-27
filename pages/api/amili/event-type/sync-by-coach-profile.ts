@@ -1,5 +1,7 @@
 import prisma from "@lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
+import { v4 } from "uuid";
+
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
 
 type CoachProfileProgramAvailability = {
@@ -10,19 +12,26 @@ type CoachProfileProgramAvailability = {
   endTime: number;
 };
 
+type HealthCoachProgram = {
+  id: string;
+  name: string;
+  description?: string;
+};
+
 type CoachProfileProgram = {
   id: string;
   coachUserId: string;
   programId: string;
   assEventTypeId?: number;
   availability?: CoachProfileProgramAvailability[];
+  program?: HealthCoachProgram;
 };
 
 type ReqPayload = {
   assUserId: number;
-  insertedCoachProfileProgram: CoachProfileProgram[];
-  removedCoachProfileProgram: CoachProfileProgram[];
-  updatedCoachProfileProgram: CoachProfileProgram[];
+  insertedCoachProfileProgram?: CoachProfileProgram[];
+  removedCoachProfileProgram?: CoachProfileProgram[];
+  updatedCoachProfileProgram?: CoachProfileProgram[];
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -37,8 +46,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   await runMiddleware(req, res, checkAmiliAuth);
 
   // create event type
-  await Promise.all(
-    insertedCoachProfileProgram.map(async ({ id, availability }) => {
+  const assMapping = await Promise.all(
+    (insertedCoachProfileProgram || []).map(async ({ id, program, availability }) => {
       const newAvailability = availability.map(({ days, startTime, endTime }) => ({
         days,
         startTime,
@@ -46,9 +55,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         userId: assUserId,
       }));
 
+      const { name = "", description = "" } = program || {};
+
       const newCoachProgram = {
-        title: "",
-        slug: "",
+        description,
+        title: name,
+        slug: v4(),
         locations: [{ type: "integrations:zoom" }],
         length: 0,
         userId: assUserId,
@@ -62,31 +74,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         data: newCoachProgram,
       });
 
-      return newProgramCreated;
+      return { coachProgramId: id, assEventTypeId: newProgramCreated.id };
     })
   );
 
-  const coachProgramsUpdated = updatedCoachProfileProgram.map(({ id, assEventTypeId, availability }) => ({
-    availability,
-    id: assEventTypeId,
-    title: "",
-    slug: "",
-    length: 0,
-    userId: assUserId,
-    coachProgramId: id,
-  }));
-
   // update event type
   await Promise.all(
-    coachProgramsUpdated.map(async ({ id, availability, ...coachProgram }) => {
-      const coachProgramUpdated = prisma.eventType.update({
-        where: { id },
-        data: coachProgram,
-      });
-
+    (updatedCoachProfileProgram || []).map(async ({ assEventTypeId, availability }) => {
       const availabilityDeleted = prisma.availability.deleteMany({
         where: {
-          eventTypeId: id,
+          eventTypeId: assEventTypeId,
         },
       });
 
@@ -95,14 +92,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         startTime,
         endTime: endTime,
         userId: assUserId,
-        eventTypeId: id,
+        eventTypeId: assEventTypeId,
       }));
 
       const availabilityCreated = prisma.availability.createMany({
         data: newAvailability,
       });
 
-      await prisma.$transaction([coachProgramUpdated, availabilityDeleted, availabilityCreated]);
+      await prisma.$transaction([availabilityDeleted, availabilityCreated]);
     })
   );
 
@@ -123,7 +120,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     })
   );
 
-  res.status(201).json({ message: "Synchronize programs with event-type successfully" });
+  res.status(200).json({ assMapping });
 };
 
 export default handler;

@@ -15,6 +15,86 @@ server:
   variables:
     port:
       default: '3000'
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    CoachProfileProgramAvailability:
+      required:
+        - coachProfileProgramId
+        - days
+        - startTime
+        - endTime
+      properties:
+        id:
+          type: string
+        coachProfileProgramId:
+          type: string
+        days:
+          type: array
+          items:
+            type: integer
+        startTime: 
+          type: integer
+        endTime:
+          type: integer
+    HealthCoachProgram:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CoachProfileProgram:
+      required:
+        - id
+        - coachUserId
+        - programId
+      properties:
+        id:
+          type: string
+        coachUserId:
+          type: string
+        programId: 
+          type: string
+        assEventTypeId:
+          type: integer
+        availability:
+          type: object
+          $ref: '#components/schemas/CoachProfileProgramAvailability'
+        program:
+          type: object
+          $ref: '#components/schemas/HealthCoachProgram'
+    ItemResponseSyncByCoachProfile:
+      properties:
+        coachProgramId:
+          type: string
+        assEventTypeId:
+          type: string
+    ResponseSyncByCoachProfile:
+      properties:
+        assMapping:
+          type: array
+          items:
+            type: object
+            $ref: '#components/schemas/ItemResponseSyncByCoachProfile'
+    DataRequestPayloadSyncByProgram:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        duration:
+          type: number
+
+
 tags:
   - name: Authentication
     description: Auth routes, powered by Next-Auth.js
@@ -28,6 +108,8 @@ tags:
     description: Manage integrations
   - name: User
     description: Manage the user's profile and settings
+  - name: Event Type
+    description: Manage APIs relate to the event type
 paths:
   /api/auth/signin:
     get:
@@ -156,3 +238,72 @@ paths:
       summary: Updates a user's profile
       tags:
         - User
+  /api/amili/event-type/sync-by-coach-profile:
+    post:
+      description: Synchronize coach profile program and availability
+      summary: Synchronize the coach profile program and availability
+      tags:
+        - Event Type
+      security: 
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                assUserId:
+                  type: number
+                insertedCoachProfileProgram:
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#components/schemas/CoachProfileProgram'
+                updatedCoachProfileProgram:
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#components/schemas/CoachProfileProgram'
+                removedCoachProfileProgram:
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#components/schemas/CoachProfileProgram'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#components/schemas/ResponseSyncByCoachProfile'
+  /api/amili/event-type/sync-by-program:
+    post:
+      description: Synchronize coach program
+      summary: Synchronize coach program
+      tags:
+        - Event Type
+      security: 
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                coachProgramId:
+                  type: string
+                data:
+                  type: object
+                  $ref: '#components/schemas/DataRequestPayloadSyncByProgram'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
