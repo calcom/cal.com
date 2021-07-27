@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (nameCollisions > 0) {
-      return res.status(400).json({ errorCode: "TeamNameCollision", message: "Team created" });
+      return res.status(409).json({ errorCode: "TeamNameCollision", message: "Team name already take." });
     }
 
     const createTeam = await prisma.team.create({
