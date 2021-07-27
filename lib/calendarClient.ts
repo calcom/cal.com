@@ -363,7 +363,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             attendees: event.attendees,
             reminders: {
               useDefault: false,
-              overrides: [{ method: "email", minutes: 60 }],
+              overrides: [{ method: "email", minutes: 10 }],
             },
           };
 
@@ -410,7 +410,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             attendees: event.attendees,
             reminders: {
               useDefault: false,
-              overrides: [{ method: "email", minutes: 60 }],
+              overrides: [{ method: "email", minutes: 10 }],
             },
           };
 
