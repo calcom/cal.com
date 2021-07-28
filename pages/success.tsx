@@ -159,14 +159,14 @@ export default function Success(props) {
                               "https://outlook.live.com/calendar/0/deeplink/compose?body=" +
                                 props.eventType.description +
                                 "&enddt=" +
-                                date.add(props.eventType.length, "minute").format() +
+                                date.add(props.eventType.length, "minute").utc().format() +
                                 "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
-                                date.format() +
+                                date.utc().format() +
                                 "&subject=" +
                                 eventName
                             ) + (location ? "&location=" + location : "")
                           }>
-                          <a className="mx-2 btn-wide btn-white">
+                          <a className="mx-2 btn-wide btn-white" target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
                               fill="currentColor"
@@ -183,14 +183,14 @@ export default function Success(props) {
                               "https://outlook.office.com/calendar/0/deeplink/compose?body=" +
                                 props.eventType.description +
                                 "&enddt=" +
-                                date.add(props.eventType.length, "minute").format() +
+                                date.add(props.eventType.length, "minute").utc().format() +
                                 "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
-                                date.format() +
+                                date.utc().format() +
                                 "&subject=" +
                                 eventName
                             ) + (location ? "&location=" + location : "")
                           }>
-                          <a className="mx-2 btn-wide btn-white">
+                          <a className="mx-2 btn-wide btn-white" target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
                               fill="currentColor"

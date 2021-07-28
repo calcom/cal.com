@@ -175,14 +175,16 @@ export default function Type(props): Type {
                 organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
                 inviteeTimeZone={timeZone()}
                 eventLength={props.eventType.length}
+                minimumBookingNotice={props.eventType.minimumBookingNotice}
               />
               {selectedDate && (
                 <AvailableTimes
                   workingHours={props.workingHours}
                   timeFormat={timeFormat}
                   organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
-                  eventLength={props.eventType.length}
+                  minimumBookingNotice={props.eventType.minimumBookingNotice}
                   eventTypeId={props.eventType.id}
+                  eventLength={props.eventType.length}
                   date={selectedDate}
                   user={props.user}
                 />
@@ -246,6 +248,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
       "periodStartDate",
       "periodEndDate",
       "periodCountCalendarDays",
+      "minimumBookingNotice",
     ]
   );
 

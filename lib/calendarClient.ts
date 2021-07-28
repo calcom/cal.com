@@ -227,28 +227,38 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
               ? listCalendars().then((cals) => cals.map((e) => e.externalId))
               : Promise.resolve(selectedCalendarIds).then((x) => x)
           ).then((ids: string[]) => {
-            const urls = ids.map(
-              (calendarId) =>
-                "https://graph.microsoft.com/v1.0/me/calendars/" + calendarId + "/events" + filter
-            );
-            return Promise.all(
-              urls.map((url) =>
-                fetch(url, {
-                  method: "get",
-                  headers: {
-                    Authorization: "Bearer " + accessToken,
-                    Prefer: 'outlook.timezone="Etc/GMT"',
-                  },
-                })
-                  .then(handleErrorsJson)
-                  .then((responseBody) =>
-                    responseBody.value.map((evt) => ({
-                      start: evt.start.dateTime + "Z",
-                      end: evt.end.dateTime + "Z",
-                    }))
-                  )
-              )
-            ).then((results) => results.reduce((acc, events) => acc.concat(events), []));
+            const requests = ids.map((calendarId, id) => ({
+              id,
+              method: "GET",
+              headers: {
+                Prefer: 'outlook.timezone="Etc/GMT"',
+              },
+              url: `/me/calendars/${calendarId}/events${filter}`,
+            }));
+
+            return fetch("https://graph.microsoft.com/v1.0/$batch", {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + accessToken,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ requests }),
+            })
+              .then(handleErrorsJson)
+              .then((responseBody) =>
+                responseBody.responses.reduce(
+                  (acc, subResponse) =>
+                    acc.concat(
+                      subResponse.body.value.map((evt) => {
+                        return {
+                          start: evt.start.dateTime + "Z",
+                          end: evt.end.dateTime + "Z",
+                        };
+                      })
+                    ),
+                  []
+                )
+              );
           });
         })
         .catch((err) => {
@@ -357,7 +367,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             attendees: event.attendees,
             reminders: {
               useDefault: false,
-              overrides: [{ method: "email", minutes: 60 }],
+              overrides: [{ method: "email", minutes: 10 }],
             },
           };
 
@@ -404,7 +414,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             attendees: event.attendees,
             reminders: {
               useDefault: false,
-              overrides: [{ method: "email", minutes: 60 }],
+              overrides: [{ method: "email", minutes: 10 }],
             },
           };
 
@@ -517,7 +527,12 @@ const createEvent = async (
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
   const uid: string = parser.getUid();
-  const richEvent: CalendarEvent = parser.asRichEvent();
+  /*
+   * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
+   * We need HTML there. Google Calendar understands newlines and Apple Calendar cannot show HTML, so no HTML should
+   * be used for Google and Apple Calendar.
+   */
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   let success = true;
 
@@ -579,7 +594,7 @@ const updateEvent = async (
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
-  const richEvent: CalendarEvent = parser.asRichEvent();
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   let success = true;
 

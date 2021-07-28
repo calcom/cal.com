@@ -7,6 +7,7 @@ const AvailableTimes = ({
   date,
   eventLength,
   eventTypeId,
+  minimumBookingNotice,
   workingHours,
   timeFormat,
   user,
@@ -20,6 +21,7 @@ const AvailableTimes = ({
     eventLength,
     workingHours,
     organizerTimeZone,
+    minimumBookingNotice,
   });
 
   return (

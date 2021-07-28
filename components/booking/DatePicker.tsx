@@ -23,6 +23,7 @@ const DatePicker = ({
   periodEndDate,
   periodDays,
   periodCountCalendarDays,
+  minimumBookingNotice,
 }) => {
   const [calendar, setCalendar] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState<number>();
@@ -77,6 +78,7 @@ const DatePicker = ({
             !getSlots({
               inviteeDate: date,
               frequency: eventLength,
+              minimumBookingNotice,
               workingHours,
               organizerTimeZone,
             }).length
@@ -93,6 +95,7 @@ const DatePicker = ({
             !getSlots({
               inviteeDate: date,
               frequency: eventLength,
+              minimumBookingNotice,
               workingHours,
               organizerTimeZone,
             }).length
@@ -106,6 +109,7 @@ const DatePicker = ({
             !getSlots({
               inviteeDate: date,
               frequency: eventLength,
+              minimumBookingNotice,
               workingHours,
               organizerTimeZone,
             }).length
