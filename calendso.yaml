@@ -52,6 +52,8 @@ components:
           type: string
         description:
           type: string
+        duration:
+          type: integer
     CoachProfileProgram:
       required:
         - id
@@ -67,7 +69,7 @@ components:
         assEventTypeId:
           type: integer
         availability:
-          type: object
+          type: array
           $ref: '#components/schemas/CoachProfileProgramAvailability'
         program:
           type: object

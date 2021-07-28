@@ -16,6 +16,7 @@ type HealthCoachProgram = {
   id: string;
   name: string;
   description?: string;
+  duration?: number;
 };
 
 type CoachProfileProgram = {
@@ -55,14 +56,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         userId: assUserId,
       }));
 
-      const { name = "", description = "" } = program || {};
+      const { name = "", description = "", duration = 0 } = program || {};
 
       const newCoachProgram = {
         description,
         title: name,
         slug: v4(),
         locations: [{ type: "integrations:zoom" }],
-        length: 0,
+        length: duration,
         userId: assUserId,
         coachProgramId: id,
         availability: {
