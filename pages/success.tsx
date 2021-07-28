@@ -183,9 +183,9 @@ export default function Success(props) {
                               "https://outlook.office.com/calendar/0/deeplink/compose?body=" +
                                 props.eventType.description +
                                 "&enddt=" +
-                                date.add(props.eventType.length, "minute").format() +
+                                date.add(props.eventType.length, "minute").utc().format() +
                                 "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
-                                date.format() +
+                                date.utc().format() +
                                 "&subject=" +
                                 eventName
                             ) + (location ? "&location=" + location : "")
