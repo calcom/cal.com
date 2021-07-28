@@ -11,6 +11,7 @@ import logger from "@lib/logger";
 import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
 import { getIntegrationName } from "@lib/emails/helpers";
 import CalEventParser from "@lib/CalEventParser";
+import { Credential } from "@prisma/client";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -86,7 +87,7 @@ interface VideoApiAdapter {
 
   updateMeeting(uid: string, event: CalendarEvent);
 
-  deleteMeeting(uid: string);
+  deleteMeeting(uid: string): Promise<unknown>;
 
   getAvailability(dateFrom, dateTo): Promise<any>;
 }
@@ -197,13 +198,13 @@ const videoIntegrations = (withCredentials): VideoApiAdapter[] =>
     })
     .filter(Boolean);
 
-const getBusyVideoTimes = (withCredentials) =>
+const getBusyVideoTimes: (withCredentials) => Promise<unknown[]> = (withCredentials) =>
   Promise.all(videoIntegrations(withCredentials).map((c) => c.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
 const createMeeting = async (
-  credential,
+  credential: Credential,
   calEvent: CalendarEvent,
   maybeUid: string = null
 ): Promise<EventResult> => {
@@ -317,7 +318,7 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = (credential, uid: string): Promise<any> => {
+const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> => {
   if (credential) {
     return videoIntegrations([credential])[0].deleteMeeting(uid);
   }
