@@ -270,7 +270,7 @@ const createMeeting = async (
 };
 
 const updateMeeting = async (
-  credential,
+  credential: Credential,
   uidToUpdate: string,
   calEvent: CalendarEvent
 ): Promise<EventResult> => {
