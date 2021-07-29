@@ -1,6 +1,5 @@
 import prisma from "@lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
-import { v4 } from "uuid";
 
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
 
@@ -46,36 +45,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   await runMiddleware(req, res, checkAmiliAuth);
 
-  // create event type
-  const assMapping = await Promise.all(
-    (insertedCoachProfileProgram || []).map(async ({ id, program, availability }) => {
-      const newAvailability = availability.map(({ days, startTime, endTime }) => ({
-        days,
-        startTime,
-        endTime: endTime,
-        userId: assUserId,
-      }));
-
-      const { name = "", description = "", duration = 0 } = program || {};
-
-      const newCoachProgram = {
-        description,
-        title: name,
-        slug: v4(),
-        locations: [{ type: "integrations:zoom" }],
-        length: duration,
-        userId: assUserId,
-        coachProgramId: id,
-        availability: {
-          create: newAvailability,
-        },
-      };
-
-      const newProgramCreated = await prisma.eventType.create({
-        data: newCoachProgram,
+  // delete event type
+  await Promise.all(
+    removedCoachProfileProgram.map(async ({ assEventTypeId }) => {
+      const availabilityDeleted = prisma.availability.deleteMany({
+        where: { eventTypeId: assEventTypeId },
       });
 
-      return { coachProgramId: id, assEventTypeId: newProgramCreated.id };
+      const eventTypesDeleted = prisma.eventType.delete({
+        where: {
+          id: assEventTypeId,
+        },
+      });
+
+      await prisma.$transaction([availabilityDeleted, eventTypesDeleted]);
     })
   );
 
@@ -92,7 +75,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         days,
         startTime,
         endTime: endTime,
-        userId: assUserId,
+        userId: +assUserId,
         eventTypeId: assEventTypeId,
       }));
 
@@ -104,20 +87,36 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     })
   );
 
-  // delete event type
-  await Promise.all(
-    removedCoachProfileProgram.map(async ({ assEventTypeId }) => {
-      const availabilityDeleted = prisma.availability.deleteMany({
-        where: { eventTypeId: assEventTypeId },
-      });
+  // create event type
+  const assMapping = await Promise.all(
+    (insertedCoachProfileProgram || []).map(async ({ programId, coachUserId, program, availability }) => {
+      const newAvailability = availability.map(({ days, startTime, endTime }) => ({
+        days,
+        startTime,
+        endTime: endTime,
+        userId: +assUserId,
+      }));
 
-      const eventTypesDeleted = prisma.eventType.delete({
-        where: {
-          id: assEventTypeId,
+      const { name = "", description = "", duration = 0 } = program || {};
+
+      const newCoachProgram = {
+        description,
+        title: name,
+        slug: coachUserId,
+        locations: [{ type: "integrations:zoom" }],
+        length: duration,
+        userId: +assUserId,
+        coachProgramId: programId,
+        availability: {
+          create: newAvailability,
         },
+      };
+
+      const newProgramCreated = await prisma.eventType.create({
+        data: newCoachProgram,
       });
 
-      await prisma.$transaction([availabilityDeleted, eventTypesDeleted]);
+      return { coachProgramId: programId, assEventTypeId: newProgramCreated.id };
     })
   );
 
