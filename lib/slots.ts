@@ -121,17 +121,14 @@ const getSlots = ({
   // current date in invitee tz
   const currentDate = dayjs().utcOffset(inviteeDate.utcOffset());
   const startDate = currentDate.add(minimumBookingNotice, "minutes"); // + minimum notice period
-  // when the invitee date is not the same as the current date, reset the date to the start of day
-  if (inviteeDate.date() !== currentDate.date()) {
-    inviteeDate = inviteeDate.startOf("day");
-  }
 
   const startTime = startDate.isAfter(inviteeDate)
     ? // block out everything when inviteeDate is less than startDate
-      startDate.date() > inviteeDate.date()
+      startDate.diff(inviteeDate, "day") > 0
       ? 1440
       : startDate.hour() * 60 + startDate.minute()
     : 0;
+
   const inviteeBounds = inviteeBoundary(startTime, inviteeDate.utcOffset(), frequency);
 
   return getOverlaps(
