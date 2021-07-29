@@ -236,12 +236,9 @@ Contributions are what make the open source community such an amazing place to b
 9. Set the Redirect URL for OAuth `<CALENDSO URL>/api/integrations/zoomvideo/callback` replacing CALENDSO URL with the URI at which your application runs.
 10. Also add the redirect URL given above as a whitelist URL and enable "Subdomain check". Make sure, it says "saved" below the form.
 11. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". Search for and check the following scopes:
-    1. account:read:admin
-    2. account:write:admin
-    3. meeting:read:admin
-    4. meeting:write:admin
-    5. user:read:admin
-    6. user:write:admin
+    1. account:write:admin
+    2. meeting:write:admin
+    3. user:write:admin
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Calendso settings.
 
