@@ -95,9 +95,9 @@ export const Scheduler = ({
 
   return (
     <div>
-      <div className="rounded border flex">
+      <div className="flex">
         <div className="w-full">
-          <div className=" p-2">
+          <div className="">
             <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
               Timezone
             </label>

@@ -13,11 +13,16 @@ export default function Billing(props) {
 
   return (
     <Shell heading="Billing">
+      <div className="flex mb-8">
+        <p className="text-sm text-neutral-500">
+          Manage your billing information and cancel your subscription.
+        </p>
+      </div>
       <Head>
         <title>Billing | Calendso</title>
       </Head>
       <SettingsShell>
-        <div className="py-6 px-4 sm:p-6 lg:pb-8 lg:col-span-9">
+        <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900">
               Change your Subscription

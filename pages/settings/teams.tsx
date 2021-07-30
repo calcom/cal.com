@@ -58,21 +58,22 @@ export default function Teams() {
 
   return (
     <Shell heading="Teams">
+      <div className="flex mb-8">
+        <p className="text-sm text-neutral-500">
+          Create and manage teams to use collaborative features.
+        </p>
+      </div>
       <Head>
         <title>Teams | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <SettingsShell>
         <div className="divide-y divide-gray-200 lg:col-span-9">
-          <div className="py-6 px-4 sm:p-6 lg:pb-8">
+          <div className="py-6 lg:pb-8">
             <div className="flex justify-between">
               <div>
-                <h2 className="text-lg leading-6 font-medium text-gray-900">Your teams</h2>
-                <p className="mt-1 text-sm text-gray-500 mb-4">
-                  View, edit and create teams to organise relationships between users
-                </p>
                 {!(invites.length || teams.length) && (
-                  <div className="bg-gray-50 sm:rounded-lg">
+                  <div className="bg-gray-50 sm:rounded-sm">
                     <div className="px-4 py-5 sm:p-6">
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
                         Create a team to get started
@@ -94,7 +95,7 @@ export default function Teams() {
               </div>
               {!!(invites.length || teams.length) && (
                 <div>
-                  <button className="btn-sm btn-primary" onClick={() => setShowCreateTeamModal(true)}>
+                  <button className="btn-sm btn-primary mb-4" onClick={() => setShowCreateTeamModal(true)}>
                     Create new team
                   </button>
                 </div>
@@ -143,10 +144,10 @@ export default function Teams() {
                 &#8203;
               </span>
 
-              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div className="sm:flex sm:items-start mb-4">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <UsersIcon className="h-6 w-6 text-blue-600" />
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <UsersIcon className="h-6 w-6 text-neutral-900" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
@@ -168,7 +169,7 @@ export default function Teams() {
                       id="name"
                       placeholder="Acme Inc."
                       required
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                     />
                   </div>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
