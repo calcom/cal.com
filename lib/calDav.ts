@@ -54,35 +54,37 @@ export class CalDavClient {
     return attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
   }
 
-  static findNextRecurrentEvent(
+  static findRecurrentEventsBetweenDates(
     event: Record<string, unknown>,
     dateFrom: string,
     dateTo: string
-  ): NextRecurrentEvent {
-    const start = ICAL.Time.fromJSDate(new Date(dayjs(dateFrom).add(1, "day")));
+  ): NextRecurrentEvent[] {
+    const start = ICAL.Time.fromJSDate(new Date(dateFrom));
     const end = ICAL.Time.fromJSDate(new Date(dateTo));
 
     const iter = event.iterator();
 
     let i = 0;
-    let matched = null;
+    const allMatched = [];
 
     while (i < RECURRENT_EVENTS_SEARCH_MAX_ITERATIONS) {
       const occurrence = event.getOccurrenceDetails(iter.next());
 
-      if (occurrence.startDate.compare(start) > -1 && occurrence.endDate.compare(end) < 1) {
-        matched = occurrence;
+      if (occurrence.endDate.compare(end) > -1) {
         break;
       }
+
+      if (occurrence.startDate.compare(start) > -1 && occurrence.endDate.compare(end) < 1) {
+        allMatched.push(occurrence);
+      }
+
       i++;
     }
 
-    return matched
-      ? {
-          startDate: new Date(matched.startDate.toUnixTime() * 1000),
-          endDate: new Date(matched.endDate.toUnixTime() * 1000),
-        }
-      : null;
+    return allMatched.map((match) => ({
+      startDate: match.startDate.toJSDate(),
+      endDate: match.endDate.toJSDate(),
+    }));
   }
 
   async propfind(calId: string, body: string): Promise<string> {

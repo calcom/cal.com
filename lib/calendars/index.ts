@@ -1,1 +1,1 @@
-export * from './yandex';
+export * from "./yandex";

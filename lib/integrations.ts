@@ -1,4 +1,4 @@
-export function getIntegrationName(name: string) {
+export function getIntegrationName(name: string): string {
   switch (name) {
     case "google_calendar":
       return "Google Calendar";
@@ -13,7 +13,7 @@ export function getIntegrationName(name: string) {
   }
 }
 
-export function getIntegrationType(name: string) {
+export function getIntegrationType(name: string): string {
   if (name.endsWith("_calendar")) {
     return "Calendar";
   }

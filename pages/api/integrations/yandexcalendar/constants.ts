@@ -1,1 +1,1 @@
-export const SCOPES = ['calendar:all'];
+export const SCOPES = ["calendar:all"];

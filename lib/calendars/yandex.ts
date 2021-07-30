@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { parseStringPromise } from "xml2js";
+import { EventAttributes, Component } from "ics";
 import { BasicTokenProvider } from "../tokenProvider";
 import { CalDavClient } from "../calDav";
 import { IntegrationCalendar, CalendarApiAdapter } from "../calendarClient";
@@ -77,6 +78,32 @@ export class YandexCalendar implements CalendarApiAdapter {
       .replace(/<p.+?>|<\/p>/g, "");
   }
 
+  private eventFromIcal(event: EventAttributes, vcalendar: Component) {
+    return {
+      uid: event.uid,
+      summary: event.summary,
+      description: event.description,
+      location: event.location,
+      sequence: event.sequence,
+      startDate: event.startDate.toJSDate(),
+      endDate: event.endDate.toJSDate(),
+      duration: {
+        weeks: event.duration.weeks,
+        days: event.duration.days,
+        hours: event.duration.hours,
+        minutes: event.duration.minutes,
+        seconds: event.duration.seconds,
+        isNegative: event.duration.isNegative,
+      },
+      organizer: event.organizer,
+      attendees: event.attendees.map((a) => a.getValues()),
+      recurrenceId: event.recurrenceId,
+      timezone: vcalendar.getFirstSubcomponent("vtimezone")
+        ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
+        : "",
+    };
+  }
+
   async getEvents(calId: string, dateFrom: string, dateTo: string): Promise<string, unknown> {
     const start = dateFrom.toString().replace(/-|:/g, "");
     const end = dateTo.toString().replace(/-|:/g, "");
@@ -113,54 +140,34 @@ export class YandexCalendar implements CalendarApiAdapter {
       </C:calendar-query>`;
 
     const eventsData = await this.calDav.report(calId, body);
-
     const data = await parseStringPromise(eventsData, { explicitArray: false });
-
     const eData = data["D:multistatus"]["D:response"];
 
-    return (Array.isArray(eData) ? eData : [eData]).filter(Boolean).map((item) => {
+    return (Array.isArray(eData) ? eData : [eData]).filter(Boolean).reduce((allEvents, item) => {
       const calData = item["D:propstat"]["D:prop"]["C:calendar-data"]._;
       const jcalData = ICAL.parse(calData);
       const vcalendar = new ICAL.Component(jcalData);
       const vevent = vcalendar.getFirstSubcomponent("vevent");
       const event = new ICAL.Event(vevent);
 
-      let startDate = new Date(event.startDate.toUnixTime() * 1000);
-      let endDate = new Date(event.endDate.toUnixTime() * 1000);
+      const baseEventData = this.eventFromIcal(event, vcalendar);
 
       if (event.isRecurring()) {
-        const foundEvent = CalDavClient.findNextRecurrentEvent(event, dateFrom, dateTo);
+        const foundEvents = CalDavClient.findRecurrentEventsBetweenDates(event, dateFrom, dateTo);
 
-        if (foundEvent) {
-          startDate = foundEvent.startDate;
-          endDate = foundEvent.endDate;
+        for (const foundEvent of foundEvents) {
+          allEvents.push({
+            ...baseEventData,
+            startDate: foundEvent.startDate,
+            endDate: foundEvent.endDate,
+          });
         }
+      } else {
+        allEvents.push(baseEventData);
       }
 
-      return {
-        uid: event.uid,
-        summary: event.summary,
-        description: event.description,
-        location: event.location,
-        sequence: event.sequence,
-        startDate,
-        endDate,
-        duration: {
-          weeks: event.duration.weeks,
-          days: event.duration.days,
-          hours: event.duration.hours,
-          minutes: event.duration.minutes,
-          seconds: event.duration.seconds,
-          isNegative: event.duration.isNegative,
-        },
-        organizer: event.organizer,
-        attendees: event.attendees.map((a) => a.getValues()),
-        recurrenceId: event.recurrenceId,
-        timezone: vcalendar.getFirstSubcomponent("vtimezone")
-          ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
-          : "",
-      };
-    });
+      return allEvents;
+    }, []);
   }
 
   async getAvailability(
