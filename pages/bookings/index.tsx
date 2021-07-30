@@ -81,7 +81,7 @@ export default function Bookings({ bookings }) {
                           </td>
                           <td
                             className={
-                              "px-6 py-4 whitespace-nowrap" + (booking.rejected ? " line-through" : "")
+                              "px-6 py-4 max-w-20 w-full" + (booking.rejected ? " line-through" : "")
                             }>
                             <div className="text-sm text-gray-900">{booking.title}</div>
                             <div className="text-sm text-gray-500">{booking.description}</div>
