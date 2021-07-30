@@ -12,10 +12,10 @@ export class YandexCalendar implements CalendarApiAdapter {
   private readonly integrationName: string = "yandex_calendar";
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(credential: unknown) {
+  constructor({ user, password }: unknown) {
     const tokenProvider: TokenProvider = new BasicTokenProvider({
-      user: process.env.YANDEX_CALDAV_USER,
-      password: process.env.YANDEX_CALDAV_PASSWORD,
+      user,
+      password,
     });
 
     this.calDav = new CalDavClient("https://caldav.yandex.ru", process.env.YANDEX_CALDAV_USER, tokenProvider);

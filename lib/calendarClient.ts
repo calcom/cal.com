@@ -6,6 +6,7 @@ import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 import { YandexCalendar } from "./calendars";
+import { decrypt } from "./crypto";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -489,7 +490,15 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
         case "office365_calendar":
           return MicrosoftOffice365Calendar(cred);
         case "yandex_calendar":
-          return new YandexCalendar(cred);
+          const { key: { user, hash } } = cred;
+
+          try {
+            const password = decrypt(hash, process.env.CRYPTO_PRIVATE_KEY);
+
+            return new YandexCalendar({ user, password });
+          } catch(error) {
+            console.error("Failed to decrypt password");
+          }
         default:
           return; // unknown credential, could be legacy? In any case, ignore
       }

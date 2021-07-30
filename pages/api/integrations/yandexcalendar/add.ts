@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 import prisma from "../../../../lib/prisma";
+import { encrypt } from "../../../../lib/crypto";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): void {
   if (req.method === "GET") {
@@ -23,11 +24,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // res.status(200).json({url: generateAuthUrl() });
 
-    // Yandex CalDav doesn't support oauth2. So for now, create empty credentials and return to /integrations page;
     await prisma.credential.create({
       data: {
         type: "yandex_calendar",
         key: {},
+        userId: session.user.id,
+      },
+    });
+
+    res.status(200).json({ url: "/integrations" });
+  }
+
+  if (req.method === "POST") {
+    const session = await getSession({ req: req });
+
+    if (!session) {
+      res.status(401).json({ message: "You must be logged in to do this" });
+      return;
+    }
+
+    const { user, password } = req.body;
+
+    if (!user || !password) {
+      return res.status(400).json({ message: "Wrong credentials" });
+    }
+
+    await prisma.credential.create({
+      data: {
+        type: "yandex_calendar",
+        key: {
+          user,
+          hash: encrypt(password, process.env.CRYPTO_PRIVATE_KEY),
+        },
         userId: session.user.id,
       },
     });
