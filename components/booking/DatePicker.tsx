@@ -171,10 +171,10 @@ const DatePicker = ({
         <span className="w-1/2 text-gray-600 dark:text-white">
           {dayjs().month(selectedMonth).format("MMMM YYYY")}
         </span>
-        <div className="w-1/2 text-right">
+        <div className="w-1/2 text-right text-gray-400">
           <button
             onClick={decrementMonth}
-            className={"mr-4 " + (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400")}
+            className={"mr-4 " + (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-600")}
             disabled={selectedMonth <= dayjs().tz(inviteeTimeZone).month()}>
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
