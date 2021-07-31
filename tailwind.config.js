@@ -78,6 +78,10 @@ module.exports = {
           900: "#064E3B",
         },
       },
+      fontFamily: {
+        inter: ["Inter", "sans-serif"],
+        kollektif: ["Kollektif", "sans-serif"],
+      },
       maxHeight: (theme) => ({
         0: "0",
         97: "25rem",

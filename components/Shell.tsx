@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/client";
 import { Dialog, Menu, Transition } from "@headlessui/react";
@@ -180,8 +180,10 @@ export default function Shell(props) {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="flex items-center flex-shrink-0 px-4">
-                <img className="h-6 w-auto" src="/calendso-logo-word.svg" alt="Calendso" />
+              <div className="flex items-center font-kollektif flex-shrink-0 px-4">
+                <h1 className="brand-logo font-kollektif inline">
+                  <strong>Calendso</strong>
+                </h1>
               </div>
               <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
                 {navigation.map((item) => (
@@ -229,7 +231,9 @@ export default function Shell(props) {
                               <span className="text-gray-900 text-sm font-medium truncate">
                                 {session.user.name}
                               </span>
-                              <span className="text-neutral-500 font-normal text-sm truncate">{session.user.username}</span>
+                              <span className="text-neutral-500 font-normal text-sm truncate">
+                                {session.user.username}
+                              </span>
                             </span>
                           </span>
                           <SelectorIcon
@@ -343,7 +347,7 @@ export default function Shell(props) {
         <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
           <div className="py-6">
             <div className="px-4 sm:px-6 md:px-8">
-              <h1 className="text-2xl font-semibold text-gray-900">{props.heading}</h1>
+              <h1 className="text-2xl font-kollektif font-semibold text-gray-900">{props.heading}</h1>
             </div>
             <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
           </div>
