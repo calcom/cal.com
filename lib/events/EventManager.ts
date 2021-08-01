@@ -61,13 +61,13 @@ export default class EventManager {
    */
   public async create(event: CalendarEvent, maybeUid: string = null): Promise<CreateUpdateResult> {
     event = EventManager.processLocation(event);
-    const isVideo = EventManager.isIntegration(event.location);
+    const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
-    // First, create all calendar events. If this is a video event, don't send a mail right here.
-    const results: Array<EventResult> = await this.createAllCalendarEvents(event, isVideo, maybeUid);
+    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
+    const results: Array<EventResult> = await this.createAllCalendarEvents(event, isDedicated, maybeUid);
 
-    // If and only if event type is a video meeting, create a video meeting as well.
-    if (isVideo) {
+    // If and only if event type is a dedicated meeting, create a dedicated video meeting as well.
+    if (isDedicated) {
       results.push(await this.createVideoEvent(event, maybeUid));
     }
 
@@ -111,7 +111,7 @@ export default class EventManager {
       },
     });
 
-    const isVideo = EventManager.isIntegration(event.location);
+    const isVideo = EventManager.isDedicatedIntegration(event.location);
 
     // First, update all calendar events. If this is a video event, don't send a mail right here.
     const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isVideo);
@@ -241,13 +241,19 @@ export default class EventManager {
   }
 
   /**
-   * Returns true if the given location describes an integration that delivers meeting credentials.
+   * Returns true if the given location describes a dedicated integration that
+   * delivers meeting credentials. Zoom, for example, is dedicated, because it
+   * needs to be called independently from any calendar APIs to receive meeting
+   * credentials. Google Meetings, in contrast, are not dedicated, because they
+   * are created while scheduling a regular calendar event by simply adding some
+   * attributes to the payload JSON.
    *
    * @param location
    * @private
    */
-  private static isIntegration(location: string): boolean {
-    return location?.includes("integrations:");
+  private static isDedicatedIntegration(location: string): boolean {
+    // Hard-coded for now, because Zoom and Google Meet are both integrations, but one is dedicated, the other one isn't.
+    return location === "integrations:zoom";
   }
 
   /**
