@@ -111,13 +111,13 @@ export default class EventManager {
       },
     });
 
-    const isVideo = EventManager.isDedicatedIntegration(event.location);
+    const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
-    // First, update all calendar events. If this is a video event, don't send a mail right here.
-    const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isVideo);
+    // First, update all calendar events. If this is a dedicated event, don't send a mail right here.
+    const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isDedicated);
 
-    // If and only if event type is a video meeting, update the video meeting as well.
-    if (isVideo) {
+    // If and only if event type is a dedicated meeting, update the dedicated video meeting as well.
+    if (isDedicated) {
       results.push(await this.updateVideoEvent(event, booking));
     }
 
