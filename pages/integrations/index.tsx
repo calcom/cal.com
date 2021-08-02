@@ -16,6 +16,7 @@ import { Switch } from "@headlessui/react";
 
 export default function Home({ integrations }) {
   const [session, loading] = useSession();
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSelectCalendarModal, setShowSelectCalendarModal] = useState(false);
   const [selectableCalendars, setSelectableCalendars] = useState([]);
@@ -86,7 +87,11 @@ export default function Home({ integrations }) {
   useEffect(loadCalendars, [integrations]);
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return (
+      <div className="loader">
+        <span className="loader-inner"></span>
+      </div>
+    );
   }
 
   return (
