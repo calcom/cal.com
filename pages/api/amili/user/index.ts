@@ -6,7 +6,7 @@ import { User } from ".prisma/client";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createAmiliUser = async (req: NextApiRequest, res: NextApiResponse): Promise<User | any> => {
   const data = req.body;
-  const { password, email, healthCoachId, name } = data;
+  const { password, email, healthCoachId, name, bio } = data;
 
   // Check valid method
   if (req.method !== "POST") return;
@@ -28,6 +28,7 @@ const createAmiliUser = async (req: NextApiRequest, res: NextApiResponse): Promi
       username: healthCoachId,
       email,
       password: hashedPassword,
+      bio,
     },
   });
 
