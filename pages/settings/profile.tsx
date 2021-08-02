@@ -147,7 +147,8 @@ export default function Settings(props) {
                       id="timeZone"
                       value={selectedTimeZone}
                       onChange={setSelectedTimeZone}
-                      className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
+                      classNamePrefix="react-select"
+                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
                     />
                   </div>
                 </div>
@@ -160,7 +161,8 @@ export default function Settings(props) {
                       id="weekStart"
                       value={selectedWeekStartDay}
                       onChange={setSelectedWeekStartDay}
-                      className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
+                      classNamePrefix="react-select"
+                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
                       options={[
                         { value: "Sunday", label: "Sunday" },
                         { value: "Monday", label: "Monday" },

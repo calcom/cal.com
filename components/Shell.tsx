@@ -245,11 +245,8 @@ function UserDropdown({session, small, bottom} : {session: any, small?: boolean,
               <div className="py-1">
                 <a
                   href={"/" + session.user.username}
-                  className="flex px-4 py-2 text-sm text-neutral-500 pb-6">
-                  View public page <ExternalLinkIcon className="ml-1 w-4 h-4 text-neutral-400" />
-                  <span className="absolute top-8 text-neutral-900 font-medium">
-                    {window.location.hostname}/bailey
-                  </span>
+                  className="flex px-4 py-2 text-sm text-neutral-500">
+                  View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
                 </a>
               </div>
               <div className="py-1">

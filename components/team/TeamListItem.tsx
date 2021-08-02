@@ -46,10 +46,10 @@ export default function TeamListItem(props) {
           </button>
           <ul role="menu" className="z-10 origin-top-right absolute right-0 w-36 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
             <li className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900" role="menuitem">
-              <a className="block px-4 py-2" onClick={() => props.onActionSelect('invite')}>Invite member(s)</a>
+              <button className="block px-4 py-2" onClick={() => props.onActionSelect('invite')}>Invite members</button>
             </li>
             <li className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900" role="menuitem">
-              <a className="block px-4 py-2" onClick={() => props.onActionSelect('edit')}>Manage team</a>
+              <button className="block px-4 py-2" onClick={() => props.onActionSelect('edit')}>Manage team</button>
             </li>
           </ul>
         </Dropdown>
