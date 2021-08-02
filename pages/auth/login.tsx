@@ -10,7 +10,7 @@ export default function Login({ csrfToken }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <img className="h-6 mx-auto" src="/calendso-logo-word.svg" alt="Calendso Logo" />
+        <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Calendso Logo" />
         <h2 className="mt-6 text-center text-3xl font-bold text-neutral-900">Sign in to your account</h2>
       </div>
 
@@ -69,7 +69,10 @@ export default function Login({ csrfToken }) {
           </form>
         </div>
         <div className="mt-4 text-neutral-600 text-center text-sm">
-          Don&apos;t have an account? <a href="#" className="font-medium text-neutral-900">Create an account</a>
+          Don&apos;t have an account?{" "}
+          <a href="#" className="font-medium text-neutral-900">
+            Create an account
+          </a>
         </div>
       </div>
     </div>
