@@ -9,7 +9,6 @@ import {
   CalendarIcon,
   ClockIcon,
   PuzzleIcon,
-  SupportIcon,
   CogIcon,
   ChatAltIcon,
   LogoutIcon,
@@ -65,10 +64,6 @@ export default function Shell(props) {
       return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.pathname));
     });
   }, [telemetry]);
-
-  const logoutHandler = () => {
-    signOut({ redirect: false }).then(() => router.push("/auth/logout"));
-  };
 
   if (!loading && !session) {
     router.replace("/auth/login");
@@ -243,9 +238,7 @@ function UserDropdown({session, small, bottom} : {session: any, small?: boolean,
                 "w-64 z-10 absolute mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
               )}>
               <div className="py-1">
-                <a
-                  href={"/" + session.user.username}
-                  className="flex px-4 py-2 text-sm text-neutral-500">
+                <a href={"/" + session.user.username} className="flex px-4 py-2 text-sm text-neutral-500">
                   View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
                 </a>
               </div>
@@ -253,26 +246,42 @@ function UserDropdown({session, small, bottom} : {session: any, small?: boolean,
                 <Menu.Item>
                   {({ active }) => (
                     <a
-                      href="#"
+                      href="https://calendso.com/slack"
+                      target="_blank"
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
                         "flex px-4 py-2 text-sm font-medium"
                       )}>
-                      <SupportIcon
+                      <svg
+                        viewBox="0 0 2447.6 2452.5"
                         className={classNames(
                           "text-neutral-400 group-hover:text-neutral-500",
-                          "mr-2 flex-shrink-0 h-5 w-5"
+                          "mt-0.5 mr-3 flex-shrink-0 h-4 w-4"
                         )}
-                        aria-hidden="true"
-                      />
-                      Help
+                        xmlns="http://www.w3.org/2000/svg">
+                        <g clipRule="evenodd" fillRule="evenodd">
+                          <path
+                            d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
+                            fill="#9BA6B6"></path>
+                          <path
+                            d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
+                            fill="#9BA6B6"></path>
+                          <path
+                            d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
+                            fill="#9BA6B6"></path>
+                          <path
+                            d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
+                            fill="#9BA6B6"></path>
+                        </g>
+                      </svg>
+                      Join our Slack
                     </a>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ active }) => (
                     <a
-                      href="#"
+                      href="mailto:feedback@calendso.com"
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
                         "flex px-4 py-2 text-sm font-medium"
@@ -292,21 +301,22 @@ function UserDropdown({session, small, bottom} : {session: any, small?: boolean,
               <div className="py-1">
                 <Menu.Item>
                   {({ active }) => (
-                    <a
-                      href="#"
-                      className={classNames(
-                        active ? "bg-gray-100 text-gray-900" : "text-gray-700",
-                        "flex px-4 py-2 text-sm font-medium"
-                      )}>
-                      <LogoutIcon
+                    <Link href="/auth/logout">
+                      <a
                         className={classNames(
-                          "text-neutral-400 group-hover:text-neutral-500",
-                          "mr-2 flex-shrink-0 h-5 w-5"
-                        )}
-                        aria-hidden="true"
-                      />
-                      Sign out
-                    </a>
+                          active ? "bg-gray-100 text-gray-900" : "text-gray-700",
+                          "flex px-4 py-2 text-sm font-medium"
+                        )}>
+                        <LogoutIcon
+                          className={classNames(
+                            "text-neutral-400 group-hover:text-neutral-500",
+                            "mr-2 flex-shrink-0 h-5 w-5"
+                          )}
+                          aria-hidden="true"
+                        />
+                        Sign out
+                      </a>
+                    </Link>
                   )}
                 </Menu.Item>
               </div>
