@@ -182,7 +182,9 @@ export default function Shell(props) {
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center font-kollektif flex-shrink-0 px-4">
                 <h1 className="brand-logo font-kollektif inline">
-                  <strong>Calendso</strong>
+                  <strong>
+                    <img className="h-4 w-auto" alt="Calendso" title="Calendso" src="/calendso-logo-white-word.svg" />
+                  </strong>
                 </h1>
               </div>
               <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
