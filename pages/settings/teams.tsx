@@ -57,12 +57,7 @@ export default function Teams() {
   };
 
   return (
-    <Shell heading="Teams">
-      <div className="flex mb-8">
-        <p className="text-sm text-neutral-500">
-          Create and manage teams to use collaborative features.
-        </p>
-      </div>
+    <Shell heading="Teams" subtitle="Create and manage teams to use collaborative features.">
       <Head>
         <title>Teams | Calendso</title>
         <link rel="icon" href="/favicon.ico" />

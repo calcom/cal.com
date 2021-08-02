@@ -90,12 +90,7 @@ export default function Settings(props) {
   }
 
   return (
-    <Shell heading="Profile">
-      <div className="flex mb-8">
-        <p className="text-sm text-neutral-500">
-          Edit your profile information, which shows on your scheduling link.
-        </p>
-      </div>
+    <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
       <Head>
         <title>Profile | Calendso</title>
         <link rel="icon" href="/favicon.ico" />

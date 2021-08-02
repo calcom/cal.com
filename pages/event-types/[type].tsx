@@ -1135,7 +1135,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       enabled: credentials.find((integration) => integration.type === "google_calendar") != null,
       type: "google_calendar",
       title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.png",
+      imageSrc: "integrations/google-calendar.svg",
       description: "For personal and business accounts",
     },
     {
@@ -1143,7 +1143,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       type: "office365_calendar",
       enabled: credentials.find((integration) => integration.type === "office365_calendar") != null,
       title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/office-365.png",
+      imageSrc: "integrations/outlook.svg",
       description: "For personal and business accounts",
     },
   ];

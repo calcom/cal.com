@@ -3,26 +3,20 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
-import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
-import Avatar from "../../components/Avatar";
-import { signIn, useSession, getSession } from "next-auth/client";
-import TimezoneSelect from "react-timezone-select";
+import {  useSession, getSession } from "next-auth/client";
 
 export default function Embed(props) {
   const [session, loading] = useSession();
   const router = useRouter();
 
   if (loading) {
-    return <div className="loader"></div>;
+    return <div className="loader"><span className="loader-inner"></span></div>;
   }
 
   return (
-    <Shell heading="Embed">
-      <div className="flex mb-8">
-        <p className="text-sm text-neutral-500">Integrate with your website using our embed options.</p>
-      </div>
+    <Shell heading="Embed" subtitle="Integrate with your website using our embed options.">
       <Head>
         <title>Embed | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
@@ -30,7 +24,7 @@ export default function Embed(props) {
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">Iframe Embed</h2>
+            <h2 className="text-lg leading-6 font-medium text-gray-900">iframe Embed</h2>
             <p className="mt-1 text-sm text-gray-500">The easiest way to embed Calendso on your website.</p>
           </div>
           <div className="grid grid-cols-2 space-x-4">

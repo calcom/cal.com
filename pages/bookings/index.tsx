@@ -31,12 +31,7 @@ export default function Bookings({ bookings }) {
         <title>Bookings | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading="Bookings">
-        <div className="flex mb-8">
-          <p className="text-sm text-neutral-500">
-            See upcoming and past events booked through your event type links.
-          </p>
-        </div>
+      <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
         <div className="flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -67,7 +62,9 @@ export default function Bookings({ bookings }) {
                               "px-6 py-4 max-w-20 w-full" + (booking.rejected ? " line-through" : "")
                             }>
                             <div className="text-sm text-neutral-900 font-medium">{booking.title}</div>
-                            <div className="text-sm text-neutral-500">You and {booking.attendees[0].name}</div>
+                            <div className="text-sm text-neutral-500">
+                              You and {booking.attendees[0].name}
+                            </div>
                           </td>
                           {/* <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">

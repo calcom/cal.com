@@ -18,7 +18,7 @@ export default function SettingsShell(props) {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl">
       <div>
         <div className="sm:hidden">
           <label htmlFor="tabs" className="sr-only">

@@ -14,7 +14,7 @@ export default function Settings(props) {
   const newPasswordRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <div className="loader"></div>;
+    return <div className="loader"><span className="loader-inner"></span></div>;
   }
 
   const closeSuccessModal = () => {
@@ -41,10 +41,7 @@ export default function Settings(props) {
   }
 
   return (
-    <Shell heading="Password">
-      <div className="flex mb-8">
-        <p className="text-sm text-neutral-500">Change the password that you use to sign in.</p>
-      </div>
+    <Shell heading="Password" subtitle="Change the password that you use to sign in.">
       <Head>
         <title>Change Password | Calendso</title>
         <link rel="icon" href="/favicon.ico" />

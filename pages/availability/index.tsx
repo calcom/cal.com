@@ -28,7 +28,7 @@ export default function Availability(props) {
   const bufferMinsRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <div className="loader"></div>;
+    return <div className="loader"><span className="loader-inner"></span></div>;
   }
 
   function toggleAddModal() {
@@ -117,11 +117,11 @@ export default function Availability(props) {
         <title>Availability | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading="Availability">
-        <div className="flex mb-8">
-          <p className="text-sm text-neutral-500">Configure times when you are available for bookings.</p>
-        </div>
+      <Shell
+        heading="Availability"
+        subtitle="Configure times when you are available for bookings.
 
+">
         <div className="flex">
           <div className="w-1/2 mr-2 bg-white shadow rounded-sm">
             <div className="px-4 py-5 sm:p-6">

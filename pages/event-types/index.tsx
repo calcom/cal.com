@@ -65,7 +65,7 @@ export default function Availability({ user, types }) {
   }
 
   if (loading) {
-    return <div className="loader"></div>;
+    return <div className="loader"><span className="loader-inner"></span></div>;
   }
 
   return (
@@ -74,18 +74,17 @@ export default function Availability({ user, types }) {
         <title>Event Types | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading="Event Types">
-        <div className="flex mb-8">
-          <p className="text-sm text-neutral-500">
-            Create events to share for people to book on your calendar.
-          </p>
-        </div>
-        <button
-          onClick={toggleAddModal}
-          className="absolute top-8 right-8 flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-          <PlusIcon className="w-5 h-5 mr-1" />
-          New event type
-        </button>
+      <Shell
+        heading="Event Types"
+        subtitle="Create events to share for people to book on your calendar."
+        CTA={
+          <button
+            onClick={toggleAddModal}
+            className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+            <PlusIcon className="w-5 h-5 mr-1" />
+            New event type
+          </button>
+        }>
         <div className="bg-white shadow overflow-hidden sm:rounded-sm">
           <ul className="divide-y divide-neutral-200">
             {types.map((type) => (

@@ -71,9 +71,9 @@ export default function Home({ integrations }) {
   function getCalendarIntegrationImage(integrationType: string) {
     switch (integrationType) {
       case "google_calendar":
-        return "integrations/google-calendar.png";
+        return "integrations/google-calendar.svg";
       case "office365_calendar":
-        return "integrations/office-365.png";
+        return "integrations/outlook.svg";
       default:
         return "";
     }
@@ -86,7 +86,7 @@ export default function Home({ integrations }) {
   useEffect(loadCalendars, [integrations]);
 
   if (loading) {
-    return <div className="loader"></div>;
+    return <div className="loader"><span className="loader-inner"></span></div>;
   }
 
   return (
@@ -96,10 +96,10 @@ export default function Home({ integrations }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Shell heading="Integrations" noPaddingBottom>
-        <div className="flex">
-          <p className="text-sm text-neutral-500">Connect your favourite apps.</p>
-        </div>
+      <Shell
+        heading="Integrations"
+        subtitle="Connect your favourite apps."
+        noPaddingBottom>
         <div className="text-right py-2">
           <button
             onClick={toggleAddModal}
@@ -434,7 +434,7 @@ export async function getServerSideProps(context) {
       credential: credentials.find((integration) => integration.type === "google_calendar") || null,
       type: "google_calendar",
       title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.png",
+      imageSrc: "integrations/google-calendar.svg",
       description: "For personal and business calendars",
     },
     {
@@ -442,7 +442,7 @@ export async function getServerSideProps(context) {
       type: "office365_calendar",
       credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
       title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/office-365.png",
+      imageSrc: "integrations/outlook.svg",
       description: "For personal and business calendars",
     },
     {
@@ -450,7 +450,7 @@ export async function getServerSideProps(context) {
       type: "zoom_video",
       credential: credentials.find((integration) => integration.type === "zoom_video") || null,
       title: "Zoom",
-      imageSrc: "integrations/zoom.png",
+      imageSrc: "integrations/zoom.svg",
       description: "Video Conferencing",
     },
   ];
