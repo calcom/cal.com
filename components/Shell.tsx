@@ -145,40 +145,40 @@ export default function Shell(props) {
             </div>
             <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
 
+            {/* show bottom navigation for md and smaller (tablet and phones) */}
+            <nav className="md:hidden flex fixed bottom-0 bg-white w-full rounded-lg shadow">
+              {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
+              {navigation.flatMap((item, itemIdx) =>
+                item.name === "Settings" ? (
+                  []
+                ) : (
+                  <Link key={item.name} href={item.href}>
+                    <a
+                      className={classNames(
+                        item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
+                        itemIdx === 0 ? "rounded-l-lg" : "",
+                        itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
+                        "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
+                      )}
+                      aria-current={item.current ? "page" : undefined}>
+                      <item.icon
+                        className={classNames(
+                          item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
+                          "block mx-auto flex-shrink-0 h-5 w-5 mb-1 text-center"
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span>{item.name}</span>
+                    </a>
+                  </Link>
+                )
+              )}
+            </nav>
+
             {/* add padding to content for mobile navigation*/}
             <div className="block md:hidden pt-12" />
           </div>
         </main>
-
-        {/* show bottom navigation for md and smaller (tablet and phones) */}
-        <nav className="md:hidden flex fixed bottom-0 bg-white w-full rounded-lg shadow">
-          {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-          {navigation.flatMap((item, itemIdx) =>
-            item.name === "Settings" ? (
-              []
-            ) : (
-              <Link key={item.name} href={item.href}>
-                <a
-                  className={classNames(
-                    item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
-                    itemIdx === 0 ? "rounded-l-lg" : "",
-                    itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                    "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
-                  )}
-                  aria-current={item.current ? "page" : undefined}>
-                  <item.icon
-                    className={classNames(
-                      item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                      "block mx-auto flex-shrink-0 h-5 w-5 mb-1 text-center"
-                    )}
-                    aria-hidden="true"
-                  />
-                  <span>{item.name}</span>
-                </a>
-              </Link>
-            )
-          )}
-        </nav>
       </div>
     </div>
   ) : null;
