@@ -69,8 +69,8 @@ export default function Login({ csrfToken }) {
           </form>
         </div>
         <div className="mt-4 text-neutral-600 text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <a href="#" className="font-medium text-neutral-900">
+          Don&apos;t have an account? {/* replace this with your account creation flow */}
+          <a href="https://checkout.calendso.com" className="font-medium text-neutral-900">
             Create an account
           </a>
         </div>
