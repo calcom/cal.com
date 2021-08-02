@@ -50,12 +50,9 @@ export default function Troubleshoot({ user }) {
         <title>Troubleshoot | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading="Troubleshoot">
-        <div className="flex mb-8">
-          <p className="text-sm text-neutral-500">
-            Understand why certain times are available and others are blocked.
-          </p>
-        </div>
+      <Shell
+        heading="Troubleshoot"
+        subtitle="Understand why certain times are available and others are blocked.">
         <div className="bg-white max-w-md overflow-hidden shadow rounded-sm">
           <div className="px-4 py-5 sm:p-6">
             Here is an overview of your day on {selectedDate.format("D MMMM YYYY")}:
@@ -83,7 +80,11 @@ export default function Troubleshoot({ user }) {
                   </div>
                 </div>
               ))}
-              {availability.length === 0 && <div className="loader"><span className="loader-inner"></span></div>}
+              {availability.length === 0 && (
+                <div className="loader">
+                  <span className="loader-inner"></span>
+                </div>
+              )}
               <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
                   Your day ends at {convertMinsToHrsMins(user.endTime)}

@@ -104,12 +104,11 @@ export default function Home({ integrations }) {
       <Shell
         heading="Integrations"
         subtitle="Connect your favourite apps."
-        noPaddingBottom
         CTA={
           <button
             onClick={toggleAddModal}
             type="button"
-            className="absolute top-8 right-8 flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+            className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
             <PlusIcon className="w-5 h-5 mr-1" />
             Add new integration
           </button>
