@@ -39,8 +39,8 @@ export default function SettingsShell(props) {
 
   return (
     <div className="max-w-6xl">
-      <div className="sm:mx-auto -mx-4">
-        <nav className="-mb-px flex space-x-2 sm:space-x-8 px-4 sm:px-0 " aria-label="Tabs">
+      <div className="sm:mx-auto">
+        <nav className="-mb-px flex space-x-2 sm:space-x-8" aria-label="Tabs">
           {tabs.map((tab) => (
             <Link key={tab.name} href={tab.href}>
               <a
