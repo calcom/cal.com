@@ -77,7 +77,7 @@ export default function Shell(props) {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <Link href="/">
+              <Link href="/event-types">
                 <a className="px-4">
                   <Logo small />
                 </a>
@@ -114,7 +114,7 @@ export default function Shell(props) {
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
         {/* show top navigation for md and smaller (tablet and phones) */}
         <nav className="md:hidden bg-white shadow p-4 flex justify-between items-center">
-          <Link href="/">
+          <Link href="/event-types">
             <a>
               <Logo />
             </a>
