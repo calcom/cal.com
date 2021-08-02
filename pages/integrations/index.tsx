@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Switch } from "@headlessui/react";
+import Loader from '@components/Loader';
 
 export default function Home({ integrations }) {
   const [session, loading] = useSession();
@@ -88,9 +89,7 @@ export default function Home({ integrations }) {
 
   if (loading) {
     return (
-      <div className="loader">
-        <span className="loader-inner"></span>
-      </div>
+      <Loader/>
     );
   }
 

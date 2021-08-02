@@ -6,7 +6,8 @@ import Shell from "../../components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
-import { ClockIcon, PlusIcon } from "@heroicons/react/outline";
+import { ClockIcon } from "@heroicons/react/outline";
+import Loader from '@components/Loader';
 
 export default function Availability(props) {
   const [session, loading] = useSession();
@@ -28,7 +29,7 @@ export default function Availability(props) {
   const bufferMinsRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return <Loader/>;
   }
 
   function toggleAddModal() {

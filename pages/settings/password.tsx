@@ -5,7 +5,8 @@ import prisma from "../../lib/prisma";
 import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
-import { signIn, useSession, getSession } from "next-auth/client";
+import { useSession, getSession } from "next-auth/client";
+import Loader from '@components/Loader';
 
 export default function Settings(props) {
   const [session, loading] = useSession();
@@ -14,7 +15,7 @@ export default function Settings(props) {
   const newPasswordRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return <Loader/>;
   }
 
   const closeSuccessModal = () => {

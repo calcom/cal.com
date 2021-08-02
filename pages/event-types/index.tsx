@@ -20,6 +20,7 @@ import {
   PlusIcon,
   UserIcon,
 } from "@heroicons/react/solid";
+import Loader from '@components/Loader';
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();
@@ -65,7 +66,7 @@ export default function Availability({ user, types }) {
   }
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return <Loader/>;
   }
 
   return (

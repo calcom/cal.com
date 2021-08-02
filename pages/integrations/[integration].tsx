@@ -5,6 +5,7 @@ import Shell from "../../components/Shell";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, getSession } from "next-auth/client";
+import Loader from '@components/Loader';
 
 export default function integration(props) {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function integration(props) {
   const [showAPIKey, setShowAPIKey] = useState(false);
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return <Loader/>;
   }
 
   function toggleShowAPIKey() {

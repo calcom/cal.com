@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
 import prisma from "@lib/prisma";
+import Loader from '@components/Loader';
 dayjs.extend(utc);
 
 export default function Troubleshoot({ user }) {
@@ -14,7 +15,7 @@ export default function Troubleshoot({ user }) {
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return <Loader/>;
   }
 
   function convertMinsToHrsMins(mins) {
@@ -80,11 +81,7 @@ export default function Troubleshoot({ user }) {
                   </div>
                 </div>
               ))}
-              {availability.length === 0 && (
-                <div className="loader">
-                  <span className="loader-inner"></span>
-                </div>
-              )}
+              {availability.length === 0 && <Loader />}
               <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
                   Your day ends at {convertMinsToHrsMins(user.endTime)}

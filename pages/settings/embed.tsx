@@ -6,13 +6,13 @@ import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
 import {  useSession, getSession } from "next-auth/client";
+import Loader from '@components/Loader';
 
 export default function Embed(props) {
   const [session, loading] = useSession();
-  const router = useRouter();
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return <Loader/>;
   }
 
   return (
