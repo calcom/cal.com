@@ -101,11 +101,11 @@ export default function Settings(props) {
           <div className="py-6 lg:pb-8">
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
-                <div className="flex">
-                  <div className="w-1/2 mr-2">
+                <div className="block sm:flex">
+                  <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
                     <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
                   </div>
-                  <div className="w-1/2 ml-2">
+                  <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       Full name
                     </label>
