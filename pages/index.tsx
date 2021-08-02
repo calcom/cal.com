@@ -1,16 +1,19 @@
-export default function Home() {
-  return (
-    <div className="loader">
-      <span className="loader-inner"></span>
-    </div>
-  );
+import { useRouter } from "next/router";
+
+function RedirectPage() {
+  const router = useRouter();
+  if (typeof window !== "undefined") {
+    router.push("/event-types");
+    return;
+  }
 }
 
-export async function getStaticProps() {
-  return {
-    redirect: {
-      destination: "/event-types",
-      permanent: false,
-    },
-  };
-}
+RedirectPage.getInitialProps = (ctx) => {
+  if (ctx.res) {
+    ctx.res.writeHead(302, { Location: "/event-types" });
+    ctx.res.end();
+  }
+  return {};
+};
+
+export default RedirectPage;
