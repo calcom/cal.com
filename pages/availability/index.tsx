@@ -6,19 +6,19 @@ import Shell from "../../components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
-import { ClockIcon, PlusIcon } from "@heroicons/react/outline";
+import { ClockIcon } from "@heroicons/react/outline";
 
 export default function Availability(props) {
   const [, loading] = useSession();
   const router = useRouter();
-  const [showAddModal, setShowAddModal] = useState(false);
+  // const [showAddModal, setShowAddModal] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-  const isHiddenRef = useRef<HTMLInputElement>();
+  // const titleRef = useRef<HTMLInputElement>();           Everything is unused
+  // const slugRef = useRef<HTMLInputElement>();
+  // const descriptionRef = useRef<HTMLTextAreaElement>();
+  // const lengthRef = useRef<HTMLInputElement>();
+  // const isHiddenRef = useRef<HTMLInputElement>();
 
   const startHoursRef = useRef<HTMLInputElement>();
   const startMinsRef = useRef<HTMLInputElement>();
@@ -28,12 +28,16 @@ export default function Availability(props) {
   const bufferMinsRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <div className="loader"></div>;
+    return (
+      <div className="loader">
+        <span className="loader-inner"></span>
+      </div>
+    );
   }
 
-  function toggleAddModal() {
-    setShowAddModal(!showAddModal);
-  }
+  // function toggleAddModal() {            Unused as well
+  //   setShowAddModal(!showAddModal);
+  // }
 
   function toggleChangeTimesModal() {
     setShowChangeTimesModal(!showChangeTimesModal);
@@ -52,6 +56,9 @@ export default function Availability(props) {
     return `${h}:${m}`;
   }
 
+  /*
+  Currently unused, so it's commented out.
+
   async function createEventTypeHandler(event) {
     event.preventDefault();
 
@@ -63,7 +70,7 @@ export default function Availability(props) {
 
     // TODO: Add validation
 
-    await fetch("/api/availability/eventtype", {
+    const response = await fetch("/api/availability/eventtype", {
       method: "POST",
       body: JSON.stringify({
         title: enteredTitle,
@@ -82,7 +89,7 @@ export default function Availability(props) {
       toggleAddModal();
     }
   }
-
+  */
   async function updateStartEndTimesHandler(event) {
     event.preventDefault();
 
@@ -117,78 +124,13 @@ export default function Availability(props) {
         <title>Availability | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading="Availability">
-        <div className="mb-4 sm:flex sm:items-center sm:justify-between">
-          <h3 className="text-lg leading-6 font-medium text-white">Event Types</h3>
-          <div className="mt-3 sm:mt-0 sm:ml-4">
-            <button onClick={toggleAddModal} type="button" className="btn-sm btn-white">
-              New event type
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-col mb-8">
-          <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="py-2 align-middle inline-block max-w-full min-w-full sm:px-6 lg:px-8">
-              <div className="shadow overflow-hidden border-b border-gray-200 rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Description
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Length
-                      </th>
-                      <th scope="col" className="relative px-6 py-3">
-                        <span className="sr-only">Edit</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {props.types.map((eventType) => (
-                      <tr key={eventType.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top">
-                          {eventType.title}
-                          {eventType.hidden && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                              Hidden
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 align-top">{eventType.description}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 align-top">
-                          {eventType.length} minutes
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium align-top">
-                          <Link href={"/" + props.user.username + "/" + eventType.slug}>
-                            <a target="_blank" className="text-blue-600 hover:text-blue-900 mr-2">
-                              View
-                            </a>
-                          </Link>
-                          <Link href={"/availability/event/" + eventType.id}>
-                            <a className="text-blue-600 hover:text-blue-900">Edit</a>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+      <Shell
+        heading="Availability"
+        subtitle="Configure times when you are available for bookings.
 
+">
         <div className="flex">
-          <div className="w-1/2 mr-2 bg-white shadow rounded-lg">
+          <div className="w-1/2 mr-2 bg-white shadow rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Change the start and end times of your day
@@ -207,7 +149,7 @@ export default function Availability(props) {
             </div>
           </div>
 
-          <div className="w-1/2 ml-2 bg-white shadow rounded-lg">
+          <div className="w-1/2 ml-2 bg-white shadow rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Something doesn&apos;t look right?
@@ -223,143 +165,6 @@ export default function Availability(props) {
             </div>
           </div>
         </div>
-        {showAddModal && (
-          <div
-            className="fixed z-10 inset-0 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
-
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-
-              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start mb-4">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <PlusIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Add a new event type
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-500">
-                        Create a new event type for people to book times with.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <form onSubmit={createEventTypeHandler}>
-                  <div>
-                    <div className="mb-4">
-                      <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                        Title
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          ref={titleRef}
-                          type="text"
-                          name="title"
-                          id="title"
-                          required
-                          className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="Quick Chat"
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                        URL
-                      </label>
-                      <div className="mt-1">
-                        <div className="flex rounded-md shadow-sm">
-                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                            {location.hostname}/{props.user.username}/
-                          </span>
-                          <input
-                            ref={slugRef}
-                            type="text"
-                            name="slug"
-                            id="slug"
-                            required
-                            className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                        Description
-                      </label>
-                      <div className="mt-1">
-                        <textarea
-                          ref={descriptionRef}
-                          name="description"
-                          id="description"
-                          className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="A quick video meeting."></textarea>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="length" className="block text-sm font-medium text-gray-700">
-                        Length
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <input
-                          ref={lengthRef}
-                          type="number"
-                          name="length"
-                          id="length"
-                          required
-                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
-                          placeholder="15"
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
-                          minutes
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="my-8">
-                    <div className="relative flex items-start">
-                      <div className="flex items-center h-5">
-                        <input
-                          ref={isHiddenRef}
-                          id="ishidden"
-                          name="ishidden"
-                          type="checkbox"
-                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                        />
-                      </div>
-                      <div className="ml-3 text-sm">
-                        <label htmlFor="ishidden" className="font-medium text-gray-700">
-                          Hide this event type
-                        </label>
-                        <p className="text-gray-500">
-                          Hide the event type from your page, so it can only be booked through it&apos;s URL.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* TODO: Add an error message when required input fields empty*/}
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      Create
-                    </button>
-                    <button onClick={toggleAddModal} type="button" className="btn btn-white mr-2">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
         {showChangeTimesModal && (
           <div
             className="fixed z-10 inset-0 overflow-y-auto"
@@ -375,10 +180,10 @@ export default function Availability(props) {
                 &#8203;
               </span>
 
-              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div className="sm:flex sm:items-start mb-4">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <ClockIcon className="h-6 w-6 text-blue-600" />
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <ClockIcon className="h-6 w-6 text-neutral-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
@@ -403,7 +208,7 @@ export default function Availability(props) {
                         type="number"
                         name="hours"
                         id="hours"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="9"
                         defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[0]}
                       />
@@ -418,7 +223,7 @@ export default function Availability(props) {
                         type="number"
                         name="minutes"
                         id="minutes"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="30"
                         defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[1]}
                       />
@@ -435,7 +240,7 @@ export default function Availability(props) {
                         type="number"
                         name="hours"
                         id="hours"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="17"
                         defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[0]}
                       />
@@ -450,7 +255,7 @@ export default function Availability(props) {
                         type="number"
                         name="minutes"
                         id="minutes"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="30"
                         defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[1]}
                       />
@@ -467,7 +272,7 @@ export default function Availability(props) {
                         type="number"
                         name="hours"
                         id="hours"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="0"
                         defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[0]}
                       />
@@ -482,7 +287,7 @@ export default function Availability(props) {
                         type="number"
                         name="minutes"
                         id="minutes"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="10"
                         defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[1]}
                       />

@@ -42,7 +42,7 @@ export default function SetTimesModal(props) {
         <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div className="sm:flex sm:items-start mb-4">
             <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-              <ClockIcon className="h-6 w-6 text-blue-600" />
+              <ClockIcon className="h-6 w-6 text-black" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
@@ -67,7 +67,7 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="hours"
                 id="startHours"
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="9"
                 defaultValue={startHours}
               />
@@ -86,7 +86,7 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="minutes"
                 id="startMinutes"
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="30"
                 defaultValue={startMinutes}
               />
@@ -106,7 +106,7 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="hours"
                 id="endHours"
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="17"
                 defaultValue={endHours}
               />
@@ -125,7 +125,7 @@ export default function SetTimesModal(props) {
                 step="15"
                 name="minutes"
                 id="endMinutes"
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="30"
                 defaultValue={endMinutes}
               />

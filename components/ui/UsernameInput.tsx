@@ -7,7 +7,7 @@ const UsernameInput = React.forwardRef((props, ref) => (
       Username
     </label>
     <div className="mt-1 rounded-md shadow-sm flex">
-      <span className="bg-gray-50 border border-r-0 border-gray-300 rounded-l-md px-3 inline-flex items-center text-gray-500 sm:text-sm">
+      <span className="bg-gray-50 border border-r-0 border-gray-300 rounded-l-sm px-3 inline-flex items-center text-gray-500 sm:text-sm">
         {typeof window !== "undefined" && window.location.hostname}/
       </span>
       <input
@@ -18,7 +18,7 @@ const UsernameInput = React.forwardRef((props, ref) => (
         autoComplete="username"
         required
         {...props}
-        className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300 lowercase"
+        className="focus:ring-black focus:border-black flex-grow block w-full min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300 lowercase"
       />
     </div>
   </div>
