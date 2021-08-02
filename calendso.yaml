@@ -341,19 +341,41 @@ paths:
       responses:
         '201':
           description: coach user response
-          content: 
-            'application/json': {}
-            'application/xml': {}
+          content:
+            'application/json':
+              schema:
+                properties:
+                  id:
+                    description: userId
+                    type: string
+                  name:
+                    description: fullname
+                    type: string
+                  email:
+                    description: email
+                    type: string
+                  username:
+                    description: userId
+                    type: string
+                  bio:
+                    description: description
+                    type: string
+                  timeZone:
+                    description: timeZone
+                    type: string
         '405':
           description: Method Not Allowed
-          content: 
+          content:
             'application/json': {}
-            'application/xml': {}
         '409':
           description: Email address is already registered
           content:
-            'application/json': {}
-            'application/xml': {}
+            'application/json':
+              schema:
+                properties:
+                  message:
+                    description: Email address is already registered
+                    type: string
   /api/amili/user/:userId:
     patch:
       requestBody:
@@ -377,16 +399,38 @@ paths:
       responses:
         '200':
           description: coach user response
-          content: 
-            'application/json': {}
-            'application/xml': {}
+          content:
+            'application/json':
+              schema:
+                properties:
+                  id:
+                    description: userId
+                    type: string
+                  name:
+                    description: fullname
+                    type: string
+                  email:
+                    description: email
+                    type: string
+                  username:
+                    description: userId
+                    type: string
+                  bio:
+                    description: description
+                    type: string
+                  timeZone:
+                    description: timeZone
+                    type: string
         '405':
           description: Method Not Allowed
-          content: 
+          content:
             'application/json': {}
-            'application/xml': {}
         '404':
           description: UserId is not found
           content:
-            'application/json': {}
-            'application/xml': {}
+            'application/json':
+              schema:
+                properties:
+                  message:
+                    description: UserId is not found
+                    type: string
