@@ -33,7 +33,7 @@ const updateHealthCoach = async (req: NextApiRequest, res: NextApiResponse): Pro
     },
   });
 
-  return user;
+  return res.status(200).json({ user });
 };
 
 export default updateHealthCoach;

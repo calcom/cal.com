@@ -31,7 +31,7 @@ const createAmiliUser = async (req: NextApiRequest, res: NextApiResponse): Promi
     },
   });
 
-  return user;
+  return res.status(201).json({ user });
 };
 
 export default createAmiliUser;
