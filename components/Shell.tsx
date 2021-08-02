@@ -2,9 +2,9 @@ import Link from "next/link";
 import React, { Fragment, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/client";
-import { Menu, Transition  } from "@headlessui/react";
+import { Menu, Transition } from "@headlessui/react";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../lib/telemetry";
-import {  SelectorIcon} from "@heroicons/react/outline";
+import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
   ClockIcon,
@@ -77,9 +77,11 @@ export default function Shell(props) {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="flex items-center flex-shrink-0 px-4">
-                <Logo small />
-              </div>
+              <Link href="/">
+                <a className="px-4">
+                  <Logo small />
+                </a>
+              </Link>
               <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
                 {navigation.map((item) => (
                   <Link key={item.name} href={item.href}>
@@ -182,7 +184,7 @@ export default function Shell(props) {
   ) : null;
 }
 
-function UserDropdown({session, small, bottom} : {session: any, small?: boolean, bottom?: boolean}){
+function UserDropdown({ session, small, bottom }: { session: any; small?: boolean; bottom?: boolean }) {
   return (
     <Menu as="div" className="w-full relative inline-block text-left">
       {({ open }) => (
@@ -248,6 +250,7 @@ function UserDropdown({session, small, bottom} : {session: any, small?: boolean,
                     <a
                       href="https://calendso.com/slack"
                       target="_blank"
+                      rel="noreferrer"
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
                         "flex px-4 py-2 text-sm font-medium"
