@@ -9,7 +9,7 @@ const createAmiliUser = async (req: NextApiRequest, res: NextApiResponse): Promi
   const { password, email, healthCoachId, name, bio } = data;
 
   // Check valid method
-  if (req.method !== "POST") return;
+  if (req.method !== "POST") res.status(405).json({});
 
   // Check valid email
   const existingUser = await prisma.user.findFirst({

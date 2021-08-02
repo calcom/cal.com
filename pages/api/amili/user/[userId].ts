@@ -14,7 +14,7 @@ const updateHealthCoach = async (req: NextApiRequest, res: NextApiResponse): Pro
   if (timeZone) updateData["timeZone"] = timeZone;
 
   // Check valid method
-  if (req.method !== "PATCH") return;
+  if (req.method !== "PATCH") res.status(405).json({});
 
   // Check valid email
   const existingUser = await prisma.user.findFirst({
