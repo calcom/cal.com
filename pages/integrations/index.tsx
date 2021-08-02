@@ -16,6 +16,7 @@ import { Switch } from "@headlessui/react";
 
 export default function Home({ integrations }) {
   const [session, loading] = useSession();
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSelectCalendarModal, setShowSelectCalendarModal] = useState(false);
   const [selectableCalendars, setSelectableCalendars] = useState([]);
@@ -86,7 +87,11 @@ export default function Home({ integrations }) {
   useEffect(loadCalendars, [integrations]);
 
   if (loading) {
-    return <div className="loader"><span className="loader-inner"></span></div>;
+    return (
+      <div className="loader">
+        <span className="loader-inner"></span>
+      </div>
+    );
   }
 
   return (
@@ -99,8 +104,8 @@ export default function Home({ integrations }) {
       <Shell
         heading="Integrations"
         subtitle="Connect your favourite apps."
-        noPaddingBottom>
-        <div className="text-right py-2">
+        noPaddingBottom
+        CTA={
           <button
             onClick={toggleAddModal}
             type="button"
@@ -108,7 +113,7 @@ export default function Home({ integrations }) {
             <PlusIcon className="w-5 h-5 mr-1" />
             Add new integration
           </button>
-        </div>
+        }>
         <div className="bg-white shadow overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">

@@ -113,7 +113,7 @@ export default function Page({ csrfToken }) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
+                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
                       loading ? "cursor-not-allowed" : ""
                     }`}>
                     {loading && (
@@ -142,7 +142,7 @@ export default function Page({ csrfToken }) {
                   <Link href="/auth/login">
                     <button
                       type="button"
-                      className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                      className="w-full flex justify-center py-2 px-4 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                       Login
                     </button>
                   </Link>

@@ -40,10 +40,7 @@ export default function integration(props) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Shell heading={getIntegrationName(props.integration.type)}>
-        <div className="flex mb-8">
-          <p className="text-sm text-neutral-500">Manage and delete integrations.</p>
-        </div>
+      <Shell heading={getIntegrationName(props.integration.type)} subtitle="Manage and delete integrations.">
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2 bg-white shadow overflow-hidden rounded-sm">
             <div className="px-4 py-5 sm:px-6">
