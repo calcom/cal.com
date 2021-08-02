@@ -61,7 +61,7 @@ export default function Settings(props) {
                     name="current_password"
                     id="current_password"
                     required
-                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="Your old password"
                   />
                 </div>
@@ -77,7 +77,7 @@ export default function Settings(props) {
                     name="new_password"
                     id="new_password"
                     required
-                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="Your super secure new password"
                   />
                 </div>
@@ -87,7 +87,7 @@ export default function Settings(props) {
             <div className="py-4 flex justify-end">
               <button
                 type="submit"
-                className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 Save
               </button>
             </div>

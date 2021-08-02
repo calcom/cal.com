@@ -81,6 +81,59 @@
     }
 }
 
+/* !important to override react-select */
+.react-select__value-container{
+    border: 0 !important;
+}
+
+.react-select__input input {
+    border: 0 !important; box-shadow: none !important;
+}
+
+.react-select__option--is-focused{
+    background: #000 !important;
+    color: #fff !important
+}
+
+.react-select__control{
+    border: 2px solid transparent !important;
+    box-shadow: none !important;
+}
+
+.react-select__control.react-select__control--is-focused{
+        border: 2px solid #000 !important;
+        border-color: #000 !important;
+        box-shadow: none !important;
+            margin: -1px;
+            padding: 1px;
+
+}
+
+/* !important to override react-dates */
+.DateRangePickerInput__withBorder{
+    border: 0 !important
+}
+.DateInput_input{
+  border: 1px solid #D1D5DB !important;
+  border-radius: 2px !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: #000;
+  padding: 11px ​11px 9px !important;
+  line-height: 16px !important;
+}
+
+.DateInput_input__focused{
+  border: 2px solid #000 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  padding: 10px ​10px 9px !important;
+}
+
+.DateRangePickerInput_arrow{
+    padding: 0px 10px;
+}
+
 .loader {
   display: block;
   width: 30px;
@@ -184,22 +237,7 @@ body {
     box-shadow: none;
 }
 
-.weekdaySelect {
-    font-family: "Courier New", sans-serif;
-}
-
-.weekdaySelect button.active:first-child {
-    margin-left: -1px !important;
-}
-
-.weekdaySelect button:not(.active) {
-    padding-left: calc(0.5rem + 0px);
-    margin-right: 1px;
-}
-
-.weekdaySelect button.active + button.active {
-    border-color: rgba(3, 169, 244, var(--tw-border-opacity))
-                  rgba(3, 169, 244, var(--tw-border-opacity))
-                  rgba(3, 169, 244, var(--tw-border-opacity))
-                  white;
+.weekdaySelect button.active {
+    background: #000;
+    color: #fff;
 }

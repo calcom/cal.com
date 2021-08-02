@@ -82,7 +82,7 @@ export default function EditTeamModal(props) {
             <div className="mb-4 border border-red-400 rounded p-2 px-4">
               <p className="block text-sm font-medium text-gray-700">Tick the box to disband this team.</p>
               <label className="mt-1">
-                <input type="checkbox" onChange={(e) => setCheckedDisbandTeam(e.target.checked)} className="shadow-sm mr-2 focus:ring-blue-500 focus:border-blue-500  sm:text-sm border-gray-300 rounded-md" />
+                <input type="checkbox" onChange={(e) => setCheckedDisbandTeam(e.target.checked)} className="shadow-sm mr-2 focus:ring-black focus:border-black  sm:text-sm border-gray-300 rounded-md" />
                 Disband this team
               </label>
             </div>

@@ -69,10 +69,13 @@ export const Scheduler = ({
   };
 
   const OpeningHours = ({ idx, item }) => (
-    <li className="py-2 flex justify-between border-t">
-      <div className="flex flex-col space-y-4 lg:inline-flex ml-2 ">
+    <li className="py-2 flex justify-between border-b">
+      <div className="flex flex-col space-y-4 lg:inline-flex">
         <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
-        <button className="ml-2 text-sm px-2" type="button" onClick={() => setEditSchedule(idx)}>
+        <button
+          className="text-sm bg-neutral-100 rounded-sm py-2 px-3"
+          type="button"
+          onClick={() => setEditSchedule(idx)}>
           {dayjs()
             .startOf("day")
             .add(item.startTime, "minutes")
@@ -106,7 +109,7 @@ export const Scheduler = ({
                 id="timeZone"
                 value={selectedTimeZone}
                 onChange={(tz) => setTimeZone(tz.value)}
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
               />
             </div>
           </div>
@@ -115,8 +118,7 @@ export const Scheduler = ({
               <OpeningHours key={idx} idx={idx} item={item} />
             ))}
           </ul>
-          <hr />
-          <button type="button" onClick={addNewSchedule} className="btn-white btn-sm m-2">
+          <button type="button" onClick={addNewSchedule} className="btn-white btn-sm mt-2">
             Add another
           </button>
         </div>

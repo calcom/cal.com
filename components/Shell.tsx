@@ -123,7 +123,7 @@ export default function Shell(props) {
             </a>
           </Link>
           <div className="flex gap-3 items-center self-center">
-            <button className="bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button className="bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
               <span className="sr-only">View notifications</span>
               <Link href="/settings/profile">
                 <a>

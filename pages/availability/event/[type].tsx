@@ -316,7 +316,7 @@ export default function EventTypePage({
                 name="address"
                 id="address"
                 required
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                 defaultValue={locations.find((location) => location.type === LocationType.InPerson)?.address}
               />
             </div>
@@ -390,7 +390,7 @@ export default function EventTypePage({
                         name="title"
                         id="title"
                         required
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="Quick Chat"
                         defaultValue={eventType.title}
                       />
@@ -411,7 +411,7 @@ export default function EventTypePage({
                           name="slug"
                           id="slug"
                           required
-                          className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                          className="flex-1 block w-full focus:ring-black focus:border-black min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
                           defaultValue={eventType.slug}
                         />
                       </div>
@@ -429,7 +429,8 @@ export default function EventTypePage({
                             id="location"
                             options={locationOptions}
                             isSearchable="false"
-                            className="flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                            classNamePrefix="react-select"
+                            className="react-select-container rounded-sm border border-gray-300 flex-1 block w-full focus:ring-primary-500 focus:border-primary-500 min-w-0 sm:text-sm"
                             onChange={(e) => openLocationModal(e.value)}
                           />
                         </div>
@@ -551,7 +552,7 @@ export default function EventTypePage({
                         ref={descriptionRef}
                         name="description"
                         id="description"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="A quick video meeting."
                         defaultValue={eventType.description}></textarea>
                     </div>
@@ -566,7 +567,7 @@ export default function EventTypePage({
                         type="text"
                         name="title"
                         id="title"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="Meeting with {USER}"
                         defaultValue={eventType.eventName}
                       />
@@ -626,7 +627,7 @@ export default function EventTypePage({
                           id="ishidden"
                           name="ishidden"
                           type="checkbox"
-                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                          className="focus:ring-black h-4 w-4 text-blue-600 border-gray-300 rounded"
                           defaultChecked={eventType.hidden}
                         />
                       </div>
@@ -648,7 +649,7 @@ export default function EventTypePage({
                           id="requiresConfirmation"
                           name="requiresConfirmation"
                           type="checkbox"
-                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                          className="focus:ring-black h-4 w-4 text-blue-600 border-gray-300 rounded"
                           defaultChecked={eventType.requiresConfirmation}
                         />
                       </div>
@@ -677,7 +678,7 @@ export default function EventTypePage({
                           name="minimumAdvance"
                           id="minimumAdvance"
                           required
-                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
+                          className="focus:ring-black focus:border-black block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
                           defaultValue={eventType.minimumBookingNotice}
                         />
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
@@ -734,7 +735,7 @@ export default function EventTypePage({
                                                 type="text"
                                                 name="periodDays"
                                                 id=""
-                                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-12 sm:text-sm border-gray-300 rounded-md"
+                                                className="shadow-sm focus:ring-black focus:border-indigo-500 block w-12 sm:text-sm border-gray-300 rounded-md"
                                                 placeholder="30"
                                                 defaultValue={eventType.periodDays || 30}
                                               />
@@ -742,7 +743,7 @@ export default function EventTypePage({
                                                 ref={periodDaysTypeRef}
                                                 id=""
                                                 name="periodDaysType"
-                                                className=" block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                                className=" block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-black focus:border-indigo-500 sm:text-sm rounded-md"
                                                 defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                                 <option value="1">calendar days</option>
                                                 <option value="0">business days</option>
@@ -793,7 +794,7 @@ export default function EventTypePage({
                             name="length"
                             id="length"
                             required
-                            className="focus:ring-blue-500 focus:border-blue-500 block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
+                            className="focus:ring-black focus:border-black block w-full pr-20 sm:text-sm border-gray-300 rounded-md"
                             placeholder="15"
                             defaultValue={eventType.length}
                           />
@@ -877,7 +878,7 @@ export default function EventTypePage({
                     defaultValue={selectedLocation}
                     options={locationOptions}
                     isSearchable="false"
-                    className="mb-2 flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                    className="mb-2 flex-1 block w-full focus:ring-black focus:border-black min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
                     onChange={setSelectedLocation}
                   />
                   <LocationOptions />
@@ -937,7 +938,7 @@ export default function EventTypePage({
                       options={inputOptions}
                       isSearchable="false"
                       required
-                      className="mb-2 flex-1 block w-full focus:ring-blue-500 focus:border-blue-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300 mt-1"
+                      className="react-select-container border rounded-sm border-gray-300 mb-2 flex-1 block w-full focus:ring-black focus:border-black min-w-0 sm:text-sm mt-1"
                       onChange={setSelectedInputOption}
                     />
                   </div>
@@ -951,7 +952,7 @@ export default function EventTypePage({
                         name="label"
                         id="label"
                         required
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                         defaultValue={selectedCustomInput?.label}
                       />
                     </div>
@@ -961,7 +962,7 @@ export default function EventTypePage({
                       id="required"
                       name="required"
                       type="checkbox"
-                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
+                      className="focus:ring-black h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
                       defaultChecked={selectedCustomInput?.required ?? true}
                     />
                     <label htmlFor="required" className="block text-sm font-medium text-gray-700">

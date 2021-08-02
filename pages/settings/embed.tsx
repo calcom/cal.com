@@ -35,7 +35,7 @@ export default function Embed(props) {
               <div className="mt-1">
                 <textarea
                   id="iframe"
-                  className="h-32 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder="Loading..."
                   defaultValue={
                     '<iframe src="' +
@@ -55,7 +55,7 @@ export default function Embed(props) {
               <div className="mt-1">
                 <textarea
                   id="fullscreen"
-                  className="h-32 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder="Loading..."
                   defaultValue={
                     '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body><iframe src="' +

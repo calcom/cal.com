@@ -11,7 +11,7 @@ import { getSession, useSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure } from "@headlessui/react";
 
-import { PhoneIcon, PlusCircleIcon, XIcon } from "@heroicons/react/outline";
+import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeInput";
 import {
   LocationMarkerIcon,
@@ -333,7 +333,7 @@ export default function EventTypePage({
                 name="address"
                 id="address"
                 required
-                className="shadow-sm focus:ring-secondary-500 focus:border-secondary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                 defaultValue={locations.find((location) => location.type === LocationType.InPerson)?.address}
               />
             </div>
@@ -390,13 +390,8 @@ export default function EventTypePage({
         <title>{eventType.title} | Event Type | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading={"Event Type - " + eventType.title}>
-        <div className="flex mb-8">
-          <p className="text-sm text-neutral-500">
-            {eventType.description}
-          </p>
-        </div>
-        <div className="mt-8 flex">
+      <Shell heading={"Event Type: " + eventType.title} subtitle={eventType.description}>
+        <div className="flex">
           <div className="w-10/12 mr-2">
             <div className="bg-white rounded-sm border border-neutral-200 p-8">
               <form onSubmit={updateEventTypeHandler} className="space-y-4">
@@ -414,7 +409,7 @@ export default function EventTypePage({
                       name="title"
                       id="title"
                       required
-                      className="shadow-sm focus:ring-secondary-500 focus:border-secondary-500 block w-full sm:text-sm border-neutral-300 rounded-sm"
+                      className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-neutral-300 rounded-sm"
                       placeholder="Quick Chat"
                       defaultValue={eventType.title}
                     />
@@ -438,7 +433,7 @@ export default function EventTypePage({
                         name="slug"
                         id="slug"
                         required
-                        className="flex-1 block w-full focus:ring-secondary-500 focus:border-secondary-500 min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300"
+                        className="flex-1 block w-full focus:ring-primary-500 focus:border-primary-500 min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300"
                         defaultValue={eventType.slug}
                       />
                     </div>
@@ -454,13 +449,14 @@ export default function EventTypePage({
                   <div className="w-3/4">
                     {locations.length === 0 && (
                       <div className="mt-1 mb-2">
-                        <div className="flex rounded-sm shadow-sm">
+                        <div className="flex">
                           <Select
                             name="location"
                             id="location"
                             options={locationOptions}
                             isSearchable="false"
-                            className="flex-1 block w-full focus:ring-secondary-500 focus:border-secondary-500 min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300"
+                            classNamePrefix="react-select"
+                            className="react-select-container rounded-sm border border-gray-300 flex-1 block w-full focus:ring-primary-500 focus:border-primary-500 min-w-0 sm:text-sm"
                             onChange={(e) => openLocationModal(e.value)}
                           />
                         </div>
@@ -547,7 +543,7 @@ export default function EventTypePage({
                                 <button
                                   type="button"
                                   onClick={() => openLocationModal(location.type)}
-                                  className="mr-2 text-sm text-secondary-600">
+                                  className="mr-2 text-sm text-primary-600">
                                   Edit
                                 </button>
                                 <button onClick={() => removeLocation(location)}>
@@ -561,7 +557,7 @@ export default function EventTypePage({
                           <li>
                             <button
                               type="button"
-                              className="sm:flex sm:items-start text-sm text-secondary-600"
+                              className="sm:flex sm:items-start text-sm text-primary-600"
                               onClick={() => setShowLocationModal(true)}>
                               <PlusIcon className="h-5 w-5" />
                               <span className="font-medium">Add another location option</span>
@@ -587,7 +583,7 @@ export default function EventTypePage({
                         name="length"
                         id="length"
                         required
-                        className="focus:ring-secondary-500 focus:border-secondary-500 block w-full pl-2 pr-12 sm:text-sm border-gray-300 rounded-sm"
+                        className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-2 pr-12 sm:text-sm border-gray-300 rounded-sm"
                         placeholder="15"
                         defaultValue={eventType.length}
                       />
@@ -611,12 +607,11 @@ export default function EventTypePage({
                       ref={descriptionRef}
                       name="description"
                       id="description"
-                      className="shadow-sm focus:ring-secondary-500 focus:border-secondary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                      className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                       placeholder="A quick video meeting."
                       defaultValue={eventType.description}></textarea>
                   </div>
                 </div>
-                <hr className="border-b border-neutral-200" />
                 <Disclosure>
                   {({ open }) => (
                     <>
@@ -640,7 +635,7 @@ export default function EventTypePage({
                                 type="text"
                                 name="title"
                                 id="title"
-                                className="shadow-sm focus:ring-secondary-500 focus:border-secondary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                                className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                                 placeholder="Meeting with {USER}"
                                 defaultValue={eventType.eventName}
                               />
@@ -677,7 +672,7 @@ export default function EventTypePage({
                                       <button
                                         type="button"
                                         onClick={() => openEditCustomModel(customInput)}
-                                        className="mr-2 text-sm text-secondary-600">
+                                        className="mr-2 text-sm text-primary-600">
                                         Edit
                                       </button>
                                       <button onClick={(e) => removeCustom(customInput, e)}>
@@ -715,7 +710,7 @@ export default function EventTypePage({
                                   id="ishidden"
                                   name="ishidden"
                                   type="checkbox"
-                                  className="focus:ring-secondary-500 h-4 w-4 text-secondary-600 border-gray-300 rounded"
+                                  className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
                                   defaultChecked={eventType.hidden}
                                 />
                               </div>
@@ -744,7 +739,7 @@ export default function EventTypePage({
                                   id="requiresConfirmation"
                                   name="requiresConfirmation"
                                   type="checkbox"
-                                  className="focus:ring-secondary-500 h-4 w-4 text-secondary-600 border-gray-300 rounded"
+                                  className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
                                   defaultChecked={eventType.requiresConfirmation}
                                 />
                               </div>
@@ -784,9 +779,9 @@ export default function EventTypePage({
                                         <span
                                           className={classnames(
                                             checked
-                                              ? "bg-secondary-600 border-transparent"
+                                              ? "bg-primary-600 border-transparent"
                                               : "bg-white border-gray-300",
-                                            active ? "ring-2 ring-offset-2 ring-secondary-500" : "",
+                                            active ? "ring-2 ring-offset-2 ring-primary-500" : "",
                                             "h-4 w-4 mt-0.5 cursor-pointer rounded-full border flex items-center justify-center"
                                           )}
                                           aria-hidden="true">
@@ -807,7 +802,7 @@ export default function EventTypePage({
                                                   type="text"
                                                   name="periodDays"
                                                   id=""
-                                                  className="mr-2 shadow-sm focus:ring-secondary-500 focus:border-secondary-500 block w-12 sm:text-sm border-gray-300 rounded-sm"
+                                                  className="mr-2 shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-12 sm:text-sm border-gray-300 rounded-sm"
                                                   placeholder="30"
                                                   defaultValue={eventType.periodDays || 30}
                                                 />
@@ -815,7 +810,7 @@ export default function EventTypePage({
                                                   ref={periodDaysTypeRef}
                                                   id=""
                                                   name="periodDaysType"
-                                                  className=" block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-secondary-500 focus:border-secondary-500 sm:text-sm rounded-sm"
+                                                  className=" block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-sm"
                                                   defaultValue={
                                                     eventType.periodCountCalendarDays ? "1" : "0"
                                                   }>
@@ -877,13 +872,13 @@ export default function EventTypePage({
                 </Disclosure>
                 <div className="mt-4 flex justify-end">
                   <Link href="/event-types">
-                    <a className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2">
+                    <a className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black mr-2">
                       Cancel
                     </a>
                   </Link>
                   <button
                     type="submit"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm shadow-sm text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm shadow-sm text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                     Update
                   </button>
                 </div>
@@ -939,7 +934,7 @@ export default function EventTypePage({
               <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div className="sm:flex sm:items-start mb-4">
                   <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <LocationMarkerIcon className="h-6 w-6 text-secondary-600" />
+                    <LocationMarkerIcon className="h-6 w-6 text-primary-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
@@ -953,7 +948,8 @@ export default function EventTypePage({
                     defaultValue={selectedLocation}
                     options={locationOptions}
                     isSearchable="false"
-                    className="mb-2 flex-1 block w-full focus:ring-secondary-500 focus:border-secondary-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                    classNamePrefix="react-select"
+                    className="react-select-container rounded-sm border border-gray-300 flex-1 block w-full focus:ring-primary-500 focus:border-primary-500 min-w-0 sm:text-sm my-4"
                     onChange={setSelectedLocation}
                   />
                   <LocationOptions />
@@ -989,7 +985,7 @@ export default function EventTypePage({
               <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div className="sm:flex sm:items-start mb-4">
                   <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <PlusIcon className="h-6 w-6 text-secondary-600" />
+                    <PlusIcon className="h-6 w-6 text-primary-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
@@ -1013,7 +1009,7 @@ export default function EventTypePage({
                       options={inputOptions}
                       isSearchable="false"
                       required
-                      className="mb-2 flex-1 block w-full focus:ring-secondary-500 focus:border-secondary-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300 mt-1"
+                      className="mb-2 flex-1 block w-full focus:ring-primary-500 focus:border-primary-500 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300 mt-1"
                       onChange={setSelectedInputOption}
                     />
                   </div>
@@ -1027,7 +1023,7 @@ export default function EventTypePage({
                         name="label"
                         id="label"
                         required
-                        className="shadow-sm focus:ring-secondary-500 focus:border-secondary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                        className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         defaultValue={selectedCustomInput?.label}
                       />
                     </div>
@@ -1037,7 +1033,7 @@ export default function EventTypePage({
                       id="required"
                       name="required"
                       type="checkbox"
-                      className="focus:ring-secondary-500 h-4 w-4 text-secondary-600 border-gray-300 rounded mr-2"
+                      className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded mr-2"
                       defaultChecked={selectedCustomInput?.required ?? true}
                     />
                     <label htmlFor="required" className="block text-sm font-medium text-gray-700">

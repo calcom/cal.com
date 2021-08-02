@@ -18,7 +18,7 @@ const UsernameInput = React.forwardRef((props, ref) => (
         autoComplete="username"
         required
         {...props}
-        className="focus:ring-blue-500 focus:border-blue-500 flex-grow block w-full min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300 lowercase"
+        className="focus:ring-black focus:border-black flex-grow block w-full min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300 lowercase"
       />
     </div>
   </div>
