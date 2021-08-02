@@ -31,6 +31,12 @@ export default function Availability(props) {
         return <div className="loader"></div>;
     }
 
+    function autoPopulateSlug() {
+        let t = titleRef.current.value;
+        t = t.replace(/\s+/g, '-').toLowerCase();
+        slugRef.current.value = t;
+    }
+
     function toggleAddModal() {
         setShowAddModal(!showAddModal);
     }
@@ -237,7 +243,7 @@ export default function Availability(props) {
                                         <div className="mb-4">
                                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
                                             <div className="mt-1">
-                                                <input ref={titleRef} type="text" name="title" id="title" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" />
+                                                <input onChange={autoPopulateSlug} ref={titleRef} type="text" name="title" id="title" required className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Quick Chat" />
                                             </div>
                                         </div>
                                         <div className="mb-4">
