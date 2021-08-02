@@ -19,7 +19,7 @@ const updateHealthCoach = async (req: NextApiRequest, res: NextApiResponse): Pro
   // Check valid email
   const existingUser = await prisma.user.findFirst({
     where: {
-      id: userId as any,
+      id: +userId as any,
     },
   });
 
@@ -29,7 +29,7 @@ const updateHealthCoach = async (req: NextApiRequest, res: NextApiResponse): Pro
   const user = await prisma.user.update({
     data: updateData,
     where: {
-      id: userId as any,
+      id: +userId as any,
     },
   });
 
