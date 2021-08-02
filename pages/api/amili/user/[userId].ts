@@ -6,12 +6,12 @@ import { User } from ".prisma/client";
 const updateHealthCoach = async (req: NextApiRequest, res: NextApiResponse): Promise<User | any> => {
   const { userId } = req.query;
   const data = req.body;
-  const { name, description, timezone } = data;
+  const { name, bio, timeZone } = data;
 
   const updateData = {};
   if (name) updateData["name"] = name;
-  if (description) updateData["bio"] = description;
-  if (timezone) updateData["timeZone"] = timezone;
+  if (bio) updateData["bio"] = bio;
+  if (timeZone) updateData["timeZone"] = timeZone;
 
   // Check valid method
   if (req.method !== "PATCH") return;
