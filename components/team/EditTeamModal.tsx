@@ -40,8 +40,8 @@ export default function EditTeamModal(props) {
 
       <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
         <div className="sm:flex sm:items-start mb-4">
-          <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-            <UsersIcon className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-black bg-opacity-10 sm:mx-0 sm:h-10 sm:w-10">
+            <UsersIcon className="h-6 w-6 text-black" />
           </div>
           <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
             <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Edit the {props.team.name} team</h3>
@@ -82,7 +82,7 @@ export default function EditTeamModal(props) {
             <div className="mb-4 border border-red-400 rounded p-2 px-4">
               <p className="block text-sm font-medium text-gray-700">Tick the box to disband this team.</p>
               <label className="mt-1">
-                <input type="checkbox" onChange={(e) => setCheckedDisbandTeam(e.target.checked)} className="shadow-sm mr-2 focus:ring-blue-500 focus:border-blue-500  sm:text-sm border-gray-300 rounded-md" />
+                <input type="checkbox" onChange={(e) => setCheckedDisbandTeam(e.target.checked)} className="shadow-sm mr-2 focus:ring-black focus:border-black  sm:text-sm border-gray-300 rounded-md" />
                 Disband this team
               </label>
             </div>

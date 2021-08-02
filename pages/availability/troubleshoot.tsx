@@ -14,7 +14,7 @@ export default function Troubleshoot({ user }) {
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   if (loading) {
-    return <div className="loader"></div>;
+    return <div className="loader"><span className="loader-inner"></span></div>;
   }
 
   function convertMinsToHrsMins(mins) {
@@ -51,25 +51,40 @@ export default function Troubleshoot({ user }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell heading="Troubleshoot">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="flex mb-8">
+          <p className="text-sm text-neutral-500">
+            Understand why certain times are available and others are blocked.
+          </p>
+        </div>
+        <div className="bg-white max-w-md overflow-hidden shadow rounded-sm">
           <div className="px-4 py-5 sm:p-6">
             Here is an overview of your day on {selectedDate.format("D MMMM YYYY")}:
-            <small className="block text-gray-400">Tip: Hover over the bold times for a full timestamp</small>
+            <small className="block text-neutral-400">
+              Tip: Hover over the bold times for a full timestamp
+            </small>
             <div className="mt-4 space-y-4">
-              <div className="bg-gray-600 overflow-hidden rounded-lg">
+              <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
                   Your day starts at {convertMinsToHrsMins(user.startTime)}
                 </div>
               </div>
               {availability.map((slot) => (
-                <div key={slot.start} className="bg-gray-100 overflow-hidden rounded-lg">
-                  <div className="px-4 py-5 sm:p-6 text-gray-600">
-                    Your calendar shows you as busy between <span className="font-medium text-gray-800" title={slot.start}>{dayjs(slot.start).format("HH:mm")}</span> and <span className="font-medium text-gray-800" title={slot.end}>{dayjs(slot.end).format("HH:mm")}</span> on {dayjs(slot.start).format("D MMMM YYYY")}
+                <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
+                  <div className="px-4 py-5 sm:p-6 text-black">
+                    Your calendar shows you as busy between{" "}
+                    <span className="font-medium text-neutral-800" title={slot.start}>
+                      {dayjs(slot.start).format("HH:mm")}
+                    </span>{" "}
+                    and{" "}
+                    <span className="font-medium text-neutral-800" title={slot.end}>
+                      {dayjs(slot.end).format("HH:mm")}
+                    </span>{" "}
+                    on {dayjs(slot.start).format("D MMMM YYYY")}
                   </div>
                 </div>
               ))}
-              {availability.length === 0 && <div className="loader"></div>}
-              <div className="bg-gray-600 overflow-hidden rounded-lg">
+              {availability.length === 0 && <div className="loader"><span className="loader-inner"></span></div>}
+              <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
                   Your day ends at {convertMinsToHrsMins(user.endTime)}
                 </div>

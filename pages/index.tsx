@@ -13,7 +13,7 @@ function classNames(...classes) {
 export default function Home(props) {
   const [session, loading] = useSession();
   if (loading) {
-    return <div className="loader"></div>;
+    return <div className="loader"><span className="loader-inner"></span></div>;
   }
 
   function convertMinsToHrsMins(mins) {
@@ -227,19 +227,19 @@ export default function Home(props) {
                     {integration.type == "google_calendar" && (
                       <img
                         className="h-10 w-10 mr-2"
-                        src="integrations/google-calendar.png"
+                        src="integrations/google-calendar.svg"
                         alt="Google Calendar"
                       />
                     )}
                     {integration.type == "office365_calendar" && (
                       <img
                         className="h-10 w-10 mr-2"
-                        src="integrations/office-365.png"
+                        src="integrations/outlook.svg"
                         alt="Office 365 / Outlook.com Calendar"
                       />
                     )}
                     {integration.type == "zoom_video" && (
-                      <img className="h-10 w-10 mr-2" src="integrations/zoom.png" alt="Zoom" />
+                      <img className="h-10 w-10 mr-2" src="integrations/zoom.svg" alt="Zoom" />
                     )}
                     <div className="ml-3">
                       {integration.type == "office365_calendar" && (
