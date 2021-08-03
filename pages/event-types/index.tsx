@@ -60,13 +60,11 @@ export default function Availability({ user, types }) {
     return <Loader />;
   }
 
-  const CreateNewEventDialog = (
+  const CreateNewEventDialog = () => (
     <Dialog>
-      <DialogTrigger>
-        <button className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-          <PlusIcon className="w-5 h-5 mr-1 inline" />
-          New event type
-        </button>
+      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+        <PlusIcon className="w-5 h-5 mr-1 inline" />
+        New event type
       </DialogTrigger>
       <DialogContent>
         <div className="mb-4">
@@ -170,7 +168,7 @@ export default function Availability({ user, types }) {
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
-        CTA={types.length !== 0 && CreateNewEventDialog}>
+        CTA={types.length !== 0 && <CreateNewEventDialog />}>
         <div className="bg-white shadow overflow-hidden sm:rounded-sm -mx-4 sm:mx-0">
           <ul className="divide-y divide-neutral-200">
             {types.map((type) => (
@@ -591,7 +589,7 @@ export default function Availability({ user, types }) {
                 Event types enable you to share links that show available times on your calendar and allow
                 people to make bookings with you.
               </p>
-              {CreateNewEventDialog}
+              <CreateNewEventDialog />
             </div>
           </div>
         )}
