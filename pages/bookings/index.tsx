@@ -3,6 +3,8 @@ import prisma from "../../lib/prisma";
 import { getSession, useSession } from "next-auth/client";
 import Shell from "../../components/Shell";
 import { useRouter } from "next/router";
+import dayjs from "dayjs";
+
 
 export default function Bookings({ bookings }) {
   const [, loading] = useSession();
@@ -49,11 +51,12 @@ export default function Bookings({ bookings }) {
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Event
                       </th>
-                      {/* <th
+                      <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date
-                      </th> */}
+                      </th>
+                      {console.log(bookings)}
                       <th scope="col" className="relative px-6 py-3">
                         <span className="sr-only">Actions</span>
                       </th>
@@ -86,11 +89,14 @@ export default function Bookings({ bookings }) {
                             <div className="text-sm text-gray-900">{booking.title}</div>
                             <div className="text-sm text-gray-500">{booking.description}</div>
                           </td>
-                          {/* <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {dayjs(booking.startTime).format("D MMMM YYYY HH:mm")}
-                          </div>
-                        </td> */}
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {dayjs(booking.startTime).format("D MMMM YYYY")}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
+                            </div>
+                          </td>                     
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {!booking.confirmed && !booking.rejected && (
                               <>
@@ -153,7 +159,7 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const bookings = await prisma.booking.findMany({
+  let b = await prisma.booking.findMany({
     where: {
       userId: user.id,
     },
@@ -165,10 +171,16 @@ export async function getServerSideProps(context) {
       confirmed: true,
       rejected: true,
       id: true,
+      startTime: true,
+      endTime: true,
     },
     orderBy: {
-      startTime: "desc",
+      startTime: "asc",
     },
+  });
+
+  const bookings = b.map(booking=>{
+    return ({...booking, startTime:booking.startTime.toISOString(), endTime:booking.endTime.toISOString(),})
   });
 
   return { props: { bookings } };
