@@ -56,7 +56,6 @@ export default function Bookings({ bookings }) {
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date
                       </th>
-                      {console.log(bookings)}
                       <th scope="col" className="relative px-6 py-3">
                         <span className="sr-only">Actions</span>
                       </th>
@@ -159,7 +158,7 @@ export async function getServerSideProps(context) {
     },
   });
 
-  let b = await prisma.booking.findMany({
+  const b = await prisma.booking.findMany({
     where: {
       userId: user.id,
     },
