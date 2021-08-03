@@ -149,14 +149,12 @@ export default function Availability({ user, types }) {
             </div>
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button type="submit" className="btn btn-primary">
-                Create
-              </button>
-              <DialogClose as="button" className="btn btn-white ml-2">
-                Cancel
-              </DialogClose>
-            </div>
+            <button type="submit" className="btn btn-primary">
+              Continue
+            </button>
+            <DialogClose as="button" className="btn btn-white mx-2">
+              Cancel
+            </DialogClose>
           </div>
         </form>
       </DialogContent>
