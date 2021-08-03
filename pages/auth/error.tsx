@@ -8,7 +8,7 @@ export default function Error() {
     const { error } = router.query;
 
     return (
-        <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div className="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <Head>
                 <title>{error} - Calendso</title>
                 <link rel="icon" href="/favicon.ico" />

@@ -161,7 +161,7 @@ export default function Availability(props) {
         </div>
         {showChangeTimesModal && (
           <div
-            className="fixed z-10 inset-0 overflow-y-auto"
+            className="fixed z-50 inset-0 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true">
