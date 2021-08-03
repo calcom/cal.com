@@ -11,8 +11,9 @@ import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 
 export default function Bookings({ bookings }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
-  console.log(session);
+
   const router = useRouter();
 
   if (loading) {

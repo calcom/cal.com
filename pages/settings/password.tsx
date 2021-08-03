@@ -8,8 +8,8 @@ import { useSession, getSession } from "next-auth/client";
 import Loader from "@components/Loader";
 
 export default function Settings() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
-  console.log(session);
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const oldPasswordRef = useRef<HTMLInputElement>();
@@ -31,6 +31,7 @@ export default function Settings() {
 
     // TODO: Add validation
 
+    /*eslint-disable */
     const response = await fetch("/api/auth/changepw", {
       method: "PATCH",
       body: JSON.stringify({ oldPassword: enteredOldPassword, newPassword: enteredNewPassword }),
@@ -38,6 +39,7 @@ export default function Settings() {
         "Content-Type": "application/json",
       },
     });
+    /*eslint-enable */
 
     setSuccessModalOpen(true);
   }
