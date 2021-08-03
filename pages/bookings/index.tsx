@@ -11,7 +11,8 @@ import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 
 export default function Bookings({ bookings }) {
-  const [, loading] = useSession();
+  const [session, loading] = useSession();
+  console.log(session)
   const router = useRouter();
 
   if (loading) {
@@ -72,8 +73,8 @@ export default function Bookings({ bookings }) {
                                 Unconfirmed
                               </span>
                             )}
-                            <div className="text-sm text-neutral-900 font-medium  truncate">
-                              {booking.title}
+                            <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
+                              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dol
                             </div>
                             <div className="sm:hidden">
                               <div className="text-sm text-gray-900">
@@ -109,7 +110,7 @@ export default function Bookings({ bookings }) {
                                 </button>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, false)}
-                                  className="text-xs sm:text-sm ml-4 inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Reject
                                 </button>
                               </>
