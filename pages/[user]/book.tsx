@@ -218,7 +218,9 @@ export default function Book(props: any): JSX.Element {
                   </div>
                   {locations.length > 1 && (
                     <div className="mb-4">
-                      <span className="block text-sm font-medium text-gray-700">Location</span>
+                      <span className="block text-sm font-medium dark:text-white text-gray-700">
+                        Location
+                      </span>
                       {locations.map((location) => (
                         <label key={location.type} className="block">
                           <input
@@ -230,7 +232,9 @@ export default function Book(props: any): JSX.Element {
                             value={location.type}
                             checked={selectedLocation === location.type}
                           />
-                          <span className="text-sm ml-2">{locationLabels[location.type]}</span>
+                          <span className="text-sm ml-2 dark:text-gray-500">
+                            {locationLabels[location.type]}
+                          </span>
                         </label>
                       ))}
                     </div>
