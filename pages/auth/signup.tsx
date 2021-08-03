@@ -75,20 +75,20 @@ export default function Signup(props) {
               </div>
               <div className="mb-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" name="email" id="email" placeholder="jdoe@example.com" disabled={!!props.email} readOnly={!!props.email} value={props.email} className="bg-gray-100 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"  />
+                <input type="email" name="email" id="email" placeholder="jdoe@example.com" disabled={!!props.email} readOnly={!!props.email} value={props.email} className="bg-gray-100 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"  />
               </div>
               <div className="mb-2">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" name="password" id="password" required placeholder="•••••••••••••" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"  />
+                <input type="password" name="password" id="password" required placeholder="•••••••••••••" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"  />
               </div>
               <div>
                 <label htmlFor="passwordcheck" className="block text-sm font-medium text-gray-700">Confirm password</label>
-                <input type="password" name="passwordcheck" id="passwordcheck" required placeholder="•••••••••••••" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"  />
+                <input type="password" name="passwordcheck" id="passwordcheck" required placeholder="•••••••••••••" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"  />
               </div>
             </div>
             <div className="mt-3 sm:mt-4 flex">
               <input type="submit" value="Create Account"
-                     className="btn btn-primary w-7/12 mr-2 inline-flex justify-center rounded-md border border-transparent cursor-pointer shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm" />
+                     className="btn btn-primary w-7/12 mr-2 inline-flex justify-center rounded-md border border-transparent cursor-pointer shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm" />
               <a onClick={() => signIn('Calendso', { callbackUrl: (router.query.callbackUrl || '') as string })}
                  className="w-5/12 inline-flex justify-center text-sm text-gray-500 font-medium  border px-4 py-2 rounded btn cursor-pointer">Login instead</a>
             </div>

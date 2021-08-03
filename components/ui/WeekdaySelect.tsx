@@ -25,9 +25,9 @@ export const WeekdaySelect = (props) => {
             <button
               key={idx}
               onClick={(e) => toggleDay(e, idx)}
-              style={{ marginLeft: "-2px" }}
               className={`
-                    active focus:outline-none border-2 border-blue-500 px-2 py-1 rounded 
+              w-10 h-10
+                      bg-black text-white focus:outline-none px-3 py-1 rounded 
                     ${activeDays[idx + 1] ? "rounded-r-none" : ""} 
                     ${activeDays[idx - 1] ? "rounded-l-none" : ""} 
                     ${idx === 0 ? "rounded-l" : ""} 
@@ -40,7 +40,7 @@ export const WeekdaySelect = (props) => {
               key={idx}
               onClick={(e) => toggleDay(e, idx)}
               style={{ marginTop: "1px", marginBottom: "1px" }}
-              className={`border focus:outline-none px-2 py-1 rounded-none ${
+              className={`w-10 h-10 bg-gray-50 focus:outline-none px-3 py-1 rounded-none ${
                 idx === 0 ? "rounded-l" : "border-l-0"
               } ${idx === days.length - 1 ? "rounded-r" : ""}`}>
               {day}
