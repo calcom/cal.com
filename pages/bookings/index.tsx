@@ -8,6 +8,7 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
+import { ClockIcon, XIcon } from "@heroicons/react/outline";
 
 export default function Bookings({ bookings }) {
   const [, loading] = useSession();
@@ -51,7 +52,7 @@ export default function Bookings({ bookings }) {
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date
                       </th>
                       <th scope="col" className="relative px-6 py-3">
@@ -74,9 +75,22 @@ export default function Bookings({ bookings }) {
                             <div className="text-sm text-neutral-900 font-medium  truncate">
                               {booking.title}
                             </div>
-                            <div className="text-sm text-gray-500">{booking.attendees[0].email}</div>
+                            <div className="sm:hidden">
+                              <div className="text-sm text-gray-900">
+                                {dayjs(booking.startTime).format("D MMMM YYYY")}:{" "}
+                                <small className="text-sm text-gray-500">
+                                  {dayjs(booking.startTime).format("HH:mm")} -{" "}
+                                  {dayjs(booking.endTime).format("HH:mm")}
+                                </small>
+                              </div>
+                            </div>
+                            <div className="text-sm text-blue-500">
+                              <a href={"mailto:" + booking.attendees[0].email}>
+                                {booking.attendees[0].email}
+                              </a>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {dayjs(booking.startTime).format("D MMMM YYYY")}
                             </div>
@@ -105,11 +119,19 @@ export default function Bookings({ bookings }) {
                                 <a
                                   href={window.location.href + "/../cancel/" + booking.uid}
                                   className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  <XIcon
+                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                    aria-hidden="true"
+                                  />
                                   Cancel
                                 </a>
                                 <a
                                   href={window.location.href + "/../reschedule/" + booking.uid}
                                   className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  <ClockIcon
+                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                    aria-hidden="true"
+                                  />
                                   Reschedule
                                 </a>
                                 <Menu as="div" className="inline-block lg:hidden text-left ">
@@ -145,6 +167,10 @@ export default function Bookings({ bookings }) {
                                                       : "text-neutral-700",
                                                     "group flex items-center px-4 py-2 text-sm font-medium"
                                                   )}>
+                                                  <XIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
                                                   Cancel
                                                 </a>
                                               )}
@@ -161,6 +187,10 @@ export default function Bookings({ bookings }) {
                                                       : "text-neutral-700",
                                                     "group flex items-center px-4 py-2 text-sm w-full font-medium"
                                                   )}>
+                                                  <ClockIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
                                                   Reschedule
                                                 </a>
                                               )}
