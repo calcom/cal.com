@@ -16,7 +16,7 @@ export default function Settings() {
   const newPasswordRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   const closeSuccessModal = () => {
