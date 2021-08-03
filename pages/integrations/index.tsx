@@ -14,6 +14,7 @@ import {
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Switch } from "@headlessui/react";
 import Loader from '@components/Loader';
+import classNames from "@lib/classNames";
 
 export default function Home({ integrations }) {
   const [session, loading] = useSession();
@@ -79,10 +80,6 @@ export default function Home({ integrations }) {
       default:
         return "";
     }
-  }
-
-  function classNames(...classes) {
-    return classes.filter(Boolean).join(" ");
   }
 
   useEffect(loadCalendars, [integrations]);

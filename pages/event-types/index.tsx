@@ -7,10 +7,6 @@ import { getSession, useSession } from "next-auth/client";
 import { Fragment, useRef, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
-
 import {
   ClockIcon,
   DotsHorizontalIcon,
@@ -21,6 +17,7 @@ import {
   UserIcon,
 } from "@heroicons/react/solid";
 import Loader from "@components/Loader";
+import classNames from "@lib/classNames";
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();

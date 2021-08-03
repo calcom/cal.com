@@ -4,6 +4,9 @@ import { getSession, useSession } from "next-auth/client";
 import Shell from "../../components/Shell";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
+import {Fragment} from 'react';
+import {Menu, Transition} from '@headlessui/react';
+import {DotsHorizontalIcon, ExternalLinkIcon, LinkIcon} from '@heroicons/react/solid';
 
 
 export default function Bookings({ bookings }) {
@@ -44,11 +47,6 @@ export default function Bookings({ bookings }) {
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Person
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Event
                       </th>
                       <th
@@ -73,35 +71,20 @@ export default function Bookings({ bookings }) {
                                 Unconfirmed
                               </span>
                             )}
-                            <div className="text-sm font-medium text-gray-900">
-                              {booking.attendees[0].name}
+                            <div className="text-sm text-neutral-900 font-medium  truncate">
+                              {booking.title}
                             </div>
                             <div className="text-sm text-gray-500">{booking.attendees[0].email}</div>
-                            <div
-                              style={{ maxWidth: 150 }}
-                              className="block lg:hidden font-medium text-xs text-gray-900 truncate">
-                              {booking.title}
-                            </div>
-                          </td>
-                          <td
-                            className={
-                              "px-6 py-4 max-w-20 w-full" + (booking.rejected ? " line-through" : "")
-                            }>
-                            <div className="hidden lg:block text-sm text-neutral-900 font-medium">
-                              {booking.title}
-                            </div>
-                            <div className="hidden lg:block text-sm text-neutral-500">
-                              You and {booking.attendees[0].name}
-                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {dayjs(booking.startTime).format("D MMMM YYYY")}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
+                              {dayjs(booking.startTime).format("HH:mm")} -{" "}
+                              {dayjs(booking.endTime).format("HH:mm")}
                             </div>
-                          </td>                     
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {!booking.confirmed && !booking.rejected && (
                               <>
@@ -129,6 +112,68 @@ export default function Bookings({ bookings }) {
                                   className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Reschedule
                                 </a>
+                                <Menu as="div" className="inline-block text-left">
+                          {({ open }) => (
+                            <>
+                              <div>
+                                <Menu.Button className="text-neutral-400 mt-1">
+                                  <span className="sr-only">Open options</span>
+                                  <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                                </Menu.Button>
+                              </div>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                enter="transition ease-out duration-100"
+                                enterFrom="transform opacity-0 scale-95"
+                                enterTo="transform opacity-100 scale-100"
+                                leave="transition ease-in duration-75"
+                                leaveFrom="transform opacity-100 scale-100"
+                                leaveTo="transform opacity-0 scale-95">
+                                <Menu.Items
+                                  static
+                                  className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                                  <div className="py-1">
+                                    <Menu.Item>
+                                      {({ active }) => (
+                                        <a
+                                          href={"/" + session.user.username + "/" + type.slug}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className={classNames(
+                                            active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                            "group flex items-center px-4 py-2 text-sm font-medium"
+                                          )}>
+                                          <ExternalLinkIcon
+                                            className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                            aria-hidden="true"
+                                          />
+                                          Preview
+                                        </a>
+                                      )}
+                                    </Menu.Item>
+                                    <Menu.Item>
+                                      {({ active }) => (
+                                        <button
+                                          className={classNames(
+                                            active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                            "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                          )}>
+                                          <LinkIcon
+                                            className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                            aria-hidden="true"
+                                          />
+                                          Copy link to event
+                                        </button>
+                                      )}
+                                    </Menu.Item>
+                                  </div>
+                                </Menu.Items>
+                              </Transition>
+                            </>
+                          )}
+                        </Menu>
                               </>
                             )}
                             {!booking.confirmed && booking.rejected && (
@@ -184,7 +229,7 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const bookings = b.map(booking=>{
+  const bookings = b.reverse().map(booking=>{
     return ({...booking, startTime:booking.startTime.toISOString(), endTime:booking.endTime.toISOString(),})
   });
 

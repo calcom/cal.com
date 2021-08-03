@@ -1,4 +1,3 @@
-import {useState} from 'react';
 import Head from 'next/head';
 import prisma from '../../lib/prisma';
 import {useRouter} from 'next/router';
@@ -14,15 +13,9 @@ dayjs.extend(isBetween);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
-}
-
 export default function Type(props) {
     // Get router variables
     const router = useRouter();
-
-    const [is24h, setIs24h] = useState(false);
 
     return (
         <div>

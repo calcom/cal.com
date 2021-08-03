@@ -17,9 +17,7 @@ import {
 } from "@heroicons/react/solid";
 import Logo from "./Logo";
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+
 
 export default function Shell(props) {
   const router = useRouter();

@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { CreditCardIcon, UserIcon, CodeIcon, KeyIcon, UserGroupIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+import classNames from "@lib/classNames";
 
 export default function SettingsShell(props) {
   const router = useRouter();
