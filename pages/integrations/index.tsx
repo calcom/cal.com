@@ -207,7 +207,7 @@ export default function Home({ integrations }) {
                             To: "opacity-0"
                         --> */}
               <div
-                className="fixed inset-0 bg-gray-500 z-10 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
                 aria-hidden="true"></div>
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
@@ -307,7 +307,7 @@ export default function Home({ integrations }) {
                             To: "opacity-0"
                         --> */}
               <div
-                className="fixed inset-0 bg-gray-500 z-10 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
                 aria-hidden="true"></div>
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
