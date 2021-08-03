@@ -7,7 +7,7 @@ import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
-import { getSession, useSession } from "next-auth/client";
+import { getSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure } from "@headlessui/react";
 
@@ -30,7 +30,6 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Availability, EventType, User } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
-import Text from "@components/ui/Text";
 import { RadioGroup } from "@headlessui/react";
 import classnames from "classnames";
 import throttle from "lodash.throttle";
@@ -96,13 +95,12 @@ const PERIOD_TYPES = [
 ];
 
 export default function EventTypePage({
-                                        user,
-                                        eventType,
-                                        locationOptions,
-                                        availability,
-                                      }: Props): JSX.Element {
+  user,
+  eventType,
+  locationOptions,
+  availability,
+}: Props): JSX.Element {
   const router = useRouter();
-  const [session, loading] = useSession();
 
   console.log(eventType);
   const inputOptions: OptionBase[] = [
@@ -391,18 +389,18 @@ export default function EventTypePage({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell heading={"Event Type: " + eventType.title} subtitle={eventType.description}>
-        <div className="flex">
-          <div className="w-10/12 mr-2">
+        <div className="block sm:flex">
+          <div className="w-full sm:w-10/12 mr-2">
             <div className="bg-white rounded-sm border border-neutral-200 p-8">
               <form onSubmit={updateEventTypeHandler} className="space-y-4">
                 <div className="flex">
-                  <div className="w-1/4">
+                  <div className="min-w-32">
                     <label htmlFor="title" className="flex font-medium text-neutral-700 mt-1">
                       <PencilIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Title
                     </label>
                   </div>
-                  <div className="w-3/4">
+                  <div className="w-full">
                     <input
                       ref={titleRef}
                       type="text"
@@ -416,13 +414,13 @@ export default function EventTypePage({
                   </div>
                 </div>
                 <div className="flex">
-                  <div className="w-1/4">
+                  <div className="min-w-32">
                     <label htmlFor="slug" className="flex font-medium text-neutral-700 mt-1">
                       <LinkIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       URL
                     </label>
                   </div>
-                  <div className="w-3/4">
+                  <div className="w-full">
                     <div className="flex rounded-sm shadow-sm">
                       <span className="inline-flex items-center px-3 rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
                         {typeof location !== "undefined" ? location.hostname : ""}/{user.username}/
@@ -440,13 +438,13 @@ export default function EventTypePage({
                   </div>
                 </div>
                 <div className="flex">
-                  <div className="w-1/4">
+                  <div className="min-w-32">
                     <label htmlFor="location" className="flex font-medium text-neutral-700 mt-1">
                       <LocationMarkerIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Location
                     </label>
                   </div>
-                  <div className="w-3/4">
+                  <div className="w-full">
                     {locations.length === 0 && (
                       <div className="mt-1 mb-2">
                         <div className="flex">
@@ -569,13 +567,13 @@ export default function EventTypePage({
                   </div>
                 </div>
                 <div className="flex">
-                  <div className="w-1/4">
+                  <div className="min-w-32">
                     <label htmlFor="length" className="flex font-medium text-neutral-700 mt-1">
                       <ClockIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Duration
                     </label>
                   </div>
-                  <div className="w-3/4">
+                  <div className="w-full">
                     <div className="mt-1 relative rounded-sm shadow-sm">
                       <input
                         ref={lengthRef}
@@ -596,13 +594,13 @@ export default function EventTypePage({
                   </div>
                 </div>
                 <div className="flex">
-                  <div className="w-1/4">
+                  <div className="min-w-32">
                     <label htmlFor="description" className="flex font-medium text-neutral-700 mt-1">
                       <DocumentIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Description
                     </label>
                   </div>
-                  <div className="w-3/4">
+                  <div className="w-full">
                     <textarea
                       ref={descriptionRef}
                       name="description"
@@ -623,12 +621,12 @@ export default function EventTypePage({
                       </Disclosure.Button>
                       <Disclosure.Panel className="space-y-4">
                         <div className="flex">
-                          <div className="w-1/4">
+                          <div className="min-w-32">
                             <label htmlFor="eventName" className="flex font-medium text-neutral-700 mt-2">
                               Event name
                             </label>
                           </div>
-                          <div className="w-3/4">
+                          <div className="w-full">
                             <div className="mt-1 relative rounded-sm shadow-sm">
                               <input
                                 ref={eventNameRef}
@@ -643,14 +641,14 @@ export default function EventTypePage({
                           </div>
                         </div>
                         <div className="flex">
-                          <div className="w-1/4">
+                          <div className="min-w-32">
                             <label
                               htmlFor="additionalFields"
                               className="flex font-medium text-neutral-700 mt-2">
                               Additional inputs
                             </label>
                           </div>
-                          <div className="w-3/4">
+                          <div className="w-full">
                             <ul className="w-96 mt-1">
                               {customInputs.map((customInput) => (
                                 <li key={customInput.label} className="bg-secondary-50 mb-2 p-2 border">
@@ -697,12 +695,12 @@ export default function EventTypePage({
                           </div>
                         </div>
                         <div className="flex">
-                          <div className="w-1/4">
+                          <div className="min-w-32">
                             <label htmlFor="hidden" className="flex font-medium text-neutral-700">
                               Hide event type
                             </label>
                           </div>
-                          <div className="w-3/4">
+                          <div className="w-full">
                             <div className="relative flex items-start">
                               <div className="flex items-center h-5">
                                 <input
@@ -724,14 +722,14 @@ export default function EventTypePage({
                           </div>
                         </div>
                         <div className="flex">
-                          <div className="w-1/4">
+                          <div className="min-w-32">
                             <label
                               htmlFor="requiresConfirmation"
                               className="flex font-medium text-neutral-700">
                               Opt-in booking
                             </label>
                           </div>
-                          <div className="w-3/4">
+                          <div className="w-full">
                             <div className="relative flex items-start">
                               <div className="flex items-center h-5">
                                 <input
@@ -753,14 +751,14 @@ export default function EventTypePage({
                           </div>
                         </div>
                         <div className="flex">
-                          <div className="w-1/4">
+                          <div className="min-w-32">
                             <label
                               htmlFor="inviteesCanSchedule"
                               className="flex font-medium text-neutral-700 mt-2">
                               Invitees can schedule
                             </label>
                           </div>
-                          <div className="w-3/4">
+                          <div className="w-full">
                             <RadioGroup value={periodType} onChange={setPeriodType}>
                               <RadioGroup.Label className="sr-only">Date Range</RadioGroup.Label>
                               <div>
@@ -852,12 +850,12 @@ export default function EventTypePage({
                           </div>
                         </div>
                         <div className="flex">
-                          <div className="w-1/4">
+                          <div className="min-w-32">
                             <label htmlFor="availability" className="flex font-medium text-neutral-700 mt-2">
                               Availability
                             </label>
                           </div>
-                          <div className="w-3/4">
+                          <div className="w-full">
                             <Scheduler
                               setAvailability={setEnteredAvailability}
                               setTimeZone={setSelectedTimeZone}
@@ -885,7 +883,7 @@ export default function EventTypePage({
               </form>
             </div>
           </div>
-          <div className="w-2/12 ml-2 px-4">
+          <div className="w-full sm:w-2/12 ml-2 px-4 mt-8 sm:mt-0 min-w-32">
             <div className="space-y-4">
               <a
                 href={"/" + user.username + "/" + eventType.slug}
@@ -904,7 +902,7 @@ export default function EventTypePage({
                 type="button"
                 className="flex text-md font-medium text-neutral-700">
                 <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
-                Copy link to event
+                Copy link
               </button>
               <button
                 onClick={deleteEventTypeHandler}

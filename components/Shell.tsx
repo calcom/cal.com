@@ -210,7 +210,7 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                     <span className="flex-1 flex flex-col min-w-0">
                       <span className="text-gray-900 text-sm font-medium truncate">{session.user.name}</span>
                       <span className="text-neutral-500 font-normal text-sm truncate">
-                        {session.user.username}
+                        /{session.user.username}
                       </span>
                     </span>
                   )}
