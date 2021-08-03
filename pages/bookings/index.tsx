@@ -4,10 +4,10 @@ import { getSession, useSession } from "next-auth/client";
 import Shell from "../../components/Shell";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
-import {Fragment} from 'react';
-import {Menu, Transition} from '@headlessui/react';
-import {DotsHorizontalIcon, ExternalLinkIcon, LinkIcon} from '@heroicons/react/solid';
-
+import { Fragment } from "react";
+import { Menu, Transition } from "@headlessui/react";
+import { DotsHorizontalIcon } from "@heroicons/react/solid";
+import classNames from "@lib/classNames";
 
 export default function Bookings({ bookings }) {
   const [, loading] = useSession();
@@ -104,76 +104,73 @@ export default function Bookings({ bookings }) {
                               <>
                                 <a
                                   href={window.location.href + "/../cancel/" + booking.uid}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Cancel
                                 </a>
                                 <a
                                   href={window.location.href + "/../reschedule/" + booking.uid}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Reschedule
                                 </a>
-                                <Menu as="div" className="inline-block text-left">
-                          {({ open }) => (
-                            <>
-                              <div>
-                                <Menu.Button className="text-neutral-400 mt-1">
-                                  <span className="sr-only">Open options</span>
-                                  <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-                                </Menu.Button>
-                              </div>
+                                <Menu as="div" className="inline-block lg:hidden text-left ">
+                                  {({ open }) => (
+                                    <>
+                                      <div>
+                                        <Menu.Button className="text-neutral-400 mt-1">
+                                          <span className="sr-only">Open options</span>
+                                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                                        </Menu.Button>
+                                      </div>
 
-                              <Transition
-                                show={open}
-                                as={Fragment}
-                                enter="transition ease-out duration-100"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-75"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95">
-                                <Menu.Items
-                                  static
-                                  className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
-                                  <div className="py-1">
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <a
-                                          href={"/" + session.user.username + "/" + type.slug}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className={classNames(
-                                            active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                            "group flex items-center px-4 py-2 text-sm font-medium"
-                                          )}>
-                                          <ExternalLinkIcon
-                                            className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                            aria-hidden="true"
-                                          />
-                                          Preview
-                                        </a>
-                                      )}
-                                    </Menu.Item>
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <button
-                                          className={classNames(
-                                            active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                            "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                          )}>
-                                          <LinkIcon
-                                            className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                            aria-hidden="true"
-                                          />
-                                          Copy link to event
-                                        </button>
-                                      )}
-                                    </Menu.Item>
-                                  </div>
-                                </Menu.Items>
-                              </Transition>
-                            </>
-                          )}
-                        </Menu>
+                                      <Transition
+                                        show={open}
+                                        as={Fragment}
+                                        enter="transition ease-out duration-100"
+                                        enterFrom="transform opacity-0 scale-95"
+                                        enterTo="transform opacity-100 scale-100"
+                                        leave="transition ease-in duration-75"
+                                        leaveFrom="transform opacity-100 scale-100"
+                                        leaveTo="transform opacity-0 scale-95">
+                                        <Menu.Items
+                                          static
+                                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                                          <div className="py-1">
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <a
+                                                  href={window.location.href + "/../cancel/" + booking.uid}
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm font-medium"
+                                                  )}>
+                                                  Cancel
+                                                </a>
+                                              )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <a
+                                                  href={
+                                                    window.location.href + "/../reschedule/" + booking.uid
+                                                  }
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                                  )}>
+                                                  Reschedule
+                                                </a>
+                                              )}
+                                            </Menu.Item>
+                                          </div>
+                                        </Menu.Items>
+                                      </Transition>
+                                    </>
+                                  )}
+                                </Menu>
                               </>
                             )}
                             {!booking.confirmed && booking.rejected && (
@@ -229,8 +226,8 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const bookings = b.reverse().map(booking=>{
-    return ({...booking, startTime:booking.startTime.toISOString(), endTime:booking.endTime.toISOString(),})
+  const bookings = b.reverse().map((booking) => {
+    return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
   });
 
   return { props: { bookings } };
