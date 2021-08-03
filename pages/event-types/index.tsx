@@ -20,7 +20,7 @@ import {
   PlusIcon,
   UserIcon,
 } from "@heroicons/react/solid";
-import Loader from '@components/Loader';
+import Loader from "@components/Loader";
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();
@@ -42,7 +42,7 @@ export default function Availability({ user, types }) {
 
     // TODO: Add validation
 
-    const response = await fetch("/api/availability/eventtype", {
+    await fetch("/api/availability/eventtype", {
       method: "POST",
       body: JSON.stringify({
         title: enteredTitle,
@@ -66,7 +66,7 @@ export default function Availability({ user, types }) {
   }
 
   if (loading) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   return (
@@ -79,12 +79,14 @@ export default function Availability({ user, types }) {
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
         CTA={
-          <button
-            onClick={toggleAddModal}
-            className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-            <PlusIcon className="w-5 h-5 mr-1" />
-            New event type
-          </button>
+          types.length !== 0 && (
+            <button
+              onClick={toggleAddModal}
+              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+              <PlusIcon className="w-5 h-5 mr-1" />
+              New event type
+            </button>
+          )
         }>
         <div className="bg-white shadow overflow-hidden sm:rounded-sm">
           <ul className="divide-y divide-neutral-200">
@@ -261,9 +263,9 @@ export default function Availability({ user, types }) {
           </ul>
         </div>
         {types.length === 0 && (
-          <div className="text-center max-w-lg mx-auto">
+          <div className="md:py-20">
             <svg
-              className="mx-auto mb-4 w-32 h-32"
+              className="w-1/2 md:w-32 mx-auto block mb-4"
               viewBox="0 0 132 132"
               fill="none"
               xmlns="http://www.w3.org/2000/svg">
@@ -500,12 +502,19 @@ export default function Availability({ user, types }) {
                 </clipPath>
               </defs>
             </svg>
-
-            <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
-            <p className="mt-1 text-md text-neutral-600">
-              Event types enable you to share links that show available times on your calendar and allow
-              people to make bookings with you.
-            </p>
+            <div className="text-center block md:max-w-screen-sm mx-auto">
+              <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
+              <p className="mt-1 text-md text-neutral-600">
+                Event types enable you to share links that show available times on your calendar and allow
+                people to make bookings with you.
+              </p>
+              <button
+                onClick={toggleAddModal}
+                className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+                <PlusIcon className="w-5 h-5 mr-1 inline" />
+                New event type
+              </button>
+            </div>
           </div>
         )}
         {showAddModal && (
