@@ -4,6 +4,7 @@ import Head from "next/head";
 import { ChevronDownIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import dayjs, { Dayjs } from "dayjs";
+import * as Collapsible from "@radix-ui/react-collapsible";
 
 import prisma, { whereAndSelect } from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
@@ -139,19 +140,21 @@ export default function Type(props): Type {
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {props.eventType.length} minutes
                 </p>
-                <button
-                  onClick={() => setIsTimeOptionsOpen(!isTimeOptionsOpen)}
-                  className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                  <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {timeZone()}
-                  <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
-                </button>
-                {isTimeOptionsOpen && (
-                  <TimeOptions
-                    onSelectTimeZone={handleSelectTimeZone}
-                    onToggle24hClock={handleToggle24hClock}
-                  />
-                )}
+
+                <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
+                  <Collapsible.Trigger className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                    <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {timeZone()}
+                    <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <TimeOptions
+                      onSelectTimeZone={handleSelectTimeZone}
+                      onToggle24hClock={handleToggle24hClock}
+                    />
+                  </Collapsible.Content>
+                </Collapsible.Root>
+
                 <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
               </div>
               <DatePicker
