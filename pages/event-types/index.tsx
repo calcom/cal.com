@@ -4,7 +4,7 @@ import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
 import { useRouter } from "next/router";
 import { getSession, useSession } from "next-auth/client";
-import { Fragment, useRef, useState } from "react";
+import React, { Fragment, useRef } from "react";
 import { Menu, Transition } from "@headlessui/react";
 
 import {
@@ -18,11 +18,11 @@ import {
 } from "@heroicons/react/solid";
 import Loader from "@components/Loader";
 import classNames from "@lib/classNames";
+import { Dialog, DialogContent, DialogTrigger, DialogClose } from "@components/Dialog";
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();
   const router = useRouter();
-  const [showAddModal, setShowAddModal] = useState(false);
 
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
@@ -38,7 +38,6 @@ export default function Availability({ user, types }) {
     const enteredLength = lengthRef.current.value;
 
     // TODO: Add validation
-
     await fetch("/api/availability/eventtype", {
       method: "POST",
       body: JSON.stringify({
@@ -53,18 +52,116 @@ export default function Availability({ user, types }) {
     });
 
     if (enteredTitle && enteredLength) {
-      router.replace(router.asPath);
-      toggleAddModal();
+      await router.replace(router.asPath);
     }
-  }
-
-  function toggleAddModal() {
-    setShowAddModal(!showAddModal);
   }
 
   if (loading) {
     return <Loader />;
   }
+
+  const CreateNewEventDialog = (
+    <Dialog>
+      <DialogTrigger>
+        <button className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+          <PlusIcon className="w-5 h-5 mr-1 inline" />
+          New event type
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <div className="mb-4">
+          <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+            Add a new event type
+          </h3>
+          <div>
+            <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
+          </div>
+        </div>
+        <form onSubmit={createEventTypeHandler}>
+          <div>
+            <div className="mb-4">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                Title
+              </label>
+              <div className="mt-1">
+                <input
+                  ref={titleRef}
+                  type="text"
+                  name="title"
+                  id="title"
+                  required
+                  className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  placeholder="Quick Chat"
+                />
+              </div>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+                URL
+              </label>
+              <div className="mt-1">
+                <div className="flex rounded-sm shadow-sm">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                    {location.hostname}/{user.username}/
+                  </span>
+                  <input
+                    ref={slugRef}
+                    type="text"
+                    name="slug"
+                    id="slug"
+                    required
+                    className="flex-1 block w-full focus:ring-neutral-900 focus:border-neutral-900 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Description
+              </label>
+              <div className="mt-1">
+                <textarea
+                  ref={descriptionRef}
+                  name="description"
+                  id="description"
+                  className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  placeholder="A quick video meeting."></textarea>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="length" className="block text-sm font-medium text-gray-700">
+                Length
+              </label>
+              <div className="mt-1 relative rounded-sm shadow-sm">
+                <input
+                  ref={lengthRef}
+                  type="number"
+                  name="length"
+                  id="length"
+                  required
+                  className="focus:ring-neutral-900 focus:border-neutral-900 block w-full pr-20 sm:text-sm border-gray-300 rounded-sm"
+                  placeholder="15"
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                  minutes
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <button type="submit" className="btn btn-primary">
+                Create
+              </button>
+              <DialogClose as="button" className="btn btn-white ml-2">
+                Cancel
+              </DialogClose>
+            </div>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div>
@@ -75,16 +172,7 @@ export default function Availability({ user, types }) {
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
-        CTA={
-          types.length !== 0 && (
-            <button
-              onClick={toggleAddModal}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              <PlusIcon className="w-5 h-5 mr-1" />
-              New event type
-            </button>
-          )
-        }>
+        CTA={types.length !== 0 && CreateNewEventDialog}>
         <div className="bg-white shadow overflow-hidden sm:rounded-sm">
           <ul className="divide-y divide-neutral-200">
             {types.map((type) => (
@@ -505,123 +593,7 @@ export default function Availability({ user, types }) {
                 Event types enable you to share links that show available times on your calendar and allow
                 people to make bookings with you.
               </p>
-              <button
-                onClick={toggleAddModal}
-                className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-                <PlusIcon className="w-5 h-5 mr-1 inline" />
-                New event type
-              </button>
-            </div>
-          </div>
-        )}
-        {showAddModal && (
-          <div
-            className="fixed z-10 inset-0 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
-
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-
-              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="mb-4">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                    Add a new event type
-                  </h3>
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Create a new event type for people to book times with.
-                    </p>
-                  </div>
-                </div>
-                <form onSubmit={createEventTypeHandler}>
-                  <div>
-                    <div className="mb-4">
-                      <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                        Title
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          ref={titleRef}
-                          type="text"
-                          name="title"
-                          id="title"
-                          required
-                          className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
-                          placeholder="Quick Chat"
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                        URL
-                      </label>
-                      <div className="mt-1">
-                        <div className="flex rounded-sm shadow-sm">
-                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                            {location.hostname}/{user.username}/
-                          </span>
-                          <input
-                            ref={slugRef}
-                            type="text"
-                            name="slug"
-                            id="slug"
-                            required
-                            className="flex-1 block w-full focus:ring-neutral-900 focus:border-neutral-900 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                        Description
-                      </label>
-                      <div className="mt-1">
-                        <textarea
-                          ref={descriptionRef}
-                          name="description"
-                          id="description"
-                          className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
-                          placeholder="A quick video meeting."></textarea>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="length" className="block text-sm font-medium text-gray-700">
-                        Length
-                      </label>
-                      <div className="mt-1 relative rounded-sm shadow-sm">
-                        <input
-                          ref={lengthRef}
-                          type="number"
-                          name="length"
-                          id="length"
-                          required
-                          className="focus:ring-neutral-900 focus:border-neutral-900 block w-full pr-20 sm:text-sm border-gray-300 rounded-sm"
-                          placeholder="15"
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
-                          minutes
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* TODO: Add an error message when required input fields empty*/}
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      Create
-                    </button>
-                    <button onClick={toggleAddModal} type="button" className="btn btn-white mr-2">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
+              {CreateNewEventDialog}
             </div>
           </div>
         )}
