@@ -12,7 +12,7 @@ import { ClockIcon, XIcon } from "@heroicons/react/outline";
 
 export default function Bookings({ bookings }) {
   const [session, loading] = useSession();
-  console.log(session)
+  console.log(session);
   const router = useRouter();
 
   if (loading) {
@@ -74,7 +74,7 @@ export default function Bookings({ bookings }) {
                               </span>
                             )}
                             <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
-                              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dol
+                              {booking.title}
                             </div>
                             <div className="sm:hidden">
                               <div className="text-sm text-gray-900">
