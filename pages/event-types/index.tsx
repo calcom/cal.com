@@ -173,7 +173,7 @@ export default function Availability({ user, types }) {
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
         CTA={types.length !== 0 && CreateNewEventDialog}>
-        <div className="bg-white shadow overflow-hidden sm:rounded-sm">
+        <div className="bg-white shadow overflow-hidden sm:rounded-sm -mx-4 sm:mx-0">
           <ul className="divide-y divide-neutral-200">
             {types.map((type) => (
               <li key={type.id}>

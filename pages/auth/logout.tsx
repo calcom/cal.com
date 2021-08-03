@@ -4,7 +4,7 @@ import { CheckIcon } from '@heroicons/react/outline';
 
 export default function Logout() {
     return (
-        <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div className="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <Head>
                 <title>Logged out - Calendso</title>
                 <link rel="icon" href="/favicon.ico" />

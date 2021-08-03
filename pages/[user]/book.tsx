@@ -65,7 +65,7 @@ export default function Book(props: any): JSX.Element {
             const data = event.target["custom_" + input.id];
             if (data) {
               if (input.type === EventTypeCustomInputType.Bool) {
-                return input.label + "\n" + (data.value ? "Yes" : "No");
+                return input.label + "\n" + (data.checked ? "Yes" : "No");
               } else {
                 return input.label + "\n" + data.value;
               }
