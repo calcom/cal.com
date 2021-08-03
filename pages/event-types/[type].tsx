@@ -391,10 +391,10 @@ export default function EventTypePage({
       <Shell heading={"Event Type: " + eventType.title} subtitle={eventType.description}>
         <div className="block sm:flex">
           <div className="w-full sm:w-10/12 mr-2">
-            <div className="bg-white rounded-sm border border-neutral-200 p-8">
+            <div className="bg-white rounded-sm border border-neutral-200 -mx-4 sm:mx-0 p-4 sm:p-8">
               <form onSubmit={updateEventTypeHandler} className="space-y-4">
-                <div className="flex">
-                  <div className="min-w-32">
+                <div className="block sm:flex">
+                  <div className="min-w-32 mb-4 sm:mb-0">
                     <label htmlFor="title" className="flex font-medium text-neutral-700 mt-1">
                       <PencilIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Title
@@ -413,8 +413,8 @@ export default function EventTypePage({
                     />
                   </div>
                 </div>
-                <div className="flex">
-                  <div className="min-w-32">
+                <div className="block sm:flex">
+                  <div className="min-w-32 mb-4 sm:mb-0">
                     <label htmlFor="slug" className="flex font-medium text-neutral-700 mt-1">
                       <LinkIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       URL
@@ -437,8 +437,8 @@ export default function EventTypePage({
                     </div>
                   </div>
                 </div>
-                <div className="flex">
-                  <div className="min-w-32">
+                <div className="block sm:flex">
+                  <div className="min-w-32 mb-4 sm:mb-0">
                     <label htmlFor="location" className="flex font-medium text-neutral-700 mt-1">
                       <LocationMarkerIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Location
@@ -566,8 +566,8 @@ export default function EventTypePage({
                     )}
                   </div>
                 </div>
-                <div className="flex">
-                  <div className="min-w-32">
+                <div className="block sm:flex">
+                  <div className="min-w-32 mb-4 sm:mb-0">
                     <label htmlFor="length" className="flex font-medium text-neutral-700 mt-1">
                       <ClockIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Duration
@@ -593,8 +593,8 @@ export default function EventTypePage({
                     </div>
                   </div>
                 </div>
-                <div className="flex">
-                  <div className="min-w-32">
+                <div className="block sm:flex">
+                  <div className="min-w-32 mb-4 sm:mb-0">
                     <label htmlFor="description" className="flex font-medium text-neutral-700 mt-1">
                       <DocumentIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
                       Description
@@ -620,8 +620,8 @@ export default function EventTypePage({
                         <span className="text-neutral-700 text-sm font-medium">Show advanced settings</span>
                       </Disclosure.Button>
                       <Disclosure.Panel className="space-y-4">
-                        <div className="flex">
-                          <div className="min-w-32">
+                        <div className="block sm:flex">
+                          <div className="min-w-32 mb-4 sm:mb-0">
                             <label htmlFor="eventName" className="flex font-medium text-neutral-700 mt-2">
                               Event name
                             </label>
@@ -640,8 +640,8 @@ export default function EventTypePage({
                             </div>
                           </div>
                         </div>
-                        <div className="flex">
-                          <div className="min-w-32">
+                        <div className="block sm:flex">
+                          <div className="min-w-32 mb-4 sm:mb-0">
                             <label
                               htmlFor="additionalFields"
                               className="flex font-medium text-neutral-700 mt-2">
@@ -694,8 +694,8 @@ export default function EventTypePage({
                             </ul>
                           </div>
                         </div>
-                        <div className="flex">
-                          <div className="min-w-32">
+                        <div className="block sm:flex">
+                          <div className="min-w-32 mb-4 sm:mb-0">
                             <label htmlFor="hidden" className="flex font-medium text-neutral-700">
                               Hide event type
                             </label>
@@ -721,8 +721,8 @@ export default function EventTypePage({
                             </div>
                           </div>
                         </div>
-                        <div className="flex">
-                          <div className="min-w-32">
+                        <div className="block sm:flex">
+                          <div className="min-w-32 mb-4 sm:mb-0">
                             <label
                               htmlFor="requiresConfirmation"
                               className="flex font-medium text-neutral-700">
@@ -750,8 +750,8 @@ export default function EventTypePage({
                             </div>
                           </div>
                         </div>
-                        <div className="flex">
-                          <div className="min-w-32">
+                        <div className="block sm:flex">
+                          <div className="min-w-32 mb-4 sm:mb-0">
                             <label
                               htmlFor="inviteesCanSchedule"
                               className="flex font-medium text-neutral-700 mt-2">
@@ -769,22 +769,22 @@ export default function EventTypePage({
                                     className={({ checked }) =>
                                       classnames(
                                         checked ? "border-secondary-200 z-10" : "border-gray-200",
-                                        "relative min-h-14 lg:flex items-center cursor-pointer focus:outline-none"
+                                        "relative min-h-14 flex items-center cursor-pointer focus:outline-none"
                                       )
                                     }>
                                     {({ active, checked }) => (
                                       <>
-                                        <span
+                                        <div
                                           className={classnames(
                                             checked
                                               ? "bg-primary-600 border-transparent"
                                               : "bg-white border-gray-300",
                                             active ? "ring-2 ring-offset-2 ring-primary-500" : "",
-                                            "h-4 w-4 mt-0.5 cursor-pointer rounded-full border flex items-center justify-center"
+                                            "h-4 w-4 mt-0.5 mr-2 cursor-pointer rounded-full border items-center justify-center"
                                           )}
                                           aria-hidden="true">
                                           <span className="rounded-full bg-white w-1.5 h-1.5" />
-                                        </span>
+                                        </div>
                                         <div className="lg:ml-3 flex flex-col">
                                           <RadioGroup.Label
                                             as="span"
@@ -849,8 +849,8 @@ export default function EventTypePage({
                             </RadioGroup>
                           </div>
                         </div>
-                        <div className="flex">
-                          <div className="min-w-32">
+                        <div className="block sm:flex">
+                          <div className="min-w-32 mb-4 sm:mb-0">
                             <label htmlFor="availability" className="flex font-medium text-neutral-700 mt-2">
                               Availability
                             </label>
