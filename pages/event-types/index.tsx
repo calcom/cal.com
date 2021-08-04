@@ -56,6 +56,12 @@ export default function Availability({ user, types }) {
     }
   }
 
+  function autoPopulateSlug() {
+    let t = titleRef.current.value;
+    t = t.replace(/\s+/g, "-").toLowerCase();
+    slugRef.current.value = t;
+  }
+
   if (loading) {
     return <Loader />;
   }
@@ -83,6 +89,7 @@ export default function Availability({ user, types }) {
               </label>
               <div className="mt-1">
                 <input
+                  onChange={autoPopulateSlug}
                   ref={titleRef}
                   type="text"
                   name="title"
