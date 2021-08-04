@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
+import prisma from "@lib/prisma";
+import { EventType } from "@prisma/client";
 import { CalendarEvent, createEvent, getBusyCalendarTimes, updateEvent } from "../../../lib/calendarClient";
 import async from "async";
 import { v5 as uuidv5 } from "uuid";
@@ -30,6 +31,7 @@ const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 function isAvailable(busyTimes, time, length) {
   // Check for conflicts
   let t = true;
+
   if (Array.isArray(busyTimes) && busyTimes.length > 0) {
     busyTimes.forEach((busyTime) => {
       const startTime = dayjs(busyTime.start);
@@ -247,11 +249,11 @@ export async function scheduleEvent(
 
 export async function handleLegacyConfirmationMail(
   results: unknown[],
-  selectedEventType: { requiresConfirmation: boolean },
+  eventType: EventType,
   evt: CalendarEvent,
   hashUID: string
 ): Promise<{ error: Exception; message: string | null }> {
-  if (results.length === 0 && !selectedEventType.requiresConfirmation) {
+  if (results.length === 0 && !eventType.requiresConfirmation) {
     // Legacy as well, as soon as we have a separate email integration class. Just used
     // to send an email even if there is no integration at all.
     try {
@@ -302,10 +304,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // Split credentials up into calendar credentials and video credentials
-    let calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    let videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
-
     const hasCalendarIntegrations =
       currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
     const hasVideoIntegrations =
@@ -347,17 +345,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name: true,
       },
     });
-    calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
 
+    const calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
+    const videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
     const rescheduleUid = req.body.rescheduleUid;
 
-    const selectedEventType = await prisma.eventType.findFirst({
+    const eventType: EventType = await prisma.eventType.findFirst({
       where: {
         userId: currentUser.id,
         id: req.body.eventTypeId,
       },
       select: {
+        id: true,
         eventName: true,
         title: true,
         length: true,
@@ -373,8 +372,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rawLocation = req.body.location;
 
     let evt: CalendarEvent = {
-      type: selectedEventType.title,
-      title: getEventName(req.body.name, selectedEventType.title, selectedEventType.eventName),
+      type: eventType.title,
+      title: getEventName(req.body.name, eventType.title, eventType.eventName),
       description: req.body.notes,
       startTime: req.body.start,
       endTime: req.body.end,
@@ -399,22 +398,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       evt = merge(evt, maybeLocationRequestObject);
     }
 
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        userId: currentUser.id,
-        title: evt.type,
-      },
-      select: {
-        id: true,
-      },
-    });
-
     let isAvailableToBeBooked = true;
 
     try {
-      isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, selectedEventType.length);
-    } catch (e) {
-      console.log(e);
+      isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, eventType.length);
+    } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
       });
@@ -434,11 +422,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       timeOutOfBounds = isOutOfBounds(req.body.start, {
-        periodType: selectedEventType.periodType,
-        periodDays: selectedEventType.periodDays,
-        periodEndDate: selectedEventType.periodEndDate,
-        periodStartDate: selectedEventType.periodStartDate,
-        periodCountCalendarDays: selectedEventType.periodCountCalendarDays,
+        periodType: eventType.periodType,
+        periodDays: eventType.periodDays,
+        periodEndDate: eventType.periodEndDate,
+        periodStartDate: eventType.periodStartDate,
+        periodCountCalendarDays: eventType.periodCountCalendarDays,
         timeZone: currentUser.timeZone,
       });
     } catch {
@@ -475,7 +463,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       results = __ret.results;
       referencesToCreate = __ret.referencesToCreate;
-    } else if (!selectedEventType.requiresConfirmation) {
+    } else if (!eventType.requiresConfirmation) {
       const __ret = await scheduleEvent(
         results,
         calendarCredentials,
@@ -497,7 +485,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
-    const legacyMailError = await handleLegacyConfirmationMail(results, selectedEventType, evt, hashUID);
+    const legacyMailError = await handleLegacyConfirmationMail(results, eventType, evt, hashUID);
     if (legacyMailError) {
       log.error("Sending legacy event mail failed", legacyMailError.error);
       log.error(`Booking ${user} failed`);
@@ -521,7 +509,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           attendees: {
             create: evt.attendees,
           },
-          confirmed: !selectedEventType.requiresConfirmation,
+          confirmed: !eventType.requiresConfirmation,
         },
       });
     } catch (e) {
@@ -530,7 +518,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    if (selectedEventType.requiresConfirmation) {
+    if (eventType.requiresConfirmation) {
       await new EventOrganizerRequestMail(evt, hashUID).sendEmail();
     }
 
