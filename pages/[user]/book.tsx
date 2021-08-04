@@ -114,7 +114,6 @@ export default function Book(props: any): JSX.Element {
         }
       }
 
-      // console.log(payload);
       telemetry.withJitsu((jitsu) =>
         jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
       );
