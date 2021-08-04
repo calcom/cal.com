@@ -309,3 +309,128 @@ paths:
                 properties:
                   message:
                     type: string
+  /api/amili/user:
+    post:
+      requestBody:
+        content:
+          'application/json, */*':
+            schema:
+              properties:
+                  name:
+                    description: fullname
+                    type: string
+                  email:
+                    description: email
+                    type: string
+                  username:
+                    description: userId
+                    type: string
+                  password:
+                    description: password
+                    type: string
+                  bio:
+                    description: description
+                    type: string
+              required:
+                - email
+                - username
+      description: Create coach user from amili-api.
+      summary: Create coach user from amili-api.
+      tags:
+        - User
+      responses:
+        '201':
+          description: coach user response
+          content:
+            'application/json':
+              schema:
+                properties:
+                  id:
+                    description: userId
+                    type: string
+                  name:
+                    description: fullname
+                    type: string
+                  email:
+                    description: email
+                    type: string
+                  username:
+                    description: userId
+                    type: string
+                  bio:
+                    description: description
+                    type: string
+                  timeZone:
+                    description: timeZone
+                    type: string
+        '405':
+          description: Method Not Allowed
+          content:
+            'application/json': {}
+        '409':
+          description: Email address is already registered
+          content:
+            'application/json':
+              schema:
+                properties:
+                  message:
+                    description: Email address is already registered
+                    type: string
+  /api/amili/user/:userId:
+    patch:
+      requestBody:
+        content:
+          'application/json, */*':
+            schema:
+              properties:
+                  name:
+                    description: fullname
+                    type: string
+                  bio:
+                    description: description
+                    type: string
+                  timeZone:
+                    description: timeZone
+                    type: string
+      description: Updates a coach user.
+      summary: Updates a coach user.
+      tags:
+        - User
+      responses:
+        '200':
+          description: coach user response
+          content:
+            'application/json':
+              schema:
+                properties:
+                  id:
+                    description: userId
+                    type: string
+                  name:
+                    description: fullname
+                    type: string
+                  email:
+                    description: email
+                    type: string
+                  username:
+                    description: userId
+                    type: string
+                  bio:
+                    description: description
+                    type: string
+                  timeZone:
+                    description: timeZone
+                    type: string
+        '405':
+          description: Method Not Allowed
+          content:
+            'application/json': {}
+        '404':
+          description: UserId is not found
+          content:
+            'application/json':
+              schema:
+                properties:
+                  message:
+                    description: UserId is not found
+                    type: string
