@@ -372,6 +372,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const rawLocation = req.body.location;
 
+    const invitee = [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }];
+    const guests = req.body.guests.map(guest=>{
+      let g = {
+        'email': guest,
+        'name': '',
+        'timeZone': req.body.timeZone  
+      }
+      return g;
+    });
+    const attendeesList = [...invitee,...guests];
+
     let evt: CalendarEvent = {
       type: selectedEventType.title,
       title: getEventName(req.body.name, selectedEventType.title, selectedEventType.eventName),
@@ -379,7 +390,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       startTime: req.body.start,
       endTime: req.body.end,
       organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
-      attendees: [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }],
+      attendees: attendeesList,
     };
 
     // If phone or inPerson use raw location

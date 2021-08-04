@@ -81,6 +81,10 @@
     }
 }
 
+.react-multi-email > [type='text'] {
+    --tw-ring-shadow: 0 0 0 0 0;
+}
+
 /* !important to override react-select */
 .react-select__value-container{
     border: 0 !important;

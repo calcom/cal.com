@@ -15,6 +15,8 @@ import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
 import { EventTypeCustomInputType } from "../../lib/eventTypeInput";
 import Theme from "@components/Theme";
+import { ReactMultiEmail, isEmail } from 'react-multi-email';
+import 'react-multi-email/style.css';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -27,7 +29,8 @@ export default function Book(props: any): JSX.Element {
   const [preferredTimeZone, setPreferredTimeZone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-
+  const [guestToggle, setGuestToggle] = useState(false);
+  const [guestEmails, setGuestEmails] = useState([]);
   const locations = props.eventType.locations || [];
 
   const [selectedLocation, setSelectedLocation] = useState<LocationType>(
@@ -43,6 +46,10 @@ export default function Book(props: any): JSX.Element {
 
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
   });
+
+  function toggleGuestEmailInput() {
+    setGuestToggle(!guestToggle);
+  }
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
@@ -85,6 +92,7 @@ export default function Book(props: any): JSX.Element {
         name: event.target.name.value,
         email: event.target.email.value,
         notes: notes,
+        guests: guestEmails,
         timeZone: preferredTimeZone,
         eventTypeId: props.eventType.id,
         rescheduleUid: rescheduleUid,
@@ -321,6 +329,42 @@ export default function Book(props: any): JSX.Element {
                         </div>
                       ))}
                   <div className="mb-4">
+                      {!guestToggle && 
+                        <label
+                          onClick={toggleGuestEmailInput}
+                          htmlFor="guests"
+                          className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
+                          + Additional Guests
+                        </label>       
+
+                      }
+                      {
+                        guestToggle &&
+                        <ReactMultiEmail
+                        placeholder="Input your Email Address"
+                        emails={guestEmails}
+                        onChange={(_emails: string[]) => {
+                          setGuestEmails(_emails);
+                        }}
+                        getLabel={(
+                          email: string,
+                          index: number,
+                          removeEmail: (index: number) => void
+                        ) => {
+                          return (
+                            <div data-tag key={index}>
+                              {email}
+                              <span data-tag-handle onClick={() => removeEmail(index)}>
+                                ×
+                              </span>
+                            </div>
+                          );
+                        }}
+                      />                     
+                      }
+
+                  </div>    
+                  <div className="mb-4">
                     <label
                       htmlFor="notes"
                       className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
@@ -408,10 +452,9 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const eventTypeObject = Object.assign({}, eventType, {
-    periodStartDate: eventType.periodStartDate?.toString() ?? null,
-    periodEndDate: eventType.periodEndDate?.toString() ?? null,
-  });
+  const eventTypeObject = [eventType].map(e => {
+    return ({...e, periodStartDate:e.periodStartDate?.toString() ?? null, periodEndDate:e.periodEndDate?.toString() ?? null,})
+  })[0];
 
   let booking = null;
 
