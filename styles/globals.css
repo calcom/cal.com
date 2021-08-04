@@ -144,7 +144,8 @@
   height: 30px;
   margin: 60px auto;
   position: relative;
-  border: 4px solid #000;
+  border-width: 4px;
+  border-style: solid;
   animation: loader 2s infinite ease;
 }
 
@@ -152,7 +153,6 @@
   vertical-align: top;
   display: inline-block;
   width: 100%;
-  background-color: #000;
   animation: loader-inner 2s infinite ease-in;
 }
 

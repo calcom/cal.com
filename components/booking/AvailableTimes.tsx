@@ -2,6 +2,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Slots from "./Slots";
 import { ExclamationIcon } from "@heroicons/react/solid";
+import React from "react";
+import Loader from "@components/Loader";
 
 const AvailableTimes = ({
   date,
@@ -49,7 +51,7 @@ const AvailableTimes = ({
         </div>
       )}
 
-      {!isFullyBooked && slots.length === 0 && !hasErrors && <div className="loader" />}
+      {!isFullyBooked && slots.length === 0 && !hasErrors && <Loader />}
 
       {hasErrors && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
