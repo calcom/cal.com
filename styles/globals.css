@@ -81,6 +81,10 @@
     }
 }
 
+.react-multi-email > [type='text'] {
+    --tw-ring-shadow: 0 0 0 0 0;
+}
+
 .loader {
     margin: 80px auto;
     border: 8px solid #f3f3f3; /* Light grey */
