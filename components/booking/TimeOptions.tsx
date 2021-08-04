@@ -41,7 +41,7 @@ const TimeOptions = (props) => {
                 onChange={setIs24hClock}
                 className={classNames(
                   is24hClock ? "bg-blue-600" : "dark:bg-gray-600 bg-gray-200",
-                  "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
                 )}>
                 <span className="sr-only">Use setting</span>
                 <span
@@ -62,7 +62,7 @@ const TimeOptions = (props) => {
           id="timeZone"
           value={selectedTimeZone}
           onChange={(tz) => setSelectedTimeZone(tz.value)}
-          className="mb-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+          className="mb-2 shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
         />
       </div>
     )

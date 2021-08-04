@@ -90,7 +90,7 @@ export default function Settings(props) {
   }
 
   return (
-    <Shell heading="Profile">
+    <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
       <Head>
         <title>Profile | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
@@ -98,19 +98,14 @@ export default function Settings(props) {
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
-          <div className="py-6 px-4 sm:p-6 lg:pb-8">
-            <div>
-              <h2 className="text-lg leading-6 font-medium text-gray-900">Profile</h2>
-              <p className="mt-1 text-sm text-gray-500">Review and change your public page details.</p>
-            </div>
-
-            <div className="mt-6 flex flex-col lg:flex-row">
+          <div className="py-6 lg:pb-8">
+            <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
-                <div className="flex">
-                  <div className="w-1/2 mr-2">
+                <div className="block sm:flex">
+                  <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
                     <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
                   </div>
-                  <div className="w-1/2 ml-2">
+                  <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       Full name
                     </label>
@@ -122,7 +117,7 @@ export default function Settings(props) {
                       autoComplete="given-name"
                       placeholder="Your name"
                       required
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={props.user.name}
                     />
                   </div>
@@ -140,7 +135,7 @@ export default function Settings(props) {
                       placeholder="A little something about yourself."
                       rows={3}
                       defaultValue={props.user.bio}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                      className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"></textarea>
                   </div>
                 </div>
                 <div>
@@ -152,7 +147,8 @@ export default function Settings(props) {
                       id="timeZone"
                       value={selectedTimeZone}
                       onChange={setSelectedTimeZone}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                      classNamePrefix="react-select"
+                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
                     />
                   </div>
                 </div>
@@ -165,7 +161,8 @@ export default function Settings(props) {
                       id="weekStart"
                       value={selectedWeekStartDay}
                       onChange={setSelectedWeekStartDay}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                      classNamePrefix="react-select"
+                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
                       options={[
                         { value: "Sunday", label: "Sunday" },
                         { value: "Monday", label: "Monday" },
@@ -183,11 +180,11 @@ export default function Settings(props) {
                       isDisabled={!selectedTheme}
                       defaultValue={selectedTheme || themeOptions[0]}
                       onChange={setSelectedTheme}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
                       options={themeOptions}
                     />
                   </div>
-                  <div className="relative flex items-start">
+                  <div className="mt-8 relative flex items-start">
                     <div className="flex items-center h-5">
                       <input
                         id="theme-adjust-os"
@@ -195,7 +192,7 @@ export default function Settings(props) {
                         type="checkbox"
                         onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
                         defaultChecked={!selectedTheme}
-                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                        className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
                       />
                     </div>
                     <div className="ml-3 text-sm">
@@ -214,7 +211,7 @@ export default function Settings(props) {
                         type="checkbox"
                         ref={hideBrandingRef}
                         defaultChecked={props.user.hideBranding}
-                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                        className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
                       />
                     </div>
                     <div className="ml-3 text-sm">
@@ -238,13 +235,13 @@ export default function Settings(props) {
                       aria-hidden="true">
                       <Avatar user={props.user} className="rounded-full h-full w-full" />
                     </div>
-                    {/* <div className="ml-5 rounded-md shadow-sm">
-                                            <div className="group relative border border-gray-300 rounded-md py-2 px-3 flex items-center justify-center hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                    {/* <div className="ml-5 rounded-sm shadow-sm">
+                                            <div className="group relative border border-gray-300 rounded-sm py-2 px-3 flex items-center justify-center hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-neutral-500">
                                                 <label htmlFor="user_photo" className="relative text-sm leading-4 font-medium text-gray-700 pointer-events-none">
                                                     <span>Change</span>
                                                     <span className="sr-only"> user photo</span>
                                                 </label>
-                                                <input id="user_photo" name="user_photo" type="file" className="absolute w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-md" />
+                                                <input id="user_photo" name="user_photo" type="file" className="absolute w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-sm" />
                                             </div>
                                         </div> */}
                   </div>
@@ -254,12 +251,12 @@ export default function Settings(props) {
                   <Avatar
                     user={props.user}
                     className="relative rounded-full w-40 h-40"
-                    fallback={<div className="relative bg-blue-600 rounded-full w-40 h-40"></div>}
+                    fallback={<div className="relative bg-neutral-900 rounded-full w-40 h-40"></div>}
                   />
                   {/* <label htmlFor="user-photo" className="absolute inset-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center text-sm font-medium text-white opacity-0 hover:opacity-100 focus-within:opacity-100">
                                         <span>Change</span>
                                         <span className="sr-only"> user photo</span>
-                                        <input type="file" id="user-photo" name="user-photo" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-md" />
+                                        <input type="file" id="user-photo" name="user-photo" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-sm" />
                                     </label> */}
                 </div>
                 <div className="mt-4">
@@ -272,7 +269,7 @@ export default function Settings(props) {
                     name="avatar"
                     id="avatar"
                     placeholder="URL"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                     defaultValue={props.user.avatar}
                   />
                 </div>
@@ -282,7 +279,7 @@ export default function Settings(props) {
             <div className="py-4 flex justify-end">
               <button
                 type="submit"
-                className="ml-2 bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500">
                 Save
               </button>
             </div>

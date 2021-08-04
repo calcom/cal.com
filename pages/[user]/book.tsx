@@ -201,7 +201,7 @@ export default function Book(props: any): JSX.Element {
                         name="name"
                         id="name"
                         required
-                        className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="John Doe"
                         defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
@@ -219,7 +219,7 @@ export default function Book(props: any): JSX.Element {
                         name="email"
                         id="email"
                         required
-                        className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                         placeholder="you@example.com"
                         defaultValue={props.booking ? props.booking.attendees[0].email : ""}
                       />
@@ -257,7 +257,7 @@ export default function Book(props: any): JSX.Element {
                           placeholder="Enter phone number"
                           id="phone"
                           required
-                          className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                           onChange={() => {
                             /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
                           }}
@@ -283,7 +283,7 @@ export default function Book(props: any): JSX.Element {
                               id={"custom_" + input.id}
                               required={input.required}
                               rows={3}
-                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                               placeholder=""
                             />
                           )}
@@ -293,7 +293,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                               placeholder=""
                             />
                           )}
@@ -303,7 +303,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                               placeholder=""
                             />
                           )}
@@ -313,7 +313,7 @@ export default function Book(props: any): JSX.Element {
                                 type="checkbox"
                                 name={"custom_" + input.id}
                                 id={"custom_" + input.id}
-                                className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
+                                className="focus:ring-black h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
                                 placeholder=""
                               />
                               <label
@@ -371,7 +371,7 @@ export default function Book(props: any): JSX.Element {
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
                       placeholder="Please share anything that will help prepare for our meeting."
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
