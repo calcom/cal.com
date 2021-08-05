@@ -29,7 +29,7 @@ export default function Home(props) {
     { name: "Integrations", stat: props.integrationCount },
     {
       name: "Available Hours",
-      stat: Math.round(((props.user.endTime - props.user.startTime) / 60) * 100) / 100 + " hours",
+      stat: Math.round(((props.user?.endTime - props.user?.startTime) / 60) * 100) / 100 + " hours",
     },
   ];
 
@@ -205,8 +205,8 @@ export default function Home(props) {
               <div>
                 <p className="text-2xl font-semibold text-gray-600 dark:text-white">
                   Offering time slots between{" "}
-                  <span className="text-blue-600">{convertMinsToHrsMins(props.user.startTime)}</span> and{" "}
-                  <span className="text-blue-600">{convertMinsToHrsMins(props.user.endTime)}</span>
+                  <span className="text-blue-600">{convertMinsToHrsMins(props.user?.startTime)}</span> and{" "}
+                  <span className="text-blue-600">{convertMinsToHrsMins(props.user?.endTime)}</span>
                 </p>
               </div>
             </div>

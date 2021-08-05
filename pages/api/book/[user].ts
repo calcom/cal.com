@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
-import { CalendarEvent, createEvent, getBusyCalendarTimes, updateEvent } from "../../../lib/calendarClient";
-import async from "async";
+import { CalendarEvent, getBusyCalendarTimes } from "../../../lib/calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
-import { createMeeting, getBusyVideoTimes, updateMeeting } from "../../../lib/videoClient";
+import { Logger } from "tslog";
+
+import { getBusyVideoTimes } from "../../../lib/videoClient";
 import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "../../../lib/event";
 import { LocationType } from "../../../lib/location";
@@ -22,6 +23,64 @@ dayjs.extend(timezone);
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
+
+export type User = {
+  id: number;
+  credentials?: Credential[];
+  timeZone: string;
+  email: string;
+  name: string;
+  username: string;
+};
+
+export type PropsSplitCredentials = {
+  start: string | number | Date;
+  end: string | number | Date;
+  user: User;
+};
+
+type Credential = {
+  id: number;
+  type: string;
+  key: any;
+  userId?: number;
+};
+
+type ResponseSplitCredentials = {
+  commonAvailability: any[];
+  videoCredentials: any[];
+  calendarCredentials: any[];
+  eventTypeOrganizer: User;
+};
+
+export type PropsRescheduleBooking = {
+  videoCredentials: any[];
+  calendarCredentials: any[];
+  rescheduleUid?: string;
+  evt: CalendarEvent;
+  username: string;
+};
+
+type ResponseRescheduleBooking = {
+  results: any[];
+  referencesToCreate: any[];
+};
+
+type PropsCheckIsAvailableToBeBooked = {
+  commonAvailability: any[];
+  start: string | Date;
+  selectedEventType: any;
+  organizerName: string;
+  loggerInstance: Logger;
+};
+
+type PropsCheckTimeoutOfBounds = {
+  start: string | Date;
+  selectedEventType: any;
+  organizerTimezone: string;
+  organizerName: string;
+  loggerInstance: Logger;
+};
 
 function isAvailable(busyTimes, time, length) {
   // Check for conflicts
@@ -87,7 +146,7 @@ interface GetLocationRequestFromIntegrationRequest {
   location: string;
 }
 
-const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromIntegrationRequest) => {
+export const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromIntegrationRequest) => {
   if (location === LocationType.GoogleMeet.valueOf()) {
     const requestId = uuidv5(location, uuidv5.URL);
 
@@ -103,37 +162,26 @@ const getLocationRequestFromIntegration = ({ location }: GetLocationRequestFromI
   return null;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const { user } = req.query;
-  log.debug(`Booking ${user} started`);
+export const checkBookingInThePast = (start: string | Date, user: string | string[]): void => {
+  const isTimeInPast = (time) => {
+    return dayjs(time).isBefore(new Date(), "day");
+  };
 
-  try {
-    const isTimeInPast = (time) => {
-      return dayjs(time).isBefore(new Date(), "day");
+  if (isTimeInPast(start)) {
+    const error = {
+      errorCode: "BookingDateInPast",
+      message: "Attempting to create a meeting in the past.",
     };
 
-    if (isTimeInPast(req.body.start)) {
-      const error = {
-        errorCode: "BookingDateInPast",
-        message: "Attempting to create a meeting in the past.",
-      };
+    log.error(`Booking ${user} failed`, error);
 
-      log.error(`Booking ${user} failed`, error);
-      return res.status(400).json(error);
-    }
+    throw { error, status: 400 };
+  }
+};
 
-    let currentUser = await prisma.user.findFirst({
-      where: {
-        username: user,
-      },
-      select: {
-        id: true,
-        credentials: true,
-        timeZone: true,
-        email: true,
-        name: true,
-      },
-    });
+export const splitCredentials = async (props: PropsSplitCredentials): Promise<ResponseSplitCredentials> => {
+  try {
+    const { user: currentUser, start, end } = props;
 
     const selectedCalendars = await prisma.selectedCalendar.findMany({
       where: {
@@ -152,31 +200,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const calendarAvailability = await getBusyCalendarTimes(
       currentUser.credentials,
-      dayjs(req.body.start).startOf("day").utc().format(),
-      dayjs(req.body.end).endOf("day").utc().format(),
+      dayjs(start).startOf("day").utc().format(),
+      dayjs(end).endOf("day").utc().format(),
       selectedCalendars
     );
     const videoAvailability = await getBusyVideoTimes(
       currentUser.credentials,
-      dayjs(req.body.start).startOf("day").utc().format(),
-      dayjs(req.body.end).endOf("day").utc().format()
+      dayjs(start).startOf("day").utc().format(),
+      dayjs(end).endOf("day").utc().format()
     );
     let commonAvailability = [];
 
     if (hasCalendarIntegrations && hasVideoIntegrations) {
-      commonAvailability = calendarAvailability.filter((availability) =>
+      commonAvailability = (calendarAvailability as []).filter((availability) =>
         videoAvailability.includes(availability)
       );
     } else if (hasVideoIntegrations) {
       commonAvailability = videoAvailability;
     } else if (hasCalendarIntegrations) {
-      commonAvailability = calendarAvailability;
+      commonAvailability = calendarAvailability as [];
     }
 
     // Now, get the newly stored credentials (new refresh token for example).
-    currentUser = await prisma.user.findFirst({
+    const currentUserAfterUpdated = await prisma.user.findFirst({
       where: {
-        username: user,
+        id: currentUser.id,
       },
       select: {
         id: true,
@@ -186,14 +234,246 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name: true,
       },
     });
-    calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
+    calendarCredentials = currentUserAfterUpdated.credentials.filter((cred) =>
+      cred.type.endsWith("_calendar")
+    );
+    videoCredentials = currentUserAfterUpdated.credentials.filter((cred) => cred.type.endsWith("_video"));
 
+    return { commonAvailability, calendarCredentials, videoCredentials, eventTypeOrganizer: currentUser };
+  } catch (e) {
+    console.log({ e });
+  }
+};
+
+export const checkIsAvailableToBeBooked = (props: PropsCheckIsAvailableToBeBooked): void => {
+  const { commonAvailability, start, selectedEventType, organizerName, loggerInstance } = props;
+  let isAvailableToBeBooked = false;
+
+  try {
+    isAvailableToBeBooked = isAvailable(commonAvailability, start, selectedEventType.length);
+  } catch {
+    loggerInstance.debug({
+      message: "Unable set isAvailableToBeBooked. Using true. ",
+    });
+  }
+
+  if (!isAvailableToBeBooked) {
+    const error = {
+      errorCode: "BookingUserUnAvailable",
+      message: `${organizerName} is unavailable at this time.`,
+    };
+
+    loggerInstance.debug(`Booking ${organizerName} failed`, error);
+    throw { error, status: 400 };
+  }
+};
+
+export const checkTimeoutOfBounds = (props: PropsCheckTimeoutOfBounds): boolean => {
+  const { start, selectedEventType, organizerTimezone, organizerName, loggerInstance } = props;
+  let timeOutOfBounds = false;
+
+  try {
+    timeOutOfBounds = isOutOfBounds(start, {
+      periodType: selectedEventType.periodType,
+      periodDays: selectedEventType.periodDays,
+      periodEndDate: selectedEventType.periodEndDate,
+      periodStartDate: selectedEventType.periodStartDate,
+      periodCountCalendarDays: selectedEventType.periodCountCalendarDays,
+      timeZone: organizerTimezone,
+    });
+  } catch {
+    loggerInstance.debug({
+      message: "Unable set timeOutOfBounds. Using false. ",
+    });
+  }
+
+  if (timeOutOfBounds) {
+    const error = {
+      errorCode: "BookingUserUnAvailable",
+      message: `${organizerName} is unavailable at this time.`,
+    };
+
+    loggerInstance.debug(`Booking ${organizerName} failed`, error);
+  }
+
+  return timeOutOfBounds;
+};
+
+export const rescheduleBooking = async (
+  props: PropsRescheduleBooking
+): Promise<ResponseRescheduleBooking> => {
+  const { rescheduleUid } = props;
+  // let results = [];
+  // let referencesToCreate = [];
+
+  const booking = await prisma.booking.findFirst({
+    where: {
+      uid: rescheduleUid,
+    },
+    select: {
+      id: true,
+      references: {
+        select: {
+          id: true,
+          type: true,
+          uid: true,
+        },
+      },
+    },
+  });
+
+  // // Use all integrations
+  // results = results.concat(
+  //   await async.mapLimit(calendarCredentials, 5, async (credential) => {
+  //     const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+  //     return updateEvent(credential, bookingRefUid, evt)
+  //       .then((response) => ({ type: credential.type, success: true, response }))
+  //       .catch((e) => {
+  //         log.error("updateEvent failed", e, evt);
+  //         return { type: credential.type, success: false };
+  //       });
+  //   })
+  // );
+
+  // results = results.concat(
+  //   await async.mapLimit(videoCredentials, 5, async (credential) => {
+  //     const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+  //     return updateMeeting(credential, bookingRefUid, evt)
+  //       .then((response) => ({ type: credential.type, success: true, response }))
+  //       .catch((e) => {
+  //         log.error("updateMeeting failed", e, evt);
+  //         return { type: credential.type, success: false };
+  //       });
+  //   })
+  // );
+
+  // if (results.length > 0 && results.every((res) => !res.success)) {
+  //   const error = {
+  //     errorCode: "BookingReschedulingMeetingFailed",
+  //     message: "Booking Rescheduling failed",
+  //   };
+
+  //   log.error(`Booking ${username} failed`, error, results);
+
+  //   throw { error, status: 500 };
+  // }
+
+  // Clone elements
+  // referencesToCreate = [...booking.references];
+
+  // Now we can delete the old booking and its references.
+  const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
+    where: {
+      bookingId: booking.id,
+    },
+  });
+  const attendeeDeletes = prisma.attendee.deleteMany({
+    where: {
+      bookingId: booking.id,
+    },
+  });
+  const bookingDeletes = prisma.booking.delete({
+    where: {
+      uid: rescheduleUid,
+    },
+  });
+
+  await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+
+  return { referencesToCreate: [], results: [] };
+};
+
+export const scheduleBooking = async (): Promise<ResponseRescheduleBooking> => {
+  const results = [];
+  const referencesToCreate = [];
+  // const { calendarCredentials, videoCredentials, evt, username } = props;
+
+  // console.log("========================================1");
+  // console.log({ calendarCredentials, videoCredentials });
+  // console.log("========================================2");
+
+  // results = results.concat(
+  //   await async.mapLimit(calendarCredentials, 5, async (credential) => {
+  //     return createEvent(credential, evt)
+  //       .then((response) => ({ type: credential.type, success: true, response }))
+  //       .catch((e) => {
+  //         log.error("createEvent failed", e, evt);
+  //         return { type: credential.type, success: false };
+  //       });
+  //   })
+  // );
+
+  // results = results.concat(
+  //   await async.mapLimit(videoCredentials, 5, async (credential) => {
+  //     return createMeeting(credential, evt)
+  //       .then((response) => ({ type: credential.type, success: true, response }))
+  //       .catch((e) => {
+  //         log.error("createMeeting failed", e, evt);
+  //         return { type: credential.type, success: false };
+  //       });
+  //   })
+  // );
+
+  // if (results.length > 0 && results.every((res) => !res.success)) {
+  //   const error = {
+  //     errorCode: "BookingCreatingMeetingFailed",
+  //     message: "Booking failed",
+  //   };
+
+  //   log.error(`Booking ${username} failed`, error, results);
+
+  //   throw { error, status: 500 };
+  // }
+
+  // referencesToCreate = results.map((result) => {
+  //   return {
+  //     type: result.type,
+  //     uid: result.response.createdEvent.id.toString(),
+  //   };
+  // });
+
+  return { results, referencesToCreate };
+};
+
+export const generateHashUid = (results: any, evt: CalendarEvent): string => {
+  return results.length > 0
+    ? results[0].response.uid
+    : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
+};
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  const { user } = req.query;
+  log.debug(`Booking ${user} started`);
+
+  try {
+    const { start, end } = req.body;
+    await checkBookingInThePast(start, user);
+
+    const currentUser = await prisma.user.findFirst({
+      where: {
+        username: user as string,
+      },
+      select: {
+        id: true,
+        credentials: true,
+        timeZone: true,
+        email: true,
+        name: true,
+        username: true,
+      },
+    });
+
+    const props: PropsSplitCredentials = {
+      start,
+      end,
+      user: currentUser,
+    };
+    const { commonAvailability, calendarCredentials, videoCredentials, eventTypeOrganizer } =
+      await splitCredentials(props);
     const rescheduleUid = req.body.rescheduleUid;
 
     const selectedEventType = await prisma.eventType.findFirst({
       where: {
-        userId: currentUser.id,
         id: req.body.eventTypeId,
       },
       select: {
@@ -216,7 +496,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       description: req.body.notes,
       startTime: req.body.start,
       endTime: req.body.end,
-      organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
+      organizer: {
+        email: eventTypeOrganizer.email,
+        name: eventTypeOrganizer.name,
+        timeZone: eventTypeOrganizer.timeZone,
+      },
       attendees: [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }],
     };
 
@@ -239,7 +523,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const eventType = await prisma.eventType.findFirst({
       where: {
-        userId: currentUser.id,
+        userId: eventTypeOrganizer.id,
         title: evt.type,
       },
       select: {
@@ -247,176 +531,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    let isAvailableToBeBooked = true;
+    checkIsAvailableToBeBooked({
+      commonAvailability,
+      start,
+      selectedEventType,
+      organizerName: eventTypeOrganizer.name,
+      loggerInstance: log,
+    });
 
-    try {
-      isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, selectedEventType.length);
-    } catch {
-      log.debug({
-        message: "Unable set isAvailableToBeBooked. Using true. ",
-      });
-    }
-
-    if (!isAvailableToBeBooked) {
-      const error = {
-        errorCode: "BookingUserUnAvailable",
-        message: `${currentUser.name} is unavailable at this time.`,
-      };
-
-      log.debug(`Booking ${user} failed`, error);
-      return res.status(400).json(error);
-    }
-
-    let timeOutOfBounds = false;
-
-    try {
-      timeOutOfBounds = isOutOfBounds(req.body.start, {
-        periodType: selectedEventType.periodType,
-        periodDays: selectedEventType.periodDays,
-        periodEndDate: selectedEventType.periodEndDate,
-        periodStartDate: selectedEventType.periodStartDate,
-        periodCountCalendarDays: selectedEventType.periodCountCalendarDays,
-        timeZone: currentUser.timeZone,
-      });
-    } catch {
-      log.debug({
-        message: "Unable set timeOutOfBounds. Using false. ",
-      });
-    }
-
-    if (timeOutOfBounds) {
-      const error = {
-        errorCode: "BookingUserUnAvailable",
-        message: `${currentUser.name} is unavailable at this time.`,
-      };
-
-      log.debug(`Booking ${user} failed`, error);
-      return res.status(400).json(error);
-    }
+    checkTimeoutOfBounds({
+      start,
+      selectedEventType,
+      organizerTimezone: eventTypeOrganizer.timeZone,
+      organizerName: eventTypeOrganizer.name,
+      loggerInstance: log,
+    });
 
     let results = [];
     let referencesToCreate = [];
 
     if (rescheduleUid) {
       // Reschedule event
-      const booking = await prisma.booking.findFirst({
-        where: {
-          uid: rescheduleUid,
-        },
-        select: {
-          id: true,
-          references: {
-            select: {
-              id: true,
-              type: true,
-              uid: true,
-            },
-          },
-        },
-      });
-
-      // Use all integrations
-      results = results.concat(
-        await async.mapLimit(calendarCredentials, 5, async (credential) => {
-          const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-          return updateEvent(credential, bookingRefUid, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("updateEvent failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
+      const props: PropsRescheduleBooking = {
+        videoCredentials,
+        calendarCredentials,
+        evt,
+        rescheduleUid,
+        username: user as string,
+      };
+      const { results: rescheduleResults, referencesToCreate: rescheduleReference } = await rescheduleBooking(
+        props
       );
 
-      results = results.concat(
-        await async.mapLimit(videoCredentials, 5, async (credential) => {
-          const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-          return updateMeeting(credential, bookingRefUid, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("updateMeeting failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
-
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingReschedulingMeetingFailed",
-          message: "Booking Rescheduling failed",
-        };
-
-        log.error(`Booking ${user} failed`, error, results);
-        return res.status(500).json(error);
-      }
-
-      // Clone elements
-      referencesToCreate = [...booking.references];
-
-      // Now we can delete the old booking and its references.
-      const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-      const attendeeDeletes = prisma.attendee.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-      const bookingDeletes = prisma.booking.delete({
-        where: {
-          uid: rescheduleUid,
-        },
-      });
-
-      await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+      results = [...rescheduleResults];
+      referencesToCreate = [...rescheduleReference];
     } else {
       // Schedule event
-      results = results.concat(
-        await async.mapLimit(calendarCredentials, 5, async (credential) => {
-          return createEvent(credential, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("createEvent failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
+      const props: PropsRescheduleBooking = {
+        videoCredentials,
+        calendarCredentials,
+        evt,
+        username: user as string,
+      };
+      const { results: scheduleResults, referencesToCreate: scheduleReference } = await scheduleBooking(
+        props
       );
 
-      results = results.concat(
-        await async.mapLimit(videoCredentials, 5, async (credential) => {
-          return createMeeting(credential, evt)
-            .then((response) => ({ type: credential.type, success: true, response }))
-            .catch((e) => {
-              log.error("createMeeting failed", e, evt);
-              return { type: credential.type, success: false };
-            });
-        })
-      );
-
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingCreatingMeetingFailed",
-          message: "Booking failed",
-        };
-
-        log.error(`Booking ${user} failed`, error, results);
-        return res.status(500).json(error);
-      }
-
-      referencesToCreate = results.map((result) => {
-        return {
-          type: result.type,
-          uid: result.response.createdEvent.id.toString(),
-        };
-      });
+      results = [...scheduleResults];
+      referencesToCreate = [...scheduleReference];
     }
 
-    const hashUID =
-      results.length > 0
-        ? results[0].response.uid
-        : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
+    const hashUID = generateHashUid(results, evt);
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
     if (results.length === 0) {
@@ -428,8 +593,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (e) {
         log.error("Sending legacy event mail failed", e);
         log.error(`Booking ${user} failed`);
-        res.status(500).json({ message: "Booking failed" });
-        return;
+
+        throw { error: "Booking failed", status: 500 };
       }
     }
 
@@ -437,7 +602,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.booking.create({
         data: {
           uid: hashUID,
-          userId: currentUser.id,
+          userId: eventTypeOrganizer.id,
           references: {
             create: referencesToCreate,
           },
@@ -453,14 +618,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     } catch (e) {
       log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
-      res.status(500).json({ message: "Booking already exists" });
-      return;
+      const error = "Booking already exists";
+
+      throw { error, status: 500 };
     }
 
     log.debug(`Booking ${user} completed`);
     return res.status(204).json({ message: "Booking completed" });
   } catch (reason) {
     log.error(`Booking ${user} failed`, reason);
-    return res.status(500).json({ message: "Booking failed for some unknown reason" });
+    const { error, status } = reason;
+
+    return res.status(status || 500).json({ message: error || "Booking failed for some unknown reason" });
   }
 }
