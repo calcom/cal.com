@@ -43,25 +43,8 @@ export default function Bookings({ bookings }) {
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-sm">
+              <div className="border border-gray-200 overflow-hidden border-b rounded-sm">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Event
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th scope="col" className="relative px-6 py-3">
-                        <span className="sr-only">Actions</span>
-                      </th>
-                    </tr>
-                  </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {bookings
                       .filter((booking) => !booking.confirmed && !booking.rejected)

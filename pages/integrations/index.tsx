@@ -16,7 +16,8 @@ import { Switch } from "@headlessui/react";
 import Loader from '@components/Loader';
 import classNames from "@lib/classNames";
 
-export default function Home({ integrations }) {
+export default function IntegrationHome({ integrations }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -85,9 +86,7 @@ export default function Home({ integrations }) {
   useEffect(loadCalendars, [integrations]);
 
   if (loading) {
-    return (
-      <Loader/>
-    );
+    return <Loader />;
   }
 
   return (
@@ -109,7 +108,7 @@ export default function Home({ integrations }) {
             Add new integration
           </button>
         }>
-        <div className="bg-white shadow overflow-hidden rounded-sm mb-8">
+        <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
               {integrations
@@ -276,7 +275,7 @@ export default function Home({ integrations }) {
             </div>
           </div>
         )}
-        <div className="bg-white shadow rounded-sm">
+        <div className="bg-white border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">

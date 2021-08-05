@@ -7,13 +7,15 @@ import { useRouter } from "next/router";
 import { useSession, getSession } from "next-auth/client";
 import Loader from '@components/Loader';
 
-export default function integration(props) {
+export default function Integration(props) {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
+  
   const [showAPIKey, setShowAPIKey] = useState(false);
 
   if (loading) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   function toggleShowAPIKey() {
@@ -23,6 +25,7 @@ export default function integration(props) {
   async function deleteIntegrationHandler(event) {
     event.preventDefault();
 
+    /*eslint-disable */
     const response = await fetch("/api/integrations", {
       method: "DELETE",
       body: JSON.stringify({ id: props.integration.id }),
@@ -30,6 +33,7 @@ export default function integration(props) {
         "Content-Type": "application/json",
       },
     });
+    /*eslint-enable */
 
     router.push("/integrations");
   }
