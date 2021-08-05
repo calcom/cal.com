@@ -13,7 +13,7 @@ export default function User(props): User {
   const eventTypes = props.eventTypes.map((type) => (
     <div
       key={type.id}
-      className="dark:bg-gray-800 dark:opacity-90 dark:hover:opacity-100 dark:hover:bg-gray-800 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
+      className="dark:bg-neutral-800 dark:border-neutral-700 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
       <Link href={`/${props.user.username}/${type.slug}`}>
         <a className="block px-6 py-4">
           <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
@@ -40,7 +40,7 @@ export default function User(props): User {
   ));
   return (
     isReady && (
-      <div className="bg-neutral-50 h-screen">
+      <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
         <Head>
           <title>{props.user.name || props.user.username} | Calendso</title>
           <link rel="icon" href="/favicon.ico" />
