@@ -213,7 +213,9 @@ export default function Availability({ user, types }) {
                                 className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
                                 aria-hidden="true"
                               />
-                              <p>{type.description.substring(0, 100)}</p>
+                              <div className="max-w-32 sm:max-w-full truncate">
+                                {type.description.substring(0, 100)}
+                              </div>
                             </div>
                           </div>
                         </span>
