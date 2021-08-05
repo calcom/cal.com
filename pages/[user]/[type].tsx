@@ -49,9 +49,15 @@ export default function Type(props): Type {
 
     router.replace(
       {
-        query: {
-          date: formattedDate,
-        },
+        query: Object.assign(
+          {},
+          {
+            ...router.query,
+          },
+          {
+            date: formattedDate,
+          }
+        ),
       },
       undefined,
       {
