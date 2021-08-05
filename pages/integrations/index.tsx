@@ -109,7 +109,7 @@ export default function Home({ integrations }) {
             Connect a new App
           </button>
         }>
-        <div className="bg-white shadow overflow-hidden rounded-sm mb-8">
+        <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
               {integrations
@@ -168,12 +168,11 @@ export default function Home({ integrations }) {
                 </div>
                 <div className="py-5 sm:p-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    You don&apos;t have any connected apps.
+                    You don&apos;t have any apps connected.
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
                     <p>
-                      You currently do not have any apps connected. Connect your first app to get
-                      started.
+                      You currently do not have any apps connected. Connect your first app to get started.
                     </p>
                   </div>
                   <div className="mt-3 text-sm">
@@ -276,7 +275,7 @@ export default function Home({ integrations }) {
             </div>
           </div>
         )}
-        <div className="bg-white shadow rounded-sm">
+        <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
@@ -386,6 +385,20 @@ export default function Home({ integrations }) {
             </div>
           </div>
         )}
+
+        <div className="border border-gray-200 rounded-sm">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
+            <div className="mt-2 max-w-xl text-sm text-gray-500">
+              <p>If you want to add your own App here, get in touch with us.</p>
+            </div>
+            <div className="mt-5">
+              <a href="apps@calendso.com" className="btn btn-white">
+                Contact us
+              </a>
+            </div>
+          </div>
+        </div>
       </Shell>
     </div>
   );
