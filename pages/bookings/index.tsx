@@ -123,7 +123,7 @@ export default function Bookings({ bookings }) {
                                   {({ open }) => (
                                     <>
                                       <div>
-                                        <Menu.Button className="text-neutral-400 mt-1">
+                                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
                                           <span className="sr-only">Open options</span>
                                           <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                                         </Menu.Button>

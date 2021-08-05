@@ -180,11 +180,11 @@ export default function Availability({ user, types }) {
           <ul className="divide-y divide-neutral-200">
             {types.map((type) => (
               <li key={type.id}>
-                <Link href={"/event-types/" + type.id}>
-                  <a className="block hover:bg-neutral-50">
-                    <div className="px-4 py-4 flex items-center sm:px-6">
-                      <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div className="truncate">
+                <div className="hover:bg-neutral-50">
+                  <div className="px-4 py-4 flex items-center sm:px-6">
+                    <Link href={"/event-types/" + type.id}>
+                      <a className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+                        <span className="truncate ">
                           <div className="flex text-sm">
                             <p className="font-medium text-neutral-900 truncate">{type.title}</p>
                             {type.hidden && (
@@ -216,136 +216,137 @@ export default function Availability({ user, types }) {
                               <p>{type.description.substring(0, 100)}</p>
                             </div>
                           </div>
-                        </div>
-                        <div className="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
-                          <div className="flex overflow-hidden space-x-5">
-                            <Link href={"/" + session.user.username + "/" + type.slug}>
-                              <a className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                                <ExternalLinkIcon className="w-5 h-5" />
-                              </a>
-                            </Link>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(
-                                  window.location.hostname + "/" + session.user.username + "/" + type.slug
-                                );
-                              }}
-                              className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                              <LinkIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ml-5 flex-shrink-0">
-                        <Menu as="div" className="inline-block text-left">
-                          {({ open }) => (
-                            <>
-                              <div>
-                                <Menu.Button className="text-neutral-400 mt-1 text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                                  <span className="sr-only">Open options</span>
-                                  <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-                                </Menu.Button>
-                              </div>
+                        </span>
+                      </a>
+                    </Link>
 
-                              <Transition
-                                show={open}
-                                as={Fragment}
-                                enter="transition ease-out duration-100"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-75"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95">
-                                <Menu.Items
-                                  static
-                                  className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
-                                  <div className="py-1">
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <a
-                                          href={"/" + session.user.username + "/" + type.slug}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className={classNames(
-                                            active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                            "group flex items-center px-4 py-2 text-sm font-medium"
-                                          )}>
-                                          <ExternalLinkIcon
-                                            className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                            aria-hidden="true"
-                                          />
-                                          Preview
-                                        </a>
-                                      )}
-                                    </Menu.Item>
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <button
-                                          onClick={() => {
-                                            navigator.clipboard.writeText(
-                                              window.location.hostname +
-                                                "/" +
-                                                session.user.username +
-                                                "/" +
-                                                type.slug
-                                            );
-                                          }}
-                                          className={classNames(
-                                            active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                            "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                          )}>
-                                          <LinkIcon
-                                            className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                            aria-hidden="true"
-                                          />
-                                          Copy link to event
-                                        </button>
-                                      )}
-                                    </Menu.Item>
-                                    {/*<Menu.Item>*/}
-                                    {/*  {({ active }) => (*/}
-                                    {/*    <a*/}
-                                    {/*      href="#"*/}
-                                    {/*      className={classNames(*/}
-                                    {/*        active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",*/}
-                                    {/*        "group flex items-center px-4 py-2 text-sm font-medium"*/}
-                                    {/*      )}>*/}
-                                    {/*      <DuplicateIcon*/}
-                                    {/*        className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"*/}
-                                    {/*        aria-hidden="true"*/}
-                                    {/*      />*/}
-                                    {/*      Duplicate*/}
-                                    {/*    </a>*/}
-                                    {/*  )}*/}
-                                    {/*</Menu.Item>*/}
-                                  </div>
-                                  {/*<div className="py-1">*/}
-                                  {/*  <Menu.Item>*/}
-                                  {/*    {({ active }) => (*/}
-                                  {/*      <a*/}
-                                  {/*        href="#"*/}
-                                  {/*        className={classNames(*/}
-                                  {/*          active ? "bg-red-100 text-red-900" : "text-red-700",*/}
-                                  {/*          "group flex items-center px-4 py-2 text-sm font-medium"*/}
-                                  {/*        )}>*/}
-                                  {/*        <TrashIcon*/}
-                                  {/*          className="mr-3 h-5 w-5 text-red-400 group-hover:text-red-700"*/}
-                                  {/*          aria-hidden="true"*/}
-                                  {/*        />*/}
-                                  {/*        Delete*/}
-                                  {/*      </a>*/}
-                                  {/*    )}*/}
-                                  {/*  </Menu.Item>*/}
-                                  {/*</div>*/}
-                                </Menu.Items>
-                              </Transition>
-                            </>
-                          )}
-                        </Menu>
+                    <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+                      <div className="flex overflow-hidden space-x-5">
+                        <Link href={"/" + session.user.username + "/" + type.slug}>
+                          <a className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                            <ExternalLinkIcon className="w-5 h-5" />
+                          </a>
+                        </Link>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(
+                              window.location.hostname + "/" + session.user.username + "/" + type.slug
+                            );
+                          }}
+                          className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                          <LinkIcon className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
-                  </a>
-                </Link>
+                    <div className="flex sm:hidden ml-5 flex-shrink-0">
+                      <Menu as="div" className="inline-block text-left">
+                        {({ open }) => (
+                          <>
+                            <div>
+                              <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+                                <span className="sr-only">Open options</span>
+                                <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                              </Menu.Button>
+                            </div>
+
+                            <Transition
+                              show={open}
+                              as={Fragment}
+                              enter="transition ease-out duration-100"
+                              enterFrom="transform opacity-0 scale-95"
+                              enterTo="transform opacity-100 scale-100"
+                              leave="transition ease-in duration-75"
+                              leaveFrom="transform opacity-100 scale-100"
+                              leaveTo="transform opacity-0 scale-95">
+                              <Menu.Items
+                                static
+                                className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                                <div className="py-1">
+                                  <Menu.Item>
+                                    {({ active }) => (
+                                      <a
+                                        href={"/" + session.user.username + "/" + type.slug}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className={classNames(
+                                          active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                          "group flex items-center px-4 py-2 text-sm font-medium"
+                                        )}>
+                                        <ExternalLinkIcon
+                                          className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                          aria-hidden="true"
+                                        />
+                                        Preview
+                                      </a>
+                                    )}
+                                  </Menu.Item>
+                                  <Menu.Item>
+                                    {({ active }) => (
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(
+                                            window.location.hostname +
+                                              "/" +
+                                              session.user.username +
+                                              "/" +
+                                              type.slug
+                                          );
+                                        }}
+                                        className={classNames(
+                                          active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                          "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                        )}>
+                                        <LinkIcon
+                                          className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                          aria-hidden="true"
+                                        />
+                                        Copy link to event
+                                      </button>
+                                    )}
+                                  </Menu.Item>
+                                  {/*<Menu.Item>*/}
+                                  {/*  {({ active }) => (*/}
+                                  {/*    <a*/}
+                                  {/*      href="#"*/}
+                                  {/*      className={classNames(*/}
+                                  {/*        active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",*/}
+                                  {/*        "group flex items-center px-4 py-2 text-sm font-medium"*/}
+                                  {/*      )}>*/}
+                                  {/*      <DuplicateIcon*/}
+                                  {/*        className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"*/}
+                                  {/*        aria-hidden="true"*/}
+                                  {/*      />*/}
+                                  {/*      Duplicate*/}
+                                  {/*    </a>*/}
+                                  {/*  )}*/}
+                                  {/*</Menu.Item>*/}
+                                </div>
+                                {/*<div className="py-1">*/}
+                                {/*  <Menu.Item>*/}
+                                {/*    {({ active }) => (*/}
+                                {/*      <a*/}
+                                {/*        href="#"*/}
+                                {/*        className={classNames(*/}
+                                {/*          active ? "bg-red-100 text-red-900" : "text-red-700",*/}
+                                {/*          "group flex items-center px-4 py-2 text-sm font-medium"*/}
+                                {/*        )}>*/}
+                                {/*        <TrashIcon*/}
+                                {/*          className="mr-3 h-5 w-5 text-red-400 group-hover:text-red-700"*/}
+                                {/*          aria-hidden="true"*/}
+                                {/*        />*/}
+                                {/*        Delete*/}
+                                {/*      </a>*/}
+                                {/*    )}*/}
+                                {/*  </Menu.Item>*/}
+                                {/*</div>*/}
+                              </Menu.Items>
+                            </Transition>
+                          </>
+                        )}
+                      </Menu>
+                    </div>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
