@@ -373,7 +373,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const invitee = [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }];
     const guests = req.body.guests.map(guest=>{
-      let g = {
+      const g = {
         'email': guest,
         'name': '',
         'timeZone': req.body.timeZone  
