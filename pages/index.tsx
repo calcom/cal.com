@@ -44,7 +44,6 @@ export async function getServerSideProps(context) {
     context.res.writeHead(302, { Location: "/event-types" });
     context.res.end();
   }
-  return {};
 }
 
 export default RedirectPage;
