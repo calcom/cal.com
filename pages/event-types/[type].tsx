@@ -16,7 +16,6 @@ import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeIn
 import {
   LocationMarkerIcon,
   LinkIcon,
-  PencilIcon,
   PlusIcon,
   DocumentIcon,
   ChevronRightIcon,
@@ -265,7 +264,7 @@ export default function EventTypePage({
       },
     });
 
-    router.push("/availability");
+    router.push("/bookings");
   }
 
   const openLocationModal = (type: LocationType) => {
