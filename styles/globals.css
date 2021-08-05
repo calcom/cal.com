@@ -81,6 +81,12 @@
     }
 }
 
+@media all and (display-mode: standalone) {
+  .bottom-nav {
+    padding-bottom: 24px;
+  }
+}
+
 .react-multi-email > [type='text'] {
     --tw-ring-shadow: 0 0 0 0 0;
 }

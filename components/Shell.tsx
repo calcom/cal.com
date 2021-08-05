@@ -146,9 +146,7 @@ export default function Shell(props) {
               <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
 
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav
-                style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-                className="md:hidden flex fixed bottom-0 bg-white w-full rounded-lg shadow">
+              <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
                   item.name === "Settings" ? (
