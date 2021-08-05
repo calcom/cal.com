@@ -92,12 +92,12 @@ export default function IntegrationHome({ integrations }) {
   return (
     <div>
       <Head>
-        <title>Integrations | Calendso</title>
+        <title>App Store | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <Shell
-        heading="Integrations"
+        heading="App Store"
         subtitle="Connect your favourite apps."
         CTA={
           <button
@@ -105,7 +105,7 @@ export default function IntegrationHome({ integrations }) {
             type="button"
             className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
             <PlusIcon className="w-5 h-5 mr-1" />
-            Add new integration
+            Connect a new App
           </button>
         }>
         <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
@@ -167,12 +167,11 @@ export default function IntegrationHome({ integrations }) {
                 </div>
                 <div className="py-5 sm:p-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    You don&apos;t have any integrations added.
+                    You don&apos;t have any apps connected.
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
                     <p>
-                      You currently do not have any integrations set up. Add your first integration to get
-                      started.
+                      You currently do not have any apps connected. Connect your first app to get started.
                     </p>
                   </div>
                   <div className="mt-3 text-sm">
@@ -180,7 +179,7 @@ export default function IntegrationHome({ integrations }) {
                       onClick={toggleAddModal}
                       className="font-medium text-neutral-900 hover:text-neutral-500">
                       {" "}
-                      Add your first integration <span aria-hidden="true">&rarr;</span>
+                      Connect your first app <span aria-hidden="true">&rarr;</span>
                     </button>
                   </div>
                 </div>
@@ -228,10 +227,10 @@ export default function IntegrationHome({ integrations }) {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Add a new integration
+                      Connect a new App
                     </h3>
                     <div>
-                      <p className="text-sm text-gray-400">Link a new integration to your account.</p>
+                      <p className="text-sm text-gray-400">Connect a new app to your account.</p>
                     </div>
                   </div>
                 </div>
@@ -275,7 +274,7 @@ export default function IntegrationHome({ integrations }) {
             </div>
           </div>
         )}
-        <div className="bg-white border border-gray-200 rounded-sm">
+        <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
@@ -385,6 +384,20 @@ export default function IntegrationHome({ integrations }) {
             </div>
           </div>
         )}
+
+        <div className="border border-gray-200 rounded-sm">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
+            <div className="mt-2 max-w-xl text-sm text-gray-500">
+              <p>If you want to add your own App here, get in touch with us.</p>
+            </div>
+            <div className="mt-5">
+              <a href="apps@calendso.com" className="btn btn-white">
+                Contact us
+              </a>
+            </div>
+          </div>
+        </div>
       </Shell>
     </div>
   );
