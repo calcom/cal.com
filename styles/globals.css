@@ -128,7 +128,6 @@
   }
   
   .react-multi-email [data-tag] {
-    /* margin: 0.14285714em; */
     @apply inline-flex items-center px-2 py-1 my-1 mr-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-900 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;  
   }
 
