@@ -89,7 +89,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   // create event type
   const assMapping = await Promise.all(
-    (insertedCoachProfileProgram || []).map(async ({ programId, coachUserId, program, availability }) => {
+    (insertedCoachProfileProgram || []).map(async ({ id, programId, coachUserId, program, availability }) => {
       const newAvailability = availability.map(({ days, startTime, endTime }) => ({
         days,
         startTime,
@@ -116,7 +116,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         data: newCoachProgram,
       });
 
-      return { coachProgramId: programId, assEventTypeId: newProgramCreated.id };
+      return { coachProgramId: id, assEventTypeId: newProgramCreated.id };
     })
   );
 

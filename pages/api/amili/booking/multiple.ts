@@ -40,12 +40,18 @@ type CoachProgram = {
   description: string;
 };
 
+type CoachProfile = {
+  id: string;
+  user: UserPayload;
+};
+
 type CoachProfileProgram = {
   id: string;
   coachUserId: string;
   programId: string;
   assEventTypeId: number;
   coachProgram: CoachProgram;
+  coachProfile: CoachProfile;
 };
 
 type HealthCoachBooking = {
@@ -122,8 +128,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const data = await Promise.all(
     healthCoachBookingSession.map(async (healthCoachBookingSessionItem) => {
+      console.log(JSON.stringify(healthCoachBookingSessionItem));
       const { startTime, endTime, timezone, coachBooking, assBookingId, id } = healthCoachBookingSessionItem;
-      const { user, coachProfileProgram } = coachBooking;
+      const { coachProfileProgram } = coachBooking;
+      const user = coachProfileProgram?.coachProfile?.user;
 
       const { assUserId } = user;
       const { assEventTypeId, coachProgram } = coachProfileProgram;
