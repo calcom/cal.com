@@ -107,6 +107,7 @@ interface Person {
   name?: string;
   email: string;
   timeZone: string;
+  tenantId?: string;
 }
 
 export interface CalendarEvent {
