@@ -20,6 +20,7 @@ import classNames from "@lib/classNames";
 
 export default function Shell(props) {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
   const telemetry = useTelemetry();
 
@@ -71,7 +72,7 @@ export default function Shell(props) {
       <div className="h-screen flex overflow-hidden bg-gray-100">
         {/* Static sidebar for desktop */}
         <div className="hidden md:flex md:flex-shrink-0">
-          <div className="flex flex-col w-64">
+          <div className="flex flex-col w-56">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
               <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">

@@ -10,6 +10,7 @@ import { ClockIcon } from "@heroicons/react/outline";
 import Loader from '@components/Loader';
 
 export default function Availability(props) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
   const router = useRouter();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -29,7 +30,7 @@ export default function Availability(props) {
   const bufferMinsRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   function toggleAddModal() {
@@ -124,7 +125,7 @@ export default function Availability(props) {
 
 ">
         <div className="flex">
-          <div className="w-1/2 mr-2 bg-white shadow rounded-sm">
+          <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Change the start and end times of your day
@@ -143,7 +144,7 @@ export default function Availability(props) {
             </div>
           </div>
 
-          <div className="w-1/2 ml-2 bg-white shadow rounded-sm">
+          <div className="w-1/2 ml-2 border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Something doesn&apos;t look right?
@@ -153,7 +154,7 @@ export default function Availability(props) {
               </div>
               <div className="mt-5">
                 <Link href="/availability/troubleshoot">
-                  <a className="btn btn-primary">Launch troubleshooter</a>
+                  <a className="btn btn-white">Launch troubleshooter</a>
                 </Link>
               </div>
             </div>

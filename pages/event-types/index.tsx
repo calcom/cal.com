@@ -73,8 +73,8 @@ export default function Availability({ user, types }) {
         New event type
       </DialogTrigger>
       <DialogContent>
-        <div className="mb-4">
-          <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+        <div className="mb-8">
+          <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
             Add a new event type
           </h3>
           <div>
@@ -153,7 +153,7 @@ export default function Availability({ user, types }) {
               </div>
             </div>
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <div className="mt-8 sm:flex sm:flex-row-reverse">
             <button type="submit" className="btn btn-primary">
               Continue
             </button>
