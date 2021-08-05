@@ -16,7 +16,8 @@ import { Switch } from "@headlessui/react";
 import Loader from '@components/Loader';
 import classNames from "@lib/classNames";
 
-export default function Home({ integrations }) {
+export default function IntegrationHome({ integrations }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -85,9 +86,7 @@ export default function Home({ integrations }) {
   useEffect(loadCalendars, [integrations]);
 
   if (loading) {
-    return (
-      <Loader/>
-    );
+    return <Loader />;
   }
 
   return (

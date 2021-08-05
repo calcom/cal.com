@@ -73,8 +73,8 @@ export default function Availability({ user, types }) {
         New event type
       </DialogTrigger>
       <DialogContent>
-        <div className="mb-4">
-          <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+        <div className="mb-8">
+          <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
             Add a new event type
           </h3>
           <div>
@@ -153,7 +153,7 @@ export default function Availability({ user, types }) {
               </div>
             </div>
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <div className="mt-8 sm:flex sm:flex-row-reverse">
             <button type="submit" className="btn btn-primary">
               Continue
             </button>
@@ -176,7 +176,7 @@ export default function Availability({ user, types }) {
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
         CTA={types.length !== 0 && <CreateNewEventDialog />}>
-        <div className="bg-white shadow overflow-hidden sm:rounded-sm -mx-4 sm:mx-0">
+        <div className="bg-white border border-gray-200 rounded-sm overflow-hidden -mx-4 sm:mx-0">
           <ul className="divide-y divide-neutral-200">
             {types.map((type) => (
               <li key={type.id}>
@@ -196,21 +196,21 @@ export default function Availability({ user, types }) {
                           <div className="mt-2 flex space-x-4">
                             <div className="flex items-center text-sm text-neutral-500">
                               <ClockIcon
-                                className="flex-shrink-0 mr-1.5 h-5 w-5 text-neutral-400"
+                                className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
                                 aria-hidden="true"
                               />
                               <p>{type.length}m</p>
                             </div>
                             <div className="flex items-center text-sm text-neutral-500">
                               <UserIcon
-                                className="flex-shrink-0 mr-1.5 h-5 w-5 text-neutral-400"
+                                className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
                                 aria-hidden="true"
                               />
                               <p>1-on-1</p>
                             </div>
                             <div className="flex items-center text-sm text-neutral-500">
                               <InformationCircleIcon
-                                className="flex-shrink-0 mr-1.5 h-5 w-5 text-neutral-400"
+                                className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
                                 aria-hidden="true"
                               />
                               <p>{type.description.substring(0, 100)}</p>
@@ -220,7 +220,7 @@ export default function Availability({ user, types }) {
                         <div className="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
                           <div className="flex overflow-hidden space-x-5">
                             <Link href={"/" + session.user.username + "/" + type.slug}>
-                              <a className="text-neutral-400">
+                              <a className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
                                 <ExternalLinkIcon className="w-5 h-5" />
                               </a>
                             </Link>
@@ -230,7 +230,7 @@ export default function Availability({ user, types }) {
                                   window.location.hostname + "/" + session.user.username + "/" + type.slug
                                 );
                               }}
-                              className="text-neutral-400">
+                              className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
                               <LinkIcon className="w-5 h-5" />
                             </button>
                           </div>
@@ -241,7 +241,7 @@ export default function Availability({ user, types }) {
                           {({ open }) => (
                             <>
                               <div>
-                                <Menu.Button className="text-neutral-400 mt-1">
+                                <Menu.Button className="text-neutral-400 mt-1 text-neutral-400 p-2 border border-transparent hover:border-gray-200">
                                   <span className="sr-only">Open options</span>
                                   <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                                 </Menu.Button>
@@ -271,7 +271,7 @@ export default function Availability({ user, types }) {
                                             "group flex items-center px-4 py-2 text-sm font-medium"
                                           )}>
                                           <ExternalLinkIcon
-                                            className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                            className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                             aria-hidden="true"
                                           />
                                           Preview
@@ -295,7 +295,7 @@ export default function Availability({ user, types }) {
                                             "group flex items-center px-4 py-2 text-sm w-full font-medium"
                                           )}>
                                           <LinkIcon
-                                            className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                            className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                             aria-hidden="true"
                                           />
                                           Copy link to event
@@ -311,7 +311,7 @@ export default function Availability({ user, types }) {
                                     {/*        "group flex items-center px-4 py-2 text-sm font-medium"*/}
                                     {/*      )}>*/}
                                     {/*      <DuplicateIcon*/}
-                                    {/*        className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"*/}
+                                    {/*        className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"*/}
                                     {/*        aria-hidden="true"*/}
                                     {/*      />*/}
                                     {/*      Duplicate*/}
