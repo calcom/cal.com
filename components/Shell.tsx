@@ -105,7 +105,7 @@ export default function Shell(props) {
                   ))}
                 </nav>
               </div>
-              <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+              <div className="flex-shrink-0 flex p-4">
                 <UserDropdown session={session} />
               </div>
             </div>
@@ -135,10 +135,10 @@ export default function Shell(props) {
                 </div>
               </div>
             </nav>
-            <div className="py-6">
+            <div className="py-8">
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
-                <div className="mb-6">
-                  <h1 className="text-2xl font-semibold text-gray-900">{props.heading}</h1>
+                <div className="mb-8">
+                  <h1 className="text-xl font-bold text-gray-900">{props.heading}</h1>
                   <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
                 </div>
                 <div className="mb-4 flex-shrink-0">{props.CTA}</div>

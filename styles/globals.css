@@ -81,6 +81,7 @@
     }
 }
 
+/* add padding bottom to bottom nav on standalone mode */
 @media all and (display-mode: standalone) {
   .bottom-nav {
     padding-bottom: 24px;
