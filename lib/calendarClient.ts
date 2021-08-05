@@ -9,6 +9,7 @@ import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
+import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -516,6 +517,8 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
           return GoogleCalendar(cred);
         case "office365_calendar":
           return MicrosoftOffice365Calendar(cred);
+        case "caldav_calendar":
+          return new CalDavCalendar(cred);
         default:
           return; // unknown credential, could be legacy? In any case, ignore
       }
