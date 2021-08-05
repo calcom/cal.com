@@ -90,6 +90,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     host = host.replace("calendso.com", "");
   }
 
+  if (host.includes("localhost")) {
+    host = null;
+  }
+
+  log.debug(`{host} ${host}`);
+
   const teamIdOrSlug = host ? host.split(".")[0] : null;
   log.debug(`{teamIdOrSlug} ${teamIdOrSlug}`);
 
