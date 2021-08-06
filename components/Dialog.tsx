@@ -19,6 +19,19 @@ export const DialogContent = React.forwardRef(({ children, ...props }, forwarded
   </DialogPrimitive.Content>
 ));
 
+export function DialogHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mb-8">
+      <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+        {title}
+      </h3>
+      <div>
+        <p className="text-sm text-gray-400">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
 DialogContent.displayName = "DialogContent";
 
 export const DialogTrigger = DialogPrimitive.Trigger;
