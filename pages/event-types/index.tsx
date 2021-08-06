@@ -1,12 +1,6 @@
-import Head from "next/head";
-import Link from "next/link";
-import prisma from "../../lib/prisma";
-import Shell from "../../components/Shell";
-import { useRouter } from "next/router";
-import { getSession, useSession } from "next-auth/client";
-import React, { Fragment, useRef } from "react";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
+import Loader from "@components/Loader";
 import { Menu, Transition } from "@headlessui/react";
-
 import {
   ClockIcon,
   DotsHorizontalIcon,
@@ -16,9 +10,14 @@ import {
   PlusIcon,
   UserIcon,
 } from "@heroicons/react/solid";
-import Loader from "@components/Loader";
 import classNames from "@lib/classNames";
-import { Dialog, DialogContent, DialogTrigger, DialogClose } from "@components/Dialog";
+import { getSession, useSession } from "next-auth/client";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import React, { Fragment, useRef } from "react";
+import Shell from "../../components/Shell";
+import prisma from "../../lib/prisma";
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();
@@ -225,7 +224,10 @@ export default function Availability({ user, types }) {
                     <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
                       <div className="flex overflow-hidden space-x-5">
                         <Link href={"/" + session.user.username + "/" + type.slug}>
-                          <a className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                          <a
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
                             <ExternalLinkIcon className="w-5 h-5" />
                           </a>
                         </Link>
