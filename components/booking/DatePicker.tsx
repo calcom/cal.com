@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import { useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -24,6 +24,7 @@ const DatePicker = ({
   periodDays,
   periodCountCalendarDays,
   minimumBookingNotice,
+  setHeight,
 }) => {
   const [calendar, setCalendar] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState<number>();
@@ -147,12 +148,14 @@ const DatePicker = ({
           onClick={() => setSelectedDate(inviteeDate.date(day))}
           disabled={isDisabled(day)}
           className={
-            "text-center w-10 h-10 rounded-full mx-auto" +
-            (isDisabled(day) ? " text-gray-400 font-light" : " text-blue-600 font-medium") +
+            "w-36 mx-auto h-28 mx-auto p-3 text-left flex self-start" +
+            (isDisabled(day)
+              ? " text-neutral-400 font-light"
+              : " text-neutral-900 dark:text-neutral-200 font-medium") +
             (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
-              ? " bg-blue-600 text-white-important"
+              ? " bg-neutral-100 dark:bg-neutral-700 border border-neutral-900 dark:border-neutral-600 dark:text-white"
               : !isDisabled(day)
-              ? " bg-blue-50 dark:bg-gray-900 dark:bg-opacity-30"
+              ? " bg-neutral-100 dark:bg-neutral-700 dark:bg-opacity-30"
               : "")
           }>
           {day}
@@ -162,35 +165,44 @@ const DatePicker = ({
   }, [selectedMonth, inviteeTimeZone, selectedDate]);
 
   return selectedMonth ? (
-    <div
-      className={
-        "mt-8 sm:mt-0 " +
-        (selectedDate ? "sm:w-1/3 sm:border-r sm:dark:border-gray-900 sm:px-4" : "sm:w-1/2 sm:pl-4")
-      }>
-      <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
-        <span className="w-1/2 text-gray-600 dark:text-white">
-          {dayjs().month(selectedMonth).format("MMMM YYYY")}
-        </span>
+    <div className="mt-8 sm:mt-0">
+      <div className="flex text-gray-600 text-xl mb-8">
+        <div className="w-1/2 text-2xl">
+          <span className="font-semibold text-neutral-900 dark:text-white">
+            {dayjs().month(selectedMonth).format("MMMM")}
+          </span>
+          &nbsp;
+          <span className="text-neutral-400">{dayjs().month(selectedMonth).format("YYYY")}</span>
+        </div>
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
             className={
-              "mr-4 " +
-              (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400 dark:text-gray-600")
+              "p-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 dark:text-white rounded-sm border border-neutral-300 text-black mr-4 " +
+              (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "opacity-50")
             }
             disabled={selectedMonth <= dayjs().tz(inviteeTimeZone).month()}>
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
-          <button onClick={incrementMonth}>
+          <button
+            className="p-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 dark:text-white rounded-sm border border-neutral-300"
+            onClick={incrementMonth}>
             <ChevronRightIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-y-4 text-center">
+      <div
+        className="bg-white dark:bg-neutral-800 p-6 rounded-l-sm border border-neutral-300 dark:border-neutral-700 grid grid-cols-7 gap-y-4"
+        ref={(el) => {
+          if (!el) return;
+          setHeight(el.getBoundingClientRect().height);
+        }}>
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
-            <div key={weekDay} className="uppercase text-gray-400 text-xs tracking-widest">
+            <div
+              key={weekDay}
+              className="uppercase text-neutral-600 text-xs tracking-widest border-b border-neutral-200 dark:border-neutral-700 pb-4">
               {weekDay}
             </div>
           ))}
