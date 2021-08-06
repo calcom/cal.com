@@ -1,0 +1,62 @@
+# https://shadowsmith.com/how-to-test-all-vercel-deployments-using-cypress-in-a-gitlab-pipeline
+stages:
+  - install
+  - lint
+  - deploy
+
+.default_image: &default_image
+  image: node:erbium-alpine3.10
+
+.default_artifacts: &default_artifacts
+  artifacts:
+    expire_in: 15 minutes
+    paths:
+      - node_modules/
+
+.dev_only: &dev_only
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development"
+
+install:
+  stage: install
+  <<: *default_image
+  <<: *default_artifacts
+  <<: *dev_only
+  script:
+    - yarn
+
+linting:
+  stage: lint
+  <<: *default_image
+  <<: *dev_only
+  needs: [install]
+  script:
+    - yarn lint
+
+staging_deploy:
+  stage: deploy
+  image: node:erbium-alpine3.10
+  only:
+    - development
+  script:
+    - npm i -g vercel
+    - DEPLOYMENT_URL=$(vercel -t $VERCEL_TOKEN --confirm)
+    - echo $DEPLOYMENT_URL > vercel_deployment_url.txt
+  artifacts:
+    when: on_success
+    paths:
+      - vercel_deployment_url.txt
+
+production_deploy:
+  stage: deploy
+  image: node:erbium-alpine3.10
+  only:
+    - main
+  script:
+    - npm i -g vercel
+    - DEPLOYMENT_URL=$(vercel -t $VERCEL_TOKEN --confirm --prod)
+    - echo $DEPLOYMENT_URL > vercel_deployment_url.txt
+  artifacts:
+    when: on_success
+    paths:
+      - vercel_deployment_url.txt
