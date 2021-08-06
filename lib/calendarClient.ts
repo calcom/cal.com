@@ -10,8 +10,14 @@ import CalEventParser from "./CalEventParser";
 const { google } = require("googleapis");
 
 const googleAuth = (credential) => {
-  const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
-  const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  const { client_secret, client_id, redirect_uris } = JSON.parse(
+    process.env.GOOGLE_API_CREDENTIALS
+  ).web;
+  const myGoogleAuth = new google.auth.OAuth2(
+    client_id,
+    client_secret,
+    redirect_uris[0]
+  );
   myGoogleAuth.setCredentials(credential.key);
 
   const isExpired = () => myGoogleAuth.isTokenExpiring();
@@ -43,7 +49,8 @@ const googleAuth = (credential) => {
       });
 
   return {
-    getToken: () => (!isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken()),
+    getToken: () =>
+      !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(),
   };
 };
 
@@ -81,7 +88,9 @@ const o365Auth = (credential) => {
       .then(handleErrorsJson)
       .then((responseBody) => {
         credential.key.access_token = responseBody.access_token;
-        credential.key.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
+        credential.key.expiry_date = Math.round(
+          +new Date() / 1000 + responseBody.expires_in
+        );
         return prisma.credential
           .update({
             where: {
@@ -139,7 +148,11 @@ export interface CalendarApiAdapter {
 
   deleteEvent(uid: string);
 
-  getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
+  getAvailability(
+    dateFrom,
+    dateTo,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<unknown>;
 
   listCalendars(): Promise<IntegrationCalendar[]>;
 }
@@ -206,7 +219,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
   return {
     getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-      const filter = "?$filter=start/dateTime ge '" + dateFrom + "' and end/dateTime le '" + dateTo + "'";
+      const filter = "?startdatetime=" + dateFrom + "&enddatetime=" + dateTo;
       return auth
         .getToken()
         .then((accessToken) => {
@@ -229,7 +242,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
               headers: {
                 Prefer: 'outlook.timezone="Etc/GMT"',
               },
-              url: `/me/calendars/${calendarId}/events${filter}`,
+              url: `/me/calendars/${calendarId}/calendarView${filter}`,
             }));
 
             return fetch("https://graph.microsoft.com/v1.0/$batch", {
@@ -309,7 +322,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     getAvailability: (dateFrom, dateTo, selectedCalendars) =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           const selectedCalendarIds = selectedCalendars
             .filter((e) => e.integration === integrationType)
             .map((e) => e.externalId);
@@ -320,7 +336,9 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
           }
 
           (selectedCalendarIds.length == 0
-            ? calendar.calendarList.list().then((cals) => cals.data.items.map((cal) => cal.id))
+            ? calendar.calendarList
+                .list()
+                .then((cals) => cals.data.items.map((cal) => cal.id))
             : Promise.resolve(selectedCalendarIds)
           )
             .then((calsIds) => {
@@ -336,12 +354,19 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                   if (err) {
                     reject(err);
                   }
-                  resolve(Object.values(apires.data.calendars).flatMap((item) => item["busy"]));
+                  resolve(
+                    Object.values(apires.data.calendars).flatMap(
+                      (item) => item["busy"]
+                    )
+                  );
                 }
               );
             })
             .catch((err) => {
-              console.error("There was an error contacting google calendar service: ", err);
+              console.error(
+                "There was an error contacting google calendar service: ",
+                err
+              );
               reject(err);
             });
         })
@@ -375,7 +400,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["conferenceData"] = event.conferenceData;
           }
 
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.insert(
             {
               auth: myGoogleAuth,
@@ -385,7 +413,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             },
             function (err, event) {
               if (err) {
-                console.error("There was an error contacting google calendar service: ", err);
+                console.error(
+                  "There was an error contacting google calendar service: ",
+                  err
+                );
                 return reject(err);
               }
               return resolve(event.data);
@@ -418,7 +449,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["location"] = event.location;
           }
 
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.update(
             {
               auth: myGoogleAuth,
@@ -430,7 +464,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             },
             function (err, event) {
               if (err) {
-                console.error("There was an error contacting google calendar service: ", err);
+                console.error(
+                  "There was an error contacting google calendar service: ",
+                  err
+                );
                 return reject(err);
               }
               return resolve(event.data);
@@ -441,7 +478,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     deleteEvent: (uid: string) =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.delete(
             {
               auth: myGoogleAuth,
@@ -452,7 +492,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             },
             function (err, event) {
               if (err) {
-                console.error("There was an error contacting google calendar service: ", err);
+                console.error(
+                  "There was an error contacting google calendar service: ",
+                  err
+                );
                 return reject(err);
               }
               return resolve(event.data);
@@ -463,7 +506,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     listCalendars: () =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.calendarList
             .list()
             .then((cals) => {
@@ -480,7 +526,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
               );
             })
             .catch((err) => {
-              console.error("There was an error contacting google calendar service: ", err);
+              console.error(
+                "There was an error contacting google calendar service: ",
+                err
+              );
               reject(err);
             });
         })
@@ -503,19 +552,29 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
     })
     .filter(Boolean);
 
-const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) =>
+const getBusyCalendarTimes = (
+  withCredentials,
+  dateFrom,
+  dateTo,
+  selectedCalendars
+) =>
   Promise.all(
-    calendars(withCredentials).map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
+    calendars(withCredentials).map((c) =>
+      c.getAvailability(dateFrom, dateTo, selectedCalendars)
+    )
   ).then((results) => {
     return results.reduce((acc, availability) => acc.concat(availability), []);
   });
 
 const listCalendars = (withCredentials) =>
-  Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then((results) =>
-    results.reduce((acc, calendars) => acc.concat(calendars), [])
+  Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then(
+    (results) => results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<unknown> => {
+const createEvent = async (
+  credential: Credential,
+  calEvent: CalendarEvent
+): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   /*
@@ -525,7 +584,9 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
    */
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
-  const creationResult = credential ? await calendars([credential])[0].createEvent(richEvent) : null;
+  const creationResult = credential
+    ? await calendars([credential])[0].createEvent(richEvent)
+    : null;
 
   const maybeHangoutLink = creationResult?.hangoutLink;
   const maybeEntryPoints = creationResult?.entryPoints;
