@@ -229,16 +229,13 @@ Contributions are what make the open source community such an amazing place to b
 2. On the upper right, click "Develop" => "Build App".
 3. On "OAuth", select "Create".
 4. Name your App.
-5. Choose "Account-level app" as the app type.
+5. Choose "User-managed app" as the app type.
 6. De-select the option to publish the app on the Zoom App Marketplace.
 7. Click "Create".
 8. Now copy the Client ID and Client Secret to your .env file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
 9. Set the Redirect URL for OAuth `<CALENDSO URL>/api/integrations/zoomvideo/callback` replacing CALENDSO URL with the URI at which your application runs.
 10. Also add the redirect URL given above as a whitelist URL and enable "Subdomain check". Make sure, it says "saved" below the form.
-11. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". Search for and check the following scopes:
-    1. account:write:admin
-    2. meeting:write:admin
-    3. user:write:admin
+11. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". Search for and check the scope `meeting:write`.
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Calendso settings.
 
