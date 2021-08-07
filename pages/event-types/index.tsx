@@ -1,4 +1,5 @@
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
+import { Tooltip } from "@components/Tooltip";
 import Loader from "@components/Loader";
 import { Menu, Transition } from "@headlessui/react";
 import {
@@ -223,23 +224,27 @@ export default function Availability({ user, types }) {
 
                     <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
                       <div className="flex overflow-hidden space-x-5">
-                        <Link href={"/" + session.user.username + "/" + type.slug}>
+                        <Tooltip content="Preview">
                           <a
+                            href={"/" + session.user.username + "/" + type.slug}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                            <ExternalLinkIcon className="w-5 h-5" />
+                            className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                            <ExternalLinkIcon className="group-hover:text-black w-5 h-5" />
                           </a>
-                        </Link>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              window.location.hostname + "/" + session.user.username + "/" + type.slug
-                            );
-                          }}
-                          className="text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                          <LinkIcon className="w-5 h-5" />
-                        </button>
+                        </Tooltip>
+
+                        <Tooltip content="Copy link">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(
+                                window.location.hostname + "/" + session.user.username + "/" + type.slug
+                              );
+                            }}
+                            className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                            <LinkIcon className="group-hover:text-black w-5 h-5" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </div>
                     <div className="flex sm:hidden ml-5 flex-shrink-0">
