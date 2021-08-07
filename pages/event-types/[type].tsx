@@ -264,7 +264,7 @@ export default function EventTypePage({
       },
     });
 
-    router.push("/bookings");
+    router.push("/event-types");
   }
 
   const openLocationModal = (type: LocationType) => {
