@@ -4,7 +4,7 @@ import prisma, { whereAndSelect } from "../lib/prisma";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
-import { CalendarIcon, ClockIcon, LocationMarkerIcon } from "@heroicons/react/solid";
+import { ClockIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import toArray from "dayjs/plugin/toArray";
@@ -166,7 +166,9 @@ export default function Success(props) {
                                 eventName
                             ) + (location ? "&location=" + location : "")
                           }>
-                          <a className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3" target="_blank">
+                          <a
+                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3"
+                            target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
                               fill="currentColor"
@@ -190,7 +192,9 @@ export default function Success(props) {
                                 eventName
                             ) + (location ? "&location=" + location : "")
                           }>
-                          <a className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3" target="_blank">
+                          <a
+                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3"
+                            target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
                               fill="currentColor"
@@ -202,7 +206,9 @@ export default function Success(props) {
                           </a>
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
-                          <a className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3" download={props.eventType.title + ".ics"}>
+                          <a
+                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3"
+                            download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
                               xmlns="http://www.w3.org/2000/svg"
