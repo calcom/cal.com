@@ -329,34 +329,46 @@ export default function Book(props: any): JSX.Element {
                         </div>
                       ))}
                   <div className="mb-4">
-                    {!guestToggle && (
-                      <label
-                        onClick={toggleGuestEmailInput}
-                        htmlFor="guests"
-                        className="block text-sm font-medium text-blue-500 mb-1 hover:cursor-pointer">
-                        + Additional Guests
-                      </label>
-                    )}
-                    {guestToggle && (
-                      <ReactMultiEmail
-                        placeholder="Input your Email Address"
-                        emails={guestEmails}
-                        onChange={(_emails: string[]) => {
-                          setGuestEmails(_emails);
-                        }}
-                        getLabel={(email: string, index: number, removeEmail: (index: number) => void) => {
-                          return (
-                            <div data-tag key={index}>
-                              {email}
-                              <span data-tag-handle onClick={() => removeEmail(index)}>
-                                ×
-                              </span>
-                            </div>
-                          );
-                        }}
-                      />
-                    )}
-                  </div>
+                      {!guestToggle && 
+                        <label
+                          onClick={toggleGuestEmailInput}
+                          htmlFor="guests"
+                          className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
+                          + Additional Guests
+                        </label>       
+                      }
+                      {guestToggle && (
+                        <div>
+                          <label
+                          htmlFor="guests"
+                          className="block text-sm font-medium dark:text-white text-gray-700">
+                          Guests
+                          </label>                         
+                          <ReactMultiEmail
+                          placeholder="guest@example.com"
+                          emails={guestEmails}
+                          onChange={(_emails: string[]) => {
+                            setGuestEmails(_emails);
+                          }}
+                          getLabel={(
+                            email: string,
+                            index: number,
+                            removeEmail: (index: number) => void
+                          ) => {
+                            return (
+                              <div data-tag key={index}>
+                                {email}
+                                <span data-tag-handle onClick={() => removeEmail(index)}>
+                                  ×
+                                </span>
+                              </div>
+                            );
+                          }}
+                        /> 
+                        </div>
+                        )}
+                      
+                  </div>    
                   <div className="mb-4">
                     <label
                       htmlFor="notes"

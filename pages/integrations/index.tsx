@@ -267,7 +267,7 @@ export default function IntegrationHome({ integrations }) {
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
             <div className="mt-5">
-              <a href="apps@calendso.com" className="btn btn-white">
+              <a href="mailto:apps@calendso.com" className="btn btn-white">
                 Contact us
               </a>
             </div>
