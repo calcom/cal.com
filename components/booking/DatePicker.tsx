@@ -147,9 +147,9 @@ const DatePicker = ({
           onClick={() => setSelectedDate(inviteeDate.date(day))}
           disabled={isDisabled(day)}
           className={
-            "text-center w-10 h-10 mx-auto" +
+            "text-center w-10 h-10 mx-auto hover:border hover:border-black dark:hover:border-white" +
             (isDisabled(day)
-              ? " text-gray-400 font-light"
+              ? " text-gray-400 font-light hover:border-0 cursor-default"
               : " dark:text-white text-primary-500 font-medium") +
             (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
               ? " bg-black text-white-important"
