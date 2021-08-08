@@ -166,8 +166,10 @@ const DatePicker = ({
   return selectedMonth ? (
     <div
       className={
-        "mt-8 sm:mt-0 " +
-        (selectedDate ? "sm:w-1/3 sm:border-r sm:dark:border-black sm:px-4" : "sm:w-1/2 sm:pl-4")
+        "mt-8 sm:mt-0 min-w-[350px] " +
+        (selectedDate
+          ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-black sm:pl-4 sm:pr-6"
+          : "sm:w-1/2 sm:pl-4")
       }>
       <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
         <span className="w-1/2 text-gray-600 dark:text-white">
@@ -191,7 +193,7 @@ const DatePicker = ({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-y-4 text-center">
+      <div className="grid grid-cols-7 gap-4 text-center">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (

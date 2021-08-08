@@ -129,7 +129,7 @@ export default function Type(props): Type {
         <main
           className={
             "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
-            (selectedDate ? "max-w-6xl" : "max-w-3xl")
+            (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           <div className="dark:bg-neutral-900 bg-white border border-gray-200 rounded-sm dark:border-0">
             <div className="sm:flex px-4 py-5 sm:p-4">
@@ -148,7 +148,7 @@ export default function Type(props): Type {
                 </p>
 
                 <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-                  <Collapsible.Trigger className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                  <Collapsible.Trigger className="text-gray-500 mb-1 px-2 py-1 -ml-2 text-left min-w-32 ">
                     <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {timeZone()}
                     {isTimeOptionsOpen ? (
