@@ -2,8 +2,8 @@ import Head from "next/head";
 import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
-import {  useSession, getSession } from "next-auth/client";
-import Loader from '@components/Loader';
+import { getSession, useSession } from "next-auth/client";
+import Loader from "@components/Loader";
 
 export default function Embed(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

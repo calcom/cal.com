@@ -4,7 +4,7 @@ import prisma from "../../lib/prisma";
 import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
-import { useSession, getSession } from "next-auth/client";
+import { getSession, useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 
 export default function Settings() {

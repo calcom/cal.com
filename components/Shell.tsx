@@ -7,13 +7,13 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../lib
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
-  ClockIcon,
-  PuzzleIcon,
-  CogIcon,
   ChatAltIcon,
-  LogoutIcon,
+  ClockIcon,
+  CogIcon,
   ExternalLinkIcon,
   LinkIcon,
+  LogoutIcon,
+  PuzzleIcon,
 } from "@heroicons/react/solid";
 import Logo from "./Logo";
 import classNames from "@lib/classNames";

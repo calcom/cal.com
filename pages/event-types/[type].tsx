@@ -9,19 +9,19 @@ import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
-import { Disclosure } from "@headlessui/react";
+import { Disclosure, RadioGroup } from "@headlessui/react";
 
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeInput";
 import {
-  LocationMarkerIcon,
-  LinkIcon,
-  PlusIcon,
-  DocumentIcon,
   ChevronRightIcon,
   ClockIcon,
-  TrashIcon,
+  DocumentIcon,
   ExternalLinkIcon,
+  LinkIcon,
+  LocationMarkerIcon,
+  PlusIcon,
+  TrashIcon,
 } from "@heroicons/react/solid";
 
 import dayjs from "dayjs";
@@ -29,7 +29,6 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Availability, EventType, User } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
-import { RadioGroup } from "@headlessui/react";
 import classnames from "classnames";
 import throttle from "lodash.throttle";
 import "react-dates/initialize";
