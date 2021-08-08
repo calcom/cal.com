@@ -1,3 +1,4 @@
+import Loader from "@components/Loader";
 import { useRouter } from "next/router";
 
 function RedirectPage() {
@@ -6,6 +7,7 @@ function RedirectPage() {
     router.push("/event-types");
     return;
   }
+  return <Loader />;
 }
 
 RedirectPage.getInitialProps = (ctx) => {

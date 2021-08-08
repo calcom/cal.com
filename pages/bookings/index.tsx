@@ -3,9 +3,17 @@ import prisma from "../../lib/prisma";
 import { getSession, useSession } from "next-auth/client";
 import Shell from "../../components/Shell";
 import { useRouter } from "next/router";
+import dayjs from "dayjs";
+import { Fragment } from "react";
+import { Menu, Transition } from "@headlessui/react";
+import { DotsHorizontalIcon } from "@heroicons/react/solid";
+import classNames from "@lib/classNames";
+import { ClockIcon, XIcon } from "@heroicons/react/outline";
 
 export default function Bookings({ bookings }) {
-  const [, loading] = useSession();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [session, loading] = useSession();
+
   const router = useRouter();
 
   if (loading) {
@@ -35,7 +43,7 @@ export default function Bookings({ bookings }) {
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-sm">
+              <div className="border border-gray-200 overflow-hidden border-b rounded-sm">
                 <table className="min-w-full divide-y divide-gray-200">
                   <tbody className="bg-white divide-y divide-gray-200">
                     {bookings
@@ -49,32 +57,33 @@ export default function Bookings({ bookings }) {
                                 Unconfirmed
                               </span>
                             )}
-                            <div className="text-sm font-medium text-gray-900">
-                              {booking.attendees[0].name}
-                            </div>
-                            <div className="text-sm text-gray-500">{booking.attendees[0].email}</div>
-                            <div
-                              style={{ maxWidth: 150 }}
-                              className="block lg:hidden font-medium text-xs text-gray-900 truncate">
+                            <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
                               {booking.title}
                             </div>
-                          </td>
-                          <td
-                            className={
-                              "px-6 py-4 max-w-20 w-full" + (booking.rejected ? " line-through" : "")
-                            }>
-                            <div className="hidden lg:block text-sm text-neutral-900 font-medium">
-                              {booking.title}
+                            <div className="sm:hidden">
+                              <div className="text-sm text-gray-900">
+                                {dayjs(booking.startTime).format("D MMMM YYYY")}:{" "}
+                                <small className="text-sm text-gray-500">
+                                  {dayjs(booking.startTime).format("HH:mm")} -{" "}
+                                  {dayjs(booking.endTime).format("HH:mm")}
+                                </small>
+                              </div>
                             </div>
-                            <div className="hidden lg:block text-sm text-neutral-500">
-                              You and {booking.attendees[0].name}
+                            <div className="text-sm text-blue-500">
+                              <a href={"mailto:" + booking.attendees[0].email}>
+                                {booking.attendees[0].email}
+                              </a>
                             </div>
                           </td>
-                          {/* <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {dayjs(booking.startTime).format("D MMMM YYYY HH:mm")}
-                          </div>
-                        </td> */}
+                          <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {dayjs(booking.startTime).format("D MMMM YYYY")}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {dayjs(booking.startTime).format("HH:mm")} -{" "}
+                              {dayjs(booking.endTime).format("HH:mm")}
+                            </div>
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {!booking.confirmed && !booking.rejected && (
                               <>
@@ -85,7 +94,7 @@ export default function Bookings({ bookings }) {
                                 </button>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, false)}
-                                  className="text-xs sm:text-sm ml-4 inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Reject
                                 </button>
                               </>
@@ -94,14 +103,89 @@ export default function Bookings({ bookings }) {
                               <>
                                 <a
                                   href={window.location.href + "/../cancel/" + booking.uid}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  <XIcon
+                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                    aria-hidden="true"
+                                  />
                                   Cancel
                                 </a>
                                 <a
                                   href={window.location.href + "/../reschedule/" + booking.uid}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  <ClockIcon
+                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                    aria-hidden="true"
+                                  />
                                   Reschedule
                                 </a>
+                                <Menu as="div" className="inline-block lg:hidden text-left ">
+                                  {({ open }) => (
+                                    <>
+                                      <div>
+                                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+                                          <span className="sr-only">Open options</span>
+                                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                                        </Menu.Button>
+                                      </div>
+
+                                      <Transition
+                                        show={open}
+                                        as={Fragment}
+                                        enter="transition ease-out duration-100"
+                                        enterFrom="transform opacity-0 scale-95"
+                                        enterTo="transform opacity-100 scale-100"
+                                        leave="transition ease-in duration-75"
+                                        leaveFrom="transform opacity-100 scale-100"
+                                        leaveTo="transform opacity-0 scale-95">
+                                        <Menu.Items
+                                          static
+                                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                                          <div className="py-1">
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <a
+                                                  href={window.location.href + "/../cancel/" + booking.uid}
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm font-medium"
+                                                  )}>
+                                                  <XIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
+                                                  Cancel
+                                                </a>
+                                              )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <a
+                                                  href={
+                                                    window.location.href + "/../reschedule/" + booking.uid
+                                                  }
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                                  )}>
+                                                  <ClockIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
+                                                  Reschedule
+                                                </a>
+                                              )}
+                                            </Menu.Item>
+                                          </div>
+                                        </Menu.Items>
+                                      </Transition>
+                                    </>
+                                  )}
+                                </Menu>
                               </>
                             )}
                             {!booking.confirmed && booking.rejected && (
@@ -137,7 +221,7 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const bookings = await prisma.booking.findMany({
+  const b = await prisma.booking.findMany({
     where: {
       userId: user.id,
     },
@@ -149,10 +233,16 @@ export async function getServerSideProps(context) {
       confirmed: true,
       rejected: true,
       id: true,
+      startTime: true,
+      endTime: true,
     },
     orderBy: {
-      startTime: "desc",
+      startTime: "asc",
     },
+  });
+
+  const bookings = b.reverse().map((booking) => {
+    return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
   });
 
   return { props: { bookings } };

@@ -81,6 +81,27 @@
     }
 }
 
+::-moz-selection { 
+  color: white;
+  background: black;
+}
+
+::selection {
+  color: white;
+  background: black;
+}
+
+/* add padding bottom to bottom nav on standalone mode */
+@media all and (display-mode: standalone) {
+  .bottom-nav {
+    padding-bottom: 24px;
+  }
+}
+
+.react-multi-email > [type='text'] {
+    --tw-ring-shadow: 0 0 0 0 0;
+}
+
 /* !important to override react-select */
 .react-select__value-container{
     border: 0 !important;
@@ -140,7 +161,8 @@
   height: 30px;
   margin: 60px auto;
   position: relative;
-  border: 4px solid #000;
+  border-width: 4px;
+  border-style: solid;
   animation: loader 2s infinite ease;
 }
 
@@ -148,7 +170,6 @@
   vertical-align: top;
   display: inline-block;
   width: 100%;
-  background-color: #000;
   animation: loader-inner 2s infinite ease-in;
 }
 

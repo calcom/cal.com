@@ -41,6 +41,10 @@ module.exports = withTM({
   future: {
     webpack5: true,
   },
+  i18n: {
+    locales: ["en"],
+    defaultLocale: "en",
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

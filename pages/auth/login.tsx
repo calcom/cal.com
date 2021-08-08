@@ -43,7 +43,7 @@ export default function Login({ csrfToken }) {
                 </div>
                 <div className="w-1/2 text-right">
                   <Link href="/auth/forgot-password">
-                    <a className="font-medium text-secondary-600 text-sm">Forgot?</a>
+                    <a className="font-medium text-primary-600 text-sm">Forgot?</a>
                   </Link>
                 </div>
               </div>

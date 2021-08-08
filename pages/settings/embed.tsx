@@ -3,17 +3,14 @@ import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
 import { getSession, useSession } from "next-auth/client";
+import Loader from "@components/Loader";
 
 export default function Embed(props) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
-  //const router = useRouter(); Unused
 
   if (loading) {
-    return (
-      <div className="loader">
-        <span className="loader-inner"></span>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (

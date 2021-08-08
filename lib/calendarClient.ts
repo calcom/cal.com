@@ -210,7 +210,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
   return {
     getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-      const filter = "?$filter=start/dateTime ge '" + dateFrom + "' and end/dateTime le '" + dateTo + "'";
+      const filter = "?startdatetime=" + dateFrom + "&enddatetime=" + dateTo;
       return auth
         .getToken()
         .then((accessToken) => {
@@ -233,7 +233,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
               headers: {
                 Prefer: 'outlook.timezone="Etc/GMT"',
               },
-              url: `/me/calendars/${calendarId}/events${filter}`,
+              url: `/me/calendars/${calendarId}/calendarView${filter}`,
             }));
 
             return fetch("https://graph.microsoft.com/v1.0/$batch", {
@@ -313,7 +313,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     getAvailability: (dateFrom, dateTo, selectedCalendars) =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           const selectedCalendarIds = selectedCalendars
             .filter((e) => e.integration === integrationType)
             .map((e) => e.externalId);
@@ -379,7 +382,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["conferenceData"] = event.conferenceData;
           }
 
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.insert(
             {
               auth: myGoogleAuth,
@@ -422,7 +428,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["location"] = event.location;
           }
 
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.update(
             {
               auth: myGoogleAuth,
@@ -445,7 +454,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     deleteEvent: (uid: string) =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.delete(
             {
               auth: myGoogleAuth,
@@ -467,7 +479,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     listCalendars: () =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.calendarList
             .list()
             .then((cals) => {

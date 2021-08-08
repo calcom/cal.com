@@ -13,12 +13,14 @@ import { User } from "@prisma/client";
 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import isBetween from "dayjs/plugin/isBetween";
 import dayjsBusinessDays from "dayjs-business-days";
 import { Exception } from "handlebars";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
+dayjs.extend(isBetween);
 dayjs.extend(timezone);
 
 const translator = short();
@@ -27,7 +29,6 @@ const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 function isAvailable(busyTimes, time, length) {
   // Check for conflicts
   let t = true;
-
   if (Array.isArray(busyTimes) && busyTimes.length > 0) {
     busyTimes.forEach((busyTime) => {
       const startTime = dayjs(busyTime.start);
@@ -148,8 +149,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const calendarAvailability = await getBusyCalendarTimes(
       currentUser.credentials,
-      dayjs(req.body.start).startOf("day").utc().format(),
-      dayjs(req.body.end).endOf("day").utc().format(),
+      dayjs(req.body.start).startOf("day").utc().format("YYYY-MM-DDTHH:mm:ss[Z]"),
+      dayjs(req.body.end).endOf("day").utc().format("YYYY-MM-DDTHH:mm:ss[Z]"),
       selectedCalendars
     );
     const videoAvailability = await getBusyVideoTimes(currentUser.credentials);
@@ -201,6 +202,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    const invitee = [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }];
+    const guests = req.body.guests.map((guest) => {
+      const g = {
+        email: guest,
+        name: "",
+        timeZone: req.body.timeZone,
+      };
+      return g;
+    });
+    const attendeesList = [...invitee, ...guests];
+
     const evt: CalendarEvent = {
       type: selectedEventType.title,
       title: getEventName(req.body.name, selectedEventType.title, selectedEventType.eventName),
@@ -208,7 +220,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       startTime: req.body.start,
       endTime: req.body.end,
       organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
-      attendees: [{ email: req.body.email, name: req.body.name, timeZone: req.body.timeZone }],
+      attendees: attendeesList,
       location: req.body.location, // Will be processed by the EventManager later.
     };
 
@@ -226,7 +238,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, selectedEventType.length);
-    } catch {
+    } catch (e) {
+      console.log(e);
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
       });

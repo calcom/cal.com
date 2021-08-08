@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { CodeIcon, CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+import classNames from "@lib/classNames";
 
 export default function SettingsShell(props) {
   const router = useRouter();
@@ -38,9 +35,9 @@ export default function SettingsShell(props) {
   ];
 
   return (
-    <div className="max-w-6xl">
-      <div className="min-w-full overflow-scroll sm:mx-auto -mx-4 min-h-16">
-        <nav className="-mb-px flex space-x-8 px-4 sm:px-0 " aria-label="Tabs">
+    <div>
+      <div className="sm:mx-auto">
+        <nav className="-mb-px flex space-x-2 sm:space-x-8" aria-label="Tabs">
           {tabs.map((tab) => (
             <Link key={tab.name} href={tab.href}>
               <a
@@ -54,7 +51,7 @@ export default function SettingsShell(props) {
                 <tab.icon
                   className={classNames(
                     tab.current ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
-                    "-ml-0.5 mr-2 h-5 w-5"
+                    "-ml-0.5 mr-2 h-5 w-5 hidden sm:inline-block"
                   )}
                   aria-hidden="true"
                 />
@@ -63,8 +60,9 @@ export default function SettingsShell(props) {
             </Link>
           ))}
         </nav>
+        <hr />
       </div>
-      <main>{props.children}</main>
+      <main className="max-w-4xl">{props.children}</main>
     </div>
   );
 }

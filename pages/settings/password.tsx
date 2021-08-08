@@ -5,19 +5,18 @@ import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
 import { getSession, useSession } from "next-auth/client";
+import Loader from "@components/Loader";
 
 export default function Settings() {
-  const [, loading] = useSession();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [session, loading] = useSession();
+
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const oldPasswordRef = useRef<HTMLInputElement>();
   const newPasswordRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return (
-      <div className="loader">
-        <span className="loader-inner"></span>
-      </div>
-    );
+    return <Loader />;
   }
 
   const closeSuccessModal = () => {
@@ -32,19 +31,21 @@ export default function Settings() {
 
     // TODO: Add validation
 
-    await fetch("/api/auth/changepw", {
+    /*eslint-disable */
+    const response = await fetch("/api/auth/changepw", {
       method: "PATCH",
       body: JSON.stringify({ oldPassword: enteredOldPassword, newPassword: enteredNewPassword }),
       headers: {
         "Content-Type": "application/json",
       },
     });
+    /*eslint-enable */
 
     setSuccessModalOpen(true);
   }
 
   return (
-    <Shell heading="Password" subtitle="Change the password that you use to sign in.">
+    <Shell heading="Password" subtitle="Change the password that you use to sign in to your account.">
       <Head>
         <title>Change Password | Calendso</title>
         <link rel="icon" href="/favicon.ico" />

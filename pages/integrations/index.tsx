@@ -4,30 +4,17 @@ import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
 import { useEffect, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
-import {
-  CalendarIcon,
-  CheckCircleIcon,
-  ChevronRightIcon,
-  PlusIcon,
-  XCircleIcon,
-} from "@heroicons/react/solid";
+import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Switch } from "@headlessui/react";
+import Loader from "@components/Loader";
+import classNames from "@lib/classNames";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 
-export default function Home({ integrations }) {
-  const [, loading] = useSession();
-
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showSelectCalendarModal, setShowSelectCalendarModal] = useState(false);
+export default function IntegrationHome({ integrations }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [session, loading] = useSession();
   const [selectableCalendars, setSelectableCalendars] = useState([]);
-
-  function toggleAddModal() {
-    setShowAddModal(!showAddModal);
-  }
-
-  function toggleShowCalendarModal() {
-    setShowSelectCalendarModal(!showSelectCalendarModal);
-  }
 
   function loadCalendars() {
     fetch("api/availability/calendar")
@@ -80,40 +67,119 @@ export default function Home({ integrations }) {
     }
   }
 
-  function classNames(...classes) {
-    return classes.filter(Boolean).join(" ");
-  }
-
   useEffect(loadCalendars, [integrations]);
 
   if (loading) {
-    return (
-      <div className="loader">
-        <span className="loader-inner"></span>
-      </div>
-    );
+    return <Loader />;
   }
+
+  const ConnectNewAppDialog = () => (
+    <Dialog>
+      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+        <PlusIcon className="w-5 h-5 mr-1 inline" />
+        Connect a new App
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+        <div className="my-4">
+          <ul className="divide-y divide-gray-200">
+            {integrations
+              .filter((integration) => integration.installed)
+              .map((integration) => (
+                <li key={integration.type} className="flex py-4">
+                  <div className="w-1/12 mr-4 pt-2">
+                    <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
+                  </div>
+                  <div className="w-10/12">
+                    <h2 className="text-gray-800 font-medium">{integration.title}</h2>
+                    <p className="text-gray-400 text-sm">{integration.description}</p>
+                  </div>
+                  <div className="w-2/12 text-right pt-2">
+                    <button
+                      onClick={() => integrationHandler(integration.type)}
+                      className="font-medium text-neutral-900 hover:text-neutral-500">
+                      Add
+                    </button>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        </div>
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <DialogClose as="button" className="btn btn-white mx-2">
+            Cancel
+          </DialogClose>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const SelectCalendarDialog = () => (
+    <Dialog>
+      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+        Select calendars
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader
+          title="Select calendars"
+          subtitle="If no entry is selected, all calendars will be checked"
+        />
+        <div className="my-4">
+          <ul className="divide-y divide-gray-200">
+            {selectableCalendars.map((calendar) => (
+              <li key={calendar.name} className="flex py-4">
+                <div className="w-1/12 mr-4 pt-2">
+                  <img
+                    className="h-8 w-8 mr-2"
+                    src={getCalendarIntegrationImage(calendar.integration)}
+                    alt={calendar.integration}
+                  />
+                </div>
+                <div className="w-10/12 pt-3">
+                  <h2 className="text-gray-800 font-medium">{calendar.name}</h2>
+                </div>
+                <div className="w-2/12 text-right pt-3">
+                  <Switch
+                    checked={calendar.selected}
+                    onChange={calendarSelectionHandler(calendar)}
+                    className={classNames(
+                      calendar.selected ? "bg-neutral-900" : "bg-gray-200",
+                      "relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500"
+                    )}>
+                    <span className="sr-only">Select calendar</span>
+                    <span
+                      aria-hidden="true"
+                      className={classNames(
+                        calendar.selected ? "translate-x-5" : "translate-x-0",
+                        "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                      )}
+                    />
+                  </Switch>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <DialogClose as="button" className="btn btn-white mx-2">
+            Cancel
+          </DialogClose>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div>
       <Head>
-        <title>Integrations | Calendso</title>
+        <title>App Store | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Shell
-        heading="Integrations"
-        subtitle="Connect your favourite apps."
-        CTA={
-          <button
-            onClick={toggleAddModal}
-            type="button"
-            className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-            <PlusIcon className="w-5 h-5 mr-1" />
-            Add new integration
-          </button>
-        }>
-        <div className="bg-white shadow overflow-hidden rounded-sm mb-8">
+      <Shell heading="App Store" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
+        <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
               {integrations
@@ -172,224 +238,41 @@ export default function Home({ integrations }) {
                 </div>
                 <div className="py-5 sm:p-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    You don&apos;t have any integrations added.
+                    You don&apos;t have any apps connected.
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
                     <p>
-                      You currently do not have any integrations set up. Add your first integration to get
-                      started.
+                      You currently do not have any apps connected. Connect your first app to get started.
                     </p>
                   </div>
-                  <div className="mt-3 text-sm">
-                    <button
-                      onClick={toggleAddModal}
-                      className="font-medium text-neutral-900 hover:text-neutral-500">
-                      {" "}
-                      Add your first integration <span aria-hidden="true">&rarr;</span>
-                    </button>
-                  </div>
+                  <ConnectNewAppDialog />
                 </div>
               </div>
             </div>
           )}
         </div>
-        {showAddModal && (
-          <div
-            className="fixed z-10 inset-0 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              {/* <!--
-                          Background overlay, show/hide based on modal state.
-
-                          Entering: "ease-out duration-300"
-                            From: "opacity-0"
-                            To: "opacity-100"
-                          Leaving: "ease-in duration-200"
-                            From: "opacity-100"
-                            To: "opacity-0"
-                        --> */}
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-              {/* <!--
-                          Modal panel, show/hide based on modal state.
-
-                          Entering: "ease-out duration-300"
-                            From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            To: "opacity-100 translate-y-0 sm:scale-100"
-                          Leaving: "ease-in duration-200"
-                            From: "opacity-100 translate-y-0 sm:scale-100"
-                            To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                        --> */}
-              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <PlusIcon className="h-6 w-6 text-neutral-900" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Add a new integration
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-400">Link a new integration to your account.</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="my-4">
-                  <ul className="divide-y divide-gray-200">
-                    {integrations
-                      .filter((integration) => integration.installed)
-                      .map((integration) => (
-                        <li key={integration.type} className="flex py-4">
-                          <div className="w-1/12 mr-4 pt-2">
-                            <img
-                              className="h-8 w-8 mr-2"
-                              src={integration.imageSrc}
-                              alt={integration.title}
-                            />
-                          </div>
-                          <div className="w-10/12">
-                            <h2 className="text-gray-800 font-medium">{integration.title}</h2>
-                            <p className="text-gray-400 text-sm">{integration.description}</p>
-                          </div>
-                          <div className="w-2/12 text-right pt-2">
-                            <button
-                              onClick={() => integrationHandler(integration.type)}
-                              className="font-medium text-neutral-900 hover:text-neutral-500">
-                              Add
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                  <button
-                    onClick={toggleAddModal}
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-sm border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 sm:mt-0 sm:w-auto sm:text-sm">
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <div className="bg-white shadow rounded-sm">
+        <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>Select which calendars are checked for availability to prevent double bookings.</p>
             </div>
+            <SelectCalendarDialog />
+          </div>
+        </div>
+        <div className="border border-gray-200 rounded-sm">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
+            <div className="mt-2 max-w-xl text-sm text-gray-500">
+              <p>If you want to add your own App here, get in touch with us.</p>
+            </div>
             <div className="mt-5">
-              <button type="button" onClick={toggleShowCalendarModal} className="btn btn-primary">
-                Select calendars
-              </button>
+              <a href="apps@calendso.com" className="btn btn-white">
+                Contact us
+              </a>
             </div>
           </div>
         </div>
-        {showSelectCalendarModal && (
-          <div
-            className="fixed z-10 inset-0 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              {/* <!--
-                          Background overlay, show/hide based on modal state.
-
-                          Entering: "ease-out duration-300"
-                            From: "opacity-0"
-                            To: "opacity-100"
-                          Leaving: "ease-in duration-200"
-                            From: "opacity-100"
-                            To: "opacity-0"
-                        --> */}
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-              {/* <!--
-                          Modal panel, show/hide based on modal state.
-
-                          Entering: "ease-out duration-300"
-                            From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            To: "opacity-100 translate-y-0 sm:scale-100"
-                          Leaving: "ease-in duration-200"
-                            From: "opacity-100 translate-y-0 sm:scale-100"
-                            To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                        --> */}
-              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <CalendarIcon className="h-6 w-6 text-neutral-900" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Select calendars
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-400">
-                        If no entry is selected, all calendars will be checked
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="my-4">
-                  <ul className="divide-y divide-gray-200">
-                    {selectableCalendars.map((calendar) => (
-                      <li key={calendar.name} className="flex py-4">
-                        <div className="w-1/12 mr-4 pt-2">
-                          <img
-                            className="h-8 w-8 mr-2"
-                            src={getCalendarIntegrationImage(calendar.integration)}
-                            alt={calendar.integration}
-                          />
-                        </div>
-                        <div className="w-10/12 pt-3">
-                          <h2 className="text-gray-800 font-medium">{calendar.name}</h2>
-                        </div>
-                        <div className="w-2/12 text-right pt-3">
-                          <Switch
-                            checked={calendar.selected}
-                            onChange={calendarSelectionHandler(calendar)}
-                            className={classNames(
-                              calendar.selected ? "bg-neutral-900" : "bg-gray-200",
-                              "relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500"
-                            )}>
-                            <span className="sr-only">Select calendar</span>
-                            <span
-                              aria-hidden="true"
-                              className={classNames(
-                                calendar.selected ? "translate-x-5" : "translate-x-0",
-                                "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
-                              )}
-                            />
-                          </Switch>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                  <button
-                    onClick={toggleShowCalendarModal}
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-sm border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 sm:mt-0 sm:w-auto sm:text-sm">
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </Shell>
     </div>
   );

@@ -7,18 +7,20 @@ import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
 import { ClockIcon } from "@heroicons/react/outline";
+import Loader from "@components/Loader";
 
 export default function Availability(props) {
-  const [, loading] = useSession();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [session, loading] = useSession();
   const router = useRouter();
-  // const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
-  // const titleRef = useRef<HTMLInputElement>();           Everything is unused
-  // const slugRef = useRef<HTMLInputElement>();
-  // const descriptionRef = useRef<HTMLTextAreaElement>();
-  // const lengthRef = useRef<HTMLInputElement>();
-  // const isHiddenRef = useRef<HTMLInputElement>();
+  const titleRef = useRef<HTMLInputElement>();
+  const slugRef = useRef<HTMLInputElement>();
+  const descriptionRef = useRef<HTMLTextAreaElement>();
+  const lengthRef = useRef<HTMLInputElement>();
+  const isHiddenRef = useRef<HTMLInputElement>();
 
   const startHoursRef = useRef<HTMLInputElement>();
   const startMinsRef = useRef<HTMLInputElement>();
@@ -28,16 +30,12 @@ export default function Availability(props) {
   const bufferMinsRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return (
-      <div className="loader">
-        <span className="loader-inner"></span>
-      </div>
-    );
+    return <Loader />;
   }
 
-  // function toggleAddModal() {            Unused as well
-  //   setShowAddModal(!showAddModal);
-  // }
+  function toggleAddModal() {
+    setShowAddModal(!showAddModal);
+  }
 
   function toggleChangeTimesModal() {
     setShowChangeTimesModal(!showChangeTimesModal);
@@ -55,10 +53,7 @@ export default function Availability(props) {
     m = m < 10 ? "0" + m : m;
     return `${h}:${m}`;
   }
-
-  /*
-  Currently unused, so it's commented out.
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function createEventTypeHandler(event) {
     event.preventDefault();
 
@@ -69,7 +64,7 @@ export default function Availability(props) {
     const enteredIsHidden = isHiddenRef.current.checked;
 
     // TODO: Add validation
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const response = await fetch("/api/availability/eventtype", {
       method: "POST",
       body: JSON.stringify({
@@ -89,7 +84,7 @@ export default function Availability(props) {
       toggleAddModal();
     }
   }
-  */
+
   async function updateStartEndTimesHandler(event) {
     event.preventDefault();
 
@@ -105,8 +100,8 @@ export default function Availability(props) {
     const bufferMins = enteredBufferHours * 60 + enteredBufferMins;
 
     // TODO: Add validation
-
-    await fetch("/api/availability/day", {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const response = await fetch("/api/availability/day", {
       method: "PATCH",
       body: JSON.stringify({ start: startMins, end: endMins, buffer: bufferMins }),
       headers: {
@@ -130,7 +125,7 @@ export default function Availability(props) {
 
 ">
         <div className="flex">
-          <div className="w-1/2 mr-2 bg-white shadow rounded-sm">
+          <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Change the start and end times of your day
@@ -149,7 +144,7 @@ export default function Availability(props) {
             </div>
           </div>
 
-          <div className="w-1/2 ml-2 bg-white shadow rounded-sm">
+          <div className="w-1/2 ml-2 border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Something doesn&apos;t look right?
@@ -159,7 +154,7 @@ export default function Availability(props) {
               </div>
               <div className="mt-5">
                 <Link href="/availability/troubleshoot">
-                  <a className="btn btn-primary">Launch troubleshooter</a>
+                  <a className="btn btn-white">Launch troubleshooter</a>
                 </Link>
               </div>
             </div>
@@ -167,13 +162,13 @@ export default function Availability(props) {
         </div>
         {showChangeTimesModal && (
           <div
-            className="fixed z-10 inset-0 overflow-y-auto"
+            className="fixed z-50 inset-0 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true">
             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
               <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
                 aria-hidden="true"></div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
