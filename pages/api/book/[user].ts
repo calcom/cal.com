@@ -34,11 +34,6 @@ function isAvailable(busyTimes, time, length) {
       const startTime = dayjs(busyTime.start);
       const endTime = dayjs(busyTime.end);
 
-      // Check if start times are the same
-      if (dayjs(time).format("HH:mm") == startTime.format("HH:mm")) {
-        t = false;
-      }
-
       // Check if time is between start and end times
       if (dayjs(time).isBetween(startTime, endTime)) {
         t = false;
