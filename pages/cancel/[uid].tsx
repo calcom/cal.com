@@ -15,10 +15,6 @@ dayjs.extend(isBetween);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
-}
-
 export default function Type(props) {
     // Get router variables
     const router = useRouter();
@@ -66,7 +62,7 @@ export default function Type(props) {
                 <link rel="icon" href="/favicon.ico"/>
             </Head>
             <main className="max-w-3xl mx-auto my-24">
-                <div className="fixed z-10 inset-0 overflow-y-auto">
+                <div className="fixed z-50 inset-0 overflow-y-auto">
                     <div
                         className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 my-4 sm:my-0 transition-opacity" aria-hidden="true">

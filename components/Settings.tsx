@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { CreditCardIcon, UserIcon, CodeIcon, KeyIcon, UserGroupIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+import classNames from "@lib/classNames";
 
 export default function SettingsShell(props) {
   const router = useRouter();
@@ -38,7 +35,7 @@ export default function SettingsShell(props) {
   ];
 
   return (
-    <div className="max-w-6xl">
+    <div>
       <div className="sm:mx-auto">
         <nav className="-mb-px flex space-x-2 sm:space-x-8" aria-label="Tabs">
           {tabs.map((tab) => (
@@ -63,8 +60,9 @@ export default function SettingsShell(props) {
             </Link>
           ))}
         </nav>
+        <hr />
       </div>
-      <main>{props.children}</main>
+      <main className="max-w-4xl">{props.children}</main>
     </div>
   );
 }

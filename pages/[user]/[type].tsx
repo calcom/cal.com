@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { ChevronDownIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
+import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import dayjs, { Dayjs } from "dayjs";
+import * as Collapsible from "@radix-ui/react-collapsible";
 
 import prisma, { whereAndSelect } from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
@@ -48,9 +49,15 @@ export default function Type(props): Type {
 
     router.replace(
       {
-        query: {
-          date: formattedDate,
-        },
+        query: Object.assign(
+          {},
+          {
+            ...router.query,
+          },
+          {
+            date: formattedDate,
+          }
+        ),
       },
       undefined,
       {
@@ -122,13 +129,13 @@ export default function Type(props): Type {
         <main
           className={
             "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
-            (selectedDate ? "max-w-6xl" : "max-w-3xl")
+            (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
-          <div className="dark:bg-gray-800 bg-white sm:shadow sm:rounded-lg">
+          <div className="dark:bg-neutral-900 bg-white border border-gray-200 rounded-sm dark:border-0">
             <div className="sm:flex px-4 py-5 sm:p-4">
               <div
                 className={
-                  "pr-8 sm:border-r sm:dark:border-gray-900 " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                  "pr-8 sm:border-r sm:dark:border-black " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                 }>
                 <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
                 <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
@@ -139,19 +146,25 @@ export default function Type(props): Type {
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {props.eventType.length} minutes
                 </p>
-                <button
-                  onClick={() => setIsTimeOptionsOpen(!isTimeOptionsOpen)}
-                  className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                  <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {timeZone()}
-                  <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
-                </button>
-                {isTimeOptionsOpen && (
-                  <TimeOptions
-                    onSelectTimeZone={handleSelectTimeZone}
-                    onToggle24hClock={handleToggle24hClock}
-                  />
-                )}
+
+                <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
+                  <Collapsible.Trigger className="text-gray-500 mb-1 px-2 py-1 -ml-2 text-left min-w-32 ">
+                    <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {timeZone()}
+                    {isTimeOptionsOpen ? (
+                      <ChevronUpIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                    ) : (
+                      <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                    )}
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <TimeOptions
+                      onSelectTimeZone={handleSelectTimeZone}
+                      onToggle24hClock={handleToggle24hClock}
+                    />
+                  </Collapsible.Content>
+                </Collapsible.Root>
+
                 <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
               </div>
               <DatePicker

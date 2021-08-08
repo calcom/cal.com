@@ -5,15 +5,17 @@ import Shell from "../../components/Shell";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, getSession } from "next-auth/client";
-import Loader from '@components/Loader';
+import Loader from "@components/Loader";
 
-export default function integration(props) {
+export default function Integration(props) {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
+
   const [showAPIKey, setShowAPIKey] = useState(false);
 
   if (loading) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   function toggleShowAPIKey() {
@@ -23,6 +25,7 @@ export default function integration(props) {
   async function deleteIntegrationHandler(event) {
     event.preventDefault();
 
+    /*eslint-disable */
     const response = await fetch("/api/integrations", {
       method: "DELETE",
       body: JSON.stringify({ id: props.integration.id }),
@@ -30,6 +33,7 @@ export default function integration(props) {
         "Content-Type": "application/json",
       },
     });
+    /*eslint-enable */
 
     router.push("/integrations");
   }
@@ -37,27 +41,27 @@ export default function integration(props) {
   return (
     <div>
       <Head>
-        <title>{getIntegrationName(props.integration.type)} | Integrations | Calendso</title>
+        <title>{getIntegrationName(props.integration.type)} App | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Shell heading={getIntegrationName(props.integration.type)} subtitle="Manage and delete integrations.">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2 bg-white shadow overflow-hidden rounded-sm">
+      <Shell heading={getIntegrationName(props.integration.type)} subtitle="Manage and delete this app.">
+        <div className="block sm:grid grid-cols-3 gap-4">
+          <div className="col-span-2 bg-white border border-gray-200 mb-6 overflow-hidden rounded-sm">
             <div className="px-4 py-5 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Integration Details</h3>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                Information about your {getIntegrationName(props.integration.type)} integration.
+                Information about your {getIntegrationName(props.integration.type)} App.
               </p>
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
               <dl className="grid gap-y-8">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Integration name</dt>
+                  <dt className="text-sm font-medium text-gray-500">App name</dt>
                   <dd className="mt-1 text-sm text-gray-900">{getIntegrationName(props.integration.type)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Integration type</dt>
+                  <dt className="text-sm font-medium text-gray-500">App Category</dt>
                   <dd className="mt-1 text-sm text-gray-900">{getIntegrationType(props.integration.type)}</dd>
                 </div>
                 <div>
@@ -87,18 +91,18 @@ export default function integration(props) {
             </div>
           </div>
           <div>
-            <div className="bg-white shadow rounded-sm">
+            <div className="bg-white border border-gray-200 mb-6 rounded-sm">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Delete this integration</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Delete this app</h3>
                 <div className="mt-2 max-w-xl text-sm text-gray-500">
-                  <p>Once you delete this integration, it will be permanently removed.</p>
+                  <p>Once you delete this app, it will be permanently removed.</p>
                 </div>
                 <div className="mt-5">
                   <button
                     onClick={deleteIntegrationHandler}
                     type="button"
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-sm text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
-                    Delete integration
+                    Delete App
                   </button>
                 </div>
               </div>
@@ -111,6 +115,7 @@ export default function integration(props) {
 }
 
 export async function getServerSideProps(context) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const session = await getSession(context);
 
   const integration = await prisma.credential.findFirst({

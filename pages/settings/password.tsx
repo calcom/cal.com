@@ -1,21 +1,22 @@
 import Head from "next/head";
-import Link from "next/link";
 import { useRef, useState } from "react";
 import prisma from "../../lib/prisma";
 import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
 import { useSession, getSession } from "next-auth/client";
-import Loader from '@components/Loader';
+import Loader from "@components/Loader";
 
-export default function Settings(props) {
+export default function Settings() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
+
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const oldPasswordRef = useRef<HTMLInputElement>();
   const newPasswordRef = useRef<HTMLInputElement>();
 
   if (loading) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   const closeSuccessModal = () => {
@@ -30,6 +31,7 @@ export default function Settings(props) {
 
     // TODO: Add validation
 
+    /*eslint-disable */
     const response = await fetch("/api/auth/changepw", {
       method: "PATCH",
       body: JSON.stringify({ oldPassword: enteredOldPassword, newPassword: enteredNewPassword }),
@@ -37,12 +39,13 @@ export default function Settings(props) {
         "Content-Type": "application/json",
       },
     });
+    /*eslint-enable */
 
     setSuccessModalOpen(true);
   }
 
   return (
-    <Shell heading="Password" subtitle="Change the password that you use to sign in.">
+    <Shell heading="Password" subtitle="Change the password that you use to sign in to your account.">
       <Head>
         <title>Change Password | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
