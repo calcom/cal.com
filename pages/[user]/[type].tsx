@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { ChevronDownIcon, ClockIcon, GlobeIcon, InformationCircleIcon } from "@heroicons/react/solid";
+import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import dayjs, { Dayjs } from "dayjs";
 import * as Collapsible from "@radix-ui/react-collapsible";
@@ -29,8 +29,6 @@ export default function Type(props): Type {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
-
-  const [calHeight, setCalHeight] = useState(0);
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
@@ -81,7 +79,7 @@ export default function Type(props): Type {
 
   return (
     isReady && (
-      <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
+      <div>
         <Head>
           <title>
             {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username}{" "}
@@ -128,72 +126,77 @@ export default function Type(props): Type {
             }
           />
         </Head>
-        <main className={"flex sm:py-12 w-11/12 mx-auto"}>
-          <div className="w-2/12 md:pt-32">
-            <Avatar user={props.user} className="w-12 h-12 rounded-full mb-4" />
-            <h1 className="text-xl font-semibold dark:text-neutral-100 text-neutral-900 mb-2">
-              {props.user.name}
-            </h1>
-            <p className="text-neutral-500 mb-1 px-2 py-1 -ml-2">
-              <InformationCircleIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-              {props.eventType.title}
-            </p>
-            <p className="text-neutral-500 mb-1 px-2 py-1 -ml-2">
-              <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-              {props.eventType.length} minutes
-            </p>
-            <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-              <Collapsible.Trigger className="text-neutral-500 mb-1 px-2 py-1 -ml-2">
-                <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                {timeZone()}
-                <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
-              </Collapsible.Trigger>
-              <Collapsible.Content>
-                <TimeOptions
-                  onSelectTimeZone={handleSelectTimeZone}
-                  onToggle24hClock={handleToggle24hClock}
-                />
-              </Collapsible.Content>
-            </Collapsible.Root>
-          </div>
-          <div className="w-8/12">
-            <DatePicker
-              date={selectedDate}
-              periodType={props.eventType?.periodType}
-              periodStartDate={props.eventType?.periodStartDate}
-              periodEndDate={props.eventType?.periodEndDate}
-              periodDays={props.eventType?.periodDays}
-              periodCountCalendarDays={props.eventType?.periodCountCalendarDays}
-              weekStart={props.user.weekStart}
-              onDatePicked={changeDate}
-              workingHours={props.workingHours}
-              organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
-              inviteeTimeZone={timeZone()}
-              eventLength={props.eventType.length}
-              minimumBookingNotice={props.eventType.minimumBookingNotice}
-              setHeight={setCalHeight}
-            />
-          </div>
-          <div className="w-2/12">
-            {selectedDate && (
-              <AvailableTimes
-                workingHours={props.workingHours}
-                timeFormat={timeFormat}
-                organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
-                minimumBookingNotice={props.eventType.minimumBookingNotice}
-                eventTypeId={props.eventType.id}
-                eventLength={props.eventType.length}
+        <main
+          className={
+            "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
+            (selectedDate ? "max-w-6xl" : "max-w-3xl")
+          }>
+          <div className="dark:bg-neutral-900 bg-white border border-gray-200 rounded-sm dark:border-0">
+            <div className="sm:flex px-4 py-5 sm:p-4">
+              <div
+                className={
+                  "pr-8 sm:border-r sm:dark:border-black " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                }>
+                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
+                <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
+                <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
+                  {props.eventType.title}
+                </h1>
+                <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {props.eventType.length} minutes
+                </p>
+
+                <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
+                  <Collapsible.Trigger className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                    <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {timeZone()}
+                    {isTimeOptionsOpen ? (
+                      <ChevronUpIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                    ) : (
+                      <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+                    )}
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <TimeOptions
+                      onSelectTimeZone={handleSelectTimeZone}
+                      onToggle24hClock={handleToggle24hClock}
+                    />
+                  </Collapsible.Content>
+                </Collapsible.Root>
+
+                <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
+              </div>
+              <DatePicker
                 date={selectedDate}
-                user={props.user}
-                height={calHeight}
+                periodType={props.eventType?.periodType}
+                periodStartDate={props.eventType?.periodStartDate}
+                periodEndDate={props.eventType?.periodEndDate}
+                periodDays={props.eventType?.periodDays}
+                periodCountCalendarDays={props.eventType?.periodCountCalendarDays}
+                weekStart={props.user.weekStart}
+                onDatePicked={changeDate}
+                workingHours={props.workingHours}
+                organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+                inviteeTimeZone={timeZone()}
+                eventLength={props.eventType.length}
+                minimumBookingNotice={props.eventType.minimumBookingNotice}
               />
-            )}
-          </div>
-          {!props.user.hideBranding && (
-            <div className="absolute top-4 right-4">
-              <PoweredByCalendso />
+              {selectedDate && (
+                <AvailableTimes
+                  workingHours={props.workingHours}
+                  timeFormat={timeFormat}
+                  organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+                  minimumBookingNotice={props.eventType.minimumBookingNotice}
+                  eventTypeId={props.eventType.id}
+                  eventLength={props.eventType.length}
+                  date={selectedDate}
+                  user={props.user}
+                />
+              )}
             </div>
-          )}
+          </div>
+          {!props.user.hideBranding && <PoweredByCalendso />}
         </main>
       </div>
     )

@@ -14,7 +14,6 @@ const AvailableTimes = ({
   timeFormat,
   user,
   organizerTimeZone,
-  height,
 }) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
@@ -28,11 +27,9 @@ const AvailableTimes = ({
   });
 
   return (
-    <div
-      className="sm:pl-4 mt-16 pt-4 pr-6 bg-neutral-50 dark:bg-neutral-800 rounded-r-sm border border-l-0 border-neutral-300 dark:border-neutral-700 text-center h-full overflow-y-auto"
-      style={{ maxHeight: height }}>
-      <div className="font-semibold mb-4 text-left border-b border-neutral-200 pb-4">
-        <span className="w-1/2 dark:text-white text-primary-500">{date.format("dddd DD MMMM YYYY")}</span>
+    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-97 overflow-y-auto">
+      <div className="text-gray-600 font-light text-xl mb-4 text-left">
+        <span className="w-1/2 dark:text-white text-gray-600">{date.format("dddd DD MMMM YYYY")}</span>
       </div>
       {slots.length > 0 &&
         slots.map((slot) => (
@@ -42,7 +39,7 @@ const AvailableTimes = ({
                 `/${user.username}/book?date=${slot.utc().format()}&type=${eventTypeId}` +
                 (rescheduleUid ? "&rescheduleUid=" + rescheduleUid : "")
               }>
-              <a className="block font-medium mb-4 bg-white dark:bg-neutral-700 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-neutral-600 rounded hover:text-white hover:bg-primary-500 dark:hover:bg-primary-500 dark:hover:border-primary-500 py-4">
+              <a className="block font-medium mb-4 bg-white dark:bg-neutral-900 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-black rounded hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black">
                 {slot.format(timeFormat)}
               </a>
             </Link>
