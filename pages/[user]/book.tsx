@@ -329,32 +329,28 @@ export default function Book(props: any): JSX.Element {
                         </div>
                       ))}
                   <div className="mb-4">
-                      {!guestToggle && 
+                    {!guestToggle && (
+                      <label
+                        onClick={toggleGuestEmailInput}
+                        htmlFor="guests"
+                        className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
+                        + Additional Guests
+                      </label>
+                    )}
+                    {guestToggle && (
+                      <div>
                         <label
-                          onClick={toggleGuestEmailInput}
                           htmlFor="guests"
-                          className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
-                          + Additional Guests
-                        </label>       
-                      }
-                      {guestToggle && (
-                        <div>
-                          <label
-                          htmlFor="guests"
-                          className="block text-sm font-medium dark:text-white text-gray-700">
+                          className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
                           Guests
-                          </label>                         
-                          <ReactMultiEmail
+                        </label>
+                        <ReactMultiEmail
                           placeholder="guest@example.com"
                           emails={guestEmails}
                           onChange={(_emails: string[]) => {
                             setGuestEmails(_emails);
                           }}
-                          getLabel={(
-                            email: string,
-                            index: number,
-                            removeEmail: (index: number) => void
-                          ) => {
+                          getLabel={(email: string, index: number, removeEmail: (index: number) => void) => {
                             return (
                               <div data-tag key={index}>
                                 {email}
@@ -364,11 +360,10 @@ export default function Book(props: any): JSX.Element {
                               </div>
                             );
                           }}
-                        /> 
-                        </div>
-                        )}
-                      
-                  </div>    
+                        />
+                      </div>
+                    )}
+                  </div>
                   <div className="mb-4">
                     <label
                       htmlFor="notes"
