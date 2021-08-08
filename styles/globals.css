@@ -81,6 +81,16 @@
     }
 }
 
+::-moz-selection { 
+  color: white;
+  background: black;
+}
+
+::selection {
+  color: white;
+  background: black;
+}
+
 /* add padding bottom to bottom nav on standalone mode */
 @media all and (display-mode: standalone) {
   .bottom-nav {

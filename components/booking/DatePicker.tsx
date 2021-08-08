@@ -171,20 +171,23 @@ const DatePicker = ({
       }>
       <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
         <span className="w-1/2 text-gray-600 dark:text-white">
-          {dayjs().month(selectedMonth).format("MMMM YYYY")}
+          <strong className="text-gray-900 dark:text-white">
+            {dayjs().month(selectedMonth).format("MMMM")}
+          </strong>
+          <span className="text-gray-500"> {dayjs().month(selectedMonth).format("YYYY")}</span>
         </span>
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
             className={
-              "mr-4 " +
+              "group mr-2 p-1" +
               (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400 dark:text-gray-600")
             }
             disabled={selectedMonth <= dayjs().tz(inviteeTimeZone).month()}>
-            <ChevronLeftIcon className="w-5 h-5" />
+            <ChevronLeftIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
-          <button onClick={incrementMonth}>
-            <ChevronRightIcon className="w-5 h-5" />
+          <button className="group p-1" onClick={incrementMonth}>
+            <ChevronRightIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
         </div>
       </div>
