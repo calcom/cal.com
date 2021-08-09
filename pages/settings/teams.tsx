@@ -8,6 +8,7 @@ import { getSession, useSession } from "next-auth/client";
 import { UsersIcon } from "@heroicons/react/outline";
 import TeamList from "../../components/team/TeamList";
 import TeamListItem from "../../components/team/TeamListItem";
+import Loader from "@components/Loader";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -38,7 +39,7 @@ export default function Teams() {
   }, []);
 
   if (loading) {
-    return <p className="text-gray-400">Loading...</p>;
+    return <Loader />;
   }
 
   const createTeam = (e) => {

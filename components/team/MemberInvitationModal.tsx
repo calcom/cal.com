@@ -2,11 +2,9 @@ import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
 export default function MemberInvitationModal(props) {
-
-  const [ errorMessage, setErrorMessage ] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleError = async (res) => {
-
     const responseData = await res.json();
 
     if (res.ok === false) {
@@ -18,24 +16,26 @@ export default function MemberInvitationModal(props) {
   };
 
   const inviteMember = (e) => {
-
     e.preventDefault();
 
     const payload = {
-      role: e.target.elements['role'].value,
-      usernameOrEmail: e.target.elements['inviteUser'].value,
-      sendEmailInvitation: e.target.elements['sendInviteEmail'].checked,
-    }
+      role: e.target.elements["role"].value,
+      usernameOrEmail: e.target.elements["inviteUser"].value,
+      sendEmailInvitation: e.target.elements["sendInviteEmail"].checked,
+    };
 
-    return fetch('/api/teams/' + props.team.id + '/invite', {
-      method: 'POST',
+    return fetch("/api/teams/" + props.team.id + "/invite", {
+      method: "POST",
       body: JSON.stringify(payload),
       headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then(handleError).then(props.onExit).catch( (e) => {
-      // do nothing.
-    });
+        "Content-Type": "application/json",
+      },
+    })
+      .then(handleError)
+      .then(props.onExit)
+      .catch(() => {
+        // do nothing.
+      });
   };
 
   return (
@@ -45,7 +45,9 @@ export default function MemberInvitationModal(props) {
       role="dialog"
       aria-modal="true">
       <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <div
+          className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
+          aria-hidden="true"></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;

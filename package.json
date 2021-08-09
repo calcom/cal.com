@@ -19,6 +19,8 @@
     "@prisma/client": "^2.23.0",
     "@radix-ui/react-collapsible": "^0.0.16",
     "@radix-ui/react-dialog": "^0.0.19",
+    "@radix-ui/react-slot": "^0.0.12",
+    "@radix-ui/react-tooltip": "^0.0.21",
     "@tailwindcss/forms": "^0.2.1",
     "async": "^3.2.0",
     "bcryptjs": "^2.4.3",

@@ -9,7 +9,7 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Switch } from "@headlessui/react";
 import Loader from "@components/Loader";
 import classNames from "@lib/classNames";
-import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogHeader } from "@components/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 
 export default function IntegrationHome({ integrations }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -267,7 +267,7 @@ export default function IntegrationHome({ integrations }) {
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
             <div className="mt-5">
-              <a href="apps@calendso.com" className="btn btn-white">
+              <a href="mailto:apps@calendso.com" className="btn btn-white">
                 Contact us
               </a>
             </div>

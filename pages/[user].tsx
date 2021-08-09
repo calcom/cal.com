@@ -14,7 +14,7 @@ export default function User(props): User {
   const eventTypes = props.eventTypes.map((type) => (
     <div
       key={type.id}
-      className="group relative dark:bg-neutral-800 dark:border-neutral-700 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
+      className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
       <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
       <Link href={`/${props.user.username}/${type.slug}`}>
         <a className="block px-6 py-4">
@@ -22,21 +22,24 @@ export default function User(props): User {
           <div className="mt-2 flex space-x-4">
             <div className="flex text-sm text-neutral-500">
               <ClockIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400"
+                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
                 aria-hidden="true"
               />
-              <p>{type.length}m</p>
+              <p className="dark:text-white">{type.length}m</p>
             </div>
             <div className="flex text-sm min-w-16 text-neutral-500">
-              <UserIcon className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
-              <p>1-on-1</p>
+              <UserIcon
+                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
+                aria-hidden="true"
+              />
+              <p className="dark:text-white">1-on-1</p>
             </div>
             <div className="flex text-sm text-neutral-500">
               <InformationCircleIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400"
+                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
                 aria-hidden="true"
               />
-              <p>{type.description}</p>
+              <p className="dark:text-white">{type.description}</p>
             </div>
           </div>
         </a>
@@ -45,7 +48,7 @@ export default function User(props): User {
   ));
   return (
     isReady && (
-      <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
+      <div className="bg-neutral-50 dark:bg-black h-screen">
         <Head>
           <title>{props.user.name || props.user.username} | Calendso</title>
           <link rel="icon" href="/favicon.ico" />

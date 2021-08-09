@@ -9,6 +9,7 @@ import { Menu, Transition } from "@headlessui/react";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
+import Loader from "@components/Loader";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -17,7 +18,7 @@ export default function Bookings({ bookings }) {
   const router = useRouter();
 
   if (loading) {
-    return <p className="text-gray-400">Loading...</p>;
+    return <Loader />;
   }
 
   async function confirmBookingHandler(booking, confirm: boolean) {

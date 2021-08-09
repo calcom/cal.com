@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
 import { ClockIcon } from "@heroicons/react/outline";
-import Loader from '@components/Loader';
+import Loader from "@components/Loader";
 
 export default function Availability(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,7 +53,7 @@ export default function Availability(props) {
     m = m < 10 ? "0" + m : m;
     return `${h}:${m}`;
   }
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function createEventTypeHandler(event) {
     event.preventDefault();
 
@@ -64,7 +64,7 @@ export default function Availability(props) {
     const enteredIsHidden = isHiddenRef.current.checked;
 
     // TODO: Add validation
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const response = await fetch("/api/availability/eventtype", {
       method: "POST",
       body: JSON.stringify({
@@ -100,7 +100,7 @@ export default function Availability(props) {
     const bufferMins = enteredBufferHours * 60 + enteredBufferMins;
 
     // TODO: Add validation
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const response = await fetch("/api/availability/day", {
       method: "PATCH",
       body: JSON.stringify({ start: startMins, end: endMins, buffer: bufferMins }),
