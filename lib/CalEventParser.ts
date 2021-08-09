@@ -6,10 +6,12 @@ import { stripHtml } from "./emails/helpers";
 const translator = short();
 
 export default class CalEventParser {
-  calEvent: CalendarEvent;
+  protected calEvent: CalendarEvent;
+  protected maybeUid: string;
 
-  constructor(calEvent: CalendarEvent) {
+  constructor(calEvent: CalendarEvent, maybeUid: string = null) {
     this.calEvent = calEvent;
+    this.maybeUid = maybeUid;
   }
 
   /**
@@ -30,7 +32,7 @@ export default class CalEventParser {
    * Returns a unique identifier for the given calendar event.
    */
   public getUid(): string {
-    return translator.fromUUID(uuidv5(JSON.stringify(this.calEvent), uuidv5.URL));
+    return this.maybeUid ?? translator.fromUUID(uuidv5(JSON.stringify(this.calEvent), uuidv5.URL));
   }
 
   /**

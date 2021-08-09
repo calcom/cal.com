@@ -1,5 +1,5 @@
 import { ChevronRightIcon } from "@heroicons/react/solid";
-import { DocumentTextIcon, BookOpenIcon, CodeIcon, CheckIcon } from "@heroicons/react/outline";
+import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import React from "react";
 import Link from "next/link";

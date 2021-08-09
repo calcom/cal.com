@@ -4,7 +4,7 @@ import { getIntegrationName, getIntegrationType } from "../../lib/integrations";
 import Shell from "../../components/Shell";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { useSession, getSession } from "next-auth/client";
+import { getSession, useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 
 export default function Integration(props) {

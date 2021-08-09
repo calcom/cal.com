@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 import prisma from "../../../lib/prisma";
-import { handleLegacyConfirmationMail, scheduleEvent } from "./[user]";
+import { handleLegacyConfirmationMail } from "./[user]";
 import { CalendarEvent } from "@lib/calendarClient";
 import EventRejectionMail from "@lib/emails/EventRejectionMail";
+import EventManager from "@lib/events/EventManager";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const session = await getSession({ req: req });
@@ -41,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         endTime: true,
         confirmed: true,
         attendees: true,
+        location: true,
         userId: true,
         id: true,
         uid: true,
@@ -54,9 +56,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "booking already confirmed" });
     }
 
-    const calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    const videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
-
     const evt: CalendarEvent = {
       type: booking.title,
       title: booking.title,
@@ -65,10 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: booking.endTime.toISOString(),
       organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
       attendees: booking.attendees,
+      location: booking.location,
     };
 
     if (req.body.confirmed) {
-      const scheduleResult = await scheduleEvent([], calendarCredentials, evt, videoCredentials, []);
+      const eventManager = new EventManager(currentUser.credentials);
+      const scheduleResult = await eventManager.create(evt, booking.uid);
 
       await handleLegacyConfirmationMail(
         scheduleResult.results,

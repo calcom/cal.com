@@ -7,9 +7,7 @@ function RedirectPage() {
     router.push("/event-types");
     return;
   }
-  return (
-    <Loader/>
-  );
+  return <Loader />;
 }
 
 RedirectPage.getInitialProps = (ctx) => {

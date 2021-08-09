@@ -9,7 +9,7 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Switch } from "@headlessui/react";
 import Loader from "@components/Loader";
 import classNames from "@lib/classNames";
-import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogHeader } from "@components/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 
 export default function IntegrationHome({ integrations }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

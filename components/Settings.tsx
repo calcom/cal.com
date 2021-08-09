@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CreditCardIcon, UserIcon, CodeIcon, KeyIcon, UserGroupIcon } from "@heroicons/react/solid";
+import { CodeIcon, CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import classNames from "@lib/classNames";
 
