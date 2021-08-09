@@ -619,7 +619,7 @@ export default function EventTypePage({
                         />
                         <span className="text-neutral-700 text-sm font-medium">Show advanced settings</span>
                       </Disclosure.Button>
-                      <Disclosure.Panel className="space-y-4">
+                      <Disclosure.Panel className={`${open ? "" : "hidden"} space-y-4`} static>
                         <div className="block sm:flex items-center">
                           <div className="min-w-44 mb-4 sm:mb-0">
                             <label
