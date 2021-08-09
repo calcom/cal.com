@@ -29,7 +29,6 @@ export default function Home({ integrations }: Props) {
   const [, loading] = useSession();
 
   const [selectableCalendars, setSelectableCalendars] = useState([]);
-  const [showAddCalDavIntegrationModal, setShowAddCalDavIntegrationModal] = useState(false);
   const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
 
   function handleAddCalDavIntegrationSaveButtonPress() {
@@ -45,10 +44,6 @@ export default function Home({ integrations }: Props) {
     }
   }
 
-  function handleAddCalDavIntegrationCloseButtonPress() {
-    setShowAddCalDavIntegrationModal(false);
-  }
-
   function loadCalendars() {
     fetch("api/availability/calendar")
       .then((response) => response.json())
@@ -59,7 +54,6 @@ export default function Home({ integrations }: Props) {
 
   function integrationHandler(type) {
     if (type === "caldav_calendar") {
-      console.log("CalDav");
       setShowAddCalDavIntegrationModal(true);
       return;
     }
@@ -137,24 +131,30 @@ export default function Home({ integrations }: Props) {
           <ul className="divide-y divide-gray-200">
             {integrations
               .filter((integration) => integration.installed)
-              .map((integration) => (
-                <li key={integration.type} className="flex py-4">
-                  <div className="w-1/12 mr-4 pt-2">
-                    <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
-                  </div>
-                  <div className="w-10/12">
-                    <h2 className="text-gray-800 font-medium">{integration.title}</h2>
-                    <p className="text-gray-400 text-sm">{integration.description}</p>
-                  </div>
-                  <div className="w-2/12 text-right pt-2">
-                    <button
-                      onClick={() => integrationHandler(integration.type)}
-                      className="font-medium text-neutral-900 hover:text-neutral-500">
-                      Add
-                    </button>
-                  </div>
-                </li>
-              ))}
+              .map((integration) => {
+                return (
+                  <li key={integration.type} className="flex py-4">
+                    <div className="w-1/12 mr-4 pt-2">
+                      <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
+                    </div>
+                    <div className="w-10/12">
+                      <h2 className="text-gray-800 font-medium">{integration.title}</h2>
+                      <p className="text-gray-400 text-sm">{integration.description}</p>
+                    </div>
+                    <div className="w-2/12 text-right pt-2">
+                      {integration.type === "caldav_calendar" ? (
+                        <ConnectCalDavServerDialog integration={integration} />
+                      ) : (
+                        <button
+                          onClick={() => integrationHandler(integration.type)}
+                          className="font-medium text-neutral-900 hover:text-neutral-500">
+                          Add
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
           </ul>
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -209,6 +209,61 @@ export default function Home({ integrations }: Props) {
       </DialogContent>
     </Dialog>
   );
+
+  const ConnectCalDavServerDialog = () => {
+    return (
+      <Dialog>
+        <DialogTrigger className="font-medium text-neutral-900 hover:text-neutral-500">Add</DialogTrigger>
+
+        <DialogContent>
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              aria-hidden="true"></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <PlusIcon className="h-6 w-6 text-neutral-900" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                    Connect to CalDav Server
+                  </h3>
+                  <div>
+                    <p className="text-sm text-gray-400">Your credentials will be stored and encrypted.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="my-4">
+                <AddCalDavIntegration
+                  ref={addCalDavIntegrationRef}
+                  onSubmit={handleAddCalDavIntegrationSaveButtonPress}
+                />
+              </div>
+
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <DialogClose as="button" className="btn btn-white mx-2">
+                  Cancel
+                </DialogClose>
+                <button
+                  type="submit"
+                  form={"addCalDav"}
+                  className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+                  Save
+                </button>
+                <DialogClose as="button" className="btn btn-white mx-2">
+                  Cancel
+                </DialogClose>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <div>
@@ -312,57 +367,6 @@ export default function Home({ integrations }: Props) {
             </div>
           </div>
         </div>
-        {showAddCalDavIntegrationModal && (
-          <div
-            className="fixed z-50 inset-0 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <PlusIcon className="h-6 w-6 text-neutral-900" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Connect to CalDav Server
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-400">Your credentials will be stored and encrypted.</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="my-4">
-                  <AddCalDavIntegration
-                    ref={addCalDavIntegrationRef}
-                    onSubmit={handleAddCalDavIntegrationSaveButtonPress}
-                  />
-                </div>
-                <div className="mt-5 sm:mt-4 sm:flex sm:space-x-2 sm:space-x-reverse sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    form={"addCalDav"}
-                    className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-                    Save
-                  </button>
-                  <button
-                    onClick={handleAddCalDavIntegrationCloseButtonPress}
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-sm border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 sm:mt-0 sm:w-auto sm:text-sm">
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </Shell>
     </div>
   );
