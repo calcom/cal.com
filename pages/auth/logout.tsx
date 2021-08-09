@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { CheckIcon } from "@heroicons/react/outline";
+import { getSession, signOut } from "next-auth/client";
 
 export default function Logout() {
   return (
@@ -43,3 +44,14 @@ export default function Logout() {
     </div>
   );
 }
+
+Logout.getInitialProps = async (context) => {
+  const { req } = context;
+  const session = await getSession({ req });
+
+  if (session) {
+    signOut({ redirect: false });
+  }
+
+  return { session: undefined };
+};
