@@ -38,7 +38,6 @@ export default function Home({ integrations }: Props) {
     const username = form.username.value;
     try {
       handleAddCalDavIntegration({ username, password, url });
-      setShowAddCalDavIntegrationModal(false);
     } catch (reason) {
       console.error(reason);
     }
@@ -54,7 +53,6 @@ export default function Home({ integrations }: Props) {
 
   function integrationHandler(type) {
     if (type === "caldav_calendar") {
-      setShowAddCalDavIntegrationModal(true);
       return;
     }
 
@@ -245,9 +243,6 @@ export default function Home({ integrations }: Props) {
               </div>
 
               <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <DialogClose as="button" className="btn btn-white mx-2">
-                  Cancel
-                </DialogClose>
                 <button
                   type="submit"
                   form={"addCalDav"}
