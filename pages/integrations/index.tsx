@@ -9,7 +9,7 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 import Switch from "@components/ui/Switch";
 import Loader from "@components/Loader";
-import AddCalDavIntegration from "@lib/integrations/components/AddCalDavIntegration";
+import AddCalDavIntegration from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import request from "@lib/request";
 
 type Integration = {
