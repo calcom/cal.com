@@ -1,17 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
-import { CalendarEvent, getBusyCalendarTimes } from "../../../lib/calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
 import { Logger } from "tslog";
+import async from "async";
+import isBetween from "dayjs/plugin/isBetween";
 
-import { getBusyVideoTimes } from "../../../lib/videoClient";
 import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "../../../lib/event";
 import { LocationType } from "../../../lib/location";
 import merge from "lodash.merge";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
+import { CalendarEvent, getBusyCalendarTimes, createEvent } from "../../../lib/calendarClient";
+import { getBusyVideoTimes, createMeeting } from "../../../lib/videoClient";
 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -19,6 +21,7 @@ import dayjsBusinessDays from "dayjs-business-days";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
+dayjs.extend(isBetween);
 dayjs.extend(timezone);
 
 const translator = short();
@@ -90,19 +93,20 @@ function isAvailable(busyTimes, time, length) {
     busyTimes.forEach((busyTime) => {
       const startTime = dayjs(busyTime.start);
       const endTime = dayjs(busyTime.end);
+      const currentTime = dayjs(time);
 
       // Check if start times are the same
-      if (dayjs(time).format("HH:mm") == startTime.format("HH:mm")) {
+      if (currentTime.format("HH:mm") == startTime.format("HH:mm")) {
         t = false;
       }
 
       // Check if time is between start and end times
-      if (dayjs(time).isBetween(startTime, endTime)) {
+      if (currentTime.isBetween(startTime, endTime)) {
         t = false;
       }
 
       // Check if slot end time is between start and end time
-      if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      if (currentTime.add(length, "minutes").isBetween(startTime, endTime)) {
         t = false;
       }
 
@@ -193,10 +197,8 @@ export const splitCredentials = async (props: PropsSplitCredentials): Promise<Re
     let calendarCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar"));
     let videoCredentials = currentUser.credentials.filter((cred) => cred.type.endsWith("_video"));
 
-    const hasCalendarIntegrations =
-      currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
-    const hasVideoIntegrations =
-      currentUser.credentials.filter((cred) => cred.type.endsWith("_video")).length > 0;
+    const hasCalendarIntegrations = calendarCredentials.length > 0;
+    const hasVideoIntegrations = videoCredentials.length > 0;
 
     const calendarAvailability = await getBusyCalendarTimes(
       currentUser.credentials,
@@ -239,7 +241,12 @@ export const splitCredentials = async (props: PropsSplitCredentials): Promise<Re
     );
     videoCredentials = currentUserAfterUpdated.credentials.filter((cred) => cred.type.endsWith("_video"));
 
-    return { commonAvailability, calendarCredentials, videoCredentials, eventTypeOrganizer: currentUser };
+    return {
+      commonAvailability,
+      calendarCredentials,
+      videoCredentials,
+      eventTypeOrganizer: currentUser,
+    };
   } catch (e) {
     console.log({ e });
   }
@@ -251,7 +258,7 @@ export const checkIsAvailableToBeBooked = (props: PropsCheckIsAvailableToBeBooke
 
   try {
     isAvailableToBeBooked = isAvailable(commonAvailability, start, selectedEventType.length);
-  } catch {
+  } catch (e) {
     loggerInstance.debug({
       message: "Unable set isAvailableToBeBooked. Using true. ",
     });
@@ -302,9 +309,9 @@ export const checkTimeoutOfBounds = (props: PropsCheckTimeoutOfBounds): boolean 
 export const rescheduleBooking = async (
   props: PropsRescheduleBooking
 ): Promise<ResponseRescheduleBooking> => {
-  const { rescheduleUid } = props;
-  // let results = [];
-  // let referencesToCreate = [];
+  const { rescheduleUid, calendarCredentials, evt, videoCredentials, username } = props;
+  let results = [];
+  let referencesToCreate = [];
 
   const booking = await prisma.booking.findFirst({
     where: {
@@ -322,44 +329,44 @@ export const rescheduleBooking = async (
     },
   });
 
-  // // Use all integrations
-  // results = results.concat(
-  //   await async.mapLimit(calendarCredentials, 5, async (credential) => {
-  //     const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-  //     return updateEvent(credential, bookingRefUid, evt)
-  //       .then((response) => ({ type: credential.type, success: true, response }))
-  //       .catch((e) => {
-  //         log.error("updateEvent failed", e, evt);
-  //         return { type: credential.type, success: false };
-  //       });
-  //   })
-  // );
+  // Use all integrations
+  results = results.concat(
+    await async.mapLimit(calendarCredentials, 5, async (credential) => {
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      return updateEvent(credential, bookingRefUid, evt)
+        .then((response) => ({ type: credential.type, success: true, response }))
+        .catch((e) => {
+          log.error("updateEvent failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
 
-  // results = results.concat(
-  //   await async.mapLimit(videoCredentials, 5, async (credential) => {
-  //     const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-  //     return updateMeeting(credential, bookingRefUid, evt)
-  //       .then((response) => ({ type: credential.type, success: true, response }))
-  //       .catch((e) => {
-  //         log.error("updateMeeting failed", e, evt);
-  //         return { type: credential.type, success: false };
-  //       });
-  //   })
-  // );
+  results = results.concat(
+    await async.mapLimit(videoCredentials, 5, async (credential) => {
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      return updateMeeting(credential, bookingRefUid, evt)
+        .then((response) => ({ type: credential.type, success: true, response }))
+        .catch((e) => {
+          log.error("updateMeeting failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
 
-  // if (results.length > 0 && results.every((res) => !res.success)) {
-  //   const error = {
-  //     errorCode: "BookingReschedulingMeetingFailed",
-  //     message: "Booking Rescheduling failed",
-  //   };
+  if (results.length > 0 && results.every((res) => !res.success)) {
+    const error = {
+      errorCode: "BookingReschedulingMeetingFailed",
+      message: "Booking Rescheduling failed",
+    };
 
-  //   log.error(`Booking ${username} failed`, error, results);
+    log.error(`Booking ${username} failed`, error, results);
 
-  //   throw { error, status: 500 };
-  // }
+    throw { error, status: 500 };
+  }
 
   // Clone elements
-  // referencesToCreate = [...booking.references];
+  referencesToCreate = [...booking.references];
 
   // Now we can delete the old booking and its references.
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -380,57 +387,56 @@ export const rescheduleBooking = async (
 
   await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
 
-  return { referencesToCreate: [], results: [] };
+  return { referencesToCreate, results };
 };
 
-export const scheduleBooking = async (): Promise<ResponseRescheduleBooking> => {
-  const results = [];
-  const referencesToCreate = [];
-  // const { calendarCredentials, videoCredentials, evt, username } = props;
+export const scheduleBooking = async (props: PropsRescheduleBooking): Promise<ResponseRescheduleBooking> => {
+  let results = [];
+  let referencesToCreate = [];
+  const { calendarCredentials, videoCredentials, evt, username } = props;
 
-  // console.log("========================================1");
-  // console.log({ calendarCredentials, videoCredentials });
-  // console.log("========================================2");
+  results = results.concat(
+    await async.mapLimit(calendarCredentials, 5, async (credential) => {
+      return createEvent(credential, evt)
+        .then((response) => ({ type: credential.type, success: true, response }))
+        .catch((e) => {
+          log.error("createEvent failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
 
-  // results = results.concat(
-  //   await async.mapLimit(calendarCredentials, 5, async (credential) => {
-  //     return createEvent(credential, evt)
-  //       .then((response) => ({ type: credential.type, success: true, response }))
-  //       .catch((e) => {
-  //         log.error("createEvent failed", e, evt);
-  //         return { type: credential.type, success: false };
-  //       });
-  //   })
-  // );
+  results = results.concat(
+    await async.mapLimit(videoCredentials, 5, async (credential) => {
+      return createMeeting(credential, evt)
+        .then((response) => {
+          log.error("createMeeting success", evt);
+          return { type: credential.type, success: true, response };
+        })
+        .catch((e) => {
+          log.error("createMeeting failed", e, evt);
+          return { type: credential.type, success: false };
+        });
+    })
+  );
 
-  // results = results.concat(
-  //   await async.mapLimit(videoCredentials, 5, async (credential) => {
-  //     return createMeeting(credential, evt)
-  //       .then((response) => ({ type: credential.type, success: true, response }))
-  //       .catch((e) => {
-  //         log.error("createMeeting failed", e, evt);
-  //         return { type: credential.type, success: false };
-  //       });
-  //   })
-  // );
+  if (results.length > 0 && results.every((res) => !res.success)) {
+    const error = {
+      errorCode: "BookingCreatingMeetingFailed",
+      message: "Booking failed",
+    };
 
-  // if (results.length > 0 && results.every((res) => !res.success)) {
-  //   const error = {
-  //     errorCode: "BookingCreatingMeetingFailed",
-  //     message: "Booking failed",
-  //   };
+    log.error(`Booking ${username} failed`, error, results);
 
-  //   log.error(`Booking ${username} failed`, error, results);
+    throw { error, status: 500 };
+  }
 
-  //   throw { error, status: 500 };
-  // }
-
-  // referencesToCreate = results.map((result) => {
-  //   return {
-  //     type: result.type,
-  //     uid: result.response.createdEvent.id.toString(),
-  //   };
-  // });
+  referencesToCreate = results.map((result) => {
+    return {
+      type: result.type,
+      uid: result.response.createdEvent.id.toString(),
+    };
+  });
 
   return { results, referencesToCreate };
 };

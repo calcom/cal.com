@@ -5,22 +5,22 @@ import short from "short-uuid";
 import _merge from "lodash.merge";
 
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
-// import logger from "../../../../lib/logger";
+import logger from "../../../../lib/logger";
 import { CalendarEvent } from "@lib/calendarClient";
 import {
   getLocationRequestFromIntegration,
   PropsRescheduleBooking,
   PropsSplitCredentials,
-  rescheduleBooking,
-  // scheduleBooking,
+  // rescheduleBooking,
+  scheduleBooking,
   splitCredentials,
   User,
 } from "pages/api/book/[user]";
 // import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
-// import { checkRequestPayload } from "./check-request-payload";
+import { checkRequestPayload } from "./check-request-payload";
 
 const translator = short();
-// const log = logger.getChildLogger({ prefix: ["[api] amili/booking:multiple"] });
+const log = logger.getChildLogger({ prefix: ["[api] amili/booking:multiple"] });
 
 type UserPayload = {
   id: string;
@@ -72,8 +72,8 @@ type HealthCoachBookingSession = {
   coachBookingId: string;
   coachBooking: HealthCoachBooking;
   numberOfReschedule: number;
-  startTime: string;
-  endTime: string;
+  startTime: Date;
+  endTime: Date;
   timezone: string;
   assBookingId?: number;
 };
@@ -118,18 +118,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const { healthCoachBookingSession, tenantId } = body as RequestPayload;
 
-  // for await (const bookingSession of healthCoachBookingSession) {
-  //   const { startTime, endTime, coachBooking } = bookingSession;
-  //   const { coachProfileProgram } = coachBooking;
-  //   const { assEventTypeId } = coachProfileProgram;
+  for await (const bookingSession of healthCoachBookingSession) {
+    const { startTime, endTime, coachBooking } = bookingSession;
+    const { coachProfileProgram } = coachBooking;
+    const { assEventTypeId } = coachProfileProgram;
 
-  //   await checkRequestPayload(assEventTypeId, startTime, endTime, log);
-  // }
+    await checkRequestPayload(assEventTypeId, startTime, endTime, log);
+  }
 
   const data = await Promise.all(
     healthCoachBookingSession.map(async (healthCoachBookingSessionItem) => {
-      console.log(JSON.stringify(healthCoachBookingSessionItem));
       const { startTime, endTime, timezone, coachBooking, assBookingId, id } = healthCoachBookingSessionItem;
+
       const { coachProfileProgram } = coachBooking;
       const user = coachProfileProgram?.coachProfile?.user;
 
@@ -138,7 +138,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const { name: title, description } = coachProgram;
 
       const [isExisted, reqAttendee] = await checkUserExisted(assUserId);
-      console.log({ healthCoachBookingSessionItem });
+
       if (!isExisted) {
         throw Error("The user not found!");
       }
@@ -201,34 +201,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         evt = _merge(evt, maybeLocationRequestObject);
       }
 
-      // let results = [];
-      // let referencesToCreate = [];
+      // const results = [];
+      let referencesToCreate = [];
 
       if (assBookingId) {
-        const booking = await prisma.booking.findFirst({ where: { id: assBookingId } });
-        const props: PropsRescheduleBooking = {
-          videoCredentials,
-          calendarCredentials,
-          evt,
-          rescheduleUid: booking.uid,
-          username: reqAttendee.username,
-        };
-        await rescheduleBooking(props);
-
-        // results = [...rescheduleResults];
-        // referencesToCreate = [...rescheduleReference];
-      } else {
+        // const booking = await prisma.booking.findFirst({ where: { id: assBookingId } });
         // const props: PropsRescheduleBooking = {
         //   videoCredentials,
         //   calendarCredentials,
         //   evt,
+        //   rescheduleUid: booking.uid,
         //   username: reqAttendee.username,
         // };
-        // const { results: scheduleResults, referencesToCreate: scheduleReference } = await scheduleBooking(
-        //   props
-        // );
+        // const { referencesToCreate: rescheduleReference } = await rescheduleBooking(props);
+        // results = [...rescheduleResults];
+        // referencesToCreate = [...rescheduleReference];
+      } else {
+        const props: PropsRescheduleBooking = {
+          videoCredentials,
+          calendarCredentials,
+          evt,
+          username: reqAttendee.username,
+        };
+        const { referencesToCreate: scheduleReference } = await scheduleBooking(props);
         // results = [...scheduleResults];
-        // referencesToCreate = [...scheduleReference];
+        referencesToCreate = [...scheduleReference];
       }
 
       const hashUID = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
@@ -258,9 +255,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         attendees: {
           create: attendees,
         },
-        // references: {
-        //   create: referencesToCreate,
-        // },
+        references: {
+          create: referencesToCreate,
+        },
       };
 
       const booking = await prisma.booking.create({ data: newBooking });

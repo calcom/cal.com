@@ -2,6 +2,7 @@ import prisma from "@lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   checkBookingInThePast,
+  checkIsAvailableToBeBooked,
   checkTimeoutOfBounds,
   PropsSplitCredentials,
   splitCredentials,
@@ -74,15 +75,15 @@ export const checkRequestPayload = async (
     end: endTime,
     user: currentUser,
   };
-  const { eventTypeOrganizer } = await splitCredentials(props);
+  const { commonAvailability, eventTypeOrganizer } = await splitCredentials(props);
 
-  // checkIsAvailableToBeBooked({
-  //   commonAvailability,
-  //   start: startTime,
-  //   selectedEventType,
-  //   loggerInstance,
-  //   organizerName: currentUser.name,
-  // });
+  checkIsAvailableToBeBooked({
+    commonAvailability,
+    start: startTime,
+    selectedEventType,
+    loggerInstance,
+    organizerName: currentUser.name,
+  });
 
   const timeOutOfBounds = await checkTimeoutOfBounds({
     start: startTime,
