@@ -44,7 +44,7 @@ export default function Troubleshoot({ user }) {
 
   useEffect(() => {
     fetchAvailability(selectedDate);
-  }, []);
+  });
 
   if (loading) {
     return <Loader />;
