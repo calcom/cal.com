@@ -6,10 +6,9 @@ import { useEffect, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
-import { Switch } from "@headlessui/react";
-import Loader from "@components/Loader";
-import classNames from "@lib/classNames";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+import Switch from "@components/ui/Switch";
+import Loader from "@components/Loader";
 
 export default function IntegrationHome({ integrations }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,17 +31,15 @@ export default function IntegrationHome({ integrations }) {
 
   function calendarSelectionHandler(calendar) {
     return (selected) => {
-      const cals = [...selectableCalendars];
-      const i = cals.findIndex((c) => c.externalId === calendar.externalId);
-      cals[i].selected = selected;
-      setSelectableCalendars(cals);
+      const i = selectableCalendars.findIndex((c) => c.externalId === calendar.externalId);
+      selectableCalendars[i].selected = selected;
       if (selected) {
         fetch("api/availability/calendar", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(cals[i]),
+          body: JSON.stringify(selectableCalendars[i]),
         }).then((response) => response.json());
       } else {
         fetch("api/availability/calendar", {
@@ -50,7 +47,7 @@ export default function IntegrationHome({ integrations }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(cals[i]),
+          body: JSON.stringify(selectableCalendars[i]),
         }).then((response) => response.json());
       }
     };
@@ -65,6 +62,10 @@ export default function IntegrationHome({ integrations }) {
       default:
         return "";
     }
+  }
+
+  function onCloseSelectCalendar() {
+    setSelectableCalendars([...selectableCalendars]);
   }
 
   useEffect(loadCalendars, [integrations]);
@@ -116,7 +117,7 @@ export default function IntegrationHome({ integrations }) {
   );
 
   const SelectCalendarDialog = () => (
-    <Dialog>
+    <Dialog onOpenChange={(open) => !open && onCloseSelectCalendar()}>
       <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
         Select calendars
       </DialogTrigger>
@@ -142,21 +143,9 @@ export default function IntegrationHome({ integrations }) {
                 </div>
                 <div className="w-2/12 text-right pt-3">
                   <Switch
-                    checked={calendar.selected}
-                    onChange={calendarSelectionHandler(calendar)}
-                    className={classNames(
-                      calendar.selected ? "bg-neutral-900" : "bg-gray-200",
-                      "relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500"
-                    )}>
-                    <span className="sr-only">Select calendar</span>
-                    <span
-                      aria-hidden="true"
-                      className={classNames(
-                        calendar.selected ? "translate-x-5" : "translate-x-0",
-                        "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
-                      )}
-                    />
-                  </Switch>
+                    defaultChecked={calendar.selected}
+                    onCheckedChange={calendarSelectionHandler(calendar)}
+                  />
                 </div>
               </li>
             ))}
@@ -185,7 +174,7 @@ export default function IntegrationHome({ integrations }) {
               {integrations
                 .filter((ig) => ig.credential)
                 .map((ig) => (
-                  <li key={ig.id}>
+                  <li key={ig.credential.id}>
                     <Link href={"/integrations/" + ig.credential.id}>
                       <a className="block hover:bg-gray-50">
                         <div className="flex items-center px-4 py-4 sm:px-6">
