@@ -19,7 +19,7 @@ dayjs.extend(timezone);
 
 export default function Success(props) {
   const router = useRouter();
-  const { location, name } = router.query;
+  const { location, name, reschedule } = router.query;
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(router.query.date));
@@ -58,13 +58,14 @@ export default function Success(props) {
     return encodeURIComponent(event.value);
   }
 
+  const needsConfirmation = props.eventType.requiresConfirmation && !reschedule;
+
   return (
     isReady && (
       <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
         <Head>
           <title>
-            Booking {props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"} | {eventName} |
-            Calendso
+            Booking {needsConfirmation ? "Submitted" : "Confirmed"} | {eventName} | Calendso
           </title>
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -82,22 +83,18 @@ export default function Success(props) {
                   aria-labelledby="modal-headline">
                   <div>
                     <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                      {!props.eventType.requiresConfirmation && (
-                        <CheckIcon className="h-8 w-8 text-green-600" />
-                      )}
-                      {props.eventType.requiresConfirmation && (
-                        <ClockIcon className="h-8 w-8 text-green-600" />
-                      )}
+                      {!needsConfirmation && <CheckIcon className="h-8 w-8 text-green-600" />}
+                      {needsConfirmation && <ClockIcon className="h-8 w-8 text-green-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3
                         className="text-2xl leading-6 font-semibold dark:text-white text-neutral-900"
                         id="modal-headline">
-                        {props.eventType.requiresConfirmation ? "Submitted" : "This meeting is scheduled"}
+                        {needsConfirmation ? "Submitted" : "This meeting is scheduled"}
                       </h3>
                       <div className="mt-3">
                         <p className="text-sm text-neutral-600 dark:text-gray-300">
-                          {props.eventType.requiresConfirmation
+                          {needsConfirmation
                             ? `${
                                 props.user.name || props.user.username
                               } still needs to confirm or reject the booking.`
@@ -125,7 +122,7 @@ export default function Success(props) {
                       </div>
                     </div>
                   </div>
-                  {!props.eventType.requiresConfirmation && (
+                  {!needsConfirmation && (
                     <div className="mt-5 sm:mt-0 sm:pt-4 pt-2 text-center flex">
                       <span className="font-medium text-gray-700 dark:text-gray-50 flex self-center mr-6">
                         Add to calendar
