@@ -12,8 +12,8 @@ import { LocationType } from "../../../lib/location";
 import merge from "lodash.merge";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
-import { CalendarEvent, getBusyCalendarTimes, createEvent } from "../../../lib/calendarClient";
-import { getBusyVideoTimes, createMeeting } from "../../../lib/videoClient";
+import { CalendarEvent, getBusyCalendarTimes, createEvent, updateEvent } from "../../../lib/calendarClient";
+import { getBusyVideoTimes, createMeeting, updateMeeting } from "../../../lib/videoClient";
 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";

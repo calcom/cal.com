@@ -10,9 +10,9 @@ export async function verifyPassword(password, hashedPassword) {
   return isValid;
 }
 
-export const parseTokenPayload = (token) => {
+export const parseTokenPayload = (token: string): any => {
   try {
-    return JSON.parse(atob(token.split(".")[1]));
+    return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
   } catch (e) {
     return null;
   }

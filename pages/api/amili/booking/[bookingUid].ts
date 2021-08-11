@@ -1,13 +1,141 @@
 import prisma from "@lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
+import {
+  getLocationRequestFromIntegration,
+  PropsRescheduleBooking,
+  PropsSplitCredentials,
+  rescheduleBooking,
+  splitCredentials,
+} from "pages/api/book/[user]";
+import _merge from "lodash.merge";
+import { v5 as uuidv5 } from "uuid";
+import short from "short-uuid";
 
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
+import { checkUserExisted, HealthCoachBookingSession } from "./multiple";
+import { CalendarEvent } from "@lib/calendarClient";
+
+const translator = short();
+
+interface IResponseRescheduleBooking {
+  sessionId: string;
+  assBookingId: number;
+  assBookingUid: string;
+}
+
+const handleRescheduleBooking = async (
+  payload: HealthCoachBookingSession
+): Promise<IResponseRescheduleBooking> => {
+  const { coachBooking, timezone, startTime, endTime, id, assBookingUid } = payload;
+  const { coachProfileProgram, user: bookingUser } = coachBooking;
+  const user = coachProfileProgram?.coachProfile?.user;
+
+  const { assUserId } = user;
+  const { assEventTypeId, coachProgram } = coachProfileProgram;
+  const { name: title, description } = coachProgram;
+
+  console.log({ startTime, endTime, timezone });
+
+  const selectedEventType = await prisma.eventType.findFirst({
+    where: { id: assEventTypeId },
+    select: {
+      eventName: true,
+      title: true,
+      length: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      userId: true,
+      user: true,
+    },
+  });
+
+  const [isExisted, reqAttendee] = await checkUserExisted(assUserId);
+
+  if (!isExisted) {
+    throw Error("The user not found!");
+  }
+
+  const attendees = [
+    {
+      tenantId: bookingUser.tenantId,
+      name: reqAttendee.name,
+      email: reqAttendee.email,
+      timeZone: timezone,
+    },
+  ];
+
+  let evt: CalendarEvent = {
+    title,
+    description,
+    attendees,
+    startTime,
+    endTime,
+    type: "2",
+    organizer: {
+      email: selectedEventType.user.email,
+      name: selectedEventType.user.name,
+      timeZone: selectedEventType.user.timeZone,
+    },
+  };
+
+  const rawLocation = "integrations:zoom"; // hard code location
+
+  if (rawLocation?.includes("integration")) {
+    const maybeLocationRequestObject = getLocationRequestFromIntegration({
+      location: rawLocation,
+    });
+
+    evt = _merge(evt, maybeLocationRequestObject);
+  }
+
+  const props: PropsSplitCredentials = {
+    start: startTime,
+    end: endTime,
+    user: reqAttendee,
+  };
+
+  const { calendarCredentials, videoCredentials } = await splitCredentials(props);
+
+  const propsScheduleBooking: PropsRescheduleBooking = {
+    videoCredentials,
+    calendarCredentials,
+    evt,
+    rescheduleUid: assBookingUid,
+    username: reqAttendee.username,
+  };
+  console.log({ propsScheduleBooking });
+  const { referencesToCreate } = await rescheduleBooking(propsScheduleBooking);
+  console.log({ referencesToCreate });
+  const hashUID = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
+
+  const newBookingData = {
+    startTime,
+    endTime,
+    title,
+    description,
+    userId: +assUserId,
+    eventTypeId: +assEventTypeId,
+    uid: hashUID,
+    attendees: {
+      create: attendees,
+    },
+    references: {
+      create: referencesToCreate,
+    },
+  };
+
+  const newBooking = await prisma.booking.create({ data: newBookingData });
+  return { sessionId: id, assBookingId: newBooking.id, assBookingUid: newBooking.uid };
+};
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { method } = req;
-  const { bookingUid } = req.query;
+  const { method, query, body } = req;
+  const { bookingUid } = query;
 
-  if (method !== "GET") {
+  if (!["GET", "PATCH"].includes(method)) {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
@@ -29,7 +157,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       throw { error, status: 404 };
     }
 
-    return res.status(200).json(booking);
+    if (method === "GET") {
+      return res.status(200).json(booking);
+    }
+
+    if (method === "PATCH") {
+      const result = await handleRescheduleBooking(body);
+
+      return res.status(200).json(result);
+    }
   } catch (e) {
     const { error, status } = e;
 

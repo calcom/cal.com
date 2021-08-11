@@ -1,4 +1,5 @@
 /* eslint-disable no-async-promise-executor */
+import { parseTokenPayload } from "@lib/auth";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 import prisma from "../../../../lib/prisma";
@@ -35,10 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       ).then((res) => res.json());
 
+      const { exp } = parseTokenPayload(result?.access_token);
       const credentialIntegrated = await prisma.credential.create({
         data: {
           type: "zoom_video",
-          key: { ...result, expires_in: Math.round(+new Date() / 1000 + result.expires_in) },
+          key: { ...result, expires_in: exp },
           userId: session.user.id,
         },
       });
