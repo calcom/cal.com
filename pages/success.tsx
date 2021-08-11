@@ -58,7 +58,7 @@ export default function Success(props) {
     return encodeURIComponent(event.value);
   }
 
-  const needsConfirmation = props.eventType.requiresConfirmation && !reschedule;
+  const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
 
   return (
     isReady && (
