@@ -345,7 +345,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             create: evt.attendees,
           },
           location: evt.location, // This is the raw location that can be processed by the EventManager.
-          confirmed: !selectedEventType.requiresConfirmation,
+          confirmed: !selectedEventType.requiresConfirmation || !!rescheduleUid,
         },
       });
     } catch (e) {
@@ -354,7 +354,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    if (selectedEventType.requiresConfirmation) {
+    if (selectedEventType.requiresConfirmation && !rescheduleUid) {
       await new EventOrganizerRequestMail(evt, hashUID).sendEmail();
     }
 
