@@ -1,9 +1,4 @@
-import Link from "next/link";
-import React, { Fragment, useEffect } from "react";
-import { useRouter } from "next/router";
-import { useSession } from "next-auth/client";
 import { Menu, Transition } from "@headlessui/react";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../lib/telemetry";
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
@@ -15,14 +10,38 @@ import {
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
-import Logo from "./Logo";
 import classNames from "@lib/classNames";
+import { useSession } from "next-auth/client";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import React, { Fragment, useEffect, useState } from "react";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../lib/telemetry";
+import Logo from "./Logo";
 
-export default function Shell(props) {
+type Props = {
+  heading: string;
+  subtitle: string;
+  CTA?: React.ReactNode;
+  children: React.ReactChildren;
+};
+
+export default function Shell(props: Props) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
   const telemetry = useTelemetry();
+
+  const [sessionUser, setSessionUser] = useState(null);
+
+  async function getUser() {
+    await fetch("/api/user/")
+      .then((res) => res.json())
+      .then((user) => setSessionUser(user));
+  }
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   const navigation = [
     {
@@ -107,7 +126,7 @@ export default function Shell(props) {
                 </nav>
               </div>
               <div className="flex-shrink-0 flex p-4">
-                <UserDropdown session={session} />
+                <UserDropdown session={session} sessionUser={sessionUser} />
               </div>
             </div>
           </div>
@@ -132,7 +151,7 @@ export default function Shell(props) {
                   </Link>
                 </button>
                 <div className="mt-1">
-                  <UserDropdown small bottom session={session} />
+                  <UserDropdown small bottom session={session} sessionUser={sessionUser} />
                 </div>
               </div>
             </nav>
@@ -186,7 +205,17 @@ export default function Shell(props) {
   ) : null;
 }
 
-function UserDropdown({ session, small, bottom }: { session: any; small?: boolean; bottom?: boolean }) {
+function UserDropdown({
+  session,
+  sessionUser,
+  small,
+  bottom,
+}: {
+  session: any;
+  sessionUser: any;
+  small?: boolean;
+  bottom?: boolean;
+}) {
   return (
     <Menu as="div" className="w-full relative inline-block text-left">
       {({ open }) => (
@@ -211,9 +240,11 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                   {!small && (
                     <span className="flex-1 flex flex-col min-w-0">
                       <span className="text-gray-900 text-sm font-medium truncate">{session.user.name}</span>
-                      <span className="text-neutral-500 font-normal text-sm truncate">
-                        /{session.user.username}
-                      </span>
+                      {sessionUser && (
+                        <span className="text-neutral-500 font-normal text-sm truncate">
+                          /{sessionUser.username}
+                        </span>
+                      )}
                     </span>
                   )}
                 </span>
@@ -241,11 +272,13 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                 bottom ? "origin-top top-1 right-0" : "origin-bottom bottom-14 left-0",
                 "w-64 z-10 absolute mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
               )}>
-              <div className="py-1">
-                <a href={"/" + session.user.username} className="flex px-4 py-2 text-sm text-neutral-500">
-                  View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
-                </a>
-              </div>
+              {sessionUser && (
+                <div className="py-1">
+                  <a href={"/" + sessionUser.username} className="flex px-4 py-2 text-sm text-neutral-500">
+                    View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
+                  </a>
+                </div>
+              )}
               <div className="py-1">
                 <Menu.Item>
                   {({ active }) => (

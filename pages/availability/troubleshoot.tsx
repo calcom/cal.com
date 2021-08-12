@@ -1,12 +1,12 @@
-import Head from "next/head";
-import Shell from "../../components/Shell";
-import { getSession, useSession } from "next-auth/client";
-import { useState } from "react";
+import Loader from "@components/Loader";
+import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
-import prisma from "@lib/prisma";
-import Loader from "@components/Loader";
+import { getSession, useSession } from "next-auth/client";
+import Head from "next/head";
+import { useState } from "react";
+import Shell from "../../components/Shell";
 
 dayjs.extend(utc);
 
@@ -31,7 +31,7 @@ export default function Troubleshoot({ user }) {
 
   const fetchAvailability = (date) => {
     fetch(
-      `/api/availability/${session.user.username}?dateFrom=${date
+      `/api/availability/${user.username}?dateFrom=${date
         .startOf("day")
         .utc()
         .startOf("day")
@@ -106,7 +106,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const user = await prisma.user.findFirst({
     where: {
-      username: session.user.username,
+      id: session.user.id,
     },
     select: {
       startTime: true,

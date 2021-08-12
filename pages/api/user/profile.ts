@@ -1,6 +1,6 @@
+import prisma, { whereAndSelect } from "@lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
-import prisma, { whereAndSelect } from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const username = req.body.username;
   // username is changed: username is optional but it is necessary to be unique, enforce here
-  if (username !== session.user.username) {
+  if (username !== user.username) {
     const userConflict = await prisma.user.findFirst({
       where: {
         username,

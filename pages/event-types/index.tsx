@@ -1,6 +1,5 @@
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import { Tooltip } from "@components/Tooltip";
-import Loader from "@components/Loader";
 import { Menu, Transition } from "@headlessui/react";
 import {
   ClockIcon,
@@ -12,7 +11,7 @@ import {
   UserIcon,
 } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
-import { getSession, useSession } from "next-auth/client";
+import { getSession } from "next-auth/client";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -21,7 +20,6 @@ import Shell from "../../components/Shell";
 import prisma from "../../lib/prisma";
 
 export default function Availability({ user, types }) {
-  const [session, loading] = useSession();
   const router = useRouter();
 
   const titleRef = useRef<HTMLInputElement>();
@@ -60,10 +58,6 @@ export default function Availability({ user, types }) {
     let t = titleRef.current.value;
     t = t.replace(/\s+/g, "-").toLowerCase();
     slugRef.current.value = t;
-  }
-
-  if (loading) {
-    return <Loader />;
   }
 
   const CreateNewEventDialog = () => (
@@ -226,7 +220,7 @@ export default function Availability({ user, types }) {
                       <div className="flex overflow-hidden space-x-5">
                         <Tooltip content="Preview">
                           <a
-                            href={"/" + session.user.username + "/" + type.slug}
+                            href={"/" + user.username + "/" + type.slug}
                             target="_blank"
                             rel="noreferrer"
                             className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
@@ -238,7 +232,7 @@ export default function Availability({ user, types }) {
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(
-                                window.location.hostname + "/" + session.user.username + "/" + type.slug
+                                window.location.hostname + "/" + user.username + "/" + type.slug
                               );
                             }}
                             className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
@@ -274,7 +268,7 @@ export default function Availability({ user, types }) {
                                   <Menu.Item>
                                     {({ active }) => (
                                       <a
-                                        href={"/" + session.user.username + "/" + type.slug}
+                                        href={"/" + user.username + "/" + type.slug}
                                         target="_blank"
                                         rel="noreferrer"
                                         className={classNames(
@@ -294,11 +288,7 @@ export default function Availability({ user, types }) {
                                       <button
                                         onClick={() => {
                                           navigator.clipboard.writeText(
-                                            window.location.hostname +
-                                              "/" +
-                                              session.user.username +
-                                              "/" +
-                                              type.slug
+                                            window.location.hostname + "/" + user.username + "/" + type.slug
                                           );
                                         }}
                                         className={classNames(
