@@ -1,0 +1,28 @@
+name: Update Calendso Docker repository
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: calendso/docker
+          token: ${{ secrets.PRIVATE_TOKEN_GITHUB }}
+
+      - name: Pull and update calendso submodule recursively
+        run: |
+          git submodule update --init --recursive
+          git submodule update --recursive --remote
+
+      - name: Commit
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "Github Actions - sync calendso/docker"
+          git add --all
+          git commit -m "Updated tracking branch to latest"
+          git push
