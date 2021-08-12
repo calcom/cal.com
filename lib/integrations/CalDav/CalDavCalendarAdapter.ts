@@ -72,117 +72,129 @@ export class CalDavCalendar implements CalendarApiAdapter {
   }
 
   async createEvent(event: CalendarEvent): Promise<Record<string, unknown>> {
-    const calendars = await this.listCalendars();
-    const uid = uuidv4();
+    try {
+      const calendars = await this.listCalendars();
+      const uid = uuidv4();
 
-    const { error, value: iCalString } = await createEvent({
-      uid,
-      startInputType: "utc",
-      start: this.convertDate(event.startTime),
-      duration: this.getDuration(event.startTime, event.endTime),
-      title: event.title,
-      description: this.stripHtml(event.description),
-      location: event.location,
-      organizer: { email: event.organizer.email, name: event.organizer.name },
-      attendees: this.getAttendees(event.attendees),
-    });
+      const { error, value: iCalString } = await createEvent({
+        uid,
+        startInputType: "utc",
+        start: this.convertDate(event.startTime),
+        duration: this.getDuration(event.startTime, event.endTime),
+        title: event.title,
+        description: this.stripHtml(event.description),
+        location: event.location,
+        organizer: { email: event.organizer.email, name: event.organizer.name },
+        attendees: this.getAttendees(event.attendees),
+      });
 
-    if (error) {
-      return null;
+      if (error) {
+        return null;
+      }
+
+      await Promise.all(
+        calendars.map((calendar) => {
+          return createCalendarObject({
+            calendar: {
+              url: calendar.externalId,
+            },
+            filename: `${uid}.ics`,
+            iCalString: iCalString,
+            headers: this.headers,
+          });
+        })
+      );
+
+      return {
+        uid,
+        id: uid,
+      };
+    } catch (reason) {
+      console.error(reason);
     }
-
-    await Promise.all(
-      calendars.map((calendar) => {
-        return createCalendarObject({
-          calendar: {
-            url: calendar.externalId,
-          },
-          filename: `${uid}.ics`,
-          iCalString: iCalString,
-          headers: this.headers,
-        });
-      })
-    );
-
-    return {
-      uid,
-      id: uid,
-    };
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<Record<string, unknown>> {
-    const calendars = await this.listCalendars();
-    const events = [];
+    try {
+      const calendars = await this.listCalendars();
+      const events = [];
 
-    for (const cal of calendars) {
-      const calEvents = await this.getEvents(cal.externalId, null, null);
+      for (const cal of calendars) {
+        const calEvents = await this.getEvents(cal.externalId, null, null);
 
-      for (const ev of calEvents) {
-        events.push(ev);
+        for (const ev of calEvents) {
+          events.push(ev);
+        }
       }
-    }
 
-    const { error, value: iCalString } = await createEvent({
-      uid,
-      startInputType: "utc",
-      start: this.convertDate(event.startTime),
-      duration: this.getDuration(event.startTime, event.endTime),
-      title: event.title,
-      description: this.stripHtml(event.description),
-      location: event.location,
-      organizer: { email: event.organizer.email, name: event.organizer.name },
-      attendees: this.getAttendees(event.attendees),
-    });
+      const { error, value: iCalString } = await createEvent({
+        uid,
+        startInputType: "utc",
+        start: this.convertDate(event.startTime),
+        duration: this.getDuration(event.startTime, event.endTime),
+        title: event.title,
+        description: this.stripHtml(event.description),
+        location: event.location,
+        organizer: { email: event.organizer.email, name: event.organizer.name },
+        attendees: this.getAttendees(event.attendees),
+      });
 
-    if (error) {
+      if (error) {
+        return null;
+      }
+
+      const eventsToUpdate = events.filter((event) => event.uid === uid);
+
+      await Promise.all(
+        eventsToUpdate.map((event) => {
+          return updateCalendarObject({
+            calendarObject: {
+              url: event.url,
+              data: iCalString,
+              etag: event?.etag,
+            },
+            headers: this.headers,
+          });
+        })
+      );
+
       return null;
+    } catch (reason) {
+      console.error(reason);
     }
-
-    const eventsToUpdate = events.filter((event) => event.uid === uid);
-
-    await Promise.all(
-      eventsToUpdate.map((event) => {
-        return updateCalendarObject({
-          calendarObject: {
-            url: event.url,
-            data: iCalString,
-            etag: event?.etag,
-          },
-          headers: this.headers,
-        });
-      })
-    );
-
-    return null;
   }
 
   async deleteEvent(uid: string): Promise<void> {
-    const calendars = await this.listCalendars();
-    const events = [];
+    try {
+      const calendars = await this.listCalendars();
+      const events = [];
 
-    for (const cal of calendars) {
-      const calEvents = await this.getEvents(cal.externalId, null, null);
+      for (const cal of calendars) {
+        const calEvents = await this.getEvents(cal.externalId, null, null);
 
-      for (const ev of calEvents) {
-        events.push(ev);
+        for (const ev of calEvents) {
+          events.push(ev);
+        }
       }
+
+      const eventsToUpdate = events.filter((event) => event.uid === uid);
+
+      await Promise.all(
+        eventsToUpdate.map((event) => {
+          return deleteCalendarObject({
+            calendarObject: {
+              url: event.url,
+              etag: event?.etag,
+            },
+            headers: this.headers,
+          });
+        })
+      );
+
+      return null;
+    } catch (reason) {
+      console.error(reason);
     }
-
-    const eventsToUpdate = events.filter((event) => event.uid === uid);
-
-    await Promise.all(
-      eventsToUpdate.map((event) => {
-        return deleteCalendarObject({
-          calendarObject: {
-            url: event.url,
-            etag: event?.etag,
-          },
-          headers: this.headers,
-        });
-      })
-    );
-
-    return null;
   }
 
   async getAvailability(
@@ -190,21 +202,25 @@ export class CalDavCalendar implements CalendarApiAdapter {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    const selectedCalendarIds = selectedCalendars
-      .filter((e) => e.integration === this.integrationName)
-      .map((e) => e.externalId);
+    try {
+      const selectedCalendarIds = selectedCalendars
+        .filter((e) => e.integration === this.integrationName)
+        .map((e) => e.externalId);
 
-    const events = [];
+      const events = [];
 
-    for (const calId of selectedCalendarIds) {
-      const calEvents = await this.getEvents(calId, dateFrom, dateTo);
+      for (const calId of selectedCalendarIds) {
+        const calEvents = await this.getEvents(calId, dateFrom, dateTo);
 
-      for (const ev of calEvents) {
-        events.push({ start: ev.startDate, end: ev.endDate });
+        for (const ev of calEvents) {
+          events.push({ start: ev.startDate, end: ev.endDate });
+        }
       }
-    }
 
-    return events;
+      return events;
+    } catch (reason) {
+      console.error(reason);
+    }
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
@@ -231,59 +247,63 @@ export class CalDavCalendar implements CalendarApiAdapter {
   }
 
   async getEvents(calId: string, dateFrom: string, dateTo: string): Promise<unknown> {
-    //TODO: Figure out Time range and filters
-    console.log(dateFrom, dateTo);
-    const objects = await fetchCalendarObjects({
-      calendar: {
-        url: calId,
-      },
-      headers: this.headers,
-    });
+    try {
+      //TODO: Figure out Time range and filters
+      console.log(dateFrom, dateTo);
+      const objects = await fetchCalendarObjects({
+        calendar: {
+          url: calId,
+        },
+        headers: this.headers,
+      });
 
-    const events =
-      objects &&
-      objects?.length > 0 &&
-      objects
-        .map((object) => {
-          if (object?.data) {
-            const jcalData = ICAL.parse(object.data);
-            const vcalendar = new ICAL.Component(jcalData);
-            const vevent = vcalendar.getFirstSubcomponent("vevent");
-            const event = new ICAL.Event(vevent);
+      const events =
+        objects &&
+        objects?.length > 0 &&
+        objects
+          .map((object) => {
+            if (object?.data) {
+              const jcalData = ICAL.parse(object.data);
+              const vcalendar = new ICAL.Component(jcalData);
+              const vevent = vcalendar.getFirstSubcomponent("vevent");
+              const event = new ICAL.Event(vevent);
 
-            const startDate = new Date(event.startDate.toUnixTime() * 1000);
-            const endDate = new Date(event.endDate.toUnixTime() * 1000);
+              const startDate = new Date(event.startDate.toUnixTime() * 1000);
+              const endDate = new Date(event.endDate.toUnixTime() * 1000);
 
-            return {
-              uid: event.uid,
-              etag: object.etag,
-              url: object.url,
-              summary: event.summary,
-              description: event.description,
-              location: event.location,
-              sequence: event.sequence,
-              startDate,
-              endDate,
-              duration: {
-                weeks: event.duration.weeks,
-                days: event.duration.days,
-                hours: event.duration.hours,
-                minutes: event.duration.minutes,
-                seconds: event.duration.seconds,
-                isNegative: event.duration.isNegative,
-              },
-              organizer: event.organizer,
-              attendees: event.attendees.map((a) => a.getValues()),
-              recurrenceId: event.recurrenceId,
-              timezone: vcalendar.getFirstSubcomponent("vtimezone")
-                ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
-                : "",
-            };
-          }
-        })
-        .filter((e) => e != null);
+              return {
+                uid: event.uid,
+                etag: object.etag,
+                url: object.url,
+                summary: event.summary,
+                description: event.description,
+                location: event.location,
+                sequence: event.sequence,
+                startDate,
+                endDate,
+                duration: {
+                  weeks: event.duration.weeks,
+                  days: event.duration.days,
+                  hours: event.duration.hours,
+                  minutes: event.duration.minutes,
+                  seconds: event.duration.seconds,
+                  isNegative: event.duration.isNegative,
+                },
+                organizer: event.organizer,
+                attendees: event.attendees.map((a) => a.getValues()),
+                recurrenceId: event.recurrenceId,
+                timezone: vcalendar.getFirstSubcomponent("vtimezone")
+                  ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
+                  : "",
+              };
+            }
+          })
+          .filter((e) => e != null);
 
-    return events;
+      return events;
+    } catch (reason) {
+      console.error(reason);
+    }
   }
 
   private async getAccount() {
