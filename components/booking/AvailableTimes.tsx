@@ -28,8 +28,11 @@ const AvailableTimes = ({
 
   return (
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-97 overflow-y-auto">
-      <div className="text-gray-600 font-light text-xl mb-4 text-left">
-        <span className="w-1/2 dark:text-white text-gray-600">{date.format("dddd DD MMMM YYYY")}</span>
+      <div className="text-gray-600 font-light text-lg mb-4 text-left">
+        <span className="w-1/2 dark:text-white text-gray-600">
+          <strong>{date.format("dddd")}</strong>
+          <span className="text-gray-500">{date.format(", DD MMMM")}</span>
+        </span>
       </div>
       {slots.length > 0 &&
         slots.map((slot) => (
