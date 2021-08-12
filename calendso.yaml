@@ -41,6 +41,18 @@ components:
           type: integer
         endTime:
           type: integer
+    UserPayload:
+      properties:
+        id: 
+          type: string
+        firstName: 
+          type: string
+        lastName: 
+          type: string
+        assUserId: 
+          type: number
+        tenantId: 
+          type: string
     HealthCoachProgram:
       required:
         - id
@@ -54,6 +66,13 @@ components:
           type: string
         duration:
           type: integer
+    CoachProfile:
+      properties:
+        id:
+          type: string
+        user:
+          type: object
+          $ref: '#components/schemas/UserPayload'
     CoachProfileProgram:
       required:
         - id
@@ -70,10 +89,15 @@ components:
           type: integer
         availability:
           type: array
-          $ref: '#components/schemas/CoachProfileProgramAvailability'
+          items:
+            type: object
+            $ref: '#components/schemas/CoachProfileProgramAvailability'
         program:
           type: object
           $ref: '#components/schemas/HealthCoachProgram'
+        coachProfile:
+          type: object
+          $ref: '#components/schemas/CoachProfile'
     ItemResponseSyncByCoachProfile:
       properties:
         coachProgramId:
@@ -95,7 +119,85 @@ components:
           type: string
         duration:
           type: number
-
+    BookingReference:
+      properties:
+        id:
+          type: number
+        type:
+          type: string
+        uid:
+          type: string
+        bookingId:
+          type: number
+    Booking:
+      properties:
+        id:
+          type: number
+        uid:
+          type: string
+        userId:
+          type: string
+        references:
+          type: array
+          items:
+            type: object
+            $ref: '#components/schemas/BookingReference'
+        eventTypeId:
+          type: number
+    HealthCoachBooking:
+      properties:
+        id: 
+          type: string
+        userId: 
+          type: string
+        user: 
+          type: object
+          $ref: '#components/schemas/UserPayload'
+        coachProfileProgramId: 
+          type: string
+        price: 
+          type: number
+        paymentStatus: 
+          type: string
+          enum: ["PAID", "UNPAID"]
+        startTime: 
+          type: string
+        endTime: 
+          type: string
+        timezone: 
+          type: string
+        coachProfileProgram: 
+          type: object
+          $ref: '#components/schemas/CoachProfileProgram'
+    HealthCoachBookingSession:
+      properties:
+        id: 
+          type: string
+        coachBookingId: 
+          type: string
+        coachBooking: 
+          type: object
+          $ref: '#components/schemas/HealthCoachBooking'
+        numberOfReschedule: 
+          type: number
+        startTime: 
+          type: string
+        endTime: 
+          type: string
+        timezone: 
+          type: string
+        assBookingId: 
+          type: number
+        assBookingUid: 
+          type: string
+    MappingBookingData:
+      properties:
+        sessionId:
+          type: string
+        assBookingId:
+          type: number
+        assBookingUid:
+          type: string
 
 tags:
   - name: Authentication
@@ -434,3 +536,72 @@ paths:
                   message:
                     description: UserId is not found
                     type: string
+  /api/amili/booking/:bookingUid:
+    get:
+      description: Get a booking details by booking uid
+      summary: Get a booking details
+      tags:
+        - Booking
+      security: 
+        - BasicAuth: []
+      responses:
+        '200':
+          description: A booking information
+          content:
+            application/json:
+              schema:
+                $ref: '#components/schemas/Booking'
+    patch:
+      description: Update a booking by booking uid
+      summary: Update a booking
+      tags:
+        - Booking
+      security: 
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              $ref: '#components/schemas/HealthCoachBookingSession'
+      responses:
+          '200':
+            description: 'OK'
+            content:
+              application/json:
+                schema:
+                  $ref: '#components/schemas/MappingBookingData'
+    post:
+      description: Synchronize the booking sessions
+      summary: Synchronize the booking sessions
+      tags:
+        - Booking
+      security: 
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tenantId:
+                  type: string
+                healthCoachBookingSession:
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#components/schemas/HealthCoachBookingSession'
+      responses:
+        '200':
+            description: 'OK'
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#components/schemas/MappingBookingData'
+      
+
