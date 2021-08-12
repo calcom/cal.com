@@ -166,9 +166,9 @@ const DatePicker = ({
   return selectedMonth ? (
     <div
       className={
-        "mt-8 sm:mt-0 sm:min-w-[460px]" +
+        "mt-8 sm:mt-0 sm:min-w-[480px] " +
         (selectedDate
-          ? "w-full sm:min-w-[465px] sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-4"
+          ? "w-full sm:min-w-[465px] sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
           : "sm:w-1/2 sm:pl-4")
       }>
       <div className="flex text-gray-600 font-light text-xl mb-4">
