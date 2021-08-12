@@ -1,4 +1,4 @@
-import { CalendarIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
@@ -46,7 +46,7 @@ export default function Type(props) {
     });
 
     if (res.status >= 200 && res.status < 300) {
-      router.push("/cancel/success?user=" + props.user.username + "&title=" + props.eventType.title);
+      router.push("/cancel/success?user=" + props.user.username + "&title=" + props.booking.title);
     } else {
       setLoading(false);
       setError("An error with status code " + res.status + " occurred. Please try again later.");
@@ -101,10 +101,6 @@ export default function Type(props) {
                         </div>
                         <div className="mt-4 border-t border-b py-4">
                           <h2 className="text-lg font-medium text-gray-600 mb-2">{props.booking.title}</h2>
-                          <p className="text-gray-500 mb-1">
-                            <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                            {props.eventType.length} minutes
-                          </p>
                           <p className="text-gray-500">
                             <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                             {dayjs
