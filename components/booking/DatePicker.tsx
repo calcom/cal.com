@@ -147,14 +147,14 @@ const DatePicker = ({
           onClick={() => setSelectedDate(inviteeDate.date(day))}
           disabled={isDisabled(day)}
           className={
-            "text-center w-10 h-10 mx-auto hover:border hover:border-black dark:hover:border-white" +
+            "text-center w-14 h-14 mx-auto hover:border hover:border-black dark:hover:border-white" +
             (isDisabled(day)
               ? " text-gray-400 font-light hover:border-0 cursor-default"
               : " dark:text-white text-primary-500 font-medium") +
             (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
               ? " bg-black text-white-important"
               : !isDisabled(day)
-              ? " bg-gray-100 dark:bg-black dark:bg-opacity-30"
+              ? " bg-gray-100 dark:bg-gray-600"
               : "")
           }>
           {day}
@@ -166,12 +166,12 @@ const DatePicker = ({
   return selectedMonth ? (
     <div
       className={
-        "mt-8 sm:mt-0 min-w-[350px] " +
+        "mt-8 sm:mt-0 sm:min-w-[430px]" +
         (selectedDate
-          ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-black sm:pl-4 sm:pr-6"
+          ? "w-full sm:min-w-[455px] sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-4"
           : "sm:w-1/2 sm:pl-4")
       }>
-      <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
+      <div className="flex text-gray-600 font-light text-xl mb-4">
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">
             {dayjs().month(selectedMonth).format("MMMM")}
@@ -193,11 +193,11 @@ const DatePicker = ({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 text-center">
+      <div className="grid grid-cols-7 gap-2 sm:gap-1 text-center">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
-            <div key={weekDay} className="uppercase text-gray-400 text-xs tracking-widest">
+            <div key={weekDay} className="uppercase text-gray-500 text-xs tracking-widest my-2">
               {weekDay}
             </div>
           ))}
