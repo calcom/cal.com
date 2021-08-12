@@ -16,7 +16,6 @@ import Button from "../../components/ui/Button";
 import { EventTypeCustomInputType } from "../../lib/eventTypeInput";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
-import "react-multi-email/style.css";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

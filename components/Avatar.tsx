@@ -1,12 +1,17 @@
 import { useState } from "react";
 import md5 from '../lib/md5';
 
-export default function Avatar({ user, className = '', fallback }: {
+export default function Avatar({ user, className = '', fallback, imageSrc = '' }: {
     user: any;
     className?: string;
     fallback?: JSX.Element;
+    imageSrc?: string;
 }) {
     const [gravatarAvailable, setGravatarAvailable] = useState(true);
+
+    if (imageSrc) {
+        return <img src={imageSrc} alt="Avatar" className={className} />;
+    }
 
     if (user.avatar) {
     return <img src={user.avatar} alt="Avatar" className={className} />;
