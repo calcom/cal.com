@@ -10,7 +10,6 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from 
 import Switch from "@components/ui/Switch";
 import Loader from "@components/Loader";
 import AddCalDavIntegration from "@lib/integrations/CalDav/components/AddCalDavIntegration";
-import request from "@lib/request";
 
 type Integration = {
   installed: boolean;
@@ -54,10 +53,18 @@ export default function Home({ integrations }: Props) {
   }
 
   const handleAddCalDavIntegration = async ({ url, username, password }) => {
-    await request.post("/api/integrations/caldav/add", {
+    const requestBody = JSON.stringify({
       url,
       username,
       password,
+    });
+
+    await fetch("/api/integrations/caldav/add", {
+      method: "POST",
+      body: requestBody,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   };
 
