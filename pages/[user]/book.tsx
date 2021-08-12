@@ -235,7 +235,7 @@ export default function Book(props: any): JSX.Element {
                             type="radio"
                             required
                             onChange={(e) => setSelectedLocation(e.target.value)}
-                            className="location"
+                            className="location focus:ring-black h-4 w-4 text-black border-gray-300 mr-2"
                             name="location"
                             value={location.type}
                             checked={selectedLocation === location.type}
