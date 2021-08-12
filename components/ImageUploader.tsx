@@ -6,8 +6,8 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
   const [imageDataUrl, setImageDataUrl] = useState<string>();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState();
   const [rotation] = useState(1);
-  const [crop, setCrop] = useState({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isImageShown, setIsImageShown] = useState(false);
   const [shownImage, setShownImage] = useState<string>();
@@ -16,7 +16,7 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
   // TODO
   // PUSH cropped image to the database in column = target
   const openUploaderModal = () => {
-    imageRef ? (setIsImageShown(true), setShownImage(imageRef)) : setIsImageShown(false)
+    imageRef ? (setIsImageShown(true), setShownImage(imageRef)) : setIsImageShown(false);
     setImageUploadModalOpen(!imageUploadModalOpen)
   }
   
@@ -34,14 +34,14 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
 
   const readFile = (file) => {
     return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.addEventListener('load', () => resolve(reader.result), false)
+      const reader = new FileReader();
+      reader.addEventListener('load', () => resolve(reader.result), false);
       reader.readAsDataURL(file)
     })
   }
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels)
+    setCroppedAreaPixels(croppedAreaPixels);
  
   }, [])
   
@@ -53,53 +53,53 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
 
   const createImage = (url) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image()
-    image.addEventListener('load', () => resolve(image))
-    image.addEventListener('error', error => reject(error))
-    image.setAttribute('crossOrigin', 'anonymous') // needed to avoid cross-origin issues on CodeSandbox
-    image.src = url
+    const image = new Image();
+    image.addEventListener('load', () => resolve(image));
+    image.addEventListener('error', error => reject(error));
+    image.setAttribute('crossOrigin', 'anonymous'); // needed to avoid cross-origin issues on CodeSandbox
+    image.src = url;
   })
 
   function getRadianAngle(degreeValue) {
-    return (degreeValue * Math.PI) / 180
+    return (degreeValue * Math.PI) / 180;
   }
 
   async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
-    const image = await createImage(imageSrc)
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
   
-    const maxSize = Math.max(image.width, image.height)
-    const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2))
+    const maxSize = Math.max(image.width, image.height);
+    const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
   
     // set each dimensions to double largest dimension to allow for a safe area for the
     // image to rotate in without being clipped by canvas context
-    canvas.width = safeArea
-    canvas.height = safeArea
+    canvas.width = safeArea;
+    canvas.height = safeArea;
   
     // translate canvas context to a central location on image to allow rotating around the center.
-    ctx.translate(safeArea / 2, safeArea / 2)
-    ctx.rotate(getRadianAngle(rotation))
-    ctx.translate(-safeArea / 2, -safeArea / 2)
+    ctx.translate(safeArea / 2, safeArea / 2);
+    ctx.rotate(getRadianAngle(rotation));
+    ctx.translate(-safeArea / 2, -safeArea / 2);
   
     // draw rotated image and store data.
     ctx.drawImage(
       image,
       safeArea / 2 - image.width * 0.5,
       safeArea / 2 - image.height * 0.5
-    )
-    const data = ctx.getImageData(0, 0, safeArea, safeArea)
+    );
+    const data = ctx.getImageData(0, 0, safeArea, safeArea);
   
     // set canvas width to final desired crop size - this will clear existing context
-    canvas.width = pixelCrop.width
-    canvas.height = pixelCrop.height
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
   
     // paste generated rotate image with correct offsets for x,y crop values.
     ctx.putImageData(
       data,
       Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
       Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
-    )
+    );
   
     // As Base64 string
     return canvas.toDataURL('image/jpeg');
@@ -128,7 +128,7 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
     } catch (e) {
       console.error(e)
     }
-  }, [croppedAreaPixels, rotation])
+  }, [croppedAreaPixels, rotation]);
 
   return (
     <div className="flex justify-center items-center">
@@ -205,6 +205,7 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
                     name={id}
                     placeholder="Upload image"
                     className="mt-4 cursor-pointer opacity-0 absolute"
+                    accept="image/*"
                   />
                 </div>
               </div>

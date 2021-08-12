@@ -46,9 +46,9 @@ export default function Settings(props) {
 
   const handleAvatarChange = (newAvatar) => {
     avatarRef.current.value = newAvatar;
-    var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
     nativeInputValueSetter.call(avatarRef.current, newAvatar);      
-    var ev2 = new Event('input', { bubbles: true});
+    const ev2 = new Event('input', { bubbles: true});
     avatarRef.current.dispatchEvent(ev2);
     updateProfileHandler(ev2);
     setImageSrc(newAvatar);  
