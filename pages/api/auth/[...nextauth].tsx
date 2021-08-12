@@ -49,17 +49,14 @@ export default NextAuth({
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async jwt(token, user, account, profile, isNewUser) {
-      // Add username to the token right after signin
-      if (user?.username) {
+      if (user?.id) {
         token.id = user.id;
-        token.username = user.username;
       }
       return token;
     },
     async session(session, token) {
       session.user = session.user || {};
       session.user.id = token.id;
-      session.user.username = token.username;
       return session;
     },
   },
