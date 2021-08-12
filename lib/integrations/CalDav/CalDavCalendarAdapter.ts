@@ -14,6 +14,7 @@ import ICAL from "ical.js";
 import { createEvent, DurationObject, Attendee, Person } from "ics";
 import dayjs from "dayjs";
 import { v4 as uuidv4 } from "uuid";
+import { stripHtml } from "../../emails/helpers";
 
 type EventBusyDate = Record<"start" | "end", Date>;
 
@@ -62,15 +63,6 @@ export class CalDavCalendar implements CalendarApiAdapter {
     return attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
   }
 
-  stripHtml(str: string) {
-    return str
-      .replace(/<br\s?\/>/g, "\n")
-      .replace(/<a.+?href="mailto:.+?>(.+?)<\/a>/g, "$1")
-      .replace(/<strong>|<\/strong>/g, "")
-      .replace(/<br\s{0,}}]\/>/g, "")
-      .replace(/<p.+?>|<\/p>/g, "");
-  }
-
   async createEvent(event: CalendarEvent): Promise<Record<string, unknown>> {
     try {
       const calendars = await this.listCalendars();
@@ -82,7 +74,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
-        description: this.stripHtml(event.description),
+        description: stripHtml(event.description),
         location: event.location,
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event.attendees),
@@ -133,7 +125,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
-        description: this.stripHtml(event.description),
+        description: stripHtml(event.description),
         location: event.location,
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event.attendees),
