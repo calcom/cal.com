@@ -24,12 +24,12 @@ export class CalDavCalendar implements CalendarApiAdapter {
   private readonly integrationName: string = "caldav_calendar";
 
   constructor(credential: Credential) {
-    const unencryptedCrendential = JSON.parse(
+    const decryptedCredential = JSON.parse(
       symmetricDecrypt(credential.key, process.env.CALENDSO_ENCRYPTION_KEY)
     );
-    const username = unencryptedCrendential.username;
-    const url = unencryptedCrendential.url;
-    const password = unencryptedCrendential.password;
+    const username = decryptedCredential.username;
+    const url = decryptedCredential.url;
+    const password = decryptedCredential.password;
 
     this.url = url;
 
