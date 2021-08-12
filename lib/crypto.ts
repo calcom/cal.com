@@ -5,7 +5,14 @@ const INPUT_ENCODING = "utf8";
 const OUTPUT_ENCODING = "hex";
 const IV_LENGTH = 16; // AES blocksize
 
-export const symmetricEncrypt = function (text, key) {
+/**
+ *
+ * @param text Value to be encrypted
+ * @param key Key used to encrypt value must be 32 bytes for AES256 encryption algorithm
+ *
+ * @returns Encrypted value using key
+ */
+export const symmetricEncrypt = function (text: string, key: string) {
   const _key = Buffer.from(key, "latin1");
   const iv = crypto.randomBytes(IV_LENGTH);
 
@@ -16,8 +23,14 @@ export const symmetricEncrypt = function (text, key) {
 
   return ciphertext;
 };
-export const symmetricDecrypt = function (text, key) {
-  const _key = Buffer.from(key, "latin1"); // key must be 32 bytes for aes256
+
+/**
+ *
+ * @param text Value to decrypt
+ * @param key Key used to decrypt value must be 32 bytes for AES256 encryption algorithm
+ */
+export const symmetricDecrypt = function (text: string, key: string) {
+  const _key = Buffer.from(key, "latin1");
 
   const components = text.split(":");
   const iv_from_ciphertext = Buffer.from(components.shift(), OUTPUT_ENCODING);
