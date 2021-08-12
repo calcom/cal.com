@@ -30,18 +30,9 @@ export default function Home({ integrations }: Props) {
 
   const [selectableCalendars, setSelectableCalendars] = useState([]);
   const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
+  const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
 
-  function handleAddCalDavIntegrationSaveButtonPress() {
-    const form = addCalDavIntegrationRef.current.elements;
-    const url = form.url.value;
-    const password = form.password.value;
-    const username = form.username.value;
-    try {
-      handleAddCalDavIntegration({ username, password, url });
-    } catch (reason) {
-      console.error(reason);
-    }
-  }
+  useEffect(loadCalendars, [integrations]);
 
   function loadCalendars() {
     fetch("api/availability/calendar")
@@ -53,6 +44,7 @@ export default function Home({ integrations }: Props) {
 
   function integrationHandler(type) {
     if (type === "caldav_calendar") {
+      setIsAddCalDavIntegrationDialogOpen(true);
       return;
     }
 
@@ -110,12 +102,6 @@ export default function Home({ integrations }: Props) {
     setSelectableCalendars([...selectableCalendars]);
   }
 
-  useEffect(loadCalendars, [integrations]);
-
-  if (loading) {
-    return <Loader />;
-  }
-
   const ConnectNewAppDialog = () => (
     <Dialog>
       <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
@@ -141,8 +127,13 @@ export default function Home({ integrations }: Props) {
                     </div>
                     <div className="w-2/12 text-right pt-2">
                       {integration.type === "caldav_calendar" ? (
-                        <ConnectCalDavServerDialog integration={integration} />
+                        <button
+                          onClick={() => integrationHandler(integration.type)}
+                          className="font-medium text-neutral-900 hover:text-neutral-500">
+                          Add
+                        </button>
                       ) : (
+                        // <ConnectCalDavServerDialog isOpen={isOpen}/>
                         <button
                           onClick={() => integrationHandler(integration.type)}
                           className="font-medium text-neutral-900 hover:text-neutral-500">
@@ -208,11 +199,35 @@ export default function Home({ integrations }: Props) {
     </Dialog>
   );
 
-  const ConnectCalDavServerDialog = () => {
-    return (
-      <Dialog>
-        <DialogTrigger className="font-medium text-neutral-900 hover:text-neutral-500">Add</DialogTrigger>
+  function handleAddCalDavIntegrationSaveButtonPress() {
+    const form = addCalDavIntegrationRef.current.elements;
+    const url = form.url.value;
+    const password = form.password.value;
+    const username = form.username.value;
+    try {
+      handleAddCalDavIntegration({ username, password, url });
+    } catch (reason) {
+      console.error(reason);
+    }
+  }
 
+  const onSubmit = () => {
+    const form = addCalDavIntegrationRef.current;
+
+    if (form) {
+      if (typeof form.requestSubmit === "function") {
+        form.requestSubmit();
+      } else {
+        form.dispatchEvent(new Event("submit", { cancelable: true }));
+      }
+
+      setIsAddCalDavIntegrationDialogOpen(false);
+    }
+  };
+
+  const ConnectCalDavServerDialog = ({ isOpen }) => {
+    return (
+      <Dialog open={isOpen}>
         <DialogContent>
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div
@@ -244,8 +259,7 @@ export default function Home({ integrations }: Props) {
 
               <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                 <button
-                  type="submit"
-                  form={"addCalDav"}
+                  onClick={onSubmit}
                   className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
                   Save
                 </button>
@@ -259,6 +273,10 @@ export default function Home({ integrations }: Props) {
       </Dialog>
     );
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div>
@@ -362,6 +380,7 @@ export default function Home({ integrations }: Props) {
             </div>
           </div>
         </div>
+        <ConnectCalDavServerDialog isOpen={isAddCalDavIntegrationDialogOpen} />
       </Shell>
     </div>
   );
