@@ -534,7 +534,7 @@ const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalenda
 
 const listCalendars = (withCredentials) =>
   Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then((results) =>
-    results.reduce((acc, calendars) => acc.concat(calendars), [])
+    results.reduce((acc, calendars) => acc.concat(calendars), []).filter((c) => c != null)
   );
 
 const createEvent = async (
