@@ -25,7 +25,7 @@ const TimeOptions = (props) => {
 
   return (
     selectedTimeZone !== "" && (
-      <div className="absolute w-full max-w-80 rounded-sm border border-gray-200 dark:bg-gray-700 dark:border-0 bg-white px-4 py-2">
+      <div className="absolute z-10 w-full max-w-80 rounded-sm border border-gray-200 dark:bg-gray-700 dark:border-0 bg-white px-4 py-2">
         <div className="flex mb-4">
           <div className="w-1/2 dark:text-white text-gray-600 font-medium">Time Options</div>
           <div className="w-1/2">
