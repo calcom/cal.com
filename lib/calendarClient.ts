@@ -1,7 +1,7 @@
-import EventOrganizerMail from "./emails/EventOrganizerMail";
-import EventAttendeeMail from "./emails/EventAttendeeMail";
-import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
+// import EventOrganizerMail from "./emails/EventOrganizerMail";
+// import EventAttendeeMail from "./emails/EventAttendeeMail";
+// import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
+// import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
@@ -513,35 +513,35 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
 
   const creationResult = credential ? await calendars([credential])[0].createEvent(richEvent) : null;
 
-  const maybeHangoutLink = creationResult?.hangoutLink;
-  const maybeEntryPoints = creationResult?.entryPoints;
-  const maybeConferenceData = creationResult?.conferenceData;
+  // const maybeHangoutLink = creationResult?.hangoutLink;
+  // const maybeEntryPoints = creationResult?.entryPoints;
+  // const maybeConferenceData = creationResult?.conferenceData;
 
-  const organizerMail = new EventOrganizerMail(calEvent, uid, {
-    hangoutLink: maybeHangoutLink,
-    conferenceData: maybeConferenceData,
-    entryPoints: maybeEntryPoints,
-  });
+  // const organizerMail = new EventOrganizerMail(calEvent, uid, {
+  //   hangoutLink: maybeHangoutLink,
+  //   conferenceData: maybeConferenceData,
+  //   entryPoints: maybeEntryPoints,
+  // });
 
-  const attendeeMail = new EventAttendeeMail(calEvent, uid, {
-    hangoutLink: maybeHangoutLink,
-    conferenceData: maybeConferenceData,
-    entryPoints: maybeEntryPoints,
-  });
+  // const attendeeMail = new EventAttendeeMail(calEvent, uid, {
+  //   hangoutLink: maybeHangoutLink,
+  //   conferenceData: maybeConferenceData,
+  //   entryPoints: maybeEntryPoints,
+  // });
 
-  try {
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
+  // try {
+  //   await organizerMail.sendEmail();
+  // } catch (e) {
+  //   console.error("organizerMail.sendEmail failed", e);
+  // }
 
-  if (!creationResult || !creationResult.disableConfirmationEmail) {
-    try {
-      await attendeeMail.sendEmail();
-    } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
-    }
-  }
+  // if (!creationResult || !creationResult.disableConfirmationEmail) {
+  //   try {
+  //     await attendeeMail.sendEmail();
+  //   } catch (e) {
+  //     console.error("attendeeMail.sendEmail failed", e);
+  //   }
+  // }
 
   return {
     uid,
@@ -562,21 +562,21 @@ const updateEvent = async (
     ? await calendars([credential])[0].updateEvent(uidToUpdate, richEvent)
     : null;
 
-  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
-  try {
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
+  // const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
+  // const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
+  // try {
+  //   await organizerMail.sendEmail();
+  // } catch (e) {
+  //   console.error("organizerMail.sendEmail failed", e);
+  // }
 
-  if (!updateResult || !updateResult.disableConfirmationEmail) {
-    try {
-      await attendeeMail.sendEmail();
-    } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
-    }
-  }
+  // if (!updateResult || !updateResult.disableConfirmationEmail) {
+  //   try {
+  //     await attendeeMail.sendEmail();
+  //   } catch (e) {
+  //     console.error("attendeeMail.sendEmail failed", e);
+  //   }
+  // }
 
   return {
     uid: newUid,
