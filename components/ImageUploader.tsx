@@ -48,9 +48,10 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
     setImageLoaded(true);
   }
 
-  const zoomSliderHandler = (e) => {
-    console.log(e.target);
-    // setZoom(e.target.value);
+  const handleZoomSliderChange = ([value]) => {
+    console.log(value);
+    value < 1 ? setZoom(1) : setZoom(value);
+    // setZoom(e[0]);
   }
 
   const createImage = (url) =>
@@ -190,12 +191,12 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
                         />
                       </div> 
                       <Slider 
-                        value="1" 
-                        min="1"
-                        max="3" 
-                        step="0.1" 
-                        label="Slide to zoom, drag to reposition" 
-                        changeHandler={zoomSliderHandler}
+                          value={zoom}
+                          min="1"
+                          max="3"
+                          step="0.1"
+                          label="Slide to zoom, drag to reposition"
+                          changeHandler={handleZoomSliderChange}
                       />
                     </div>
                   }
