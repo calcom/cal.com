@@ -27,6 +27,7 @@ type UserPayload = {
   firstName?: string;
   lastName?: string;
   assUserId: number;
+  tenantId?: string;
 };
 
 enum BookingPaymentStatus {
@@ -67,7 +68,7 @@ type HealthCoachBooking = {
   coachProfileProgram: CoachProfileProgram;
 };
 
-type HealthCoachBookingSession = {
+export type HealthCoachBookingSession = {
   id: string;
   coachBookingId: string;
   coachBooking: HealthCoachBooking;
@@ -76,6 +77,7 @@ type HealthCoachBookingSession = {
   endTime: Date;
   timezone: string;
   assBookingId?: number;
+  assBookingUid?: string;
 };
 
 type RequestPayload = {
@@ -83,7 +85,7 @@ type RequestPayload = {
   tenantId: string;
 };
 
-const checkUserExisted = async (userId: number): Promise<[boolean, User]> => {
+export const checkUserExisted = async (userId: number): Promise<[boolean, User]> => {
   let isExisted = false;
 
   try {

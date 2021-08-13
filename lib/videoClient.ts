@@ -50,7 +50,7 @@ const wait = (delay: number) => {
 const fetchRetry = (url: string, delay: number, tries: number, fetchOptions = {}) => {
   const onError = (err) => {
     const numOfRetries = tries - 1;
-    console.log({ retry: numOfRetries, fetchOptions });
+
     if (!numOfRetries) {
       throw err;
     }

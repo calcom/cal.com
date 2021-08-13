@@ -6,14 +6,14 @@ import { Logger } from "tslog";
 import async from "async";
 import isBetween from "dayjs/plugin/isBetween";
 
-import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
+// import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "../../../lib/event";
 import { LocationType } from "../../../lib/location";
 import merge from "lodash.merge";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
-import { CalendarEvent, getBusyCalendarTimes, createEvent } from "../../../lib/calendarClient";
-import { getBusyVideoTimes, createMeeting } from "../../../lib/videoClient";
+import { CalendarEvent, getBusyCalendarTimes, createEvent, updateEvent } from "../../../lib/calendarClient";
+import { getBusyVideoTimes, createMeeting, updateMeeting } from "../../../lib/videoClient";
 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -590,19 +590,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const hashUID = generateHashUid(results, evt);
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
-    if (results.length === 0) {
-      // Legacy as well, as soon as we have a separate email integration class. Just used
-      // to send an email even if there is no integration at all.
-      try {
-        const mail = new EventAttendeeMail(evt, hashUID);
-        await mail.sendEmail();
-      } catch (e) {
-        log.error("Sending legacy event mail failed", e);
-        log.error(`Booking ${user} failed`);
+    // if (results.length === 0) {
+    //   // Legacy as well, as soon as we have a separate email integration class. Just used
+    //   // to send an email even if there is no integration at all.
+    //   try {
+    //     const mail = new EventAttendeeMail(evt, hashUID);
+    //     await mail.sendEmail();
+    //   } catch (e) {
+    //     log.error("Sending legacy event mail failed", e);
+    //     log.error(`Booking ${user} failed`);
 
-        throw { error: "Booking failed", status: 500 };
-      }
-    }
+    //     throw { error: "Booking failed", status: 500 };
+    //   }
+    // }
 
     try {
       await prisma.booking.create({
