@@ -1,5 +1,6 @@
 import Cropper from "react-easy-crop";
 import { useState, useCallback, useRef } from "react";
+import Slider from "./Slider";
 
 export default function ImageUploader({target, id, buttonMsg, handleAvatarChange, imageRef}){
   const imageFileRef = useRef<HTMLInputElement>();
@@ -45,6 +46,11 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setImageLoaded(true);
+  }
+
+  const zoomSliderHandler = (e) => {
+    console.log(e.target);
+    // setZoom(e.target.value);
   }
 
   const createImage = (url) =>
@@ -183,6 +189,14 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
                           onZoomChange={setZoom}
                         />
                       </div> 
+                      <Slider 
+                        value="1" 
+                        min="1"
+                        max="3" 
+                        step="0.1" 
+                        label="Slide to zoom, drag to reposition" 
+                        changeHandler={zoomSliderHandler}
+                      />
                     </div>
                   }
                   <label htmlFor={id} className="mt-4 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;">Choose a file...</label>
