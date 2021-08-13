@@ -169,6 +169,7 @@ model EventTypeCustomInput {
   label       String
   type        String
   required    Boolean
+  placeholder String?
 }
 
 model ResetPasswordRequest {
