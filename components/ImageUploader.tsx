@@ -49,7 +49,6 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
   }
 
   const handleZoomSliderChange = ([value]) => {
-    console.log(value);
     value < 1 ? setZoom(1) : setZoom(value);
     // setZoom(e[0]);
   }
@@ -192,15 +191,15 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
                       </div> 
                       <Slider 
                           value={zoom}
-                          min="1"
-                          max="3"
-                          step="0.1"
+                          min={1}
+                          max={3}
+                          step={0.1}
                           label="Slide to zoom, drag to reposition"
                           changeHandler={handleZoomSliderChange}
                       />
                     </div>
                   }
-                  <label htmlFor={id} className="mt-4 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;">Choose a file...</label>
+                  <label htmlFor={id} className="mt-8 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;">Choose a file...</label>
                   <input 
                     onChange={ImageUploadHandler}
                     ref={imageFileRef}
@@ -208,7 +207,7 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
                     id={id}
                     name={id}
                     placeholder="Upload image"
-                    className="mt-4 cursor-pointer opacity-0 absolute"
+                    className="mt-4 pointer-events-none opacity-0 absolute"
                     accept="image/*"
                   />
                 </div>
