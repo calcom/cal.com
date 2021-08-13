@@ -13,6 +13,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.16.0",
     "@headlessui/react": "^1.0.0",
     "@heroicons/react": "^1.0.1",
     "@jitsu/sdk-js": "^2.0.1",

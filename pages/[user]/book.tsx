@@ -58,6 +58,7 @@ export default function Book(props: any): JSX.Element {
     [LocationType.InPerson]: "In-person meeting",
     [LocationType.Phone]: "Phone call",
     [LocationType.GoogleMeet]: "Google Meet",
+    [LocationType.Daily]: "Daily Video",
     [LocationType.Zoom]: "Zoom Video",
   };
 

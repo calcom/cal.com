@@ -2,6 +2,8 @@ import prisma from "../../lib/prisma";
 import { deleteEvent } from "../../lib/calendarClient";
 import async from "async";
 import { deleteMeeting } from "../../lib/videoClient";
+import { dailyDeleteMeeting } from "../../lib/dailyVideoClient";
+import { Credentials } from "nodemailer/lib/smtp-connection";
 
 export default async function handler(req, res) {
   if (req.method == "POST") {
@@ -28,8 +30,10 @@ export default async function handler(req, res) {
       },
     });
 
+
     const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
       const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
+      
       if (bookingRefUid) {
         if (credential.type.endsWith("_calendar")) {
           return await deleteEvent(credential, bookingRefUid);
@@ -37,7 +41,14 @@ export default async function handler(req, res) {
           return await deleteMeeting(credential, bookingRefUid);
         }
       }
+    //lola internal deleting this if it's daily that is the call
+      const isDaily = bookingToDelete.references.filter((ref) => ref.type === "daily");
+      const bookingUID = bookingToDelete.references.filter((ref) => ref.type === "daily")[0]?.uid;
+      if (isDaily){ 
+        return await dailyDeleteMeeting(credential, bookingUID);
+      }
     });
+
     const attendeeDeletes = prisma.attendee.deleteMany({
       where: {
         bookingId: bookingToDelete.id,

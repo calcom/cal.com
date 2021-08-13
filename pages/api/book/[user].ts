@@ -137,6 +137,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    //this checks whethere there is a video integration but we may need anything here
     const hasCalendarIntegrations =
       currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
     const hasVideoIntegrations =

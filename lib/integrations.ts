@@ -6,6 +6,8 @@ export function getIntegrationName(name: String) {
             return "Office 365 Calendar";
         case "zoom_video":
             return "Zoom";
+        case "daily_video":
+            return "Daily";
         default:
             return "Unknown";
     }

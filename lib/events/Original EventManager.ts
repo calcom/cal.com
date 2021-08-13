@@ -1,8 +1,8 @@
+//lola internal - this is a copy file that can be deleted
 import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import { Credential } from "@prisma/client";
 import async from "async";
 import { createMeeting, updateMeeting } from "@lib/videoClient";
-import { dailyCreateMeeting, dailyUpdateMeeting } from "@lib/dailyVideoClient";
 import prisma from "@lib/prisma";
 import { LocationType } from "@lib/location";
 import { v5 as uuidv5 } from "uuid";
@@ -49,39 +49,7 @@ export default class EventManager {
   constructor(credentials: Array<Credential>) {
     this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
-
-   //lola internal need to updae this so that the credential is something ransom or the id...idk look at what they do when saving a credential
-    const hasDailyIntegration = process.env.DAILY_API_KEY != null;
-    const dailyCredential : Credential =  {
-      id:6736,
-      type:"daily_video",
-      key: {apikey: process.env.DAILY_API_KEY},
-      userId: 1
-
-    }
-    if (hasDailyIntegration) {
-      this.videoCredentials.push(dailyCredential);
-    }
-    
-
-    //lolainternal - maybe this isn't needed commenting it out maybe i do just add the credential up there...
-    /*
-    const hasDailyIntegration = process.env.DAILY_API_KEY != null;
-    const dailyCredential : Credential =  {
-      id:6736,
-      type:"",
-      key: process.env.DAILY_API_KEY,
-      userId: 1
-
-    }
-    if (hasDailyIntegration) {
-      this.videoCredentials.push ({ dailyCredential });
-    }
-    //maybe this isn't needed
-    */
   }
-
-
 
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
@@ -95,45 +63,21 @@ export default class EventManager {
   public async create(event: CalendarEvent, maybeUid: string = null): Promise<CreateUpdateResult> {
     event = EventManager.processLocation(event);
     const isDedicated = EventManager.isDedicatedIntegration(event.location);
-    const isDaily = event.location === "integrations:daily"
-  
-    
+
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    //lola internal - maybe we should update the isdedicated which might get the createvideoevent action in there or we could try updating a is daily the same way. 
-    //lola internal -- i think I also need to create a video event, i think that's actually the problem not the credential are we creating all calendar events and creating video eventd
     const results: Array<EventResult> = await this.createAllCalendarEvents(event, isDedicated, maybeUid);
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting as well.
-    if (isDedicated || isDaily) {
+    if (isDedicated) {
       results.push(await this.createVideoEvent(event, maybeUid));
     }
 
-/*   const referencesToCreate: Array<PartialReference> = results.map((result) => {
-      const isDailyResult = result.type === "daily";
-      if(!isDailyResult){}
+    const referencesToCreate: Array<PartialReference> = results.map((result) => {
       return {
         type: result.type,
         uid: result.createdEvent.id.toString(),
       };
     });
-    */
-
-    //lola - internal updated the references to also add the dail name which is unique
-
-    const referencesToCreate: Array<PartialReference> = results.map((result) => {
-      const isDailyResult = result.type === "daily";
-     if (!isDailyResult) {
-       return {
-        type: result.type,
-        uid: result.createdEvent.id.toString(),
-      }};
-      if (isDailyResult) {
-        return {
-         type: result.type,
-         uid: result.createdEvent.name.toString(),
-       }};
-    });
-
 
     return {
       results,
@@ -168,9 +112,7 @@ export default class EventManager {
       },
     });
 
-    //lola internal note I added integrations: daily here
-
-    const isDedicated = EventManager.isDedicatedIntegration(event.location) || event.location === "integrations:daily";
+    const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
     // First, update all calendar events. If this is a dedicated event, don't send a mail right here.
     const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isDedicated);
@@ -219,7 +161,6 @@ export default class EventManager {
    * @param maybeUid
    * @private
    */
-  //lola internal do we have the credential piece in there...i think so..
   private createAllCalendarEvents(
     event: CalendarEvent,
     noMail: boolean,
@@ -236,29 +177,9 @@ export default class EventManager {
    * @param event
    * @private
    */
-  // lola internal -- I think i need to make it so that there isn't a credential here. perhaps it shouldn't be
   private getVideoCredential(event: CalendarEvent): Credential | undefined {
     const integrationName = event.location.replace("integrations:", "");
-    //lola internal - going to try no returning when the credential is daily (if magic didn't work)
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
-    /*return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));*/
-    
-    /*if (integrationName!= "daily"){
-    return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
-    }
-    const isDaily = event.location === "integrations:daily";
-    const dailycredential: Credential = {
-      id: 1,
-      type: "daily",
-      key: 1,
-      userId: 1,
-    };
-
-    if(isDaily){
-    return  dailycredential
-    }
-    */
-  
   }
 
   /**
@@ -272,28 +193,10 @@ export default class EventManager {
    */
   private createVideoEvent(event: CalendarEvent, maybeUid: string = null): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
-    // lola internal - add this is this daily check to get around credentials because we're not storing them
-    const isDaily = event.location === "integrations:daily";
 
-    /* lola - saving original version code
-if (credential) {
+    if (credential) {
       return createMeeting(credential, event, maybeUid);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
-    }
-
-    */
-   //so it saved credential but it didn't do dailyCreateMeeting
-
-    //lola internal creates a credential in the database for daily if one doesn't exist
-
-    if (credential && !isDaily) {
-      return createMeeting(credential, event, maybeUid);
-    } else
-    if (isDaily) {
-      return dailyCreateMeeting(credential, event, maybeUid);
-    }
-    else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
   }
@@ -329,16 +232,11 @@ if (credential) {
    */
   private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
     const credential = this.getVideoCredential(event);
-    const isDaily = event.location === "integrations:daily";
 
-    if (credential && !isDaily) {
+    if (credential) {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return updateMeeting(credential, bookingRefUid, event);
     } else {
-      if (isDaily){
-        const bookingRefUid = booking.references.filter((ref) => ref.type === "daily")[0].uid;
-        return dailyUpdateMeeting(credential, bookingRefUid, event);
-      }
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
   }
@@ -356,8 +254,7 @@ if (credential) {
    */
   private static isDedicatedIntegration(location: string): boolean {
     // Hard-coded for now, because Zoom and Google Meet are both integrations, but one is dedicated, the other one isn't.
-    //lola internal - added or locatoin integrations daily but i don't think that will work, removed it
-    return location === "integrations:zoom" ||  location === "integrations:daily";
+    return location === "integrations:zoom";
   }
 
   /**
@@ -369,8 +266,8 @@ if (credential) {
    */
   private static getLocationRequestFromIntegration(locationObj: GetLocationRequestFromIntegrationRequest) {
     const location = locationObj.location;
-// lola internal added location type of daily as well here
-    if (location === LocationType.GoogleMeet.valueOf() || location === LocationType.Zoom.valueOf() || location === LocationType.Daily.valueOf()){
+
+    if (location === LocationType.GoogleMeet.valueOf() || location === LocationType.Zoom.valueOf()) {
       const requestId = uuidv5(location, uuidv5.URL);
 
       return {

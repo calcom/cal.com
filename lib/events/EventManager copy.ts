@@ -50,7 +50,7 @@ export default class EventManager {
     this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
 
-   //lola internal need to updae this so that the credential is something ransom or the id...idk look at what they do when saving a credential
+   
     const hasDailyIntegration = process.env.DAILY_API_KEY != null;
     const dailyCredential : Credential =  {
       id:6736,
@@ -331,13 +331,13 @@ if (credential) {
     const credential = this.getVideoCredential(event);
     const isDaily = event.location === "integrations:daily";
 
-    if (credential && !isDaily) {
+    if (credential) {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return updateMeeting(credential, bookingRefUid, event);
     } else {
       if (isDaily){
-        const bookingRefUid = booking.references.filter((ref) => ref.type === "daily")[0].uid;
-        return dailyUpdateMeeting(credential, bookingRefUid, event);
+        const dailyNameId = "2344aas"
+        return dailyUpdateMeeting (credential, dailyNameId, event);
       }
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
