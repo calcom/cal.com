@@ -1,10 +1,9 @@
 import React from "react";
 import classnames from "classnames";
 import { TextProps } from "../Text";
-import Styles from "../Text.module.css";
 
 const Largetitle: React.FunctionComponent<TextProps> = (props: TextProps) => {
-  const classes = classnames(Styles["text--largetitle"], props?.className, props?.color);
+  const classes = classnames("text-2xl font-normal text-gray-900 dark:text-white");
 
   return <p className={classes}>{props.children}</p>;
 };
