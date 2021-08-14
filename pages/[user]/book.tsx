@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
 import prisma, { whereAndSelect } from "../../lib/prisma";
+import { EventTypeCustomInputType } from "@prisma/client";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -13,7 +14,6 @@ import PhoneInput from "react-phone-number-input";
 import { LocationType } from "../../lib/location";
 import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
-import { EventTypeCustomInputType } from "../../lib/eventTypeInput";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
 import "react-multi-email/style.css";
@@ -71,7 +71,7 @@ export default function Book(props: any): JSX.Element {
           .map((input) => {
             const data = event.target["custom_" + input.id];
             if (data) {
-              if (input.type === EventTypeCustomInputType.Bool) {
+              if (input.type === EventTypeCustomInputType.BOOL) {
                 return input.label + "\n" + (data.checked ? "Yes" : "No");
               } else {
                 return input.label + "\n" + data.value;
@@ -273,14 +273,14 @@ export default function Book(props: any): JSX.Element {
                       .sort((a, b) => a.id - b.id)
                       .map((input) => (
                         <div className="mb-4" key={"input-" + input.label.toLowerCase}>
-                          {input.type !== EventTypeCustomInputType.Bool && (
+                          {input.type !== EventTypeCustomInputType.BOOL && (
                             <label
                               htmlFor={input.label}
                               className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                               {input.label}
                             </label>
                           )}
-                          {input.type === EventTypeCustomInputType.TextLong && (
+                          {input.type === EventTypeCustomInputType.TEXTLONG && (
                             <textarea
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
@@ -290,7 +290,7 @@ export default function Book(props: any): JSX.Element {
                               placeholder=""
                             />
                           )}
-                          {input.type === EventTypeCustomInputType.Text && (
+                          {input.type === EventTypeCustomInputType.TEXT && (
                             <input
                               type="text"
                               name={"custom_" + input.id}
@@ -300,7 +300,7 @@ export default function Book(props: any): JSX.Element {
                               placeholder=""
                             />
                           )}
-                          {input.type === EventTypeCustomInputType.Number && (
+                          {input.type === EventTypeCustomInputType.NUMBER && (
                             <input
                               type="number"
                               name={"custom_" + input.id}
@@ -310,7 +310,7 @@ export default function Book(props: any): JSX.Element {
                               placeholder=""
                             />
                           )}
-                          {input.type === EventTypeCustomInputType.Bool && (
+                          {input.type === EventTypeCustomInputType.BOOL && (
                             <div className="flex items-center h-5">
                               <input
                                 type="checkbox"

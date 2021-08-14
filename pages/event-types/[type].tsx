@@ -5,13 +5,13 @@ import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
+import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeInput";
 import {
   LocationMarkerIcon,
   LinkIcon,
@@ -106,10 +106,10 @@ export default function EventTypePage({
   const router = useRouter();
 
   const inputOptions: OptionBase[] = [
-    { value: EventTypeCustomInputType.Text, label: "Text" },
-    { value: EventTypeCustomInputType.TextLong, label: "Multiline Text" },
-    { value: EventTypeCustomInputType.Number, label: "Number" },
-    { value: EventTypeCustomInputType.Bool, label: "Checkbox" },
+    { value: EventTypeCustomInputType.TEXT, label: "Text" },
+    { value: EventTypeCustomInputType.TEXTLONG, label: "Multiline Text" },
+    { value: EventTypeCustomInputType.NUMBER, label: "Number" },
+    { value: EventTypeCustomInputType.BOOL, label: "Checkbox" },
   ];
 
   const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
@@ -342,28 +342,19 @@ export default function EventTypePage({
       type: e.target.type.value,
     };
 
-    if (e.target.id?.value) {
-      const index = customInputs.findIndex((inp) => inp.id === +e.target.id?.value);
-      if (index >= 0) {
-        const input = customInputs[index];
-        input.label = customInput.label;
-        input.required = customInput.required;
-        input.type = customInput.type;
-        setCustomInputs(customInputs);
-      }
+    if (selectedCustomInput) {
+      selectedCustomInput.label = customInput.label;
+      selectedCustomInput.required = customInput.required;
+      selectedCustomInput.type = customInput.type;
     } else {
       setCustomInputs(customInputs.concat(customInput));
     }
     closeAddCustomModal();
   };
 
-  const removeCustom = (customInput, e) => {
-    e.preventDefault();
-    const index = customInputs.findIndex((inp) => inp.id === customInput.id);
-    if (index >= 0) {
-      customInputs.splice(index, 1);
-      setCustomInputs([...customInputs]);
-    }
+  const removeCustom = (index: number) => {
+    customInputs.splice(index, 1);
+    setCustomInputs([...customInputs]);
   };
 
   return (
@@ -638,8 +629,8 @@ export default function EventTypePage({
                           </div>
                           <div className="w-full">
                             <ul className="w-96 mt-1">
-                              {customInputs.map((customInput) => (
-                                <li key={customInput.label} className="bg-secondary-50 mb-2 p-2 border">
+                              {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+                                <li key={idx} className="bg-secondary-50 mb-2 p-2 border">
                                   <div className="flex justify-between">
                                     <div>
                                       <div>
@@ -661,7 +652,7 @@ export default function EventTypePage({
                                         className="mr-2 text-sm text-primary-600">
                                         Edit
                                       </button>
-                                      <button onClick={(e) => removeCustom(customInput, e)}>
+                                      <button type="button" onClick={() => removeCustom(idx)}>
                                         <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
                                       </button>
                                     </div>
