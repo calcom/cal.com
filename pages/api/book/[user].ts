@@ -36,7 +36,7 @@ function isAvailable(busyTimes, time, length) {
       const endTime = dayjs(busyTime.end);
 
       // Check if time is between start and end times
-      if (dayjs(time).isBetween(startTime, endTime)) {
+      if (dayjs(time).isBetween(startTime, endTime, null, "(]")) {
         t = false;
       }
 
