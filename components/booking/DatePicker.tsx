@@ -175,7 +175,7 @@ const DatePicker = ({
         "mt-8 sm:mt-0 sm:min-w-[455px] " +
         (selectedDate
           ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
-          : "sm:w-1/2 sm:pl-4")
+          : "w-full sm:pl-4")
       }>
       <div className="flex text-gray-600 font-light text-xl mb-4">
         <span className="w-1/2 text-gray-600 dark:text-white">
