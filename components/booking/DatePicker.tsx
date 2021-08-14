@@ -142,23 +142,29 @@ const DatePicker = ({
     setCalendar([
       ...emptyDays,
       ...days.map((day) => (
-        <button
+        <div
           key={day}
-          onClick={() => setSelectedDate(inviteeDate.date(day))}
-          disabled={isDisabled(day)}
-          className={
-            "text-center w-14 h-14 mx-auto hover:border hover:border-black dark:hover:border-white" +
-            (isDisabled(day)
-              ? " text-gray-400 font-light hover:border-0 cursor-default"
-              : " dark:text-white text-primary-500 font-medium") +
-            (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
-              ? " bg-black text-white-important"
-              : !isDisabled(day)
-              ? " bg-gray-100 dark:bg-gray-600"
-              : "")
-          }>
-          {day}
-        </button>
+          style={{
+            paddingTop: "100%",
+          }}
+          className="w-full relative">
+          <button
+            onClick={() => setSelectedDate(inviteeDate.date(day))}
+            disabled={isDisabled(day)}
+            className={
+              "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto hover:border hover:border-black dark:hover:border-white" +
+              (isDisabled(day)
+                ? " text-gray-400 font-light hover:border-0 cursor-default"
+                : " dark:text-white text-primary-500 font-medium") +
+              (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
+                ? " bg-black text-white-important"
+                : !isDisabled(day)
+                ? " bg-gray-100 dark:bg-gray-600"
+                : "")
+            }>
+            {day}
+          </button>
+        </div>
       )),
     ]);
   }, [selectedMonth, inviteeTimeZone, selectedDate]);
@@ -193,7 +199,7 @@ const DatePicker = ({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 text-center border-b border-t sm:border-0">
+      <div className="grid grid-cols-7 gap-4 text-center border-b border-t dark:border-gray-800 sm:border-0">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
@@ -202,7 +208,7 @@ const DatePicker = ({
             </div>
           ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-2 gap-x-4 text-center">{calendar}</div>
+      <div className="grid grid-cols-7 gap-2 text-center">{calendar}</div>
     </div>
   ) : null;
 };
