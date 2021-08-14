@@ -317,6 +317,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       referencesToCreate = createResults.referencesToCreate;
     }
 
+
+//lola-internal get the details from the created daily event like the url not sure why it's daily_video but we could make it so that we don't have to do an isdaily
+const isDaily = evt.location === "integrations:daily"    
+let dailyEvent;
+if (!rescheduleUid) {
+ dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent ;
+} else {
+ dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent ;
+}
+
+
+
     const hashUID =
       results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
@@ -328,7 +340,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ message: legacyMailError.message });
       return;
     }
-
+    
+    if (isDaily){
     try {
       await prisma.booking.create({
         data: {
@@ -346,14 +359,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             create: evt.attendees,
           },
           location: evt.location, // This is the raw location that can be processed by the EventManager.
+          dailyurl: dailyEvent.url,
           confirmed: !selectedEventType.requiresConfirmation,
         },
       });
     } catch (e) {
-      log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
+      log.error(results, e);
       res.status(500).json({ message: "Booking already exists" });
       return;
-    }
+    }}
+
+    //lola - internal log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
+
+    if (!isDaily){
+      try {
+        await prisma.booking.create({
+          data: {
+            uid: hashUID,
+            userId: currentUser.id,
+            references: {
+              create: referencesToCreate,
+            },
+            eventTypeId: eventType.id,
+            title: evt.title,
+            description: evt.description,
+            startTime: evt.startTime,
+            endTime: evt.endTime,
+            attendees: {
+              create: evt.attendees,
+            },
+            location: evt.location, // This is the raw location that can be processed by the EventManager.
+            confirmed: !selectedEventType.requiresConfirmation,
+          },
+        });
+      } catch (e) {
+        log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
+        res.status(500).json({ message: "Booking already exists" });
+        return;
+      }}
+
+    
 
     if (selectedEventType.requiresConfirmation) {
       await new EventOrganizerRequestMail(evt, hashUID).sendEmail();

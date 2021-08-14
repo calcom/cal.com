@@ -44,6 +44,7 @@
     "react-dom": "17.0.1",
     "react-multi-email": "^0.5.3",
     "react-phone-number-input": "^3.1.21",
+    "react-router-dom": "^5.2.0",
     "react-select": "^4.3.0",
     "react-timezone-select": "^1.0.2",
     "short-uuid": "^4.2.0",

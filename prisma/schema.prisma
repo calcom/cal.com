@@ -134,6 +134,7 @@ model Booking {
 
   attendees     Attendee[]
   location      String?
+  dailyurl      String      @default("optionaldailycallurl") 
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime?

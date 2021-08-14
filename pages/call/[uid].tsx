@@ -2,19 +2,17 @@ import { useEffect } from "react";
 import DailyIframe from '@daily-co/daily-js';
 import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
-import { dailyUpdateMeeting } from "@lib/dailyVideoClient";
+
 
 
 export default function joinCall(props) {
    // Get router variables
    const router = useRouter();
    const { uid } = router.query;
-   const callid = props.booking.references.filter((ref) => ref.type === "daily")[0]?.uid;
    
 
+  const url = props.booking.dailyurl
   useEffect(() => {
-  const dailydomain = process.env.DAILY_DOMAIN; 
-  const url =  dailydomain + callid;
   const callFrame = DailyIframe.createFrame({
     showLeaveButton: true,
     iframeStyle: {
@@ -24,7 +22,7 @@ export default function joinCall(props) {
     }
   });
       callFrame.join({
-        url: 'https://lunchpaillabs.daily.co/b8HV47X6XlCXjU8T9EJs',
+        url: url,
         showLeaveButton: true,
     })
 }, [])
@@ -32,6 +30,8 @@ export default function joinCall(props) {
 return joinCall;
 
 }
+
+
 
 export async function getServerSideProps(context) {
   const booking = await prisma.booking.findFirst({
@@ -45,6 +45,7 @@ export async function getServerSideProps(context) {
           credentials: true,
         },
       },
+      dailyurl: true,
       attendees: true,
       references: {
         select: {
@@ -54,11 +55,7 @@ export async function getServerSideProps(context) {
       },
     },
   });
-
-  // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
-  const bookingObj = Object.assign({}, booking, {
-  });
-
+  
   return {
     props: {
       booking: booking

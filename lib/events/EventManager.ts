@@ -2,7 +2,7 @@ import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import { Credential } from "@prisma/client";
 import async from "async";
 import { createMeeting, updateMeeting } from "@lib/videoClient";
-import { dailyCreateMeeting, dailyUpdateMeeting } from "@lib/dailyVideoClient";
+import { dailyCreateMeeting, dailyUpdateMeeting } from "lib/dailyVideoClient";
 import prisma from "@lib/prisma";
 import { LocationType } from "@lib/location";
 import { v5 as uuidv5 } from "uuid";
