@@ -91,7 +91,7 @@ export const Scheduler = ({
         type="button"
         onClick={() => removeScheduleAt(idx)}
         className="btn-sm bg-transparent px-2 py-1 ml-1">
-        <TrashIcon className="h-6 w-6 inline text-gray-400 -mt-1" />
+        <TrashIcon className="h-5 w-5 inline text-gray-400 -mt-1" />
       </button>
     </li>
   );

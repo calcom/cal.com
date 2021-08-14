@@ -7,19 +7,20 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../lib
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
-  ClockIcon,
-  PuzzleIcon,
-  CogIcon,
   ChatAltIcon,
-  LogoutIcon,
+  ClockIcon,
+  CogIcon,
   ExternalLinkIcon,
   LinkIcon,
+  LogoutIcon,
+  PuzzleIcon,
 } from "@heroicons/react/solid";
 import Logo from "./Logo";
 import classNames from "@lib/classNames";
 
 export default function Shell(props) {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
   const telemetry = useTelemetry();
 
@@ -43,7 +44,7 @@ export default function Shell(props) {
       current: router.pathname.startsWith("/availability"),
     },
     {
-      name: "Integrations",
+      name: "App Store",
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.pathname.startsWith("/integrations"),
@@ -71,7 +72,7 @@ export default function Shell(props) {
       <div className="h-screen flex overflow-hidden bg-gray-100">
         {/* Static sidebar for desktop */}
         <div className="hidden md:flex md:flex-shrink-0">
-          <div className="flex flex-col w-64">
+          <div className="flex flex-col w-56">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
               <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
@@ -105,7 +106,7 @@ export default function Shell(props) {
                   ))}
                 </nav>
               </div>
-              <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+              <div className="flex-shrink-0 flex p-4">
                 <UserDropdown session={session} />
               </div>
             </div>
@@ -135,10 +136,10 @@ export default function Shell(props) {
                 </div>
               </div>
             </nav>
-            <div className="py-6">
+            <div className="py-8">
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
-                <div className="mb-6">
-                  <h1 className="text-2xl font-semibold text-gray-900">{props.heading}</h1>
+                <div className="mb-8">
+                  <h1 className="text-xl font-bold text-gray-900">{props.heading}</h1>
                   <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
                 </div>
                 <div className="mb-4 flex-shrink-0">{props.CTA}</div>
@@ -146,7 +147,7 @@ export default function Shell(props) {
               <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
 
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="md:hidden flex fixed bottom-0 bg-white w-full rounded-lg shadow">
+              <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
                   item.name === "Settings" ? (

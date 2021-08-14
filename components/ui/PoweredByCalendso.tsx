@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const PoweredByCalendso = () => (
-  <div className="text-xs text-center sm:text-right pt-1">
+  <div className="text-xs text-center sm:text-right p-1">
     <Link href={`https://calendso.com?utm_source=embed&utm_medium=powered-by-button`}>
       <a target="_blank" className="dark:text-white text-gray-500 opacity-50 hover:opacity-100">
         powered by{" "}

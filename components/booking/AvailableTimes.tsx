@@ -2,6 +2,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Slots from "./Slots";
 import { ExclamationIcon } from "@heroicons/react/solid";
+import React from "react";
+import Loader from "@components/Loader";
 
 const AvailableTimes = ({
   date,
@@ -25,9 +27,12 @@ const AvailableTimes = ({
   });
 
   return (
-    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3  md:max-h-97 overflow-y-auto">
-      <div className="text-gray-600 font-light text-xl mb-4 text-left">
-        <span className="w-1/2 dark:text-white text-gray-600">{date.format("dddd DD MMMM YYYY")}</span>
+    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-97 overflow-y-auto">
+      <div className="text-gray-600 font-light text-lg mb-4 text-left">
+        <span className="w-1/2 dark:text-white text-gray-600">
+          <strong>{date.format("dddd")}</strong>
+          <span className="text-gray-500">{date.format(", DD MMMM")}</span>
+        </span>
       </div>
       {slots.length > 0 &&
         slots.map((slot) => (
@@ -37,7 +42,7 @@ const AvailableTimes = ({
                 `/${user.username}/book?date=${slot.utc().format()}&type=${eventTypeId}` +
                 (rescheduleUid ? "&rescheduleUid=" + rescheduleUid : "")
               }>
-              <a className="block font-medium mb-4 text-blue-600 border border-blue-600 rounded hover:text-white hover:bg-blue-600 py-4">
+              <a className="block font-medium mb-4 bg-white dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-transparent rounded-sm hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black">
                 {slot.format(timeFormat)}
               </a>
             </Link>
@@ -49,7 +54,7 @@ const AvailableTimes = ({
         </div>
       )}
 
-      {!isFullyBooked && slots.length === 0 && !hasErrors && <div className="loader" />}
+      {!isFullyBooked && slots.length === 0 && !hasErrors && <Loader />}
 
       {hasErrors && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">

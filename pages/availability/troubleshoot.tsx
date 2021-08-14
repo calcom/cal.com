@@ -6,16 +6,19 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
 import prisma from "@lib/prisma";
-import Loader from '@components/Loader';
+import Loader from "@components/Loader";
+
 dayjs.extend(utc);
 
 export default function Troubleshoot({ user }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
   const [availability, setAvailability] = useState([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   if (loading) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   function convertMinsToHrsMins(mins) {

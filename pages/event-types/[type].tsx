@@ -2,21 +2,19 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
-import { Disclosure } from "@headlessui/react";
-
+import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeInput";
 import {
   LocationMarkerIcon,
   LinkIcon,
-  PencilIcon,
   PlusIcon,
   DocumentIcon,
   ChevronRightIcon,
@@ -30,12 +28,14 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Availability, EventType, User } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
-import { RadioGroup } from "@headlessui/react";
 import classnames from "classnames";
 import throttle from "lodash.throttle";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
 import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
+import Switch from "@components/ui/Switch";
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -59,7 +59,17 @@ type DateOverride = {
   endTime: number;
 };
 
-type EventTypeInput = {
+type AdvancedOptions = {
+  eventName?: string;
+  periodType?: string;
+  periodDays?: number;
+  periodStartDate?: Date | string;
+  periodEndDate?: Date | string;
+  periodCountCalendarDays?: boolean;
+  requiresConfirmation?: boolean;
+};
+
+type EventTypeInput = AdvancedOptions & {
   id: number;
   title: string;
   slug: string;
@@ -67,16 +77,9 @@ type EventTypeInput = {
   length: number;
   hidden: boolean;
   locations: unknown;
-  eventName: string;
   customInputs: EventTypeCustomInput[];
   timeZone: string;
   availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
-  periodType?: string;
-  periodDays?: number;
-  periodStartDate?: Date | string;
-  periodEndDate?: Date | string;
-  periodCountCalendarDays?: boolean;
-  enteredRequiresConfirmation: boolean;
 };
 
 const PERIOD_TYPES = [
@@ -102,7 +105,6 @@ export default function EventTypePage({
 }: Props): JSX.Element {
   const router = useRouter();
 
-  console.log(eventType);
   const inputOptions: OptionBase[] = [
     { value: EventTypeCustomInputType.Text, label: "Text" },
     { value: EventTypeCustomInputType.TextLong, label: "Multiline Text" },
@@ -178,11 +180,11 @@ export default function EventTypePage({
     );
   });
 
+  const [hidden, setHidden] = useState<boolean>(eventType.hidden);
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const lengthRef = useRef<HTMLInputElement>();
-  const isHiddenRef = useRef<HTMLInputElement>();
   const requiresConfirmationRef = useRef<HTMLInputElement>();
   const eventNameRef = useRef<HTMLInputElement>();
   const periodDaysRef = useRef<HTMLInputElement>();
@@ -199,26 +201,17 @@ export default function EventTypePage({
     const enteredSlug: string = slugRef.current.value;
     const enteredDescription: string = descriptionRef.current.value;
     const enteredLength: number = parseInt(lengthRef.current.value);
-    const enteredIsHidden: boolean = isHiddenRef.current.checked;
-    const enteredRequiresConfirmation: boolean = requiresConfirmationRef.current.checked;
-    const enteredEventName: string = eventNameRef.current.value;
 
-    const type = periodType.type;
-    const enteredPeriodDays = parseInt(periodDaysRef?.current?.value);
-    const enteredPeriodDaysType = Boolean(parseInt(periodDaysTypeRef?.current.value));
-
-    const enteredPeriodStartDate = periodStartDate ? periodStartDate.toDate() : null;
-    const enteredPeriodEndDate = periodEndDate ? periodEndDate.toDate() : null;
-
-    console.log("values", {
-      type,
-      periodDaysTypeRef,
-      enteredPeriodDays,
-      enteredPeriodDaysType,
-      enteredPeriodStartDate,
-      enteredPeriodEndDate,
-    });
-    // TODO: Add validation
+    const advancedOptionsPayload: AdvancedOptions = {};
+    if (requiresConfirmationRef.current) {
+      advancedOptionsPayload.requiresConfirmation = requiresConfirmationRef.current.checked;
+      advancedOptionsPayload.eventName = eventNameRef.current.value;
+      advancedOptionsPayload.periodType = periodType.type;
+      advancedOptionsPayload.periodDays = parseInt(periodDaysRef?.current?.value);
+      advancedOptionsPayload.periodCountCalendarDays = Boolean(parseInt(periodDaysTypeRef?.current.value));
+      advancedOptionsPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : null;
+      advancedOptionsPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : null;
+    }
 
     const payload: EventTypeInput = {
       id: eventType.id,
@@ -226,22 +219,13 @@ export default function EventTypePage({
       slug: enteredSlug,
       description: enteredDescription,
       length: enteredLength,
-      hidden: enteredIsHidden,
+      hidden,
       locations,
-      eventName: enteredEventName,
       customInputs,
       timeZone: selectedTimeZone,
-      periodType: type,
-      periodDays: enteredPeriodDays,
-      periodStartDate: enteredPeriodStartDate,
-      periodEndDate: enteredPeriodEndDate,
-      periodCountCalendarDays: enteredPeriodDaysType,
-      requiresConfirmation: enteredRequiresConfirmation,
+      availability: enteredAvailability || null,
+      ...advancedOptionsPayload,
     };
-
-    if (enteredAvailability) {
-      payload.availability = enteredAvailability;
-    }
 
     await fetch("/api/availability/eventtype", {
       method: "PATCH",
@@ -251,7 +235,7 @@ export default function EventTypePage({
       },
     });
 
-    router.push("/availability");
+    router.push("/event-types");
   }
 
   async function deleteEventTypeHandler(event) {
@@ -265,7 +249,7 @@ export default function EventTypePage({
       },
     });
 
-    router.push("/availability");
+    router.push("/event-types");
   }
 
   const openLocationModal = (type: LocationType) => {
@@ -388,35 +372,28 @@ export default function EventTypePage({
         <title>{eventType.title} | Event Type | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading={"Event Type: " + eventType.title} subtitle={eventType.description}>
+      <Shell
+        heading={
+          <input
+            ref={titleRef}
+            type="text"
+            name="title"
+            id="title"
+            required
+            className="pl-0 text-xl font-bold text-gray-900 cursor-pointer border-none focus:ring-0 bg-transparent focus:outline-none"
+            placeholder="Quick Chat"
+            defaultValue={eventType.title}
+          />
+        }
+        subtitle={eventType.description}>
         <div className="block sm:flex">
           <div className="w-full sm:w-10/12 mr-2">
             <div className="bg-white rounded-sm border border-neutral-200 -mx-4 sm:mx-0 p-4 sm:p-8">
               <form onSubmit={updateEventTypeHandler} className="space-y-4">
-                <div className="block sm:flex">
-                  <div className="min-w-32 mb-4 sm:mb-0">
-                    <label htmlFor="title" className="flex font-medium text-neutral-700 mt-1">
-                      <PencilIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
-                      Title
-                    </label>
-                  </div>
-                  <div className="w-full">
-                    <input
-                      ref={titleRef}
-                      type="text"
-                      name="title"
-                      id="title"
-                      required
-                      className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-neutral-300 rounded-sm"
-                      placeholder="Quick Chat"
-                      defaultValue={eventType.title}
-                    />
-                  </div>
-                </div>
-                <div className="block sm:flex">
-                  <div className="min-w-32 mb-4 sm:mb-0">
-                    <label htmlFor="slug" className="flex font-medium text-neutral-700 mt-1">
-                      <LinkIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
+                <div className="block sm:flex items-center">
+                  <div className="min-w-44 mb-4 sm:mb-0">
+                    <label htmlFor="slug" className="text-sm flex font-medium text-neutral-700 mt-0">
+                      <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                       URL
                     </label>
                   </div>
@@ -437,10 +414,41 @@ export default function EventTypePage({
                     </div>
                   </div>
                 </div>
-                <div className="block sm:flex">
-                  <div className="min-w-32 mb-4 sm:mb-0">
-                    <label htmlFor="location" className="flex font-medium text-neutral-700 mt-1">
-                      <LocationMarkerIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
+
+                <div className="block sm:flex items-center">
+                  <div className="min-w-44 mb-4 sm:mb-0">
+                    <label htmlFor="length" className="text-sm flex font-medium text-neutral-700 mt-0">
+                      <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                      Duration
+                    </label>
+                  </div>
+                  <div className="w-full">
+                    <div className="mt-1 relative rounded-sm shadow-sm">
+                      <input
+                        ref={lengthRef}
+                        type="number"
+                        name="length"
+                        id="length"
+                        required
+                        className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-2 pr-12 sm:text-sm border-gray-300 rounded-sm"
+                        placeholder="15"
+                        defaultValue={eventType.length}
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm" id="duration">
+                          mins
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr />
+
+                <div className="block sm:flex items-center">
+                  <div className="min-w-44 mb-4 sm:mb-0">
+                    <label htmlFor="location" className="text-sm flex font-medium text-neutral-700 mt-0">
+                      <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                       Location
                     </label>
                   </div>
@@ -468,19 +476,19 @@ export default function EventTypePage({
                             className="mb-2 p-2 border border-neutral-300 rounded-sm shadow-sm">
                             <div className="flex justify-between">
                               {location.type === LocationType.InPerson && (
-                                <div className="flex-grow flex">
+                                <div className="flex-grow flex items-center">
                                   <LocationMarkerIcon className="h-6 w-6" />
                                   <span className="ml-2 text-sm">{location.address}</span>
                                 </div>
                               )}
                               {location.type === LocationType.Phone && (
-                                <div className="flex-grow flex">
+                                <div className="flex-grow flex items-center">
                                   <PhoneIcon className="h-6 w-6" />
                                   <span className="ml-2 text-sm">Phone call</span>
                                 </div>
                               )}
                               {location.type === LocationType.GoogleMeet && (
-                                <div className="flex-grow flex">
+                                <div className="flex-grow flex items-center">
                                   <svg
                                     className="h-6 w-6"
                                     viewBox="0 0 64 54"
@@ -511,7 +519,7 @@ export default function EventTypePage({
                                 </div>
                               )}
                               {location.type === LocationType.Zoom && (
-                                <div className="flex-grow flex">
+                                <div className="flex-grow flex items-center">
                                   <svg
                                     className="h-6 w-6"
                                     viewBox="0 0 64 64"
@@ -555,10 +563,12 @@ export default function EventTypePage({
                           <li>
                             <button
                               type="button"
-                              className="sm:flex sm:items-start text-sm text-primary-600"
+                              className="bg-neutral-100 rounded-sm py-2 px-3 flex"
                               onClick={() => setShowLocationModal(true)}>
-                              <PlusIcon className="h-5 w-5" />
-                              <span className="font-medium">Add another location option</span>
+                              <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
+                              <span className="ml-1 text-neutral-700 text-sm font-medium">
+                                Add another location
+                              </span>
                             </button>
                           </li>
                         )}
@@ -566,37 +576,13 @@ export default function EventTypePage({
                     )}
                   </div>
                 </div>
-                <div className="block sm:flex">
-                  <div className="min-w-32 mb-4 sm:mb-0">
-                    <label htmlFor="length" className="flex font-medium text-neutral-700 mt-1">
-                      <ClockIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
-                      Duration
-                    </label>
-                  </div>
-                  <div className="w-full">
-                    <div className="mt-1 relative rounded-sm shadow-sm">
-                      <input
-                        ref={lengthRef}
-                        type="number"
-                        name="length"
-                        id="length"
-                        required
-                        className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-2 pr-12 sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="15"
-                        defaultValue={eventType.length}
-                      />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm" id="duration">
-                          mins
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="block sm:flex">
-                  <div className="min-w-32 mb-4 sm:mb-0">
-                    <label htmlFor="description" className="flex font-medium text-neutral-700 mt-1">
-                      <DocumentIcon className="w-4 h-4 mr-2 mt-1 text-neutral-500" />
+
+                <hr className="border-neutral-200" />
+
+                <div className="block sm:flex items-center">
+                  <div className="min-w-44 mb-4 sm:mb-0">
+                    <label htmlFor="description" className="text-sm flex font-medium text-neutral-700 mt-0">
+                      <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                       Description
                     </label>
                   </div>
@@ -620,9 +606,11 @@ export default function EventTypePage({
                         <span className="text-neutral-700 text-sm font-medium">Show advanced settings</span>
                       </Disclosure.Button>
                       <Disclosure.Panel className="space-y-4">
-                        <div className="block sm:flex">
-                          <div className="min-w-32 mb-4 sm:mb-0">
-                            <label htmlFor="eventName" className="flex font-medium text-neutral-700 mt-2">
+                        <div className="block sm:flex items-center">
+                          <div className="min-w-44 mb-4 sm:mb-0">
+                            <label
+                              htmlFor="eventName"
+                              className="text-sm flex font-medium text-neutral-700 mt-2">
                               Event name
                             </label>
                           </div>
@@ -640,11 +628,11 @@ export default function EventTypePage({
                             </div>
                           </div>
                         </div>
-                        <div className="block sm:flex">
-                          <div className="min-w-32 mb-4 sm:mb-0">
+                        <div className="block sm:flex items-center">
+                          <div className="min-w-44 mb-4 sm:mb-0">
                             <label
                               htmlFor="additionalFields"
-                              className="flex font-medium text-neutral-700 mt-2">
+                              className="text-sm flex font-medium text-neutral-700 mt-2">
                               Additional inputs
                             </label>
                           </div>
@@ -694,38 +682,11 @@ export default function EventTypePage({
                             </ul>
                           </div>
                         </div>
-                        <div className="block sm:flex">
-                          <div className="min-w-32 mb-4 sm:mb-0">
-                            <label htmlFor="hidden" className="flex font-medium text-neutral-700">
-                              Hide event type
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <div className="relative flex items-start">
-                              <div className="flex items-center h-5">
-                                <input
-                                  ref={isHiddenRef}
-                                  id="ishidden"
-                                  name="ishidden"
-                                  type="checkbox"
-                                  className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
-                                  defaultChecked={eventType.hidden}
-                                />
-                              </div>
-                              <div className="ml-3 text-sm">
-                                <p className="text-neutral-900">
-                                  Hide the event type from your page, so it can only be booked through its
-                                  URL.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="block sm:flex">
-                          <div className="min-w-32 mb-4 sm:mb-0">
+                        <div className="block sm:flex items-center">
+                          <div className="min-w-44 mb-4 sm:mb-0">
                             <label
                               htmlFor="requiresConfirmation"
-                              className="flex font-medium text-neutral-700">
+                              className="text-sm flex font-medium text-neutral-700">
                               Opt-in booking
                             </label>
                           </div>
@@ -750,11 +711,14 @@ export default function EventTypePage({
                             </div>
                           </div>
                         </div>
+
+                        <hr className="border-neutral-200" />
+
                         <div className="block sm:flex">
-                          <div className="min-w-32 mb-4 sm:mb-0">
+                          <div className="min-w-44 mb-4 sm:mb-0">
                             <label
                               htmlFor="inviteesCanSchedule"
-                              className="flex font-medium text-neutral-700 mt-2">
+                              className="text-sm flex font-medium text-neutral-700 mt-2">
                               Invitees can schedule
                             </label>
                           </div>
@@ -849,9 +813,14 @@ export default function EventTypePage({
                             </RadioGroup>
                           </div>
                         </div>
+
+                        <hr className="border-neutral-200" />
+
                         <div className="block sm:flex">
-                          <div className="min-w-32 mb-4 sm:mb-0">
-                            <label htmlFor="availability" className="flex font-medium text-neutral-700 mt-2">
+                          <div className="min-w-44 mb-4 sm:mb-0">
+                            <label
+                              htmlFor="availability"
+                              className="text-sm flex font-medium text-neutral-700 mt-2">
                               Availability
                             </label>
                           </div>
@@ -885,6 +854,12 @@ export default function EventTypePage({
           </div>
           <div className="w-full sm:w-2/12 ml-2 px-4 mt-8 sm:mt-0 min-w-32">
             <div className="space-y-4">
+              <Switch
+                name="isHidden"
+                defaultChecked={hidden}
+                onCheckedChange={setHidden}
+                label="Hide event type"
+              />
               <a
                 href={"/" + user.username + "/" + eventType.slug}
                 target="_blank"
@@ -904,13 +879,20 @@ export default function EventTypePage({
                 <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
                 Copy link
               </button>
-              <button
-                onClick={deleteEventTypeHandler}
-                type="button"
-                className="flex text-md font-medium text-neutral-700">
-                <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
-                Delete
-              </button>
+              <Dialog>
+                <DialogTrigger className="flex text-md font-medium text-neutral-700">
+                  <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
+                  Delete
+                </DialogTrigger>
+                <ConfirmationDialogContent
+                  alert="danger"
+                  title="Delete Event Type"
+                  confirmBtnText="Yes, delete event type"
+                  onConfirm={deleteEventTypeHandler}>
+                  Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link
+                  with will no longer be able to book using it.
+                </ConfirmationDialogContent>
+              </Dialog>
             </div>
           </div>
         </div>

@@ -8,7 +8,7 @@ info:
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
-  version: 0.1.0
+  version: 1.0.0
 server:
   url: http://localhost:{port}
   description: Local Development Server
@@ -28,6 +28,8 @@ tags:
     description: Manage integrations
   - name: User
     description: Manage the user's profile and settings
+  - name: Teams
+    description: Manage teams
 paths:
   /api/auth/signin:
     get:
@@ -58,6 +60,12 @@ paths:
       summary: Handles signing out
       tags:
         - Authentication
+  /api/auth/signup:
+    post:
+      description: Creates a new user from an invitation.
+      summary: Create a new user
+      tags:
+        - Authentication
   /api/auth/session:
     get:
       description: Returns client-safe session object - or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback.
@@ -82,10 +90,38 @@ paths:
       summary: Changes the password for the currently logged in account
       tags:
         - Authentication
+  /api/auth/forgot-password:
+    post:
+      description: Send a password reset email.
+      summary: Send a password reset email
+      tags:
+        - Authentication
+  /api/auth/reset-password:
+    post:
+      description: Reset a user's password with their password reset token.
+      summary: Reset a user's password
+      tags:
+        - Authentication
   /api/availability/:user:
     get:
       description: Gets the busy times for a particular user, by username.
       summary: Gets the busy times for a user
+      tags:
+        - Availability
+  /api/availability/calendar:
+    get:
+      description: Gets the user's selected calendars.
+      summary: Gets the user's selected calendars
+      tags:
+        - Availability
+    post:
+      description: Adds a selected calendar for the user.
+      summary: Adds a selected calendar for the user
+      tags:
+        - Availability
+    delete:
+      description: Removes a selected calendar for the user.
+      summary: Removes a selected calendar for the user
       tags:
         - Availability
   /api/availability/day:
@@ -127,6 +163,12 @@ paths:
       summary: Creates a booking for a user
       tags:
         - Booking
+  /api/book/confirm:
+    post:
+      description: Accepts an opt-in booking.
+      summary: Accepts an opt-in booking
+      tags:
+        - Booking
   /api/integrations:
     get:
       description: Gets a list of the user's integrations.
@@ -150,9 +192,72 @@ paths:
       summary: Gets and stores the OAuth token
       tags:
         - Integrations
+  /api/integrations/office365calendar/add:
+    get:
+      description: Gets the OAuth URL for a Microsoft 365/Outlook integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/office365calendar/callback:
+    post:
+      description: Gets and stores the OAuth token for a Microsoft 365/Outlook integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
+  /api/integrations/zoomvideo/add:
+    get:
+      description: Gets the OAuth URL for a Zoom integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/zoomvideo/callback:
+    post:
+      description: Gets and stores the OAuth token for a Zoom integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
   /api/user/profile:
     patch:
       description: Updates a user's profile.
       summary: Updates a user's profile
       tags:
         - User
+  /api/user/membership:
+    get:
+      description: Get a list of the teams the user has joined.
+      summary: Get the teams a user is joined to
+      tags:
+        - User
+    patch:
+      description: Accept team invitation
+      summary: Accept team invitation.
+      tags:
+        - User
+    delete:
+      description: Leave team or decline membership invite of current user
+      summary: Leave team or decline team invite.
+      tags:
+        - User
+  /api/:team:
+    delete:
+      description: Deletes a team
+      summary: Deletes a team
+      tags:
+        - Teams
+  /api/:team/invite:
+    post:
+      description: Invites someone to a team.
+      summary: Invites someone to a team
+      tags:
+        - Teams
+  /api/:team/membership:
+    get:
+      description: Lists the members of a team.
+      summary: Lists members of a team
+      tags:
+        - Teams
+    delete:
+      description: Cancels a membership (invite) to a team
+      summary: Cancels a membership
+      tags:
+        - Teams

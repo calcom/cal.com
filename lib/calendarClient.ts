@@ -5,6 +5,10 @@ import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail"
 import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
+import { EventResult } from "@lib/events/EventManager";
+import logger from "@lib/logger";
+
+const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -206,7 +210,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
   return {
     getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-      const filter = "?$filter=start/dateTime ge '" + dateFrom + "' and end/dateTime le '" + dateTo + "'";
+      const filter = "?startdatetime=" + dateFrom + "&enddatetime=" + dateTo;
       return auth
         .getToken()
         .then((accessToken) => {
@@ -229,7 +233,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
               headers: {
                 Prefer: 'outlook.timezone="Etc/GMT"',
               },
-              url: `/me/calendars/${calendarId}/events${filter}`,
+              url: `/me/calendars/${calendarId}/calendarView${filter}`,
             }));
 
             return fetch("https://graph.microsoft.com/v1.0/$batch", {
@@ -309,7 +313,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     getAvailability: (dateFrom, dateTo, selectedCalendars) =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           const selectedCalendarIds = selectedCalendars
             .filter((e) => e.integration === integrationType)
             .map((e) => e.externalId);
@@ -375,7 +382,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["conferenceData"] = event.conferenceData;
           }
 
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.insert(
             {
               auth: myGoogleAuth,
@@ -418,7 +428,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["location"] = event.location;
           }
 
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.update(
             {
               auth: myGoogleAuth,
@@ -441,7 +454,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     deleteEvent: (uid: string) =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.events.delete(
             {
               auth: myGoogleAuth,
@@ -463,7 +479,10 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
     listCalendars: () =>
       new Promise((resolve, reject) =>
         auth.getToken().then((myGoogleAuth) => {
-          const calendar = google.calendar({ version: "v3", auth: myGoogleAuth });
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
           calendar.calendarList
             .list()
             .then((cals) => {
@@ -515,8 +534,13 @@ const listCalendars = (withCredentials) =>
     results.reduce((acc, calendars) => acc.concat(calendars), [])
   );
 
-const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<unknown> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
+const createEvent = async (
+  credential: Credential,
+  calEvent: CalendarEvent,
+  noMail = false,
+  maybeUid: string = null
+): Promise<EventResult> => {
+  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
   const uid: string = parser.getUid();
   /*
    * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
@@ -525,76 +549,103 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
    */
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
-  const creationResult = credential ? await calendars([credential])[0].createEvent(richEvent) : null;
+  let success = true;
+
+  const creationResult = credential
+    ? await calendars([credential])[0]
+        .createEvent(richEvent)
+        .catch((e) => {
+          log.error("createEvent failed", e, calEvent);
+          success = false;
+        })
+    : null;
 
   const maybeHangoutLink = creationResult?.hangoutLink;
   const maybeEntryPoints = creationResult?.entryPoints;
   const maybeConferenceData = creationResult?.conferenceData;
 
-  const organizerMail = new EventOrganizerMail(calEvent, uid, {
-    hangoutLink: maybeHangoutLink,
-    conferenceData: maybeConferenceData,
-    entryPoints: maybeEntryPoints,
-  });
+  if (!noMail) {
+    const organizerMail = new EventOrganizerMail(calEvent, uid, {
+      hangoutLink: maybeHangoutLink,
+      conferenceData: maybeConferenceData,
+      entryPoints: maybeEntryPoints,
+    });
 
-  const attendeeMail = new EventAttendeeMail(calEvent, uid, {
-    hangoutLink: maybeHangoutLink,
-    conferenceData: maybeConferenceData,
-    entryPoints: maybeEntryPoints,
-  });
+    const attendeeMail = new EventAttendeeMail(calEvent, uid, {
+      hangoutLink: maybeHangoutLink,
+      conferenceData: maybeConferenceData,
+      entryPoints: maybeEntryPoints,
+    });
 
-  try {
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
-
-  if (!creationResult || !creationResult.disableConfirmationEmail) {
     try {
-      await attendeeMail.sendEmail();
+      await organizerMail.sendEmail();
     } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
+      console.error("organizerMail.sendEmail failed", e);
+    }
+
+    if (!creationResult || !creationResult.disableConfirmationEmail) {
+      try {
+        await attendeeMail.sendEmail();
+      } catch (e) {
+        console.error("attendeeMail.sendEmail failed", e);
+      }
     }
   }
 
   return {
+    type: credential.type,
+    success,
     uid,
     createdEvent: creationResult,
+    originalEvent: calEvent,
   };
 };
 
 const updateEvent = async (
   credential: Credential,
   uidToUpdate: string,
-  calEvent: CalendarEvent
-): Promise<unknown> => {
+  calEvent: CalendarEvent,
+  noMail = false
+): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
+  let success = true;
+
   const updateResult = credential
-    ? await calendars([credential])[0].updateEvent(uidToUpdate, richEvent)
+    ? await calendars([credential])[0]
+        .updateEvent(uidToUpdate, richEvent)
+        .catch((e) => {
+          log.error("updateEvent failed", e, calEvent);
+          success = false;
+        })
     : null;
 
-  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
-  try {
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
-
-  if (!updateResult || !updateResult.disableConfirmationEmail) {
+  if (!noMail) {
+    const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
+    const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
     try {
-      await attendeeMail.sendEmail();
+      await organizerMail.sendEmail();
     } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
+      console.error("organizerMail.sendEmail failed", e);
+    }
+
+    if (!updateResult || !updateResult.disableConfirmationEmail) {
+      try {
+        await attendeeMail.sendEmail();
+      } catch (e) {
+        console.error("attendeeMail.sendEmail failed", e);
+      }
     }
   }
 
   return {
+    type: credential.type,
+    success,
     uid: newUid,
     updatedEvent: updateResult,
+    originalEvent: calEvent,
   };
 };
 
@@ -606,12 +657,4 @@ const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
   return Promise.resolve({});
 };
 
-export {
-  getBusyCalendarTimes,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  CalendarEvent,
-  listCalendars,
-  IntegrationCalendar,
-};
+export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, listCalendars };
