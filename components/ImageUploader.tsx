@@ -13,8 +13,6 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
   const [shownImage, setShownImage] = useState<string>();
   const [imageUploadModalOpen, setImageUploadModalOpen] = useState(false);
 
-  // TODO
-  // PUSH cropped image to the database in column = target
   const openUploaderModal = () => {
     imageRef ? (setIsImageShown(true), setShownImage(imageRef)) : setIsImageShown(false);
     setImageUploadModalOpen(!imageUploadModalOpen)
@@ -25,9 +23,7 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
   };
 
   async function ImageUploadHandler() {
-    console.log(imageFileRef.current.files[0]);
     const img = await readFile(imageFileRef.current.files[0]);
-    console.log(img);
     setImageDataUrl(img);
     CropHandler();
   }
@@ -103,13 +99,6 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
   
     // As Base64 string
     return canvas.toDataURL('image/jpeg');
-  
-    // As a blob
-    // return new Promise(resolve => {
-    //   canvas.toBlob(file => {
-    //     resolve(URL.createObjectURL(file))
-    //   }, 'image/jpeg')
-    // })
   }
 
 
