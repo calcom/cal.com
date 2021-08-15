@@ -2,18 +2,36 @@ import Head from "next/head";
 import Link from "next/link";
 import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getSession, useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 import Switch from "@components/ui/Switch";
 import Loader from "@components/Loader";
+import AddCalDavIntegration from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 
-export default function IntegrationHome({ integrations }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
+type Integration = {
+  installed: boolean;
+  credential: unknown;
+  type: string;
+  title: string;
+  imageSrc: string;
+  description: string;
+};
+
+type Props = {
+  integrations: Integration[];
+};
+
+export default function Home({ integrations }: Props) {
+  const [, loading] = useSession();
+
   const [selectableCalendars, setSelectableCalendars] = useState([]);
+  const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
+  const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
+
+  useEffect(loadCalendars, [integrations]);
 
   function loadCalendars() {
     fetch("api/availability/calendar")
@@ -24,10 +42,31 @@ export default function IntegrationHome({ integrations }) {
   }
 
   function integrationHandler(type) {
+    if (type === "caldav_calendar") {
+      setIsAddCalDavIntegrationDialogOpen(true);
+      return;
+    }
+
     fetch("/api/integrations/" + type.replace("_", "") + "/add")
       .then((response) => response.json())
       .then((data) => (window.location.href = data.url));
   }
+
+  const handleAddCalDavIntegration = async ({ url, username, password }) => {
+    const requestBody = JSON.stringify({
+      url,
+      username,
+      password,
+    });
+
+    await fetch("/api/integrations/caldav/add", {
+      method: "POST",
+      body: requestBody,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  };
 
   function calendarSelectionHandler(calendar) {
     return (selected) => {
@@ -59,6 +98,8 @@ export default function IntegrationHome({ integrations }) {
         return "integrations/google-calendar.svg";
       case "office365_calendar":
         return "integrations/outlook.svg";
+      case "caldav_calendar":
+        return "integrations/generic-calendar.png";
       default:
         return "";
     }
@@ -66,12 +107,6 @@ export default function IntegrationHome({ integrations }) {
 
   function onCloseSelectCalendar() {
     setSelectableCalendars([...selectableCalendars]);
-  }
-
-  useEffect(loadCalendars, [integrations]);
-
-  if (loading) {
-    return <Loader />;
   }
 
   const ConnectNewAppDialog = () => (
@@ -87,24 +122,35 @@ export default function IntegrationHome({ integrations }) {
           <ul className="divide-y divide-gray-200">
             {integrations
               .filter((integration) => integration.installed)
-              .map((integration) => (
-                <li key={integration.type} className="flex py-4">
-                  <div className="w-1/12 mr-4 pt-2">
-                    <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
-                  </div>
-                  <div className="w-10/12">
-                    <h2 className="text-gray-800 font-medium">{integration.title}</h2>
-                    <p className="text-gray-400 text-sm">{integration.description}</p>
-                  </div>
-                  <div className="w-2/12 text-right pt-2">
-                    <button
-                      onClick={() => integrationHandler(integration.type)}
-                      className="font-medium text-neutral-900 hover:text-neutral-500">
-                      Add
-                    </button>
-                  </div>
-                </li>
-              ))}
+              .map((integration) => {
+                return (
+                  <li key={integration.type} className="flex py-4">
+                    <div className="w-1/12 mr-4 pt-2">
+                      <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
+                    </div>
+                    <div className="w-10/12">
+                      <h2 className="text-gray-800 font-medium">{integration.title}</h2>
+                      <p className="text-gray-400 text-sm">{integration.description}</p>
+                    </div>
+                    <div className="w-2/12 text-right pt-2">
+                      {integration.type === "caldav_calendar" ? (
+                        <button
+                          onClick={() => integrationHandler(integration.type)}
+                          className="font-medium text-neutral-900 hover:text-neutral-500">
+                          Add
+                        </button>
+                      ) : (
+                        // <ConnectCalDavServerDialog isOpen={isOpen}/>
+                        <button
+                          onClick={() => integrationHandler(integration.type)}
+                          className="font-medium text-neutral-900 hover:text-neutral-500">
+                          Add
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
           </ul>
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -159,6 +205,85 @@ export default function IntegrationHome({ integrations }) {
       </DialogContent>
     </Dialog>
   );
+
+  function handleAddCalDavIntegrationSaveButtonPress() {
+    const form = addCalDavIntegrationRef.current.elements;
+    const url = form.url.value;
+    const password = form.password.value;
+    const username = form.username.value;
+    try {
+      handleAddCalDavIntegration({ username, password, url });
+    } catch (reason) {
+      console.error(reason);
+    }
+  }
+
+  const onSubmit = () => {
+    const form = addCalDavIntegrationRef.current;
+
+    if (form) {
+      if (typeof form.requestSubmit === "function") {
+        form.requestSubmit();
+      } else {
+        form.dispatchEvent(new Event("submit", { cancelable: true }));
+      }
+
+      setIsAddCalDavIntegrationDialogOpen(false);
+    }
+  };
+
+  const ConnectCalDavServerDialog = ({ isOpen }) => {
+    return (
+      <Dialog open={isOpen}>
+        <DialogContent>
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              aria-hidden="true"></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <PlusIcon className="h-6 w-6 text-neutral-900" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                    Connect to CalDav Server
+                  </h3>
+                  <div>
+                    <p className="text-sm text-gray-400">Your credentials will be stored and encrypted.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="my-4">
+                <AddCalDavIntegration
+                  ref={addCalDavIntegrationRef}
+                  onSubmit={handleAddCalDavIntegrationSaveButtonPress}
+                />
+              </div>
+
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button
+                  onClick={onSubmit}
+                  className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+                  Save
+                </button>
+                <DialogClose as="button" className="btn btn-white mx-2">
+                  Cancel
+                </DialogClose>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div>
@@ -262,6 +387,7 @@ export default function IntegrationHome({ integrations }) {
             </div>
           </div>
         </div>
+        <ConnectCalDavServerDialog isOpen={isAddCalDavIntegrationDialogOpen} />
       </Shell>
     </div>
   );
@@ -328,6 +454,14 @@ export async function getServerSideProps(context) {
       title: "Zoom",
       imageSrc: "integrations/zoom.svg",
       description: "Video Conferencing",
+    },
+    {
+      installed: true,
+      type: "caldav_calendar",
+      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
+      title: "CalDav Server",
+      imageSrc: "integrations/generic-calendar.png",
+      description: "For personal and business calendars",
     },
   ];
 
