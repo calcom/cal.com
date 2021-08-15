@@ -5,6 +5,8 @@ import { VideoCallData } from "../videoClient";
 import EventAttendeeMail from "./EventAttendeeMail";
 import { getFormattedMeetingId, getIntegrationName } from "./helpers";
 
+
+
 export default class VideoEventAttendeeMail extends EventAttendeeMail {
   videoCallData: VideoCallData;
 
