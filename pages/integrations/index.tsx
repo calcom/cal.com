@@ -2,14 +2,13 @@ import Head from "next/head";
 import Link from "next/link";
 import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 import Switch from "@components/ui/Switch";
 import Loader from "@components/Loader";
-import AddCalDavIntegration from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 
 type Integration = {
   installed: boolean;
@@ -28,7 +27,6 @@ export default function Home({ integrations }: Props) {
   const [, loading] = useSession();
 
   const [selectableCalendars, setSelectableCalendars] = useState([]);
-  const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
   const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
 
   useEffect(loadCalendars, [integrations]);
@@ -51,22 +49,6 @@ export default function Home({ integrations }: Props) {
       .then((response) => response.json())
       .then((data) => (window.location.href = data.url));
   }
-
-  const handleAddCalDavIntegration = async ({ url, username, password }) => {
-    const requestBody = JSON.stringify({
-      url,
-      username,
-      password,
-    });
-
-    await fetch("/api/integrations/caldav/add", {
-      method: "POST",
-      body: requestBody,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  };
 
   function calendarSelectionHandler(calendar) {
     return (selected) => {
@@ -140,7 +122,6 @@ export default function Home({ integrations }: Props) {
                           Add
                         </button>
                       ) : (
-                        // <ConnectCalDavServerDialog isOpen={isOpen}/>
                         <button
                           onClick={() => integrationHandler(integration.type)}
                           className="font-medium text-neutral-900 hover:text-neutral-500">
@@ -206,30 +187,18 @@ export default function Home({ integrations }: Props) {
     </Dialog>
   );
 
-  function handleAddCalDavIntegrationSaveButtonPress() {
-    const form = addCalDavIntegrationRef.current.elements;
-    const url = form.url.value;
-    const password = form.password.value;
-    const username = form.username.value;
-    try {
-      handleAddCalDavIntegration({ username, password, url });
-    } catch (reason) {
-      console.error(reason);
-    }
-  }
+  const onSubmit = async (e) => {
+    e.preventDefault();
 
-  const onSubmit = () => {
-    const form = addCalDavIntegrationRef.current;
+    await fetch("/api/integrations/caldav/add", {
+      method: "POST",
+      body: JSON.stringify(Object.fromEntries(new FormData(e.target).entries())),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    if (form) {
-      if (typeof form.requestSubmit === "function") {
-        form.requestSubmit();
-      } else {
-        form.dispatchEvent(new Event("submit", { cancelable: true }));
-      }
-
-      setIsAddCalDavIntegrationDialogOpen(false);
-    }
+    setIsAddCalDavIntegrationDialogOpen(false);
   };
 
   const ConnectCalDavServerDialog = ({ isOpen }) => {
@@ -240,22 +209,63 @@ export default function Home({ integrations }: Props) {
             title="Connect to CalDav Server"
             subtitle="Your credentials will be stored and encrypted."
           />
-          <div className="my-4">
-            <AddCalDavIntegration
-              ref={addCalDavIntegrationRef}
-              onSubmit={handleAddCalDavIntegrationSaveButtonPress}
-            />
-          </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button
-              onClick={onSubmit}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              Save
-            </button>
-            <DialogClose as="button" className="btn btn-white mx-2">
-              Cancel
-            </DialogClose>
-          </div>
+          <form onSubmit={onSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="url" className="block text-sm font-medium text-gray-700">
+                  Calendar URL
+                </label>
+                <div className="mt-1 rounded-md shadow-sm flex">
+                  <input
+                    required
+                    type="text"
+                    name="url"
+                    id="url"
+                    placeholder="https://example.com/calendar"
+                    className="focus:ring-black focus:border-black flex-grow block w-full min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300 lowercase"
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                  Username
+                </label>
+                <input
+                  required
+                  type="text"
+                  name="username"
+                  id="username"
+                  placeholder="rickroll"
+                  className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <input
+                  required
+                  type="password"
+                  name="password"
+                  id="password"
+                  placeholder="•••••••••••••"
+                  className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                />
+              </div>
+            </div>
+            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <input
+                type="submit"
+                value="Save"
+                className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900"
+              />
+              <DialogClose
+                onClick={() => setIsAddCalDavIntegrationDialogOpen(false)}
+                className="btn btn-white mx-2">
+                Cancel
+              </DialogClose>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     );
