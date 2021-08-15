@@ -54,7 +54,7 @@ export default function Bookings({ bookings }) {
                         <tr key={booking.id}>
                           <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
                             {!booking.confirmed && !booking.rejected && (
-                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+                              <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                                 Unconfirmed
                               </span>
                             )}
