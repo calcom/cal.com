@@ -4,6 +4,8 @@ import { getFormattedMeetingId, getIntegrationName } from "./helpers";
 import { VideoCallData } from "../videoClient";
 import { AdditionInformation } from "@lib/emails/EventMail";
 
+
+
 export default class VideoEventAttendeeMail extends EventAttendeeMail {
   videoCallData: VideoCallData;
 
@@ -24,11 +26,20 @@ export default class VideoEventAttendeeMail extends EventAttendeeMail {
    * @protected
    */
   protected getAdditionalBody(): string {
+    const isDaily = this.videoCallData.type === "Daily Video Chat & Conferencing"
+    if (!isDaily){
     return `
       <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
       <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
       <strong>Meeting Password:</strong> ${this.videoCallData.password}<br />
       <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
+    }
+    if (isDaily){
+      return `
+      <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
+      <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
+    `;
+    }
   }
 }
