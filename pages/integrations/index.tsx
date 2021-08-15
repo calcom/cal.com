@@ -99,7 +99,7 @@ export default function Home({ integrations }: Props) {
       case "office365_calendar":
         return "integrations/outlook.svg";
       case "caldav_calendar":
-        return "integrations/generic-calendar.png";
+        return "integrations/caldav.svg";
       default:
         return "";
     }
@@ -440,7 +440,7 @@ export async function getServerSideProps(context) {
       type: "caldav_calendar",
       credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
       title: "CalDav Server",
-      imageSrc: "integrations/generic-calendar.png",
+      imageSrc: "integrations/caldav.svg",
       description: "For personal and business calendars",
     },
   ];
