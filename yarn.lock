@@ -753,6 +753,13 @@
   resolved "https://registry.yarnpkg.com/@prisma/engines/-/engines-2.26.0-23.9b816b3aa13cc270074f172f30d6eda8a8ce867d.tgz#cfdacfad3acc0f3bf1d7710aa8f3852fd85ac6d9"
   integrity sha512-a0jIhLvw9rFh6nZTr5Y3uzP28I2xNDu3pqxANvwMNnmIoYr1wYEcO1pMXn/36BGXldDdAWMmAbhfloHA3IB8DA==
 
+"@radix-ui/number@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@radix-ui/number/-/number-0.0.6.tgz#b99c5397592d4714f2addaac86879e3ed5136acd"
+  integrity sha512-4ezhe9dWl3mSrZ6EaYQE+OhOOT1+KW73FTbpaQmg8rD7RgArnmbSW7gLdWw9X9zq4zv+FGqcTqErxctiG3ZzRA==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+
 "@radix-ui/popper@0.0.10":
   version "0.0.10"
   resolved "https://registry.yarnpkg.com/@radix-ui/popper/-/popper-0.0.10.tgz#9f707d9cec8762423f81acaf8e650e40a554cb73"
@@ -792,6 +799,15 @@
     "@radix-ui/react-primitive" "0.0.14"
     "@radix-ui/react-use-controllable-state" "0.0.6"
     "@radix-ui/react-use-layout-effect" "0.0.5"
+
+"@radix-ui/react-collection@0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-collection/-/react-collection-0.0.15.tgz#1b2ef5d5c0361ad28fd168917e567e4d0f845c43"
+  integrity sha512-h82YPqKxIfrXpd8WJCdfgl1c8u2kj+Mr9syNwjcYcXv6DulkT8op771q0ry3+CcL/4cOOyR4ULdfuvMODTsUeg==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/react-compose-refs" "0.0.5"
+    "@radix-ui/react-slot" "0.0.12"
 
 "@radix-ui/react-compose-refs@0.0.5":
   version "0.0.5"
@@ -957,6 +973,25 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-polymorphic" "0.0.13"
 
+"@radix-ui/react-slider@^0.0.17":
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-slider/-/react-slider-0.0.17.tgz#14cc1bb89ff189fb082bc9efda8fe6161e491d6e"
+  integrity sha512-bYu+SuHnQnPCx7oOsMIujPPqgRi83PF7rVQ6/bRaLUjbJutHB8Arye8KhcvW/OUcqMqWllt0Jwp5aV6akM+ukA==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/number" "0.0.6"
+    "@radix-ui/primitive" "0.0.5"
+    "@radix-ui/react-collection" "0.0.15"
+    "@radix-ui/react-compose-refs" "0.0.5"
+    "@radix-ui/react-context" "0.0.5"
+    "@radix-ui/react-polymorphic" "0.0.13"
+    "@radix-ui/react-primitive" "0.0.15"
+    "@radix-ui/react-use-controllable-state" "0.0.6"
+    "@radix-ui/react-use-direction" "0.0.1"
+    "@radix-ui/react-use-layout-effect" "0.0.5"
+    "@radix-ui/react-use-previous" "0.0.5"
+    "@radix-ui/react-use-size" "0.0.6"
+
 "@radix-ui/react-slot@0.0.12", "@radix-ui/react-slot@^0.0.12":
   version "0.0.12"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-0.0.12.tgz#c4d8a75fffca561aeeca2ed9603384d86757f60a"
@@ -1026,6 +1061,13 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-use-callback-ref" "0.0.5"
+
+"@radix-ui/react-use-direction@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-use-direction/-/react-use-direction-0.0.1.tgz#9ac72eb6d9902ed505c8a34048981d94f9433e14"
+  integrity sha512-sU+tkP09uEI1m+YJAR1ZAZLVFY1h/JD+jLSSQt5Wo3b9SYrJA889i2hH1P3DNRyWbbbisweiEQdK3MWILhFCig==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
 
 "@radix-ui/react-use-escape-keydown@0.0.6":
   version "0.0.6"
