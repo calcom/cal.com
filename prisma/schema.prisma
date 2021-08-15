@@ -72,6 +72,7 @@ model User {
 model Team {
   id            Int       @default(autoincrement()) @id
   name          String?
+  slug          String?
   members       Membership[]
 }
 
