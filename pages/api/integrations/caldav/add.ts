@@ -69,10 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     } catch (reason) {
       logger.error("Could not add this caldav account", reason);
-      return res.status(200).json({ message: "Could not add this caldav account" });
+      return res.status(500).json({ message: "Could not add this caldav account" });
     }
-    // TODO VALIDATE URL
-    // TODO VALIDATE CONNECTION IS POSSIBLE
 
     return res.status(200).json({});
   }
