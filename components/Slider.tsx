@@ -1,12 +1,9 @@
 import React from 'react';
-// import { styled } from '@stitches/react';
-// import { violet, blackA } from '@radix-ui/colors';
 import * as SliderPrimitive from '@radix-ui/react-slider';
 
 const Slider = ({value, min, max, step, label, changeHandler}) => (
     <SliderPrimitive.Root 
     className="slider mt-2"
-    // defaultValue={[value]}
     min={min}
     step={step}
     max={max}

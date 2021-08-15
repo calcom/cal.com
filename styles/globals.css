@@ -83,22 +83,26 @@
     .slider {
       @apply relative flex items-center w-40 h-4 select-none 
     }
+
     .slider > .slider-track {
         @apply relative flex-grow h-1 bg-neutral-400 rounded-md;
     }
+
     .slider .slider-range {
       @apply absolute h-full bg-neutral-700 rounded-full
     }
+
     .slider .slider-thumb {
       @apply block w-3 h-3 bg-neutral-700 rounded-full shadow-sm cursor-pointer transition-all;
-    }  
+    }
+
     .slider .slider-thumb:hover {
       @apply bg-neutral-600;
     }
+
     .slider .slider-thumb:focus {
       box-shadow: 0 0 0 4px rgba(0,0,0,0.2);
     }
-  
 }
 
 /* !important to style multi-email input */

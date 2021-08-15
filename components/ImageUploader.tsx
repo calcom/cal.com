@@ -50,7 +50,6 @@ export default function ImageUploader({target, id, buttonMsg, handleAvatarChange
 
   const handleZoomSliderChange = ([value]) => {
     value < 1 ? setZoom(1) : setZoom(value);
-    // setZoom(e[0]);
   }
 
   const createImage = (url) =>
