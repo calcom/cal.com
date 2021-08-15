@@ -234,7 +234,7 @@ export default function Home({ integrations }: Props) {
 
   const ConnectCalDavServerDialog = ({ isOpen }) => {
     return (
-      <Dialog open={isOpen}>
+      <Dialog open={isOpen} onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
@@ -252,7 +252,12 @@ export default function Home({ integrations }: Props) {
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </button>
-            <DialogClose as="button" className="btn btn-white mx-2">
+            <DialogClose
+              onClick={() => {
+                setIsAddCalDavIntegrationDialogOpen(false);
+              }}
+              as="button"
+              className="btn btn-white mx-2">
               Cancel
             </DialogClose>
           </div>
