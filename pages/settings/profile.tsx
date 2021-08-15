@@ -11,6 +11,7 @@ import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 import { UsernameInput } from "../../components/ui/UsernameInput";
 import ErrorAlert from "../../components/ui/alerts/Error";
+import ImageUploader from "../../components/ImageUploader";
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -27,6 +28,7 @@ export default function Settings(props) {
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
+  const [imageSrc, setImageSrc] = useState<string>('');  
 
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -41,6 +43,16 @@ export default function Settings(props) {
   const closeSuccessModal = () => {
     setSuccessModalOpen(false);
   };
+
+  const handleAvatarChange = (newAvatar) => {
+    avatarRef.current.value = newAvatar;
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    nativeInputValueSetter.call(avatarRef.current, newAvatar);      
+    const ev2 = new Event('input', { bubbles: true});
+    avatarRef.current.dispatchEvent(ev2);
+    updateProfileHandler(ev2);
+    setImageSrc(newAvatar);  
+  }
 
   const handleError = async (resp) => {
     if (!resp.ok) {
@@ -139,6 +151,33 @@ export default function Settings(props) {
                   </div>
                 </div>
                 <div>
+                  <div className="mt-1 flex">
+                      <Avatar
+                        user={props.user}
+                        className="relative rounded-full w-10 h-10"
+                        fallback={<div className="relative bg-neutral-900 rounded-full w-10 h-10"></div>}
+                        imageSrc={imageSrc}
+                      />
+                      <input
+                        ref={avatarRef}
+                        type="hidden"
+                        name="avatar"
+                        id="avatar"
+                        placeholder="URL"
+                        className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                        defaultValue={props.user.avatar}
+                      />                    
+                      <ImageUploader 
+                        target="avatar"
+                        id="avatar-upload"
+                        buttonMsg="Change avatar"
+                        handleAvatarChange={handleAvatarChange}
+                        imageRef={imageSrc ? imageSrc : props.user.avatar}
+                      />
+                  </div>
+                  <hr className="mt-6" />
+                </div>                
+                <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                     Timezone
                   </label>
@@ -225,7 +264,7 @@ export default function Settings(props) {
                 </div>
               </div>
 
-              <div className="mt-6 flex-grow lg:mt-0 lg:ml-6 lg:flex-grow-0 lg:flex-shrink-0">
+              {/*<div className="mt-6 flex-grow lg:mt-0 lg:ml-6 lg:flex-grow-0 lg:flex-shrink-0">
                 <p className="mb-2 text-sm font-medium text-gray-700" aria-hidden="true">
                   Photo
                 </p>
@@ -236,15 +275,6 @@ export default function Settings(props) {
                       aria-hidden="true">
                       <Avatar user={props.user} className="rounded-full h-full w-full" />
                     </div>
-                    {/* <div className="ml-5 rounded-sm shadow-sm">
-                                            <div className="group relative border border-gray-300 rounded-sm py-2 px-3 flex items-center justify-center hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-neutral-500">
-                                                <label htmlFor="user_photo" className="relative text-sm leading-4 font-medium text-gray-700 pointer-events-none">
-                                                    <span>Change</span>
-                                                    <span className="sr-only"> user photo</span>
-                                                </label>
-                                                <input id="user_photo" name="user_photo" type="file" className="absolute w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-sm" />
-                                            </div>
-                                        </div> */}
                   </div>
                 </div>
 
@@ -254,11 +284,6 @@ export default function Settings(props) {
                     className="relative rounded-full w-40 h-40"
                     fallback={<div className="relative bg-neutral-900 rounded-full w-40 h-40"></div>}
                   />
-                  {/* <label htmlFor="user-photo" className="absolute inset-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center text-sm font-medium text-white opacity-0 hover:opacity-100 focus-within:opacity-100">
-                                        <span>Change</span>
-                                        <span className="sr-only"> user photo</span>
-                                        <input type="file" id="user-photo" name="user-photo" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer border-gray-300 rounded-sm" />
-                                    </label> */}
                 </div>
                 <div className="mt-4">
                   <label htmlFor="avatar" className="block text-sm font-medium text-gray-700">
@@ -274,7 +299,7 @@ export default function Settings(props) {
                     defaultValue={props.user.avatar}
                   />
                 </div>
-              </div>
+              </div>*/}
             </div>
             <hr className="mt-8" />
             <div className="py-4 flex justify-end">

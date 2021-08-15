@@ -118,7 +118,7 @@
   align-content: flex-start;
   padding-top: 0.1rem !important;
   padding-bottom: 0.1rem !important;
-  padding-left: 0.75rem !important;
+  /* padding-left: 0.75rem !important; */
   @apply dark:border-black border-white dark:bg-black bg-white;
 }
 
@@ -127,9 +127,11 @@
 }
 
 .react-multi-email.focused{
-  margin: -1px;
-  border: 2px solid #000 !important;
   @apply dark:bg-black
+}
+
+.react-multi-email.focused > [type='text']{
+  border: 2px solid #000 !important;
 }
 
 .react-multi-email > [type='text']:focus{
