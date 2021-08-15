@@ -4,6 +4,8 @@ type Props = {
   onSubmit: () => void;
 };
 
+export const ADD_CALDAV_INTEGRATION_FORM_TITLE = "addCalDav";
+
 const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, ref) => {
   const onSubmit = (event) => {
     event.preventDefault();
@@ -13,9 +15,9 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
   };
 
   return (
-    <form id="addCalDav" ref={ref} onSubmit={onSubmit}>
+    <form id={ADD_CALDAV_INTEGRATION_FORM_TITLE} ref={ref} onSubmit={onSubmit}>
       <div className="mb-2">
-        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="url" className="block text-sm font-medium text-gray-700">
           Calendar URL
         </label>
         <div className="mt-1 rounded-md shadow-sm flex">

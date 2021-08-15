@@ -2,14 +2,16 @@ import Head from "next/head";
 import Link from "next/link";
 import prisma from "../../lib/prisma";
 import Shell from "../../components/Shell";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { getSession, useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 import Switch from "@components/ui/Switch";
 import Loader from "@components/Loader";
-import AddCalDavIntegration from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import AddCalDavIntegration, {
+  ADD_CALDAV_INTEGRATION_FORM_TITLE,
+} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 
 type Integration = {
   installed: boolean;
@@ -30,6 +32,7 @@ export default function Home({ integrations }: Props) {
   const [selectableCalendars, setSelectableCalendars] = useState([]);
   const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
   const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
+  const [addCalDavError, setAddCalDavError] = useState<{ message: string } | null>(null);
 
   useEffect(loadCalendars, [integrations]);
 
@@ -43,6 +46,7 @@ export default function Home({ integrations }: Props) {
 
   function integrationHandler(type) {
     if (type === "caldav_calendar") {
+      setAddCalDavError(null);
       setIsAddCalDavIntegrationDialogOpen(true);
       return;
     }
@@ -59,7 +63,7 @@ export default function Home({ integrations }: Props) {
       password,
     });
 
-    await fetch("/api/integrations/caldav/add", {
+    return await fetch("/api/integrations/caldav/add", {
       method: "POST",
       body: requestBody,
       headers: {
@@ -133,20 +137,11 @@ export default function Home({ integrations }: Props) {
                       <p className="text-gray-400 text-sm">{integration.description}</p>
                     </div>
                     <div className="w-2/12 text-right pt-2">
-                      {integration.type === "caldav_calendar" ? (
-                        <button
-                          onClick={() => integrationHandler(integration.type)}
-                          className="font-medium text-neutral-900 hover:text-neutral-500">
-                          Add
-                        </button>
-                      ) : (
-                        // <ConnectCalDavServerDialog isOpen={isOpen}/>
-                        <button
-                          onClick={() => integrationHandler(integration.type)}
-                          className="font-medium text-neutral-900 hover:text-neutral-500">
-                          Add
-                        </button>
-                      )}
+                      <button
+                        onClick={() => integrationHandler(integration.type)}
+                        className="font-medium text-neutral-900 hover:text-neutral-500">
+                        Add
+                      </button>
                     </div>
                   </li>
                 );
@@ -206,41 +201,43 @@ export default function Home({ integrations }: Props) {
     </Dialog>
   );
 
-  function handleAddCalDavIntegrationSaveButtonPress() {
+  const handleAddCalDavIntegrationSaveButtonPress = async () => {
     const form = addCalDavIntegrationRef.current.elements;
     const url = form.url.value;
     const password = form.password.value;
     const username = form.username.value;
+
     try {
-      handleAddCalDavIntegration({ username, password, url });
+      setAddCalDavError(null);
+      const addCalDavIntegrationResponse = await handleAddCalDavIntegration({ username, password, url });
+      if (addCalDavIntegrationResponse.ok) {
+        setIsAddCalDavIntegrationDialogOpen(false);
+      } else {
+        const j = await addCalDavIntegrationResponse.json();
+        setAddCalDavError({ message: j.message });
+      }
     } catch (reason) {
       console.error(reason);
     }
-  }
-
-  const onSubmit = () => {
-    const form = addCalDavIntegrationRef.current;
-
-    if (form) {
-      if (typeof form.requestSubmit === "function") {
-        form.requestSubmit();
-      } else {
-        form.dispatchEvent(new Event("submit", { cancelable: true }));
-      }
-
-      setIsAddCalDavIntegrationDialogOpen(false);
-    }
   };
 
-  const ConnectCalDavServerDialog = ({ isOpen }) => {
+  const ConnectCalDavServerDialog = useCallback(() => {
     return (
-      <Dialog open={isOpen}>
+      <Dialog
+        open={isAddCalDavIntegrationDialogOpen}
+        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
             subtitle="Your credentials will be stored and encrypted."
           />
           <div className="my-4">
+            {addCalDavError && (
+              <p className="text-red-700 text-sm">
+                <span className="font-bold">Error: </span>
+                {addCalDavError.message}
+              </p>
+            )}
             <AddCalDavIntegration
               ref={addCalDavIntegrationRef}
               onSubmit={handleAddCalDavIntegrationSaveButtonPress}
@@ -248,18 +245,24 @@ export default function Home({ integrations }: Props) {
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button
-              onClick={onSubmit}
+              type="submit"
+              form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </button>
-            <DialogClose as="button" className="btn btn-white mx-2">
+            <DialogClose
+              onClick={() => {
+                setIsAddCalDavIntegrationDialogOpen(false);
+              }}
+              as="button"
+              className="btn btn-white mx-2">
               Cancel
             </DialogClose>
           </div>
         </DialogContent>
       </Dialog>
     );
-  };
+  }, [isAddCalDavIntegrationDialogOpen, addCalDavError]);
 
   if (loading) {
     return <Loader />;
@@ -367,7 +370,7 @@ export default function Home({ integrations }: Props) {
             </div>
           </div>
         </div>
-        <ConnectCalDavServerDialog isOpen={isAddCalDavIntegrationDialogOpen} />
+        <ConnectCalDavServerDialog />
       </Shell>
     </div>
   );
