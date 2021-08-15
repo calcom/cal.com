@@ -331,6 +331,8 @@ if (credential) {
     const credential = this.getVideoCredential(event);
     const isDaily = event.location === "integrations:daily";
 
+    //lola-internal so this won't work because there isn't going to be a booking reference...hmmm...we would need to add some aditional logic that would check for a location and
+
     if (credential && !isDaily) {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return updateMeeting(credential, bookingRefUid, event);

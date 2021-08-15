@@ -12,6 +12,7 @@ import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
 import { getIntegrationName } from "@lib/emails/helpers";
 import CalEventParser from "@lib/CalEventParser";
 import { Credential } from "@prisma/client";
+import { assuredworkloads } from "googleapis/build/src/apis/assuredworkloads";
 
 const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
@@ -106,11 +107,13 @@ interface DailyVideoApiAdapter {
 }
 
 const DailyVideo = (credential): DailyVideoApiAdapter => {
-  // lola todo yea this zoom auth stuff
+
 
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // lola todo i'll need to actually pull in the dynamic data but I think I can draw inspiration from the zoom translate event
+    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 720;
+    const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 720;
     return {
       privacy: "public",
       properties: {
@@ -118,7 +121,9 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
         enable_prejoin_ui: true, 
         enable_knocking: true,  
         enable_screenshare: true,
-        enable_chat: true
+        enable_chat: true,
+        exp: exp,
+        nbf: nbf
       }
     };
   };
@@ -152,7 +157,8 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
   };
 };
 
-// factory
+// factory 
+//lola-internal but this whole rigmaroe isn't necessary i should just yea...
 const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
   withCredentials
     .map((cred) => {
@@ -160,7 +166,7 @@ const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
         case "daily_video":
           return DailyVideo(cred);
         default:
-          return; // unknown credential, could be legacy? In any case, ignore
+          return DailyVideo(cred);
       }
     })
     .filter(Boolean);
@@ -170,7 +176,7 @@ const getBusyVideoTimes: (withCredentials) => Promise<unknown[]> = (withCredenti
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-  //lola internal i changed credential to dailycredential
+
 const dailyCreateMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
@@ -194,11 +200,13 @@ const dailyCreateMeeting = async (
       success = false;
     });
 
+  const currentRoute=process.env.BASE_URL ;
+
   const videoCallData: DailyVideoCallData = {
     type: "Daily Video Chat & Conferencing",
     id: creationResult.name,
     password: creationResult.password,
-    url: creationResult.url,
+    url: currentRoute + '/call/'+ uid,
   };
 
   //lola todo - we probably don't need an entry point
@@ -295,5 +303,6 @@ const dailyDeleteMeeting = (credential: Credential, uid: string): Promise<unknow
 
   return Promise.resolve({});
 };
+
 
 export { getBusyVideoTimes, dailyCreateMeeting, dailyUpdateMeeting, dailyDeleteMeeting };
