@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
+import prisma from "@lib/prisma";
+import { EventType, User } from "@prisma/client";
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
@@ -9,7 +10,6 @@ import { getEventName } from "@lib/event";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
 import EventManager, { CreateUpdateResult, EventResult } from "@lib/events/EventManager";
-import { User } from "@prisma/client";
 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -29,13 +29,14 @@ const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 function isAvailable(busyTimes, time, length) {
   // Check for conflicts
   let t = true;
+
   if (Array.isArray(busyTimes) && busyTimes.length > 0) {
     busyTimes.forEach((busyTime) => {
       const startTime = dayjs(busyTime.start);
       const endTime = dayjs(busyTime.end);
 
       // Check if time is between start and end times
-      if (dayjs(time).isBetween(startTime, endTime)) {
+      if (dayjs(time).isBetween(startTime, endTime, null, "(]")) {
         t = false;
       }
 
@@ -82,11 +83,11 @@ function isOutOfBounds(
 
 export async function handleLegacyConfirmationMail(
   results: Array<EventResult>,
-  selectedEventType: { requiresConfirmation: boolean },
+  eventType: EventType,
   evt: CalendarEvent,
   hashUID: string
 ): Promise<{ error: Exception; message: string | null }> {
-  if (results.length === 0 && !selectedEventType.requiresConfirmation) {
+  if (results.length === 0 && !eventType.requiresConfirmation) {
     // Legacy as well, as soon as we have a separate email integration class. Just used
     // to send an email even if there is no integration at all.
     try {
@@ -179,12 +180,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const eventManager = new EventManager(currentUser.credentials);
     const rescheduleUid = req.body.rescheduleUid;
 
-    const selectedEventType = await prisma.eventType.findFirst({
+    const eventType: EventType = await prisma.eventType.findFirst({
       where: {
         userId: currentUser.id,
         id: req.body.eventTypeId,
       },
       select: {
+        id: true,
         eventName: true,
         title: true,
         length: true,
@@ -209,8 +211,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const attendeesList = [...invitee, ...guests];
 
     const evt: CalendarEvent = {
-      type: selectedEventType.title,
-      title: getEventName(req.body.name, selectedEventType.title, selectedEventType.eventName),
+      type: eventType.title,
+      title: getEventName(req.body.name, eventType.title, eventType.eventName),
       description: req.body.notes,
       startTime: req.body.start,
       endTime: req.body.end,
@@ -219,22 +221,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: req.body.location, // Will be processed by the EventManager later.
     };
 
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        userId: currentUser.id,
-        title: evt.type,
-      },
-      select: {
-        id: true,
-      },
-    });
-
     let isAvailableToBeBooked = true;
 
     try {
-      isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, selectedEventType.length);
-    } catch (e) {
-      console.log(e);
+      isAvailableToBeBooked = isAvailable(commonAvailability, req.body.start, eventType.length);
+    } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
       });
@@ -254,11 +245,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       timeOutOfBounds = isOutOfBounds(req.body.start, {
-        periodType: selectedEventType.periodType,
-        periodDays: selectedEventType.periodDays,
-        periodEndDate: selectedEventType.periodEndDate,
-        periodStartDate: selectedEventType.periodStartDate,
-        periodCountCalendarDays: selectedEventType.periodCountCalendarDays,
+        periodType: eventType.periodType,
+        periodDays: eventType.periodDays,
+        periodEndDate: eventType.periodEndDate,
+        periodStartDate: eventType.periodStartDate,
+        periodCountCalendarDays: eventType.periodCountCalendarDays,
         timeZone: currentUser.timeZone,
       });
     } catch {
@@ -297,7 +288,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Forward results
       results = updateResults.results;
       referencesToCreate = updateResults.referencesToCreate;
-    } else if (!selectedEventType.requiresConfirmation) {
+    } else if (!eventType.requiresConfirmation) {
       // Use EventManager to conditionally use all needed integrations.
       const createResults: CreateUpdateResult = await eventManager.create(evt);
 
@@ -320,7 +311,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
-    const legacyMailError = await handleLegacyConfirmationMail(results, selectedEventType, evt, hashUID);
+    const legacyMailError = await handleLegacyConfirmationMail(results, eventType, evt, hashUID);
     if (legacyMailError) {
       log.error("Sending legacy event mail failed", legacyMailError.error);
       log.error(`Booking ${user} failed`);
@@ -344,8 +335,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           attendees: {
             create: evt.attendees,
           },
-          location: evt.location, // This is the raw location that can be processed by the EventManager.
-          confirmed: !selectedEventType.requiresConfirmation,
+          confirmed: !eventType.requiresConfirmation,
+          location: evt.location,
         },
       });
     } catch (e) {
@@ -354,7 +345,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    if (selectedEventType.requiresConfirmation) {
+    if (eventType.requiresConfirmation) {
       await new EventOrganizerRequestMail(evt, hashUID).sendEmail();
     }
 
