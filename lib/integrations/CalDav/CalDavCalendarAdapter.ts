@@ -103,6 +103,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       };
     } catch (reason) {
       console.error(reason);
+      throw reason;
     }
   }
 
@@ -153,6 +154,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       return null;
     } catch (reason) {
       console.error(reason);
+      throw reason;
     }
   }
 
@@ -186,6 +188,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       return null;
     } catch (reason) {
       console.error(reason);
+      throw reason;
     }
   }
 
@@ -212,6 +215,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       return events;
     } catch (reason) {
       console.error(reason);
+      throw reason;
     }
   }
 
@@ -235,6 +239,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         }));
     } catch (reason) {
       console.error(reason);
+      throw reason;
     }
   }
 
@@ -295,6 +300,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       return events;
     } catch (reason) {
       console.error(reason);
+      throw reason;
     }
   }
 
