@@ -317,30 +317,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       referencesToCreate = createResults.referencesToCreate;
     }
 
+    //stores the correct daily event
+    const isDaily = evt.location === "integrations:daily";
+    let dailyEvent;
+    if (!rescheduleUid) {
+      dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent;
+    } else {
+      dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent;
+    }
 
-//lola-internal get the details from the created daily event like the url not sure why it's daily_video but we could make it so that we don't have to do an isdaily
-const isDaily = evt.location === "integrations:daily"    
-let dailyEvent;
-if (!rescheduleUid) {
- dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent ;
-} else {
- dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent ;
-}
-  
-let meetingToken;
-if (isDaily){  
-   const response = await fetch('https://api.daily.co/v1/meeting-tokens', {
-    method: 'POST',
-    body:JSON.stringify({properties: {room_name: dailyEvent.name, is_owner: true}}),
-    headers: {
-      'Authorization': 'Bearer ' + process.env.DAILY_API_KEY,
-      'Content-Type': 'application/json'
-    },
-  })
-  meetingToken = await response.json()
-};
-
-    
+    let meetingToken;
+    if (isDaily) {
+      const response = await fetch("https://api.daily.co/v1/meeting-tokens", {
+        method: "POST",
+        body: JSON.stringify({ properties: { room_name: dailyEvent.name, is_owner: true } }),
+        headers: {
+          Authorization: "Bearer " + process.env.DAILY_API_KEY,
+          "Content-Type": "application/json",
+        },
+      });
+      meetingToken = await response.json();
+    }
 
     const hashUID =
       results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
@@ -353,39 +350,38 @@ if (isDaily){
       res.status(500).json({ message: legacyMailError.message });
       return;
     }
-    
-    if (isDaily){
-    try {
-      await prisma.booking.create({
-        data: {
-          uid: hashUID,
-          userId: currentUser.id,
-          references: {
-            create: referencesToCreate,
-          },
-          eventTypeId: eventType.id,
-          title: evt.title,
-          description: evt.description,
-          startTime: evt.startTime,
-          endTime: evt.endTime,
-          attendees: {
-            create: evt.attendees,
-          },
-          location: evt.location, // This is the raw location that can be processed by the EventManager.
-          dailyurl: dailyEvent.url,
-          dailytoken: meetingToken.token,
-          confirmed: !selectedEventType.requiresConfirmation,
-        },
-      });
-    } catch (e) {
-      log.error(results, e);
-      res.status(500).json({ message: "Booking already exists" });
-      return;
-    }}
 
-  
+    if (isDaily) {
+      try {
+        await prisma.booking.create({
+          data: {
+            uid: hashUID,
+            userId: currentUser.id,
+            references: {
+              create: referencesToCreate,
+            },
+            eventTypeId: eventType.id,
+            title: evt.title,
+            description: evt.description,
+            startTime: evt.startTime,
+            endTime: evt.endTime,
+            attendees: {
+              create: evt.attendees,
+            },
+            location: evt.location, // This is the raw location that can be processed by the EventManager.
+            dailyurl: dailyEvent.url,
+            dailytoken: meetingToken.token,
+            confirmed: !selectedEventType.requiresConfirmation,
+          },
+        });
+      } catch (e) {
+        log.error(results, e);
+        res.status(500).json({ message: "Booking already exists" });
+        return;
+      }
+    }
 
-    if (!isDaily){
+    if (!isDaily) {
       try {
         await prisma.booking.create({
           data: {
@@ -410,9 +406,8 @@ if (isDaily){
         log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
         res.status(500).json({ message: "Booking already exists" });
         return;
-      }}
-
-    
+      }
+    }
 
     if (selectedEventType.requiresConfirmation) {
       await new EventOrganizerRequestMail(evt, hashUID).sendEmail();
