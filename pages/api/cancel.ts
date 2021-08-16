@@ -41,7 +41,7 @@ export default async function handler(req, res) {
           return await deleteMeeting(credential, bookingRefUid);
         }
       }
-    //lola internal deleting this if it's daily that is the call
+    
       const isDaily = bookingToDelete.references.filter((ref) => ref.type === "daily");
       const bookingUID = bookingToDelete.references.filter((ref) => ref.type === "daily")[0]?.uid;
       if (isDaily){ 

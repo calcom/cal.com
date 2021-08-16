@@ -6,7 +6,7 @@ import { getSession } from 'next-auth/client';
 import type {NextApiRequest, NextApiResponse} from 'next';
 
 
-//lola-internal this page is where we'll join a daily call. Booking meeting owners will need to let users in to join.
+//this is where users will join the hosted daily calls. Meeting owners will need to be signed in to Calendso and let meeting owners in to join.
 
 
 export default function joinCall(props, session) {
@@ -55,39 +55,6 @@ return joinCall;
 
 }
 
-/*lola internal oldworkingcode 
-
-export default function joinCall(props, session) {
-   // Get router variables
-   const router = useRouter();
-   const { uid } = router.query;
-   
-   
-
-  const url = props.booking.dailyurl
-  useEffect(() => {
-  const callFrame = DailyIframe.createFrame({
-    showLeaveButton: true,
-    iframeStyle: {
-      position: 'fixed',
-      width: '100%',
-     height: '100%'
-    }
-  });
-      callFrame.join({
-        url: url,
-        showLeaveButton: true,
-        
-    })
-}, [])
-
-return joinCall;
-
-}
-*/
-
-
-
 export async function getServerSideProps(context) {
   const booking = await prisma.booking.findFirst({
     where: {
@@ -120,7 +87,7 @@ export async function getServerSideProps(context) {
   };
 }
 
-// lola internal this action finds the meeting owner token for the request 
+// finds the current users session
 
 export async function handler(req: NextApiRequest, res: NextApiResponse, props) {
   const session = await getSession({req: req});

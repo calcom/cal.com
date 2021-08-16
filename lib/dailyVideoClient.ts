@@ -60,9 +60,9 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
 
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
-    // lola todo i'll need to actually pull in the dynamic data but I think I can draw inspiration from the zoom translate event
-    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 1440;
-    const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 1440;
+    //added a buffer to when rooms are available and not available
+    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 720;
+    const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 720;
     return {
       privacy: "private",
       properties: {
@@ -100,12 +100,11 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(translateEvent(event))
-    }).then(handleErrorsRaw),
+    }).then(handleErrorsJson),
   };
 };
 
 // factory 
-//lola-internal but this whole rigmaroe isn't necessary i should just yea...
 const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
   withCredentials
     .map((cred) => {
@@ -147,7 +146,6 @@ const dailyCreateMeeting = async (
     url: currentRoute + '/call/'+ uid,
   };
 
-  //lola todo - we probably don't need an entry point
   const entryPoint: EntryPoint = {
     entryPointType: getIntegrationName(videoCallData),
     uri: videoCallData.url,

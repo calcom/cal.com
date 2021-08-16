@@ -383,7 +383,7 @@ if (isDaily){
       return;
     }}
 
-    //lola - internal log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
+  
 
     if (!isDaily){
       try {
