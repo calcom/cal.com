@@ -27,7 +27,7 @@
   <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
   <img src="https://img.shields.io/github/license/calendso/calendso" alt="License">
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
-  <img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"> 
+  <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
 </p>
 
 <!-- ABOUT THE PROJECT -->
