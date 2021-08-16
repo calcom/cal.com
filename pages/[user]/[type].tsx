@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Availability } from ".prisma/client";
+import { Availability } from "@prisma/client";
 import Theme from "@components/Theme";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
