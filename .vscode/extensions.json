@@ -1,8 +1,10 @@
 {
   "recommendations": [
+    // nicer markdown support
     "yzhang.markdown-all-in-one",
+    // prettier plugin
     "esbenp.prettier-vscode",
-    "dbaeumer.vscode-eslint",
-    "bungcip.better-toml"
+    // eslint plugin
+    "dbaeumer.vscode-eslint"
   ]
 }
