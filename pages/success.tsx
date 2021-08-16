@@ -142,7 +142,7 @@ export default function Success(props) {
                               props.eventType.description
                             }` + (location ? "&location=" + encodeURIComponent(location) : "")
                           }>
-                          <a className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3">
+                          <a className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3">
                             <svg
                               className="inline-block w-4 h-4 -mt-1"
                               fill="currentColor"
@@ -167,7 +167,7 @@ export default function Success(props) {
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3"
+                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3"
                             target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
@@ -193,7 +193,7 @@ export default function Success(props) {
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3"
+                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3"
                             target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
@@ -207,7 +207,7 @@ export default function Success(props) {
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
                           <a
-                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 py-2 px-3"
+                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
