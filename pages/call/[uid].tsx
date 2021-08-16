@@ -6,7 +6,7 @@ import { getSession } from 'next-auth/client';
 import type {NextApiRequest, NextApiResponse} from 'next';
 
 
-//lola-internal so we would have something be conditional to join the call when there is a session yea
+//lola-internal this page is where we'll join a daily call. Booking meeting owners will need to let users in to join.
 
 
 export default function joinCall(props, session) {

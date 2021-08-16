@@ -18,15 +18,6 @@ const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
 const translator = short();
 
-const daily2credential : Credential =  {
-  id:6736,
-  type:"daily_video",
-  key: {apikey: process.env.DAILY_API_KEY},
-  userId: 1
-
-}
-
-
 export interface DailyVideoCallData {
   type: string;
   id: string;
@@ -55,49 +46,6 @@ var dailyCredential = process.env.DAILY_API_KEY
 
 
 
-//lola internal - we can probably do later but we might want to follow this for the meetingToken piece
-const zoomAuth = (credential) => {
-  const isExpired = (expiryDate) => expiryDate < +new Date();
-  const authHeader =
-    "Basic " +
-    Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
-
-  const refreshAccessToken = (refreshToken) =>
-    fetch("https://zoom.us/oauth/token", {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
-    })
-      .then(handleErrorsJson)
-      .then(async (responseBody) => {
-        // Store new tokens in database.
-        await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: responseBody,
-          },
-        });
-        credential.key.access_token = responseBody.access_token;
-        credential.key.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
-        return credential.key.access_token;
-      });
-
-  return {
-    getToken: () =>
-      !isExpired(credential.key.expires_in)
-        ? Promise.resolve(credential.key.access_token)
-        : refreshAccessToken(credential.key.refresh_token),
-  };
-};
-
 interface DailyVideoApiAdapter {
   dailyCreateMeeting(event: CalendarEvent): Promise<any>;
 
@@ -105,7 +53,6 @@ interface DailyVideoApiAdapter {
 
   dailyDeleteMeeting(uid: string): Promise<unknown>;
 
-  getAvailability(dateFrom, dateTo): Promise<any>;
 }
 
 const DailyVideo = (credential): DailyVideoApiAdapter => {
@@ -131,9 +78,7 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
   };
 
   return {
-    getAvailability: () => {
-      return credential;
-    },
+
     dailyCreateMeeting: (event: CalendarEvent) => fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
@@ -164,19 +109,10 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
 const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
   withCredentials
     .map((cred) => {
-      switch (cred.type) {
-        case "daily_video":
-          return DailyVideo(cred);
-        default:
-          return DailyVideo(cred);
+      return DailyVideo(cred);
       }
-    })
+    )
     .filter(Boolean);
-
-const getBusyVideoTimes: (withCredentials) => Promise<unknown[]> = (withCredentials) =>
-  Promise.all(videoIntegrations(withCredentials).map((c) => c.getAvailability())).then((results) =>
-    results.reduce((acc, availability) => acc.concat(availability), [])
-  );
 
 
 const dailyCreateMeeting = async (
@@ -307,4 +243,4 @@ const dailyDeleteMeeting = (credential: Credential, uid: string): Promise<unknow
 };
 
 
-export { getBusyVideoTimes, dailyCreateMeeting, dailyUpdateMeeting, dailyDeleteMeeting };
+export { dailyCreateMeeting, dailyUpdateMeeting, dailyDeleteMeeting };

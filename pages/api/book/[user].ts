@@ -328,7 +328,7 @@ if (!rescheduleUid) {
 }
   
 let meetingToken;
-if (isDaily && !rescheduleUid){  
+if (isDaily){  
    const response = await fetch('https://api.daily.co/v1/meeting-tokens', {
     method: 'POST',
     body:JSON.stringify({properties: {room_name: dailyEvent.name, is_owner: true}}),

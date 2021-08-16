@@ -62,23 +62,6 @@ export default class EventManager {
     if (hasDailyIntegration) {
       this.videoCredentials.push(dailyCredential);
     }
-    
-
-    //lolainternal - maybe this isn't needed commenting it out maybe i do just add the credential up there...
-    /*
-    const hasDailyIntegration = process.env.DAILY_API_KEY != null;
-    const dailyCredential : Credential =  {
-      id:6736,
-      type:"",
-      key: process.env.DAILY_API_KEY,
-      userId: 1
-
-    }
-    if (hasDailyIntegration) {
-      this.videoCredentials.push ({ dailyCredential });
-    }
-    //maybe this isn't needed
-    */
   }
 
 
@@ -99,26 +82,12 @@ export default class EventManager {
   
     
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    //lola internal - maybe we should update the isdedicated which might get the createvideoevent action in there or we could try updating a is daily the same way. 
-    //lola internal -- i think I also need to create a video event, i think that's actually the problem not the credential are we creating all calendar events and creating video eventd
     const results: Array<EventResult> = await this.createAllCalendarEvents(event, isDedicated, maybeUid);
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting as well.
     if (isDedicated || isDaily) {
       results.push(await this.createVideoEvent(event, maybeUid));
     }
-
-/*   const referencesToCreate: Array<PartialReference> = results.map((result) => {
-      const isDailyResult = result.type === "daily";
-      if(!isDailyResult){}
-      return {
-        type: result.type,
-        uid: result.createdEvent.id.toString(),
-      };
-    });
-    */
-
-    //lola - internal updated the references to also add the dail name which is unique
 
     const referencesToCreate: Array<PartialReference> = results.map((result) => {
       const isDailyResult = result.type === "daily";
@@ -236,28 +205,11 @@ export default class EventManager {
    * @param event
    * @private
    */
-  // lola internal -- I think i need to make it so that there isn't a credential here. perhaps it shouldn't be
+ 
   private getVideoCredential(event: CalendarEvent): Credential | undefined {
     const integrationName = event.location.replace("integrations:", "");
-    //lola internal - going to try no returning when the credential is daily (if magic didn't work)
-    return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
-    /*return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));*/
     
-    /*if (integrationName!= "daily"){
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
-    }
-    const isDaily = event.location === "integrations:daily";
-    const dailycredential: Credential = {
-      id: 1,
-      type: "daily",
-      key: 1,
-      userId: 1,
-    };
-
-    if(isDaily){
-    return  dailycredential
-    }
-    */
   
   }
 
@@ -330,8 +282,6 @@ if (credential) {
   private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
     const credential = this.getVideoCredential(event);
     const isDaily = event.location === "integrations:daily";
-
-    //lola-internal so this won't work because there isn't going to be a booking reference...hmmm...we would need to add some aditional logic that would check for a location and
 
     if (credential && !isDaily) {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
