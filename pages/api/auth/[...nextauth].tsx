@@ -47,7 +47,7 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async jwt(token, user, account, profile, isNewUser) {
+    async jwt(token, user) {
       // Add username to the token right after signin
       if (user?.username) {
         token.id = user.id;

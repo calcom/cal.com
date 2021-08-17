@@ -1,5 +1,5 @@
 // handles logic related to user clock display using 24h display / timeZone options.
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
