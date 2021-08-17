@@ -36,6 +36,7 @@ import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import showToast from "@lib/notification";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -236,6 +237,7 @@ export default function EventTypePage({
     });
 
     router.push("/event-types");
+    showToast("Event Type updated", "success");
   }
 
   async function deleteEventTypeHandler(event) {
@@ -248,7 +250,7 @@ export default function EventTypePage({
         "Content-Type": "application/json",
       },
     });
-
+    showToast("Event Type deleted", "success");
     router.push("/event-types");
   }
 
@@ -864,6 +866,7 @@ export default function EventTypePage({
                   navigator.clipboard.writeText(
                     window.location.hostname + "/" + user.username + "/" + eventType.slug
                   );
+                  showToast("Link copied!", "success");
                 }}
                 type="button"
                 className="flex text-md font-medium text-neutral-700">
