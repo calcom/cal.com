@@ -6,41 +6,47 @@ type HTMLAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 type HTMLButtonProps = React.ButtonHTMLAttributes<HTMLButtonProps>;
 
 type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+
 export type ButtonProps = {
   color?: "primary" | "secondary";
   size?: "base" | "sm" | "lg";
   loading?: boolean;
   disabled?: boolean;
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
 } & ((Omit<HTMLAnchorProps, "href"> & { href: LinkProps["href"] }) | (HTMLButtonProps & { href?: never }));
 
 export const Button = function Button(props: ButtonProps) {
   const {
-    // color = 'default',
     loading = false,
     color = "primary",
     size = "base",
     StartIcon,
     EndIcon,
+    // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
+  // Buttons are **always** disabled if we're in a `loading` state
   const disabled = props.disabled || loading;
 
-  const isLink = !!props.href;
+  // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
+  const isLink = typeof props.href !== "undefined";
   const elementType = isLink ? "a" : "button";
+
   const element = React.createElement(
     elementType,
     {
       ...passThroughProps,
       disabled,
       className: classNames(
+        // base styles independent what typeo f button it is
         "inline-flex items-center border border-transparent relative",
+        // different styles depending on size
         size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm shadow-sm",
         size === "base" && "px-4 py-2 text-sm font-medium rounded-sm shadow-sm",
         size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
+        // different styles depending on color
         color === "primary" &&
           (disabled
             ? "bg-gray-400 text-white"
@@ -49,9 +55,11 @@ export const Button = function Button(props: ButtonProps) {
           (disabled
             ? "border border-gray-400 text-gray-400 bg-white"
             : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500"),
+        // set not-allowed cursor if disabled
         disabled && "cursor-not-allowed",
         props.className
       ),
+      // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
             e.preventDefault();
