@@ -22,7 +22,7 @@ export default function TeamList(props) {
 
   return (
     <div>
-      <ul className="bg-white border px-2 mb-2 rounded divide-y divide-gray-200">
+      <ul className="bg-white border px-4 mb-2 rounded divide-y divide-gray-200">
         {props.teams.map((team: any) => (
           <TeamListItem
             onChange={props.onChange}
