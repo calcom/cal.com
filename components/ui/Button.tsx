@@ -27,14 +27,15 @@ export const Button = function Button(props: ButtonProps) {
     EndIcon,
     ...passThroughProps
   } = props;
+  const disabled = props.disabled || loading;
 
   const isLink = !!props.href;
   const elementType = isLink ? "a" : "button";
-  const disabled = props.disabled;
   const element = React.createElement(
     elementType,
     {
       ...passThroughProps,
+      disabled,
       className: classNames(
         "inline-flex items-center border border-transparent relative",
         size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm shadow-sm",
@@ -51,7 +52,7 @@ export const Button = function Button(props: ButtonProps) {
         disabled && "cursor-not-allowed",
         props.className
       ),
-      onClick: props.disabled
+      onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
             e.preventDefault();
           }
