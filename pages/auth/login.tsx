@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import { getCsrfToken } from "next-auth/client";
+import { getCsrfToken, getSession } from "next-auth/client";
 
 export default function Login({ csrfToken }) {
   return (
@@ -79,8 +79,17 @@ export default function Login({ csrfToken }) {
   );
 }
 
-Login.getInitialProps = async ({ req }) => {
+Login.getInitialProps = async (context) => {
+  const { req, res } = context;
+  const session = await getSession({ req });
+
+  if (session) {
+    res.writeHead(302, { Location: "/" });
+    res.end();
+    return;
+  }
+
   return {
-    csrfToken: await getCsrfToken({ req }),
+    csrfToken: await getCsrfToken(context),
   };
 };

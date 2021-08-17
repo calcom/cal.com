@@ -142,23 +142,29 @@ const DatePicker = ({
     setCalendar([
       ...emptyDays,
       ...days.map((day) => (
-        <button
+        <div
           key={day}
-          onClick={() => setSelectedDate(inviteeDate.date(day))}
-          disabled={isDisabled(day)}
-          className={
-            "text-center w-10 h-10 mx-auto hover:border hover:border-black dark:hover:border-white" +
-            (isDisabled(day)
-              ? " text-gray-400 font-light hover:border-0 cursor-default"
-              : " dark:text-white text-primary-500 font-medium") +
-            (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
-              ? " bg-black text-white-important"
-              : !isDisabled(day)
-              ? " bg-gray-100 dark:bg-black dark:bg-opacity-30"
-              : "")
-          }>
-          {day}
-        </button>
+          style={{
+            paddingTop: "100%",
+          }}
+          className="w-full relative">
+          <button
+            onClick={() => setSelectedDate(inviteeDate.date(day))}
+            disabled={isDisabled(day)}
+            className={
+              "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto hover:border hover:border-black dark:hover:border-white" +
+              (isDisabled(day)
+                ? " text-gray-400 font-light hover:border-0 cursor-default"
+                : " dark:text-white text-primary-500 font-medium") +
+              (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
+                ? " bg-black text-white-important"
+                : !isDisabled(day)
+                ? " bg-gray-100 dark:bg-gray-600"
+                : "")
+            }>
+            {day}
+          </button>
+        </div>
       )),
     ]);
   }, [selectedMonth, inviteeTimeZone, selectedDate]);
@@ -166,12 +172,12 @@ const DatePicker = ({
   return selectedMonth ? (
     <div
       className={
-        "mt-8 sm:mt-0 min-w-[350px] " +
+        "mt-8 sm:mt-0 sm:min-w-[455px] " +
         (selectedDate
-          ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-black sm:pl-4 sm:pr-6"
-          : "sm:w-1/2 sm:pl-4")
+          ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
+          : "w-full sm:pl-4")
       }>
-      <div className="flex text-gray-600 font-light text-xl mb-4 ml-2">
+      <div className="flex text-gray-600 font-light text-xl mb-4">
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">
             {dayjs().month(selectedMonth).format("MMMM")}
@@ -193,16 +199,16 @@ const DatePicker = ({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 text-center">
+      <div className="grid grid-cols-7 gap-4 text-center border-b border-t dark:border-gray-800 sm:border-0">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
-            <div key={weekDay} className="uppercase text-gray-400 text-xs tracking-widest">
+            <div key={weekDay} className="uppercase text-gray-500 text-xs tracking-widest my-4">
               {weekDay}
             </div>
           ))}
-        {calendar}
       </div>
+      <div className="grid grid-cols-7 gap-2 text-center">{calendar}</div>
     </div>
   ) : null;
 };

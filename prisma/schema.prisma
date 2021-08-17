@@ -72,6 +72,7 @@ model User {
 model Team {
   id            Int       @default(autoincrement()) @id
   name          String?
+  slug          String?
   members       Membership[]
 }
 
@@ -162,12 +163,19 @@ model SelectedCalendar {
   @@id([userId,integration,externalId])
 }
 
+enum EventTypeCustomInputType {
+  TEXT @map("text")
+  TEXTLONG @map("textLong")
+  NUMBER @map("number")
+  BOOL @map("bool")
+}
+
 model EventTypeCustomInput {
   id          Int       @id @default(autoincrement())
   eventTypeId Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id])
   label       String
-  type        String
+  type        EventTypeCustomInputType
   required    Boolean
 }
 

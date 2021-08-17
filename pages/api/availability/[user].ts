@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
-import { getBusyCalendarTimes } from "../../../lib/calendarClient";
-import { getBusyVideoTimes } from "../../../lib/videoClient";
+import prisma from "@lib/prisma";
+import { getBusyCalendarTimes } from "@lib/calendarClient";
+import { getBusyVideoTimes } from "@lib/videoClient";
 import dayjs from "dayjs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -25,39 +25,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const hasCalendarIntegrations =
-    currentUser.credentials.filter((cred) => cred.type.endsWith("_calendar")).length > 0;
-  const hasVideoIntegrations =
-    currentUser.credentials.filter((cred) => cred.type.endsWith("_video")).length > 0;
-
-  const calendarAvailability = await getBusyCalendarTimes(
+  const calendarBusyTimes = await getBusyCalendarTimes(
     currentUser.credentials,
     req.query.dateFrom,
     req.query.dateTo,
     selectedCalendars
   );
-  const videoAvailability = await getBusyVideoTimes(
+  const videoBusyTimes = await getBusyVideoTimes(
     currentUser.credentials,
     req.query.dateFrom,
     req.query.dateTo
   );
+  calendarBusyTimes.push(...videoBusyTimes);
 
-  let commonAvailability = [];
-
-  if (hasCalendarIntegrations && hasVideoIntegrations) {
-    commonAvailability = calendarAvailability.filter((availability) =>
-      videoAvailability.includes(availability)
-    );
-  } else if (hasVideoIntegrations) {
-    commonAvailability = videoAvailability;
-  } else if (hasCalendarIntegrations) {
-    commonAvailability = calendarAvailability;
-  }
-
-  commonAvailability = commonAvailability.map((a) => ({
+  const bufferedBusyTimes = calendarBusyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
     end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
   }));
 
-  res.status(200).json(commonAvailability);
+  res.status(200).json(bufferedBusyTimes);
 }

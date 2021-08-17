@@ -78,129 +78,159 @@ export default function Type(props): Type {
   };
 
   return (
-    isReady && (
-      <div>
-        <Head>
-          <title>
-            {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username}{" "}
-            | Calendso
-          </title>
-          <meta name="title" content={"Meet " + (props.user.name || props.user.username) + " via Calendso"} />
-          <meta name="description" content={props.eventType.description} />
+    <>
+      <Head>
+        <title>
+          {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username} |
+          Calendso
+        </title>
+        <meta name="title" content={"Meet " + (props.user.name || props.user.username) + " via Calendso"} />
+        <meta name="description" content={props.eventType.description} />
 
-          <meta property="og:type" content="website" />
-          <meta property="og:url" content="https://calendso/" />
-          <meta
-            property="og:title"
-            content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-          />
-          <meta property="og:description" content={props.eventType.description} />
-          <meta
-            property="og:image"
-            content={
-              "https://og-image-one-pi.vercel.app/" +
-              encodeURIComponent(
-                "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-              ).replace(/'/g, "%27") +
-              ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-              encodeURIComponent(props.user.avatar)
-            }
-          />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://calendso/" />
+        <meta
+          property="og:title"
+          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
+        />
+        <meta property="og:description" content={props.eventType.description} />
+        <meta
+          property="og:image"
+          content={
+            "https://og-image-one-pi.vercel.app/" +
+            encodeURIComponent(
+              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
+            ).replace(/'/g, "%27") +
+            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
+            encodeURIComponent(props.user.avatar)
+          }
+        />
 
-          <meta property="twitter:card" content="summary_large_image" />
-          <meta property="twitter:url" content="https://calendso/" />
-          <meta
-            property="twitter:title"
-            content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-          />
-          <meta property="twitter:description" content={props.eventType.description} />
-          <meta
-            property="twitter:image"
-            content={
-              "https://og-image-one-pi.vercel.app/" +
-              encodeURIComponent(
-                "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-              ).replace(/'/g, "%27") +
-              ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-              encodeURIComponent(props.user.avatar)
-            }
-          />
-        </Head>
-        <main
-          className={
-            "mx-auto my-0 sm:my-24 transition-max-width ease-in-out duration-500 " +
-            (selectedDate ? "max-w-5xl" : "max-w-3xl")
-          }>
-          <div className="dark:bg-neutral-900 bg-white border border-gray-200 rounded-sm dark:border-0">
-            <div className="sm:flex px-4 py-5 sm:p-4">
-              <div
-                className={
-                  "pr-8 sm:border-r sm:dark:border-black " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
-                }>
-                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
-                <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
-                <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
-                  {props.eventType.title}
-                </h1>
-                <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
-                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {props.eventType.length} minutes
-                </p>
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://calendso/" />
+        <meta
+          property="twitter:title"
+          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
+        />
+        <meta property="twitter:description" content={props.eventType.description} />
+        <meta
+          property="twitter:image"
+          content={
+            "https://og-image-one-pi.vercel.app/" +
+            encodeURIComponent(
+              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
+            ).replace(/'/g, "%27") +
+            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
+            encodeURIComponent(props.user.avatar)
+          }
+        />
+      </Head>
 
-                <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-                  <Collapsible.Trigger className="text-gray-500 mb-1 px-2 py-1 -ml-2 text-left min-w-32 ">
-                    <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                    {timeZone()}
-                    {isTimeOptionsOpen ? (
-                      <ChevronUpIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
-                    ) : (
-                      <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
-                    )}
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <TimeOptions
-                      onSelectTimeZone={handleSelectTimeZone}
-                      onToggle24hClock={handleToggle24hClock}
-                    />
-                  </Collapsible.Content>
-                </Collapsible.Root>
-
-                <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
+      {isReady && (
+        <div>
+          <main
+            className={
+              "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
+              (selectedDate ? "max-w-5xl" : "max-w-3xl")
+            }>
+            <div className="sm:dark:border-gray-600 dark:bg-gray-900 bg-white md:border border-gray-200 rounded-sm">
+              {/* mobile: details */}
+              <div className="p-4 sm:p-8 block md:hidden">
+                <div className="flex items-center">
+                  <Avatar user={props.user} className="inline-block h-9 w-9 rounded-full" />
+                  <div className="ml-3">
+                    <p className="text-sm font-medium dark:text-gray-300 text-black">{props.user.name}</p>
+                    <div className="flex gap-2 text-xs font-medium text-gray-600">
+                      {props.eventType.title}
+                      <div>
+                        <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                        {props.eventType.length} minutes
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="dark:text-gray-200 text-gray-600 mt-3">{props.eventType.description}</p>
               </div>
-              <DatePicker
-                date={selectedDate}
-                periodType={props.eventType?.periodType}
-                periodStartDate={props.eventType?.periodStartDate}
-                periodEndDate={props.eventType?.periodEndDate}
-                periodDays={props.eventType?.periodDays}
-                periodCountCalendarDays={props.eventType?.periodCountCalendarDays}
-                weekStart={props.user.weekStart}
-                onDatePicked={changeDate}
-                workingHours={props.workingHours}
-                organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
-                inviteeTimeZone={timeZone()}
-                eventLength={props.eventType.length}
-                minimumBookingNotice={props.eventType.minimumBookingNotice}
-              />
-              {selectedDate && (
-                <AvailableTimes
-                  workingHours={props.workingHours}
-                  timeFormat={timeFormat}
-                  organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
-                  minimumBookingNotice={props.eventType.minimumBookingNotice}
-                  eventTypeId={props.eventType.id}
-                  eventLength={props.eventType.length}
+
+              <div className="sm:flex px-4 sm:py-5 sm:p-4">
+                <div
+                  className={
+                    "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
+                    (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                  }>
+                  <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
+                  <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
+                  <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
+                    {props.eventType.title}
+                  </h1>
+                  <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                    <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {props.eventType.length} minutes
+                  </p>
+
+                  <TimezoneDropdown />
+
+                  <p className="dark:text-gray-200 text-gray-600 mt-3 mb-8">{props.eventType.description}</p>
+                </div>
+                <DatePicker
                   date={selectedDate}
-                  user={props.user}
+                  periodType={props.eventType?.periodType}
+                  periodStartDate={props.eventType?.periodStartDate}
+                  periodEndDate={props.eventType?.periodEndDate}
+                  periodDays={props.eventType?.periodDays}
+                  periodCountCalendarDays={props.eventType?.periodCountCalendarDays}
+                  weekStart={props.user.weekStart}
+                  onDatePicked={changeDate}
+                  workingHours={props.workingHours}
+                  organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+                  inviteeTimeZone={timeZone()}
+                  eventLength={props.eventType.length}
+                  minimumBookingNotice={props.eventType.minimumBookingNotice}
                 />
-              )}
+
+                <div className="ml-1 mt-4 block sm:hidden">
+                  <TimezoneDropdown />
+                </div>
+
+                {selectedDate && (
+                  <AvailableTimes
+                    workingHours={props.workingHours}
+                    timeFormat={timeFormat}
+                    organizerTimeZone={props.eventType.timeZone || props.user.timeZone}
+                    minimumBookingNotice={props.eventType.minimumBookingNotice}
+                    eventTypeId={props.eventType.id}
+                    eventLength={props.eventType.length}
+                    date={selectedDate}
+                    user={props.user}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-          {!props.user.hideBranding && <PoweredByCalendso />}
-        </main>
-      </div>
-    )
+            {!props.user.hideBranding && <PoweredByCalendso />}
+          </main>
+        </div>
+      )}
+    </>
   );
+
+  function TimezoneDropdown() {
+    return (
+      <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
+        <Collapsible.Trigger className="text-gray-500 mb-1 px-2 py-1 -ml-2 text-left min-w-32">
+          <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+          {timeZone()}
+          {isTimeOptionsOpen ? (
+            <ChevronUpIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+          ) : (
+            <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+          )}
+        </Collapsible.Trigger>
+        <Collapsible.Content>
+          <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
+        </Collapsible.Content>
+      </Collapsible.Root>
+    );
+  }
 }
 
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
