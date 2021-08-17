@@ -6,7 +6,7 @@
     "dev": "next dev",
     "test": "node node_modules/.bin/jest",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p ${PORT}",
     "postinstall": "prisma generate",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
