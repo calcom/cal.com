@@ -66,36 +66,38 @@ export default function Teams() {
       <SettingsShell>
         <div className="divide-y divide-gray-200 lg:col-span-9">
           <div className="py-6 lg:pb-8">
-            <div className="flex justify-between">
+            <div className="flex flex-col justify-between md:flex-row">
               <div>
                 {!(invites.length || teams.length) && (
                   <div className="bg-gray-50 sm:rounded-sm">
-                    <div className="px-4 py-5 sm:p-6">
+                    <div className="pr-4 pb-5 sm:pb-6">
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
                         Create a team to get started
                       </h3>
                       <div className="mt-2 max-w-xl text-sm text-gray-500">
                         <p>Create your first team and invite other users to work together with you.</p>
                       </div>
-                      <div className="mt-5">
-                        <button
-                          type="button"
-                          onClick={() => setShowCreateTeamModal(true)}
-                          className="btn btn-primary">
-                          Create new team
-                        </button>
-                      </div>
                     </div>
                   </div>
                 )}
+
+
               </div>
-              {!!(invites.length || teams.length) && (
+              <div className="flex items-start mb-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateTeamModal(true)}
+                  className="btn btn-white">
+                  + New Team
+                </button>
+              </div>
+              {/* {!!(invites.length || teams.length) && (
                 <div>
-                  <button className="btn-sm btn-primary mb-4" onClick={() => setShowCreateTeamModal(true)}>
-                    Create new team
+                  <button className="btn-sm btn-white mb-4" onClick={() => setShowCreateTeamModal(true)}>
+                    + New Team
                   </button>
                 </div>
-              )}
+              )} */}
             </div>
             <div>
               {!!teams.length && <TeamList teams={teams} onChange={loadData}></TeamList>}

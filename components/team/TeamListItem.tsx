@@ -1,6 +1,7 @@
-import { CogIcon, TrashIcon, UsersIcon } from "@heroicons/react/outline";
+import { TrashIcon, UsersIcon, DotsHorizontalIcon, LinkIcon, PencilAltIcon, ExternalLinkIcon } from "@heroicons/react/outline";
 import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
+import { Tooltip } from "@components/Tooltip";
 
 export default function TeamListItem(props) {
   const [team, setTeam] = useState(props.team);
@@ -23,14 +24,22 @@ export default function TeamListItem(props) {
 
   return (
     team && (
-      <li className="mb-2 mt-2 divide-y">
-        <div className="flex justify-between mb-2 mt-2">
-          <div>
-            <UsersIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-4 mr-2 h-6 w-6 inline" />
-            <div className="inline-block -mt-1">
+      <li className="divide-y">
+        <div className="flex justify-between my-4">
+          <div className="flex">
+            <div className="relative rounded-full p-1 w-10 h-10 border border-gray-200"> 
+                <img src={
+                  props.team.logo
+                        ? props.team.logo
+                        : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
+                          encodeURIComponent(props.team.name || "")
+                } alt="Team Logo" className="rounded-full w-8 h-8"/>
+            </div>
+            {/* <UsersIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-4 mr-2 h-6 w-6 inline" /> */}
+            <div className="inline-block ml-3">
               <span className="font-bold text-neutral-700 text-sm">{props.team.name}</span>
-              <span className="text-xs text-gray-400 -mt-1 block capitalize">
-                {props.team.role.toLowerCase()}
+              <span className="text-xs text-gray-400 -mt-1 block">{window.location.hostname}/
+                {props.team.slug}
               </span>
             </div>
           </div>
@@ -56,26 +65,52 @@ export default function TeamListItem(props) {
             </div>
           )}
           {props.team.role === "OWNER" && (
-            <div>
-              <Dropdown className="relative inline-block text-left">
-                <button className="btn-sm bg-transparent text-gray-400 px-3 py-1 rounded-sm ml-2">
-                  <CogIcon className="h-6 w-6 inline text-gray-400" />
+            <div className="flex">
+              <span className="h-6 px-3 py-1 bg-gray-50 text-xs capitalize self-center text-gray-700 rounded-md">Owner</span>
+              <Tooltip content="Copy link">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      window.location.hostname + "/" + props.team.slug
+                    );
+                  }}
+                  className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200 ml-4 focus:ring-black focus:border-black rounded-md">
+                  <LinkIcon className="group-hover:text-black w-5 h-5" />
+                </button>
+              </Tooltip>
+              <Dropdown className="relative flex text-left">
+                <button className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200 focus:ring-black focus:border-black rounded-md">
+                  <DotsHorizontalIcon className="group-hover:text-black w-5 h-5" />
                 </button>
                 <ul
                   role="menu"
-                  className="z-10 origin-top-right absolute right-0 w-36 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <li
+                  className="z-10 origin-top-right absolute top-10 right-0 w-44 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  {/* <li
                     className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
                     role="menuitem">
                     <button className="block px-4 py-2" onClick={() => props.onActionSelect("invite")}>
                       Invite members
                     </button>
+                  </li> */}
+                  <li
+                    className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
+                    role="menuitem">
+                    <button className="flex items-center px-4 py-2 w-full text-left" onClick={() => props.onActionSelect("edit")}>
+                      <PencilAltIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" /> Edit team
+                    </button>
                   </li>
                   <li
                     className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
                     role="menuitem">
-                    <button className="block px-4 py-2" onClick={() => props.onActionSelect("edit")}>
-                      Manage team
+                    <button className="flex items-center px-4 py-2 w-full text-left" onClick={() => props.onActionSelect("preview")}>
+                      <ExternalLinkIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" /> Preview team page
+                    </button>
+                  </li>
+                  <li
+                    className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
+                    role="menuitem">
+                    <button className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700" onClick={() => props.onActionSelect("disband")}>
+                      <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" /> Disband team
                     </button>
                   </li>
                 </ul>
