@@ -38,7 +38,9 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 module.exports = withTM({
-  webpack5: true,
+  future: {
+    webpack5: true,
+  },
   i18n: {
     locales: ["en"],
     defaultLocale: "en",
