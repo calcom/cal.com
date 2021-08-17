@@ -1,10 +1,10 @@
 import Head from "next/head";
 import Link from "next/link";
 import React from "react";
-import { getCsrfToken } from "next-auth/client";
+import { getCsrfToken, getSession } from "next-auth/client";
 import debounce from "lodash.debounce";
 
-export default function Page({ csrfToken }) {
+export default function ForgotPassword({ csrfToken }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(false);
@@ -156,8 +156,17 @@ export default function Page({ csrfToken }) {
   );
 }
 
-Page.getInitialProps = async ({ req }) => {
+ForgotPassword.getInitialProps = async (context) => {
+  const { req, res } = context;
+  const session = await getSession({ req });
+
+  if (session) {
+    res.writeHead(302, { Location: "/" });
+    res.end();
+    return;
+  }
+
   return {
-    csrfToken: await getCsrfToken({ req }),
+    csrfToken: await getCsrfToken(context),
   };
 };

@@ -2,6 +2,7 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import Modal from "../../components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
@@ -105,6 +106,7 @@ export default function EventTypePage({
   availability,
 }: Props): JSX.Element {
   const router = useRouter();
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const inputOptions: OptionBase[] = [
     { value: EventTypeCustomInputType.TEXT, label: "Text" },
@@ -236,8 +238,10 @@ export default function EventTypePage({
       },
     });
 
+
     router.push("/event-types");
     showToast("Event Type updated", "success");
+    setSuccessModalOpen(true);
   }
 
   async function deleteEventTypeHandler(event) {
@@ -268,6 +272,10 @@ export default function EventTypePage({
     setSelectedInputOption(inputOptions[0]);
     setShowAddCustomModal(false);
     setSelectedCustomInput(undefined);
+  };
+
+  const closeSuccessModal = () => {
+    setSuccessModalOpen(false);
   };
 
   const updateLocations = (e) => {
@@ -843,6 +851,12 @@ export default function EventTypePage({
                   </button>
                 </div>
               </form>
+              <Modal
+                heading="Event Type updated successfully"
+                description="Your event type has been updated successfully."
+                open={successModalOpen}
+                handleClose={closeSuccessModal}
+              />
             </div>
           </div>
           <div className="w-full sm:w-2/12 ml-2 px-4 mt-8 sm:mt-0 min-w-32">
