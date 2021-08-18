@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 import { google } from "googleapis";
 
-const credentials = process.env.GOOGLE_API_CREDENTIALS;
+const credentials = process.env.GOOGLE_API_CREDENTIALS!;
 const scopes = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/calendar.events",
