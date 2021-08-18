@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.4.0",
-    "@heroicons/react": "^1.0.3",
+    "@heroicons/react": "^1.0.4",
     "@jitsu/sdk-js": "^2.2.4",
     "@prisma/client": "^2.29.1",
     "@radix-ui/react-collapsible": "^0.0.17",
