@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Slots from "./Slots";
+import { useSlots } from "./useSlots";
 import { ExclamationIcon } from "@heroicons/react/solid";
 import React from "react";
 import Loader from "@components/Loader";
@@ -18,7 +18,7 @@ const AvailableTimes = ({
   const router = useRouter();
   const { rescheduleUid } = router.query;
 
-  const { slots, isFullyBooked, hasErrors } = Slots({
+  const { slots, isFullyBooked, hasErrors } = useSlots({
     date,
     eventLength,
     workingHours,
@@ -27,9 +27,9 @@ const AvailableTimes = ({
   });
 
   return (
-    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-97 overflow-y-auto">
-      <div className="text-gray-600 font-light text-lg mb-4 text-left">
-        <span className="w-1/2 dark:text-white text-gray-600">
+    <div className="mt-8 overflow-y-auto text-center sm:pl-4 sm:mt-0 sm:w-1/3 md:max-h-97">
+      <div className="mb-4 text-lg font-light text-left text-gray-600">
+        <span className="w-1/2 text-gray-600 dark:text-white">
           <strong>{date.format("dddd")}</strong>
           <span className="text-gray-500">{date.format(", DD MMMM")}</span>
         </span>
@@ -42,14 +42,14 @@ const AvailableTimes = ({
                 `/${user.username}/book?date=${slot.utc().format()}&type=${eventTypeId}` +
                 (rescheduleUid ? "&rescheduleUid=" + rescheduleUid : "")
               }>
-              <a className="block font-medium mb-4 bg-white dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-transparent rounded-sm hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black">
+              <a className="block py-4 mb-4 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-primary-500 dark:border-transparent hover:text-white hover:bg-primary-500 dark:hover:border-black dark:hover:bg-black">
                 {slot.format(timeFormat)}
               </a>
             </Link>
           </div>
         ))}
       {isFullyBooked && (
-        <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
+        <div className="flex flex-col items-center content-center justify-center w-full h-full -mt-4">
           <h1 className="text-xl text-black dark:text-white">{user.name} is all booked today.</h1>
         </div>
       )}
@@ -57,17 +57,17 @@ const AvailableTimes = ({
       {!isFullyBooked && slots.length === 0 && !hasErrors && <Loader />}
 
       {hasErrors && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+        <div className="p-4 border-l-4 border-yellow-400 bg-yellow-50">
           <div className="flex">
             <div className="flex-shrink-0">
-              <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+              <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
             </div>
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
                 Could not load the available time slots.{" "}
                 <a
                   href={"mailto:" + user.email}
-                  className="font-medium underline text-yellow-700 hover:text-yellow-600">
+                  className="font-medium text-yellow-700 underline hover:text-yellow-600">
                   Contact {user.name} via e-mail
                 </a>
               </p>

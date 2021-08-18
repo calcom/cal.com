@@ -15,7 +15,13 @@ type Props = {
   organizerTimeZone: string;
 };
 
-const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organizerTimeZone }: Props) => {
+export const useSlots = ({
+  eventLength,
+  minimumBookingNotice,
+  date,
+  workingHours,
+  organizerTimeZone,
+}: Props) => {
   minimumBookingNotice = minimumBookingNotice || 0;
 
   const router = useRouter();
@@ -94,5 +100,3 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organize
     hasErrors,
   };
 };
-
-export default Slots;
