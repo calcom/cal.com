@@ -24,6 +24,6 @@ export interface CalendsoSession extends DefaultSession {
 export async function getSession(options: GetSessionOptions): Promise<CalendsoSession | null> {
   const session = await getSessionInner(options);
 
-  // that these are equal are unsured in `[...nextauth]`'s callback
+  // that these are equal are ensured in `[...nextauth]`'s callback
   return session as CalendsoSession;
 }
