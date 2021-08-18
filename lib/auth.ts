@@ -17,7 +17,7 @@ type CalendsoSessionUser = DefaultSessionUser & {
   id: number;
   username: string;
 };
-export interface CalendsoSession extends DefaultSession {
+interface Session extends DefaultSession {
   user?: CalendsoSessionUser;
 }
 
