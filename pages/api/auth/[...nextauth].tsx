@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
 import prisma from "../../../lib/prisma";
-import { CalendsoSession, verifyPassword } from "../../../lib/auth";
+import { Session, verifyPassword } from "../../../lib/auth";
 
 export default NextAuth({
   session: {
@@ -59,7 +59,7 @@ export default NextAuth({
       return token;
     },
     async session(session, token) {
-      const calendsoSession: CalendsoSession = {
+      const calendsoSession: Session = {
         ...session,
         user: {
           ...session.user,
