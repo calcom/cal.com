@@ -164,7 +164,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                     "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
-                  <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
+                  <Avatar
+                    imageSrc={props.user.avatar}
+                    displayName={props.user.name}
+                    className="w-16 h-16 mb-4 rounded-full"
+                  />
                   <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {props.eventType.title}
