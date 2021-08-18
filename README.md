@@ -28,6 +28,7 @@
   <img src="https://img.shields.io/github/license/calendso/calendso" alt="License">
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
   <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
+  <a href="https://calendso.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>  
 </p>
 
 <!-- ABOUT THE PROJECT -->
