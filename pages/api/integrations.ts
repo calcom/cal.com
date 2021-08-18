@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
     const id = req.body.id;
 
-    const deleteIntegration = await prisma.credential.delete({
+    await prisma.credential.delete({
       where: {
         id: id,
       },

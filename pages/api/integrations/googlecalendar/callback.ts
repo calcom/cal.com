@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "../../../../lib/prisma";
-const { google } = require("googleapis");
+import { google } from "googleapis";
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS!;
 
