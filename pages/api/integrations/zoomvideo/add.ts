@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Get user
-    const user = await prisma.user.findFirst({
+    await prisma.user.findFirst({
       where: {
         email: session.user.email,
       },

@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 
   const hashedPassword = await hashPassword(password);
 
-  const user = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email },
     update: {
       username,

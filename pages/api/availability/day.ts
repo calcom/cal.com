@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const endMins = req.body.end;
     const bufferMins = req.body.buffer;
 
-    const updateDay = await prisma.user.update({
+    await prisma.user.update({
       where: {
         id: session.user.id,
       },
