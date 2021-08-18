@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/client';
-import prisma from '../../../../lib/prisma';
-const scopes = ['offline_access', 'Calendars.Read', 'Calendars.ReadWrite'];
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getSession } from "@lib/auth";
+import prisma from "../../../../lib/prisma";
+const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { code } = req.query;

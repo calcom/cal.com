@@ -55,6 +55,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.6.1",
     "@types/nodemailer": "^6.4.4",
