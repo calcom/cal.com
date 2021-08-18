@@ -3,7 +3,6 @@ import prisma from "../../../../lib/prisma";
 import createInvitationEmail from "../../../../lib/emails/invitation";
 import { getSession } from "next-auth/client";
 import { randomBytes } from "crypto";
-import { create } from "domain";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

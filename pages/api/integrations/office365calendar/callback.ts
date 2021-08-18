@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
-  const credential = await prisma.credential.create({
+  await prisma.credential.create({
     data: {
       type: "office365_calendar",
       key: responseBody,
