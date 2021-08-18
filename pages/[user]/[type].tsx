@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Availability } from "@prisma/client";
 import Theme from "@components/Theme";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
+import { Availability } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Avatar from "../../components/Avatar";
 import AvailableTimes from "../../components/booking/AvailableTimes";
 import DatePicker from "../../components/booking/DatePicker";
@@ -24,52 +24,44 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 
   const { isReady } = Theme(props.user.theme);
 
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
-    return props.date && dayjs(props.date).isValid() ? dayjs(props.date) : null;
-  });
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
+
+  const selectedDate = useMemo(() => {
+    if (typeof router.query.date !== "string") {
+      return null;
+    }
+    const parsed = dayjs(router.query.date);
+
+    return parsed.isValid() ? parsed : null;
+  }, [router.query.date]);
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
-  const changeDate = (date: Dayjs) => {
+  const changeDate = (newDate: Dayjs) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
-    setSelectedDate(date);
-  };
-
-  useEffect(() => {
-    if (!selectedDate) {
-      return;
-    }
-
-    const formattedDate = selectedDate.utc().format("YYYY-MM-DD");
-
     router.replace(
       {
-        query: Object.assign(
-          {},
-          {
-            ...router.query,
-          },
-          {
-            date: formattedDate,
-          }
-        ),
+        query: {
+          ...router.query,
+          date: newDate.utc().format("YYYY-MM-DD"),
+        },
       },
       undefined,
       {
         shallow: true,
       }
     );
-  }, [router, selectedDate]);
+  };
+  console.log({ selectedDate, fmt: selectedDate?.format("YYYY-MM-DD") });
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
     if (selectedDate) {
-      setSelectedDate(selectedDate.tz(selectedTimeZone));
+      changeDate(selectedDate.tz(selectedTimeZone));
     }
     setIsTimeOptionsOpen(false);
   };
@@ -239,7 +231,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // (would be even better to assert them instead of typecasting)
   const userParam = context.query.user as string;
   const typeParam = context.query.type as string;
-  const dateParam = context.query.date as string | undefined;
 
   const user = await prisma.user.findFirst({
     where: {
@@ -321,7 +312,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       user,
-      date: dateParam,
       eventType: eventTypeObject,
       workingHours,
     },
