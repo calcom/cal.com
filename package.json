@@ -50,8 +50,8 @@
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.6",
     "short-uuid": "^4.2.0",
-    "tsdav": "^1.0.3",
     "tslog": "^3.2.1",
+    "tsdav": "^1.0.6",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -80,20 +80,12 @@
     "typescript": "^4.3.5"
   },
   "lint-staged": {
-    "./{*,{pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
-      "prettier --write",
-      "eslint"
-    ]
+    "./{*,{pages,components,lib}/**/*}.{js,ts,jsx,tsx}": ["prettier --write", "eslint"]
   },
   "jest": {
     "verbose": true,
-    "extensionsToTreatAsEsm": [
-      ".ts"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "ts"
-    ],
+    "extensionsToTreatAsEsm": [".ts"],
+    "moduleFileExtensions": ["js", "ts"],
     "moduleNameMapper": {
       "^@components(.*)$": "<rootDir>/components$1",
       "^@lib(.*)$": "<rootDir>/lib$1"

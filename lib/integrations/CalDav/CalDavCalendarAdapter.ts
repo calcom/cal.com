@@ -204,14 +204,14 @@ export class CalDavCalendar implements CalendarApiAdapter {
 
       const events = [];
 
-      for (const calId of selectedCalendarIds) {
-        const calEvents = await this.getEvents(calId, dateFrom, dateTo);
-
-        for (const ev of calEvents) {
-          events.push({ start: ev.startDate, end: ev.endDate });
-        }
-      }
-
+      await Promise.all(
+        selectedCalendarIds.map(async (calId) => {
+          const calEvents = await this.getEvents(calId, dateFrom, dateTo);
+          for (const ev of calEvents) {
+            events.push({ start: ev.startDate, end: ev.endDate });
+          }
+        })
+      );
       return events;
     } catch (reason) {
       console.error(reason);
@@ -245,13 +245,12 @@ export class CalDavCalendar implements CalendarApiAdapter {
 
   async getEvents(calId: string, dateFrom: string, dateTo: string): Promise<unknown> {
     try {
-      //TODO: Figure out Time range and filters
-      console.log(dateFrom, dateTo);
       const objects = await fetchCalendarObjects({
         calendar: {
           url: calId,
         },
         headers: this.headers,
+        timeRange: { start: dateFrom, end: dateTo },
       });
 
       const events =
