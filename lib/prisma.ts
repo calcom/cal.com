@@ -27,6 +27,11 @@ const pluck = (select: Record<string, boolean>, attr: string) => {
   };
 };
 
+/**
+ * @deprecated
+ * This function will always return `any` type,
+ * See https://github.com/calendso/calendso/pull/460 for alternative approach
+ */
 const whereAndSelect = (modelQuery, criteria: Record<string, unknown>, pluckedAttributes: string[]) =>
   modelQuery({
     where: criteria,
