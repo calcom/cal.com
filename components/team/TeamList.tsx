@@ -2,9 +2,10 @@ import { useState } from "react";
 import TeamListItem from "./TeamListItem";
 import EditTeamModal from "./EditTeamModal";
 import MemberInvitationModal from "./MemberInvitationModal";
+import { Dialog, DialogHeader, DialogContent } from "@components/Dialog";
 
 export default function TeamList(props) {
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [showDisbandTeamModal, setShowDisbandTeamModal] = useState(false);
   const [showEditTeamModal, setShowEditTeamModal] = useState(false);
   const [team, setTeam] = useState(null);
 
@@ -12,10 +13,11 @@ export default function TeamList(props) {
     setTeam(team);
     switch (action) {
       case "edit":
-        setShowEditTeamModal(true);
+        // setShowEditTeamModal(true);
+        props.onEditTeam(team);
         break;
-      case "invite":
-        setShowMemberInvitationModal(true);
+      case "disband":
+        setShowDisbandTeamModal(true);
         break;
     }
   };
@@ -31,19 +33,19 @@ export default function TeamList(props) {
             onActionSelect={(action: string) => selectAction(action, team)}></TeamListItem>
         ))}
       </ul>
-      {showEditTeamModal && (
+      {/* {showEditTeamModal && (
         <EditTeamModal
           team={team}
           onExit={() => {
             props.onChange();
             setShowEditTeamModal(false);
           }}></EditTeamModal>
-      )}
-      {showMemberInvitationModal && (
+      )} */}
+      {/* {showDisbandTeamModal && (
         <MemberInvitationModal
           team={team}
-          onExit={() => setShowMemberInvitationModal(false)}></MemberInvitationModal>
-      )}
+          onExit={() => setShowDisbandTeamModal(false)}></MemberInvitationModal>
+      )} */}
     </div>
   );
 }

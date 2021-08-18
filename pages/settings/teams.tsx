@@ -9,12 +9,15 @@ import { UsersIcon } from "@heroicons/react/outline";
 import TeamList from "../../components/team/TeamList";
 import TeamListItem from "../../components/team/TeamListItem";
 import Loader from "@components/Loader";
+import EditTeam from "@components/team/EditTeam";
 
 export default function Teams() {
   const [, loading] = useSession();
   const [teams, setTeams] = useState([]);
   const [invites, setInvites] = useState([]);
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
+  const [editTeamEnabled, setEditTeamEnabled] = useState(false);
+  const [teamToEdit, setTeamToEdit] = useState();
 
   const handleErrors = async (resp) => {
     if (!resp.ok) {
@@ -57,6 +60,11 @@ export default function Teams() {
     });
   };
 
+  const editTeam=  (team) =>{
+    setEditTeamEnabled(true);
+    setTeamToEdit(team);
+  }
+
   return (
     <Shell heading="Teams" subtitle="Create and manage teams to use collaborative features.">
       <Head>
@@ -64,69 +72,74 @@ export default function Teams() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <SettingsShell>
-        <div className="divide-y divide-gray-200 lg:col-span-9">
-          <div className="py-6 lg:pb-8">
-            <div className="flex flex-col justify-between md:flex-row">
-              <div>
-                {!(invites.length || teams.length) && (
-                  <div className="bg-gray-50 sm:rounded-sm">
-                    <div className="pr-4 pb-5 sm:pb-6">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        Create a team to get started
-                      </h3>
-                      <div className="mt-2 max-w-xl text-sm text-gray-500">
-                        <p>Create your first team and invite other users to work together with you.</p>
+        {!editTeamEnabled &&
+          <div className="divide-y divide-gray-200 lg:col-span-9">
+            <div className="py-6 lg:pb-8">
+              <div className="flex flex-col justify-between md:flex-row">
+                <div>
+                  {!(invites.length || teams.length) && (
+                    <div className="bg-gray-50 sm:rounded-sm">
+                      <div className="pr-4 pb-5 sm:pb-6">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900">
+                          Create a team to get started
+                        </h3>
+                        <div className="mt-2 max-w-xl text-sm text-gray-500">
+                          <p>Create your first team and invite other users to work together with you.</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
 
-              </div>
-              <div className="flex items-start mb-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateTeamModal(true)}
-                  className="btn btn-white">
-                  + New Team
-                </button>
-              </div>
-              {/* {!!(invites.length || teams.length) && (
-                <div>
-                  <button className="btn-sm btn-white mb-4" onClick={() => setShowCreateTeamModal(true)}>
+                </div>
+                <div className="flex items-start mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateTeamModal(true)}
+                    className="btn btn-white">
                     + New Team
                   </button>
                 </div>
-              )} */}
-            </div>
-            <div>
-              {!!teams.length && <TeamList teams={teams} onChange={loadData}></TeamList>}
+                {/* {!!(invites.length || teams.length) && (
+                  <div>
+                    <button className="btn-sm btn-white mb-4" onClick={() => setShowCreateTeamModal(true)}>
+                      + New Team
+                    </button>
+                  </div>
+                )} */}
+              </div>
+              <div>
+                {!!teams.length && <TeamList teams={teams} onChange={loadData} onEditTeam={editTeam}></TeamList>}
 
-              {!!invites.length && (
+                {!!invites.length && (
+                  <div>
+                    <h2 className="text-lg leading-6 font-medium text-gray-900">Open Invitations</h2>
+                    <ul className="border px-2 rounded mt-2 mb-2 divide-y divide-gray-200">
+                      {invites.map((team) => (
+                        <TeamListItem onChange={loadData} key={team.id} team={team}></TeamListItem>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              {/*{teamsLoaded && <div className="flex justify-between">
                 <div>
-                  <h2 className="text-lg leading-6 font-medium text-gray-900">Open Invitations</h2>
-                  <ul className="border px-2 rounded mt-2 mb-2 divide-y divide-gray-200">
-                    {invites.map((team) => (
-                      <TeamListItem onChange={loadData} key={team.id} team={team}></TeamListItem>
-                    ))}
-                  </ul>
+                  <h2 className="text-lg leading-6 font-medium text-gray-900 mb-1">Transform account</h2>
+                  <p className="text-sm text-gray-500 mb-1">
+                    {membership.length !== 0 && "You cannot convert this account into a team until you leave all teams that you’re a member of."}
+                    {membership.length === 0 && "A user account can be turned into a team, as a team ...."}
+                  </p>
                 </div>
-              )}
+                <div>
+                  <button className="mt-2 btn-sm btn-primary opacity-50 cursor-not-allowed" disabled>Convert {session.user.username} into a team</button>
+                </div>
+              </div>}*/}
             </div>
-            {/*{teamsLoaded && <div className="flex justify-between">
-              <div>
-                <h2 className="text-lg leading-6 font-medium text-gray-900 mb-1">Transform account</h2>
-                <p className="text-sm text-gray-500 mb-1">
-                  {membership.length !== 0 && "You cannot convert this account into a team until you leave all teams that you’re a member of."}
-                  {membership.length === 0 && "A user account can be turned into a team, as a team ...."}
-                </p>
-              </div>
-              <div>
-                <button className="mt-2 btn-sm btn-primary opacity-50 cursor-not-allowed" disabled>Convert {session.user.username} into a team</button>
-              </div>
-            </div>}*/}
           </div>
-        </div>
+        }
+        {!!editTeamEnabled && 
+          <EditTeam team={teamToEdit}/>
+        }
         {showCreateTeamModal && (
           <div
             className="fixed z-50 inset-0 overflow-y-auto"

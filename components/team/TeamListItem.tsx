@@ -2,6 +2,7 @@ import { TrashIcon, UsersIcon, DotsHorizontalIcon, LinkIcon, PencilAltIcon, Exte
 import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
 import { Tooltip } from "@components/Tooltip";
+import Link from "next/link";
 
 export default function TeamListItem(props) {
   const [team, setTeam] = useState(props.team);
@@ -85,13 +86,6 @@ export default function TeamListItem(props) {
                 <ul
                   role="menu"
                   className="z-10 origin-top-right absolute top-10 right-0 w-44 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  {/* <li
-                    className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
-                    role="menuitem">
-                    <button className="block px-4 py-2" onClick={() => props.onActionSelect("invite")}>
-                      Invite members
-                    </button>
-                  </li> */}
                   <li
                     className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
                     role="menuitem">
@@ -102,9 +96,13 @@ export default function TeamListItem(props) {
                   <li
                     className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
                     role="menuitem">
-                    <button className="flex items-center px-4 py-2 w-full text-left" onClick={() => props.onActionSelect("preview")}>
-                      <ExternalLinkIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" /> Preview team page
-                    </button>
+                      <Link href={`/${props.team.slug}`} passHref={true}>
+                        <a target="_blank">
+                          <button className="flex items-center px-4 py-2 w-full text-left">
+                            <ExternalLinkIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" /> Preview team page
+                          </button>
+                        </a>
+                      </Link>
                   </li>
                   <li
                     className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
