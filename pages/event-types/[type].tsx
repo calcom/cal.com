@@ -2,26 +2,26 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import Modal from "../../components/Modal";
+import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
+import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure, RadioGroup } from "@headlessui/react";
-
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "@lib/eventTypeInput";
 import {
+  LocationMarkerIcon,
+  LinkIcon,
+  PlusIcon,
+  DocumentIcon,
   ChevronRightIcon,
   ClockIcon,
-  DocumentIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  LocationMarkerIcon,
-  PlusIcon,
   TrashIcon,
+  ExternalLinkIcon,
 } from "@heroicons/react/solid";
 
 import dayjs from "dayjs";
@@ -34,6 +34,10 @@ import throttle from "lodash.throttle";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
 import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
+import Switch from "@components/ui/Switch";
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import showToast from "@lib/notification";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -57,7 +61,17 @@ type DateOverride = {
   endTime: number;
 };
 
-type EventTypeInput = {
+type AdvancedOptions = {
+  eventName?: string;
+  periodType?: string;
+  periodDays?: number;
+  periodStartDate?: Date | string;
+  periodEndDate?: Date | string;
+  periodCountCalendarDays?: boolean;
+  requiresConfirmation?: boolean;
+};
+
+type EventTypeInput = AdvancedOptions & {
   id: number;
   title: string;
   slug: string;
@@ -65,16 +79,9 @@ type EventTypeInput = {
   length: number;
   hidden: boolean;
   locations: unknown;
-  eventName: string;
   customInputs: EventTypeCustomInput[];
   timeZone: string;
   availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
-  periodType?: string;
-  periodDays?: number;
-  periodStartDate?: Date | string;
-  periodEndDate?: Date | string;
-  periodCountCalendarDays?: boolean;
-  enteredRequiresConfirmation: boolean;
 };
 
 const PERIOD_TYPES = [
@@ -99,13 +106,13 @@ export default function EventTypePage({
   availability,
 }: Props): JSX.Element {
   const router = useRouter();
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
-  console.log(eventType);
   const inputOptions: OptionBase[] = [
-    { value: EventTypeCustomInputType.Text, label: "Text" },
-    { value: EventTypeCustomInputType.TextLong, label: "Multiline Text" },
-    { value: EventTypeCustomInputType.Number, label: "Number" },
-    { value: EventTypeCustomInputType.Bool, label: "Checkbox" },
+    { value: EventTypeCustomInputType.TEXT, label: "Text" },
+    { value: EventTypeCustomInputType.TEXTLONG, label: "Multiline Text" },
+    { value: EventTypeCustomInputType.NUMBER, label: "Number" },
+    { value: EventTypeCustomInputType.BOOL, label: "Checkbox" },
   ];
 
   const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
@@ -176,11 +183,11 @@ export default function EventTypePage({
     );
   });
 
+  const [hidden, setHidden] = useState<boolean>(eventType.hidden);
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const lengthRef = useRef<HTMLInputElement>();
-  const isHiddenRef = useRef<HTMLInputElement>();
   const requiresConfirmationRef = useRef<HTMLInputElement>();
   const eventNameRef = useRef<HTMLInputElement>();
   const periodDaysRef = useRef<HTMLInputElement>();
@@ -197,26 +204,17 @@ export default function EventTypePage({
     const enteredSlug: string = slugRef.current.value;
     const enteredDescription: string = descriptionRef.current.value;
     const enteredLength: number = parseInt(lengthRef.current.value);
-    const enteredIsHidden: boolean = isHiddenRef.current.checked;
-    const enteredRequiresConfirmation: boolean = requiresConfirmationRef.current.checked;
-    const enteredEventName: string = eventNameRef.current.value;
 
-    const type = periodType.type;
-    const enteredPeriodDays = parseInt(periodDaysRef?.current?.value);
-    const enteredPeriodDaysType = Boolean(parseInt(periodDaysTypeRef?.current.value));
-
-    const enteredPeriodStartDate = periodStartDate ? periodStartDate.toDate() : null;
-    const enteredPeriodEndDate = periodEndDate ? periodEndDate.toDate() : null;
-
-    console.log("values", {
-      type,
-      periodDaysTypeRef,
-      enteredPeriodDays,
-      enteredPeriodDaysType,
-      enteredPeriodStartDate,
-      enteredPeriodEndDate,
-    });
-    // TODO: Add validation
+    const advancedOptionsPayload: AdvancedOptions = {};
+    if (requiresConfirmationRef.current) {
+      advancedOptionsPayload.requiresConfirmation = requiresConfirmationRef.current.checked;
+      advancedOptionsPayload.eventName = eventNameRef.current.value;
+      advancedOptionsPayload.periodType = periodType.type;
+      advancedOptionsPayload.periodDays = parseInt(periodDaysRef?.current?.value);
+      advancedOptionsPayload.periodCountCalendarDays = Boolean(parseInt(periodDaysTypeRef?.current.value));
+      advancedOptionsPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : null;
+      advancedOptionsPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : null;
+    }
 
     const payload: EventTypeInput = {
       id: eventType.id,
@@ -224,22 +222,13 @@ export default function EventTypePage({
       slug: enteredSlug,
       description: enteredDescription,
       length: enteredLength,
-      hidden: enteredIsHidden,
+      hidden,
       locations,
-      eventName: enteredEventName,
       customInputs,
       timeZone: selectedTimeZone,
-      periodType: type,
-      periodDays: enteredPeriodDays,
-      periodStartDate: enteredPeriodStartDate,
-      periodEndDate: enteredPeriodEndDate,
-      periodCountCalendarDays: enteredPeriodDaysType,
-      requiresConfirmation: enteredRequiresConfirmation,
+      availability: enteredAvailability || null,
+      ...advancedOptionsPayload,
     };
-
-    if (enteredAvailability) {
-      payload.availability = enteredAvailability;
-    }
 
     await fetch("/api/availability/eventtype", {
       method: "PATCH",
@@ -249,7 +238,10 @@ export default function EventTypePage({
       },
     });
 
-    router.push("/availability");
+
+    router.push("/event-types");
+    showToast("Event Type updated", "success");
+    setSuccessModalOpen(true);
   }
 
   async function deleteEventTypeHandler(event) {
@@ -262,7 +254,7 @@ export default function EventTypePage({
         "Content-Type": "application/json",
       },
     });
-
+    showToast("Event Type deleted", "success");
     router.push("/event-types");
   }
 
@@ -280,6 +272,10 @@ export default function EventTypePage({
     setSelectedInputOption(inputOptions[0]);
     setShowAddCustomModal(false);
     setSelectedCustomInput(undefined);
+  };
+
+  const closeSuccessModal = () => {
+    setSuccessModalOpen(false);
   };
 
   const updateLocations = (e) => {
@@ -356,28 +352,19 @@ export default function EventTypePage({
       type: e.target.type.value,
     };
 
-    if (e.target.id?.value) {
-      const index = customInputs.findIndex((inp) => inp.id === +e.target.id?.value);
-      if (index >= 0) {
-        const input = customInputs[index];
-        input.label = customInput.label;
-        input.required = customInput.required;
-        input.type = customInput.type;
-        setCustomInputs(customInputs);
-      }
+    if (selectedCustomInput) {
+      selectedCustomInput.label = customInput.label;
+      selectedCustomInput.required = customInput.required;
+      selectedCustomInput.type = customInput.type;
     } else {
       setCustomInputs(customInputs.concat(customInput));
     }
     closeAddCustomModal();
   };
 
-  const removeCustom = (customInput, e) => {
-    e.preventDefault();
-    const index = customInputs.findIndex((inp) => inp.id === customInput.id);
-    if (index >= 0) {
-      customInputs.splice(index, 1);
-      setCustomInputs([...customInputs]);
-    }
+  const removeCustom = (index: number) => {
+    customInputs.splice(index, 1);
+    setCustomInputs([...customInputs]);
   };
 
   return (
@@ -652,8 +639,8 @@ export default function EventTypePage({
                           </div>
                           <div className="w-full">
                             <ul className="w-96 mt-1">
-                              {customInputs.map((customInput) => (
-                                <li key={customInput.label} className="bg-secondary-50 mb-2 p-2 border">
+                              {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+                                <li key={idx} className="bg-secondary-50 mb-2 p-2 border">
                                   <div className="flex justify-between">
                                     <div>
                                       <div>
@@ -675,7 +662,7 @@ export default function EventTypePage({
                                         className="mr-2 text-sm text-primary-600">
                                         Edit
                                       </button>
-                                      <button onClick={(e) => removeCustom(customInput, e)}>
+                                      <button type="button" onClick={() => removeCustom(idx)}>
                                         <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
                                       </button>
                                     </div>
@@ -694,33 +681,6 @@ export default function EventTypePage({
                                 </button>
                               </li>
                             </ul>
-                          </div>
-                        </div>
-                        <div className="block sm:flex items-center">
-                          <div className="min-w-44 mb-4 sm:mb-0">
-                            <label htmlFor="hidden" className="text-sm flex font-medium text-neutral-700">
-                              Hide event type
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <div className="relative flex items-start">
-                              <div className="flex items-center h-5">
-                                <input
-                                  ref={isHiddenRef}
-                                  id="ishidden"
-                                  name="ishidden"
-                                  type="checkbox"
-                                  className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
-                                  defaultChecked={eventType.hidden}
-                                />
-                              </div>
-                              <div className="ml-3 text-sm">
-                                <p className="text-neutral-900">
-                                  Hide the event type from your page, so it can only be booked through its
-                                  URL.
-                                </p>
-                              </div>
-                            </div>
                           </div>
                         </div>
                         <div className="block sm:flex items-center">
@@ -891,10 +851,22 @@ export default function EventTypePage({
                   </button>
                 </div>
               </form>
+              <Modal
+                heading="Event Type updated successfully"
+                description="Your event type has been updated successfully."
+                open={successModalOpen}
+                handleClose={closeSuccessModal}
+              />
             </div>
           </div>
           <div className="w-full sm:w-2/12 ml-2 px-4 mt-8 sm:mt-0 min-w-32">
             <div className="space-y-4">
+              <Switch
+                name="isHidden"
+                defaultChecked={hidden}
+                onCheckedChange={setHidden}
+                label="Hide event type"
+              />
               <a
                 href={"/" + user.username + "/" + eventType.slug}
                 target="_blank"
@@ -908,19 +880,27 @@ export default function EventTypePage({
                   navigator.clipboard.writeText(
                     window.location.hostname + "/" + user.username + "/" + eventType.slug
                   );
+                  showToast("Link copied!", "success");
                 }}
                 type="button"
                 className="flex text-md font-medium text-neutral-700">
                 <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
                 Copy link
               </button>
-              <button
-                onClick={deleteEventTypeHandler}
-                type="button"
-                className="flex text-md font-medium text-neutral-700">
-                <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
-                Delete
-              </button>
+              <Dialog>
+                <DialogTrigger className="flex text-md font-medium text-neutral-700">
+                  <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
+                  Delete
+                </DialogTrigger>
+                <ConfirmationDialogContent
+                  alert="danger"
+                  title="Delete Event Type"
+                  confirmBtnText="Yes, delete event type"
+                  onConfirm={deleteEventTypeHandler}>
+                  Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link
+                  with will no longer be able to book using it.
+                </ConfirmationDialogContent>
+              </Dialog>
             </div>
           </div>
         </div>

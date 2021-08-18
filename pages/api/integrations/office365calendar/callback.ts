@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/client';
-import prisma from '../../../../lib/prisma';
-const scopes = ['offline_access', 'Calendars.Read', 'Calendars.ReadWrite'];
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getSession } from "@lib/auth";
+import prisma from "../../../../lib/prisma";
+const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { code } = req.query;
@@ -11,9 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!session) { res.status(401).json({message: 'You must be logged in to do this'}); return; }
 
     const toUrlEncoded = payload => Object.keys(payload).map( (key) => key + '=' + encodeURIComponent(payload[ key ]) ).join('&');
-    const hostname = 'x-forwarded-host' in req.headers ? 'https://' + req.headers['x-forwarded-host'] : 'host' in req.headers ? (req.secure ? 'https://' : 'http://') + req.headers['host'] : '';
 
-    const body = toUrlEncoded({ client_id: process.env.MS_GRAPH_CLIENT_ID, grant_type: 'authorization_code', code, scope: scopes.join(' '), redirect_uri: hostname + '/api/integrations/office365calendar/callback', client_secret: process.env.MS_GRAPH_CLIENT_SECRET });
+    const body = toUrlEncoded({ client_id: process.env.MS_GRAPH_CLIENT_ID, grant_type: 'authorization_code', code, scope: scopes.join(' '), redirect_uri: process.env.BASE_URL + '/api/integrations/office365calendar/callback', client_secret: process.env.MS_GRAPH_CLIENT_SECRET });
 
     const response = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', { method: 'POST', headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',

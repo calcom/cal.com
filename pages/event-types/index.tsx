@@ -19,6 +19,7 @@ import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
 import Shell from "../../components/Shell";
 import prisma from "../../lib/prisma";
+import showToast from "@lib/notification";
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();
@@ -54,6 +55,7 @@ export default function Availability({ user, types }) {
     if (enteredTitle && enteredLength) {
       await router.replace(router.asPath);
     }
+    showToast("Event Type created", "success");
   }
 
   function autoPopulateSlug() {
@@ -237,6 +239,7 @@ export default function Availability({ user, types }) {
                         <Tooltip content="Copy link">
                           <button
                             onClick={() => {
+                              showToast("Link copied!", "success");
                               navigator.clipboard.writeText(
                                 window.location.hostname + "/" + session.user.username + "/" + type.slug
                               );
@@ -293,6 +296,7 @@ export default function Availability({ user, types }) {
                                     {({ active }) => (
                                       <button
                                         onClick={() => {
+                                          showToast("Link copied!", "success");
                                           navigator.clipboard.writeText(
                                             window.location.hostname +
                                               "/" +
