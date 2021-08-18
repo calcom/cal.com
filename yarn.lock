@@ -5671,10 +5671,10 @@ react-style-singleton@^2.1.0:
     invariant "^2.2.4"
     tslib "^1.0.0"
 
-react-timezone-select@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.npmjs.org/react-timezone-select/-/react-timezone-select-1.0.6.tgz#6229fce11dfa918536fe3b73398681a2b0b6d323"
-  integrity sha512-fG0mJzWOm8apOAH5DKX+UpWzU/795HyPyCkcYtJyBAtZ3vxXgmsCq9K3wAgno53wA1U79zoD3SJh0egGara1eA==
+react-timezone-select@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/react-timezone-select/-/react-timezone-select-1.0.7.tgz#7293fa18f2238d32908b28e265f33ed6acafd605"
+  integrity sha512-nfQ541GuCHhz5nv+XLJgF4kl+vNorjSutEGiEcreKjpj00ShOWIq3qaG8mNo9lpHwQIQ9Jo3cw3KofnUUpNEbg==
   dependencies:
     react-select "^4.3.1"
     spacetime "^6.16.2"
