@@ -26,7 +26,11 @@ export type TelemetryClient = {
   withJitsu: (callback: (jitsu: JitsuClient) => void | Promise<void>) => void;
 };
 
-const emptyClient: TelemetryClient = { withJitsu: () => {} };
+const emptyClient: TelemetryClient = {
+  withJitsu: () => {
+    // empty
+  },
+};
 
 function useTelemetry(): TelemetryClient {
   return useContext(TelemetryContext);
