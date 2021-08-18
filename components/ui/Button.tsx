@@ -40,7 +40,7 @@ export const Button = function Button(props: ButtonProps) {
       ...passThroughProps,
       disabled,
       className: classNames(
-        // base styles independent what typeo f button it is
+        // base styles independent what type of button it is
         "inline-flex items-center border border-transparent relative",
         // different styles depending on size
         size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm shadow-sm",
