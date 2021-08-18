@@ -1,6 +1,7 @@
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import { Tooltip } from "@components/Tooltip";
 import Loader from "@components/Loader";
+import { Tooltip } from "@components/Tooltip";
+import { Button } from "@components/ui/Button";
 import { Menu, Transition } from "@headlessui/react";
 import {
   ClockIcon,
@@ -9,9 +10,10 @@ import {
   InformationCircleIcon,
   LinkIcon,
   PlusIcon,
-  UserIcon,
+  UserIcon
 } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
+import showToast from "@lib/notification";
 import { getSession, useSession } from "next-auth/client";
 import Head from "next/head";
 import Link from "next/link";
@@ -19,7 +21,6 @@ import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
 import Shell from "../../components/Shell";
 import prisma from "../../lib/prisma";
-import { Button } from "@components/ui/Button";
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();
@@ -57,6 +58,7 @@ export default function Availability({ user, types }) {
     if (enteredTitle && enteredLength) {
       await router.replace(router.asPath);
     }
+    showToast("Event Type created", "success");
   }
 
   function autoPopulateSlug() {
@@ -249,6 +251,7 @@ export default function Availability({ user, types }) {
                         <Tooltip content="Copy link">
                           <button
                             onClick={() => {
+                              showToast("Link copied!", "success");
                               navigator.clipboard.writeText(
                                 window.location.hostname + "/" + session.user.username + "/" + type.slug
                               );
@@ -305,6 +308,7 @@ export default function Availability({ user, types }) {
                                     {({ active }) => (
                                       <button
                                         onClick={() => {
+                                          showToast("Link copied!", "success");
                                           navigator.clipboard.writeText(
                                             window.location.hostname +
                                               "/" +
