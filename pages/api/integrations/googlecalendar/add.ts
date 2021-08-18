@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
-import prisma from "../../../../lib/prisma";
-const { google } = require("googleapis");
+import { google } from "googleapis";
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
 const scopes = [
@@ -18,16 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(401).json({ message: "You must be logged in to do this" });
       return;
     }
-
-    // Get user
-    const user = await prisma.user.findFirst({
-      where: {
-        email: session.user.email,
-      },
-      select: {
-        id: true,
-      },
-    });
 
     // Get token from Google Calendar API
     const { client_secret, client_id, redirect_uris } = JSON.parse(credentials).web;
