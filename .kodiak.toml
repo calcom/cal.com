@@ -1,0 +1,4 @@
+version = 1
+
+[update]
+autoupdate_label = "♻️ autoupdate"
