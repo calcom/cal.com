@@ -1,14 +1,15 @@
+import { GetServerSidePropsContext } from "next";
 import prisma from "../../lib/prisma";
 
-export default function Type(props) {
+export default function Type() {
   // Just redirect to the schedule page to reschedule it.
   return null;
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const booking = await prisma.booking.findFirst({
     where: {
-      uid: context.query.uid,
+      uid: context.query.uid as string,
     },
     select: {
       id: true,
@@ -21,6 +22,11 @@ export async function getServerSideProps(context) {
       attendees: true,
     },
   });
+  if (!booking?.user || !booking.eventType) {
+    return {
+      notFound: true,
+    } as const;
+  }
 
   return {
     redirect: {
