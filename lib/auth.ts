@@ -17,13 +17,13 @@ type CalendsoSessionUser = DefaultSessionUser & {
   id: number;
   username: string;
 };
-interface Session extends DefaultSession {
+export interface Session extends DefaultSession {
   user?: CalendsoSessionUser;
 }
 
-export async function getSession(options: GetSessionOptions): Promise<CalendsoSession | null> {
+export async function getSession(options: GetSessionOptions): Promise<Session | null> {
   const session = await getSessionInner(options);
 
   // that these are equal are ensured in `[...nextauth]`'s callback
-  return session as CalendsoSession;
+  return session as Session | null;
 }
