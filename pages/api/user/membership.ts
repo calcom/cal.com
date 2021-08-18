@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Leave team or decline membership invite of current user
   if (req.method === "DELETE") {
-    const memberships = await prisma.membership.delete({
+    await prisma.membership.delete({
       where: {
         userId_teamId: { userId: session.user.id, teamId: req.body.teamId },
       },
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Accept team invitation
   if (req.method === "PATCH") {
-    const memberships = await prisma.membership.update({
+    await prisma.membership.update({
       where: {
         userId_teamId: { userId: session.user.id, teamId: req.body.teamId },
       },

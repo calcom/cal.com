@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isTeamOwner = !!(await prisma.membership.findFirst({
     where: {
       userId: session.user.id,
-      teamId: parseInt(req.query.team),
+      teamId: parseInt(req.query.team as string),
       role: "OWNER",
     },
   }));
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const memberships = await prisma.membership.findMany({
       where: {
-        teamId: parseInt(req.query.team),
+        teamId: parseInt(req.query.team as string),
       },
     });
 
@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Cancel a membership (invite)
   if (req.method === "DELETE") {
-    const memberships = await prisma.membership.delete({
+    await prisma.membership.delete({
       where: {
         userId_teamId: { userId: req.body.userId, teamId: parseInt(req.query.team) },
       },

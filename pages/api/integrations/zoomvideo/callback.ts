@@ -18,30 +18,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const redirectUri = encodeURI(process.env.BASE_URL + "/api/integrations/zoomvideo/callback");
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
-
-  return new Promise(async (resolve, reject) => {
-    const result = await fetch(
-      "https://zoom.us/oauth/token?grant_type=authorization_code&code=" +
-        code +
-        "&redirect_uri=" +
-        redirectUri,
-      {
-        method: "POST",
-        headers: {
-          Authorization: authHeader,
-        },
-      }
-    ).then((res) => res.json());
-
-    await prisma.credential.create({
-      data: {
-        type: "zoom_video",
-        key: result,
-        userId: session.user.id,
+  const result = await fetch(
+    "https://zoom.us/oauth/token?grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri,
+    {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
       },
-    });
+    }
+  );
+  const json = await result.json();
 
-    res.redirect("/integrations");
-    resolve();
+  await prisma.credential.create({
+    data: {
+      type: "zoom_video",
+      key: json,
+      userId: session.user.id,
+    },
   });
+  res.redirect("/integrations");
 }

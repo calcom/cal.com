@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import prisma from "../../../../lib/prisma";
 
 const client_id = process.env.ZOOM_CLIENT_ID;

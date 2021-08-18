@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
 import prisma from "../../../lib/prisma";
-import { verifyPassword } from "../../../lib/auth";
+import { Session, verifyPassword } from "../../../lib/auth";
 
 export default NextAuth({
   session: {
@@ -28,6 +28,9 @@ export default NextAuth({
 
         if (!user) {
           throw new Error("No user found");
+        }
+        if (!user.password) {
+          throw new Error("Incorrect password");
         }
 
         const isValid = await verifyPassword(credentials.password, user.password);
@@ -56,10 +59,15 @@ export default NextAuth({
       return token;
     },
     async session(session, token) {
-      session.user = session.user || {};
-      session.user.id = token.id;
-      session.user.username = token.username;
-      return session;
+      const calendsoSession: Session = {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.id as number,
+          username: token.username as string,
+        },
+      };
+      return calendsoSession;
     },
   },
 });

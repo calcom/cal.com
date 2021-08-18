@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
     // valid email given, create User
-    const createUser = await prisma.user
+    await prisma.user
       .create({
         data: {
           email: req.body.usernameOrEmail,
@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .then((invitee) =>
         prisma.membership.create({
           data: {
-            teamId: parseInt(req.query.team),
+            teamId: parseInt(req.query.team as string),
             userId: invitee.id,
             role: req.body.role,
           },
@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const token: string = randomBytes(32).toString("hex");
 
-    const createVerificationRequest = await prisma.verificationRequest.create({
+    await prisma.verificationRequest.create({
       data: {
         identifier: req.body.usernameOrEmail,
         token,
@@ -79,9 +79,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // create provisional membership
   try {
-    const createMembership = await prisma.membership.create({
+    await prisma.membership.create({
       data: {
-        teamId: parseInt(req.query.team),
+        teamId: parseInt(req.query.team as string),
         userId: invitee.id,
         role: req.body.role,
       },

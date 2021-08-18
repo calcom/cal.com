@@ -10,12 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // DELETE /api/teams/{team}
   if (req.method === "DELETE") {
-    const deleteMembership = await prisma.membership.delete({
+    await prisma.membership.delete({
       where: {
         userId_teamId: { userId: session.user.id, teamId: parseInt(req.query.team) },
       },
     });
-    const deleteTeam = await prisma.team.delete({
+    await prisma.team.delete({
       where: {
         id: parseInt(req.query.team),
       },
