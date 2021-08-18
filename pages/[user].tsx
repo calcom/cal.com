@@ -2,7 +2,7 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import prisma, { whereAndSelect } from "@lib/prisma";
-import Avatar from "../components/Avatar";
+import Avatar from "@components/Avatar";
 import Theme from "@components/Theme";
 import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
@@ -105,7 +105,11 @@ export default function User(props): User {
         <div className="bg-neutral-50 dark:bg-black h-screen">
           <main className="max-w-3xl mx-auto py-24 px-4">
             <div className="mb-8 text-center">
-              <Avatar user={props.user} className="mx-auto w-24 h-24 rounded-full mb-4" />
+              <Avatar
+                imageSrc={props.user.avatar}
+                displayName={props.user.name}
+                className="mx-auto w-24 h-24 rounded-full mb-4"
+              />
               <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-1">
                 {props.user.name || props.user.username}
               </h1>

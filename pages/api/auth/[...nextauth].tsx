@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
 import prisma from "../../../lib/prisma";
 import { Session, verifyPassword } from "../../../lib/auth";
+import crypto from "crypto";
 
 export default NextAuth({
   session: {
@@ -43,8 +44,8 @@ export default NextAuth({
           id: user.id,
           username: user.username,
           email: user.email,
+          emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
           name: user.name,
-          image: user.avatar,
         };
       },
     }),
