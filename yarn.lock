@@ -3215,6 +3215,11 @@ globby@^11.0.3:
     merge2 "^1.3.0"
     slash "^3.0.0"
 
+goober@^2.0.35:
+  version "2.0.41"
+  resolved "https://registry.yarnpkg.com/goober/-/goober-2.0.41.tgz#0a3d786ff9917bcf2a096eef703bf717838cbec9"
+  integrity sha512-kwjegMT5018zWydhOQlQneCgCtrKJaPsru7TaBWmTYV0nsMeUrM6L6O8JmNYb9UbPMgWcmtf+9p4Y3oJabIH1A==
+
 google-auth-library@^7.0.2:
   version "7.6.1"
   resolved "https://registry.npmjs.org/google-auth-library/-/google-auth-library-7.6.1.tgz#be3d393212fc9dafee7d05975c4ebe88efecc16d"
@@ -5549,6 +5554,13 @@ react-easy-crop@^3.5.2:
   dependencies:
     normalize-wheel "^1.0.1"
     tslib "2.0.1"
+
+react-hot-toast@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/react-hot-toast/-/react-hot-toast-2.1.0.tgz#f4fe3107a3ccd1d7e76ad3d3282967fbf2fccf2c"
+  integrity sha512-/wUoUVUC/qCYmkJvMzl/oXBIJe47vYqtwOpA76Pz8SrklrF8RBUTLG2eS+ivznzQzY8YlsyODIV7Qk3vOnFf1g==
+  dependencies:
+    goober "^2.0.35"
 
 react-input-autosize@^3.0.0:
   version "3.0.0"
