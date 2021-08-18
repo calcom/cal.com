@@ -17,6 +17,7 @@ import {
 } from "@heroicons/react/solid";
 import Logo from "./Logo";
 import classNames from "@lib/classNames";
+import { Toaster } from "react-hot-toast";
 
 export default function Shell(props) {
   const router = useRouter();
@@ -69,6 +70,10 @@ export default function Shell(props) {
 
   return session ? (
     <>
+      <div>
+        <Toaster position="bottom-right" />
+      </div>
+
       <div className="h-screen flex overflow-hidden bg-gray-100">
         {/* Static sidebar for desktop */}
         <div className="hidden md:flex md:flex-shrink-0">
