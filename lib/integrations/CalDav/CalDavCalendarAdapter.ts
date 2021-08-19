@@ -235,9 +235,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
 
       return calendars
         .filter((calendar) => {
-          return calendar.components && calendar.components.includes("VEVENT")
-            ? calendar.components.includes("VEVENT")
-            : [];
+          return calendar.components?.includes("VEVENT");
         })
         .map((calendar) => ({
           externalId: calendar.url,
@@ -260,8 +258,8 @@ export class CalDavCalendar implements CalendarApiAdapter {
         timeRange:
           dateFrom && dateTo
             ? {
-                start: `${new ICAL.Time.fromJSDate(new Date(dateFrom), true).toICALString()}`,
-                end: `${new ICAL.Time.fromJSDate(new Date(dateTo), true).toICALString()}`,
+                start: dayjs(dateFrom).utc().format("YYYY-MM-DDTHH:mm:ss[Z]"),
+                end: dayjs(dateTo).utc().format("YYYY-MM-DDTHH:mm:ss[Z]"),
               }
             : undefined,
         headers: this.headers,
