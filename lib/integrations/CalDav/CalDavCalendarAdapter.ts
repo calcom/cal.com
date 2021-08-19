@@ -276,8 +276,16 @@ export class CalDavCalendar implements CalendarApiAdapter {
               const vevent = vcalendar.getFirstSubcomponent("vevent");
               const event = new ICAL.Event(vevent);
 
-              const startDate = new Date(event.startDate.toUnixTime() * 1000);
-              const endDate = new Date(event.endDate.toUnixTime() * 1000);
+              const calendarTimezone = vcalendar.getFirstSubcomponent("vtimezone")
+                ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
+                : "";
+
+              const startDate = calendarTimezone
+                ? dayjs(event.startDate).tz(calendarTimezone)
+                : new Date(event.startDate.toUnixTime() * 1000);
+              const endDate = calendarTimezone
+                ? dayjs(event.endDate).tz(calendarTimezone)
+                : new Date(event.endDate.toUnixTime() * 1000);
 
               return {
                 uid: event.uid,
@@ -300,9 +308,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
                 organizer: event.organizer,
                 attendees: event.attendees.map((a) => a.getValues()),
                 recurrenceId: event.recurrenceId,
-                timezone: vcalendar.getFirstSubcomponent("vtimezone")
-                  ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
-                  : "",
+                timezone: calendarTimezone,
               };
             }
           })
