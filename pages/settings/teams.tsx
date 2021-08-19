@@ -19,7 +19,7 @@ export default function Teams() {
   const [editTeamEnabled, setEditTeamEnabled] = useState(false);
   const [teamToEdit, setTeamToEdit] = useState();
 
-  const handleErrors = async (resp) => {
+  const handleErrors = async (resp: any) => {
     if (!resp.ok) {
       const err = await resp.json();
       throw new Error(err.message);
@@ -31,8 +31,8 @@ export default function Teams() {
     fetch("/api/user/membership")
       .then(handleErrors)
       .then((data) => {
-        setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
-        setInvites(data.membership.filter((m) => m.role === "INVITEE"));
+        setTeams(data.membership.filter((m: any) => m.role !== "INVITEE"));
+        setInvites(data.membership.filter((m: any) => m.role === "INVITEE"));
       })
       .catch(console.log);
   };
@@ -45,7 +45,7 @@ export default function Teams() {
     return <Loader />;
   }
 
-  const createTeam = (e) => {
+  const createTeam = (e: any) => {
     e.preventDefault();
 
     return fetch("/api/teams", {
