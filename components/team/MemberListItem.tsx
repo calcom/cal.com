@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
 
-export default function TeamListItem(props) {
+export default function MemberListItem(props: any) {
   const [member, setMember] = useState(props.member);
 
 
@@ -43,7 +43,7 @@ export default function TeamListItem(props) {
               <span className="h-6 px-3 py-1 bg-blue-50 text-xs capitalize self-center text-blue-700 rounded-md mr-4">Owner</span>
           )}
               <Dropdown className="relative flex text-left">
-                <button className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200 focus:ring-black focus:border-black rounded-md">
+                <button type="button" className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200 focus:ring-black focus:border-black rounded-md">
                   <DotsHorizontalIcon className="group-hover:text-black w-5 h-5" />
                 </button>
                 <ul

@@ -1,14 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { ArrowLeftIcon, PlusIcon, TrashIcon, UserRemoveIcon, UsersIcon } from "@heroicons/react/outline";
 import { useSession } from "next-auth/client";
-import Link from "next/link";
-import ErrorAlert from "../../components/ui/alerts/Error";
+import ErrorAlert from "@components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import MemberList from "./MemberList";
 import Avatar from "@components/Avatar";
 import ImageUploader from "@components/ImageUploader";
 
-export default function EditTeam(props) {
+export default function EditTeam(props: any) {
   const [session] = useSession();
   const [members, setMembers] = useState([]);
 
@@ -31,14 +30,14 @@ export default function EditTeam(props) {
     loadMembers();
   }, []);
 
-  const deleteTeam = (e) => {
+  const deleteTeam = (e: any) => {
     e.preventDefault();
     return fetch("/api/teams/" + props.team.id, {
       method: "DELETE",
     }).then(props.onExit);
   };
 
-  const removeMember = (member) => {
+  const removeMember = (member: any) => {
     return fetch("/api/teams/" + props.team.id + "/membership", {
       method: "DELETE",
       body: JSON.stringify({ userId: member.id }),
@@ -60,12 +59,12 @@ export default function EditTeam(props) {
       <div className="divide-y divide-gray-200 lg:col-span-9">
 
         <div className="py-6 lg:pb-8">
-            <div className="flex">
-                <div className="">
-                    <button onClick={() => props.onCloseEdit()} className="flex items-center pr-4 py-2 w-full text-left">
-                        <ArrowLeftIcon className="group-hover:text-black text-gray-700 w-6 h-6 inline-block" />
-                    </button>
-                </div>
+            <div className="mb-4">
+                <button onClick={() => props.onCloseEdit()} className="btn-sm btn-white">
+                    <ArrowLeftIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" /> Back
+                </button>
+            </div>
+            <div className="">
                 <div className="pr-4 pb-5 sm:pb-6">
                     <h3 className="text-lg leading-6 font-bold text-gray-900">
                         {props.team.name}

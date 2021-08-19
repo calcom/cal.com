@@ -2,7 +2,7 @@ import { useState } from "react";
 import MemberListItem from "./MemberListItem";
 import { Dialog, DialogHeader, DialogContent } from "@components/Dialog";
 
-export default function MemberList(props) {
+export default function MemberList(props: any) {
   const [member, setMember] = useState(null);
 
   const selectAction = (action: string, member: any) => {

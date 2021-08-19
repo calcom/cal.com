@@ -73,6 +73,7 @@ model Team {
   id            Int       @default(autoincrement()) @id
   name          String?
   slug          String?
+  logo          String?
   members       Membership[]
 }
 
