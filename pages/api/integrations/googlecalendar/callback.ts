@@ -23,11 +23,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { client_secret, client_id, redirect_uris } = JSON.parse(credentials).web;
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
   const token = await oAuth2Client.getToken(code);
-
+  const key = token.res?.data;
   await prisma.credential.create({
     data: {
       type: "google_calendar",
-      key: token as any,
+      key,
       userId: session.user.id,
     },
   });
