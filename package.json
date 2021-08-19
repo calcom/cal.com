@@ -50,7 +50,7 @@
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
     "short-uuid": "^4.2.0",
-    "tsdav": "^1.0.3",
+    "tsdav": "^1.0.6",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2"
   },
