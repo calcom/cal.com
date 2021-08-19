@@ -7,14 +7,11 @@ it("can decorate using whereAndSelect", async () => {
       expect(queryObj).toStrictEqual({ where: { id: 1 }, select: { example: true } });
     },
     { id: 1 },
-    [
-      "example",
-    ]
+    ["example"]
   );
 });
 
 it("can do nested selects using . seperator", async () => {
-
   whereAndSelect(
     (queryObj) => {
       expect(queryObj).toStrictEqual({
@@ -33,11 +30,7 @@ it("can do nested selects using . seperator", async () => {
       });
     },
     { uid: 1 },
-    [
-      "description",
-      "attendees.email",
-      "attendees.name",
-    ]
+    ["description", "attendees.email", "attendees.name"]
   );
 });
 
@@ -55,7 +48,7 @@ it("can handle nesting deeply", async () => {
               email: {
                 select: {
                   nested: true,
-                }
+                },
               },
               name: true,
             },
@@ -64,11 +57,7 @@ it("can handle nesting deeply", async () => {
       });
     },
     { uid: 1 },
-    [
-      "description",
-      "attendees.email.nested",
-      "attendees.name",
-    ]
+    ["description", "attendees.email.nested", "attendees.name"]
   );
 });
 
@@ -91,18 +80,12 @@ it("can handle nesting multiple", async () => {
             select: {
               id: true,
               name: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
     },
     { uid: 1 },
-    [
-      "description",
-      "attendees.email",
-      "attendees.name",
-      "bookings.id",
-      "bookings.name",
-    ]
+    ["description", "attendees.email", "attendees.name", "bookings.id", "bookings.name"]
   );
 });

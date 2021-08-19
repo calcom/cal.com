@@ -1,6 +1,5 @@
-
-import {serverConfig} from "../serverConfig";
-import nodemailer from 'nodemailer';
+import { serverConfig } from "../serverConfig";
+import nodemailer from "nodemailer";
 
 export default function createInvitationEmail(data: any, options: any = {}) {
   return sendEmail(data, {
@@ -8,33 +7,33 @@ export default function createInvitationEmail(data: any, options: any = {}) {
       transport: serverConfig.transport,
       from: serverConfig.from,
     },
-    ...options
+    ...options,
   });
 }
 
-const sendEmail = (invitation: any, {
-  provider,
-}) => new Promise( (resolve, reject) => {
-  const { transport, from } = provider;
+const sendEmail = (invitation: any, { provider }) =>
+  new Promise((resolve, reject) => {
+    const { transport, from } = provider;
 
-  nodemailer.createTransport(transport).sendMail(
-    {
-      from: `Calendso <${from}>`,
-      to: invitation.toEmail,
-      subject: (
-        invitation.from ? invitation.from + ' invited you' : 'You have been invited'
-      ) + ` to join ${invitation.teamName}`,
-      html: html(invitation),
-      text: text(invitation),
-    },
-    (error) => {
-      if (error) {
-        console.error("SEND_INVITATION_NOTIFICATION_ERROR", invitation.toEmail, error);
-        return reject(new Error(error));
+    nodemailer.createTransport(transport).sendMail(
+      {
+        from: `Calendso <${from}>`,
+        to: invitation.toEmail,
+        subject:
+          (invitation.from ? invitation.from + " invited you" : "You have been invited") +
+          ` to join ${invitation.teamName}`,
+        html: html(invitation),
+        text: text(invitation),
+      },
+      (error) => {
+        if (error) {
+          console.error("SEND_INVITATION_NOTIFICATION_ERROR", invitation.toEmail, error);
+          return reject(new Error(error));
+        }
+        return resolve();
       }
-      return resolve();
-    });
-});
+    );
+  });
 
 const html = (invitation: any) => {
   let url: string = process.env.BASE_URL + "/settings/teams";
@@ -42,7 +41,8 @@ const html = (invitation: any) => {
     url = `${process.env.BASE_URL}/auth/signup?token=${invitation.token}&callbackUrl=${url}`;
   }
 
-  return `
+  return (
+    `
     <table style="width: 100%;">
     <tr>
       <td>
@@ -52,8 +52,8 @@ const html = (invitation: any) => {
         <td>
       Hi,<br />
       <br />` +
-    (invitation.from ? invitation.from + ' invited you' : 'You have been invited' )
-    + ` to join the team "${invitation.teamName}" in Calendso.<br />
+    (invitation.from ? invitation.from + " invited you" : "You have been invited") +
+    ` to join the team "${invitation.teamName}" in Calendso.<br />
       <br />
       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
         <tr>
@@ -79,8 +79,12 @@ const html = (invitation: any) => {
       </td>
       </tr>
     </table>
-  `;
-}
+  `
+  );
+};
 
 // just strip all HTML and convert <br /> to \n
-const text = (evt: any) => html(evt).replace('<br />', "\n").replace(/<[^>]+>/g, '');
+const text = (evt: any) =>
+  html(evt)
+    .replace("<br />", "\n")
+    .replace(/<[^>]+>/g, "");

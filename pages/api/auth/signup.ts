@@ -1,26 +1,26 @@
-import prisma from '../../../lib/prisma';
+import prisma from "../../../lib/prisma";
 import { hashPassword } from "../../../lib/auth";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-      return;
+  if (req.method !== "POST") {
+    return;
   }
 
   const data = req.body;
   const { username, email, password } = data;
 
   if (!username) {
-    res.status(422).json({message: 'Invalid username'});
+    res.status(422).json({ message: "Invalid username" });
     return;
   }
 
-  if (!email || !email.includes('@')) {
-    res.status(422).json({message: 'Invalid email'});
+  if (!email || !email.includes("@")) {
+    res.status(422).json({ message: "Invalid email" });
     return;
   }
 
   if (!password || password.trim().length < 7) {
-    res.status(422).json({message: 'Invalid input - password should be at least 7 characters long.'});
+    res.status(422).json({ message: "Invalid input - password should be at least 7 characters long." });
     return;
   }
 
@@ -28,34 +28,33 @@ export default async function handler(req, res) {
     where: {
       OR: [
         {
-          username: username
+          username: username,
         },
         {
-          email: email
-        }
+          email: email,
+        },
       ],
       AND: [
         {
           emailVerified: {
             not: null,
           },
-        }
-      ]
-    }
+        },
+      ],
+    },
   });
 
   if (existingUser) {
-    let message: string = (
-      existingUser.email !== email
-    ) ? 'Username already taken' : 'Email address is already registered';
+    const message: string =
+      existingUser.email !== email ? "Username already taken" : "Email address is already registered";
 
-    return res.status(409).json({message});
+    return res.status(409).json({ message });
   }
 
   const hashedPassword = await hashPassword(password);
 
-  const user = await prisma.user.upsert({
-    where: { email, },
+  await prisma.user.upsert({
+    where: { email },
     update: {
       username,
       password: hashedPassword,
@@ -65,8 +64,8 @@ export default async function handler(req, res) {
       username,
       email,
       password: hashedPassword,
-    }
+    },
   });
 
-  res.status(201).json({message: 'Created user'});
+  res.status(201).json({ message: "Created user" });
 }
