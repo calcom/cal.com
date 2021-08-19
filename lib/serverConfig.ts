@@ -1,6 +1,4 @@
-
 function detectTransport(): string | any {
-
   if (process.env.EMAIL_SERVER) {
     return process.env.EMAIL_SERVER;
   }
@@ -14,7 +12,7 @@ function detectTransport(): string | any {
         user: process.env.EMAIL_SERVER_USER,
         pass: process.env.EMAIL_SERVER_PASSWORD,
       },
-      secure: (port === 465),
+      secure: port === 465,
     };
 
     return transport;
@@ -22,8 +20,8 @@ function detectTransport(): string | any {
 
   return {
     sendmail: true,
-    newline: 'unix',
-    path: '/usr/sbin/sendmail'
+    newline: "unix",
+    path: "/usr/sbin/sendmail",
   };
 }
 
