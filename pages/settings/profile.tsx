@@ -28,7 +28,7 @@ export default function Settings(props) {
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
-  const [imageSrc, setImageSrc] = useState<string>('');  
+  const [imageSrc, setImageSrc] = useState<string>("");
 
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -46,13 +46,16 @@ export default function Settings(props) {
 
   const handleAvatarChange = (newAvatar) => {
     avatarRef.current.value = newAvatar;
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-    nativeInputValueSetter.call(avatarRef.current, newAvatar);      
-    const ev2 = new Event('input', { bubbles: true});
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value"
+    ).set;
+    nativeInputValueSetter.call(avatarRef.current, newAvatar);
+    const ev2 = new Event("input", { bubbles: true });
     avatarRef.current.dispatchEvent(ev2);
     updateProfileHandler(ev2);
-    setImageSrc(newAvatar);  
-  }
+    setImageSrc(newAvatar);
+  };
 
   const handleError = async (resp) => {
     if (!resp.ok) {
@@ -152,31 +155,31 @@ export default function Settings(props) {
                 </div>
                 <div>
                   <div className="mt-1 flex">
-                      <Avatar
-                        user={props.user}
-                        className="relative rounded-full w-10 h-10"
-                        fallback={<div className="relative bg-neutral-900 rounded-full w-10 h-10"></div>}
-                        imageSrc={imageSrc}
-                      />
-                      <input
-                        ref={avatarRef}
-                        type="hidden"
-                        name="avatar"
-                        id="avatar"
-                        placeholder="URL"
-                        className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                        defaultValue={props.user.avatar}
-                      />                    
-                      <ImageUploader 
-                        target="avatar"
-                        id="avatar-upload"
-                        buttonMsg="Change avatar"
-                        handleAvatarChange={handleAvatarChange}
-                        imageRef={imageSrc ? imageSrc : props.user.avatar}
-                      />
+                    <Avatar
+                      user={props.user}
+                      className="relative rounded-full w-10 h-10"
+                      fallback={<div className="relative bg-neutral-900 rounded-full w-10 h-10"></div>}
+                      imageSrc={imageSrc}
+                    />
+                    <input
+                      ref={avatarRef}
+                      type="hidden"
+                      name="avatar"
+                      id="avatar"
+                      placeholder="URL"
+                      className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                      defaultValue={props.user.avatar}
+                    />
+                    <ImageUploader
+                      target="avatar"
+                      id="avatar-upload"
+                      buttonMsg="Change avatar"
+                      handleAvatarChange={handleAvatarChange}
+                      imageRef={imageSrc ? imageSrc : props.user.avatar}
+                    />
                   </div>
                   <hr className="mt-6" />
-                </div>                
+                </div>
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                     Timezone
