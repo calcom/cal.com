@@ -16,6 +16,7 @@ import TimeOptions from "../../components/booking/TimeOptions";
 import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
 import { timeZone } from "../../lib/clock";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
+import { asStringOrNull } from "@lib/asStringOrNull";
 
 export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Get router variables
@@ -235,10 +236,6 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
   }
 }
 
-function asStringOrNull(str: unknown) {
-  return typeof str === "string" ? str : null;
-}
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
@@ -247,9 +244,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const dateParam = asStringOrNull(context.query.date);
 
   if (!userParam || !typeParam) {
-    return {
-      notFound: true,
-    } as const;
+    throw new Error(`File is not named [type]/[user]`);
   }
 
   const user = await prisma.user.findFirst({
