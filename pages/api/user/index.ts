@@ -13,6 +13,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       where: {
         id: session.user.id,
       },
+      select: {
+        username: true,
+      },
     });
 
     if (user) {
