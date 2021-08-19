@@ -12,6 +12,7 @@ import TimezoneSelect from "react-timezone-select";
 import { UsernameInput } from "../../components/ui/UsernameInput";
 import ErrorAlert from "../../components/ui/alerts/Error";
 import ImageUploader from "../../components/ImageUploader";
+import crypto from "crypto";
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -158,7 +159,7 @@ export default function Settings(props) {
                     <Avatar
                       displayName={props.user.name}
                       className="relative rounded-full w-10 h-10"
-                      fallback={<div className="relative bg-neutral-900 rounded-full w-10 h-10"></div>}
+                      gravatarFallbackMd5={props.user.emailMd5}
                       imageSrc={imageSrc}
                     />
                     <input
@@ -350,6 +351,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   });
 
   return {
-    props: { user }, // will be passed to the page component as props
+    props: {
+      user: {
+        ...user,
+        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+      },
+    },
   };
 };

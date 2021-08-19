@@ -21,7 +21,7 @@ export default NextAuth({
         password: { label: "Password", type: "password", placeholder: "Your super secure password" },
       },
       async authorize(credentials) {
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
           where: {
             email: credentials.email,
           },
@@ -52,9 +52,9 @@ export default NextAuth({
   ],
   callbacks: {
     async jwt(token, user) {
-      // Add username to the token right after signin
-      if (user?.username) {
+      if (user) {
         token.id = user.id;
+        token.emailMd5 = user.emailMd5;
         token.username = user.username;
       }
       return token;
@@ -65,6 +65,7 @@ export default NextAuth({
         user: {
           ...session.user,
           id: token.id as number,
+          emailMd5: token.emailMd5 as string,
           username: token.username as string,
         },
       };
