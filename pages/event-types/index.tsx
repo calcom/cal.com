@@ -10,7 +10,7 @@ import {
   InformationCircleIcon,
   LinkIcon,
   PlusIcon,
-  UserIcon
+  UserIcon,
 } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
