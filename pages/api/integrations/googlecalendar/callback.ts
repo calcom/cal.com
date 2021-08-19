@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await prisma.credential.create({
     data: {
       type: "google_calendar",
-      key: key,
+      key,
       userId: session.user.id,
     },
   });
