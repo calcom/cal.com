@@ -407,6 +407,14 @@ export async function getServerSideProps(context) {
     },
   });
 
+  if (!user.completedOnboarding) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/getting_started",
+      },
+    };
+  }
   const integrations = [
     {
       installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
