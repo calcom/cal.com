@@ -8,7 +8,7 @@ type HTMLButtonProps = React.ButtonHTMLAttributes<HTMLButtonProps>;
 type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
 export type ButtonProps = {
-  color?: "primary" | "secondary";
+  color?: "primary" | "secondary" | "minimal";
   size?: "base" | "sm" | "lg";
   loading?: boolean;
   disabled?: boolean;
@@ -41,20 +41,25 @@ export const Button = function Button(props: ButtonProps) {
       disabled,
       className: classNames(
         // base styles independent what type of button it is
-        "inline-flex items-center border border-transparent relative",
+        "inline-flex items-center relative",
         // different styles depending on size
-        size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm shadow-sm",
-        size === "base" && "px-4 py-2 text-sm font-medium rounded-sm shadow-sm",
+        size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm",
+        size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
         size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
         // different styles depending on color
         color === "primary" &&
           (disabled
-            ? "bg-gray-400 text-white"
-            : "border border-transparent text-white bg-neutral-900 hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500"),
+            ? "border border-transparent bg-gray-400 text-white"
+            : "border border-transparent text-white bg-neutral-900 hover:bg-neutral-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
         color === "secondary" &&
           (disabled
-            ? "border border-gray-400 text-gray-400 bg-white"
-            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500"),
+            ? "border border-gray-200 text-gray-400 bg-white"
+            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+        color === "minimal" &&
+          (disabled
+            ? "text-gray-400 bg-transparent"
+            : "text-gray-700 bg-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-neutral-500"),
+
         // set not-allowed cursor if disabled
         disabled && "cursor-not-allowed",
         props.className
@@ -67,7 +72,7 @@ export const Button = function Button(props: ButtonProps) {
         : props.onClick,
     },
     <>
-      {StartIcon && <StartIcon className="inline w-5 h-5 mr-1" />}
+      {StartIcon && <StartIcon className="inline w-5 h-5 mr-2 -ml-1" />}
       {props.children}
       {loading && (
         <div className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
@@ -93,7 +98,7 @@ export const Button = function Button(props: ButtonProps) {
           </svg>
         </div>
       )}
-      {EndIcon && <EndIcon className="inline w-5 h-5 ml-1" />}
+      {EndIcon && <EndIcon className="inline w-5 h-5 ml-2 -mr-1" />}
     </>
   );
   return props.href ? (

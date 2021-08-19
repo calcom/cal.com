@@ -1,29 +1,35 @@
 import { Button, ButtonProps } from "@components/ui/Button";
-import { MailIcon } from "@heroicons/react/solid";
+import { PlusIcon } from "@heroicons/react/solid";
 import React from "react";
 
 export default function ButtonPage() {
   const list: ButtonProps[] = [
-    // colors
+    // primary
     { color: "primary" },
-    { color: "secondary" },
-
-    // disabled state
     { color: "primary", disabled: true },
-    { color: "secondary", disabled: true },
     { color: "primary", disabled: true, loading: true },
+
+    // secondary
+    { color: "secondary" },
+    { color: "secondary", disabled: true },
     { color: "secondary", disabled: true, loading: true },
 
+    // minimal
+    { color: "minimal" },
+    { color: "minimal", disabled: true },
+    { color: "minimal", disabled: true, loading: true },
+
     // sizes
-    { color: "primary", size: "lg" },
     { color: "primary", size: "sm" },
+    { color: "primary", size: "base" },
+    { color: "primary", size: "lg" },
 
     // href
     { href: "/staging" },
     { href: "/staging", disabled: true },
 
-    { StartIcon: MailIcon },
-    { EndIcon: MailIcon },
+    { StartIcon: PlusIcon },
+    { EndIcon: PlusIcon },
   ];
   return (
     <div className="p-4 bg-gray-200">
@@ -45,7 +51,7 @@ export default function ButtonPage() {
                 )}
               </code>
             </h3>
-            <Button {...props}>Text</Button>
+            <Button {...props}>Button text</Button>
           </div>
         ))}
       </div>
