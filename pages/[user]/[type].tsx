@@ -65,7 +65,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
         shallow: true,
       }
     );
-  }, [router, selectedDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
     if (selectedDate) {
