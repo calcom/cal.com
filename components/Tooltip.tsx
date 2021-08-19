@@ -25,7 +25,7 @@ export function Tooltip({
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger as={Slot}>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
-        className="bg-black text-xs -mt-2 text-white px-1 py-0.5 shadow-lg rounded-sm"
+        className="-mt-2 px-1 py-0.5 text-white text-xs bg-black rounded-sm shadow-lg"
         side="top"
         align="center"
         {...props}>

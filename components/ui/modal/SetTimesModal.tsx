@@ -32,31 +32,31 @@ export default function SetTimesModal(props) {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
         <div
-          className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
+          className="fixed z-0 inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
 
-        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="sm:flex sm:items-start mb-4">
-            <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-              <ClockIcon className="h-6 w-6 text-black" />
+        <div className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-lg shadow-xl overflow-hidden transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-lg">
+          <div className="mb-4 sm:flex sm:items-start">
+            <div className="flex flex-shrink-0 items-center justify-center mx-auto w-12 h-12 bg-blue-100 rounded-full sm:mx-0 sm:w-10 sm:h-10">
+              <ClockIcon className="w-6 h-6 text-black" />
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 className="text-gray-900 text-lg font-medium leading-6" id="modal-title">
                 Change when you are available for bookings
               </h3>
               <div>
-                <p className="text-sm text-gray-500">Set your work schedule</p>
+                <p className="text-gray-500 text-sm">Set your work schedule</p>
               </div>
             </div>
           </div>
           <div className="flex mb-4">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
+            <label className="block pt-2 w-1/4 text-gray-700 text-sm font-medium">Start time</label>
             <div>
               <label htmlFor="startHours" className="sr-only">
                 Hours
@@ -69,7 +69,7 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="hours"
                 id="startHours"
-                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm"
                 placeholder="9"
                 defaultValue={startHours}
               />
@@ -88,14 +88,14 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="minutes"
                 id="startMinutes"
-                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={startMinutes}
               />
             </div>
           </div>
           <div className="flex">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
+            <label className="block pt-2 w-1/4 text-gray-700 text-sm font-medium">End time</label>
             <div>
               <label htmlFor="endHours" className="sr-only">
                 Hours
@@ -108,7 +108,7 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="hours"
                 id="endHours"
-                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm"
                 placeholder="17"
                 defaultValue={endHours}
               />
@@ -127,13 +127,13 @@ export default function SetTimesModal(props) {
                 step="15"
                 name="minutes"
                 id="endMinutes"
-                className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={endMinutes}
               />
             </div>
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
             <button onClick={updateStartEndTimesHandler} type="submit" className="btn btn-primary">
               Save
             </button>

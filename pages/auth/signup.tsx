@@ -50,7 +50,7 @@ export default function Signup(props) {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8"
+      className="flex flex-col justify-center py-12 min-h-screen bg-gray-50 sm:px-6 lg:px-8"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
@@ -59,10 +59,10 @@ export default function Signup(props) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
+        <h2 className="text-center text-gray-900 text-3xl font-extrabold">Create your account</h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow mx-2 sm:rounded-lg sm:px-10">
+        <div className="mx-2 px-4 py-8 bg-white shadow sm:px-10 sm:rounded-lg">
           <form method="POST" onSubmit={signUp} className="bg-white space-y-6">
             {hasErrors && <ErrorAlert message={errorMessage} />}
             <div>
@@ -70,7 +70,7 @@ export default function Signup(props) {
                 <UsernameInput required />
               </div>
               <div className="mb-2">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-gray-700 text-sm font-medium">
                   Email
                 </label>
                 <input
@@ -81,11 +81,11 @@ export default function Signup(props) {
                   disabled={!!props.email}
                   readOnly={!!props.email}
                   value={props.email}
-                  className="bg-gray-100 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="block mt-1 px-3 py-2 w-full bg-gray-100 border focus:border-black border-gray-300 rounded-md focus:outline-none shadow-sm focus:ring-black sm:text-sm"
                 />
               </div>
               <div className="mb-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-gray-700 text-sm font-medium">
                   Password
                 </label>
                 <input
@@ -94,11 +94,11 @@ export default function Signup(props) {
                   id="password"
                   required
                   placeholder="•••••••••••••"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="block mt-1 px-3 py-2 w-full border focus:border-black border-gray-300 rounded-md focus:outline-none shadow-sm focus:ring-black sm:text-sm"
                 />
               </div>
               <div>
-                <label htmlFor="passwordcheck" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="passwordcheck" className="block text-gray-700 text-sm font-medium">
                   Confirm password
                 </label>
                 <input
@@ -107,21 +107,21 @@ export default function Signup(props) {
                   id="passwordcheck"
                   required
                   placeholder="•••••••••••••"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="block mt-1 px-3 py-2 w-full border focus:border-black border-gray-300 rounded-md focus:outline-none shadow-sm focus:ring-black sm:text-sm"
                 />
               </div>
             </div>
-            <div className="mt-3 sm:mt-4 flex">
+            <div className="flex mt-3 sm:mt-4">
               <input
                 type="submit"
                 value="Create Account"
-                className="btn btn-primary w-7/12 mr-2 inline-flex justify-center rounded-md border border-transparent cursor-pointer shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm"
+                className="btn btn-primary inline-flex justify-center mr-2 px-4 py-2 w-7/12 text-white text-base font-medium bg-blue-600 hover:bg-blue-700 border border-transparent rounded-md focus:outline-none shadow-sm cursor-pointer focus:ring-2 focus:ring-black focus:ring-offset-2 sm:text-sm"
               />
               <a
                 onClick={() =>
                   signIn("Calendso", { callbackUrl: (router.query.callbackUrl || "") as string })
                 }
-                className="w-5/12 inline-flex justify-center text-sm text-gray-500 font-medium  border px-4 py-2 rounded btn cursor-pointer">
+                className="btn inline-flex justify-center px-4 py-2 w-5/12 text-gray-500 text-sm font-medium border rounded cursor-pointer">
                 Login instead
               </a>
             </div>

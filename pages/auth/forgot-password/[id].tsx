@@ -76,13 +76,13 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Success</h2>
+            <h2 className="mt-6 text-center text-gray-900 text-3xl font-extrabold">Success</h2>
           </div>
           <p>Your password has been reset. You can now login with your newly created password.</p>
           <Link href="/auth/login">
             <button
               type="button"
-              className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              className="flex justify-center px-4 py-2 w-full text-blue-600 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
               Login
             </button>
           </Link>
@@ -96,8 +96,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Whoops</h2>
-            <h2 className="text-center text-3xl font-extrabold text-gray-900">That Request is Expired.</h2>
+            <h2 className="mt-6 text-center text-gray-900 text-3xl font-extrabold">Whoops</h2>
+            <h2 className="text-center text-gray-900 text-3xl font-extrabold">That Request is Expired.</h2>
           </div>
           <p>
             That request is expired. You can back and enter the email associated with your account and we will
@@ -106,7 +106,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
           <Link href="/auth/forgot-password">
             <button
               type="button"
-              className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              className="flex justify-center px-4 py-2 w-full text-blue-600 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
               Try Again
             </button>
           </Link>
@@ -121,25 +121,25 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   }, [resetPasswordRequest]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-center py-12 min-h-screen bg-gray-50 sm:px-6 lg:px-8">
       <Head>
         <title>Reset Password</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 mx-2 shadow rounded-lg sm:px-10 space-y-6">
+        <div className="mx-2 px-4 py-8 bg-white rounded-lg shadow space-y-6 sm:px-10">
           {isRequestExpired && <Expired />}
           {!isRequestExpired && !success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Reset Password</h2>
+                <h2 className="mt-6 text-center text-gray-900 text-3xl font-extrabold">Reset Password</h2>
                 <p>Enter the new password you&apos;d like for your account.</p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
               <form className="space-y-6" onSubmit={handleSubmit} action="#">
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-gray-700 text-sm font-medium">
                     New Password
                   </label>
                   <div className="mt-1">
@@ -150,7 +150,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                       type="password"
                       autoComplete="password"
                       required
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                      className="placeholder-gray-400 block px-3 py-2 w-full border focus:border-black border-gray-300 rounded-md focus:outline-none shadow-sm appearance-none focus:ring-black sm:text-sm"
                     />
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                     }`}>
                     {loading && (
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        className="-ml-1 mr-3 w-5 h-5 text-white animate-spin"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24">

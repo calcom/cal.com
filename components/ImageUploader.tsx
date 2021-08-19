@@ -115,10 +115,10 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
   }, [croppedAreaPixels, rotation]);
 
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex items-center justify-center">
       <button
         type="button"
-        className="ml-4 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;"
+        className="focus:ring-neutral-500; inline-flex items-center ml-4 px-4 py-1 text-gray-700 text-xs font-medium hover:bg-gray-50 bg-white border border-gray-300 rounded-sm focus:outline-none shadow-sm cursor-pointer focus:ring-2 focus:ring-offset-2"
         onClick={openUploaderModal}>
         {buttonMsg}
       </button>
@@ -129,7 +129,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
           aria-labelledby="modal-title"
           role="dialog"
           aria-modal="true">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
             <div
               className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
               aria-hidden="true"></div>
@@ -138,29 +138,29 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
               &#8203;
             </span>
 
-            <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-6">
-              <div className="sm:flex sm:items-start mb-4">
+            <div className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-sm shadow-xl transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-md">
+              <div className="mb-4 sm:flex sm:items-start">
                 <div className="mt-3 text-center sm:mt-0 sm:text-left">
-                  <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                  <h3 className="text-gray-900 text-lg font-bold leading-6" id="modal-title">
                     Upload an avatar
                   </h3>
                 </div>
               </div>
               <div className="mb-4">
-                <div className="cropper mt-6 flex flex-col justify-center items-center p-8 bg-gray-50">
+                <div className="cropper flex flex-col items-center justify-center mt-6 p-8 bg-gray-50">
                   {!imageLoaded && (
-                    <div className="flex justify-start items-center bg-gray-500 max-h-20 h-20 w-20 rounded-full">
+                    <div className="flex items-center justify-start w-20 h-20 max-h-20 bg-gray-500 rounded-full">
                       {!isImageShown && (
-                        <p className="sm:text-xs text-sm text-white w-full text-center">No {target}</p>
+                        <p className="w-full text-center text-white text-sm sm:text-xs">No {target}</p>
                       )}
                       {isImageShown && (
-                        <img className="h-20 w-20 rounded-full" src={shownImage} alt={target} />
+                        <img className="w-20 h-20 rounded-full" src={shownImage} alt={target} />
                       )}
                     </div>
                   )}
                   {imageLoaded && (
-                    <div className="crop-container max-h-40 h-40 w-40 rounded-full">
-                      <div className="relative h-40 w-40 rounded-full">
+                    <div className="crop-container w-40 h-40 max-h-40 rounded-full">
+                      <div className="relative w-40 h-40 rounded-full">
                         <Cropper
                           image={imageDataUrl}
                           crop={crop}
@@ -183,7 +183,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
                   )}
                   <label
                     htmlFor={id}
-                    className="mt-8 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;">
+                    className="focus:ring-neutral-500; inline-flex items-center mt-8 px-4 py-1 text-gray-700 text-xs font-medium hover:bg-gray-50 bg-white border border-gray-300 rounded-sm focus:outline-none shadow-sm cursor-pointer focus:ring-2 focus:ring-offset-2">
                     Choose a file...
                   </label>
                   <input
@@ -193,12 +193,12 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
                     id={id}
                     name={id}
                     placeholder="Upload image"
-                    className="mt-4 pointer-events-none opacity-0 absolute"
+                    className="absolute mt-4 opacity-0 pointer-events-none"
                     accept="image/*"
                   />
                 </div>
               </div>
-              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
                 <button type="button" className="btn btn-primary" onClick={showCroppedImage}>
                   Save
                 </button>

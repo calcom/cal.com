@@ -125,12 +125,12 @@ export default function Availability(props) {
 
 ">
         <div className="flex">
-          <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
+          <div className="mr-2 w-1/2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+              <h3 className="text-gray-900 text-lg font-medium leading-6">
                 Change the start and end times of your day
               </h3>
-              <div className="mt-2 max-w-xl text-sm text-gray-500">
+              <div className="mt-2 max-w-xl text-gray-500 text-sm">
                 <p>
                   Currently, your day is set to start at {convertMinsToHrsMins(props.user.startTime)} and end
                   at {convertMinsToHrsMins(props.user.endTime)}.
@@ -144,12 +144,12 @@ export default function Availability(props) {
             </div>
           </div>
 
-          <div className="w-1/2 ml-2 border border-gray-200 rounded-sm">
+          <div className="ml-2 w-1/2 border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+              <h3 className="text-gray-900 text-lg font-medium leading-6">
                 Something doesn&apos;t look right?
               </h3>
-              <div className="mt-2 max-w-xl text-sm text-gray-500">
+              <div className="mt-2 max-w-xl text-gray-500 text-sm">
                 <p>Troubleshoot your availability to explore why your times are showing as they are.</p>
               </div>
               <div className="mt-5">
@@ -166,26 +166,26 @@ export default function Availability(props) {
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
               <div
-                className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
+                className="fixed z-0 inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                 aria-hidden="true"></div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
               </span>
 
-              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start mb-4">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <ClockIcon className="h-6 w-6 text-neutral-600" />
+              <div className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-sm shadow-xl overflow-hidden transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-lg">
+                <div className="mb-4 sm:flex sm:items-start">
+                  <div className="flex flex-shrink-0 items-center justify-center mx-auto w-12 h-12 bg-neutral-100 rounded-full sm:mx-0 sm:w-10 sm:h-10">
+                    <ClockIcon className="w-6 h-6 text-neutral-600" />
                   </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                    <h3 className="text-gray-900 text-lg font-medium leading-6" id="modal-title">
                       Change your available times
                     </h3>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-gray-500 text-sm">
                         Set the start and end time of your day and a minimum buffer between your meetings.
                       </p>
                     </div>
@@ -193,7 +193,7 @@ export default function Availability(props) {
                 </div>
                 <form onSubmit={updateStartEndTimesHandler}>
                   <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
+                    <label className="block pt-2 w-1/4 text-gray-700 text-sm font-medium">Start time</label>
                     <div>
                       <label htmlFor="hours" className="sr-only">
                         Hours
@@ -203,7 +203,7 @@ export default function Availability(props) {
                         type="number"
                         name="hours"
                         id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                        className="block w-full border-gray-300 focus:border-neutral-500 rounded-sm shadow-sm focus:ring-neutral-500 sm:text-sm"
                         placeholder="9"
                         defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[0]}
                       />
@@ -218,14 +218,14 @@ export default function Availability(props) {
                         type="number"
                         name="minutes"
                         id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                        className="block w-full border-gray-300 focus:border-neutral-500 rounded-sm shadow-sm focus:ring-neutral-500 sm:text-sm"
                         placeholder="30"
                         defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[1]}
                       />
                     </div>
                   </div>
                   <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
+                    <label className="block pt-2 w-1/4 text-gray-700 text-sm font-medium">End time</label>
                     <div>
                       <label htmlFor="hours" className="sr-only">
                         Hours
@@ -235,7 +235,7 @@ export default function Availability(props) {
                         type="number"
                         name="hours"
                         id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                        className="block w-full border-gray-300 focus:border-neutral-500 rounded-sm shadow-sm focus:ring-neutral-500 sm:text-sm"
                         placeholder="17"
                         defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[0]}
                       />
@@ -250,14 +250,14 @@ export default function Availability(props) {
                         type="number"
                         name="minutes"
                         id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                        className="block w-full border-gray-300 focus:border-neutral-500 rounded-sm shadow-sm focus:ring-neutral-500 sm:text-sm"
                         placeholder="30"
                         defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[1]}
                       />
                     </div>
                   </div>
                   <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
+                    <label className="block pt-2 w-1/4 text-gray-700 text-sm font-medium">Buffer</label>
                     <div>
                       <label htmlFor="hours" className="sr-only">
                         Hours
@@ -267,7 +267,7 @@ export default function Availability(props) {
                         type="number"
                         name="hours"
                         id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                        className="block w-full border-gray-300 focus:border-neutral-500 rounded-sm shadow-sm focus:ring-neutral-500 sm:text-sm"
                         placeholder="0"
                         defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[0]}
                       />
@@ -282,13 +282,13 @@ export default function Availability(props) {
                         type="number"
                         name="minutes"
                         id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                        className="block w-full border-gray-300 focus:border-neutral-500 rounded-sm shadow-sm focus:ring-neutral-500 sm:text-sm"
                         placeholder="10"
                         defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[1]}
                       />
                     </div>
                   </div>
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                  <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
                     <button type="submit" className="btn btn-primary">
                       Update
                     </button>

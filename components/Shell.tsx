@@ -74,19 +74,19 @@ export default function Shell(props) {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="h-screen flex overflow-hidden bg-gray-100">
+      <div className="flex h-screen bg-gray-100 overflow-hidden">
         {/* Static sidebar for desktop */}
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-56">
             {/* Sidebar component, swap this element with another sidebar if you like */}
-            <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
-              <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+            <div className="flex flex-1 flex-col h-0 bg-white border-r border-gray-200">
+              <div className="flex flex-1 flex-col pb-4 pt-5 overflow-y-auto">
                 <Link href="/event-types">
                   <a className="px-4">
                     <Logo small />
                   </a>
                 </Link>
-                <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
+                <nav className="flex-1 mt-5 px-2 bg-white space-y-1">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
@@ -101,7 +101,7 @@ export default function Shell(props) {
                             item.current
                               ? "text-neutral-500"
                               : "text-neutral-400 group-hover:text-neutral-500",
-                            "mr-3 flex-shrink-0 h-5 w-5"
+                            "flex-shrink-0 mr-3 w-5 h-5"
                           )}
                           aria-hidden="true"
                         />
@@ -111,28 +111,28 @@ export default function Shell(props) {
                   ))}
                 </nav>
               </div>
-              <div className="flex-shrink-0 flex p-4">
+              <div className="flex flex-shrink-0 p-4">
                 <UserDropdown session={session} />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
+        <div className="flex flex-1 flex-col w-0 overflow-hidden">
+          <main className="relative z-0 flex-1 focus:outline-none overflow-y-auto">
             {/* show top navigation for md and smaller (tablet and phones) */}
-            <nav className="md:hidden bg-white shadow p-4 flex justify-between items-center">
+            <nav className="flex items-center justify-between p-4 bg-white shadow md:hidden">
               <Link href="/event-types">
                 <a>
                   <Logo />
                 </a>
               </Link>
               <div className="flex gap-3 items-center self-center">
-                <button className="bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-50 bg-white rounded-full focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
                   <span className="sr-only">View notifications</span>
                   <Link href="/settings/profile">
                     <a>
-                      <CogIcon className="h-6 w-6" aria-hidden="true" />
+                      <CogIcon className="w-6 h-6" aria-hidden="true" />
                     </a>
                   </Link>
                 </button>
@@ -142,17 +142,17 @@ export default function Shell(props) {
               </div>
             </nav>
             <div className="py-8">
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
+              <div className="block justify-between px-4 sm:flex sm:px-6 md:px-8">
                 <div className="mb-8">
-                  <h1 className="text-xl font-bold text-gray-900">{props.heading}</h1>
-                  <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
+                  <h1 className="text-gray-900 text-xl font-bold">{props.heading}</h1>
+                  <p className="mr-4 text-neutral-500 text-sm">{props.subtitle}</p>
                 </div>
-                <div className="mb-4 flex-shrink-0">{props.CTA}</div>
+                <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>
               <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
 
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
+              <nav className="bottom-nav fixed bottom-0 flex w-full bg-white shadow md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
                   item.name === "Settings" ? (
@@ -164,13 +164,13 @@ export default function Shell(props) {
                           item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
                           itemIdx === 0 ? "rounded-l-lg" : "",
                           itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
+                          "group relative focus:z-10 flex-1 px-2 py-2 min-w-0 text-center text-xs font-medium hover:bg-gray-50 bg-white overflow-hidden sm:text-sm"
                         )}
                         aria-current={item.current ? "page" : undefined}>
                         <item.icon
                           className={classNames(
                             item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                            "block mx-auto flex-shrink-0 h-5 w-5 mb-1 text-center"
+                            "block flex-shrink-0 mb-1 mx-auto w-5 h-5 text-center"
                           )}
                           aria-hidden="true"
                         />
@@ -182,7 +182,7 @@ export default function Shell(props) {
               </nav>
 
               {/* add padding to content for mobile navigation*/}
-              <div className="block md:hidden pt-12" />
+              <div className="block pt-12 md:hidden" />
             </div>
           </main>
         </div>
@@ -193,17 +193,17 @@ export default function Shell(props) {
 
 function UserDropdown({ session, small, bottom }: { session: any; small?: boolean; bottom?: boolean }) {
   return (
-    <Menu as="div" className="w-full relative inline-block text-left">
+    <Menu as="div" className="relative inline-block w-full text-left">
       {({ open }) => (
         <>
           <div>
-            <Menu.Button className="group w-full rounded-md text-sm text-left font-medium text-gray-700 focus:outline-none">
-              <span className="flex w-full justify-between items-center">
-                <span className="flex min-w-0 items-center justify-between space-x-3">
+            <Menu.Button className="group w-full text-left text-gray-700 text-sm font-medium rounded-md focus:outline-none">
+              <span className="flex items-center justify-between w-full">
+                <span className="flex items-center justify-between min-w-0 space-x-3">
                   <img
                     className={classNames(
                       small ? "w-8 h-8" : "w-10 h-10",
-                      "bg-gray-300 rounded-full flex-shrink-0"
+                      "flex-shrink-0 bg-gray-300 rounded-full"
                     )}
                     src={
                       session.user.image
@@ -214,9 +214,9 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                     alt=""
                   />
                   {!small && (
-                    <span className="flex-1 flex flex-col min-w-0">
+                    <span className="flex flex-1 flex-col min-w-0">
                       <span className="text-gray-900 text-sm font-medium truncate">{session.user.name}</span>
-                      <span className="text-neutral-500 font-normal text-sm truncate">
+                      <span className="text-neutral-500 text-sm font-normal truncate">
                         /{session.user.username}
                       </span>
                     </span>
@@ -224,7 +224,7 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                 </span>
                 {!small && (
                   <SelectorIcon
-                    className="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                    className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500"
                     aria-hidden="true"
                   />
                 )}
@@ -244,10 +244,10 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
               static
               className={classNames(
                 bottom ? "origin-top top-1 right-0" : "origin-bottom bottom-14 left-0",
-                "w-64 z-10 absolute mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
+                "absolute z-10 mt-1 w-64 bg-white rounded-md focus:outline-none shadow-lg divide-gray-200 divide-y ring-1 ring-black ring-opacity-5"
               )}>
               <div className="py-1">
-                <a href={"/" + session.user.username} className="flex px-4 py-2 text-sm text-neutral-500">
+                <a href={"/" + session.user.username} className="flex px-4 py-2 text-neutral-500 text-sm">
                   View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
                 </a>
               </div>
@@ -266,7 +266,7 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                         viewBox="0 0 2447.6 2452.5"
                         className={classNames(
                           "text-neutral-400 group-hover:text-neutral-500",
-                          "mt-0.5 mr-3 flex-shrink-0 h-4 w-4"
+                          "flex-shrink-0 mr-3 mt-0.5 w-4 h-4"
                         )}
                         xmlns="http://www.w3.org/2000/svg">
                         <g clipRule="evenodd" fillRule="evenodd">
@@ -299,7 +299,7 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                       <ChatAltIcon
                         className={classNames(
                           "text-neutral-400 group-hover:text-neutral-500",
-                          "mr-2 flex-shrink-0 h-5 w-5"
+                          "flex-shrink-0 mr-2 w-5 h-5"
                         )}
                         aria-hidden="true"
                       />
@@ -320,7 +320,7 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                         <LogoutIcon
                           className={classNames(
                             "text-neutral-400 group-hover:text-neutral-500",
-                            "mr-2 flex-shrink-0 h-5 w-5"
+                            "flex-shrink-0 mr-2 w-5 h-5"
                           )}
                           aria-hidden="true"
                         />

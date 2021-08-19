@@ -46,27 +46,27 @@ export default function Integration(props) {
       </Head>
 
       <Shell heading={getIntegrationName(props.integration.type)} subtitle="Manage and delete this app.">
-        <div className="block sm:grid grid-cols-3 gap-4">
-          <div className="col-span-2 bg-white border border-gray-200 mb-6 overflow-hidden rounded-sm">
+        <div className="block gap-4 grid-cols-3 sm:grid">
+          <div className="col-span-2 mb-6 bg-white border border-gray-200 rounded-sm overflow-hidden">
             <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Integration Details</h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              <h3 className="text-gray-900 text-lg font-medium leading-6">Integration Details</h3>
+              <p className="mt-1 max-w-2xl text-gray-500 text-sm">
                 Information about your {getIntegrationName(props.integration.type)} App.
               </p>
             </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+            <div className="px-4 py-5 border-t border-gray-200 sm:px-6">
               <dl className="grid gap-y-8">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">App name</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{getIntegrationName(props.integration.type)}</dd>
+                  <dt className="text-gray-500 text-sm font-medium">App name</dt>
+                  <dd className="mt-1 text-gray-900 text-sm">{getIntegrationName(props.integration.type)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">App Category</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{getIntegrationType(props.integration.type)}</dd>
+                  <dt className="text-gray-500 text-sm font-medium">App Category</dt>
+                  <dd className="mt-1 text-gray-900 text-sm">{getIntegrationType(props.integration.type)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">API Key</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-gray-500 text-sm font-medium">API Key</dt>
+                  <dd className="mt-1 text-gray-900 text-sm">
                     {!showAPIKey ? (
                       <span>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                     ) : (
@@ -74,7 +74,7 @@ export default function Integration(props) {
                         <textarea
                           name="apikey"
                           rows={6}
-                          className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                          className="block w-full border-gray-300 focus:border-neutral-500 rounded-sm shadow-sm focus:ring-neutral-500 sm:text-sm"
                           readOnly>
                           {JSON.stringify(props.integration.key)}
                         </textarea>
@@ -82,7 +82,7 @@ export default function Integration(props) {
                     )}
                     <button
                       onClick={toggleShowAPIKey}
-                      className="ml-2 font-medium text-neutral-900 hover:text-neutral-700">
+                      className="ml-2 hover:text-neutral-700 text-neutral-900 font-medium">
                       {!showAPIKey ? "Show" : "Hide"}
                     </button>
                   </dd>
@@ -91,17 +91,17 @@ export default function Integration(props) {
             </div>
           </div>
           <div>
-            <div className="bg-white border border-gray-200 mb-6 rounded-sm">
+            <div className="mb-6 bg-white border border-gray-200 rounded-sm">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Delete this app</h3>
-                <div className="mt-2 max-w-xl text-sm text-gray-500">
+                <h3 className="text-gray-900 text-lg font-medium leading-6">Delete this app</h3>
+                <div className="mt-2 max-w-xl text-gray-500 text-sm">
                   <p>Once you delete this app, it will be permanently removed.</p>
                 </div>
                 <div className="mt-5">
                   <button
                     onClick={deleteIntegrationHandler}
                     type="button"
-                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-sm text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
+                    className="inline-flex items-center justify-center px-4 py-2 text-red-700 font-medium bg-red-100 hover:bg-red-200 border border-transparent rounded-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:text-sm">
                     Delete App
                   </button>
                 </div>

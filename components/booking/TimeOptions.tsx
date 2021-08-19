@@ -25,32 +25,32 @@ const TimeOptions = (props) => {
 
   return (
     selectedTimeZone !== "" && (
-      <div className="absolute z-10 w-full max-w-80 rounded-sm border border-gray-200 dark:bg-gray-700 dark:border-0 bg-white px-4 py-2">
+      <div className="absolute z-10 px-4 py-2 w-full max-w-80 dark:bg-gray-700 bg-white border dark:border-0 border-gray-200 rounded-sm">
         <div className="flex mb-4">
-          <div className="w-1/2 dark:text-white text-gray-600 font-medium">Time Options</div>
+          <div className="w-1/2 text-gray-600 dark:text-white font-medium">Time Options</div>
           <div className="w-1/2">
             <Switch.Group as="div" className="flex items-center justify-end">
               <Switch.Label as="span" className="mr-3">
-                <span className="text-sm dark:text-white text-gray-500">am/pm</span>
+                <span className="text-gray-500 dark:text-white text-sm">am/pm</span>
               </Switch.Label>
               <Switch
                 checked={is24hClock}
                 onChange={setIs24hClock}
                 className={classNames(
                   is24hClock ? "bg-black" : "dark:bg-gray-600 bg-gray-200",
-                  "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                  "relative inline-flex flex-shrink-0 w-8 h-5 border-2 border-transparent rounded-full focus:outline-none cursor-pointer transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-black focus:ring-offset-2"
                 )}>
                 <span className="sr-only">Use setting</span>
                 <span
                   aria-hidden="true"
                   className={classNames(
                     is24hClock ? "translate-x-3" : "translate-x-0",
-                    "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                    "inline-block w-4 h-4 bg-white rounded-full shadow pointer-events-none transform transition duration-200 ease-in-out ring-0"
                   )}
                 />
               </Switch>
               <Switch.Label as="span" className="ml-3">
-                <span className="text-sm dark:text-white text-gray-500">24h</span>
+                <span className="text-gray-500 dark:text-white text-sm">24h</span>
               </Switch.Label>
             </Switch.Group>
           </div>
@@ -59,7 +59,7 @@ const TimeOptions = (props) => {
           id="timeZone"
           value={selectedTimeZone}
           onChange={(tz) => setSelectedTimeZone(tz.value)}
-          className="mb-2 shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+          className="block mb-2 mt-1 w-full focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm"
         />
       </div>
     )

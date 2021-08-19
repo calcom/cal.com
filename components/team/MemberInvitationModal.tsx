@@ -44,33 +44,33 @@ export default function MemberInvitationModal(props) {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
         <div
-          className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
+          className="fixed z-0 inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
 
-        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="sm:flex sm:items-start mb-4">
-            <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-black bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
-              <UsersIcon className="h-6 w-6 text-black" />
+        <div className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-lg shadow-xl transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-lg">
+          <div className="mb-4 sm:flex sm:items-start">
+            <div className="flex flex-shrink-0 items-center justify-center mx-auto w-12 h-12 bg-black bg-opacity-5 rounded-full sm:mx-0 sm:w-10 sm:h-10">
+              <UsersIcon className="w-6 h-6 text-black" />
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 className="text-gray-900 text-lg font-medium leading-6" id="modal-title">
                 Invite a new member
               </h3>
               <div>
-                <p className="text-sm text-gray-400">Invite someone to your team.</p>
+                <p className="text-gray-400 text-sm">Invite someone to your team.</p>
               </div>
             </div>
           </div>
           <form onSubmit={inviteMember}>
             <div>
               <div className="mb-4">
-                <label htmlFor="inviteUser" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="inviteUser" className="block text-gray-700 text-sm font-medium">
                   Email or Username
                 </label>
                 <input
@@ -79,16 +79,16 @@ export default function MemberInvitationModal(props) {
                   id="inviteUser"
                   placeholder="email@example.com"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="block mt-1 px-3 py-2 w-full border focus:border-black border-gray-300 rounded-md focus:outline-none shadow-sm focus:ring-black sm:text-sm"
                 />
               </div>
               <div className="mb-4">
-                <label className="block tracking-wide text-gray-700 text-sm font-medium mb-2" htmlFor="role">
+                <label className="block mb-2 text-gray-700 text-sm font-medium tracking-wide" htmlFor="role">
                   Role
                 </label>
                 <select
                   id="role"
-                  className="shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md">
+                  className="block mt-1 w-full focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm">
                   <option value="MEMBER">Member</option>
                   <option value="OWNER">Owner</option>
                 </select>
@@ -100,11 +100,11 @@ export default function MemberInvitationModal(props) {
                     name="sendInviteEmail"
                     defaultChecked
                     id="sendInviteEmail"
-                    className="text-black shadow-sm focus:ring-black focus:border-black sm:text-sm border-gray-300 rounded-md"
+                    className="text-black focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm"
                   />
                 </div>
                 <div className="ml-2 text-sm">
-                  <label htmlFor="sendInviteEmail" className="font-medium text-gray-700">
+                  <label htmlFor="sendInviteEmail" className="text-gray-700 font-medium">
                     Send an invite email
                   </label>
                 </div>
@@ -116,7 +116,7 @@ export default function MemberInvitationModal(props) {
                 {errorMessage}
               </p>
             )}
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
               <button type="submit" className="btn btn-primary">
                 Invite
               </button>

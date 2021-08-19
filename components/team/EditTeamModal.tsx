@@ -39,26 +39,26 @@ export default function EditTeamModal(props) {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
         <div
-          className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
+          className="fixed z-0 inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
 
-        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="sm:flex sm:items-start mb-4">
-            <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-black bg-opacity-10 sm:mx-0 sm:h-10 sm:w-10">
-              <UsersIcon className="h-6 w-6 text-black" />
+        <div className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-lg shadow-xl transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-lg">
+          <div className="mb-4 sm:flex sm:items-start">
+            <div className="flex flex-shrink-0 items-center justify-center mx-auto w-12 h-12 bg-black bg-opacity-10 rounded-full sm:mx-0 sm:w-10 sm:h-10">
+              <UsersIcon className="w-6 h-6 text-black" />
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 className="text-gray-900 text-lg font-medium leading-6" id="modal-title">
                 Edit the {props.team.name} team
               </h3>
               <div>
-                <p className="text-sm text-gray-400">Manage and delete your team.</p>
+                <p className="text-gray-400 text-sm">Manage and delete your team.</p>
               </div>
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function EditTeamModal(props) {
                 {members.length > 0 && (
                   <div>
                     <div className="flex justify-between mb-2">
-                      <h2 className="text-lg font-medium text-gray-900">Members</h2>
+                      <h2 className="text-gray-900 text-lg font-medium">Members</h2>
                     </div>
                     <table className="table-auto mb-2 w-full text-sm">
                       <tbody>
@@ -79,13 +79,13 @@ export default function EditTeamModal(props) {
                               {!member.name && member.email}
                             </td>
                             <td className="capitalize">{member.role.toLowerCase()}</td>
-                            <td className="text-right py-2 px-1">
+                            <td className="px-1 py-2 text-right">
                               {member.email !== session.user.email && (
                                 <button
                                   type="button"
                                   onClick={() => removeMember(member)}
-                                  className="btn-sm text-xs bg-transparent px-3 py-1 rounded ml-2">
-                                  <UserRemoveIcon className="text-red-400 group-hover:text-gray-500 flex-shrink-0 -mt-1 mr-1 h-4 w-4 inline" />
+                                  className="btn-sm ml-2 px-3 py-1 text-xs bg-transparent rounded">
+                                  <UserRemoveIcon className="inline flex-shrink-0 -mt-1 mr-1 w-4 h-4 group-hover:text-gray-500 text-red-400" />
                                 </button>
                               )}
                             </td>
@@ -96,26 +96,26 @@ export default function EditTeamModal(props) {
                   </div>
                 )}
               </div>
-              <div className="mb-4 border border-red-400 rounded p-2 px-4">
-                <p className="block text-sm font-medium text-gray-700">Tick the box to disband this team.</p>
+              <div className="mb-4 p-2 px-4 border border-red-400 rounded">
+                <p className="block text-gray-700 text-sm font-medium">Tick the box to disband this team.</p>
                 <label className="mt-1">
                   <input
                     type="checkbox"
                     onChange={(e) => setCheckedDisbandTeam(e.target.checked)}
-                    className="shadow-sm mr-2 focus:ring-blue-500 focus:border-blue-500  sm:text-sm border-gray-300 rounded-md"
+                    className="mr-2 focus:border-blue-500 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 sm:text-sm"
                   />
                   Disband this team
                 </label>
               </div>
             </div>
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
               {/*!checkedDisbandTeam && <button type="submit" className="btn btn-primary">
               Update
             </button>*/}
               {checkedDisbandTeam && (
                 <button
                   onClick={deleteTeam}
-                  className="btn bg-red-700 rounded text-white px-2 font-medium text-sm">
+                  className="btn px-2 text-white text-sm font-medium bg-red-700 rounded">
                   Disband Team
                 </button>
               )}

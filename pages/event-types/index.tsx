@@ -70,23 +70,23 @@ export default function Availability({ user, types }) {
 
   const CreateNewEventDialog = () => (
     <Dialog>
-      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-        <PlusIcon className="w-5 h-5 mr-1 inline" />
+      <DialogTrigger className="mt-6 px-4 py-2 text-white text-sm font-medium hover:bg-neutral-700 bg-neutral-900 border border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2">
+        <PlusIcon className="inline mr-1 w-5 h-5" />
         New event type
       </DialogTrigger>
       <DialogContent>
         <div className="mb-8">
-          <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+          <h3 className="text-gray-900 text-lg font-bold leading-6" id="modal-title">
             Add a new event type
           </h3>
           <div>
-            <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
+            <p className="text-gray-500 text-sm">Create a new event type for people to book times with.</p>
           </div>
         </div>
         <form onSubmit={createEventTypeHandler}>
           <div>
             <div className="mb-4">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="title" className="block text-gray-700 text-sm font-medium">
                 Title
               </label>
               <div className="mt-1">
@@ -97,18 +97,18 @@ export default function Availability({ user, types }) {
                   name="title"
                   id="title"
                   required
-                  className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="block w-full border-gray-300 focus:border-neutral-900 rounded-sm shadow-sm focus:ring-neutral-900 sm:text-sm"
                   placeholder="Quick Chat"
                 />
               </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="slug" className="block text-gray-700 text-sm font-medium">
                 URL
               </label>
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
-                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                  <span className="inline-flex items-center px-3 text-gray-500 bg-gray-50 border border-r-0 border-gray-300 rounded-l-md sm:text-sm">
                     {location.hostname}/{user.username}/
                   </span>
                   <input
@@ -117,13 +117,13 @@ export default function Availability({ user, types }) {
                     name="slug"
                     id="slug"
                     required
-                    className="flex-1 block w-full focus:ring-neutral-900 focus:border-neutral-900 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                    className="block flex-1 w-full min-w-0 border-gray-300 focus:border-neutral-900 rounded-none rounded-r-md focus:ring-neutral-900 sm:text-sm"
                   />
                 </div>
               </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="description" className="block text-gray-700 text-sm font-medium">
                 Description
               </label>
               <div className="mt-1">
@@ -131,25 +131,25 @@ export default function Availability({ user, types }) {
                   ref={descriptionRef}
                   name="description"
                   id="description"
-                  className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="block w-full border-gray-300 focus:border-neutral-900 rounded-sm shadow-sm focus:ring-neutral-900 sm:text-sm"
                   placeholder="A quick video meeting."></textarea>
               </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="length" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="length" className="block text-gray-700 text-sm font-medium">
                 Length
               </label>
-              <div className="mt-1 relative rounded-sm shadow-sm">
+              <div className="relative mt-1 rounded-sm shadow-sm">
                 <input
                   ref={lengthRef}
                   type="number"
                   name="length"
                   id="length"
                   required
-                  className="focus:ring-neutral-900 focus:border-neutral-900 block w-full pr-20 sm:text-sm border-gray-300 rounded-sm"
+                  className="block pr-20 w-full border-gray-300 focus:border-neutral-900 rounded-sm focus:ring-neutral-900 sm:text-sm"
                   placeholder="15"
                 />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 text-sm">
                   minutes
                 </div>
               </div>
@@ -178,44 +178,44 @@ export default function Availability({ user, types }) {
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
         CTA={types.length !== 0 && <CreateNewEventDialog />}>
-        <div className="bg-white border border-gray-200 rounded-sm overflow-hidden -mx-4 sm:mx-0">
-          <ul className="divide-y divide-neutral-200">
+        <div className="-mx-4 bg-white border border-gray-200 rounded-sm overflow-hidden sm:mx-0">
+          <ul className="divide-neutral-200 divide-y">
             {types.map((type) => (
               <li key={type.id}>
                 <div className="hover:bg-neutral-50">
-                  <div className="px-4 py-4 flex items-center sm:px-6">
+                  <div className="flex items-center px-4 py-4 sm:px-6">
                     <Link href={"/event-types/" + type.id}>
-                      <a className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
-                        <span className="truncate ">
+                      <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between">
+                        <span className="truncate">
                           <div className="flex text-sm">
-                            <p className="font-medium text-neutral-900 truncate">{type.title}</p>
+                            <p className="text-neutral-900 font-medium truncate">{type.title}</p>
                             {type.hidden && (
-                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+                              <span className="inline-flex items-center ml-2 px-1.5 py-0.5 text-yellow-800 text-xs font-medium bg-yellow-100 rounded-sm">
                                 Hidden
                               </span>
                             )}
                           </div>
-                          <div className="mt-2 flex space-x-4">
-                            <div className="flex items-center text-sm text-neutral-500">
+                          <div className="flex mt-2 space-x-4">
+                            <div className="flex items-center text-neutral-500 text-sm">
                               <ClockIcon
-                                className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
+                                className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                 aria-hidden="true"
                               />
                               <p>{type.length}m</p>
                             </div>
-                            <div className="flex items-center text-sm text-neutral-500">
+                            <div className="flex items-center text-neutral-500 text-sm">
                               <UserIcon
-                                className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
+                                className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                 aria-hidden="true"
                               />
                               <p>1-on-1</p>
                             </div>
-                            <div className="flex items-center text-sm text-neutral-500">
+                            <div className="flex items-center text-neutral-500 text-sm">
                               <InformationCircleIcon
-                                className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
+                                className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                 aria-hidden="true"
                               />
-                              <div className="max-w-32 sm:max-w-full truncate">
+                              <div className="max-w-32 truncate sm:max-w-full">
                                 {type.description.substring(0, 100)}
                               </div>
                             </div>
@@ -224,15 +224,15 @@ export default function Availability({ user, types }) {
                       </a>
                     </Link>
 
-                    <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+                    <div className="hidden flex-shrink-0 mt-4 sm:flex sm:ml-5 sm:mt-0">
                       <div className="flex overflow-hidden space-x-5">
                         <Tooltip content="Preview">
                           <a
                             href={"/" + session.user.username + "/" + type.slug}
                             target="_blank"
                             rel="noreferrer"
-                            className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                            <ExternalLinkIcon className="group-hover:text-black w-5 h-5" />
+                            className="group p-2 text-neutral-400 border hover:border-gray-200 border-transparent cursor-pointer">
+                            <ExternalLinkIcon className="w-5 h-5 group-hover:text-black" />
                           </a>
                         </Tooltip>
 
@@ -244,20 +244,20 @@ export default function Availability({ user, types }) {
                                 window.location.hostname + "/" + session.user.username + "/" + type.slug
                               );
                             }}
-                            className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                            <LinkIcon className="group-hover:text-black w-5 h-5" />
+                            className="group p-2 text-neutral-400 border hover:border-gray-200 border-transparent">
+                            <LinkIcon className="w-5 h-5 group-hover:text-black" />
                           </button>
                         </Tooltip>
                       </div>
                     </div>
-                    <div className="flex sm:hidden ml-5 flex-shrink-0">
+                    <div className="flex flex-shrink-0 ml-5 sm:hidden">
                       <Menu as="div" className="inline-block text-left">
                         {({ open }) => (
                           <>
                             <div>
-                              <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+                              <Menu.Button className="mt-1 p-2 text-neutral-400 border hover:border-gray-200 border-transparent">
                                 <span className="sr-only">Open options</span>
-                                <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                                <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
                               </Menu.Button>
                             </div>
 
@@ -272,7 +272,7 @@ export default function Availability({ user, types }) {
                               leaveTo="transform opacity-0 scale-95">
                               <Menu.Items
                                 static
-                                className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                                className="absolute right-0 mt-2 w-56 bg-white rounded-sm focus:outline-none shadow-lg divide-neutral-100 divide-y origin-top-right ring-1 ring-black ring-opacity-5">
                                 <div className="py-1">
                                   <Menu.Item>
                                     {({ active }) => (
@@ -285,7 +285,7 @@ export default function Availability({ user, types }) {
                                           "group flex items-center px-4 py-2 text-sm font-medium"
                                         )}>
                                         <ExternalLinkIcon
-                                          className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                          className="mr-3 w-4 h-4 text-neutral-400 group-hover:text-neutral-500"
                                           aria-hidden="true"
                                         />
                                         Preview
@@ -307,10 +307,10 @@ export default function Availability({ user, types }) {
                                         }}
                                         className={classNames(
                                           active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                          "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                          "group flex items-center px-4 py-2 w-full text-sm font-medium"
                                         )}>
                                         <LinkIcon
-                                          className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                          className="mr-3 w-4 h-4 text-neutral-400 group-hover:text-neutral-500"
                                           aria-hidden="true"
                                         />
                                         Copy link to event
@@ -367,7 +367,7 @@ export default function Availability({ user, types }) {
         {types.length === 0 && (
           <div className="md:py-20">
             <svg
-              className="w-1/2 md:w-32 mx-auto block mb-4"
+              className="block mb-4 mx-auto w-1/2 md:w-32"
               viewBox="0 0 132 132"
               fill="none"
               xmlns="http://www.w3.org/2000/svg">
@@ -604,9 +604,9 @@ export default function Availability({ user, types }) {
                 </clipPath>
               </defs>
             </svg>
-            <div className="text-center block md:max-w-screen-sm mx-auto">
-              <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
-              <p className="mt-1 text-md text-neutral-600">
+            <div className="block mx-auto text-center md:max-w-screen-sm">
+              <h3 className="mt-2 text-neutral-900 text-xl font-bold">Create your first event type</h3>
+              <p className="text-md mt-1 text-neutral-600">
                 Event types enable you to share links that show available times on your calendar and allow
                 people to make bookings with you.
               </p>
