@@ -1,5 +1,6 @@
 import { Button, ButtonProps } from "@components/ui/Button";
 import { PlusIcon } from "@heroicons/react/solid";
+import Head from "next/head";
 import React from "react";
 
 export default function ButtonPage() {
@@ -32,29 +33,34 @@ export default function ButtonPage() {
     { EndIcon: PlusIcon },
   ];
   return (
-    <div className="p-4 bg-gray-200">
-      <h1>Button component</h1>
-      <div className="flex flex-col">
-        {list.map((props, index) => (
-          <div key={index} className="p-2 m-2 bg-white">
-            <h3>
-              <code>
-                {JSON.stringify(
-                  props,
-                  (key, value) => {
-                    if (key.includes("Icon")) {
-                      return "..";
-                    }
-                    return value;
-                  },
-                  2
-                )}
-              </code>
-            </h3>
-            <Button {...props}>Button text</Button>
-          </div>
-        ))}
+    <>
+      <Head>
+        <meta name="googlebot" content="noindex" />
+      </Head>
+      <div className="p-4 bg-gray-200">
+        <h1>Button component</h1>
+        <div className="flex flex-col">
+          {list.map((props, index) => (
+            <div key={index} className="p-2 m-2 bg-white">
+              <h3>
+                <code>
+                  {JSON.stringify(
+                    props,
+                    (key, value) => {
+                      if (key.includes("Icon")) {
+                        return "..";
+                      }
+                      return value;
+                    },
+                    2
+                  )}
+                </code>
+              </h3>
+              <Button {...props}>Button text</Button>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
