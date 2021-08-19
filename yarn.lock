@@ -6526,6 +6526,15 @@ tsdav@^1.0.3:
     debug "^4.3.2"
     xml-js "^1.6.11"
 
+"tsdav@https://github.com/calendso/tsDAV.git":
+  version "1.0.6"
+  resolved "https://github.com/calendso/tsDAV.git#42b3c35f95c19e69ad56bcc2a077961d97accb55"
+  dependencies:
+    base-64 "^1.0.0"
+    cross-fetch "^3.1.4"
+    debug "^4.3.2"
+    xml-js "^1.6.11"
+
 tslib@2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.0.1.tgz#410eb0d113e5b6356490eec749603725b021b43e"
