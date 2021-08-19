@@ -211,6 +211,7 @@ export default function Success(props) {
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
+                              fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 1000 1000"
                               className="inline-block w-4 h-4 mr-1 -mt-1">
