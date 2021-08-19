@@ -235,12 +235,22 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
   }
 }
 
+function asStringOrNull(str: unknown) {
+  return typeof str === "string" ? str : null;
+}
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
-  const userParam = context.query.user as string;
-  const typeParam = context.query.type as string;
-  const dateParam = context.query.date as string | undefined;
+  const userParam = asStringOrNull(context.query.user);
+  const typeParam = asStringOrNull(context.query.type);
+  const dateParam = asStringOrNull(context.query.date);
+
+  if (!userParam || !typeParam) {
+    return {
+      notFound: true,
+    } as const;
+  }
 
   const user = await prisma.user.findFirst({
     where: {
