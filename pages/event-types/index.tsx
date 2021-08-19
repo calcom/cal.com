@@ -214,7 +214,7 @@ export default function Availability({ user, types }) {
                                 aria-hidden="true"
                               />
                               <div className="max-w-32 sm:max-w-full truncate">
-                                {type.description.substring(0, 100)}
+                                {type.description?.substring(0, 100)}
                               </div>
                             </div>
                           </div>

@@ -65,6 +65,7 @@ model User {
   bookings      Booking[]
   availability  Availability[]
   selectedCalendars      SelectedCalendar[]
+  completedOnboarding Boolean? @default(false)
 
   @@map(name: "users")
 }
