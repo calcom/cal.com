@@ -3,7 +3,9 @@
     "yzhang.markdown-all-in-one", // nicer markdown support
     "esbenp.prettier-vscode", // prettier plugin
     "dbaeumer.vscode-eslint", // eslint plugin
-    "bradlc.vscode-tailwindcss", // hinting / autocompletion for tailwind
-    "heybourn.headwind" // automatically sort tailwind classes in predictable order, kinda like "prettier for tailwind"
+    "bradlc.vscode-tailwindcss" // hinting / autocompletion for tailwind
+  ],
+  "unwantedRecommendations": [
+    "heybourn.headwind" // automatically sort tailwind classes, conflicts with the linter plugin
   ]
 }
