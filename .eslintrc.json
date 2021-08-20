@@ -19,7 +19,9 @@
     "prettier/prettier": ["error"],
     "@typescript-eslint/no-unused-vars": "error",
     "react/react-in-jsx-scope": "off",
-    "react/prop-types": "off"
+    "react/prop-types": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off"
   },
   "env": {
     "browser": true,

@@ -19,9 +19,10 @@ const TimeOptions = (props) => {
     }
   }, [selectedTimeZone]);
 
-  useEffect(() => {
+  const handle24hClockToggle = (is24hClock: boolean) => {
+    setIs24hClock(is24hClock);
     props.onToggle24hClock(is24h(is24hClock));
-  }, [is24hClock]);
+  };
 
   return (
     selectedTimeZone !== "" && (
@@ -35,7 +36,7 @@ const TimeOptions = (props) => {
               </Switch.Label>
               <Switch
                 checked={is24hClock}
-                onChange={setIs24hClock}
+                onChange={handle24hClockToggle}
                 className={classNames(
                   is24hClock ? "bg-black" : "dark:bg-gray-600 bg-gray-200",
                   "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
