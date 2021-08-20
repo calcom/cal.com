@@ -1,25 +1,21 @@
-import Head from "next/head";
-import Shell from "../../components/Shell";
-import { getSession, useSession } from "next-auth/client";
-import { useState } from "react";
+import Loader from "@components/Loader";
+import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
-import prisma from "@lib/prisma";
-import Loader from "@components/Loader";
+import { getSession } from "next-auth/client";
+import Head from "next/head";
+import { useEffect, useState } from "react";
+import Shell from "../../components/Shell";
 
 dayjs.extend(utc);
 
 export default function Troubleshoot({ user }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
+  const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedDate, setSelectedDate] = useState(dayjs());
-
-  if (loading) {
-    return <Loader />;
-  }
 
   function convertMinsToHrsMins(mins) {
     let h = Math.floor(mins / 60);
@@ -30,23 +26,29 @@ export default function Troubleshoot({ user }) {
   }
 
   const fetchAvailability = (date) => {
-    fetch(
-      `/api/availability/${session.user.username}?dateFrom=${date
-        .startOf("day")
-        .utc()
-        .startOf("day")
-        .format()}&dateTo=${date.endOf("day").utc().endOf("day").format()}`
-    )
+    const dateFrom = date.startOf("day").utc().format();
+    const dateTo = date.endOf("day").utc().format();
+
+    fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
       .then((res) => {
         return res.json();
       })
-      .then((apires) => setAvailability(apires))
+      .then((availableIntervals) => {
+        setAvailability(availableIntervals);
+        setLoading(false);
+      })
       .catch((e) => {
         console.error(e);
       });
   };
 
-  fetchAvailability(selectedDate);
+  useEffect(() => {
+    fetchAvailability(selectedDate);
+  }, [selectedDate]);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div>
@@ -106,11 +108,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const user = await prisma.user.findFirst({
     where: {
-      username: session.user.username,
+      id: session.user.id,
     },
     select: {
       startTime: true,
       endTime: true,
+      username: true,
     },
   });
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
 import prisma, { whereAndSelect } from "../../lib/prisma";
+import { EventTypeCustomInputType } from "@prisma/client";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
@@ -13,10 +14,8 @@ import PhoneInput from "react-phone-number-input";
 import { LocationType } from "../../lib/location";
 import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
-import { EventTypeCustomInputType } from "../../lib/eventTypeInput";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
-import "react-multi-email/style.css";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -71,7 +70,7 @@ export default function Book(props: any): JSX.Element {
           .map((input) => {
             const data = event.target["custom_" + input.id];
             if (data) {
-              if (input.type === EventTypeCustomInputType.Bool) {
+              if (input.type === EventTypeCustomInputType.BOOL) {
                 return input.label + "\n" + (data.checked ? "Yes" : "No");
               } else {
                 return input.label + "\n" + data.value;
@@ -268,71 +267,66 @@ export default function Book(props: any): JSX.Element {
                       </div>
                     </div>
                   )}
-                  {props.eventType.customInputs && (
-                    <div className="mb-4">
-                      <div className="mt-1">
-                        {props.eventType.customInputs
-                          .sort((a, b) => a.id - b.id)
-                          .map((input) => (
-                            <div className="mb-4" key={"input-" + input.label.toLowerCase}>
-                              {input.type !== EventTypeCustomInputType.Bool && (
-                                <label
-                                  htmlFor={input.label}
-                                  className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
-                                  {input.label}
-                                </label>
-                              )}
-                              {input.type === EventTypeCustomInputType.TextLong && (
-                                <textarea
-                                  name={"custom_" + input.id}
-                                  id={"custom_" + input.id}
-                                  required={input.required}
-                                  rows={3}
-                                  className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                                  placeholder=""
-                                />
-                              )}
-                              {input.type === EventTypeCustomInputType.Text && (
-                                <input
-                                  type="text"
-                                  name={"custom_" + input.id}
-                                  id={"custom_" + input.id}
-                                  required={input.required}
-                                  className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                                  placeholder=""
-                                />
-                              )}
-                              {input.type === EventTypeCustomInputType.Number && (
-                                <input
-                                  type="number"
-                                  name={"custom_" + input.id}
-                                  id={"custom_" + input.id}
-                                  required={input.required}
-                                  className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                                  placeholder=""
-                                />
-                              )}
-                              {input.type === EventTypeCustomInputType.Bool && (
-                                <div className="flex items-center h-5">
-                                  <input
-                                    type="checkbox"
-                                    name={"custom_" + input.id}
-                                    id={"custom_" + input.id}
-                                    className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
-                                    placeholder=""
-                                  />
-                                  <label
-                                    htmlFor={"custom_" + input.id}
-                                    className="block text-sm ml-2 dark:text-gray-500">
-                                    {input.label}
-                                  </label>
-                                </div>
-                              )}
+                  {props.eventType.customInputs &&
+                    props.eventType.customInputs
+                      .sort((a, b) => a.id - b.id)
+                      .map((input) => (
+                        <div className="mb-4" key={"input-" + input.label.toLowerCase}>
+                          {input.type !== EventTypeCustomInputType.BOOL && (
+                            <label
+                              htmlFor={"custom_" + input.id}
+                              className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                              {input.label}
+                            </label>
+                          )}
+                          {input.type === EventTypeCustomInputType.TEXTLONG && (
+                            <textarea
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              required={input.required}
+                              rows={3}
+                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              placeholder=""
+                            />
+                          )}
+                          {input.type === EventTypeCustomInputType.TEXT && (
+                            <input
+                              type="text"
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              required={input.required}
+                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              placeholder=""
+                            />
+                          )}
+                          {input.type === EventTypeCustomInputType.NUMBER && (
+                            <input
+                              type="number"
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              required={input.required}
+                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              placeholder=""
+                            />
+                          )}
+                          {input.type === EventTypeCustomInputType.BOOL && (
+                            <div className="flex items-center h-5">
+                              <input
+                                type="checkbox"
+                                name={"custom_" + input.id}
+                                id={"custom_" + input.id}
+                                className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
+                                placeholder=""
+                              />
+                              <label
+                                htmlFor={"custom_" + input.id}
+                                className="block text-sm font-medium text-gray-700">
+                                {input.label}
+                              </label>
                             </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
+                          )}
+                        </div>
+                      ))}
                   <div className="mb-4">
                     {!guestToggle && (
                       <label

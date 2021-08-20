@@ -1,5 +1,4 @@
-
-import { XCircleIcon } from '@heroicons/react/solid'
+import { XCircleIcon } from "@heroicons/react/solid";
 
 export default function ErrorAlert(props) {
   return (
@@ -11,12 +10,10 @@ export default function ErrorAlert(props) {
         <div className="ml-3">
           <h3 className="text-sm font-medium text-red-800">Something went wrong</h3>
           <div className="text-sm text-red-700">
-            <p>
-              {props.message}
-            </p>
+            <p>{props.message}</p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
