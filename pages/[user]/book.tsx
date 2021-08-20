@@ -320,7 +320,7 @@ export default function Book(props: any): JSX.Element {
                               />
                               <label
                                 htmlFor={"custom_" + input.id}
-                                className="block text-sm font-medium text-gray-700">
+                                className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                                 {input.label}
                               </label>
                             </div>
