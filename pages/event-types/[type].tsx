@@ -1025,7 +1025,7 @@ export default function EventTypePage({
                     </div>
                   </div>
                   {(selectedInputOption.value === EventTypeCustomInputType.TEXT ||
-                    selectedInputOption.value == EventTypeCustomInputType.TEXTLONG) && (
+                    selectedInputOption.value === EventTypeCustomInputType.TEXTLONG) && (
                     <div className="mb-2">
                       <label htmlFor="placeholder" className="block text-sm font-medium text-gray-700">
                         Placeholder
