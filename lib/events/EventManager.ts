@@ -50,21 +50,18 @@ export default class EventManager {
     this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
 
-   //lola-internal temporarily saving a credential for daily for other parts of the integration to run.
+    //temporarily saving a credential for daily for other parts of the integration to run.
     const hasDailyIntegration = process.env.DAILY_API_KEY != null;
-    const dailyCredential : Credential =  {
-      id:this.videoCredentials[0].id,
-      type:"daily_video",
-      key: {apikey: process.env.DAILY_API_KEY},
-      userId: this.videoCredentials[0].userId
-
-    }
+    const dailyCredential: Credential = {
+      id: this.videoCredentials[0].id,
+      type: "daily_video",
+      key: { apikey: process.env.DAILY_API_KEY },
+      userId: this.videoCredentials[0].userId,
+    };
     if (hasDailyIntegration) {
       this.videoCredentials.push(dailyCredential);
     }
   }
-
-
 
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
@@ -78,9 +75,8 @@ export default class EventManager {
   public async create(event: CalendarEvent, maybeUid: string = null): Promise<CreateUpdateResult> {
     event = EventManager.processLocation(event);
     const isDedicated = EventManager.isDedicatedIntegration(event.location);
-    const isDaily = event.location === "integrations:daily"
-  
-    
+    const isDaily = event.location === "integrations:daily";
+
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
     const results: Array<EventResult> = await this.createAllCalendarEvents(event, isDedicated, maybeUid);
 
@@ -91,18 +87,19 @@ export default class EventManager {
 
     const referencesToCreate: Array<PartialReference> = results.map((result) => {
       const isDailyResult = result.type === "daily";
-     if (!isDailyResult) {
-       return {
-        type: result.type,
-        uid: result.createdEvent.id.toString(),
-      }};
+      if (!isDailyResult) {
+        return {
+          type: result.type,
+          uid: result.createdEvent.id.toString(),
+        };
+      }
       if (isDailyResult) {
         return {
-         type: result.type,
-         uid: result.createdEvent.name.toString(),
-       }};
+          type: result.type,
+          uid: result.createdEvent.name.toString(),
+        };
+      }
     });
-
 
     return {
       results,
@@ -137,8 +134,8 @@ export default class EventManager {
       },
     });
 
-
-    const isDedicated = EventManager.isDedicatedIntegration(event.location) || event.location === "integrations:daily";
+    const isDedicated =
+      EventManager.isDedicatedIntegration(event.location) || event.location === "integrations:daily";
 
     // First, update all calendar events. If this is a dedicated event, don't send a mail right here.
     const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isDedicated);
@@ -203,12 +200,11 @@ export default class EventManager {
    * @param event
    * @private
    */
- 
+
   private getVideoCredential(event: CalendarEvent): Credential | undefined {
     const integrationName = event.location.replace("integrations:", "");
-    
+
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
-  
   }
 
   /**
@@ -224,14 +220,11 @@ export default class EventManager {
     const credential = this.getVideoCredential(event);
     const isDaily = event.location === "integrations:daily";
 
-
     if (credential && !isDaily) {
       return createMeeting(credential, event, maybeUid);
-    } else
-    if (isDaily) {
+    } else if (isDaily) {
       return dailyCreateMeeting(credential, event, maybeUid);
-    }
-    else {
+    } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
   }
@@ -273,7 +266,7 @@ export default class EventManager {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return updateMeeting(credential, bookingRefUid, event);
     } else {
-      if (isDaily){
+      if (isDaily) {
         const bookingRefUid = booking.references.filter((ref) => ref.type === "daily")[0].uid;
         return dailyUpdateMeeting(credential, bookingRefUid, event);
       }
@@ -294,7 +287,7 @@ export default class EventManager {
    */
   private static isDedicatedIntegration(location: string): boolean {
     // Hard-coded for now, because Zoom and Google Meet are both integrations, but one is dedicated, the other one isn't.
-    return location === "integrations:zoom" ||  location === "integrations:daily";
+    return location === "integrations:zoom" || location === "integrations:daily";
   }
 
   /**
@@ -306,7 +299,11 @@ export default class EventManager {
    */
   private static getLocationRequestFromIntegration(locationObj: GetLocationRequestFromIntegrationRequest) {
     const location = locationObj.location;
-    if (location === LocationType.GoogleMeet.valueOf() || location === LocationType.Zoom.valueOf() || location === LocationType.Daily.valueOf()){
+    if (
+      location === LocationType.GoogleMeet.valueOf() ||
+      location === LocationType.Zoom.valueOf() ||
+      location === LocationType.Daily.valueOf()
+    ) {
       const requestId = uuidv5(location, uuidv5.URL);
 
       return {

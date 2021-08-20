@@ -1,4 +1,3 @@
-import prisma from "./prisma";
 import { CalendarEvent } from "./calendarClient";
 import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
 import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
@@ -12,7 +11,6 @@ import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
 import { getIntegrationName } from "@lib/emails/helpers";
 import CalEventParser from "@lib/CalEventParser";
 import { Credential } from "@prisma/client";
-
 
 const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
@@ -41,23 +39,20 @@ function handleErrorsRaw(response) {
   return response.text();
 }
 
+/* eslint-disable no-var*/
+var dailyCredential = process.env.DAILY_API_KEY;
 
-var dailyCredential = process.env.DAILY_API_KEY
-
-
-
+/* eslint-disable @typescript-eslint/no-explicit-any*/
 interface DailyVideoApiAdapter {
   dailyCreateMeeting(event: CalendarEvent): Promise<any>;
 
   dailyUpdateMeeting(uid: string, event: CalendarEvent);
 
   dailyDeleteMeeting(uid: string): Promise<unknown>;
-
 }
 
-const DailyVideo = (credential): DailyVideoApiAdapter => {
-
-
+/* eslint-disable @typescript-eslint/no-unused-vars*/
+const DailyVideo = (Credential): DailyVideoApiAdapter => {
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     //added a buffer to when rooms are available and not available
@@ -67,52 +62,52 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
       privacy: "private",
       properties: {
         enable_new_call_ui: true,
-        enable_prejoin_ui: true, 
-        enable_knocking: true,  
+        enable_prejoin_ui: true,
+        enable_knocking: true,
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        nbf: nbf
-      }
+        nbf: nbf,
+      },
     };
   };
 
   return {
-
-    dailyCreateMeeting: (event: CalendarEvent) => fetch('https://api.daily.co/v1/rooms', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + dailyCredential,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(translateEvent(event))
-    }).then(handleErrorsJson),
-    dailyDeleteMeeting: (uid: String) => fetch('https://api.daily.co/v1/rooms/' + uid, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': 'Bearer ' + dailyCredential,
-      }
-    }).then(handleErrorsRaw),
-    dailyUpdateMeeting: (uid: String, event: CalendarEvent) => fetch('https://api.daily.co/v1/rooms/' + uid, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + dailyCredential,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(translateEvent(event))
-    }).then(handleErrorsJson),
+    dailyCreateMeeting: (event: CalendarEvent) =>
+      fetch("https://api.daily.co/v1/rooms", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + dailyCredential,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsJson),
+    dailyDeleteMeeting: (uid: string) =>
+      fetch("https://api.daily.co/v1/rooms/" + uid, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + dailyCredential,
+        },
+      }).then(handleErrorsRaw),
+    dailyUpdateMeeting: (uid: string, event: CalendarEvent) =>
+      fetch("https://api.daily.co/v1/rooms/" + uid, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + dailyCredential,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsJson),
   };
 };
 
-// factory 
+// factory
 const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
   withCredentials
     .map((cred) => {
       return DailyVideo(cred);
-      }
-    )
+    })
     .filter(Boolean);
-
 
 const dailyCreateMeeting = async (
   credential: Credential,
@@ -136,14 +131,14 @@ const dailyCreateMeeting = async (
       log.error("createMeeting failed", e, calEvent);
       success = false;
     });
-    
-  const currentRoute=process.env.BASE_URL ;
+
+  const currentRoute = process.env.BASE_URL;
 
   const videoCallData: DailyVideoCallData = {
     type: "Daily Video Chat & Conferencing",
     id: creationResult.name,
     password: creationResult.password,
-    url: currentRoute + '/call/'+ uid,
+    url: currentRoute + "/call/" + uid,
   };
 
   const entryPoint: EntryPoint = {
@@ -157,7 +152,6 @@ const dailyCreateMeeting = async (
     entryPoints: [entryPoint],
   };
 
-  //lola todo - this is where i'll need different things for organizer mail
   const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
   const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
   try {
@@ -239,6 +233,5 @@ const dailyDeleteMeeting = (credential: Credential, uid: string): Promise<unknow
 
   return Promise.resolve({});
 };
-
 
 export { dailyCreateMeeting, dailyUpdateMeeting, dailyDeleteMeeting };

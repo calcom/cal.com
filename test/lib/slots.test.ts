@@ -31,7 +31,7 @@ it('only shows future booking slots on the same day', async () => {
       { days: [...Array(7).keys()], startTime: 0, endTime: 1440 }
     ],
     organizerTimeZone: 'GMT'
-  })).toHaveLength(12);
+  })).toHaveLength(24);
 });
 
 it('can cut off dates that due to invitee timezone differences fall on the next day', async () => {
