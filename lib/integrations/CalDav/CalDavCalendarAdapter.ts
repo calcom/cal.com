@@ -203,15 +203,15 @@ export class CalDavCalendar implements CalendarApiAdapter {
         .map((e) => e.externalId);
 
       const events = [];
+      await Promise.all(
+        selectedCalendarIds.map(async (calId) => {
+          const calEvents = await this.getEvents(calId, dateFrom, dateTo);
 
-      for (const calId of selectedCalendarIds) {
-        const calEvents = await this.getEvents(calId, dateFrom, dateTo);
-
-        for (const ev of calEvents) {
-          events.push({ start: ev.startDate, end: ev.endDate });
-        }
-      }
-
+          for (const ev of calEvents) {
+            events.push({ start: ev.startDate, end: ev.endDate });
+          }
+        })
+      );
       return events;
     } catch (reason) {
       console.error(reason);
