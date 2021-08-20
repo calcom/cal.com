@@ -29,7 +29,7 @@ const AvailableTimes = ({
   return (
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-97 overflow-y-auto">
       <div className="text-gray-600 font-light text-lg mb-4 text-left">
-        <span className="w-1/2 dark:text-white text-gray-600">
+        <span className="w-1/2  text-gray-600">
           <strong>{date.format("dddd")}</strong>
           <span className="text-gray-500">{date.format(", DD MMMM")}</span>
         </span>
@@ -42,7 +42,7 @@ const AvailableTimes = ({
                 `/${user.username}/book?date=${slot.utc().format()}&type=${eventTypeId}` +
                 (rescheduleUid ? "&rescheduleUid=" + rescheduleUid : "")
               }>
-              <a className="block font-medium mb-4 bg-white dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-transparent rounded-sm hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black">
+              <a className="block font-medium mb-4 bg-white  text-primary-500  border border-primary-500  rounded-sm hover:text-white hover:bg-primary-500  py-4 ">
                 {slot.format(timeFormat)}
               </a>
             </Link>
@@ -50,7 +50,7 @@ const AvailableTimes = ({
         ))}
       {isFullyBooked && (
         <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
-          <h1 className="text-xl text-black dark:text-white">{user.name} is all booked today.</h1>
+          <h1 className="text-xl text-black ">{user.name} is all booked today.</h1>
         </div>
       )}
 

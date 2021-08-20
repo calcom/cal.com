@@ -74,19 +74,19 @@ export default function Shell(props) {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="h-screen flex overflow-hidden bg-gray-100">
+      <div className="flex h-screen overflow-hidden bg-gray-100">
         {/* Static sidebar for desktop */}
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-56">
             {/* Sidebar component, swap this element with another sidebar if you like */}
-            <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
-              <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+            <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
+              <div className="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
                 <Link href="/event-types">
                   <a className="px-4">
                     <Logo small />
                   </a>
                 </Link>
-                <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
+                <nav className="flex-1 px-2 mt-5 space-y-1 bg-white">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
@@ -99,8 +99,8 @@ export default function Shell(props) {
                         <item.icon
                           className={classNames(
                             item.current
-                              ? "text-neutral-500"
-                              : "text-neutral-400 group-hover:text-neutral-500",
+                              ? "text-neutral-800"
+                              : "text-neutral-500 group-hover:text-neutral-500",
                             "mr-3 flex-shrink-0 h-5 w-5"
                           )}
                           aria-hidden="true"
@@ -111,28 +111,28 @@ export default function Shell(props) {
                   ))}
                 </nav>
               </div>
-              <div className="flex-shrink-0 flex p-4">
+              <div className="flex flex-shrink-0 p-4">
                 <UserDropdown session={session} />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
+        <div className="flex flex-col flex-1 w-0 overflow-hidden">
+          <main className="relative z-0 flex-1 overflow-y-auto focus:outline-none">
             {/* show top navigation for md and smaller (tablet and phones) */}
-            <nav className="md:hidden bg-white shadow p-4 flex justify-between items-center">
+            <nav className="flex items-center justify-between p-4 bg-white shadow md:hidden">
               <Link href="/event-types">
                 <a>
                   <Logo />
                 </a>
               </Link>
-              <div className="flex gap-3 items-center self-center">
-                <button className="bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              <div className="flex items-center self-center gap-3">
+                <button className="p-2 text-gray-400 bg-white rounded-full hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                   <span className="sr-only">View notifications</span>
                   <Link href="/settings/profile">
                     <a>
-                      <CogIcon className="h-6 w-6" aria-hidden="true" />
+                      <CogIcon className="w-6 h-6" aria-hidden="true" />
                     </a>
                   </Link>
                 </button>
@@ -142,17 +142,17 @@ export default function Shell(props) {
               </div>
             </nav>
             <div className="py-8">
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
+              <div className="justify-between block px-4 sm:flex sm:px-6 md:px-8">
                 <div className="mb-8">
                   <h1 className="text-xl font-bold text-gray-900">{props.heading}</h1>
-                  <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
+                  <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
                 </div>
-                <div className="mb-4 flex-shrink-0">{props.CTA}</div>
+                <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>
               <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
 
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
+              <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
                   item.name === "Settings" ? (
@@ -182,7 +182,7 @@ export default function Shell(props) {
               </nav>
 
               {/* add padding to content for mobile navigation*/}
-              <div className="block md:hidden pt-12" />
+              <div className="block pt-12 md:hidden" />
             </div>
           </main>
         </div>
@@ -193,13 +193,13 @@ export default function Shell(props) {
 
 function UserDropdown({ session, small, bottom }: { session: any; small?: boolean; bottom?: boolean }) {
   return (
-    <Menu as="div" className="w-full relative inline-block text-left">
+    <Menu as="div" className="relative inline-block w-full text-left">
       {({ open }) => (
         <>
           <div>
-            <Menu.Button className="group w-full rounded-md text-sm text-left font-medium text-gray-700 focus:outline-none">
-              <span className="flex w-full justify-between items-center">
-                <span className="flex min-w-0 items-center justify-between space-x-3">
+            <Menu.Button className="w-full text-sm font-medium text-left text-gray-700 rounded-md group focus:outline-none">
+              <span className="flex items-center justify-between w-full">
+                <span className="flex items-center justify-between min-w-0 space-x-3">
                   <img
                     className={classNames(
                       small ? "w-8 h-8" : "w-10 h-10",
@@ -214,9 +214,9 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                     alt=""
                   />
                   {!small && (
-                    <span className="flex-1 flex flex-col min-w-0">
-                      <span className="text-gray-900 text-sm font-medium truncate">{session.user.name}</span>
-                      <span className="text-neutral-500 font-normal text-sm truncate">
+                    <span className="flex flex-col flex-1 min-w-0">
+                      <span className="text-sm font-medium text-gray-900 truncate">{session.user.name}</span>
+                      <span className="text-sm font-normal truncate text-neutral-500">
                         /{session.user.username}
                       </span>
                     </span>
@@ -224,7 +224,7 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
                 </span>
                 {!small && (
                   <SelectorIcon
-                    className="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                    className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500"
                     aria-hidden="true"
                   />
                 )}
@@ -248,7 +248,7 @@ function UserDropdown({ session, small, bottom }: { session: any; small?: boolea
               )}>
               <div className="py-1">
                 <a href={"/" + session.user.username} className="flex px-4 py-2 text-sm text-neutral-500">
-                  View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
+                  View public page <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
                 </a>
               </div>
               <div className="py-1">

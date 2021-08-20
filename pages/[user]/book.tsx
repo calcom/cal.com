@@ -160,37 +160,35 @@ export default function Book(props: any): JSX.Element {
         </Head>
 
         <main className="max-w-3xl mx-auto my-0 sm:my-24">
-          <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">
-            <div className="sm:flex px-4 py-5 sm:p-4">
-              <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
-                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
-                <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
-                <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
-                  {props.eventType.title}
-                </h1>
-                <p className="text-gray-500 mb-2">
+          <div className="overflow-hidden bg-white border border-gray-200 sm:rounded-sm">
+            <div className="px-4 py-5 sm:flex sm:p-4">
+              <div className="sm:w-1/2 sm:border-r sm:">
+                <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
+                <h2 className="font-medium text-gray-500 ">{props.user.name}</h2>
+                <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{props.eventType.title}</h1>
+                <p className="mb-2 text-gray-500">
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {props.eventType.length} minutes
                 </p>
                 {selectedLocation === LocationType.InPerson && (
-                  <p className="text-gray-500 mb-2">
+                  <p className="mb-2 text-gray-500">
                     <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {locationInfo(selectedLocation).address}
                   </p>
                 )}
-                <p className="text-green-500 mb-4">
+                <p className="mb-4 text-black">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {preferredTimeZone &&
                     dayjs(date)
                       .tz(preferredTimeZone)
                       .format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
                 </p>
-                <p className="dark:text-white text-gray-600 mb-8">{props.eventType.description}</p>
+                <p className="mb-8 text-gray-600 ">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 ">
                       Your name
                     </label>
                     <div className="mt-1">
@@ -199,16 +197,14 @@ export default function Book(props: any): JSX.Element {
                         name="name"
                         id="name"
                         required
-                        className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="block w-full text-gray-900 placeholder-gray-600 bg-gray-300 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                         placeholder="John Doe"
                         defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium dark:text-white text-gray-700">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 ">
                       Email address
                     </label>
                     <div className="mt-1">
@@ -217,7 +213,7 @@ export default function Book(props: any): JSX.Element {
                         name="email"
                         id="email"
                         required
-                        className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="block w-full text-gray-900 placeholder-gray-600 bg-gray-300 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                         placeholder="you@example.com"
                         defaultValue={props.booking ? props.booking.attendees[0].email : ""}
                       />
@@ -225,9 +221,7 @@ export default function Book(props: any): JSX.Element {
                   </div>
                   {locations.length > 1 && (
                     <div className="mb-4">
-                      <span className="block text-sm font-medium dark:text-white text-gray-700">
-                        Location
-                      </span>
+                      <span className="block text-sm font-medium text-gray-700 ">Location</span>
                       {locations.map((location) => (
                         <label key={location.type} className="block">
                           <input
@@ -239,18 +233,14 @@ export default function Book(props: any): JSX.Element {
                             value={location.type}
                             checked={selectedLocation === location.type}
                           />
-                          <span className="text-sm ml-2 dark:text-gray-500">
-                            {locationLabels[location.type]}
-                          </span>
+                          <span className="ml-2 text-sm ">{locationLabels[location.type]}</span>
                         </label>
                       ))}
                     </div>
                   )}
                   {selectedLocation === LocationType.Phone && (
                     <div className="mb-4">
-                      <label
-                        htmlFor="phone"
-                        className="block text-sm font-medium dark:text-white text-gray-700">
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 ">
                         Phone Number
                       </label>
                       <div className="mt-1">
@@ -259,7 +249,7 @@ export default function Book(props: any): JSX.Element {
                           placeholder="Enter phone number"
                           id="phone"
                           required
-                          className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                          className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                           onChange={() => {
                             /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
                           }}
@@ -275,7 +265,7 @@ export default function Book(props: any): JSX.Element {
                           {input.type !== EventTypeCustomInputType.BOOL && (
                             <label
                               htmlFor={input.label}
-                              className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                              className="block mb-1 text-sm font-medium text-gray-700 ">
                               {input.label}
                             </label>
                           )}
@@ -285,7 +275,7 @@ export default function Book(props: any): JSX.Element {
                               id={"custom_" + input.id}
                               required={input.required}
                               rows={3}
-                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                               placeholder=""
                             />
                           )}
@@ -295,7 +285,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="block w-full text-gray-900 placeholder-gray-600 bg-gray-300 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                               placeholder=""
                             />
                           )}
@@ -305,7 +295,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="block w-full text-gray-900 placeholder-gray-600 bg-gray-300 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                               placeholder=""
                             />
                           )}
@@ -315,7 +305,7 @@ export default function Book(props: any): JSX.Element {
                                 type="checkbox"
                                 name={"custom_" + input.id}
                                 id={"custom_" + input.id}
-                                className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
+                                className="w-4 h-4 mr-2 text-black text-gray-900 placeholder-gray-600 bg-gray-300 border-gray-300 rounded focus:ring-black"
                                 placeholder=""
                               />
                               <label
@@ -332,15 +322,13 @@ export default function Book(props: any): JSX.Element {
                       <label
                         onClick={toggleGuestEmailInput}
                         htmlFor="guests"
-                        className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
+                        className="block mb-1 text-sm font-medium text-black hover:cursor-pointer">
                         + Additional Guests
                       </label>
                     )}
                     {guestToggle && (
                       <div>
-                        <label
-                          htmlFor="guests"
-                          className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
+                        <label htmlFor="guests" className="block mb-1 text-sm font-medium text-gray-700 ">
                           Guests
                         </label>
                         <ReactMultiEmail
@@ -364,16 +352,14 @@ export default function Book(props: any): JSX.Element {
                     )}
                   </div>
                   <div className="mb-4">
-                    <label
-                      htmlFor="notes"
-                      className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
+                    <label htmlFor="notes" className="block mb-1 text-sm font-medium text-gray-700 ">
                       Additional notes
                     </label>
                     <textarea
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="block w-full text-gray-900 placeholder-gray-600 bg-gray-300 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                       placeholder="Please share anything that will help prepare for our meeting."
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
@@ -391,22 +377,22 @@ export default function Book(props: any): JSX.Element {
                         props.eventType.slug +
                         (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
                       }>
-                      <a className="ml-2 text-sm dark:text-white p-2">Cancel</a>
+                      <a className="p-2 ml-2 text-sm text-neutral-900">Cancel</a>
                     </Link>
                   </div>
                 </form>
                 {error && (
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-2">
+                  <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
                     <div className="flex">
                       <div className="flex-shrink-0">
-                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                        <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
                       </div>
                       <div className="ml-3">
                         <p className="text-sm text-yellow-700">
                           Could not {rescheduleUid ? "reschedule" : "book"} the meeting. Please try again or{" "}
                           <a
                             href={"mailto:" + props.user.email}
-                            className="font-medium underline text-yellow-700 hover:text-yellow-600">
+                            className="font-medium text-yellow-700 underline hover:text-yellow-600">
                             Contact {props.user.name} via e-mail
                           </a>
                         </p>

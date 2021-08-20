@@ -16,10 +16,10 @@ const Team = ({ team }) => {
       "flex flex-col",
       "space-y-4",
       "p-4",
-      "bg-white dark:bg-opacity-8",
+      "bg-white ",
       "border border-neutral-200",
       "hover:cursor-pointer",
-      "hover:border-black hover:border-2 dark:border-neutral-700 dark:hover:border-neutral-600",
+      "hover:border-black hover:border-2  ",
       "rounded-sm",
       "hover:shadow-md"
     );
@@ -29,7 +29,7 @@ const Team = ({ team }) => {
         <div className={classes}>
           <ArrowRightIcon
             className={classnames(
-              "text-black dark:text-white",
+              "text-black ",
               "absolute top-4 right-4",
               "h-4 w-4",
               "transition-opacity",

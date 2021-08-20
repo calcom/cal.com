@@ -3,7 +3,7 @@ import classnames from "classnames";
 import { TextProps } from "../Text";
 
 const Title: React.FunctionComponent<TextProps> = (props: TextProps) => {
-  const classes = classnames("font-medium text-neutral-900 dark:text-white");
+  const classes = classnames("font-medium text-neutral-900 ");
 
   return <p className={classes}>{props.children}</p>;
 };

@@ -147,19 +147,19 @@ const DatePicker = ({
           style={{
             paddingTop: "100%",
           }}
-          className="w-full relative">
+          className="relative w-full">
           <button
             onClick={() => setSelectedDate(inviteeDate.date(day))}
             disabled={isDisabled(day)}
             className={
-              "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto hover:border hover:border-black dark:hover:border-white" +
+              "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto hover:border hover:border-black " +
               (isDisabled(day)
                 ? " text-gray-400 font-light hover:border-0 cursor-default"
-                : " dark:text-white text-primary-500 font-medium") +
+                : "  text-primary-500 font-medium") +
               (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
-                ? " bg-black text-white-important"
+                ? " bg-black !text-white"
                 : !isDisabled(day)
-                ? " bg-gray-100 dark:bg-gray-600"
+                ? " bg-gray-100 "
                 : "")
             }>
             {day}
@@ -173,37 +173,32 @@ const DatePicker = ({
     <div
       className={
         "mt-8 sm:mt-0 sm:min-w-[455px] " +
-        (selectedDate
-          ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
-          : "w-full sm:pl-4")
+        (selectedDate ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm: sm:pl-4 sm:pr-6 " : "w-full sm:pl-4")
       }>
-      <div className="flex text-gray-600 font-light text-xl mb-4">
-        <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong className="text-gray-900 dark:text-white">
-            {dayjs().month(selectedMonth).format("MMMM")}
-          </strong>
+      <div className="flex mb-4 text-xl font-light text-gray-600">
+        <span className="w-1/2 text-gray-600 ">
+          <strong className="text-gray-900 ">{dayjs().month(selectedMonth).format("MMMM")}</strong>
           <span className="text-gray-500"> {dayjs().month(selectedMonth).format("YYYY")}</span>
         </span>
-        <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
+        <div className="w-1/2 text-right text-gray-600 ">
           <button
             onClick={decrementMonth}
             className={
-              "group mr-2 p-1" +
-              (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400 dark:text-gray-600")
+              "group mr-2 p-1" + (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400 ")
             }
             disabled={selectedMonth <= dayjs().tz(inviteeTimeZone).month()}>
-            <ChevronLeftIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
+            <ChevronLeftIcon className="w-5 h-5 group-hover:text-black " />
           </button>
-          <button className="group p-1" onClick={incrementMonth}>
-            <ChevronRightIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
+          <button className="p-1 group" onClick={incrementMonth}>
+            <ChevronRightIcon className="w-5 h-5 group-hover:text-black " />
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 text-center border-b border-t dark:border-gray-800 sm:border-0">
+      <div className="grid grid-cols-7 gap-4 text-center border-t border-b  sm:border-0">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
-            <div key={weekDay} className="uppercase text-gray-500 text-xs tracking-widest my-4">
+            <div key={weekDay} className="my-4 text-xs tracking-widest text-gray-500 uppercase">
               {weekDay}
             </div>
           ))}

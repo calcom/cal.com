@@ -4,18 +4,18 @@ import { getCsrfToken, getSession } from "next-auth/client";
 
 export default function Login({ csrfToken }) {
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-center min-h-screen py-12 bg-neutral-50 sm:px-6 lg:px-8">
       <Head>
         <title>Login</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Calendso Logo" />
-        <h2 className="mt-6 text-center text-3xl font-bold text-neutral-900">Sign in to your account</h2>
+        <h2 className="mt-6 text-3xl font-bold text-center text-neutral-900">Sign in to your account</h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 mx-2 rounded-sm sm:px-10 border border-neutral-200">
+        <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-neutral-200">
           <form className="space-y-6" method="post" action="/api/auth/callback/credentials">
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div>
@@ -29,7 +29,7 @@ export default function Login({ csrfToken }) {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
                 />
               </div>
             </div>
@@ -43,7 +43,7 @@ export default function Login({ csrfToken }) {
                 </div>
                 <div className="w-1/2 text-right">
                   <Link href="/auth/forgot-password">
-                    <a className="font-medium text-primary-600 text-sm">Forgot?</a>
+                    <a className="text-sm font-medium text-primary-600">Forgot?</a>
                   </Link>
                 </div>
               </div>
@@ -54,7 +54,7 @@ export default function Login({ csrfToken }) {
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
                 />
               </div>
             </div>
@@ -62,17 +62,17 @@ export default function Login({ csrfToken }) {
             <div className="space-y-2">
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 Sign in
               </button>
             </div>
           </form>
         </div>
-        <div className="mt-4 text-neutral-600 text-center text-sm">
+        <div className="mt-4 text-sm text-center text-neutral-600">
           Don&apos;t have an account? {/* replace this with your account creation flow */}
-          <a href="https://checkout.calendso.com" className="font-medium text-neutral-900">
-            Create an account
-          </a>
+          <Link href="/auth/signup">
+            <a className="font-medium text-neutral-900">Create an account</a>
+          </Link>
         </div>
       </div>
     </div>

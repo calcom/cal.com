@@ -1,10 +1,10 @@
 export default function Button(props) {
   return (
-    <button type="submit" className="btn btn-primary dark:btn-white">
+    <button type="submit" className=" btn btn-primary ">
       {!props.loading && props.children}
       {props.loading && (
         <svg
-          className="animate-spin mx-4 h-5 w-5 text-white"
+          className="w-5 h-5 mx-4 text-white animate-spin"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24">

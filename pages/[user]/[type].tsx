@@ -135,13 +135,13 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
               "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
               (selectedDate ? "max-w-5xl" : "max-w-3xl")
             }>
-            <div className="bg-white border-gray-200 rounded-sm sm:dark:border-gray-600 dark:bg-gray-900 md:border">
+            <div className="bg-white border-gray-200 rounded-sm sm:  md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <Avatar user={props.user} className="inline-block rounded-full h-9 w-9" />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-black dark:text-gray-300">{props.user.name}</p>
+                    <p className="text-sm font-medium text-black ">{props.user.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
                       {props.eventType.title}
                       <div>
@@ -151,20 +151,17 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                     </div>
                   </div>
                 </div>
-                <p className="mt-3 text-gray-600 dark:text-gray-200">{props.eventType.description}</p>
+                <p className="mt-3 text-gray-600 ">{props.eventType.description}</p>
               </div>
 
               <div className="px-4 sm:flex sm:py-5 sm:p-4">
                 <div
                   className={
-                    "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
-                    (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                    "hidden md:block pr-8 sm:border-r sm: " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
-                  <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
-                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
-                    {props.eventType.title}
-                  </h1>
+                  <h2 className="font-medium text-gray-500 ">{props.user.name}</h2>
+                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{props.eventType.title}</h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {props.eventType.length} minutes
@@ -172,7 +169,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 
                   <TimezoneDropdown />
 
-                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{props.eventType.description}</p>
+                  <p className="mt-3 mb-8 text-gray-600 ">{props.eventType.description}</p>
                 </div>
                 <DatePicker
                   date={selectedDate}
@@ -240,7 +237,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // (would be even better to assert them instead of typecasting)
   const userParam = context.query.user as string;
   const typeParam = context.query.type as string;
-  const dateParam = context.query.date as string | undefined;
+  const dateParam = context.query.date || ("" as string | undefined);
 
   const user = await prisma.user.findFirst({
     where: {
