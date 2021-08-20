@@ -19,7 +19,7 @@ it('can fit 24 hourly slots for an empty day', async () => {
       { days: [...Array(7).keys()], startTime: 0, endTime: 1440 }
     ],
     organizerTimeZone: 'Europe/London'
-  })).toHaveLength(24);
+  })).toHaveLength(12);
 });
 
 it('only shows future booking slots on the same day', async () => {
