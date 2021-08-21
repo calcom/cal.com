@@ -6,6 +6,8 @@ import { UsernameInput } from "@components/ui/UsernameInput";
 import MemberList from "./MemberList";
 import Avatar from "@components/Avatar";
 import ImageUploader from "@components/ImageUploader";
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 export default function EditTeam(props: any) {
   const [session] = useSession();
@@ -30,11 +32,12 @@ export default function EditTeam(props: any) {
     loadMembers();
   }, []);
 
-  const deleteTeam = (e: any) => {
-    e.preventDefault();
+  const deleteTeam = () => {
     return fetch("/api/teams/" + props.team.id, {
       method: "DELETE",
-    }).then(props.onExit);
+    })
+    .then((res: any) => console.log(res))
+    .then(props.onCloseEdit());
   };
 
   const removeMember = (member: any) => {
@@ -56,6 +59,7 @@ export default function EditTeam(props: any) {
   }
 
   return (
+      
       <div className="divide-y divide-gray-200 lg:col-span-9">
 
         <div className="py-6 lg:pb-8">
@@ -149,7 +153,7 @@ export default function EditTeam(props: any) {
                                     Member
                                 </h3>
                                 <div className="relative flex items-center">
-                                    <button className="btn-sm btn-white">
+                                    <button type="button" onClick={() => props.onInviteMember(props.team)} className="btn-sm btn-white">
                                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />Invite Member
                                     </button>
                                 </div>
@@ -187,9 +191,21 @@ export default function EditTeam(props: any) {
                             </h3>
                             <div>
                                 <div className="relative flex items-start">
-                                    <button className="btn-sm btn-white">
-                                        <TrashIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />Disband Team
-                                    </button>
+                                <Dialog>
+                                    <DialogTrigger onClick={(e)=>{e.stopPropagation();}} className="btn-sm btn-white">
+                                        <TrashIcon className="group-hover:text-red text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
+                                        Disband Team                          
+                                    </DialogTrigger>
+                                    <ConfirmationDialogContent
+                                        alert="danger"
+                                        title="Disband Team"
+                                        confirmBtnText="Yes, disband team"
+                                        cancelBtnText = "Cancel"
+                                        onConfirm={() => deleteTeam()}>
+                                        Are you sure you want to disband this team? Anyone who you&apos;ve shared this team link
+                                        with will no longer be able to book using it.
+                                    </ConfirmationDialogContent>
+                                </Dialog>
                                 </div>
                             </div>                            
                         </div>
