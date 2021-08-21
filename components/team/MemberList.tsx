@@ -1,6 +1,5 @@
 import { useState } from "react";
 import MemberListItem from "./MemberListItem";
-import { Dialog, DialogHeader, DialogContent } from "@components/Dialog";
 
 export default function MemberList(props: any) {
   const [member, setMember] = useState(null);
@@ -9,9 +8,7 @@ export default function MemberList(props: any) {
     setMember(member);
     switch (action) {
       case "remove":
-        // setShowEditTeamModal(true);
-        // props.onRemove(member);
-        console.log('action-remove')
+        props.onRemoveMember(member);
         break;
     }
   };
@@ -34,11 +31,6 @@ export default function MemberList(props: any) {
             props.onChange();
             setShowEditTeamModal(false);
           }}></EditTeamModal>
-      )} */}
-      {/* {showDisbandTeamModal && (
-        <MemberInvitationModal
-          team={team}
-          onExit={() => setShowDisbandTeamModal(false)}></MemberInvitationModal>
       )} */}
     </div>
   );
