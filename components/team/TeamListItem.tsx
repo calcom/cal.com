@@ -3,8 +3,10 @@ import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
 import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
-export default function TeamListItem(props) {
+export default function TeamListItem(props: any) {
   const [team, setTeam] = useState(props.team);
 
   const acceptInvite = () => invitationResponse(true);
@@ -107,9 +109,26 @@ export default function TeamListItem(props) {
                   <li
                     className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
                     role="menuitem">
-                    <button className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700" onClick={() => props.onActionSelect("disband")}>
+                    <Dialog>
+                      <DialogTrigger onClick={(e)=>{e.stopPropagation();}} className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700">
+                          <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" />
+                          Disband Team                          
+                      </DialogTrigger>
+                      <ConfirmationDialogContent
+                        alert="danger"
+                        title="Disband Team"
+                        confirmBtnText="Yes, disband team"
+                        cancelBtnText = "Cancel"
+                        onConfirm={() => props.onActionSelect("disband")}>
+                        Are you sure you want to disband this team? Anyone who you&apos;ve shared this team link
+                        with will no longer be able to book using it.
+                      </ConfirmationDialogContent>
+                    </Dialog>
+
+
+                    {/* <button className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700" onClick={() => props.onActionSelect("disband")}>
                       <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" /> Disband team
-                    </button>
+                    </button> */}
                   </li>
                 </ul>
               </Dropdown>

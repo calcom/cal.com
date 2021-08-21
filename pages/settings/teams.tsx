@@ -10,6 +10,7 @@ import TeamListItem from "@components/team/TeamListItem";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 import EditTeam from "@components/team/EditTeam";
+import MemberInvitationModal from "@components/team/MemberInvitationModal";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -18,6 +19,8 @@ export default function Teams() {
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [editTeamEnabled, setEditTeamEnabled] = useState(false);
   const [teamToEdit, setTeamToEdit] = useState();
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [inviteModalTeam, setInviteModalTeam] = useState(false);
 
   const handleErrors = async (resp: any) => {
     if (!resp.ok) {
@@ -31,6 +34,7 @@ export default function Teams() {
     fetch("/api/user/membership")
       .then(handleErrors)
       .then((data) => {
+        console.log(data);
         setTeams(data.membership.filter((m: any) => m.role !== "INVITEE"));
         setInvites(data.membership.filter((m: any) => m.role === "INVITEE"));
       })
@@ -63,6 +67,16 @@ export default function Teams() {
   const editTeam = (team) => {
     setEditTeamEnabled(true);
     setTeamToEdit(team);
+  };
+
+  const inviteMember = (team: any) => {
+    setShowMemberInvitationModal(true);
+    setInviteModalTeam(team);
+  };
+
+  const onCloseEdit = () => {
+    loadData();
+    setEditTeamEnabled(false);
   };
 
   return (
@@ -193,6 +207,11 @@ export default function Teams() {
               </div>
             </div>
           </div>
+        )}
+        {showMemberInvitationModal && (
+          <MemberInvitationModal
+            team={inviteModalTeam}
+            onExit={() => setShowMemberInvitationModal(false)}></MemberInvitationModal>
         )}
       </SettingsShell>
     </Shell>

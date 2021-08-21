@@ -4,9 +4,7 @@ import EditTeamModal from "./EditTeamModal";
 import MemberInvitationModal from "./MemberInvitationModal";
 import { Dialog, DialogHeader, DialogContent } from "@components/Dialog";
 
-export default function TeamList(props) {
-  const [showDisbandTeamModal, setShowDisbandTeamModal] = useState(false);
-  const [showEditTeamModal, setShowEditTeamModal] = useState(false);
+export default function TeamList(props: any) {
   const [team, setTeam] = useState(null);
 
   const selectAction = (action: string, team: any) => {
@@ -17,9 +15,18 @@ export default function TeamList(props) {
         props.onEditTeam(team);
         break;
       case "disband":
-        setShowDisbandTeamModal(true);
+        // show disband confirmation modal
+        deleteTeam();
         break;
     }
+  };
+
+  const deleteTeam = () => {
+    // e.preventDefault();
+    console.log(props);
+    // return fetch("/api/teams/" + props.team.id, {
+    //   method: "DELETE",
+    // }).then(props.onExit);
   };
 
   return (
@@ -33,19 +40,6 @@ export default function TeamList(props) {
             onActionSelect={(action: string) => selectAction(action, team)}></TeamListItem>
         ))}
       </ul>
-      {/* {showEditTeamModal && (
-        <EditTeamModal
-          team={team}
-          onExit={() => {
-            props.onChange();
-            setShowEditTeamModal(false);
-          }}></EditTeamModal>
-      )} */}
-      {/* {showDisbandTeamModal && (
-        <MemberInvitationModal
-          team={team}
-          onExit={() => setShowDisbandTeamModal(false)}></MemberInvitationModal>
-      )} */}
     </div>
   );
 }
