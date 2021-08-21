@@ -124,11 +124,6 @@ export default function TeamListItem(props: any) {
                         with will no longer be able to book using it.
                       </ConfirmationDialogContent>
                     </Dialog>
-
-
-                    {/* <button className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700" onClick={() => props.onActionSelect("disband")}>
-                      <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" /> Disband team
-                    </button> */}
                   </li>
                 </ul>
               </Dropdown>

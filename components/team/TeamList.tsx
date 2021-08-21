@@ -1,8 +1,5 @@
 import { useState } from "react";
 import TeamListItem from "./TeamListItem";
-import EditTeamModal from "./EditTeamModal";
-import MemberInvitationModal from "./MemberInvitationModal";
-import { Dialog, DialogHeader, DialogContent } from "@components/Dialog";
 
 export default function TeamList(props: any) {
   const [team, setTeam] = useState(null);

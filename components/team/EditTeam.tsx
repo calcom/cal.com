@@ -36,11 +36,10 @@ export default function EditTeam(props: any) {
     return fetch("/api/teams/" + props.team.id, {
       method: "DELETE",
     })
-    .then((res: any) => console.log(res))
     .then(props.onCloseEdit());
   };
 
-  const removeMember = (member: any) => {
+  const onRemoveMember = (member: any) => {
     return fetch("/api/teams/" + props.team.id + "/membership", {
       method: "DELETE",
       body: JSON.stringify({ userId: member.id }),
@@ -159,7 +158,7 @@ export default function EditTeam(props: any) {
                                 </div>
                             </div>
                             <div>
-                                {!!members.length && <MemberList members={members} onChange={loadMembers} />}
+                                {!!members.length && <MemberList members={members} onRemoveMember={onRemoveMember} onChange={loadMembers} />}
                                 <hr className="mt-6" />
                             </div>                                          
                             <h3 className="mt-7 text-md leading-6 font-bold text-gray-900">

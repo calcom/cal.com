@@ -2,7 +2,8 @@ import { TrashIcon, UsersIcon, DotsHorizontalIcon, LinkIcon, PencilAltIcon, Exte
 import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
 import { Tooltip } from "@components/Tooltip";
-import Link from "next/link";
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 export default function MemberListItem(props: any) {
   const [member, setMember] = useState(props.member);
@@ -31,10 +32,10 @@ export default function MemberListItem(props: any) {
           </div>
           <div className="flex">
           {props.member.role === "INVITEE" && (
-            <div>
+            <>
                 <span className="h-6 px-3 py-1 bg-yellow-50 text-xs capitalize self-center text-yellow-700 rounded-md mr-2">Pending</span>
                 <span className="h-6 px-3 py-1 bg-pink-50 text-xs capitalize self-center text-pink-700 rounded-md mr-4">Member</span>
-            </div>
+            </>
           )}
           {props.member.role === "MEMBER" && (
             <span className="h-6 px-3 py-1 bg-pink-50 text-xs capitalize self-center text-pink-700 rounded-md mr-4">Member</span>
@@ -52,11 +53,25 @@ export default function MemberListItem(props: any) {
                   <li
                     className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
                     role="menuitem">
-                    <button className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700" onClick={() => 
+                    {/* <button className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700" onClick={() => 
                         props.onActionSelect("remove")
                         }>
                       <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" /> Remove member
-                    </button>
+                    </button> */}
+                    <Dialog>
+                      <DialogTrigger onClick={(e)=>{e.stopPropagation();}} className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700">
+                          <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" />
+                          Remove User                          
+                      </DialogTrigger>
+                      <ConfirmationDialogContent
+                          alert="danger"
+                          title="Remove member"
+                          confirmBtnText="Yes, remove member"
+                          cancelBtnText = "Cancel"
+                          onConfirm={() => props.onActionSelect("remove")}>
+                          Are you sure you want to remove this member from the team?
+                      </ConfirmationDialogContent>
+                  </Dialog>                    
                   </li>
                 </ul>
               </Dropdown>
