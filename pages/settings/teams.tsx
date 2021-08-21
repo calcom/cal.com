@@ -5,7 +5,7 @@ import SettingsShell from "../../components/Settings";
 import { useEffect, useState } from "react";
 import type { Session } from "next-auth";
 import { getSession, useSession } from "next-auth/client";
-import { UsersIcon } from "@heroicons/react/outline";
+import { UsersIcon, PlusIcon } from "@heroicons/react/outline";
 import TeamList from "../../components/team/TeamList";
 import TeamListItem from "../../components/team/TeamListItem";
 import Loader from "@components/Loader";
@@ -97,7 +97,7 @@ export default function Teams() {
                     type="button"
                     onClick={() => setShowCreateTeamModal(true)}
                     className="btn btn-white">
-                    + New Team
+                    <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />New Team
                   </button>
                 </div>
                 {/* {!!(invites.length || teams.length) && (
@@ -138,7 +138,7 @@ export default function Teams() {
           </div>
         }
         {!!editTeamEnabled && 
-          <EditTeam team={teamToEdit}/>
+          <EditTeam team={teamToEdit} onCloseEdit={()=>setEditTeamEnabled(false)}/>
         }
         {showCreateTeamModal && (
           <div
