@@ -1,22 +1,26 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeftIcon, UserRemoveIcon, UsersIcon } from "@heroicons/react/outline";
+import { ArrowLeftIcon, PlusIcon, TrashIcon, UserRemoveIcon, UsersIcon } from "@heroicons/react/outline";
 import { useSession } from "next-auth/client";
 import Link from "next/link";
 import ErrorAlert from "../../components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
+import MemberList from "./MemberList";
+import Avatar from "@components/Avatar";
+import ImageUploader from "@components/ImageUploader";
 
 export default function EditTeam(props) {
   const [session] = useSession();
   const [members, setMembers] = useState([]);
-  const [checkedDisbandTeam, setCheckedDisbandTeam] = useState(false);
 
   const nameRef = useRef<HTMLInputElement>();
   const teamUrlRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLInputElement>();
   const hideBrandingRef = useRef<HTMLInputElement>();
   const usernameRef = useRef<HTMLInputElement>();
+  const avatarRef = useRef<HTMLInputElement>();
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [imageSrc, setImageSrc] = useState<string>("");
 
   const loadMembers = () =>
     fetch("/api/teams/" + props.team.id + "/membership")
@@ -48,17 +52,19 @@ export default function EditTeam(props) {
     //   TODO :: UPDATE TEAM HANDLER
   }
 
+  const handleAvatarChange = () => {
+      console.log('logo changed')
+  }
+
   return (
       <div className="divide-y divide-gray-200 lg:col-span-9">
 
         <div className="py-6 lg:pb-8">
             <div className="flex">
                 <div className="">
-                    <a href={`/settings/teams`} >
-                        <button className="flex items-center px-4 py-2 w-full text-left">
-                            <ArrowLeftIcon className="group-hover:text-black text-gray-700 w-6 h-6 inline-block" />
-                        </button>
-                    </a>                
+                    <button onClick={() => props.onCloseEdit()} className="flex items-center pr-4 py-2 w-full text-left">
+                        <ArrowLeftIcon className="group-hover:text-black text-gray-700 w-6 h-6 inline-block" />
+                    </button>
                 </div>
                 <div className="pr-4 pb-5 sm:pb-6">
                     <h3 className="text-lg leading-6 font-bold text-gray-900">
@@ -115,11 +121,10 @@ export default function EditTeam(props) {
                             </div>
                             <div>
                                 <div className="mt-1 flex">
-                                    {/* <Avatar
-                                    user={props.user}
+                                    <Avatar
                                     className="relative rounded-full w-10 h-10"
                                     fallback={<div className="relative bg-neutral-900 rounded-full w-10 h-10"></div>}
-                                    imageSrc={imageSrc}
+                                    imageSrc={imageSrc ? imageSrc : props.team.logo}
                                     />
                                     <input
                                     ref={avatarRef}
@@ -128,18 +133,32 @@ export default function EditTeam(props) {
                                     id="avatar"
                                     placeholder="URL"
                                     className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                                    defaultValue={props.user.avatar}
+                                    defaultValue={imageSrc ? imageSrc : props.team.logo}
                                     />                    
                                     <ImageUploader 
-                                    target="avatar"
-                                    id="avatar-upload"
-                                    buttonMsg="Change avatar"
+                                    target="logo"
+                                    id="logo-upload"
+                                    buttonMsg="Change logo"
                                     handleAvatarChange={handleAvatarChange}
-                                    imageRef={imageSrc ? imageSrc : props.user.avatar}
-                                    /> */}
+                                    imageRef={imageSrc ? imageSrc : props.team.logo}
+                                    />
                                 </div>
                                 <hr className="mt-6" />
-                            </div>                
+                            </div>  
+                            <div className="flex justify-between mt-7">
+                                <h3 className="text-md leading-6 font-bold text-gray-900">
+                                    Member
+                                </h3>
+                                <div className="relative flex items-center">
+                                    <button className="btn-sm btn-white">
+                                    <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />Invite Member
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                {!!members.length && <MemberList members={members} onChange={loadMembers} />}
+                                <hr className="mt-6" />
+                            </div>                                          
                             <h3 className="mt-7 text-md leading-6 font-bold text-gray-900">
                                 Branding
                             </h3>
@@ -162,7 +181,18 @@ export default function EditTeam(props) {
                                         <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
                                     </div>
                                 </div>
+                                <hr className="mt-6" />
                             </div>
+                            <h3 className="mt-7 text-md leading-6 font-bold text-gray-900">
+                                Danger Zone
+                            </h3>
+                            <div>
+                                <div className="relative flex items-start">
+                                    <button className="btn-sm btn-white">
+                                        <TrashIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />Disband Team
+                                    </button>
+                                </div>
+                            </div>                            
                         </div>
                     </div>
                     <hr className="mt-8" />

@@ -91,7 +91,8 @@ export default function Teams() {
                     type="button"
                     onClick={() => setShowCreateTeamModal(true)}
                     className="btn btn-white">
-                    + New Team
+                    <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
+                    New Team
                   </button>
                 </div>
                 {/* {!!(invites.length || teams.length) && (
@@ -133,7 +134,7 @@ export default function Teams() {
             </div>
           </div>
         )}
-        {!!editTeamEnabled && <EditTeam team={teamToEdit} />}
+        {!!editTeamEnabled && <EditTeam team={teamToEdit} onCloseEdit={() => setEditTeamEnabled(false)} />}
         {showCreateTeamModal && (
           <div
             className="fixed inset-0 z-50 overflow-y-auto"
