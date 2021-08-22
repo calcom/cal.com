@@ -234,7 +234,7 @@ export default function Book(props: any): JSX.Element {
                             type="radio"
                             required
                             onChange={(e) => setSelectedLocation(e.target.value)}
-                            className="location"
+                            className="location focus:ring-black h-4 w-4 text-black border-gray-300 mr-2"
                             name="location"
                             value={location.type}
                             checked={selectedLocation === location.type}
@@ -274,7 +274,7 @@ export default function Book(props: any): JSX.Element {
                         <div className="mb-4" key={"input-" + input.label.toLowerCase}>
                           {input.type !== EventTypeCustomInputType.BOOL && (
                             <label
-                              htmlFor={input.label}
+                              htmlFor={"custom_" + input.id}
                               className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                               {input.label}
                             </label>
@@ -319,8 +319,8 @@ export default function Book(props: any): JSX.Element {
                                 placeholder=""
                               />
                               <label
-                                htmlFor={input.label}
-                                className="block text-sm font-medium text-gray-700">
+                                htmlFor={"custom_" + input.id}
+                                className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                                 {input.label}
                               </label>
                             </div>
