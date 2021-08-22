@@ -12,6 +12,9 @@
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "prepare": "husky install"
   },
+  "engines": {
+    "node": "^14.0.0"
+  },
   "dependencies": {
     "@headlessui/react": "^1.4.0",
     "@heroicons/react": "^1.0.4",
