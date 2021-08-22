@@ -16,7 +16,7 @@ import TimeOptions from "../../components/booking/TimeOptions";
 import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
 import { timeZone } from "../../lib/clock";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
-import { asStringOrNull } from "@lib/asStringOrNull";
+import { assertNonEmptyStringOrNull, assertNonEmptyString } from "@lib/core/assertions";
 
 export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Get router variables
@@ -245,19 +245,15 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  // get query params and typecast them to string
-  // (would be even better to assert them instead of typecasting)
-  const userParam = asStringOrNull(context.query.user);
-  const typeParam = asStringOrNull(context.query.type);
-  const dateParam = asStringOrNull(context.query.date);
+  const { user, type, date = null } = context.query;
 
-  if (!userParam || !typeParam) {
-    throw new Error(`File is not named [type]/[user]`);
-  }
+  assertNonEmptyString(user, "[user] not provided");
+  assertNonEmptyString(type, "[type] not provided");
+  assertNonEmptyStringOrNull(date, "[date] not provided");
 
-  const user = await prisma.user.findFirst({
+  const fetchedUser = await prisma.user.findFirst({
     where: {
-      username: userParam.toLowerCase(),
+      username: user.toLowerCase(),
     },
     select: {
       id: true,
@@ -276,7 +272,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!user) {
+  if (!fetchedUser) {
     return {
       notFound: true,
     } as const;
@@ -284,8 +280,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventType = await prisma.eventType.findFirst({
     where: {
-      userId: user.id,
-      slug: typeParam,
+      userId: fetchedUser.id,
+      slug: type,
     },
     select: {
       id: true,
@@ -316,12 +312,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const workingHours =
     getWorkingHours(eventType) ||
-    getWorkingHours(user) ||
+    getWorkingHours(fetchedUser) ||
     [
       {
         days: [0, 1, 2, 3, 4, 5, 6],
-        startTime: user.startTime,
-        endTime: user.endTime,
+        startTime: fetchedUser.startTime,
+        endTime: fetchedUser.endTime,
       },
     ].filter((availability): boolean => typeof availability["days"] !== "undefined");
 
@@ -334,8 +330,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      user,
-      date: dateParam,
+      user: fetchedUser,
+      date,
       eventType: eventTypeObject,
       workingHours,
     },
