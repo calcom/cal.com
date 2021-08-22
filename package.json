@@ -13,7 +13,7 @@
     "prepare": "husky install"
   },
   "engines": {
-    "node": "14.15.3"
+    "node": "^14.0.0"
   },
   "dependencies": {
     "@headlessui/react": "^1.4.0",
