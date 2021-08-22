@@ -9,13 +9,14 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Avatar from "../../components/Avatar";
+import Avatar from "@components/Avatar";
 import AvailableTimes from "../../components/booking/AvailableTimes";
 import DatePicker from "../../components/booking/DatePicker";
 import TimeOptions from "../../components/booking/TimeOptions";
 import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
 import { timeZone } from "../../lib/clock";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
+import { asStringOrNull } from "@lib/asStringOrNull";
 
 export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Get router variables
@@ -65,7 +66,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
         shallow: true,
       }
     );
-  }, [router, selectedDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
     if (selectedDate) {
@@ -138,7 +140,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
-                  <Avatar user={props.user} className="inline-block rounded-full h-9 w-9" />
+                  <Avatar
+                    imageSrc={props.user.avatar}
+                    displayName={props.user.name}
+                    className="inline-block rounded-full h-9 w-9"
+                  />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-black dark:text-gray-300">{props.user.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
@@ -159,7 +165,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                     "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
-                  <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
+                  <Avatar
+                    imageSrc={props.user.avatar}
+                    displayName={props.user.name}
+                    className="w-16 h-16 mb-4 rounded-full"
+                  />
                   <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {props.eventType.title}
@@ -237,9 +247,13 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
-  const userParam = context.query.user as string;
-  const typeParam = context.query.type as string;
-  const dateParam = context.query.date as string | undefined;
+  const userParam = asStringOrNull(context.query.user);
+  const typeParam = asStringOrNull(context.query.type);
+  const dateParam = asStringOrNull(context.query.date);
+
+  if (!userParam || !typeParam) {
+    throw new Error(`File is not named [type]/[user]`);
+  }
 
   const user = await prisma.user.findFirst({
     where: {
