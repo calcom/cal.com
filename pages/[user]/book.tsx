@@ -12,7 +12,7 @@ import timezone from "dayjs/plugin/timezone";
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 import { LocationType } from "../../lib/location";
-import Avatar from "../../components/Avatar";
+import Avatar from "@components/Avatar";
 import Button from "../../components/ui/Button";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
@@ -163,7 +163,11 @@ export default function Book(props: any): JSX.Element {
           <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">
             <div className="sm:flex px-4 py-5 sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
-                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
+                <Avatar
+                  displayName={props.user.name}
+                  imageSrc={props.user.avatar}
+                  className="w-16 h-16 rounded-full mb-4"
+                />
                 <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
                 <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
                   {props.eventType.title}

@@ -9,7 +9,7 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Avatar from "../../components/Avatar";
+import Avatar from "@components/Avatar";
 import AvailableTimes from "../../components/booking/AvailableTimes";
 import DatePicker from "../../components/booking/DatePicker";
 import TimeOptions from "../../components/booking/TimeOptions";
@@ -140,7 +140,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
-                  <Avatar user={props.user} className="inline-block rounded-full h-9 w-9" />
+                  <Avatar
+                    imageSrc={props.user.avatar}
+                    displayName={props.user.name}
+                    className="inline-block rounded-full h-9 w-9"
+                  />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-black dark:text-gray-300">{props.user.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
@@ -161,7 +165,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                     "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
-                  <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
+                  <Avatar
+                    imageSrc={props.user.avatar}
+                    displayName={props.user.name}
+                    className="w-16 h-16 mb-4 rounded-full"
+                  />
                   <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {props.eventType.title}
