@@ -347,12 +347,14 @@ export default function EventTypePage({
 
     const customInput: EventTypeCustomInput = {
       label: e.target.label.value,
+      placeholder: e.target.placeholder?.value,
       required: e.target.required.checked,
       type: e.target.type.value,
     };
 
     if (selectedCustomInput) {
       selectedCustomInput.label = customInput.label;
+      selectedCustomInput.placeholder = customInput.placeholder;
       selectedCustomInput.required = customInput.required;
       selectedCustomInput.type = customInput.type;
     } else {
@@ -645,6 +647,13 @@ export default function EventTypePage({
                                       <div>
                                         <span className="ml-2 text-sm">Label: {customInput.label}</span>
                                       </div>
+                                      {customInput.placeholder && (
+                                        <div>
+                                          <span className="ml-2 text-sm">
+                                            Placeholder: {customInput.placeholder}
+                                          </span>
+                                        </div>
+                                      )}
                                       <div>
                                         <span className="ml-2 text-sm">Type: {customInput.type}</span>
                                       </div>
@@ -1015,6 +1024,23 @@ export default function EventTypePage({
                       />
                     </div>
                   </div>
+                  {(selectedInputOption.value === EventTypeCustomInputType.TEXT ||
+                    selectedInputOption.value === EventTypeCustomInputType.TEXTLONG) && (
+                    <div className="mb-2">
+                      <label htmlFor="placeholder" className="block text-sm font-medium text-gray-700">
+                        Placeholder
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          name="placeholder"
+                          id="placeholder"
+                          className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                          defaultValue={selectedCustomInput?.placeholder}
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-center h-5">
                     <input
                       id="required"

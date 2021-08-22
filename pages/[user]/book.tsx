@@ -286,7 +286,7 @@ export default function Book(props: any): JSX.Element {
                               required={input.required}
                               rows={3}
                               className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                              placeholder=""
+                              placeholder={input.placeholder}
                             />
                           )}
                           {input.type === EventTypeCustomInputType.TEXT && (
@@ -296,7 +296,7 @@ export default function Book(props: any): JSX.Element {
                               id={"custom_" + input.id}
                               required={input.required}
                               className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                              placeholder=""
+                              placeholder={input.placeholder}
                             />
                           )}
                           {input.type === EventTypeCustomInputType.NUMBER && (
