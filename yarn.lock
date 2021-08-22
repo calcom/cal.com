@@ -780,6 +780,18 @@
     "@radix-ui/react-polymorphic" "0.0.13"
     "@radix-ui/react-primitive" "0.0.15"
 
+"@radix-ui/react-avatar@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-avatar/-/react-avatar-0.0.15.tgz#5cb9280bde8cc1bca27a816c4a0b631222c9308b"
+  integrity sha512-mZHHCMU7CODOpisqiimrvVCUtcFcQLtuaqQUBwR9dYXoMxjBN1XtQXUGdTvFpPFXd11C9b6i6Gjfvti6yD8Jcg==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/react-context" "0.0.5"
+    "@radix-ui/react-polymorphic" "0.0.13"
+    "@radix-ui/react-primitive" "0.0.15"
+    "@radix-ui/react-use-callback-ref" "0.0.5"
+    "@radix-ui/react-use-layout-effect" "0.0.5"
+
 "@radix-ui/react-collapsible@^0.0.17":
   version "0.0.17"
   resolved "https://registry.npmjs.org/@radix-ui/react-collapsible/-/react-collapsible-0.0.17.tgz#d778ec1d5b7b4543fd4db1b3e4be96c74568d441"
