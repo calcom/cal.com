@@ -1,17 +1,18 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
-import prisma, { whereAndSelect } from "@lib/prisma";
+import prisma from "@lib/prisma";
 import Modal from "../../components/Modal";
 import Shell from "../../components/Shell";
 import SettingsShell from "../../components/Settings";
-import Avatar from "../../components/Avatar";
+import Avatar from "@components/Avatar";
 import { getSession } from "next-auth/client";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 import { UsernameInput } from "../../components/ui/UsernameInput";
 import ErrorAlert from "../../components/ui/alerts/Error";
 import ImageUploader from "../../components/ImageUploader";
+import crypto from "crypto";
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -28,7 +29,7 @@ export default function Settings(props) {
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
-  const [imageSrc, setImageSrc] = useState<string>("");
+  const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
 
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -156,9 +157,9 @@ export default function Settings(props) {
                 <div>
                   <div className="mt-1 flex">
                     <Avatar
-                      user={props.user}
+                      displayName={props.user.name}
                       className="relative rounded-full w-10 h-10"
-                      fallback={<div className="relative bg-neutral-900 rounded-full w-10 h-10"></div>}
+                      gravatarFallbackMd5={props.user.emailMd5}
                       imageSrc={imageSrc}
                     />
                     <input
@@ -168,14 +169,14 @@ export default function Settings(props) {
                       id="avatar"
                       placeholder="URL"
                       className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                      defaultValue={props.user.avatar}
+                      defaultValue={imageSrc}
                     />
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg="Change avatar"
                       handleAvatarChange={handleAvatarChange}
-                      imageRef={imageSrc ? imageSrc : props.user.avatar}
+                      imageRef={imageSrc}
                     />
                   </div>
                   <hr className="mt-6" />
@@ -331,15 +332,30 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await whereAndSelect(
-    prisma.user.findFirst,
-    {
+  const user = await prisma.user.findUnique({
+    where: {
       id: session.user.id,
     },
-    ["id", "username", "name", "email", "bio", "avatar", "timeZone", "weekStart", "hideBranding", "theme"]
-  );
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      timeZone: true,
+      weekStart: true,
+      hideBranding: true,
+      theme: true,
+    },
+  });
 
   return {
-    props: { user }, // will be passed to the page component as props
+    props: {
+      user: {
+        ...user,
+        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+      },
+    },
   };
 };
