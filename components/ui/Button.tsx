@@ -9,7 +9,7 @@ type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
 export type ButtonProps = {
   color?: "primary" | "secondary" | "minimal";
-  size?: "base" | "sm" | "lg";
+  size?: "base" | "sm" | "lg" | "fab";
   loading?: boolean;
   disabled?: boolean;
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -41,11 +41,15 @@ export const Button = function Button(props: ButtonProps) {
       disabled,
       className: classNames(
         // base styles independent what type of button it is
-        "inline-flex items-center relative",
+        "inline-flex items-center",
         // different styles depending on size
         size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm",
         size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
         size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
+        // turn button into a floating action button (fab)
+        size === "fab" ? "fixed" : "relative",
+        size === "fab" && "justify-center bottom-20 right-8 rounded-full p-4 w-14 h-14",
+
         // different styles depending on color
         color === "primary" &&
           (disabled
