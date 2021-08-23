@@ -14,7 +14,11 @@ export default function Avatar({ imageSrc, displayName, gravatarFallbackMd5, cla
       <AvatarPrimitive.Image src={imageSrc} alt={displayName} className={className} />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
-          <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={displayName} className={className} />
+          <img
+            src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })}
+            alt={displayName}
+            className={className}
+          />
         )}
       </AvatarPrimitive.Fallback>
     </AvatarPrimitive.Root>

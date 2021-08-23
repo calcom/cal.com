@@ -10,6 +10,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum SchedulingType {
+  ROUND_ROBIN @map("roundRobin")
+  COLLECTIVE @map("collective")
+}
+
 model EventType {
   id            Int     @default(autoincrement()) @id
   title         String
@@ -18,8 +23,9 @@ model EventType {
   locations     Json?
   length        Int
   hidden        Boolean @default(false)
-  user          User?   @relation(fields: [userId], references: [id])
-  userId        Int?
+  organizers    User[]
+  team          Team?   @relation(fields: [teamId], references: [id])
+  teamId        Int?
   bookings      Booking[]
   availability  Availability[]
   eventName     String?
@@ -32,6 +38,7 @@ model EventType {
   periodCountCalendarDays Boolean?
   requiresConfirmation Boolean @default(false)
   minimumBookingNotice Int @default(120)
+  schedulingType SchedulingType?
 }
 
 model Credential {
@@ -74,6 +81,7 @@ model Team {
   name          String?
   slug          String?
   members       Membership[]
+  eventTypes    EventType[]
 }
 
 enum MembershipRole {

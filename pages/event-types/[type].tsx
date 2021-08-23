@@ -21,7 +21,7 @@ import {
   ChevronRightIcon,
   ClockIcon,
   TrashIcon,
-  ExternalLinkIcon,
+  ExternalLinkIcon, ChevronDownIcon, UserGroupIcon, UsersIcon, UserAddIcon, CheckIcon,
 } from "@heroicons/react/solid";
 
 import dayjs from "dayjs";
@@ -38,6 +38,9 @@ import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import showToast from "@lib/notification";
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@radix-ui/react-collapsible";
+import {RadioAreaInput, RadioAreaInputGroup} from "@components/ui/form/RadioAreaInput";
+import Avatar from "@components/Avatar";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -362,6 +365,8 @@ export default function EventTypePage({
     }
     closeAddCustomModal();
   };
+
+  const [expanded, setExpanded] = React.useState(false);
 
   const removeCustom = (index: number) => {
     customInputs.splice(index, 1);
@@ -842,6 +847,94 @@ export default function EventTypePage({
                             />
                           </div>
                         </div>
+
+                        {eventType.team && <hr className="border-neutral-200" />}
+
+                        {eventType.team && <div>
+                          <div className="block sm:flex">
+                            <div className="mb-4 min-w-44 sm:mb-0">
+                              <label
+                                htmlFor="schedulingType"
+                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                <UsersIcon className="text-neutral-500 h-5 w-5 mr-2" /> Scheduling Type
+                              </label>
+                            </div>
+                            <Collapsible className="w-full">
+                              <CollapsibleTrigger as="div" className="mb-1 cursor-pointer border border-1 bg-white p-2 shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm">
+                                Round Robin
+                                <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
+                              </CollapsibleTrigger>
+
+                              <CollapsibleContent className="border bg-white border-1 p-4">
+                                <RadioAreaInputGroup className="space-y-2" name="schedulingType">
+                                  <RadioAreaInput value="collective" className="text-sm">
+                                    <strong className="block mb-1">Collective</strong>
+                                    <p>
+                                      Schedule meetings when all selected team members are available.
+                                    </p>
+                                  </RadioAreaInput>
+                                  <RadioAreaInput value="roundRobin" className="text-sm" defaultChecked={true}>
+                                    <strong className="block mb-1">Round Robin</strong>
+                                    <p>
+                                      Cycle meetings between multiple team members.
+                                    </p>
+                                  </RadioAreaInput>
+                                </RadioAreaInputGroup>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          </div>
+
+                          <div className="block sm:flex">
+                            <div className="mb-4 min-w-44 sm:mb-0">
+                              <label
+                                htmlFor="addOrganizers"
+                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Organizers
+                              </label>
+                            </div>
+                            <Collapsible className="w-full" open={expanded} onOpenChange={setExpanded}>
+                              <CollapsibleTrigger as="div" className="mb-1 cursor-pointer border border-1 bg-white p-2 shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm">
+                                Add organizers
+                                <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
+                              </CollapsibleTrigger>
+
+                              <CollapsibleContent className="border bg-white border-1 p-2 mb-1 space-y-4">
+                                <div>
+                                  <Avatar
+                                    className="w-6 h-6 rounded-full inline mr-2"
+                                    imageSrc="http://placekitten.com/200/200"
+                                    displayName="Ciarán Hanrahan"
+                                    gravatarEmailMd5="39b8ef250d0fcfb0409abbc411183c1f"
+                                  />
+                                  Ciarán Hanrahan
+                                </div>
+                                <div>
+                                  <Avatar
+                                    className="w-6 h-6 rounded-full inline mr-2"
+                                    imageSrc="http://placekitten.com/200/250"
+                                    displayName="Alex van Andel"
+                                    gravatarEmailMd5="8662484ffebe5dd3c0e091e4cc0f7626"
+                                  />
+                                  Alex van Andel
+                                  <CheckIcon className="h-5 w-5 mt-0.5 text-neutral-500 float-right" />
+                                </div>
+                              </CollapsibleContent>
+
+                              {!expanded && eventType.organizers.map( (user: User) => (
+                                <div className="border border-1 p-2 font-medium">
+                                  <Avatar
+                                    className="w-6 h-6 rounded-full inline mr-2"
+                                    imageSrc={user.avatar}
+                                    displayName={user.name}
+                                    gravatarEmailMd5="8662484ffebe5dd3c0e091e4cc0f7626"
+                                  />
+                                  Alex van Andel
+                                  <XIcon className="h-5 w-5 mt-0.5 text-neutral-500 float-right" />
+                                </div>
+                              ))}
+                            </Collapsible>
+                          </div>
+                        </div>}
                       </Disclosure.Panel>
                     </>
                   )}
@@ -1118,6 +1211,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      team: true,
+      organizers: {
+        select: {
+          name: true,
+          id: true,
+          avatar: true,
+        }
+      }
     },
   });
 

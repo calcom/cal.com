@@ -63,9 +63,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method == "POST") {
       await prisma.eventType.create({
         data: {
-          userId: session.user.id,
           ...data,
-        },
+          organizers: {
+            connect: {
+              id: parseInt(session.user.id),
+            }
+          }
+        }
       });
       res.status(200).json({ message: "Event created successfully" });
     } else if (req.method == "PATCH") {
