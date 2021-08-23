@@ -123,10 +123,11 @@ export default function EditTeam(props: any) {
                             </div>
                             <div>
                                 <div className="mt-1 flex">
+                                    {console.log(props.team)}
                                     <Avatar
                                     className="relative rounded-full w-10 h-10"
-                                    fallback={<div className="relative bg-neutral-900 rounded-full w-10 h-10"></div>}
                                     imageSrc={imageSrc ? imageSrc : props.team.logo}
+                                    displayName="Logo"
                                     />
                                     <input
                                     ref={avatarRef}

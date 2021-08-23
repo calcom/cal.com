@@ -130,24 +130,6 @@ export default function TeamListItem(props: any) {
             </div>
           )}
         </div>
-        {/*{props.team.userRole === 'Owner' && expanded && <div className="pt-2">
-      {props.team.members.length > 0 && <div>
-        <h2 className="text-lg font-medium text-gray-900 mb-1">Members</h2>
-        <table className="table-auto mb-2 w-full">
-          <tbody>
-            {props.team.members.map( (member) => <tr key={member.email}>
-              <td className="py-1 pl-2">Alex van Andel ({ member.email })</td>
-              <td>Owner</td>
-              <td className="text-right p-1">
-                  <button className="btn-sm text-xs bg-transparent text-red-400 border border-red-400 px-3 py-1 rounded-sm ml-2"><UserRemoveIcon className="text-red-400 group-hover:text-gray-500 flex-shrink-0 -mt-1 mr-1 h-4 w-4 inline"/>Remove</button>
-              </td>
-            </tr>)}
-          </tbody>
-        </table>
-      </div>}
-      <button className="btn-sm bg-transparent text-gray-400 border border-gray-400 px-3 py-1 rounded-sm"><UserAddIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-1 h-6 w-6 inline"/> Invite member</button>
-      <button className="btn-sm bg-transparent text-red-400 border border-red-400 px-3 py-1 rounded-sm ml-2">Disband</button>
-    </div>}*/}
       </li>
     )
   );
