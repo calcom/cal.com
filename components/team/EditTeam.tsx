@@ -123,7 +123,6 @@ export default function EditTeam(props: any) {
                             </div>
                             <div>
                                 <div className="mt-1 flex">
-                                    {console.log(props.team)}
                                     <Avatar
                                     className="relative rounded-full w-10 h-10"
                                     imageSrc={imageSrc ? imageSrc : props.team.logo}
