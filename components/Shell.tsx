@@ -224,6 +224,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
               <Menu.Button className="group w-full rounded-md text-sm text-left font-medium text-gray-700 focus:outline-none">
                 <span className="flex w-full justify-between items-center">
                   <span className="flex min-w-0 items-center justify-between space-x-3">
+                    {console.log(user)}
                     <Avatar
                       imageSrc={user?.avatar}
                       displayName={user?.name}
