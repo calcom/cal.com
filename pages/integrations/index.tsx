@@ -169,7 +169,7 @@ export default function Home({ integrations }: Props) {
           subtitle="If no entry is selected, all calendars will be checked"
         />
         <div className="my-4">
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
             {selectableCalendars.map((calendar) => (
               <li key={calendar.name} className="flex py-4">
                 <div className="w-1/12 mr-4 pt-2">
