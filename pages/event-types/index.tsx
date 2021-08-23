@@ -83,9 +83,17 @@ export default function Availability({ user, types }) {
           router.push({ pathname: router.pathname, query: newQuery });
         }
       }}>
-      <Button className="mt-2" StartIcon={PlusIcon} href={{ query: { ...router.query, new: "1" } }}>
+      <Button
+        className="mt-2 hidden sm:block"
+        StartIcon={PlusIcon}
+        href={{ query: { ...router.query, new: "1" } }}>
         New event type
       </Button>
+
+      <Button size="fab" className="block sm:hidden" href={{ query: { ...router.query, new: "1" } }}>
+        <PlusIcon className="w-8 h-8 text-white" />
+      </Button>
+
       <DialogContent>
         <div className="mb-8">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
