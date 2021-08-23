@@ -23,6 +23,7 @@ model EventType {
   locations     Json?
   length        Int
   hidden        Boolean @default(false)
+  userId        Int?
   organizers    User[]
   team          Team?   @relation(fields: [teamId], references: [id])
   teamId        Int?
