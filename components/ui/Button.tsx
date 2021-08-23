@@ -109,3 +109,5 @@ export const Button = function Button(props: ButtonProps) {
     element
   );
 };
+
+export default Button;
