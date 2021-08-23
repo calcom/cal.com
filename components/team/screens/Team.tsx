@@ -37,7 +37,11 @@ const Team = ({ team }) => {
             )}
           />
 
-          <Avatar user={member.user} className="w-12 h-12 rounded-full" />
+          <Avatar
+            displayName={member.user.name}
+            imageSrc={member.user.avatar}
+            className="w-12 h-12 rounded-full"
+          />
 
           <section className="space-y-2">
             <Text variant="title">{member.user.name}</Text>
@@ -68,9 +72,8 @@ const Team = ({ team }) => {
     <article className="flex flex-col space-y-8 lg:space-y-12">
       <div className="mb-8 text-center">
         <Avatar
-          user={{
-            email: team.name,
-          }}
+          displayName={team.name}
+          imageSrc={team.logo}
           className="mx-auto w-20 h-20 rounded-full mb-4"
         />
         <Text variant="headline">{team.name}</Text>

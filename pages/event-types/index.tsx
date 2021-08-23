@@ -1,6 +1,7 @@
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
-import { Tooltip } from "@components/Tooltip";
+import { Dialog, DialogClose, DialogTrigger, DialogContent } from "@components/Dialog";
 import Loader from "@components/Loader";
+import { Tooltip } from "@components/Tooltip";
+import { Button } from "@components/ui/Button";
 import { Menu, Transition } from "@headlessui/react";
 import {
   ClockIcon,
@@ -25,6 +26,7 @@ import { RadioAreaInput, RadioAreaInputGroup } from "@components/ui/form/RadioAr
 import Avatar from "@components/Avatar";
 import { UserCalendarImage } from "@components/svg/UserCalendarImage";
 
+
 export default function Availability({ user, eventTypes }: {
   user: User,
   eventTypes: EventType[],
@@ -36,6 +38,8 @@ export default function Availability({ user, eventTypes }: {
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const lengthRef = useRef<HTMLInputElement>();
+
+  const dialogOpen = router.query.new === "1";
 
   async function createEventTypeHandler(event) {
     event.preventDefault();
@@ -75,14 +79,10 @@ export default function Availability({ user, eventTypes }: {
     const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
     return (
       <Dialog>
-        <DialogTrigger
-          className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-          <PlusIcon className="w-5 h-5 mr-1 inline"/>
+        <DialogTrigger as={Button} className="mt-2 mr-2" StartIcon={PlusIcon} onClick={() => setIsTeamEvent(false)}>
           New event type
         </DialogTrigger>
-        <DialogTrigger onClick={() => setIsTeamEvent(true)}
-                       className="py-2 ml-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-          <PlusIcon className="w-5 h-5 mr-1 inline"/>
+        <DialogTrigger as={Button} StartIcon={PlusIcon} onClick={() => setIsTeamEvent(true)}>
           New team event type
         </DialogTrigger>
         <DialogContent>
