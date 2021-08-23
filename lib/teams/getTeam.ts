@@ -1,15 +1,9 @@
 import { Team } from "@prisma/client";
 import prisma from "@lib/prisma";
-import logger from "@lib/logger";
+import { defaultAvatarSrc } from "@lib/profile";
 
-const log = logger.getChildLogger({ prefix: ["[lib] getTeam"] });
 export const getTeam = async (idOrSlug: string): Promise<Team | null> => {
   const teamIdOrSlug = idOrSlug;
-
-  let team = null;
-
-  log.debug(`{teamIdOrSlug} ${teamIdOrSlug}`);
-
   const teamSelectInput = {
     id: true,
     name: true,
@@ -34,7 +28,7 @@ export const getTeam = async (idOrSlug: string): Promise<Team | null> => {
     },
   };
 
-  team = await prisma.team.findFirst({
+  const team = await prisma.team.findFirst({
     where: {
       OR: [
         {
@@ -48,7 +42,10 @@ export const getTeam = async (idOrSlug: string): Promise<Team | null> => {
     select: teamSelectInput,
   });
 
-  log.debug(`{team}`, { team });
+  team.members = team.members.map((member) => {
+    member.user.avatar = member.user.avatar || defaultAvatarSrc({ email: member.user.email });
+    return member;
+  });
 
   return team;
 };
