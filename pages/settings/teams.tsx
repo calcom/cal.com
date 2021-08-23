@@ -86,7 +86,6 @@ export default function Teams() {
             <div className="py-6 lg:pb-8">
               <div className="flex flex-col justify-between md:flex-row">
                 <div>
-                  {console.log(teams)}
                   {!(invites.length || teams.length) && (
                     <div className="bg-gray-50 sm:rounded-sm">
                       <div className="pb-5 pr-4 sm:pb-6">
