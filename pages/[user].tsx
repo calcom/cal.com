@@ -131,37 +131,45 @@ export default function User(props): User {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await whereAndSelect(
-    prisma.user.findFirst,
-    {
+export const getServerSideProps = async (context) => {
+
+  const { eventTypes, ...user } = await prisma.user.findFirst({
+    where: {
       username: context.query.user.toLowerCase(),
     },
-    ["id", "username", "email", "name", "bio", "avatar", "theme"]
-  );
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      name: true,
+      bio: true,
+      avatar: true,
+      theme: true,
+      eventTypes: {
+        where: {
+          hidden: false,
+          team: null,
+        },
+        select: {
+          slug: true,
+          title: true,
+          length: true,
+          description: true,
+        },
+      },
+    },
+  });
+
   if (!user) {
     return {
       notFound: true,
     };
   }
 
-  const eventTypes = await prisma.eventType.findMany({
-    where: {
-      userId: user.id,
-      hidden: false,
-    },
-    select: {
-      slug: true,
-      title: true,
-      length: true,
-      description: true,
-    },
-  });
-
   return {
     props: {
-      user,
       eventTypes,
+      user
     },
   };
 };

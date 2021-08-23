@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Availability } from "@prisma/client";
+import { Availability, EventType } from "@prisma/client";
 import Theme from "@components/Theme";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
@@ -255,7 +255,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error(`File is not named [type]/[user]`);
   }
 
-  const user = await prisma.user.findFirst({
+  const { eventTypes, ...user } = await prisma.user.findFirst({
     where: {
       username: userParam.toLowerCase(),
     },
@@ -273,6 +273,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       availability: true,
       hideBranding: true,
       theme: true,
+      eventTypes: {
+        where: {
+          slug: typeParam,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          length: true,
+          availability: true,
+          timeZone: true,
+          periodType: true,
+          periodDays: true,
+          periodStartDate: true,
+          periodEndDate: true,
+          periodCountCalendarDays: true,
+          minimumBookingNotice: true,
+        }
+      }
     },
   });
 
@@ -282,32 +301,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      userId: user.id,
-      slug: typeParam,
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      length: true,
-      availability: true,
-      timeZone: true,
-      periodType: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-      minimumBookingNotice: true,
-    },
-  });
-
-  if (!eventType) {
+  if (eventTypes.length != 1) {
     return {
       notFound: true,
     } as const;
   }
+
+  const eventType: EventType = eventTypes[0];
 
   const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
     providesAvailability.availability && providesAvailability.availability.length

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Modal from "../../components/Modal";
 import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
@@ -41,6 +40,7 @@ import showToast from "@lib/notification";
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@radix-ui/react-collapsible";
 import {RadioAreaInput, RadioAreaInputGroup} from "@components/ui/form/RadioAreaInput";
 import Avatar from "@components/Avatar";
+import Select from "@components/ui/form/Select";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -372,6 +372,20 @@ export default function EventTypePage({
     customInputs.splice(index, 1);
     setCustomInputs([...customInputs]);
   };
+
+  const formatOptionLabel = ({ label, value, avatar }) => (
+    <div className="flex">
+      <Avatar
+        className="h-6 w-6 rounded-full mr-3"
+        displayName={label}
+        imageSrc={avatar}
+      />
+      {label}
+      <div className="w-full">
+        <CheckIcon className="text-neutral-500 w-6 h-6 float-right"/>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -850,7 +864,7 @@ export default function EventTypePage({
 
                         {eventType.team && <hr className="border-neutral-200" />}
 
-                        {eventType.team && <div>
+                        {eventType.team && <div className="space-y-3">
                           <div className="block sm:flex">
                             <div className="mb-4 min-w-44 sm:mb-0">
                               <label
@@ -892,35 +906,47 @@ export default function EventTypePage({
                                 <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Organizers
                               </label>
                             </div>
-                            <Collapsible className="w-full" open={expanded} onOpenChange={setExpanded}>
-                              <CollapsibleTrigger as="div" className="mb-1 cursor-pointer border border-1 bg-white p-2 shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm">
-                                Add organizers
-                                <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
-                              </CollapsibleTrigger>
+                            <div className="w-full space-y-2">
+                              {/*<Collapsible className="w-full" open={expanded} onOpenChange={setExpanded}>
+                                <CollapsibleTrigger as="div" className="mb-1 cursor-pointer border border-1 bg-white p-2 shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm">
+                                  Add organizers
+                                  <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
+                                </CollapsibleTrigger>
 
-                              <CollapsibleContent className="border bg-white border-1 p-2 mb-1 space-y-4">
-                                <div>
-                                  <Avatar
-                                    className="w-6 h-6 rounded-full inline mr-2"
-                                    imageSrc="http://placekitten.com/200/200"
-                                    displayName="Ciarán Hanrahan"
-                                    gravatarEmailMd5="39b8ef250d0fcfb0409abbc411183c1f"
-                                  />
-                                  Ciarán Hanrahan
-                                </div>
-                                <div>
-                                  <Avatar
-                                    className="w-6 h-6 rounded-full inline mr-2"
-                                    imageSrc="http://placekitten.com/200/250"
-                                    displayName="Alex van Andel"
-                                    gravatarEmailMd5="8662484ffebe5dd3c0e091e4cc0f7626"
-                                  />
-                                  Alex van Andel
-                                  <CheckIcon className="h-5 w-5 mt-0.5 text-neutral-500 float-right" />
-                                </div>
-                              </CollapsibleContent>
+                                <CollapsibleContent className="border bg-white border-1 p-2 mb-1 space-y-4">
+                                  <div>
+                                    <Avatar
+                                      className="w-6 h-6 rounded-full inline mr-2"
+                                      imageSrc="http://placekitten.com/200/200"
+                                      displayName="Ciarán Hanrahan"
+                                      gravatarEmailMd5="39b8ef250d0fcfb0409abbc411183c1f"
+                                    />
+                                    Ciarán Hanrahan
+                                  </div>
+                                  <div>
+                                    <Avatar
+                                      className="w-6 h-6 rounded-full inline mr-2"
+                                      imageSrc="http://placekitten.com/200/250"
+                                      displayName="Alex van Andel"
+                                      gravatarEmailMd5="8662484ffebe5dd3c0e091e4cc0f7626"
+                                    />
+                                    Alex van Andel
+                                    <CheckIcon className="h-5 w-5 mt-0.5 text-neutral-500 float-right" />
+                                  </div>
+                                </CollapsibleContent>*/}
 
-                              {!expanded && eventType.organizers.map( (user: User) => (
+                              <Select
+                                isMulti
+                                closeMenuOnSelect={false}
+                                formatOptionLabel={formatOptionLabel}
+                                options={[
+                                  { value: 'chocolate', label: 'Chocolate', avatar: 'http://placekitten.com/200/250'  },
+                                  { value: 'strawberry', label: 'Strawberry', avatar: 'http://placekitten.com/200/200' },
+                                  { value: 'vanilla', label: 'Vanilla', avatar: 'http://placekitten.com/200/150' }
+                                ]} />
+
+                              {!expanded &&
+                                eventType.organizers.map( (user: User) => (
                                 <div className="border border-1 p-2 font-medium">
                                   <Avatar
                                     className="w-6 h-6 rounded-full inline mr-2"
@@ -928,11 +954,12 @@ export default function EventTypePage({
                                     displayName={user.name}
                                     gravatarEmailMd5="8662484ffebe5dd3c0e091e4cc0f7626"
                                   />
-                                  Alex van Andel
-                                  <XIcon className="h-5 w-5 mt-0.5 text-neutral-500 float-right" />
+                                  {user.name}
+                                  <XIcon className="cursor-pointer h-5 w-5 mt-0.5 text-neutral-500 float-right" />
                                 </div>
                               ))}
-                            </Collapsible>
+                              {/*</Collapsible>*/}
+                            </div>
                           </div>
                         </div>}
                       </Disclosure.Panel>
