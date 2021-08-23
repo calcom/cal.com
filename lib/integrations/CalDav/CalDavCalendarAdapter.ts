@@ -15,6 +15,9 @@ import { createEvent, DurationObject, Attendee, Person } from "ics";
 import dayjs from "dayjs";
 import { v4 as uuidv4 } from "uuid";
 import { stripHtml } from "../../emails/helpers";
+import logger from "@lib/logger";
+
+const log = logger.getChildLogger({ prefix: ["[[lib] caldav"] });
 
 type EventBusyDate = Record<"start" | "end", Date>;
 
@@ -74,14 +77,20 @@ export class CalDavCalendar implements CalendarApiAdapter {
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
-        description: stripHtml(event.description),
+        description: stripHtml(event.description ?? ""),
         location: event.location,
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event.attendees),
       });
 
       if (error) {
-        return null;
+        log.debug("Error creating iCalString");
+        return {};
+      }
+
+      if (!iCalString) {
+        log.debug("Error creating iCalString");
+        return {};
       }
 
       await Promise.all(
@@ -107,7 +116,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<Record<string, unknown>> {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<unknown> {
     try {
       const calendars = await this.listCalendars();
       const events = [];
@@ -126,19 +135,20 @@ export class CalDavCalendar implements CalendarApiAdapter {
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
-        description: stripHtml(event.description),
+        description: stripHtml(event.description ?? ""),
         location: event.location,
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event.attendees),
       });
 
       if (error) {
-        return null;
+        log.debug("Error creating iCalString");
+        return {};
       }
 
       const eventsToUpdate = events.filter((event) => event.uid === uid);
 
-      await Promise.all(
+      return await Promise.all(
         eventsToUpdate.map((event) => {
           return updateCalendarObject({
             calendarObject: {
@@ -150,8 +160,6 @@ export class CalDavCalendar implements CalendarApiAdapter {
           });
         })
       );
-
-      return null;
     } catch (reason) {
       console.error(reason);
       throw reason;
@@ -184,8 +192,6 @@ export class CalDavCalendar implements CalendarApiAdapter {
           });
         })
       );
-
-      return null;
     } catch (reason) {
       console.error(reason);
       throw reason;
@@ -214,7 +220,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
 
       return events;
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -229,11 +235,11 @@ export class CalDavCalendar implements CalendarApiAdapter {
 
       return calendars
         .filter((calendar) => {
-          return calendar.components.includes("VEVENT");
+          return calendar.components?.includes("VEVENT");
         })
         .map((calendar) => ({
           externalId: calendar.url,
-          name: calendar.displayName,
+          name: calendar.displayName ?? "",
           primary: false,
           integration: this.integrationName,
         }));
@@ -243,14 +249,19 @@ export class CalDavCalendar implements CalendarApiAdapter {
     }
   }
 
-  async getEvents(calId: string, dateFrom: string, dateTo: string): Promise<unknown> {
+  async getEvents(calId: string, dateFrom: string | null, dateTo: string | null): Promise<unknown> {
     try {
-      //TODO: Figure out Time range and filters
-      console.log(dateFrom, dateTo);
       const objects = await fetchCalendarObjects({
         calendar: {
           url: calId,
         },
+        timeRange:
+          dateFrom && dateTo
+            ? {
+                start: dayjs(dateFrom).utc().format("YYYY-MM-DDTHH:mm:ss[Z]"),
+                end: dayjs(dateTo).utc().format("YYYY-MM-DDTHH:mm:ss[Z]"),
+              }
+            : undefined,
         headers: this.headers,
       });
 
@@ -265,8 +276,16 @@ export class CalDavCalendar implements CalendarApiAdapter {
               const vevent = vcalendar.getFirstSubcomponent("vevent");
               const event = new ICAL.Event(vevent);
 
-              const startDate = new Date(event.startDate.toUnixTime() * 1000);
-              const endDate = new Date(event.endDate.toUnixTime() * 1000);
+              const calendarTimezone = vcalendar.getFirstSubcomponent("vtimezone")
+                ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
+                : "";
+
+              const startDate = calendarTimezone
+                ? dayjs(event.startDate).tz(calendarTimezone)
+                : new Date(event.startDate.toUnixTime() * 1000);
+              const endDate = calendarTimezone
+                ? dayjs(event.endDate).tz(calendarTimezone)
+                : new Date(event.endDate.toUnixTime() * 1000);
 
               return {
                 uid: event.uid,
@@ -289,9 +308,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
                 organizer: event.organizer,
                 attendees: event.attendees.map((a) => a.getValues()),
                 recurrenceId: event.recurrenceId,
-                timezone: vcalendar.getFirstSubcomponent("vtimezone")
-                  ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
-                  : "",
+                timezone: calendarTimezone,
               };
             }
           })
