@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/e89eba6c-9d97-48e3-91e5-5237cbebfd57/resourceGroups/calendso-resource/providers/Microsoft.Web/sites/calendso-indywise",
+    "appService.deploySubpath": "."
+}
