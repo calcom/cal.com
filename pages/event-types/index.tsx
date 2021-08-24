@@ -92,6 +92,58 @@ export default function Availability({ user, eventTypes }: {
             </h3>
             <div>
               <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
+              {/*
+  const CreateNewEventDialog = () => (
+    <Dialog
+      open={dialogOpen}
+      onOpenChange={(isOpen) => {
+        const newQuery = {
+          ...router.query,
+        };
+        delete newQuery["new"];
+        if (!isOpen) {
+          router.push({ pathname: router.pathname, query: newQuery });
+        }
+      }}>
+      <Button
+        className="mt-2 hidden sm:block"
+        StartIcon={PlusIcon}
+        href={{ query: { ...router.query, new: "1" } }}>
+        New event type
+      </Button>
+
+      <Button size="fab" className="block sm:hidden" href={{ query: { ...router.query, new: "1" } }}>
+        <PlusIcon className="w-8 h-8 text-white" />
+      </Button>
+
+      <DialogContent>
+        <div className="mb-8">
+          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+            Add a new event type
+          </h3>
+          <div>
+            <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
+          </div>
+        </div>
+        <form onSubmit={createEventTypeHandler}>
+          <div>
+            <div className="mb-4">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                Title
+              </label>
+              <div className="mt-1">
+                <input
+                  onChange={autoPopulateSlug}
+                  ref={titleRef}
+                  type="text"
+                  name="title"
+                  id="title"
+                  required
+                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                  placeholder="Quick Chat"
+                />
+              </div>
+*/}
             </div>
           </div>
           <form onSubmit={createEventTypeHandler}>

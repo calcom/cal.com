@@ -13,7 +13,7 @@ import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 import { LocationType } from "../../lib/location";
 import Avatar from "@components/Avatar";
-import Button from "../../components/ui/Button";
+import { Button } from "@components/ui/Button";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
 
