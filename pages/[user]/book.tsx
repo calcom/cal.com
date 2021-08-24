@@ -145,6 +145,7 @@ export default function Book(props: any): JSX.Element {
     };
 
     event.preventDefault();
+
     book();
   };
 
