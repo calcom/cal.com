@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
-import prisma from "../../../lib/prisma";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
+
   if (!session) {
     res.status(401).json({ message: "Not authenticated" });
     return;
@@ -61,13 +62,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (req.method == "POST") {
-      await prisma.eventType.create({
+      const event_type = await prisma.eventType.create({
         data: {
           userId: session.user.id,
           ...data,
         },
       });
-      res.status(200).json({ message: "Event created successfully" });
+      res.status(201).json({ message: "Event created successfully", event_type });
     } else if (req.method == "PATCH") {
       if (req.body.timeZone) {
         data.timeZone = req.body.timeZone;
@@ -98,13 +99,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      await prisma.eventType.update({
+      const event_type = await prisma.eventType.update({
         where: {
           id: req.body.id,
         },
         data,
       });
-      res.status(200).json({ message: "Event updated successfully" });
+      res.status(200).json({ message: "Event updated successfully", event_type });
     }
   }
 
