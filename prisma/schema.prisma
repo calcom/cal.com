@@ -77,6 +77,8 @@ model Team {
   name          String?
   slug          String?
   logo          String?
+  bio           String?
+  hideBranding  Boolean @default(false)    
   members       Membership[]
 }
 
