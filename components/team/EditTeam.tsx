@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeftIcon, PlusIcon, TrashIcon, UserRemoveIcon, UsersIcon } from "@heroicons/react/outline";
+import { ArrowLeftIcon, PlusIcon, TrashIcon, UsersIcon } from "@heroicons/react/outline";
 import { useSession } from "next-auth/client";
 import ErrorAlert from "@components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
@@ -8,6 +8,7 @@ import Avatar from "@components/Avatar";
 import ImageUploader from "@components/ImageUploader";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Modal from "@components/Modal";
 
 export default function EditTeam(props: any) {
   const [session] = useSession();
@@ -17,9 +18,9 @@ export default function EditTeam(props: any) {
   const teamUrlRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLInputElement>();
   const hideBrandingRef = useRef<HTMLInputElement>();
-  const usernameRef = useRef<HTMLInputElement>();
-  const avatarRef = useRef<HTMLInputElement>();
+  const logoRef = useRef<HTMLInputElement>();
   const [hasErrors, setHasErrors] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [imageSrc, setImageSrc] = useState<string>("");
 
@@ -49,12 +50,64 @@ export default function EditTeam(props: any) {
     }).then(loadMembers);
   };
 
-  const updateTeamHandler = () => {
-    //   TODO :: UPDATE TEAM HANDLER
+  const handleError = async (resp: any) => {
+    if (!resp.ok) {
+      const error = await resp.json();
+      throw new Error(error.message);
+    }
+  };
+
+  async function updateTeamHandler(event: any) {
+    event.preventDefault();
+
+    const enteredUsername = teamUrlRef?.current?.value.toLowerCase();
+    const enteredName = nameRef?.current?.value;
+    const enteredDescription = descriptionRef?.current?.value;
+    const enteredLogo = logoRef?.current?.value;
+    const enteredHideBranding = hideBrandingRef?.current?.checked;
+
+    // TODO: Add validation
+
+    await fetch("/api/teams/" + props.team.id + "/profile", {
+      method: "PATCH",
+      body: JSON.stringify({
+        username: enteredUsername,
+        name: enteredName,
+        description: enteredDescription,
+        logo: enteredLogo,
+        hideBranding: enteredHideBranding,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then(handleError)
+      .then(() => {
+        setSuccessModalOpen(true);
+        setHasErrors(false); // dismiss any open errors
+      })
+      .catch((err) => {
+        setHasErrors(true);
+        setErrorMessage(err.message);
+      });
   }
 
-  const handleAvatarChange = () => {
+  const closeSuccessModal = () => {
+    setSuccessModalOpen(false);
+  };
+
+  const handleLogoChange = (newLogo: any) => {
       console.log('logo changed')
+      logoRef.current.value = newLogo;
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+        window?.HTMLInputElement?.prototype,
+        "value"
+      ).set;
+      nativeInputValueSetter?.call(logoRef.current, newLogo);
+      const ev2 = new Event("input", { bubbles: true });
+      logoRef?.current?.dispatchEvent(ev2);
+      updateTeamHandler(ev2);
+      setImageSrc(newLogo);
   }
 
   return (
@@ -71,6 +124,7 @@ export default function EditTeam(props: any) {
                 <div className="pr-4 pb-5 sm:pb-6">
                     <h3 className="text-lg leading-6 font-bold text-gray-900">
                         {props.team.name}
+                        {console.log(props.team)}
                     </h3>
                     <div className="mt-2 max-w-xl text-sm text-gray-500">
                         <p>Manage your team</p>
@@ -88,7 +142,7 @@ export default function EditTeam(props: any) {
                         <div className="flex-grow space-y-6">
                             <div className="block sm:flex">
                                 <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
-                                    <UsernameInput ref={usernameRef} defaultValue={props.team.slug} />
+                                    <UsernameInput ref={teamUrlRef} defaultValue={props.team.slug} />
                                 </div>
                                 <div className="w-full sm:w-1/2 sm:ml-2">
                                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -117,7 +171,7 @@ export default function EditTeam(props: any) {
                                     name="about"
                                     placeholder="A little something about your team."
                                     rows={3}
-                                    // defaultValue={props.team.bio}
+                                    defaultValue={props.team.bio}
                                     className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"></textarea>
                                 </div>
                             </div>
@@ -129,7 +183,7 @@ export default function EditTeam(props: any) {
                                     displayName="Logo"
                                     />
                                     <input
-                                    ref={avatarRef}
+                                    ref={logoRef}
                                     type="hidden"
                                     name="avatar"
                                     id="avatar"
@@ -141,7 +195,7 @@ export default function EditTeam(props: any) {
                                     target="logo"
                                     id="logo-upload"
                                     buttonMsg="Change logo"
-                                    handleAvatarChange={handleAvatarChange}
+                                    handleAvatarChange={handleLogoChange}
                                     imageRef={imageSrc ? imageSrc : props.team.logo}
                                     />
                                 </div>
@@ -172,7 +226,7 @@ export default function EditTeam(props: any) {
                                         name="hide-branding"
                                         type="checkbox"
                                         ref={hideBrandingRef}
-                                        // defaultChecked={props.team.hideBranding}
+                                        defaultChecked={props.team.hideBranding}
                                         className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
                                         />
                                     </div>
@@ -219,6 +273,12 @@ export default function EditTeam(props: any) {
                     </div>
                 </div>
             </form>
+            <Modal
+                heading="Team updated successfully"
+                description="Your team has been updated successfully."
+                open={successModalOpen}
+                handleClose={closeSuccessModal}
+            />
         </div>
     </div>
 

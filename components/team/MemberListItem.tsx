@@ -1,7 +1,6 @@
-import { TrashIcon, UsersIcon, DotsHorizontalIcon, LinkIcon, PencilAltIcon, ExternalLinkIcon } from "@heroicons/react/outline";
+import { DotsHorizontalIcon, UserRemoveIcon } from "@heroicons/react/outline";
 import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
-import { Tooltip } from "@components/Tooltip";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
@@ -55,7 +54,7 @@ export default function MemberListItem(props: any) {
                     role="menuitem">
                     <Dialog>
                       <DialogTrigger onClick={(e)=>{e.stopPropagation();}} className="flex items-center px-4 py-2 w-full text-left bg-red-50 text-red-700">
-                          <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" />
+                          <UserRemoveIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" />
                           Remove User                          
                       </DialogTrigger>
                       <ConfirmationDialogContent
