@@ -1,10 +1,11 @@
 import classNames from "@lib/classNames";
-import React, {ForwardedRef, useEffect, useState} from "react";
+import React, {ChangeEvent, ForwardedRef, useEffect, useState} from "react";
 
 type HTMLInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 export type RadioAreaInputProps = {
   name: string;
+  label: string;
 } & HTMLInputProps;
 
 export const RadioAreaInput = function RadioAreaInput(props: RadioAreaInputProps) {
@@ -45,24 +46,28 @@ export const RadioAreaInputGroup = function RadioAreaInputGroup({
   onChange,
   ...passThroughProps
 }: RadioAreaInputGroupProps) {
+
   const [ checkedIdx, setCheckedIdx ] = useState<number | null>(null);
 
-  const changeHandler = (value: string, idx: number) => {
+  const changeHandler = (e: { value: string, label: string }, idx: number) => {
     if (onChange) {
-      onChange(value);
+      onChange(e);
     }
     setCheckedIdx(idx);
   };
 
   return <Comp {...passThroughProps}>
     {children.map( (child: React.ReactElement<RadioAreaInputProps>, idx: number) => {
+      if (checkedIdx === null && child.props.defaultChecked) {
+        setCheckedIdx(idx);
+      }
       return (
         <RadioAreaInput
           {...child.props}
           key={idx}
           name={name}
-          checked={checkedIdx ? idx === checkedIdx : child.props.defaultChecked}
-          onChange={(e) => changeHandler(e.target.value, idx)}
+          checked={idx === checkedIdx}
+          onChange={(e) => changeHandler({ value: e.target.value, label: child.props.label }, idx)}
         >
           {child.props.children}
         </RadioAreaInput>

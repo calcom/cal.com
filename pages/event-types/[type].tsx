@@ -26,7 +26,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { Availability, EventType, User } from "@prisma/client";
+import { Availability, EventType, User, Team } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
 import classnames from "classnames";
 import throttle from "lodash.throttle";
@@ -41,6 +41,8 @@ import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@radix-ui/rea
 import {RadioAreaInput, RadioAreaInputGroup} from "@components/ui/form/RadioAreaInput";
 import Avatar from "@components/Avatar";
 import Select from "@components/ui/form/Select";
+import CheckedSelect from "@components/ui/form/CheckedSelect";
+import {defaultAvatarSrc} from "@lib/profile";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -50,6 +52,8 @@ type Props = {
   eventType: EventType;
   locationOptions: OptionBase[];
   availability: Availability[];
+  team?: Team;
+  teamMembers: [];
 };
 
 type OpeningHours = {
@@ -107,6 +111,8 @@ export default function EventTypePage({
   eventType,
   locationOptions,
   availability,
+  team,
+  teamMembers,
 }: Props): JSX.Element {
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -366,26 +372,12 @@ export default function EventTypePage({
     closeAddCustomModal();
   };
 
-  const [expanded, setExpanded] = React.useState(false);
-
   const removeCustom = (index: number) => {
     customInputs.splice(index, 1);
     setCustomInputs([...customInputs]);
   };
 
-  const formatOptionLabel = ({ label, value, avatar }) => (
-    <div className="flex">
-      <Avatar
-        className="h-6 w-6 rounded-full mr-3"
-        displayName={label}
-        imageSrc={avatar}
-      />
-      {label}
-      <div className="w-full">
-        <CheckIcon className="text-neutral-500 w-6 h-6 float-right"/>
-      </div>
-    </div>
-  );
+  const [ selected, setSelected ] = useState<{ value: string, label: string }>(null);
 
   return (
     <div>
@@ -862,9 +854,9 @@ export default function EventTypePage({
                           </div>
                         </div>
 
-                        {eventType.team && <hr className="border-neutral-200" />}
+                        {team && <hr className="border-neutral-200" />}
 
-                        {eventType.team && <div className="space-y-3">
+                        {team && <div className="space-y-3">
                           <div className="block sm:flex">
                             <div className="mb-4 min-w-44 sm:mb-0">
                               <label
@@ -875,19 +867,19 @@ export default function EventTypePage({
                             </div>
                             <Collapsible className="w-full">
                               <CollapsibleTrigger as="div" className="mb-1 cursor-pointer border border-1 bg-white p-2 shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm">
-                                Round Robin
+                                {selected ? selected.label : 'Select...'}
                                 <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
                               </CollapsibleTrigger>
 
                               <CollapsibleContent className="border bg-white border-1 p-4">
-                                <RadioAreaInputGroup className="space-y-2" name="schedulingType">
-                                  <RadioAreaInput value="collective" className="text-sm">
+                                <RadioAreaInputGroup className="space-y-2" name="schedulingType" onChange={setSelected}>
+                                  <RadioAreaInput label="Collective" value="collective" className="text-sm">
                                     <strong className="block mb-1">Collective</strong>
                                     <p>
                                       Schedule meetings when all selected team members are available.
                                     </p>
                                   </RadioAreaInput>
-                                  <RadioAreaInput value="roundRobin" className="text-sm" defaultChecked={true}>
+                                  <RadioAreaInput label="Round Robin" value="roundRobin" className="text-sm">
                                     <strong className="block mb-1">Round Robin</strong>
                                     <p>
                                       Cycle meetings between multiple team members.
@@ -901,64 +893,21 @@ export default function EventTypePage({
                           <div className="block sm:flex">
                             <div className="mb-4 min-w-44 sm:mb-0">
                               <label
-                                htmlFor="addOrganizers"
+                                htmlFor="organizers"
                                 className="flex mt-2 text-sm font-medium text-neutral-700">
                                 <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Organizers
                               </label>
                             </div>
                             <div className="w-full space-y-2">
-                              {/*<Collapsible className="w-full" open={expanded} onOpenChange={setExpanded}>
-                                <CollapsibleTrigger as="div" className="mb-1 cursor-pointer border border-1 bg-white p-2 shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm">
-                                  Add organizers
-                                  <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
-                                </CollapsibleTrigger>
-
-                                <CollapsibleContent className="border bg-white border-1 p-2 mb-1 space-y-4">
-                                  <div>
-                                    <Avatar
-                                      className="w-6 h-6 rounded-full inline mr-2"
-                                      imageSrc="http://placekitten.com/200/200"
-                                      displayName="Ciarán Hanrahan"
-                                      gravatarEmailMd5="39b8ef250d0fcfb0409abbc411183c1f"
-                                    />
-                                    Ciarán Hanrahan
-                                  </div>
-                                  <div>
-                                    <Avatar
-                                      className="w-6 h-6 rounded-full inline mr-2"
-                                      imageSrc="http://placekitten.com/200/250"
-                                      displayName="Alex van Andel"
-                                      gravatarEmailMd5="8662484ffebe5dd3c0e091e4cc0f7626"
-                                    />
-                                    Alex van Andel
-                                    <CheckIcon className="h-5 w-5 mt-0.5 text-neutral-500 float-right" />
-                                  </div>
-                                </CollapsibleContent>*/}
-
-                              <Select
-                                isMulti
-                                closeMenuOnSelect={false}
-                                formatOptionLabel={formatOptionLabel}
-                                options={[
-                                  { value: 'chocolate', label: 'Chocolate', avatar: 'http://placekitten.com/200/250'  },
-                                  { value: 'strawberry', label: 'Strawberry', avatar: 'http://placekitten.com/200/200' },
-                                  { value: 'vanilla', label: 'Vanilla', avatar: 'http://placekitten.com/200/150' }
-                                ]} />
-
-                              {!expanded &&
-                                eventType.organizers.map( (user: User) => (
-                                <div className="border border-1 p-2 font-medium">
-                                  <Avatar
-                                    className="w-6 h-6 rounded-full inline mr-2"
-                                    imageSrc={user.avatar}
-                                    displayName={user.name}
-                                    gravatarEmailMd5="8662484ffebe5dd3c0e091e4cc0f7626"
-                                  />
-                                  {user.name}
-                                  <XIcon className="cursor-pointer h-5 w-5 mt-0.5 text-neutral-500 float-right" />
-                                </div>
-                              ))}
-                              {/*</Collapsible>*/}
+                              <CheckedSelect
+                                options={teamMembers.map( (user: User) => ({
+                                  value: user.id,
+                                  label: user.name,
+                                  avatar: user.avatar,
+                                }))}
+                                name="organizers"
+                                placeholder="Add organizers"
+                              />
                             </div>
                           </div>
                         </div>}
@@ -1238,7 +1187,22 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
-      team: true,
+      team: {
+        select: {
+          members: {
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  id: true,
+                  avatar: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
       organizers: {
         select: {
           name: true,
@@ -1327,12 +1291,20 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
+  const teamMembers: User[] = eventTypeObject.team ? eventTypeObject.team.members.map( (member) => {
+    const user = member.user;
+    user.avatar = user.avatar || defaultAvatarSrc({ email: user.email });
+    return user;
+  }) : [];
+
   return {
     props: {
       user,
       eventType: eventTypeObject,
       locationOptions,
       availability,
+      team: eventTypeObject.team || null,
+      teamMembers,
     },
   };
 };
