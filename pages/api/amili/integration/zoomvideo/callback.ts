@@ -7,10 +7,13 @@ const client_secret = process.env.ZOOM_CLIENT_SECRET;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   const { code, info } = req.query;
-  // console.log("\n ==> req.query =", req.query);
+  console.log("\n ==> req.query =", req.query);
   const [assUserId, coachId, isCoachUser] = info.toString().split("*");
 
-  const redirectUri = encodeURI(process.env.BASE_URL + "/api/amili/integration/zoomvideo/callback");
+  const redirectUri = encodeURI(
+    `${process.env.BASE_URL}/api/amili/integration/zoomvideo/callback?info=${assUserId}*${coachId}*${isCoachUser}`
+  );
+
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
 
   const result = await fetch(
