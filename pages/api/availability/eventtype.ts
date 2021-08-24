@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   type: input.type,
                   label: input.label,
                   required: input.required,
+                  placeholder: input.placeholder,
                 })),
             },
             update: req.body.customInputs
@@ -44,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   type: input.type,
                   label: input.label,
                   required: input.required,
+                  placeholder: input.placeholder,
                 },
                 where: {
                   id: input.id,
@@ -107,6 +109,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method == "DELETE") {
+    // Delete associations first
+    await prisma.eventTypeCustomInput.deleteMany({
+      where: {
+        eventTypeId: req.body.id,
+      },
+    });
+
     await prisma.eventType.delete({
       where: {
         id: req.body.id,
