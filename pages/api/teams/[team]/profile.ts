@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === "PATCH") {
         const team = await prisma.team.findFirst({
             where: {
-            id: parseInt(req.query.team),
+                id: parseInt(req.query.team),
             },
         });
         
@@ -33,19 +33,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(404).json({ message: "Invalid team" });
         }  
 
-        // TODO :: check if team username exists for anyone other than this team/user
-        // const username = req.body.slug; 
-        // const userConflict = await prisma.user.findFirst({
+        // CRASH:::::: Following is causing crash 
+        // const username = req.body.username; 
+        // const userConflict = await prisma.team.findMany({
         //     where: {
-        //     username,
+        //         slug: username,
         //     },
         // });
-        // if (userConflict) {
-        //     return res.status(409).json({ message: "Team username already taken" });
-        // }
+        // const teamId = Number(req.query.team);
+        // userConflict.forEach( (team) => {
+        //     if(team.id !== teamId) return res.status(409).json({message: "Team username already taken" });           
+        // });     
 
         const name = req.body.name;
-        const slug = req.body.slug;
+        const slug = req.body.username;
         const bio = req.body.description;
         const logo = req.body.logo;
         const hideBranding = req.body.hideBranding;
