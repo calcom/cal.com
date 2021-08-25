@@ -1,4 +1,4 @@
-import Head from "next/head";
+import { PageHead } from "@components/base/head";
 import prisma from "../../lib/prisma";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
@@ -19,12 +19,7 @@ export default function Type(props) {
 
   return (
     <div>
-      <Head>
-        <title>
-          Cancelled {props.title} | {props.user.name || props.user.username} | Calendso
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <PageHead title={`Cancelled ${props.title} | ${props.user.name || props.user.username}`} />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">

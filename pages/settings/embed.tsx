@@ -1,7 +1,7 @@
-import Head from "next/head";
-import prisma from "../../lib/prisma";
-import Shell from "../../components/Shell";
-import SettingsShell from "../../components/Settings";
+import { PageHead } from "@components/base/head";
+import prisma from "@lib/prisma";
+import Shell from "@components/Shell";
+import SettingsShell from "@components/Settings";
 import { getSession, useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 
@@ -15,10 +15,7 @@ export default function Embed(props) {
 
   return (
     <Shell heading="Embed" subtitle="Integrate with your website using our embed options.">
-      <Head>
-        <title>Embed | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <PageHead title="Embed" />
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">

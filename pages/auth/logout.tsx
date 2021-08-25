@@ -1,4 +1,4 @@
-import Head from "next/head";
+import { PageHead } from "@components/base/head";
 import Link from "next/link";
 import { CheckIcon } from "@heroicons/react/outline";
 
@@ -9,10 +9,7 @@ export default function Logout() {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <Head>
-        <title>Logged out - Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <PageHead title="Logged out" />
       <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;

@@ -1,8 +1,8 @@
-import Head from "next/head";
+import { PageHead } from "@components/base/head";
 import Link from "next/link";
-import prisma from "../../lib/prisma";
-import Modal from "../../components/Modal";
-import Shell from "../../components/Shell";
+import prisma from "@lib/prisma";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
@@ -115,10 +115,7 @@ export default function Availability(props) {
 
   return (
     <div>
-      <Head>
-        <title>Availability | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <PageHead title="Availability" />
       <Shell
         heading="Availability"
         subtitle="Configure times when you are available for bookings.

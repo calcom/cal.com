@@ -3,7 +3,7 @@ import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/
 import { useRouter } from "next/router";
 import React from "react";
 import Link from "next/link";
-import Head from "next/head";
+import { PageHead } from "@components/base/head";
 
 const links = [
   {
@@ -32,9 +32,7 @@ export default function Custom404() {
 
   return (
     <>
-      <Head>
-        <title>404: This page could not be found.</title>
-      </Head>
+      <PageHead title="404: This page could not be found." />
       <div className="bg-white min-h-screen px-4">
         <main className="max-w-xl mx-auto pb-6 pt-16 sm:pt-24">
           <div className="text-center">

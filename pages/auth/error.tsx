@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { XIcon } from "@heroicons/react/outline";
-import Head from "next/head";
+import { PageHead } from "@components/base/head";
 import Link from "next/link";
 
 export default function Error() {
@@ -13,10 +13,7 @@ export default function Error() {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <Head>
-        <title>{error} - Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <PageHead title={error} />
       <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
