@@ -8,22 +8,19 @@ export default function TeamList(props: any) {
     setTeam(team);
     switch (action) {
       case "edit":
-        // setShowEditTeamModal(true);
         props.onEditTeam(team);
         break;
       case "disband":
-        // show disband confirmation modal
-        deleteTeam();
+        deleteTeam(team);
         break;
     }
   };
 
-  const deleteTeam = () => {
-    // e.preventDefault();
-    console.log(props);
-    // return fetch("/api/teams/" + props.team.id, {
-    //   method: "DELETE",
-    // }).then(props.onExit);
+  const deleteTeam = (team :any) => {
+    return fetch("/api/teams/" + team.id, {
+      method: "DELETE",
+    })
+    .then(props.onChange());
   };
 
   return (

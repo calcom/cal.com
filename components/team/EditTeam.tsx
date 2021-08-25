@@ -97,7 +97,6 @@ export default function EditTeam(props: any) {
   };
 
   const handleLogoChange = (newLogo: any) => {
-      console.log('logo changed')
       logoRef.current.value = newLogo;
       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
         window?.HTMLInputElement?.prototype,
@@ -124,7 +123,6 @@ export default function EditTeam(props: any) {
                 <div className="pr-4 pb-5 sm:pb-6">
                     <h3 className="text-lg leading-6 font-bold text-gray-900">
                         {props.team.name}
-                        {console.log(props.team)}
                     </h3>
                     <div className="mt-2 max-w-xl text-sm text-gray-500">
                         <p>Manage your team</p>
