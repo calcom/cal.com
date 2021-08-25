@@ -10,7 +10,6 @@ import TeamListItem from "@components/team/TeamListItem";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 import EditTeam from "@components/team/EditTeam";
-import MemberInvitationModal from "@components/team/MemberInvitationModal";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -19,8 +18,7 @@ export default function Teams() {
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [editTeamEnabled, setEditTeamEnabled] = useState(false);
   const [teamToEdit, setTeamToEdit] = useState();
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
-  const [inviteModalTeam, setInviteModalTeam] = useState(false);
+
 
   const handleErrors = async (resp: any) => {
     if (!resp.ok) {
@@ -68,11 +66,14 @@ export default function Teams() {
     setTeamToEdit(team);
   };
 
+<<<<<<< HEAD
   const inviteMember = (team: any) => {
     setShowMemberInvitationModal(true);
     setInviteModalTeam(team);
   };
 
+=======
+>>>>>>> 8394a47 (Pull latest data after an action in settings/teams-edit page)
   const onCloseEdit = () => {
     loadData();
     setEditTeamEnabled(false);
@@ -146,8 +147,15 @@ export default function Teams() {
               </div>}*/}
             </div>
           </div>
+<<<<<<< HEAD
         )}
         {!!editTeamEnabled && <EditTeam team={teamToEdit} onCloseEdit={() => setEditTeamEnabled(false)} />}
+=======
+        }
+        {!!editTeamEnabled && 
+          <EditTeam team={teamToEdit} onCloseEdit={onCloseEdit} />
+        }
+>>>>>>> 8394a47 (Pull latest data after an action in settings/teams-edit page)
         {showCreateTeamModal && (
           <div
             className="fixed inset-0 z-50 overflow-y-auto"
@@ -206,12 +214,16 @@ export default function Teams() {
               </div>
             </div>
           </div>
+<<<<<<< HEAD
         )}
         {showMemberInvitationModal && (
           <MemberInvitationModal
             team={inviteModalTeam}
             onExit={() => setShowMemberInvitationModal(false)}></MemberInvitationModal>
         )}
+=======
+        )}       
+>>>>>>> 8394a47 (Pull latest data after an action in settings/teams-edit page)
       </SettingsShell>
     </Shell>
   );
