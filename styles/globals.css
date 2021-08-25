@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
+.PhoneInputInput {
+  @apply text-sm focus:ring-0 border-0;
+}
+.dark .PhoneInputInput {
+  @apply bg-black;
+}
+.PhoneInputCountrySelect {
+  @apply text-black;
+}
 
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {
@@ -81,7 +91,7 @@
     }
     /* slider */
     .slider {
-      @apply relative flex items-center w-40 h-4 select-none 
+      @apply relative flex items-center w-40 h-4 select-none
     }
 
     .slider > .slider-track {
@@ -106,7 +116,7 @@
 }
 
 /* !important to style multi-email input */
-::-moz-selection { 
+::-moz-selection {
   color: white;
   background: black;
 }
@@ -188,7 +198,7 @@
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply inline-flex items-center px-2 py-1 my-1 mr-2 border border-transparent text-sm font-medium rounded-md text-gray-900 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;  
+  @apply inline-flex items-center px-2 py-1 my-1 mr-2 border border-transparent text-sm font-medium rounded-md text-gray-900 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {
@@ -278,19 +288,19 @@
   0% {
     transform: rotate(0deg);
   }
-  
+
   25% {
     transform: rotate(180deg);
   }
-  
+
   50% {
     transform: rotate(180deg);
   }
-  
+
   75% {
     transform: rotate(360deg);
   }
-  
+
   100% {
     transform: rotate(360deg);
   }
@@ -300,19 +310,19 @@
   0% {
     height: 0%;
   }
-  
+
   25% {
     height: 0%;
   }
-  
+
   50% {
     height: 100%;
   }
-  
+
   75% {
     height: 100%;
   }
-  
+
   100% {
     height: 0%;
   }

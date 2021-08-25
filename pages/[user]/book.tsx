@@ -9,8 +9,7 @@ import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
+import PhoneInput from "@components/ui/form/PhoneInput";
 import { LocationType } from "../../lib/location";
 import Avatar from "@components/Avatar";
 import { Button } from "@components/ui/Button";
@@ -255,19 +254,10 @@ export default function Book(props: any): JSX.Element {
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium dark:text-white text-gray-700">
-                        Phone Number
+                        Phone number
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          name="phone"
-                          placeholder="Enter phone number"
-                          id="phone"
-                          required
-                          className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                          onChange={() => {
-                            /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
-                          }}
-                        />
+                        <PhoneInput name="phone" placeholder="Enter phone number" id="phone" required />
                       </div>
                     </div>
                   )}
