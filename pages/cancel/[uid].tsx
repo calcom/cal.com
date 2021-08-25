@@ -19,7 +19,7 @@ dayjs.extend(timezone);
 export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Get router variables
   const router = useRouter();
-  const { uid } = router.query;
+  const { uid, from } = router.query;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [is24h, setIs24h] = useState(false);
@@ -47,7 +47,12 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
     });
 
     if (res.status >= 200 && res.status < 300) {
-      router.push("/cancel/success?user=" + props.user?.username + "&title=" + props.booking?.title);
+      const successURL = "/cancel/success";
+      const urlParams = [];
+      if (props.user?.username) urlParams.push("user=" + props.user.username);
+      if (props.user?.title) urlParams.push("title=" + props.user.title);
+      if (from) urlParams.push("from=" + from);
+      router.push(`${successURL}?${urlParams.join("&")}`);
     } else {
       setLoading(false);
       setError("An error with status code " + res.status + " occurred. Please try again later.");
