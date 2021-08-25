@@ -1,18 +1,19 @@
 import { DialogClose, DialogContent } from "@components/Dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ExclamationIcon } from "@heroicons/react/outline";
-import React from "react";
+import React, { PropsWithChildren } from "react";
+import { Button } from "@components/ui/Button";
 
-export default function ConfirmationDialogContent({
-  title,
-  alert,
-  confirmBtnText,
-  cancelBtnText,
-  onConfirm,
-  children,
-}) {
-  confirmBtnText = confirmBtnText || "Confirm";
-  cancelBtnText = cancelBtnText || "Cancel";
+export type ConfirmationDialogContentProps = {
+  confirmBtnText?: string;
+  cancelBtnText?: string;
+  onConfirm: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  title: string;
+  alert?: string;
+};
+
+export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
+  const { title, alert, confirmBtnText = "Confirm", cancelBtnText = "Cancel", onConfirm, children } = props;
 
   return (
     <DialogContent>
@@ -31,11 +32,13 @@ export default function ConfirmationDialogContent({
           <DialogPrimitive.Description className="text-neutral-500">{children}</DialogPrimitive.Description>
         </div>
       </div>
-      <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-        <DialogClose onClick={onConfirm} className="btn btn-primary">
+      <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+        <DialogClose as={Button} color="primary" onClick={onConfirm}>
           {confirmBtnText}
         </DialogClose>
-        <DialogClose className="btn btn-white mx-2">{cancelBtnText}</DialogClose>
+        <DialogClose as={Button} color="secondary">
+          {cancelBtnText}
+        </DialogClose>
       </div>
     </DialogContent>
   );
