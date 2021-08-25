@@ -33,17 +33,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(404).json({ message: "Invalid team" });
         }  
 
-        // CRASH:::::: Following is causing crash 
-        // const username = req.body.username; 
-        // const userConflict = await prisma.team.findMany({
-        //     where: {
-        //         slug: username,
-        //     },
-        // });
-        // const teamId = Number(req.query.team);
-        // userConflict.forEach( (team) => {
-        //     if(team.id !== teamId) return res.status(409).json({message: "Team username already taken" });           
-        // });     
+        const username = req.body.username; 
+        const userConflict = await prisma.team.findMany({
+            where: {
+                slug: username,
+            },
+        });
+        const teamId = Number(req.query.team);
+        if (userConflict.some(team => team.id !== teamId)) {
+            return res.status(409).json({message: "Team username already taken" });
+        }     
 
         const name = req.body.name;
         const slug = req.body.username;
