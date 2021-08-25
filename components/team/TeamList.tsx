@@ -1,11 +1,8 @@
-import { useState } from "react";
 import TeamListItem from "./TeamListItem";
 
 export default function TeamList(props: any) {
-  const [team, setTeam] = useState(null);
 
   const selectAction = (action: string, team: any) => {
-    setTeam(team);
     switch (action) {
       case "edit":
         props.onEditTeam(team);
