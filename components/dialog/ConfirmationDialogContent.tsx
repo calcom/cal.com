@@ -9,18 +9,18 @@ export type ConfirmationDialogContentProps = {
   cancelBtnText?: string;
   onConfirm: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
-  alert?: string;
+  variety?: "danger" /* no others yet */;
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
-  const { title, alert, confirmBtnText = "Confirm", cancelBtnText = "Cancel", onConfirm, children } = props;
+  const { title, variety, confirmBtnText = "Confirm", cancelBtnText = "Cancel", onConfirm, children } = props;
 
   return (
     <DialogContent>
       <div className="flex">
-        {alert && (
+        {variety && (
           <div className="mr-3 mt-0.5">
-            {alert === "danger" && (
+            {variety === "danger" && (
               <div className="text-center p-2 rounded-full mx-auto bg-red-100">
                 <ExclamationIcon className="w-5 h-5 text-red-600" />
               </div>

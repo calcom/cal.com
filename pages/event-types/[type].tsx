@@ -901,7 +901,7 @@ export default function EventTypePage({
                   Delete
                 </DialogTrigger>
                 <ConfirmationDialogContent
-                  alert="danger"
+                  variety="danger"
                   title="Delete Event Type"
                   confirmBtnText="Yes, delete event type"
                   onConfirm={deleteEventTypeHandler}>
