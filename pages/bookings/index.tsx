@@ -1,17 +1,19 @@
-import Head from "next/head";
-import prisma from "../../lib/prisma";
-import { getSession, useSession } from "next-auth/client";
-import Shell from "../../components/Shell";
-import { useRouter } from "next/router";
-import dayjs from "dayjs";
-import { Fragment } from "react";
+import Loader from "@components/Loader";
 import { Menu, Transition } from "@headlessui/react";
+import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
-import { ClockIcon, XIcon } from "@heroicons/react/outline";
-import Loader from "@components/Loader";
+import { Prisma } from "@prisma/client";
+import dayjs from "dayjs";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { getSession, useSession } from "next-auth/client";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { Fragment } from "react";
+import Shell from "../../components/Shell";
+import prisma from "../../lib/prisma";
 
-export default function Bookings({ bookings }) {
+export default function Bookings({ bookings }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
@@ -21,7 +23,7 @@ export default function Bookings({ bookings }) {
     return <Loader />;
   }
 
-  async function confirmBookingHandler(booking, confirm: boolean) {
+  async function confirmBookingHandler(booking: typeof bookings[number], confirm: boolean) {
     const res = await fetch("/api/book/confirm", {
       method: "PATCH",
       body: JSON.stringify({ id: booking.id, confirmed: confirm }),
@@ -41,10 +43,10 @@ export default function Bookings({ bookings }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
-        <div className="-mx-4 sm:mx-auto flex flex-col">
+        <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              <div className="border border-gray-200 overflow-hidden border-b rounded-sm">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <div className="overflow-hidden border border-b border-gray-200 rounded-sm">
                 <table className="min-w-full divide-y divide-gray-200">
                   <tbody className="bg-white divide-y divide-gray-200">
                     {bookings
@@ -58,7 +60,7 @@ export default function Bookings({ bookings }) {
                                 Unconfirmed
                               </span>
                             )}
-                            <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
+                            <div className="text-sm font-medium truncate text-neutral-900 max-w-60 md:max-w-96">
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
@@ -76,7 +78,7 @@ export default function Bookings({ bookings }) {
                               </a>
                             </div>
                           </td>
-                          <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                          <td className="hidden px-6 py-4 sm:table-cell whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {dayjs(booking.startTime).format("D MMMM YYYY")}
                             </div>
@@ -85,17 +87,17 @@ export default function Bookings({ bookings }) {
                               {dayjs(booking.endTime).format("HH:mm")}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <td className="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                             {!booking.confirmed && !booking.rejected && (
                               <>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, true)}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="inline-flex items-center px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                   Confirm
                                 </button>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, false)}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="inline-flex items-center px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                   Reject
                                 </button>
                               </>
@@ -103,30 +105,30 @@ export default function Bookings({ bookings }) {
                             {booking.confirmed && !booking.rejected && (
                               <>
                                 <a
-                                  href={window.location.href + "/../cancel/" + booking.uid}
-                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  href={`${window.location.href}/../cancel/${booking.uid}`}
+                                  className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                   <XIcon
-                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   Cancel
                                 </a>
                                 <a
                                   href={window.location.href + "/../reschedule/" + booking.uid}
-                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                   <ClockIcon
-                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   Reschedule
                                 </a>
-                                <Menu as="div" className="inline-block lg:hidden text-left ">
+                                <Menu as="div" className="inline-block text-left lg:hidden ">
                                   {({ open }) => (
                                     <>
                                       <div>
-                                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+                                        <Menu.Button className="p-2 mt-1 border border-transparent text-neutral-400 hover:border-gray-200">
                                           <span className="sr-only">Open options</span>
-                                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                                          <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
                                         </Menu.Button>
                                       </div>
 
@@ -141,12 +143,12 @@ export default function Bookings({ bookings }) {
                                         leaveTo="transform opacity-0 scale-95">
                                         <Menu.Items
                                           static
-                                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                                          className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
                                           <div className="py-1">
                                             <Menu.Item>
                                               {({ active }) => (
                                                 <a
-                                                  href={window.location.href + "/../cancel/" + booking.uid}
+                                                  href={`${window.location.href}/../cancel/${booking.uid}`}
                                                   className={classNames(
                                                     active
                                                       ? "bg-neutral-100 text-neutral-900"
@@ -154,7 +156,7 @@ export default function Bookings({ bookings }) {
                                                     "group flex items-center px-4 py-2 text-sm font-medium"
                                                   )}>
                                                   <XIcon
-                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
                                                   Cancel
@@ -174,7 +176,7 @@ export default function Bookings({ bookings }) {
                                                     "group flex items-center px-4 py-2 text-sm w-full font-medium"
                                                   )}>
                                                   <ClockIcon
-                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
                                                   Reschedule
@@ -206,25 +208,10 @@ export default function Bookings({ bookings }) {
   );
 }
 
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
-
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-    },
-  });
-
+async function getBookings(userId: number | undefined) {
   const b = await prisma.booking.findMany({
     where: {
-      userId: user.id,
+      userId,
     },
     select: {
       uid: true,
@@ -242,9 +229,30 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const bookings = b.reverse().map((booking) => {
+  return b.reverse().map((booking) => {
     return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
   });
+}
+
+export const getServerSideProps: GetServerSideProps<{
+  bookings: Prisma.PromiseReturnType<typeof getBookings>;
+}> = async (context) => {
+  const session = await getSession(context);
+
+  if (!session) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      email: session.user?.email,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const bookings = await getBookings(user?.id);
 
   return { props: { bookings } };
-}
+};
