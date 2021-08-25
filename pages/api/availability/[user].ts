@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
-import { getBusyVideoTimes } from "@lib/videoClient";
+// import { getBusyVideoTimes } from "@lib/videoClient";
 import dayjs from "dayjs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const currentUser = await prisma.user.findFirst({
     where: {
-      username: user,
+      username: user as string,
     },
     select: {
       credentials: true,
@@ -18,6 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
     },
   });
+
+  if (!currentUser) throw new Error("No user found");
 
   const selectedCalendars = await prisma.selectedCalendar.findMany({
     where: {
