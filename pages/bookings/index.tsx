@@ -100,7 +100,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                             {booking.confirmed && !booking.rejected && (
                               <>
                                 <a
-                                  href={`${window.location.href}/../cancel/${booking.uid}`}
+                                  href={`${window.location.href}/../cancel/${booking.uid}?from=/bookings`}
                                   className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                   <XIcon
                                     className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
@@ -143,7 +143,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                             <Menu.Item>
                                               {({ active }) => (
                                                 <a
-                                                  href={`${window.location.href}/../cancel/${booking.uid}`}
+                                                  href={`${window.location.href}/../cancel/${booking.uid}?from=/bookings`}
                                                   className={classNames(
                                                     active
                                                       ? "bg-neutral-100 text-neutral-900"
