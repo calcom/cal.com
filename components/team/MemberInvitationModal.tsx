@@ -1,10 +1,10 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
-export default function MemberInvitationModal(props) {
+export default function MemberInvitationModal(props: any) {
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleError = async (res) => {
+  const handleError = async (res: any) => {
     const responseData = await res.json();
 
     if (res.ok === false) {
@@ -15,7 +15,7 @@ export default function MemberInvitationModal(props) {
     return responseData;
   };
 
-  const inviteMember = (e) => {
+  const inviteMember = (e: any) => {
     e.preventDefault();
 
     const payload = {

@@ -1,4 +1,4 @@
-import { TrashIcon, UsersIcon, DotsHorizontalIcon, LinkIcon, PencilAltIcon, ExternalLinkIcon } from "@heroicons/react/outline";
+import { TrashIcon, DotsHorizontalIcon, LinkIcon, PencilAltIcon, ExternalLinkIcon } from "@heroicons/react/outline";
 import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
 import { Tooltip } from "@components/Tooltip";
@@ -38,7 +38,6 @@ export default function TeamListItem(props: any) {
                           encodeURIComponent(props.team.name || "")
                 } alt="Team Logo" className="rounded-full w-8 h-8"/>
             </div>
-            {/* <UsersIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-4 mr-2 h-6 w-6 inline" /> */}
             <div className="inline-block ml-3">
               <span className="font-bold text-neutral-700 text-sm">{props.team.name}</span>
               <span className="text-xs text-gray-400 -mt-1 block">{window.location.hostname}/

@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeftIcon, PlusIcon, TrashIcon, UsersIcon } from "@heroicons/react/outline";
-import { useSession } from "next-auth/client";
+import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import ErrorAlert from "@components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import MemberList from "./MemberList";
@@ -13,7 +12,6 @@ import MemberInvitationModal from "@components/team/MemberInvitationModal";
 
 
 export default function EditTeam(props: any) {
-  const [session] = useSession();
   const [members, setMembers] = useState([]);
 
   const nameRef = useRef<HTMLInputElement>();
@@ -57,7 +55,7 @@ export default function EditTeam(props: any) {
   const onInviteMember = (team: any) => {
     setShowMemberInvitationModal(true);
     setInviteModalTeam(team);
-  }
+  };
 
   const handleError = async (resp: any) => {
     if (!resp.ok) {
@@ -99,12 +97,12 @@ export default function EditTeam(props: any) {
         setHasErrors(true);
         setErrorMessage(err.message);
       });
-  }
+  };
 
   const onMemberInvitationModalExit = () => {
     loadMembers();
     setShowMemberInvitationModal(false);
-  }
+  };
 
   const closeSuccessModal = () => {
     setSuccessModalOpen(false);
@@ -123,10 +121,8 @@ export default function EditTeam(props: any) {
       setImageSrc(newLogo);
   }
 
-  return (
-      
+  return (      
       <div className="divide-y divide-gray-200 lg:col-span-9">
-
         <div className="py-6 lg:pb-8">
             <div className="mb-4">
                 <button onClick={() => props.onCloseEdit()} className="btn-sm btn-white">
@@ -298,6 +294,5 @@ export default function EditTeam(props: any) {
             )}             
         </div>
     </div>
-
   );
 }
