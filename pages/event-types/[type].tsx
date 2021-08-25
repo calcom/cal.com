@@ -37,12 +37,10 @@ import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import showToast from "@lib/notification";
-import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@radix-ui/react-collapsible";
-import {RadioAreaInput, RadioAreaInputGroup} from "@components/ui/form/RadioAreaInput";
-import Avatar from "@components/Avatar";
 import Select from "@components/ui/form/Select";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
-import {defaultAvatarSrc} from "@lib/profile";
+import { defaultAvatarSrc } from "@lib/profile";
+import { RadioAreaSelect, RadioAreaInput } from "@components/ui/form/RadioArea";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -376,8 +374,6 @@ export default function EventTypePage({
     customInputs.splice(index, 1);
     setCustomInputs([...customInputs]);
   };
-
-  const [ selected, setSelected ] = useState<{ value: string, label: string }>(null);
 
   return (
     <div>
@@ -865,29 +861,20 @@ export default function EventTypePage({
                                 <UsersIcon className="text-neutral-500 h-5 w-5 mr-2" /> Scheduling Type
                               </label>
                             </div>
-                            <Collapsible className="w-full">
-                              <CollapsibleTrigger as="div" className="mb-1 cursor-pointer border border-1 bg-white p-2 shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm">
-                                {selected ? selected.label : 'Select...'}
-                                <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
-                              </CollapsibleTrigger>
-
-                              <CollapsibleContent className="border bg-white border-1 p-4">
-                                <RadioAreaInputGroup className="space-y-2" name="schedulingType" onChange={setSelected}>
-                                  <RadioAreaInput label="Collective" value="collective" className="text-sm">
-                                    <strong className="block mb-1">Collective</strong>
-                                    <p>
-                                      Schedule meetings when all selected team members are available.
-                                    </p>
-                                  </RadioAreaInput>
-                                  <RadioAreaInput label="Round Robin" value="roundRobin" className="text-sm">
-                                    <strong className="block mb-1">Round Robin</strong>
-                                    <p>
-                                      Cycle meetings between multiple team members.
-                                    </p>
-                                  </RadioAreaInput>
-                                </RadioAreaInputGroup>
-                              </CollapsibleContent>
-                            </Collapsible>
+                            <RadioAreaSelect name="schedulingType" value="Select...">
+                              <RadioAreaInput label="Collective" value="collective" className="text-sm">
+                                <strong className="block mb-1">Collective</strong>
+                                <p>
+                                  Schedule meetings when all selected team members are available.
+                                </p>
+                              </RadioAreaInput>
+                              <RadioAreaInput label="Round Robin" value="roundRobin" className="text-sm">
+                                <strong className="block mb-1">Round Robin</strong>
+                                <p>
+                                  Cycle meetings between multiple team members.
+                                </p>
+                              </RadioAreaInput>
+                            </RadioAreaSelect>
                           </div>
 
                           <div className="block sm:flex">

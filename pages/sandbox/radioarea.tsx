@@ -1,4 +1,4 @@
-import { RadioAreaInput, RadioAreaInputGroup } from "@components/ui/form/RadioAreaInput";
+import { RadioAreaInput, RadioAreaInputGroup } from "@components/ui/form/radioarea/RadioAreaInput";
 import Head from "next/head";
 import React, { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";

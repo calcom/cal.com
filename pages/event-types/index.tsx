@@ -22,9 +22,10 @@ import Shell from "../../components/Shell";
 import prisma from "../../lib/prisma";
 import { User, EventType } from "@prisma/client";
 import showToast from "@lib/notification";
-import { RadioAreaInput, RadioAreaInputGroup } from "@components/ui/form/RadioAreaInput";
+import { RadioAreaInput, RadioAreaInputGroup } from "@components/ui/form/radioarea/RadioAreaInput";
 import Avatar from "@components/Avatar";
 import { UserCalendarImage } from "@components/svg/UserCalendarImage";
+import {defaultAvatarSrc} from "@lib/profile";
 
 
 export default function Availability({ user, eventTypes }: {
@@ -274,7 +275,7 @@ export default function Availability({ user, eventTypes }: {
       />
       <div>
         <span className="font-bold">{displayName}</span>{membershipCount && <span className="text-neutral-500 ml-2"><UsersIcon className="w-4 h-4 inline" /> {membershipCount}</span>}
-        <p className="text-neutral-500 leading-none">calendso.com/{slug}</p>
+        <p className="text-neutral-500 leading-none">{`calendso.com${membershipCount ? "/team" : ""}/${slug}`}</p>
       </div>
     </div>;
 
@@ -283,167 +284,165 @@ export default function Availability({ user, eventTypes }: {
       <ul className="divide-y divide-neutral-200">
         {types.map((type: EventType) => (
           <li key={type.id}>
-            <div className="hover:bg-neutral-50">
-              <div className="px-4 py-4 flex items-center sm:px-6">
-                <Link href={"/event-types/" + type.id}>
-                  <a className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
-                    <span className="truncate ">
-                      <div className="flex text-sm">
-                        <p className="font-medium text-neutral-900 truncate">{type.title}</p>
-                        {type.hidden && (
-                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Hidden
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-2 flex space-x-4">
-                        <div className="flex items-center text-sm text-neutral-500">
-                          <ClockIcon
-                            className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
-                            aria-hidden="true"
-                          />
-                          <p>{type.length}m</p>
-                        </div>
-                        {type.schedulingType ? (
-                          <div className="flex items-center text-sm text-neutral-500">
-                            <UsersIcon
-                              className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
-                              aria-hidden="true"
-                            />
-                            <p>{type.schedulingType === "ROUND_ROBIN" ? "Round Robin" : "Collective"}</p>
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-sm text-neutral-500">
-                            <UserIcon
-                              className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
-                              aria-hidden="true"
-                            />
-                            <p>1-on-1</p>
-                          </div>
-                        )}
-                        <div className="flex items-center text-sm text-neutral-500">
-                          <InformationCircleIcon
-                            className="flex-shrink-0 mr-1.5 h-4 w-4 text-neutral-400"
-                            aria-hidden="true"
-                          />
-                          <div className="max-w-32 sm:max-w-full truncate">
-                            {type.description.substring(0, 100)}
-                          </div>
-                        </div>
-                      </div>
-                    </span>
-                  </a>
-                </Link>
-
-                <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
-                  <div className="flex overflow-hidden space-x-5">
-                    {type.team && type.organizers.map((organizer) => (
-                      <div className="p-2">
-                        <Avatar
-                          className="h-6 w-6 rounded-full"
-                          displayName={organizer.name}
-                          imageSrc={organizer.avatar}
-                        />
-                      </div>
-                    ))}
-                    <Tooltip content="Preview">
-                      <a
-                        href={"/" + owner.slug + "/" + type.slug}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                        <ExternalLinkIcon className="group-hover:text-black w-5 h-5" />
-                      </a>
-                    </Tooltip>
-
-                    <Tooltip content="Copy link">
-                      <button
-                        onClick={() => {
-                          showToast("Link copied!", "success");
-                          navigator.clipboard.writeText(
-                            window.location.hostname + "/" + owner.slug
-                          );
-                        }}
-                        className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                        <LinkIcon className="group-hover:text-black w-5 h-5" />
-                      </button>
-                    </Tooltip>
+            <div className="px-4 py-4 flex items-center sm:px-6 hover:bg-neutral-50">
+              <Link href={"/event-types/" + type.id}>
+                <a className="truncate flex-grow text-sm">
+                  <div>
+                      <span className="font-medium text-neutral-900 truncate">{type.title}</span>
+                      {type.hidden && (
+                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Hidden
+                        </span>
+                      )}
                   </div>
-                </div>
-                <div className="flex sm:hidden ml-5 flex-shrink-0">
-                  <Menu as="div" className="inline-block text-left">
-                    {({ open }) => (
-                      <>
-                        <div>
-                          <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
-                            <span className="sr-only">Open options</span>
-                            <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-                          </Menu.Button>
-                        </div>
-
-                        <Transition
-                          show={open}
-                          as={Fragment}
-                          enter="transition ease-out duration-100"
-                          enterFrom="transform opacity-0 scale-95"
-                          enterTo="transform opacity-100 scale-100"
-                          leave="transition ease-in duration-75"
-                          leaveFrom="transform opacity-100 scale-100"
-                          leaveTo="transform opacity-0 scale-95">
-                          <Menu.Items
-                            static
-                            className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
-                            <div className="py-1">
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <a
-                                    href={"/" + owner.slug + "/" + type.slug}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={classNames(
-                                      active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                      "group flex items-center px-4 py-2 text-sm font-medium"
-                                    )}>
-                                    <ExternalLinkIcon
-                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                      aria-hidden="true"
-                                    />
-                                    Preview
-                                  </a>
-                                )}
-                              </Menu.Item>
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <button
-                                    onClick={() => {
-                                      showToast("Link copied!", "success");
-                                      navigator.clipboard.writeText(
-                                        window.location.hostname +
-                                        "/" +
-                                        owner.slug +
-                                        "/" +
-                                        type.slug
-                                      );
-                                    }}
-                                    className={classNames(
-                                      active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                      "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                    )}>
-                                    <LinkIcon
-                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                      aria-hidden="true"
-                                    />
-                                    Copy link to event
-                                  </button>
-                                )}
-                              </Menu.Item>
-                            </div>
-                          </Menu.Items>
-                        </Transition>
-                      </>
+                  <ul className="mt-2 space-x-4 text-neutral-500">
+                    <li className="inline-block">
+                      <ClockIcon
+                        className="inline mr-1.5 h-4 w-4 text-neutral-400"
+                        aria-hidden="true"
+                      />
+                      {type.length}m
+                    </li>
+                    {type.schedulingType ? (
+                      <li className="inline-block">
+                        <UsersIcon
+                          className="inline mr-1.5 h-4 w-4 text-neutral-400"
+                          aria-hidden="true"
+                        />
+                        {type.schedulingType === "ROUND_ROBIN" ? "Round Robin" : "Collective"}
+                      </li>
+                    ) : (
+                      <li className="inline-block">
+                        <UserIcon
+                          className="inline mr-1.5 h-4 w-4 text-neutral-400"
+                          aria-hidden="true"
+                        />
+                        1-on-1
+                      </li>
                     )}
-                  </Menu>
+                    <li className="inline-block">
+                      <InformationCircleIcon
+                        className="inline mr-1.5 h-4 w-4 text-neutral-400"
+                        aria-hidden="true"
+                      />
+                      <span className="max-w-32 sm:max-w-full truncate">
+                        {type.description.substring(0, 100)}
+                      </span>
+                    </li>
+                  </ul>
+                </a>
+              </Link>
+
+              <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+                <div className="flex items-center overflow-hidden space-x-5">
+                  <ul className="inline-flex">
+                  {type.team && type.organizers.map((organizer, idx: number) => (
+                    <li className={idx ? "-ml-1" : ""}>
+                      <Avatar
+                        className="h-6 w-6 rounded-full"
+                        displayName={organizer.name}
+                        imageSrc={organizer.avatar}
+                      />
+                    </li>
+                  ))}
+                  </ul>
+                  <Tooltip content="Preview">
+                    <a
+                      href={"/" + owner.slug + "/" + type.slug}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                      <ExternalLinkIcon className="group-hover:text-black w-5 h-5" />
+                    </a>
+                  </Tooltip>
+
+                  <Tooltip content="Copy link">
+                    <button
+                      onClick={() => {
+                        showToast("Link copied!", "success");
+                        navigator.clipboard.writeText(
+                          window.location.hostname + "/" + owner.slug
+                        );
+                      }}
+                      className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                      <LinkIcon className="group-hover:text-black w-5 h-5" />
+                    </button>
+                  </Tooltip>
                 </div>
+              </div>
+              <div className="flex sm:hidden ml-5 flex-shrink-0">
+                <Menu as="div" className="inline-block text-left">
+                  {({ open }) => (
+                    <>
+                      <div>
+                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+                          <span className="sr-only">Open options</span>
+                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                        </Menu.Button>
+                      </div>
+
+                      <Transition
+                        show={open}
+                        as={Fragment}
+                        enter="transition ease-out duration-100"
+                        enterFrom="transform opacity-0 scale-95"
+                        enterTo="transform opacity-100 scale-100"
+                        leave="transition ease-in duration-75"
+                        leaveFrom="transform opacity-100 scale-100"
+                        leaveTo="transform opacity-0 scale-95">
+                        <Menu.Items
+                          static
+                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                          <div className="py-1">
+                            <Menu.Item>
+                              {({ active }) => (
+                                <a
+                                  href={"/" + owner.slug + "/" + type.slug}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={classNames(
+                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                    "group flex items-center px-4 py-2 text-sm font-medium"
+                                  )}>
+                                  <ExternalLinkIcon
+                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                    aria-hidden="true"
+                                  />
+                                  Preview
+                                </a>
+                              )}
+                            </Menu.Item>
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => {
+                                    showToast("Link copied!", "success");
+                                    navigator.clipboard.writeText(
+                                      window.location.hostname +
+                                      "/" +
+                                      owner.slug +
+                                      "/" +
+                                      type.slug
+                                    );
+                                  }}
+                                  className={classNames(
+                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                  )}>
+                                  <LinkIcon
+                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                    aria-hidden="true"
+                                  />
+                                  Copy link to event
+                                </button>
+                              )}
+                            </Menu.Item>
+                          </div>
+                        </Menu.Items>
+                      </Transition>
+                    </>
+                  )}
+                </Menu>
               </div>
             </div>
           </li>
@@ -525,6 +524,7 @@ export async function getServerSideProps(context) {
             select: {
               name: true,
               avatar: true,
+              email: true,
             }
           },
         },
@@ -534,10 +534,21 @@ export async function getServerSideProps(context) {
 
   const eventTypes: OwnerGroupedEventType[] = user.eventTypes.reduce( (acc: OwnerGroupedEventType[], eventType: EventType) => {
 
+    const avatar = (
+      eventType.team ? eventType.team.logo : (
+        user.avatar || defaultAvatarSrc({ email: user.email })
+      )
+    );
+
+    eventType.organizers = eventType.organizers.map(user => ({
+      ...user,
+      avatar: user.avatar || defaultAvatarSrc({ email: user.email })
+    }));
+
     const owner: EventTypeOwner = {
       id: eventType.team ? eventType.team.id : user.id,
       displayName: eventType.team ? eventType.team.name : user.name,
-      image: (eventType.team ? eventType.team.logo : user.avatar) || null,
+      image: avatar || null,
       slug: eventType.team ? eventType.team.slug : user.username,
     };
 
