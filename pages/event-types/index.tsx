@@ -655,8 +655,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       startTime: true,
       endTime: true,
       bufferTime: true,
+      completedOnboarding: true,
     },
   });
+
+  if (!user.completedOnboarding) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/getting_started",
+      },
+    };
+  }
 
   const types = await prisma.eventType.findMany({
     where: {
