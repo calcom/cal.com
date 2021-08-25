@@ -104,7 +104,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
             encodeURIComponent(
               "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
             ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
+            ".png?md=1&images=https%3A%2F%2Fa.genda.me%2Fgenda-white.svg&images=" +
             encodeURIComponent(props.user.avatar)
           }
         />
@@ -123,7 +123,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
             encodeURIComponent(
               "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
             ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
+            ".png?md=1&images=https%3A%2F%2Fa.genda.me%2Fgenda-white.svg&images=" +
             encodeURIComponent(props.user.avatar)
           }
         />
