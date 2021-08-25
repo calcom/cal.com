@@ -9,6 +9,8 @@ import ImageUploader from "@components/ImageUploader";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Modal from "@components/Modal";
+import MemberInvitationModal from "@components/team/MemberInvitationModal";
+
 
 export default function EditTeam(props: any) {
   const [session] = useSession();
@@ -21,6 +23,8 @@ export default function EditTeam(props: any) {
   const logoRef = useRef<HTMLInputElement>();
   const [hasErrors, setHasErrors] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [inviteModalTeam, setInviteModalTeam] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [imageSrc, setImageSrc] = useState<string>("");
 
@@ -49,6 +53,11 @@ export default function EditTeam(props: any) {
       },
     }).then(loadMembers);
   };
+
+  const onInviteMember = (team: any) => {
+    setShowMemberInvitationModal(true);
+    setInviteModalTeam(team);
+  }
 
   const handleError = async (resp: any) => {
     if (!resp.ok) {
@@ -90,6 +99,11 @@ export default function EditTeam(props: any) {
         setHasErrors(true);
         setErrorMessage(err.message);
       });
+  }
+
+  const onMemberInvitationModalExit = () => {
+    loadMembers();
+    setShowMemberInvitationModal(false);
   }
 
   const closeSuccessModal = () => {
@@ -204,7 +218,7 @@ export default function EditTeam(props: any) {
                                     Member
                                 </h3>
                                 <div className="relative flex items-center">
-                                    <button type="button" onClick={() => props.onInviteMember(props.team)} className="btn-sm btn-white">
+                                    <button type="button" onClick={() => onInviteMember(props.team)} className="btn-sm btn-white">
                                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />Invite Member
                                     </button>
                                 </div>
@@ -277,6 +291,11 @@ export default function EditTeam(props: any) {
                 open={successModalOpen}
                 handleClose={closeSuccessModal}
             />
+            {showMemberInvitationModal && (
+            <MemberInvitationModal
+                team={inviteModalTeam}
+                onExit={onMemberInvitationModalExit} />
+            )}             
         </div>
     </div>
 
