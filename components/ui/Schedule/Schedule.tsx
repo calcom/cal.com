@@ -2,39 +2,15 @@ import React from "react";
 import Text from "@components/ui/Text";
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import Dayjs from "dayjs";
-import { is24h } from "@lib/clock";
 import dayjs from "dayjs";
 
-export type TimeRange = {
-  start: string;
-  end: string;
-};
-
-export type FreeBusyTime = TimeRange[];
-
-export type Schedule = {
-  monday?: FreeBusyTime | null;
-  tuesday?: FreeBusyTime | null;
-  wednesday?: FreeBusyTime | null;
-  thursday?: FreeBusyTime | null;
-  friday?: FreeBusyTime | null;
-  saturday?: FreeBusyTime | null;
-  sunday?: FreeBusyTime | null;
-};
-
-type Props = {
-  schedule?: Schedule | null;
-  onChange?: (data: Schedule) => void;
-  onSubmit: (data: Schedule) => void;
-};
-
 export const SCHEDULE_FORM_ID = "SCHEDULE_FORM_ID";
-export const toCalendsoAvailabilityFormat = (schedule) => {
-  return {};
+export const toCalendsoAvailabilityFormat = (schedule: Schedule) => {
+  return schedule;
 };
 
-const AM_PM_TIME_FORMAT = `h:mm:ss a`;
-const _24_HOUR_TIME_FORMAT = `HH:mm:ss`;
+export const AM_PM_TIME_FORMAT = `h:mm:ss a`;
+export const _24_HOUR_TIME_FORMAT = `HH:mm:ss`;
 
 const DEFAULT_START_TIME = "09:00:00";
 const DEFAULT_END_TIME = "17:00:00";
@@ -65,28 +41,57 @@ const DEFAULT_SCHEDULE = {
   sunday: null,
 };
 
-const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | null) => {
+type Day = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+export type TimeRange = {
+  start: string;
+  end: string;
+};
+
+export type FreeBusyTime = TimeRange[];
+
+export type Schedule = {
+  monday?: FreeBusyTime | null;
+  tuesday?: FreeBusyTime | null;
+  wednesday?: FreeBusyTime | null;
+  thursday?: FreeBusyTime | null;
+  friday?: FreeBusyTime | null;
+  saturday?: FreeBusyTime | null;
+  sunday?: FreeBusyTime | null;
+};
+
+type ScheduleBlockProps = {
+  day: Day;
+  ranges?: FreeBusyTime | null;
+  selected?: boolean;
+};
+
+type Props = {
+  schedule?: Schedule;
+  onChange?: (data: Schedule) => void;
+  onSubmit: (data: Schedule) => void;
+};
+
+const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
   const ref = React.useRef<HTMLFormElement>(null);
 
   const transformElementsToSchedule = (elements: HTMLFormControlsCollection): Schedule => {
-    let schedule = {};
+    const schedule: Schedule = {};
     const formElements = Array.from(elements)
       .map((element) => {
         return element.id;
       })
       .filter((value) => value);
 
+    /**
+     * elementId either {day} or {day.N.start} or {day.N.end}
+     * If elementId in DAYS_ARRAY add elementId to scheduleObj
+     * then element is the checkbox and can be ignored
+     *
+     * If elementId starts with a day in DAYS_ARRAY
+     * the elementId should be split by "." resulting in array length 3
+     * [day, rangeIndex, "start" | "end"]
+     */
     formElements.forEach((elementId) => {
-      /**
-       * elementId either {day} or {day.N.start} or {day.N.end}
-       * If elementId in DAYS_ARRAY add elementId to scheduleObj
-       * then element is the checkbox and can be ignored
-       *
-       * If elementId starts with a day in DAYS_ARRAY
-       * the elementId should be split by "." resulting in array length 3
-       * [day, rangeIndex, "start" | "end"]
-       */
-
       const [day, rangeIndex, rangeId] = elementId.split(".");
       if (rangeIndex && rangeId) {
         if (!schedule[day]) {
@@ -104,14 +109,16 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
     return schedule;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const elements = ref.current.elements;
-    const schedule = transformElementsToSchedule(elements);
-    onSubmit && typeof onSubmit === "function" && onSubmit(schedule);
+    const elements = ref.current?.elements;
+    if (elements) {
+      const schedule = transformElementsToSchedule(elements);
+      onSubmit && typeof onSubmit === "function" && onSubmit(schedule);
+    }
   };
 
-  const ScheduleBlock = ({ day, ranges: defaultRanges, selected: defaultSelected }) => {
+  const ScheduleBlock = ({ day, ranges: defaultRanges, selected: defaultSelected }: ScheduleBlockProps) => {
     const [ranges, setRanges] = React.useState(defaultRanges);
     const [selected, setSelected] = React.useState(defaultSelected);
     React.useEffect(() => {
@@ -123,8 +130,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
     }, [ranges]);
 
     const handleSelectedChange = () => {
-      setSelected(!selected);
-      if (!ranges || ranges.length === 0) {
+      if (!selected && (!ranges || ranges.length === 0)) {
         setRanges([
           {
             start: "09:00:00",
@@ -132,21 +138,11 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
           },
         ]);
       }
-    };
-    /**
-     * @param day
-     */
-    const handleDuplicateSchedule = (day) => {
-      console.log(`Duplicate schedule from ${day}`);
+      setSelected(!selected);
     };
 
-    /**
-     *
-     * @param day
-     */
-    const handleAddRange = (day) => {
+    const handleAddRange = () => {
       let rangeToAdd;
-      console.log(ranges);
       if (!ranges || ranges?.length === 0) {
         rangeToAdd = {
           start: DEFAULT_START_TIME,
@@ -157,33 +153,60 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
         const lastRange = ranges[ranges.length - 1];
 
         const [hour, minute, second] = lastRange.end.split(":");
-        const date = dayjs().set("hour", hour).set("minute", minute).set("second", second);
+        const date = dayjs()
+          .set("hour", parseInt(hour))
+          .set("minute", parseInt(minute))
+          .set("second", parseInt(second));
+        const nextStartTime = date.add(1, "hour");
+        const nextEndTime = date.add(2, "hour");
 
-        const nextStartTime = date.add(1, "hour").format(_24_HOUR_TIME_FORMAT);
-        const nextEndTime = date.add(2, "hour").format(_24_HOUR_TIME_FORMAT);
+        /**
+         * If next range goes over into "tomorrow"
+         * i.e. time greater that last value in Times
+         * return
+         */
+        if (nextStartTime.isAfter(date.endOf("day"))) {
+          return;
+        }
 
         rangeToAdd = {
-          start: nextStartTime,
-          end: nextEndTime,
+          start: nextStartTime.format(_24_HOUR_TIME_FORMAT),
+          end: nextEndTime.format(_24_HOUR_TIME_FORMAT),
         };
         setRanges([...ranges, rangeToAdd]);
       }
     };
 
-    /**
-     *
-     * @param day
-     * @param range
-     */
-    const handleDeleteRange = (day, range) => {
-      setRanges(
-        ranges.filter((r) => {
-          return r.start != range.start;
-        })
-      );
+    const handleDeleteRange = (range: TimeRange) => {
+      if (ranges && ranges.length > 0) {
+        setRanges(
+          ranges.filter((r: TimeRange) => {
+            return r.start != range.start;
+          })
+        );
+      }
     };
 
-    const TimeRangeField = ({ selected, range, control, register, day, index }) => {
+    /**
+     * Should update ranges values
+     */
+    const handleSelectRangeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const [day, rangeIndex, rangeId] = event.currentTarget.name.split(".");
+
+      if (day && ranges) {
+        const newRanges = ranges.map((range, index) => {
+          const newRange = {
+            ...range,
+            [rangeId]: event.currentTarget.value,
+          };
+          return index === parseInt(rangeIndex) ? newRange : range;
+        });
+
+        setRanges(newRanges);
+      }
+    };
+
+    const TimeRangeField = ({ range, day, index }: { range: TimeRange; day: Day; index: number }) => {
       return (
         <div key={`${day}-range-${index}`} className="flex items-center justify-between space-x-2">
           <div className="flex items-center space-x-2">
@@ -191,6 +214,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
               id={`${day}.${index}.start`}
               name={`${day}.${index}.start`}
               defaultValue={range?.start || DEFAULT_START_TIME}
+              onChange={handleSelectRangeChange}
               className="block px-4 pr-8 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-sm">
               {TIMES.map((time) => {
                 return (
@@ -205,6 +229,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
               id={`${day}.${index}.end`}
               name={`${day}.${index}.end`}
               defaultValue={range?.end || DEFAULT_END_TIME}
+              onChange={handleSelectRangeChange}
               className=" block px-4 pr-8 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-sm">
               {TIMES.map((time) => {
                 return (
@@ -216,25 +241,25 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
             </select>
           </div>
           <div className="">
-            <DeleteAction day={day} range={range} />
+            <DeleteAction range={range} />
           </div>
         </div>
       );
     };
 
-    const Actions = ({ day }) => {
+    const Actions = () => {
       return (
         <div className="flex items-center space-x-2">
-          <button type="button" onClick={() => handleAddRange(day)}>
+          <button type="button" onClick={() => handleAddRange()}>
             <PlusIcon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-500" />
           </button>
         </div>
       );
     };
 
-    const DeleteAction = ({ day, range }) => {
+    const DeleteAction = ({ range }: { range: TimeRange }) => {
       return (
-        <button type="button" onClick={() => handleDeleteRange(day, range)}>
+        <button type="button" onClick={() => handleDeleteRange(range)}>
           <TrashIcon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-500" />
         </button>
       );
@@ -256,7 +281,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
               <Text variant="overline">{day}</Text>
             </div>
             <div className="sm:hidden justify-self-end self-end">
-              <Actions day={day} />
+              <Actions />
             </div>
           </div>
 
@@ -273,7 +298,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
           </div>
 
           <div className="hidden sm:block">
-            <Actions day={day} />
+            <Actions />
           </div>
         </section>
       </fieldset>
@@ -284,8 +309,15 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onChange, onSubmit }: Props | 
     <>
       <form id={SCHEDULE_FORM_ID} onSubmit={handleSubmit} ref={ref} className="divide-y divide-gray-200">
         {Object.keys(schedule).map((day) => {
-          const selected = schedule[day] != null;
-          return <ScheduleBlock key={`${day}`} day={day} ranges={schedule[day]} selected={selected} />;
+          const selected = schedule[day as Day] != null;
+          return (
+            <ScheduleBlock
+              key={`${day}`}
+              day={day as Day}
+              ranges={schedule[day as Day]}
+              selected={selected}
+            />
+          );
         })}
       </form>
     </>
