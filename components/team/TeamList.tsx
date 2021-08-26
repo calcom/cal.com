@@ -1,8 +1,8 @@
 import TeamListItem from "./TeamListItem";
 
-export default function TeamList(props: any) {
+export default function TeamList(props) {
 
-  const selectAction = (action: string, team: any) => {
+  const selectAction = (action: string, team) => {
     switch (action) {
       case "edit":
         props.onEditTeam(team);
@@ -13,7 +13,7 @@ export default function TeamList(props: any) {
     }
   };
 
-  const deleteTeam = (team :any) => {
+  const deleteTeam = (team) => {
     return fetch("/api/teams/" + team.id, {
       method: "DELETE",
     })
@@ -23,7 +23,7 @@ export default function TeamList(props: any) {
   return (
     <div>
       <ul className="bg-white border px-4 mb-2 rounded divide-y divide-gray-200">
-        {props.teams.map((team: any) => (
+        {props.teams.map((team) => (
           <TeamListItem
             onChange={props.onChange}
             key={team.id}

@@ -10,6 +10,7 @@ import TeamList from "@components/team/TeamList";
 import TeamListItem from "@components/team/TeamListItem";
 import Loader from "@components/Loader";
 import EditTeam from "@components/team/EditTeam";
+import Button from "@components/ui/Button";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -20,7 +21,7 @@ export default function Teams() {
   const [teamToEdit, setTeamToEdit] = useState();
 
 
-  const handleErrors = async (resp: any) => {
+  const handleErrors = async (resp) => {
     if (!resp.ok) {
       const err = await resp.json();
       throw new Error(err.message);
@@ -32,8 +33,8 @@ export default function Teams() {
     fetch("/api/user/membership")
       .then(handleErrors)
       .then((data) => {
-        setTeams(data.membership.filter((m: any) => m.role !== "INVITEE"));
-        setInvites(data.membership.filter((m: any) => m.role === "INVITEE"));
+        setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
+        setInvites(data.membership.filter((m) => m.role === "INVITEE"));
       })
       .catch(console.log);
   };
@@ -46,7 +47,7 @@ export default function Teams() {
     return <Loader />;
   }
 
-  const createTeam = (e: any) => {
+  const createTeam = (e) => {
     e.preventDefault();
 
     return fetch("/api/teams", {
@@ -61,7 +62,7 @@ export default function Teams() {
     });
   };
 
-  const editTeam=  (team: any) => {
+  const editTeam=  (team) => {
     setEditTeamEnabled(true);
     setTeamToEdit(team);
   }
@@ -99,12 +100,13 @@ export default function Teams() {
 
                 </div>
                 <div className="flex items-start mb-4">
-                  <button
+                  <Button
                     type="button"
-                    onClick={() => setShowCreateTeamModal(true)}
-                    className="btn btn-white">
-                    <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />New Team
-                  </button>
+                    color="secondary" 
+                    StartIcon={PlusIcon}
+                    onClick={() => setShowCreateTeamModal(true)}>
+                      New Team
+                  </Button>
                 </div>
                 {/* {!!(invites.length || teams.length) && (
                   <div>

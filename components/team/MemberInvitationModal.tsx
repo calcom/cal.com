@@ -1,10 +1,11 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
+import Button from "@components/ui/Button";
 
-export default function MemberInvitationModal(props: any) {
+export default function MemberInvitationModal(props) {
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleError = async (res: any) => {
+  const handleError = async (res) => {
     const responseData = await res.json();
 
     if (res.ok === false) {
@@ -15,7 +16,7 @@ export default function MemberInvitationModal(props: any) {
     return responseData;
   };
 
-  const inviteMember = (e: any) => {
+  const inviteMember = (e) => {
     e.preventDefault();
 
     const payload = {
@@ -117,12 +118,17 @@ export default function MemberInvitationModal(props: any) {
               </p>
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button type="submit" className="btn btn-primary">
-                Invite
-              </button>
-              <button onClick={props.onExit} type="button" className="btn btn-white mr-2">
-                Cancel
-              </button>
+              <Button
+                type="submit"
+                color="primary">
+                  Invite
+              </Button>                 
+              <Button
+                type="button"
+                color="secondary" 
+                onClick={props.onExit}>
+                  Cancel
+              </Button>                 
             </div>
           </form>
         </div>
