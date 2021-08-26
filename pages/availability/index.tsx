@@ -7,7 +7,6 @@ import { useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
 import { ClockIcon, PlusIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
-import { convertMinsToHrsMins } from "@lib/time";
 
 export default function Availability(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,6 +44,14 @@ export default function Availability(props) {
     setSuccessModalOpen(false);
     router.replace(router.asPath);
   };
+
+  function convertMinsToHrsMins(mins) {
+    let h = Math.floor(mins / 60);
+    let m = mins % 60;
+    h = h < 10 ? "0" + h : h;
+    m = m < 10 ? "0" + m : m;
+    return `${h}:${m}`;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function createEventTypeHandler(event) {
