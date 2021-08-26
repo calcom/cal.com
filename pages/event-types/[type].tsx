@@ -1,5 +1,4 @@
 import { GetServerSideProps } from "next";
-import { PageHead } from "@components/base/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Modal from "@components/Modal";
@@ -370,8 +369,8 @@ export default function EventTypePage({
 
   return (
     <div>
-      <PageHead title={`${eventType.title} | Event Type`} />
       <Shell
+        title={`${eventType.title} | Event Type`}
         heading={
           <input
             ref={titleRef}

@@ -1,4 +1,3 @@
-import { PageHead } from "@components/base/head";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import prisma from "@lib/prisma";
@@ -7,7 +6,6 @@ import { getSession } from "next-auth/client";
 export default function Billing() {
   return (
     <Shell heading="Billing" subtitle="Manage your billing information and cancel your subscription.">
-      <PageHead title="Billing" />
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="my-6">

@@ -1,5 +1,4 @@
 import { GetServerSideProps } from "next";
-import { PageHead } from "@components/base/head";
 import { useEffect, useRef, useState } from "react";
 import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
@@ -107,7 +106,6 @@ export default function Settings(props) {
 
   return (
     <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
-      <PageHead title="Profile" />
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}

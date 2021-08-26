@@ -1,4 +1,3 @@
-import { PageHead } from "@components/base/head";
 import prisma from "@lib/prisma";
 import { getSession, useSession } from "next-auth/client";
 import Shell from "@components/Shell";
@@ -36,7 +35,6 @@ export default function Bookings({ bookings }) {
 
   return (
     <div>
-      <PageHead title="Bookings" />
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

@@ -1,4 +1,3 @@
-import { PageHead } from "@components/base/head";
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
@@ -15,7 +14,6 @@ export default function Embed(props) {
 
   return (
     <Shell heading="Embed" subtitle="Integrate with your website using our embed options.">
-      <PageHead title="Embed" />
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">

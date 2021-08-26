@@ -1,4 +1,3 @@
-import { PageHead } from "@components/base/head";
 import { useRef, useState } from "react";
 import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
@@ -45,8 +44,7 @@ export default function Settings() {
   }
 
   return (
-    <Shell heading="Password" subtitle="Change the password that you use to sign in to your account.">
-      <PageHead title="Change Password" />
+    <Shell heading="Change Password" subtitle="Change the password that you use to sign in to your account.">
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
           <div className="py-6 lg:pb-8">

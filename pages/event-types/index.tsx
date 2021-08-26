@@ -15,7 +15,6 @@ import {
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
 import { getSession, useSession } from "next-auth/client";
-import { PageHead } from "@components/base/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
@@ -190,7 +189,6 @@ export default function Availability({ user, types }) {
 
   return (
     <div>
-      <PageHead title="Event Types" />
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."

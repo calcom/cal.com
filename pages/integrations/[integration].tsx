@@ -1,4 +1,3 @@
-import { PageHead } from "@components/base/head";
 import prisma from "@lib/prisma";
 import { getIntegrationName, getIntegrationType } from "@lib/integrations";
 import Shell from "@components/Shell";
@@ -40,8 +39,9 @@ export default function Integration(props) {
 
   return (
     <div>
-      <PageHead title={`${getIntegrationName(props.integration.type)} App`} />
-      <Shell heading={getIntegrationName(props.integration.type)} subtitle="Manage and delete this app.">
+      <Shell
+        heading={`${getIntegrationName(props.integration.type)} App`}
+        subtitle="Manage and delete this app.">
         <div className="block sm:grid grid-cols-3 gap-4">
           <div className="col-span-2 bg-white border border-gray-200 mb-6 overflow-hidden rounded-sm">
             <div className="px-4 py-5 sm:px-6">

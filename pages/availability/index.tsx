@@ -1,4 +1,3 @@
-import { PageHead } from "@components/base/head";
 import Link from "next/link";
 import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
@@ -115,12 +114,7 @@ export default function Availability(props) {
 
   return (
     <div>
-      <PageHead title="Availability" />
-      <Shell
-        heading="Availability"
-        subtitle="Configure times when you are available for bookings.
-
-">
+      <Shell heading="Availability" subtitle="Configure times when you are available for bookings.">
         <div className="flex">
           <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">

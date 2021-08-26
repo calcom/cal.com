@@ -1,5 +1,4 @@
 import { GetServerSideProps } from "next";
-import { PageHead } from "@components/base/head";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import { useEffect, useState } from "react";
@@ -59,7 +58,6 @@ export default function Teams() {
 
   return (
     <Shell heading="Teams" subtitle="Create and manage teams to use collaborative features.">
-      <PageHead title="Teams" />
       <SettingsShell>
         <div className="divide-y divide-gray-200 lg:col-span-9">
           <div className="py-6 lg:pb-8">

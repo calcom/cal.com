@@ -1,4 +1,3 @@
-import { PageHead } from "@components/base/head";
 import Link from "next/link";
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
@@ -270,7 +269,6 @@ export default function Home({ integrations }: Props) {
 
   return (
     <div>
-      <PageHead title="App Store" />
       <Shell heading="App Store" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
         <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (

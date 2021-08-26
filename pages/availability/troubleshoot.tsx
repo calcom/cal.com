@@ -4,7 +4,6 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
 import { getSession } from "next-auth/client";
-import { PageHead } from "@components/base/head";
 import { useEffect, useState } from "react";
 import Shell from "@components/Shell";
 
@@ -52,7 +51,6 @@ export default function Troubleshoot({ user }) {
 
   return (
     <div>
-      <PageHead title="Troubleshoot" />
       <Shell
         heading="Troubleshoot"
         subtitle="Understand why certain times are available and others are blocked.">
