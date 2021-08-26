@@ -5,7 +5,7 @@ import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { getSession, useSession } from "next-auth/client";
-import { ClockIcon, PlusIcon } from "@heroicons/react/outline";
+import { ClockIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
 
 export default function Availability(props) {
@@ -52,7 +52,6 @@ export default function Availability(props) {
     m = m < 10 ? "0" + m : m;
     return `${h}:${m}`;
   }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function createEventTypeHandler(event) {
     event.preventDefault();
