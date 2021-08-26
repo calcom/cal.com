@@ -4,7 +4,7 @@ import isBetween from "dayjs/plugin/isBetween";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -50,7 +50,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
       const successURL = "/cancel/success";
       const urlParams = [];
       if (props.user?.username) urlParams.push("user=" + props.user.username);
-      if (props.user?.title) urlParams.push("title=" + props.user.title);
+      if (props.booking?.title) urlParams.push("title=" + props.booking.title);
       if (from) urlParams.push("from=" + from);
       router.push(`${successURL}?${urlParams.join("&")}`);
     } else {
@@ -145,7 +145,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const booking = await prisma.booking.findFirst({
     where: {
       uid: context.query.uid as string,
