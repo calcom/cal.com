@@ -3,8 +3,9 @@ import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Avatar from "@components/Avatar";
 
-export default function MemberListItem(props: any) {
+export default function MemberListItem(props) {
   const [member, setMember] = useState(props.member);
 
 
@@ -13,14 +14,16 @@ export default function MemberListItem(props: any) {
       <li className="divide-y">
         <div className="flex justify-between my-4">
           <div className="flex">
-            <div className="relative rounded-full w-9 h-9 border border-gray-200"> 
-                <img src={
-                  props.member.avatar
-                        ? props.member.avatar
-                        : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
-                          encodeURIComponent(props.member.name || "")
-                } alt="Team Logo" className="rounded-full w-9 h-9"/>
-            </div>
+            <Avatar 
+              imageSrc={
+                props.member.avatar
+                      ? props.member.avatar
+                      : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
+                        encodeURIComponent(props.member.name || "")
+              }
+              displayName={props.member.name}
+              className="rounded-full w-9 h-9"
+            />
             {/* <UsersIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-4 mr-2 h-6 w-6 inline" /> */}
             <div className="inline-block ml-3">
               <span className="font-bold text-neutral-700 text-sm">{props.member.name}</span>

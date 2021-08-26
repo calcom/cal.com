@@ -10,6 +10,7 @@ import TeamListItem from "@components/team/TeamListItem";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 import EditTeam from "@components/team/EditTeam";
+import Button from "@components/ui/Button";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -20,7 +21,7 @@ export default function Teams() {
   const [teamToEdit, setTeamToEdit] = useState();
 
 
-  const handleErrors = async (resp: any) => {
+  const handleErrors = async (resp) => {
     if (!resp.ok) {
       const err = await resp.json();
       throw new Error(err.message);
@@ -32,8 +33,8 @@ export default function Teams() {
     fetch("/api/user/membership")
       .then(handleErrors)
       .then((data) => {
-        setTeams(data.membership.filter((m: any) => m.role !== "INVITEE"));
-        setInvites(data.membership.filter((m: any) => m.role === "INVITEE"));
+        setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
+        setInvites(data.membership.filter((m) => m.role === "INVITEE"));
       })
       .catch(console.log);
   };
@@ -46,7 +47,7 @@ export default function Teams() {
     return <Loader />;
   }
 
-  const createTeam = (e: any) => {
+  const createTeam = (e) => {
     e.preventDefault();
 
     return fetch("/api/teams", {
@@ -66,14 +67,11 @@ export default function Teams() {
     setTeamToEdit(team);
   };
 
-<<<<<<< HEAD
   const inviteMember = (team: any) => {
     setShowMemberInvitationModal(true);
     setInviteModalTeam(team);
   };
 
-=======
->>>>>>> 8394a47 (Pull latest data after an action in settings/teams-edit page)
   const onCloseEdit = () => {
     loadData();
     setEditTeamEnabled(false);
@@ -101,7 +99,7 @@ export default function Teams() {
                   )}
                 </div>
                 <div className="flex items-start mb-4">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setShowCreateTeamModal(true)}
                     className="btn btn-white">
@@ -147,15 +145,8 @@ export default function Teams() {
               </div>}*/}
             </div>
           </div>
-<<<<<<< HEAD
         )}
         {!!editTeamEnabled && <EditTeam team={teamToEdit} onCloseEdit={() => setEditTeamEnabled(false)} />}
-=======
-        }
-        {!!editTeamEnabled && 
-          <EditTeam team={teamToEdit} onCloseEdit={onCloseEdit} />
-        }
->>>>>>> 8394a47 (Pull latest data after an action in settings/teams-edit page)
         {showCreateTeamModal && (
           <div
             className="fixed inset-0 z-50 overflow-y-auto"
@@ -214,16 +205,12 @@ export default function Teams() {
               </div>
             </div>
           </div>
-<<<<<<< HEAD
         )}
         {showMemberInvitationModal && (
           <MemberInvitationModal
             team={inviteModalTeam}
             onExit={() => setShowMemberInvitationModal(false)}></MemberInvitationModal>
         )}
-=======
-        )}       
->>>>>>> 8394a47 (Pull latest data after an action in settings/teams-edit page)
       </SettingsShell>
     </Shell>
   );

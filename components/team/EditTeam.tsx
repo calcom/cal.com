@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import ErrorAlert from "@components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
@@ -9,9 +9,10 @@ import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Modal from "@components/Modal";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
+import Button from "@components/ui/Button";
+import { Team } from ".prisma/client";
 
-
-export default function EditTeam(props: any) {
+export default function EditTeam(props: {team: Team, onCloseEdit: Function}) {
   const [members, setMembers] = useState([]);
 
   const nameRef = useRef<HTMLInputElement>();
@@ -28,7 +29,7 @@ export default function EditTeam(props: any) {
 
   const loadMembers = () =>
     fetch("/api/teams/" + props.team.id + "/membership")
-      .then((res: any) => res.json())
+      .then((res) => res.json())
       .then((data) => setMembers(data.members));
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function EditTeam(props: any) {
     .then(props.onCloseEdit());
   };
 
-  const onRemoveMember = (member: any) => {
+  const onRemoveMember = (member) => {
     return fetch("/api/teams/" + props.team.id + "/membership", {
       method: "DELETE",
       body: JSON.stringify({ userId: member.id }),
@@ -52,19 +53,19 @@ export default function EditTeam(props: any) {
     }).then(loadMembers);
   };
 
-  const onInviteMember = (team: any) => {
+  const onInviteMember = (team: Team) => {
     setShowMemberInvitationModal(true);
     setInviteModalTeam(team);
   };
 
-  const handleError = async (resp: any) => {
+  const handleError = async (resp) => {
     if (!resp.ok) {
       const error = await resp.json();
       throw new Error(error.message);
     }
   };
 
-  async function updateTeamHandler(event: any) {
+  async function updateTeamHandler(event) {
     event.preventDefault();
 
     const enteredUsername = teamUrlRef?.current?.value.toLowerCase();
@@ -108,7 +109,7 @@ export default function EditTeam(props: any) {
     setSuccessModalOpen(false);
   };
 
-  const handleLogoChange = (newLogo: any) => {
+  const handleLogoChange = (newLogo: string) => {
       logoRef.current.value = newLogo;
       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
         window?.HTMLInputElement?.prototype,
@@ -125,9 +126,14 @@ export default function EditTeam(props: any) {
       <div className="divide-y divide-gray-200 lg:col-span-9">
         <div className="py-6 lg:pb-8">
             <div className="mb-4">
-                <button onClick={() => props.onCloseEdit()} className="btn-sm btn-white">
-                    <ArrowLeftIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" /> Back
-                </button>
+                <Button
+                  type="button"
+                  color="secondary" 
+                  size="sm"
+                  StartIcon={ArrowLeftIcon}
+                  onClick={() => props.onCloseEdit()}>
+                    Back
+                </Button> 
             </div>
             <div className="">
                 <div className="pr-4 pb-5 sm:pb-6">
@@ -214,9 +220,13 @@ export default function EditTeam(props: any) {
                                     Member
                                 </h3>
                                 <div className="relative flex items-center">
-                                    <button type="button" onClick={() => onInviteMember(props.team)} className="btn-sm btn-white">
-                                    <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />Invite Member
-                                    </button>
+                                    <Button
+                                      type="button"
+                                      color="secondary" 
+                                      StartIcon={PlusIcon}
+                                      onClick={() => onInviteMember(props.team)}>
+                                        New Member
+                                    </Button>                                    
                                 </div>
                             </div>
                             <div>
@@ -273,11 +283,11 @@ export default function EditTeam(props: any) {
                     </div>
                     <hr className="mt-8" />
                     <div className="py-4 flex justify-end">
-                        <button
-                        type="submit"
-                        className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500">
-                        Save
-                        </button>
+                        <Button
+                          type="submit"
+                          color="primary" >
+                            Save
+                        </Button>   
                     </div>
                 </div>
             </form>

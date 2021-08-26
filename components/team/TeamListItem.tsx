@@ -5,8 +5,9 @@ import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Avatar from "@components/Avatar";
 
-export default function TeamListItem(props: any) {
+export default function TeamListItem(props) {
   const [team, setTeam] = useState(props.team);
 
   const acceptInvite = () => invitationResponse(true);
@@ -30,14 +31,16 @@ export default function TeamListItem(props: any) {
       <li className="divide-y">
         <div className="flex justify-between my-4">
           <div className="flex">
-            <div className="relative rounded-full p-1 w-10 h-10 border border-gray-200"> 
-                <img src={
-                  props.team.logo
-                        ? props.team.logo
-                        : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
-                          encodeURIComponent(props.team.name || "")
-                } alt="Team Logo" className="rounded-full w-8 h-8"/>
-            </div>
+            <Avatar 
+              imageSrc={
+                props.team.logo
+                      ? props.team.logo
+                      : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
+                        encodeURIComponent(props.team.name || "")
+              }
+              displayName="Team Logo"
+              className="rounded-full w-9 h-9"
+            />
             <div className="inline-block ml-3">
               <span className="font-bold text-neutral-700 text-sm">{props.team.name}</span>
               <span className="text-xs text-gray-400 -mt-1 block">{window.location.hostname}/
