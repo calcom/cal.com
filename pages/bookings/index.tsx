@@ -5,9 +5,8 @@ import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import prisma from "@lib/prisma";
-import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { getSession, useSession } from "next-auth/client";
 import Head from "next/head";
 import Link from "next/link";
@@ -235,13 +234,13 @@ async function getBookings(userId: number | undefined) {
   });
 }
 
-export const getServerSideProps: GetServerSideProps<{
-  bookings: Prisma.PromiseReturnType<typeof getBookings>;
-}> = async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
 
   if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
+    /* IDK why but this prevents losing type inference: https://stackoverflow.com/a/59923262/6297100 */
+    const redirectReturn = { redirect: { permanent: false, destination: "/auth/login" } } as const;
+    return redirectReturn;
   }
 
   const user = await prisma.user.findFirst({
