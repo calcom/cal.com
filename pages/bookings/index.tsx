@@ -5,9 +5,8 @@ import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import prisma from "@lib/prisma";
-import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { getSession, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -204,10 +203,27 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
   );
 }
 
-async function getBookings(userId: number | undefined) {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getSession(context);
+
+  if (!session) {
+    /* IDK why but this prevents losing type inference: https://stackoverflow.com/a/59923262/6297100 */
+    const redirectReturn = { redirect: { permanent: false, destination: "/auth/login" } } as const;
+    return redirectReturn;
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      email: session.user?.email,
+    },
+    select: {
+      id: true,
+    },
+  });
+
   const b = await prisma.booking.findMany({
     where: {
-      userId,
+      userId: user?.id,
     },
     select: {
       uid: true,
@@ -225,30 +241,9 @@ async function getBookings(userId: number | undefined) {
     },
   });
 
-  return b.reverse().map((booking) => {
+  const bookings = b.reverse().map((booking) => {
     return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
   });
-}
-
-export const getServerSideProps: GetServerSideProps<{
-  bookings: Prisma.PromiseReturnType<typeof getBookings>;
-}> = async (context) => {
-  const session = await getSession(context);
-
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user?.email,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  const bookings = await getBookings(user?.id);
 
   return { props: { bookings } };
 };
