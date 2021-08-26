@@ -1,7 +1,6 @@
-import Head from "next/head";
-import prisma from "../../lib/prisma";
-import { getIntegrationName, getIntegrationType } from "../../lib/integrations";
-import Shell from "../../components/Shell";
+import prisma from "@lib/prisma";
+import { getIntegrationName, getIntegrationType } from "@lib/integrations";
+import Shell from "@components/Shell";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { getSession, useSession } from "next-auth/client";
@@ -40,12 +39,9 @@ export default function Integration(props) {
 
   return (
     <div>
-      <Head>
-        <title>{getIntegrationName(props.integration.type)} App | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <Shell heading={getIntegrationName(props.integration.type)} subtitle="Manage and delete this app.">
+      <Shell
+        heading={`${getIntegrationName(props.integration.type)} App`}
+        subtitle="Manage and delete this app.">
         <div className="block sm:grid grid-cols-3 gap-4">
           <div className="col-span-2 bg-white border border-gray-200 mb-6 overflow-hidden rounded-sm">
             <div className="px-4 py-5 sm:px-6">

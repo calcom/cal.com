@@ -15,12 +15,11 @@ import {
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
 import { getSession, useSession } from "next-auth/client";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
-import Shell from "../../components/Shell";
-import prisma from "../../lib/prisma";
+import Shell from "@components/Shell";
+import prisma from "@lib/prisma";
 
 export default function Availability({ user, types }) {
   const [session, loading] = useSession();
@@ -190,10 +189,6 @@ export default function Availability({ user, types }) {
 
   return (
     <div>
-      <Head>
-        <title>Event Types | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
