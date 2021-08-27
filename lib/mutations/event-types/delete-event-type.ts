@@ -1,8 +1,6 @@
-import { CreateEventType } from "@lib/types/event-type";
-
-const createEventType = async (data: CreateEventType) => {
+const deleteEventType = async (data: { id: number }) => {
   const response = await fetch("/api/availability/eventtype", {
-    method: "POST",
+    method: "DELETE",
     body: JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
@@ -16,4 +14,4 @@ const createEventType = async (data: CreateEventType) => {
   return response.json();
 };
 
-export default createEventType;
+export default deleteEventType;

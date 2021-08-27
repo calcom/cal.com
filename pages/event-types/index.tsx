@@ -21,17 +21,18 @@ import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
 import Shell from "@components/Shell";
 import prisma from "@lib/prisma";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 
-const EventTypesPage: InferGetServerSidePropsType<typeof getServerSideProps> = ({ user, types }) => {
+const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { user, types } = props;
   const [session, loading] = useSession();
   const router = useRouter();
-  const mutation = useMutation(createEventType, {
-    onSuccess: async (data) => {
-      await router.replace("/event-types/" + data.event_type.id);
-      showToast("Event Type created", "success");
+  const createMutation = useMutation(createEventType, {
+    onSuccess: async ({ eventType }) => {
+      await router.replace("/event-types/" + eventType.id);
+      showToast(`${eventType.title} event type created successfully`, "success");
     },
     onError: (err: Error) => {
       showToast(err.message, "error");
@@ -51,7 +52,7 @@ const EventTypesPage: InferGetServerSidePropsType<typeof getServerSideProps> = (
     const enteredTitle = titleRef.current.value;
     const enteredSlug = slugRef.current.value;
     const enteredDescription = descriptionRef.current.value;
-    const enteredLength = lengthRef.current.value;
+    const enteredLength = parseInt(lengthRef.current.value);
 
     const body = {
       title: enteredTitle,
@@ -60,7 +61,7 @@ const EventTypesPage: InferGetServerSidePropsType<typeof getServerSideProps> = (
       length: enteredLength,
     };
 
-    mutation.mutate(body);
+    createMutation.mutate(body);
   }
 
   function autoPopulateSlug() {
@@ -641,8 +642,10 @@ const EventTypesPage: InferGetServerSidePropsType<typeof getServerSideProps> = (
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req } = context;
   const session = await getSession({ req });
+
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }

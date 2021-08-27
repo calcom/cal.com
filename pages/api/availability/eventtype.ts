@@ -62,13 +62,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (req.method == "POST") {
-      const event_type = await prisma.eventType.create({
+      const eventType = await prisma.eventType.create({
         data: {
           userId: session.user.id,
           ...data,
         },
       });
-      res.status(201).json({ event_type });
+      res.status(201).json({ eventType });
     } else if (req.method == "PATCH") {
       if (req.body.timeZone) {
         data.timeZone = req.body.timeZone;
@@ -99,18 +99,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      const event_type = await prisma.eventType.update({
+      const eventType = await prisma.eventType.update({
         where: {
           id: req.body.id,
         },
         data,
       });
-      res.status(200).json({ message: "Event updated successfully", event_type });
+      res.status(200).json({ eventType });
     }
   }
 
   if (req.method == "DELETE") {
-    // Delete associations first
     await prisma.eventTypeCustomInput.deleteMany({
       where: {
         eventTypeId: req.body.id,
@@ -123,6 +122,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    res.status(200).json({ message: "Event deleted successfully" });
+    res.status(200).json({});
   }
 }

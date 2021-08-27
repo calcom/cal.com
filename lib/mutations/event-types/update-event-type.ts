@@ -1,8 +1,8 @@
-import { CreateEventType } from "@lib/types/event-type";
+import { EventTypeInput } from "@lib/types/event-type";
 
-const createEventType = async (data: CreateEventType) => {
+const updateEventType = async (data: EventTypeInput) => {
   const response = await fetch("/api/availability/eventtype", {
-    method: "POST",
+    method: "PATCH",
     body: JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
@@ -16,4 +16,4 @@ const createEventType = async (data: CreateEventType) => {
   return response.json();
 };
 
-export default createEventType;
+export default updateEventType;
