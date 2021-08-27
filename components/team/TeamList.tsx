@@ -1,8 +1,12 @@
 import TeamListItem from "./TeamListItem";
+import { Team } from "@lib/team";
 
-export default function TeamList(props) {
-
-  const selectAction = (action: string, team) => {
+export default function TeamList(props: {
+  teams: Team[];
+  onChange: () => void;
+  onEditTeam: (text: Team) => void;
+}) {
+  const selectAction = (action: string, team: Team) => {
     switch (action) {
       case "edit":
         props.onEditTeam(team);
@@ -13,17 +17,16 @@ export default function TeamList(props) {
     }
   };
 
-  const deleteTeam = (team) => {
+  const deleteTeam = (team: Team) => {
     return fetch("/api/teams/" + team.id, {
       method: "DELETE",
-    })
-    .then(props.onChange());
+    }).then(props.onChange());
   };
 
   return (
     <div>
-      <ul className="bg-white border px-4 mb-2 rounded divide-y divide-gray-200">
-        {props.teams.map((team) => (
+      <ul className="px-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
+        {props.teams.map((team: Team) => (
           <TeamListItem
             onChange={props.onChange}
             key={team.id}
