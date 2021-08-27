@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
-import { getBusyVideoTimes } from "@lib/videoClient";
+// import { getBusyVideoTimes } from "@lib/videoClient";
 import dayjs from "dayjs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
