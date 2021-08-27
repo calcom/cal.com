@@ -2,6 +2,7 @@ name: E2E test
 on: [push]
 jobs:
   test:
+    timeout-minutes: 10
     name: ${{ matrix.node }} and ${{ matrix.os }}
 
     env:
@@ -41,7 +42,7 @@ jobs:
           yarn build
           yarn start &
           npx wait-port http://:3000 --timeout 10000
-      - name: yarn cypress run
+      - run: yarn cypress run
       - name: Upload videos
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
