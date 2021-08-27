@@ -1,8 +1,8 @@
-name: Build
+name: E2E test
 on: [push]
 jobs:
-  build:
-    name: Build on Node ${{ matrix.node }} and ${{ matrix.os }}
+  test:
+    name: ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
