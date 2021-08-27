@@ -1,5 +1,5 @@
 import { GetServerSideProps } from "next";
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import prisma, { whereAndSelect } from "@lib/prisma";
 import Avatar from "@components/Avatar";
@@ -48,7 +48,7 @@ export default function User(props): User {
   ));
   return (
     <>
-      <GenericPageSeo
+      <HeadSeo
         title={props.user.name || props.user.username}
         description={props.user.name || props.user.username}
         name={props.user.name || props.user.username}

@@ -6,7 +6,7 @@ import prisma from "@lib/prisma";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Avatar from "@components/Avatar";
@@ -82,7 +82,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 
   return (
     <>
-      <GenericPageSeo
+      <HeadSeo
         title={`${rescheduleUid ? "Reschedule" : ""} ${props.eventType.title} | ${
           props.user.name || props.user.username
         }`}

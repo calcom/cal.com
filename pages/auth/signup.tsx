@@ -1,4 +1,4 @@
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { signIn } from "next-auth/client";
 import ErrorAlert from "@components/ui/alerts/Error";
@@ -54,7 +54,7 @@ export default function Signup(props) {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <GenericPageSeo title="Sign up" description="Sign up" />
+      <HeadSeo title="Sign up" description="Sign up" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
       </div>

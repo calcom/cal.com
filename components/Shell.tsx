@@ -20,7 +20,7 @@ import classNames from "@lib/classNames";
 import { Toaster } from "react-hot-toast";
 import Avatar from "@components/Avatar";
 import { User } from "@prisma/client";
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Shell(props) {
   const router = useRouter();
@@ -76,7 +76,7 @@ export default function Shell(props) {
 
   return session ? (
     <>
-      <GenericPageSeo
+      <HeadSeo
         title={pageTitle}
         description={props.subtitle}
         nextSeoProps={{

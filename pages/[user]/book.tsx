@@ -1,4 +1,4 @@
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
@@ -150,7 +150,7 @@ export default function Book(props: any): JSX.Element {
   return (
     isReady && (
       <div>
-        <GenericPageSeo
+        <HeadSeo
           title={`${rescheduleUid ? "Reschedule" : "Confirm"} your ${props.eventType.title} with ${
             props.user.name || props.user.username
           }`}

@@ -4,7 +4,7 @@ import isBetween from "dayjs/plugin/isBetween";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import prisma from "@lib/prisma";
@@ -55,7 +55,7 @@ export default function Type(props) {
 
   return (
     <div>
-      <GenericPageSeo
+      <HeadSeo
         title={`Cancel ${props.booking && props.booking.title} | ${props.user.name || props.user.username}`}
         description={`Cancel ${props.booking && props.booking.title} | ${
           props.user.name || props.user.username

@@ -1,5 +1,5 @@
 import { DefaultSeoProps } from "next-seo";
-import { GenericPageSeoProps } from "@components/seo/generic-page-seo";
+import { HeadSeoProps } from "@components/seo/head-seo";
 
 const seoImages = {
   default: "https://calendso.com/og-image.png",
@@ -11,10 +11,10 @@ export const getSeoImage = (key: keyof typeof seoImages): string => {
 };
 
 export const seoConfig: {
-  genericPageSeo: Required<Pick<GenericPageSeoProps, "siteName">>;
+  headSeo: Required<Pick<HeadSeoProps, "siteName">>;
   defaultNextSeo: DefaultSeoProps;
 } = {
-  genericPageSeo: {
+  headSeo: {
     siteName: "Calendso",
   },
   defaultNextSeo: {

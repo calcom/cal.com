@@ -3,7 +3,7 @@ import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/
 import { useRouter } from "next/router";
 import React from "react";
 import Link from "next/link";
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 
 const links = [
   {
@@ -32,8 +32,8 @@ export default function Custom404() {
 
   return (
     <>
-      <GenericPageSeo
-        title="404"
+      <HeadSeo
+        title="404: This page could not be found."
         description="404: This page could not be found."
         nextSeoProps={{
           nofollow: true,

@@ -4,7 +4,7 @@ import { getBrowserInfo } from "@lib/core/browser/browser.utils";
 import deepmerge from "deepmerge";
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
 
-export type GenericPageSeoProps = {
+export type HeadSeoProps = {
   title: string;
   description: string;
   siteName?: string;
@@ -26,7 +26,7 @@ const buildSeoMeta = (pageProps: {
   url?: string;
   canonical?: string;
 }): NextSeoProps => {
-  const { title, description, image, canonical, siteName = seoConfig.genericPageSeo.siteName } = pageProps;
+  const { title, description, image, canonical, siteName = seoConfig.headSeo.siteName } = pageProps;
   return {
     title: title,
     canonical: canonical,
@@ -73,7 +73,7 @@ const constructImage = (name: string, avatar: string, description: string): stri
   );
 };
 
-export const GenericPageSeo: React.FC<GenericPageSeoProps & { children?: never }> = (props) => {
+export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) => {
   const defaultUrl = getBrowserInfo()?.url;
   const image = getSeoImage("default");
 

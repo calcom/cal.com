@@ -1,4 +1,4 @@
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 import prisma from "../../lib/prisma";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
@@ -19,7 +19,7 @@ export default function Type(props) {
 
   return (
     <div>
-      <GenericPageSeo
+      <HeadSeo
         title={`Cancelled ${props.title} | ${props.user.name || props.user.username}`}
         description={`Cancelled ${props.title} | ${props.user.name || props.user.username}`}
       />

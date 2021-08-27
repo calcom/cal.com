@@ -1,4 +1,4 @@
-import { GenericPageSeo } from "@components/seo/generic-page-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import prisma, { whereAndSelect } from "@lib/prisma";
 import { useEffect, useState } from "react";
@@ -61,7 +61,7 @@ export default function Success(props) {
   return (
     isReady && (
       <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
-        <GenericPageSeo
+        <HeadSeo
           title={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
           description={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
         />
