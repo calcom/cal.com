@@ -42,7 +42,7 @@ jobs:
         run: |
           yarn build
           yarn start &
-          npx wait-port http://:3000 --timeout 10000
+          npx wait-port 3000 --timeout 10000
       - run: yarn cypress run
       - name: Upload videos
         if: ${{ always() }}
