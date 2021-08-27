@@ -9,6 +9,7 @@ jobs:
       # SOME_SECRET: ${{ secrets.CI_SOME_SECRET }}
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NODE_ENV: test
+      BASE_URL: http://localhost:3000
     services:
       postgres:
         image: postgres:12.1
