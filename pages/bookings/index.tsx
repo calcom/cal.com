@@ -9,6 +9,7 @@ import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getSession, useSession } from "next-auth/client";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
@@ -99,24 +100,24 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                             )}
                             {booking.confirmed && !booking.rejected && (
                               <>
-                                <a
-                                  href={`${window.location.href}/../cancel/${booking.uid}?from=/bookings`}
-                                  className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                                  <XIcon
-                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  Cancel
-                                </a>
-                                <a
-                                  href={window.location.href + "/../reschedule/" + booking.uid}
-                                  className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                                  <ClockIcon
-                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  Reschedule
-                                </a>
+                                <Link href={`/cancel/${booking.uid}?from=/bookings`}>
+                                  <a className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                                    <XIcon
+                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                      aria-hidden="true"
+                                    />
+                                    Cancel
+                                  </a>
+                                </Link>
+                                <Link href={`/reschedule/${booking.uid}?from=/bookings`}>
+                                  <a className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                                    <ClockIcon
+                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                      aria-hidden="true"
+                                    />
+                                    Reschedule
+                                  </a>
+                                </Link>
                                 <Menu as="div" className="inline-block text-left lg:hidden ">
                                   {({ open }) => (
                                     <>
@@ -142,40 +143,40 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                           <div className="py-1">
                                             <Menu.Item>
                                               {({ active }) => (
-                                                <a
-                                                  href={`${window.location.href}/../cancel/${booking.uid}?from=/bookings`}
-                                                  className={classNames(
-                                                    active
-                                                      ? "bg-neutral-100 text-neutral-900"
-                                                      : "text-neutral-700",
-                                                    "group flex items-center px-4 py-2 text-sm font-medium"
-                                                  )}>
-                                                  <XIcon
-                                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                                    aria-hidden="true"
-                                                  />
-                                                  Cancel
-                                                </a>
+                                                <Link href={`/cancel/${booking.uid}?from=/bookings`}>
+                                                  <a
+                                                    className={classNames(
+                                                      active
+                                                        ? "bg-neutral-100 text-neutral-900"
+                                                        : "text-neutral-700",
+                                                      "group flex items-center px-4 py-2 text-sm font-medium"
+                                                    )}>
+                                                    <XIcon
+                                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                                      aria-hidden="true"
+                                                    />
+                                                    Cancel
+                                                  </a>
+                                                </Link>
                                               )}
                                             </Menu.Item>
                                             <Menu.Item>
                                               {({ active }) => (
-                                                <a
-                                                  href={
-                                                    window.location.href + "/../reschedule/" + booking.uid
-                                                  }
-                                                  className={classNames(
-                                                    active
-                                                      ? "bg-neutral-100 text-neutral-900"
-                                                      : "text-neutral-700",
-                                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                                  )}>
-                                                  <ClockIcon
-                                                    className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                                    aria-hidden="true"
-                                                  />
-                                                  Reschedule
-                                                </a>
+                                                <Link href={`/reschedule/${booking.uid}?from=/bookings`}>
+                                                  <a
+                                                    className={classNames(
+                                                      active
+                                                        ? "bg-neutral-100 text-neutral-900"
+                                                        : "text-neutral-700",
+                                                      "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                                    )}>
+                                                    <ClockIcon
+                                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                                      aria-hidden="true"
+                                                    />
+                                                    Reschedule
+                                                  </a>
+                                                </Link>
                                               )}
                                             </Menu.Item>
                                           </div>
