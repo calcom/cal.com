@@ -35,12 +35,10 @@ jobs:
 
       - name: Install deps
         uses: bahmutov/npm-install@v1
-
       - run: yarn build
-
-      - name: Build and start
+      - run: yarn prisma migrate deploy
+      - name: Start
         run: |
-          yarn build
           yarn start &
           npx wait-port 3000 --timeout 10000
       - run: yarn cypress run
