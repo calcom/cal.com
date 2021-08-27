@@ -199,10 +199,10 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       defaultValue={imageSrc ? imageSrc : props.team?.logo}
                     />
                     <ImageUploader
-                      target="logo"
+                      displayName="logo"
                       id="logo-upload"
                       buttonMsg="Change logo"
-                      handleAvatarChange={handleLogoChange}
+                      onChange={handleLogoChange}
                       imageRef={imageSrc ? imageSrc : props.team?.logo}
                     />
                   </div>
