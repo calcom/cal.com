@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-describe("load /", () => {
+test("load /", () => {
   cy.visit("/");
   cy.contains("Sign in to your account");
 });
