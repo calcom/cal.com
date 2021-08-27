@@ -1,13 +1,13 @@
+import { HeadSeo } from "@components/seo/head-seo";
 import { CheckIcon } from "@heroicons/react/outline";
+import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import Head from "next/head";
 import { useRouter } from "next/router";
-import prisma from "../../lib/prisma";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
@@ -20,12 +20,10 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 
   return (
     <div>
-      <Head>
-        <title>
-          Cancelled {props.title} | {props.user?.name || props.user?.username} | Calendso
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <HeadSeo
+        title={`Cancelled ${props.title} | ${props.user?.name || props.user?.username}`}
+        description={`Cancelled ${props.title} | ${props.user?.name || props.user?.username}`}
+      />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">

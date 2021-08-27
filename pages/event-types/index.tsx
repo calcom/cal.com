@@ -15,16 +15,28 @@ import {
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
 import { getSession, useSession } from "next-auth/client";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
-import Shell from "../../components/Shell";
-import prisma from "../../lib/prisma";
+import Shell from "@components/Shell";
+import prisma from "@lib/prisma";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { useMutation } from "react-query";
+import createEventType from "@lib/mutations/event-types/create-event-type";
 
-export default function Availability({ user, types }) {
+const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { user, types } = props;
   const [session, loading] = useSession();
   const router = useRouter();
+  const createMutation = useMutation(createEventType, {
+    onSuccess: async ({ eventType }) => {
+      await router.replace("/event-types/" + eventType.id);
+      showToast(`${eventType.title} event type created successfully`, "success");
+    },
+    onError: (err: Error) => {
+      showToast(err.message, "error");
+    },
+  });
 
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
@@ -39,26 +51,16 @@ export default function Availability({ user, types }) {
     const enteredTitle = titleRef.current.value;
     const enteredSlug = slugRef.current.value;
     const enteredDescription = descriptionRef.current.value;
-    const enteredLength = lengthRef.current.value;
+    const enteredLength = parseInt(lengthRef.current.value);
 
-    // TODO: Add validation
-    await fetch("/api/availability/eventtype", {
-      method: "POST",
-      body: JSON.stringify({
-        title: enteredTitle,
-        slug: enteredSlug,
-        description: enteredDescription,
-        length: enteredLength,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const body = {
+      title: enteredTitle,
+      slug: enteredSlug,
+      description: enteredDescription,
+      length: enteredLength,
+    };
 
-    if (enteredTitle && enteredLength) {
-      await router.replace(router.asPath);
-    }
-    showToast("Event Type created", "success");
+    createMutation.mutate(body);
   }
 
   function autoPopulateSlug() {
@@ -190,10 +192,6 @@ export default function Availability({ user, types }) {
 
   return (
     <div>
-      <Head>
-        <title>Event Types | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
@@ -637,10 +635,12 @@ export default function Availability({ user, types }) {
       </Shell>
     </div>
   );
-}
+};
 
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req } = context;
+  const session = await getSession({ req });
+
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -671,7 +671,13 @@ export async function getServerSideProps(context) {
       hidden: true,
     },
   });
+
   return {
-    props: { user, types }, // will be passed to the page component as props
+    props: {
+      user,
+      types,
+    },
   };
-}
+};
+
+export default EventTypesPage;

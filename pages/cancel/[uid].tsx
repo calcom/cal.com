@@ -1,15 +1,15 @@
+import { HeadSeo } from "@components/seo/head-seo";
 import { CalendarIcon, XIcon } from "@heroicons/react/solid";
+import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import prisma from "../../lib/prisma";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
@@ -61,13 +61,12 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 
   return (
     <div>
-      <Head>
-        <title>
-          Cancel {props.booking && `${props.booking.title} | ${props.user?.name || props.user?.username} `}|
-          Calendso
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <HeadSeo
+        title={`Cancel ${props.booking && props.booking.title} | ${props.user?.name || props.user?.username}`}
+        description={`Cancel ${props.booking && props.booking.title} | ${
+          props.user?.name || props.user?.username
+        }`}
+      />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">

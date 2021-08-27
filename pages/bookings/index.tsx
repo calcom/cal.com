@@ -8,7 +8,6 @@ import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { getSession, useSession } from "next-auth/client";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
@@ -38,10 +37,6 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
 
   return (
     <div>
-      <Head>
-        <title>Bookings | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
         <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -208,32 +203,6 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
   );
 }
 
-async function getBookings(userId: number | undefined) {
-  const b = await prisma.booking.findMany({
-    where: {
-      userId,
-    },
-    select: {
-      uid: true,
-      title: true,
-      description: true,
-      attendees: true,
-      confirmed: true,
-      rejected: true,
-      id: true,
-      startTime: true,
-      endTime: true,
-    },
-    orderBy: {
-      startTime: "asc",
-    },
-  });
-
-  return b.reverse().map((booking) => {
-    return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
-  });
-}
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
 
@@ -252,7 +221,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const bookings = await getBookings(user?.id);
+  const b = await prisma.booking.findMany({
+    where: {
+      userId: user?.id,
+    },
+    select: {
+      uid: true,
+      title: true,
+      description: true,
+      attendees: true,
+      confirmed: true,
+      rejected: true,
+      id: true,
+      startTime: true,
+      endTime: true,
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+  });
+
+  const bookings = b.reverse().map((booking) => {
+    return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
+  });
 
   return { props: { bookings } };
 };

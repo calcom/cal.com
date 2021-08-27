@@ -3,7 +3,7 @@ import React, { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/client";
 import { Menu, Transition } from "@headlessui/react";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
@@ -20,6 +20,7 @@ import classNames from "@lib/classNames";
 import { Toaster } from "react-hot-toast";
 import Avatar from "@components/Avatar";
 import { User } from "@prisma/client";
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Shell(props) {
   const router = useRouter();
@@ -70,8 +71,18 @@ export default function Shell(props) {
     router.replace("/auth/login");
   }
 
+  const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+
   return session ? (
     <>
+      <HeadSeo
+        title={pageTitle}
+        description={props.subtitle}
+        nextSeoProps={{
+          nofollow: true,
+          noindex: true,
+        }}
+      />
       <div>
         <Toaster position="bottom-right" />
       </div>
