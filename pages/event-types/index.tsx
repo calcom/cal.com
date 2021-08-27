@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
+import dayjs from "dayjs";
 import { getSession, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -23,6 +24,7 @@ import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
+import { ONBOARDING_INTRODUCED_AT } from "../getting_started/index";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -656,10 +658,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       endTime: true,
       bufferTime: true,
       completedOnboarding: true,
+      createdDate: true,
     },
   });
 
-  if (!user.completedOnboarding) {
+  if (!user.completedOnboarding && dayjs(user.createdDate).isBefore(ONBOARDING_INTRODUCED_AT)) {
     return {
       redirect: {
         permanent: false,
@@ -682,9 +685,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  const userObj = Object.assign({}, user, {
+    createdDate: user.createdDate.toString(),
+  });
+
   return {
     props: {
-      user,
+      user: userObj,
       types,
     },
   };

@@ -12,7 +12,7 @@ import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 
-type Integration = {
+export type Integration = {
   installed: boolean;
   credential: unknown;
   type: string;

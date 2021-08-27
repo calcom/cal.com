@@ -10,7 +10,7 @@ import {
   Schedule,
 } from "@prisma/client";
 import { NextPageContext } from "next";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
 import useTheme from "@components/Theme";
@@ -23,9 +23,11 @@ dayjs.extend(timezone);
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Dialog";
 import Scheduler, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import { useRouter } from "next/router";
+import { Integration } from "pages/integrations";
+import { AddCalDavIntegrationRequest } from "../../lib/integrations/CalDav/components/AddCalDavIntegration";
 
 const DEFAULT_EVENT_TYPES = [
   {
@@ -46,19 +48,23 @@ const DEFAULT_EVENT_TYPES = [
   },
 ];
 
-type Props = {
+export const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
+
+type OnboardingProps = {
   user: User;
   integrations?: Record<string, string>[];
   eventTypes?: EventType[];
   schedules?: Schedule[];
 };
-export const ONBOARDING_INTRODUCED_AT = "1628520977921";
 
-export default function Page(props: Props) {
+export default function Onboarding(props: OnboardingProps) {
   useTheme();
   const router = useRouter();
 
   const [enteredName, setEnteredName] = React.useState();
+  const Sess = useSession();
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(null);
 
   const updateUser = async (data: UserUpdateInput) => {
     const res = await fetch(`/api/user/${props.user.id}`, {
@@ -108,7 +114,7 @@ export default function Page(props: Props) {
     return responseData.data;
   };
 
-  const integrationHandler = (type) => {
+  const integrationHandler = (type: string) => {
     if (type === "caldav_calendar") {
       setAddCalDavError(null);
       setIsAddCalDavIntegrationDialogOpen(true);
@@ -123,7 +129,7 @@ export default function Page(props: Props) {
   };
 
   /** Internal Components */
-  const IntegrationGridListItem = ({ integration }) => {
+  const IntegrationGridListItem = ({ integration }: { integration: Integration }) => {
     if (!integration || !integration.installed) {
       return null;
     }
@@ -149,10 +155,6 @@ export default function Page(props: Props) {
   };
   /** End Internal Components */
 
-  const [session, loading] = useSession();
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState(null);
-
   /** Name */
   const nameRef = useRef(null);
   const bioRef = useRef(null);
@@ -172,7 +174,7 @@ export default function Page(props: Props) {
   const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
   const [addCalDavError, setAddCalDavError] = useState<{ message: string } | null>(null);
 
-  const handleAddCalDavIntegration = async ({ url, username, password }) => {
+  const handleAddCalDavIntegration = async ({ url, username, password }: AddCalDavIntegrationRequest) => {
     const requestBody = JSON.stringify({
       url,
       username,
@@ -209,7 +211,7 @@ export default function Page(props: Props) {
     }
   };
 
-  const ConnectCalDavServerDialog = useCallback(() => {
+  const ConnectCalDavServerDialog = () => {
     return (
       <Dialog
         open={isAddCalDavIntegrationDialogOpen}
@@ -250,7 +252,7 @@ export default function Page(props: Props) {
         </DialogContent>
       </Dialog>
     );
-  }, [isAddCalDavIntegrationDialogOpen, addCalDavError]);
+  };
   /**End CalDav Form */
 
   /** Onboarding Steps */
@@ -277,13 +279,17 @@ export default function Page(props: Props) {
 
   const handleConfirmStep = async () => {
     try {
-      if (steps[currentStep]?.onComplete) {
-        await steps[currentStep]?.onComplete();
+      if (
+        steps[currentStep] &&
+        steps[currentStep]?.onComplete &&
+        typeof steps[currentStep]?.onComplete === "function"
+      ) {
+        await steps[currentStep].onComplete();
       }
       incrementStep();
     } catch (error) {
       console.log("handleConfirmStep", error);
-      setError({ message: error.message });
+      setError(error);
     }
   };
 
@@ -311,8 +317,6 @@ export default function Page(props: Props) {
    * then the default availability is applied.
    */
   const completeOnboarding = async () => {
-    console.log("complete onboarding");
-
     if (!props.eventTypes || props.eventTypes.length === 0) {
       Promise.all(
         DEFAULT_EVENT_TYPES.map(async (event) => {
@@ -375,11 +379,15 @@ export default function Page(props: Props) {
       showCancel: true,
       cancelText: "Set up later",
       onComplete: async () => {
-        await updateUser({
-          name: nameRef.current.value,
-          timeZone: selectedTimeZone.value,
-        });
-        setEnteredName(nameRef.current.value);
+        try {
+          await updateUser({
+            name: nameRef.current.value,
+            timeZone: selectedTimeZone.value,
+          });
+          setEnteredName(nameRef.current.value);
+        } catch (error) {
+          setError(error);
+        }
       },
     },
     {
@@ -410,11 +418,13 @@ export default function Page(props: Props) {
             <Scheduler
               onSubmit={async (data) => {
                 try {
-                  const res = await createSchedule({
+                  await createSchedule({
                     freeBusyTimes: data,
                   });
                   handleConfirmStep();
-                } catch (reason) {}
+                } catch (error) {
+                  setError(error);
+                }
               }}
             />
           </section>
@@ -430,9 +440,6 @@ export default function Page(props: Props) {
       confirmText: "Continue",
       showCancel: true,
       cancelText: "Set up later",
-      onComplete: () => {
-        console.log("Save Availability");
-      },
     },
     {
       id: "profile",
@@ -483,9 +490,13 @@ export default function Page(props: Props) {
       showCancel: true,
       cancelText: "Set up later",
       onComplete: async () => {
-        await updateUser({
-          bio: bioRef.current.value,
-        });
+        try {
+          await updateUser({
+            bio: bioRef.current.value,
+          });
+        } catch (error) {
+          setError(error);
+        }
       },
     },
   ];
@@ -496,7 +507,7 @@ export default function Page(props: Props) {
     setReady(true);
   }, []);
 
-  if (loading || !ready) {
+  if (Sess[1] || !ready) {
     return <div className="loader"></div>;
   }
 
