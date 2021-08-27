@@ -22,4 +22,10 @@ jobs:
       - name: Install deps
         uses: bahmutov/npm-install@v1
 
+      - name: Next.js cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs
+
       - run: yarn build
