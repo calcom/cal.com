@@ -4,6 +4,18 @@ jobs:
   test:
     name: ${{ matrix.node }} and ${{ matrix.os }}
 
+    env:
+      # SOME_SECRET: ${{ secrets.CI_SOME_SECRET }}
+      DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      NODE_ENV: test
+    services:
+      postgres:
+        image: postgres:12.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: calendso
+        ports:
+          - 5432:5432
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -23,3 +35,17 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - run: yarn build
+
+      - name: Build and start
+        run: |
+          yarn build
+          yarn start &
+          npx wait-port http://:3000 --timeout 10000
+      - name: yarn cypress run
+      - name: Upload videos
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: videos
+          path: |
+            cypress/videos
