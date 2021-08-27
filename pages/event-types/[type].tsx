@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -37,52 +36,15 @@ import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { useMutation } from "react-query";
+import { EventTypeInput } from "@lib/types/event-type";
+import updateEventType from "@lib/mutations/event-types/update-event-type";
+import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-type Props = {
-  user: User;
-  eventType: EventType;
-  locationOptions: OptionBase[];
-  availability: Availability[];
-};
-
-type OpeningHours = {
-  days: number[];
-  startTime: number;
-  endTime: number;
-};
-
-type DateOverride = {
-  date: string;
-  startTime: number;
-  endTime: number;
-};
-
-type AdvancedOptions = {
-  eventName?: string;
-  periodType?: string;
-  periodDays?: number;
-  periodStartDate?: Date | string;
-  periodEndDate?: Date | string;
-  periodCountCalendarDays?: boolean;
-  requiresConfirmation?: boolean;
-};
-
-type EventTypeInput = AdvancedOptions & {
-  id: number;
-  title: string;
-  slug: string;
-  description: string;
-  length: number;
-  hidden: boolean;
-  locations: unknown;
-  customInputs: EventTypeCustomInput[];
-  timeZone: string;
-  availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
-};
 
 const PERIOD_TYPES = [
   {
@@ -99,12 +61,8 @@ const PERIOD_TYPES = [
   },
 ];
 
-export default function EventTypePage({
-  user,
-  eventType,
-  locationOptions,
-  availability,
-}: Props): JSX.Element {
+const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { user, eventType, locationOptions, availability } = props;
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -117,6 +75,26 @@ export default function EventTypePage({
 
   const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
+
+  const updateMutation = useMutation(updateEventType, {
+    onSuccess: async ({ eventType }) => {
+      await router.push("/event-types");
+      showToast(`${eventType.title} event type updated successfully`, "success");
+    },
+    onError: (err: Error) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const deleteMutation = useMutation(deleteEventType, {
+    onSuccess: async () => {
+      await router.push("/event-types");
+      showToast("Event type deleted successfully", "success");
+    },
+    onError: (err: Error) => {
+      showToast(err.message, "error");
+    },
+  });
 
   const handleResizeEvent = () => {
     const elementWidth = parseFloat(getComputedStyle(document.body).width);
@@ -230,31 +208,14 @@ export default function EventTypePage({
       ...advancedOptionsPayload,
     };
 
-    await fetch("/api/availability/eventtype", {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    router.push("/event-types");
-    showToast("Event Type updated", "success");
-    setSuccessModalOpen(true);
+    updateMutation.mutate(payload);
   }
 
   async function deleteEventTypeHandler(event) {
     event.preventDefault();
 
-    await fetch("/api/availability/eventtype", {
-      method: "DELETE",
-      body: JSON.stringify({ id: eventType.id }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    showToast("Event Type deleted", "success");
-    router.push("/event-types");
+    const payload = { id: eventType.id };
+    deleteMutation.mutate(payload);
   }
 
   const openLocationModal = (type: LocationType) => {
@@ -1070,9 +1031,10 @@ export default function EventTypePage({
       </Shell>
     </div>
   );
-}
+};
 
-export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query }) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req, query } = context;
   const session = await getSession({ req });
   if (!session) {
     return {
@@ -1208,3 +1170,5 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
     },
   };
 };
+
+export default EventTypePage;
