@@ -42,6 +42,7 @@
     "lodash.throttle": "^4.1.1",
     "next": "^10.2.3",
     "next-auth": "^3.28.0",
+    "next-seo": "^4.26.0",
     "next-transpile-modules": "^8.0.0",
     "nodemailer": "^6.6.3",
     "react": "17.0.2",

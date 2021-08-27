@@ -1,7 +1,8 @@
 import "../styles/globals.css";
 import AppProviders from "@lib/app-providers";
 import type { AppProps as NextAppProps } from "next/app";
-import Head from "next/head";
+import { DefaultSeo } from "next-seo";
+import { seoConfig } from "@lib/config/next-seo.config";
 
 // Workaround for https://github.com/zeit/next.js/issues/8592
 export type AppProps = NextAppProps & {
@@ -12,9 +13,7 @@ export type AppProps = NextAppProps & {
 function MyApp({ Component, pageProps, err }: AppProps) {
   return (
     <AppProviders>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Head>
+      <DefaultSeo {...seoConfig.defaultNextSeo} />
       <Component {...pageProps} err={err} />
     </AppProviders>
   );

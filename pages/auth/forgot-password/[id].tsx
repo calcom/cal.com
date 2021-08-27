@@ -1,7 +1,6 @@
 import { getCsrfToken } from "next-auth/client";
-import prisma from "../../../lib/prisma";
-
-import Head from "next/head";
+import prisma from "@lib/prisma";
+import { HeadSeo } from "@components/seo/head-seo";
 import React, { useMemo } from "react";
 import debounce from "lodash.debounce";
 import dayjs from "dayjs";
@@ -122,10 +121,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <Head>
-        <title>Reset Password</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <HeadSeo title="Reset Password" description="Change your password" />
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 mx-2 shadow rounded-lg sm:px-10 space-y-6">
           {isRequestExpired && <Expired />}

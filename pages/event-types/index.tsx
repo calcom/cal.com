@@ -15,7 +15,6 @@ import {
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
 import { getSession, useSession } from "next-auth/client";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
@@ -193,10 +192,6 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
 
   return (
     <div>
-      <Head>
-        <title>Event Types | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."

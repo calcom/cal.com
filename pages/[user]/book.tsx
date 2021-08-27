@@ -1,16 +1,16 @@
-import Head from "next/head";
+import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
-import prisma, { whereAndSelect } from "../../lib/prisma";
+import prisma, { whereAndSelect } from "@lib/prisma";
 import { EventTypeCustomInputType } from "@prisma/client";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import PhoneInput from "@components/ui/form/PhoneInput";
-import { LocationType } from "../../lib/location";
+import { LocationType } from "@lib/location";
 import Avatar from "@components/Avatar";
 import { Button } from "@components/ui/Button";
 import Theme from "@components/Theme";
@@ -150,13 +150,14 @@ export default function Book(props: any): JSX.Element {
   return (
     isReady && (
       <div>
-        <Head>
-          <title>
-            {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with{" "}
-            {props.user.name || props.user.username} | Calendso
-          </title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+        <HeadSeo
+          title={`${rescheduleUid ? "Reschedule" : "Confirm"} your ${props.eventType.title} with ${
+            props.user.name || props.user.username
+          }`}
+          description={`${rescheduleUid ? "Reschedule" : "Confirm"} your ${props.eventType.title} with ${
+            props.user.name || props.user.username
+          }`}
+        />
 
         <main className="max-w-3xl mx-auto my-0 sm:my-24">
           <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">

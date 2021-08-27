@@ -1,7 +1,6 @@
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Modal from "../../components/Modal";
+import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionBase } from "react-select";
 import prisma from "@lib/prisma";
@@ -331,11 +330,8 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
 
   return (
     <div>
-      <Head>
-        <title>{eventType.title} | Event Type | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
+        title={`${eventType.title} | Event Type`}
         heading={
           <input
             ref={titleRef}
