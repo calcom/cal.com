@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/client";
 import { UsersIcon } from "@heroicons/react/outline";
@@ -11,6 +11,8 @@ import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 import EditTeam from "@components/team/EditTeam";
 import Button from "@components/ui/Button";
+import { Member } from "@lib/member";
+import { Team } from "@lib/team";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -18,10 +20,10 @@ export default function Teams() {
   const [invites, setInvites] = useState([]);
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [editTeamEnabled, setEditTeamEnabled] = useState(false);
-  const [teamToEdit, setTeamToEdit] = useState();
+  const [teamToEdit, setTeamToEdit] = useState<Team | null>();
+  const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
-
-  const handleErrors = async (resp) => {
+  const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
       throw new Error(err.message);
@@ -33,8 +35,8 @@ export default function Teams() {
     fetch("/api/user/membership")
       .then(handleErrors)
       .then((data) => {
-        setTeams(data.membership.filter((m) => m.role !== "INVITEE"));
-        setInvites(data.membership.filter((m) => m.role === "INVITEE"));
+        setTeams(data.membership.filter((m: Member) => m.role !== "INVITEE"));
+        setInvites(data.membership.filter((m: Member) => m.role === "INVITEE"));
       })
       .catch(console.log);
   };
@@ -47,12 +49,11 @@ export default function Teams() {
     return <Loader />;
   }
 
-  const createTeam = (e) => {
+  const createTeam = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     return fetch("/api/teams", {
       method: "POST",
-      body: JSON.stringify({ name: e.target.elements["name"].value }),
+      body: JSON.stringify({ name: nameRef?.current?.value }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -182,6 +183,7 @@ export default function Teams() {
                       Name
                     </label>
                     <input
+                      ref={nameRef}
                       type="text"
                       name="name"
                       id="name"
