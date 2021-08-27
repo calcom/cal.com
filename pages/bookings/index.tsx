@@ -1,7 +1,6 @@
-import Head from "next/head";
-import prisma from "../../lib/prisma";
+import prisma from "@lib/prisma";
 import { getSession, useSession } from "next-auth/client";
-import Shell from "../../components/Shell";
+import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { Fragment } from "react";
@@ -36,10 +35,6 @@ export default function Bookings({ bookings }) {
 
   return (
     <div>
-      <Head>
-        <title>Bookings | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

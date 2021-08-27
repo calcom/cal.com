@@ -6,16 +6,16 @@ import prisma from "@lib/prisma";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import Head from "next/head";
+import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Avatar from "@components/Avatar";
-import AvailableTimes from "../../components/booking/AvailableTimes";
-import DatePicker from "../../components/booking/DatePicker";
-import TimeOptions from "../../components/booking/TimeOptions";
-import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
-import { timeZone } from "../../lib/clock";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
+import AvailableTimes from "@components/booking/AvailableTimes";
+import DatePicker from "@components/booking/DatePicker";
+import TimeOptions from "@components/booking/TimeOptions";
+import PoweredByCalendso from "@components/ui/PoweredByCalendso";
+import { timeZone } from "@lib/clock";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { asStringOrNull } from "@lib/asStringOrNull";
 
 export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
@@ -82,53 +82,14 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 
   return (
     <>
-      <Head>
-        <title>
-          {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username} |
-          Calendso
-        </title>
-        <meta name="title" content={"Meet " + (props.user.name || props.user.username) + " via Calendso"} />
-        <meta name="description" content={props.eventType.description} />
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://calendso/" />
-        <meta
-          property="og:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-        />
-        <meta property="og:description" content={props.eventType.description} />
-        <meta
-          property="og:image"
-          content={
-            "https://og-image-one-pi.vercel.app/" +
-            encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-            ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
-          }
-        />
-
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://calendso/" />
-        <meta
-          property="twitter:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-        />
-        <meta property="twitter:description" content={props.eventType.description} />
-        <meta
-          property="twitter:image"
-          content={
-            "https://og-image-one-pi.vercel.app/" +
-            encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-            ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
-          }
-        />
-      </Head>
-
+      <HeadSeo
+        title={`${rescheduleUid ? "Reschedule" : ""} ${props.eventType.title} | ${
+          props.user.name || props.user.username
+        }`}
+        description={`${rescheduleUid ? "Reschedule" : ""} ${props.eventType.title}`}
+        name={props.user.name || props.user.username}
+        avatar={props.user.avatar}
+      />
       {isReady && (
         <div>
           <main

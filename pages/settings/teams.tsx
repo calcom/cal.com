@@ -1,13 +1,12 @@
 import { GetServerSideProps } from "next";
-import Head from "next/head";
-import Shell from "../../components/Shell";
-import SettingsShell from "../../components/Settings";
+import Shell from "@components/Shell";
+import SettingsShell from "@components/Settings";
 import { useEffect, useState } from "react";
 import type { Session } from "next-auth";
 import { getSession, useSession } from "next-auth/client";
 import { UsersIcon } from "@heroicons/react/outline";
-import TeamList from "../../components/team/TeamList";
-import TeamListItem from "../../components/team/TeamListItem";
+import TeamList from "@components/team/TeamList";
+import TeamListItem from "@components/team/TeamListItem";
 import Loader from "@components/Loader";
 
 export default function Teams() {
@@ -59,10 +58,6 @@ export default function Teams() {
 
   return (
     <Shell heading="Teams" subtitle="Create and manage teams to use collaborative features.">
-      <Head>
-        <title>Teams | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <SettingsShell>
         <div className="divide-y divide-gray-200 lg:col-span-9">
           <div className="py-6 lg:pb-8">

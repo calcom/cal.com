@@ -1,17 +1,16 @@
 import { GetServerSideProps } from "next";
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import prisma from "@lib/prisma";
-import Modal from "../../components/Modal";
-import Shell from "../../components/Shell";
-import SettingsShell from "../../components/Settings";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
+import SettingsShell from "@components/Settings";
 import Avatar from "@components/Avatar";
 import { getSession } from "next-auth/client";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
-import { UsernameInput } from "../../components/ui/UsernameInput";
-import ErrorAlert from "../../components/ui/alerts/Error";
-import ImageUploader from "../../components/ImageUploader";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
+import ImageUploader from "@components/ImageUploader";
 import crypto from "crypto";
 
 const themeOptions = [
@@ -107,10 +106,6 @@ export default function Settings(props) {
 
   return (
     <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
-      <Head>
-        <title>Profile | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
