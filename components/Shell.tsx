@@ -71,8 +71,7 @@ export default function Shell(props) {
     router.replace("/auth/login");
   }
 
-  const pageTitle =
-    typeof props.heading === "string" || props.heading instanceof String ? props.heading : props.title;
+  const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
   return session ? (
     <>

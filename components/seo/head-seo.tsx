@@ -1,8 +1,8 @@
 import { NextSeo, NextSeoProps } from "next-seo";
 import React from "react";
 import { getBrowserInfo } from "@lib/core/browser/browser.utils";
-import deepmerge from "deepmerge";
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
+import merge from "lodash.merge";
 
 export type HeadSeoProps = {
   title: string;
@@ -95,7 +95,7 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
     seoObject = buildSeoMeta({ title: pageTitle, description, image: pageImage, canonical, siteName });
   }
 
-  const seoProps: NextSeoProps = deepmerge(seoObject, nextSeoProps);
+  const seoProps: NextSeoProps = merge(nextSeoProps, seoObject);
 
   return <NextSeo {...seoProps} />;
 };
