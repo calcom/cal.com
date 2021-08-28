@@ -268,7 +268,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
     return (
       <fieldset className=" py-6">
         <section className="flex flex-col space-y-6 sm:space-y-0 sm:flex-row  sm:items-start sm:justify-between ">
-          <div className="flex items-center justify-between testing-w">
+          <div style={{ minWidth: "33%" }} className="flex items-center justify-between">
             <div className="flex items-center space-x-2 ">
               <input
                 id={day}
