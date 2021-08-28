@@ -338,7 +338,7 @@ export default function Onboarding(props: OnboardingProps) {
       description:
         "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
       Component: (
-        <form>
+        <form className="sm:mx-auto sm:w-full sm:max-w-md">
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -396,7 +396,7 @@ export default function Onboarding(props: OnboardingProps) {
       description:
         "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
       Component: (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-gray-200 sm:mx-auto sm:w-full sm:max-w-md">
           {props.integrations.map((integration) => {
             return <IntegrationGridListItem key={integration.type} integration={integration} />;
           })}
@@ -414,7 +414,7 @@ export default function Onboarding(props: OnboardingProps) {
         "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
       Component: (
         <>
-          <section className="bg-white dark:bg-opacity-5 text-black dark:text-white p-8">
+          <section className="bg-white dark:bg-opacity-5 text-black dark:text-white p-8 mx-auto max-w-lg">
             <Scheduler
               onSubmit={async (data) => {
                 try {
@@ -428,18 +428,19 @@ export default function Onboarding(props: OnboardingProps) {
               }}
             />
           </section>
-          <button
-            type="submit"
-            form={SCHEDULE_FORM_ID}
-            className="w-full btn btn-primary text-center justify-center">
-            Continue
-          </button>
+          <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
+            <button
+              type="submit"
+              form={SCHEDULE_FORM_ID}
+              className="w-full btn btn-primary text-center justify-center">
+              Continue
+            </button>
+            <button onClick={handleSkipStep}>Set up later</button>
+          </footer>
         </>
       ),
       hideConfirm: true,
-      confirmText: "Continue",
-      showCancel: true,
-      cancelText: "Set up later",
+      showCancel: false,
     },
     {
       id: "profile",
@@ -447,7 +448,7 @@ export default function Onboarding(props: OnboardingProps) {
       description:
         "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re booking with.",
       Component: (
-        <form id="ONBOARDING_STEP_4">
+        <form className="sm:mx-auto sm:w-full sm:max-w-md" id="ONBOARDING_STEP_4">
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -519,8 +520,8 @@ export default function Onboarding(props: OnboardingProps) {
       </Head>
 
       <div className="mx-auto py-24 px-4">
-        <article className="max-w-3xl mx-auto  overflow-hidden rounded-md">
-          <section className="mx-auto py-6 px-6 max-w-lg space-y-4">
+        <article>
+          <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
             <header className="">
               <Text variant="headline">{steps[currentStep].title}</Text>
               <Text>{steps[currentStep].description}</Text>
@@ -541,8 +542,8 @@ export default function Onboarding(props: OnboardingProps) {
               </section>
             </section>
           </section>
-          <section className="py-6 px-6 mx-auto max-w-2xl">{steps[currentStep].Component}</section>
-          <footer className="py-6 px-6 mx-auto max-w-2xl flex flex-col space-y-6">
+          <section className="py-6 mx-auto max-w-2xl">{steps[currentStep].Component}</section>
+          <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
             {!steps[currentStep].hideConfirm && (
               <button
                 onClick={handleConfirmStep}
