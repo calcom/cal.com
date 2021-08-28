@@ -14,7 +14,7 @@ server:
   description: Local Development Server
   variables:
     port:
-      default: '3000'
+      default: "3000"
 tags:
   - name: Authentication
     description: Auth routes, powered by Next-Auth.js
@@ -213,6 +213,18 @@ paths:
   /api/integrations/zoomvideo/callback:
     post:
       description: Gets and stores the OAuth token for a Zoom integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
+  /api/integrations/stripe/add:
+    get:
+      description: Gets the OAuth URL for a Stripe integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/stripe/callback:
+    post:
+      description: Gets and stores the OAuth token for a Stripe integration.
       summary: Gets and stores the OAuth token
       tags:
         - Integrations
