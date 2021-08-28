@@ -35,7 +35,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       redirect_uri,
     };
     const query = stringify(stripeConnectParams);
-    const url = `https://connect.stripe.com/oauth/authorize?${query}`;
+    /**
+     * Choose Express or Stantard Stripe accounts
+     * @url https://stripe.com/docs/connect/accounts
+     */
+    const url = `https://connect.stripe.com/express/oauth/authorize?${query}`;
+    // const url = `https://connect.stripe.com/oauth/authorize?${query}`;
 
     res.status(200).json({ url });
   }
