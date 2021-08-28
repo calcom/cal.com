@@ -251,6 +251,19 @@ Contributions are what make the open source community such an amazing place to b
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Calendso settings.
 
+## Obtaining Stripe Client ID, Publishable and Secret key
+
+1. Open [Stripe Dashboard](https://dashboard.stripe.com/) and sign in with your Stripe account.
+2. On the left sidebar, click "Settings" => "Connect" => "Settings".
+3. On "Connect settings", choose your desired account type and finish the setup.
+4. Name your Business name and setup your branding.
+5. On "Integration".
+6. Now copy the Client ID to you `.env` file into the `NEXT_PUBLIC_STRIPE_CLIENT_ID` field.
+7. Add a Redirect URL for OAuth `<CALENDSO URL>/api/integrations/stripe/callback` replacing CALENDSO URL with the URI at which your application runs.
+8. On the left sidebar, click "Developers" => "API keys".
+9. Now copy the Publishable key and Secret key to your .env file into the `NEXT_PUBLIC_STRIPE_PUBLIC_KEY` and `STRIPE_SECRET_KEY` fields.
+10. You're good to go. Now you can easily add your Stripe integration in the Calendso settings.
+
 <!-- LICENSE -->
 
 ## License
