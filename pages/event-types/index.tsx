@@ -228,15 +228,17 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                               />
                               <p>1-on-1</p>
                             </div>
-                            <div className="flex items-center text-sm text-neutral-500">
-                              <InformationCircleIcon
-                                className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
-                                aria-hidden="true"
-                              />
-                              <div className="truncate max-w-32 sm:max-w-full">
-                                {type.description.substring(0, 100)}
+                            {type.description && (
+                              <div className="flex items-center text-sm text-neutral-500">
+                                <InformationCircleIcon
+                                  className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
+                                  aria-hidden="true"
+                                />
+                                <div className="truncate max-w-32 sm:max-w-full">
+                                  {type.description.substring(0, 100)}
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         </span>
                       </a>
