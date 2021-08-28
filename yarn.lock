@@ -1076,6 +1076,11 @@
   version "16.6.1"
   resolved "https://registry.npmjs.org/@types/node/-/node-16.6.1.tgz#aee62c7b966f55fc66c7b6dfa1d58db2a616da61"
 
+"@types/node@>=8.1.0":
+  version "16.7.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.7.4.tgz#68a9384694af63ceab8848e95d76d9a3519e84b6"
+  integrity sha512-25QXpDsTiDnl2rZGUenagVMwO46way8dOUdvoC3R3p+6TrbpxeJBo/v87BEG1IHI31Jhaa8lPeSHcqwxsVBeYQ==
+
 "@types/nodemailer@^6.4.4":
   version "6.4.4"
   resolved "https://registry.npmjs.org/@types/nodemailer/-/nodemailer-6.4.4.tgz#c265f7e7a51df587597b3a49a023acaf0c741f4b"
@@ -4806,7 +4811,7 @@ purgecss@^4.0.3:
     postcss "^8.2.1"
     postcss-selector-parser "^6.0.2"
 
-qs@^6.7.0:
+qs@^6.6.0, qs@^6.7.0:
   version "6.10.1"
   resolved "https://registry.npmjs.org/qs/-/qs-6.10.1.tgz#4931482fa8d647a5aab799c5271d2133b981fb6a"
   dependencies:
@@ -5519,6 +5524,14 @@ strip-final-newline@^2.0.0:
 strip-json-comments@^3.1.0, strip-json-comments@^3.1.1:
   version "3.1.1"
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
+
+stripe@8.171.0:
+  version "8.171.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-8.171.0.tgz#9c52d2e3928c7ebf708ce1f9eb2d3cc2f682f8bf"
+  integrity sha512-SriWXEVukmnrE40BoRe18Zsw9zftpnDlZlgxhZd6qJqP/RwN59op5YoW2mA0LE6Grxn8FH8RB9CXVxCAHNTk8w==
+  dependencies:
+    "@types/node" ">=8.1.0"
+    qs "^6.6.0"
 
 styled-jsx@3.3.2:
   version "3.3.2"
