@@ -8,6 +8,8 @@ export function getIntegrationName(name: string) {
       return "Zoom";
     case "caldav_calendar":
       return "CalDav Server";
+    case "stripe":
+      return "Stripe";
     default:
       return "Unknown";
   }
