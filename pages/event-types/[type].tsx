@@ -1,46 +1,44 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Modal from "@components/Modal";
-import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionBase } from "react-select";
-import prisma from "@lib/prisma";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
-import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
-import { getSession } from "next-auth/client";
 import { Scheduler } from "@components/ui/Scheduler";
+import Switch from "@components/ui/Switch";
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
-  LocationMarkerIcon,
-  LinkIcon,
-  PlusIcon,
-  DocumentIcon,
   ChevronRightIcon,
   ClockIcon,
-  TrashIcon,
+  DocumentIcon,
   ExternalLinkIcon,
+  LinkIcon,
+  LocationMarkerIcon,
+  PlusIcon,
+  TrashIcon,
 } from "@heroicons/react/solid";
-
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import { Availability, EventType, User } from "@prisma/client";
-import { validJson } from "@lib/jsonUtils";
+import getIntegrations from "@lib/integrations/getIntegrations";
+import { LocationType } from "@lib/location";
+import deleteEventType from "@lib/mutations/event-types/delete-event-type";
+import updateEventType from "@lib/mutations/event-types/update-event-type";
+import showToast from "@lib/notification";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
+import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import classnames from "classnames";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import throttle from "lodash.throttle";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { getSession } from "next-auth/client";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import React, { ComponentProps, useEffect, useRef, useState } from "react";
+import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
-import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
-import Switch from "@components/ui/Switch";
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
-import { EventTypeInput } from "@lib/types/event-type";
-import updateEventType from "@lib/mutations/event-types/update-event-type";
-import deleteEventType from "@lib/mutations/event-types/delete-event-type";
-import showToast from "@lib/notification";
+import Select, { OptionBase } from "react-select";
+import prisma from "../../lib/prisma";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -65,7 +63,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
-  const inputOptions: OptionBase[] = [
+  const inputOptions = [
     { value: EventTypeCustomInputType.TEXT, label: "Text" },
     { value: EventTypeCustomInputType.TEXTLONG, label: "Multiline Text" },
     { value: EventTypeCustomInputType.NUMBER, label: "Number" },
@@ -177,20 +175,20 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   async function updateEventTypeHandler(event) {
     event.preventDefault();
 
-    const enteredTitle: string = titleRef.current.value;
-    const enteredSlug: string = slugRef.current.value;
-    const enteredDescription: string = descriptionRef.current.value;
-    const enteredLength: number = parseInt(lengthRef.current.value);
+    const enteredTitle: string = titleRef.current!.value;
+    const enteredSlug: string = slugRef.current!.value;
+    const enteredDescription: string = descriptionRef.current!.value;
+    const enteredLength: number = parseInt(lengthRef.current!.value);
 
     const advancedOptionsPayload: AdvancedOptions = {};
     if (requiresConfirmationRef.current) {
       advancedOptionsPayload.requiresConfirmation = requiresConfirmationRef.current.checked;
-      advancedOptionsPayload.eventName = eventNameRef.current.value;
-      advancedOptionsPayload.periodType = periodType.type;
-      advancedOptionsPayload.periodDays = parseInt(periodDaysRef?.current?.value);
-      advancedOptionsPayload.periodCountCalendarDays = Boolean(parseInt(periodDaysTypeRef?.current.value));
-      advancedOptionsPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : null;
-      advancedOptionsPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : null;
+      advancedOptionsPayload.eventName = eventNameRef.current!.value;
+      advancedOptionsPayload.periodType = periodType?.type;
+      advancedOptionsPayload.periodDays = parseInt(periodDaysRef.current!.value);
+      advancedOptionsPayload.periodCountCalendarDays = Boolean(parseInt(periodDaysTypeRef.current!.value));
+      advancedOptionsPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : undefined;
+      advancedOptionsPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : undefined;
     }
 
     const payload: EventTypeInput = {
@@ -203,14 +201,16 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
       locations,
       customInputs,
       timeZone: selectedTimeZone,
-      availability: enteredAvailability || null,
+      availability: enteredAvailability || undefined,
       ...advancedOptionsPayload,
     };
 
     updateMutation.mutate(payload);
   }
 
-  async function deleteEventTypeHandler(event) {
+  async function deleteEventTypeHandler(
+    event: Parameters<ComponentProps<typeof ConfirmationDialogContent>["onConfirm"]>[0]
+  ) {
     event.preventDefault();
 
     const payload = { id: eventType.id };
@@ -419,7 +419,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                             name="location"
                             id="location"
                             options={locationOptions}
-                            isSearchable="false"
+                            isSearchable={false}
                             classNamePrefix="react-select"
                             className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                             onChange={(e) => openLocationModal(e.value)}
@@ -738,7 +738,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                                                   ref={periodDaysTypeRef}
                                                   id=""
                                                   name="periodDaysType"
-                                                  className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm  focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                  className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                                   defaultValue={
                                                     eventType.periodCountCalendarDays ? "1" : "0"
                                                   }>
@@ -900,7 +900,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                     name="location"
                     defaultValue={selectedLocation}
                     options={locationOptions}
-                    isSearchable="false"
+                    isSearchable={false}
                     classNamePrefix="react-select"
                     className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     onChange={setSelectedLocation}
@@ -960,7 +960,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                       name="type"
                       defaultValue={selectedInputOption}
                       options={inputOptions}
-                      isSearchable="false"
+                      isSearchable={false}
                       required
                       className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
                       onChange={setSelectedInputOption}
@@ -992,7 +992,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                           type="text"
                           name="placeholder"
                           id="placeholder"
-                          className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                          className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                           defaultValue={selectedCustomInput?.placeholder}
                         />
                       </div>
@@ -1030,141 +1030,129 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, query } = context;
-  const session = await getSession({ req });
-  if (!session) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
+  try {
+    const { req, query } = context;
+    const session = await getSession({ req });
+
+    if (!session || !session.user) throw "noSession";
+
+    const user = await prisma.user.findFirst({
+      where: {
+        email: session.user.email,
       },
-    };
-  }
-
-  const user: User = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      username: true,
-      timeZone: true,
-      startTime: true,
-      endTime: true,
-      availability: true,
-    },
-  });
-
-  const eventType: EventType | null = await prisma.eventType.findUnique({
-    where: {
-      id: parseInt(query.type as string),
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      hidden: true,
-      locations: true,
-      eventName: true,
-      availability: true,
-      customInputs: true,
-      timeZone: true,
-      periodType: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-      requiresConfirmation: true,
-    },
-  });
-
-  if (!eventType) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
-
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      enabled: credentials.find((integration) => integration.type === "google_calendar") != null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business accounts",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      enabled: credentials.find((integration) => integration.type === "office365_calendar") != null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business accounts",
-    },
-  ];
-
-  const locationOptions: OptionBase[] = [
-    { value: LocationType.InPerson, label: "In-person meeting" },
-    { value: LocationType.Phone, label: "Phone call" },
-    { value: LocationType.Zoom, label: "Zoom Video" },
-  ];
-
-  const hasGoogleCalendarIntegration = integrations.find(
-    (i) => i.type === "google_calendar" && i.installed === true && i.enabled
-  );
-  if (hasGoogleCalendarIntegration) {
-    locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
-  }
-
-  const hasOfficeIntegration = integrations.find(
-    (i) => i.type === "office365_calendar" && i.installed === true && i.enabled
-  );
-  if (hasOfficeIntegration) {
-    // TODO: Add default meeting option of the office integration.
-    // Assuming it's Microsoft Teams.
-  }
-
-  const getAvailability = (providesAvailability) =>
-    providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
-      : null;
-
-  const availability: Availability[] = getAvailability(eventType) ||
-    getAvailability(user) || [
-      {
-        days: [0, 1, 2, 3, 4, 5, 6],
-        startTime: user.startTime,
-        endTime: user.endTime,
+      select: {
+        id: true,
+        username: true,
+        timeZone: true,
+        startTime: true,
+        endTime: true,
+        availability: true,
       },
+    });
+
+    if (!user) throw "notFound";
+
+    const eventType = await prisma.eventType.findUnique({
+      where: {
+        id: parseInt(query.type as string),
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        length: true,
+        hidden: true,
+        locations: true,
+        eventName: true,
+        availability: true,
+        customInputs: true,
+        timeZone: true,
+        periodType: true,
+        periodDays: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        periodCountCalendarDays: true,
+        requiresConfirmation: true,
+      },
+    });
+
+    if (!eventType) throw "notFound";
+
+    const credentials = await prisma.credential.findMany({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+      },
+    });
+
+    const integrations = getIntegrations(credentials);
+
+    const locationOptions: OptionBase[] = [
+      { value: LocationType.InPerson, label: "In-person meeting" },
+      { value: LocationType.Phone, label: "Phone call" },
+      { value: LocationType.Zoom, label: "Zoom Video" },
     ];
 
-  availability.sort((a, b) => a.startTime - b.startTime);
+    const hasGoogleCalendarIntegration = integrations.find(
+      (i) => i.type === "google_calendar" && !!i.installed && !!i.credential
+    );
+    if (hasGoogleCalendarIntegration) {
+      locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
+    }
 
-  const eventTypeObject = Object.assign({}, eventType, {
-    periodStartDate: eventType.periodStartDate?.toString() ?? null,
-    periodEndDate: eventType.periodEndDate?.toString() ?? null,
-  });
+    const hasOfficeIntegration = integrations.find(
+      (i) => i.type === "office365_calendar" && !!i.installed && !!i.credential
+    );
+    if (hasOfficeIntegration) {
+      // TODO: Add default meeting option of the office integration.
+      // Assuming it's Microsoft Teams.
+    }
 
-  return {
-    props: {
-      user,
-      eventType: eventTypeObject,
-      locationOptions,
-      availability,
-    },
-  };
+    const getAvailability = (providesAvailability: NonNullable<typeof user | typeof eventType>) =>
+      providesAvailability.availability && providesAvailability.availability.length
+        ? providesAvailability.availability
+        : null;
+
+    const availability = getAvailability(eventType) ||
+      getAvailability(user) || [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: user.startTime,
+          endTime: user.endTime,
+        },
+      ];
+
+    availability.sort((a, b) => a.startTime - b.startTime);
+
+    const eventTypeObject = Object.assign({}, eventType, {
+      periodStartDate: eventType.periodStartDate?.toString() ?? null,
+      periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    });
+
+    return {
+      props: {
+        user,
+        eventType: eventTypeObject,
+        locationOptions,
+        availability,
+      },
+    };
+  } catch (error) {
+    switch (error) {
+      case "noSession":
+        return {
+          redirect: { permanent: false, destination: "/auth/login" },
+          props: {} as never,
+        };
+      default:
+        return { notFound: true, props: {} as never };
+    }
+  }
 };
 
 export default EventTypePage;
