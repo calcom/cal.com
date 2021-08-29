@@ -9,6 +9,7 @@ import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
+  CurrencyDollarIcon,
   DocumentIcon,
   ExternalLinkIcon,
   LinkIcon,
@@ -59,7 +60,7 @@ const PERIOD_TYPES = [
 ];
 
 const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { user, eventType, locationOptions, availability } = props;
+  const { user, eventType, locationOptions, availability, canPrice } = props;
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -159,14 +160,15 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   });
 
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-  const requiresConfirmationRef = useRef<HTMLInputElement>();
-  const eventNameRef = useRef<HTMLInputElement>();
-  const periodDaysRef = useRef<HTMLInputElement>();
-  const periodDaysTypeRef = useRef<HTMLSelectElement>();
+  const titleRef = useRef<HTMLInputElement>(null);
+  const slugRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const lengthRef = useRef<HTMLInputElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
+  const requiresConfirmationRef = useRef<HTMLInputElement>(null);
+  const eventNameRef = useRef<HTMLInputElement>(null);
+  const periodDaysRef = useRef<HTMLInputElement>(null);
+  const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || user.timeZone);
@@ -179,6 +181,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     const enteredSlug: string = slugRef.current!.value;
     const enteredDescription: string = descriptionRef.current!.value;
     const enteredLength: number = parseInt(lengthRef.current!.value);
+    const enteredPrice = priceRef.current?.value;
 
     const advancedOptionsPayload: AdvancedOptions = {};
     if (requiresConfirmationRef.current) {
@@ -204,6 +207,8 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
       availability: enteredAvailability || undefined,
       ...advancedOptionsPayload,
     };
+
+    if (enteredPrice) payload.price = parseInt(enteredPrice);
 
     updateMutation.mutate(payload);
   }
@@ -401,6 +406,35 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                     </div>
                   </div>
                 </div>
+
+                {canPrice && (
+                  <div className="items-center block sm:flex">
+                    <div className="mb-4 min-w-44 sm:mb-0">
+                      <label htmlFor="length" className="flex mt-0 text-sm font-medium text-neutral-700">
+                        <CurrencyDollarIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        Price
+                      </label>
+                    </div>
+                    <div className="w-full">
+                      <div className="relative mt-1 rounded-sm shadow-sm">
+                        <input
+                          ref={priceRef}
+                          type="number"
+                          name="price"
+                          id="price"
+                          className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          placeholder="0"
+                          defaultValue={eventType.price || 0}
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm" id="duration">
+                            {process.env.NEXT_PUBLIC_CURRENCY_CODE}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <hr />
 
@@ -1029,6 +1063,10 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   );
 };
 
+function hasIntegration(integrations: ReturnType<typeof getIntegrations>, type: string): boolean {
+  return !!integrations.find((i) => i.type === type && !!i.installed && !!i.credential);
+}
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   try {
     const { req, query } = context;
@@ -1062,6 +1100,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         slug: true,
         description: true,
         length: true,
+        price: true,
         hidden: true,
         locations: true,
         eventName: true,
@@ -1098,17 +1137,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       { value: LocationType.Zoom, label: "Zoom Video" },
     ];
 
-    const hasGoogleCalendarIntegration = integrations.find(
-      (i) => i.type === "google_calendar" && !!i.installed && !!i.credential
-    );
-    if (hasGoogleCalendarIntegration) {
+    if (hasIntegration(integrations, "google_calendar")) {
       locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
     }
-
-    const hasOfficeIntegration = integrations.find(
-      (i) => i.type === "office365_calendar" && !!i.installed && !!i.credential
-    );
-    if (hasOfficeIntegration) {
+    if (hasIntegration(integrations, "office365_calendar")) {
       // TODO: Add default meeting option of the office integration.
       // Assuming it's Microsoft Teams.
     }
@@ -1140,6 +1172,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventType: eventTypeObject,
         locationOptions,
         availability,
+        canPrice: hasIntegration(integrations, "stripe"),
       },
     };
   } catch (error) {

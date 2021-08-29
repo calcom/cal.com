@@ -21,7 +21,7 @@ export type AdvancedOptions = {
 };
 
 export type EventTypeCustomInput = {
-  id: number;
+  id?: number;
   label: string;
   placeholder: string;
   required: boolean;
@@ -41,6 +41,7 @@ export type EventTypeInput = AdvancedOptions & {
   slug: string;
   description: string;
   length: number;
+  price?: number;
   hidden: boolean;
   locations: unknown;
   customInputs: EventTypeCustomInput[];
