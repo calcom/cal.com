@@ -1,6 +1,7 @@
 import Cropper from "react-easy-crop";
 import { useState, useCallback, useRef } from "react";
-import Slider from "./Slider";
+import Slider from "@components/Slider";
+import Button from "@components/ui/Button";
 
 export default function ImageUploader({
   displayName,
@@ -16,7 +17,7 @@ export default function ImageUploader({
   imageRef: string | null | undefined;
 }) {
   const imageFileRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
-  const [imageDataUrl, setImageDataUrl] = useState<string>();
+  const [imageDataUrl, setImageDataUrl] = useState<string | undefined>();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState();
   const [rotation] = useState(1);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -37,16 +38,16 @@ export default function ImageUploader({
 
   async function ImageUploadHandler() {
     if (imageFileRef.current.files !== null) {
-      const img: string = await readFile(imageFileRef.current.files[0]);
+      const img: string | undefined = await readFile(imageFileRef.current.files[0]);
       setImageDataUrl(img);
       CropHandler();
     }
   }
 
-  const readFile = (file: File) => {
+  const readFile = (file: File): Promise<string | undefined> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.addEventListener("load", () => resolve(reader.result), false);
+      reader.addEventListener("load", () => resolve(reader.result as string), false);
       reader.readAsDataURL(file);
     });
   };
@@ -65,7 +66,7 @@ export default function ImageUploader({
     value < 1 ? setZoom(1) : setZoom(value);
   };
 
-  const createImage = (url: string | undefined) =>
+  const createImage = (url: string | undefined | null) =>
     new Promise<HTMLImageElement>((resolve, reject) => {
       const image = new Image();
       image.addEventListener("load", () => resolve(image));
@@ -77,52 +78,53 @@ export default function ImageUploader({
   function getRadianAngle(degreeValue: number) {
     return (degreeValue * Math.PI) / 180;
   }
-  async function getCroppedImg(
-    imageSrc: string | undefined,
-    pixelCrop: { x: number; y: number; width: number; height: number } | undefined,
-    rotation = 0
-  ) {
-    const image = await createImage(imageSrc);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    const maxSize = Math.max(image.width, image.height);
-    const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
-
-    // set each dimensions to double largest dimension to allow for a safe area for the
-    // image to rotate in without being clipped by canvas context
-    canvas.width = safeArea;
-    canvas.height = safeArea;
-
-    // translate canvas context to a central location on image to allow rotating around the center.
-    ctx?.translate(safeArea / 2, safeArea / 2);
-    ctx?.rotate(getRadianAngle(rotation));
-    ctx?.translate(-safeArea / 2, -safeArea / 2);
-
-    // draw rotated image and store data.
-    ctx?.drawImage(image, safeArea / 2 - image.width * 0.5, safeArea / 2 - image.height * 0.5);
-    const data = ctx?.getImageData(0, 0, safeArea, safeArea);
-
-    // set canvas width to final desired crop size - this will clear existing context
-    if (pixelCrop) {
-      canvas.width = pixelCrop.width;
-      canvas.height = pixelCrop.height;
-
-      // paste generated rotate image with correct offsets for x,y crop values.
-      data &&
-        ctx?.putImageData(
-          data,
-          Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
-          Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
-        );
-    }
-
-    // As Base64 string
-    return canvas.toDataURL("image/jpeg");
-  }
 
   const showCroppedImage = useCallback(async () => {
     try {
+      const getCroppedImg = async (
+        imageSrc: string | undefined | null,
+        pixelCrop: { x: number; y: number; width: number; height: number } | undefined,
+        rotation = 0
+      ) => {
+        const image = await createImage(imageSrc);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const maxSize = Math.max(image.width, image.height);
+        const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+
+        // set each dimensions to double largest dimension to allow for a safe area for the
+        // image to rotate in without being clipped by canvas context
+        canvas.width = safeArea;
+        canvas.height = safeArea;
+
+        // translate canvas context to a central location on image to allow rotating around the center.
+        ctx?.translate(safeArea / 2, safeArea / 2);
+        ctx?.rotate(getRadianAngle(rotation));
+        ctx?.translate(-safeArea / 2, -safeArea / 2);
+
+        // draw rotated image and store data.
+        ctx?.drawImage(image, safeArea / 2 - image.width * 0.5, safeArea / 2 - image.height * 0.5);
+        const data = ctx?.getImageData(0, 0, safeArea, safeArea);
+
+        // set canvas width to final desired crop size - this will clear existing context
+        if (pixelCrop) {
+          canvas.width = pixelCrop.width;
+          canvas.height = pixelCrop.height;
+
+          // paste generated rotate image with correct offsets for x,y crop values.
+          data &&
+            ctx?.putImageData(
+              data,
+              Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
+              Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
+            );
+        }
+
+        // As Base64 string
+        return canvas.toDataURL("image/jpeg");
+      };
+
       const croppedImage = await getCroppedImg(imageDataUrl, croppedAreaPixels, rotation);
       setIsImageShown(true);
       setShownImage(croppedImage);
@@ -132,16 +134,13 @@ export default function ImageUploader({
     } catch (e) {
       console.error(e);
     }
-  }, [croppedAreaPixels, rotation]);
+  }, [croppedAreaPixels, rotation, imageDataUrl, onChange]);
 
   return (
     <div className="flex items-center justify-center">
-      <button
-        type="button"
-        className="ml-4 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;"
-        onClick={openUploaderModal}>
+      <Button type="button" color="secondary" size="sm" className="ml-4" onClick={openUploaderModal}>
         {buttonMsg}
-      </button>
+      </Button>
 
       {imageUploadModalOpen && (
         <div
@@ -219,12 +218,12 @@ export default function ImageUploader({
                 </div>
               </div>
               <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <button type="button" className="btn btn-primary" onClick={showCroppedImage}>
+                <Button type="button" color="primary" size="sm" className="ml-2" onClick={showCroppedImage}>
                   Save
-                </button>
-                <button onClick={closeImageUploadModal} type="button" className="mr-2 btn btn-white">
+                </Button>
+                <Button type="button" color="secondary" size="sm" onClick={closeImageUploadModal}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
