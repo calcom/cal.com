@@ -3,9 +3,9 @@ import classnames from "classnames";
 import { TextProps } from "../Text";
 
 const Subtitle: React.FunctionComponent<TextProps> = (props: TextProps) => {
-  const classes = classnames("ext-sm text-neutral-500 dark:text-white");
+  const classes = classnames("text-sm font-normal text-neutral-500 dark:text-white", props?.className);
 
-  return <p className={classes}>{props.children}</p>;
+  return <p className={classes}>{props?.text || props.children}</p>;
 };
 
 export default Subtitle;
