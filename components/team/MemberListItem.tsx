@@ -77,7 +77,7 @@ export default function MemberListItem(props: {
                       Remove User
                     </DialogTrigger>
                     <ConfirmationDialogContent
-                      alert="danger"
+                      variety="danger"
                       title="Remove member"
                       confirmBtnText="Yes, remove member"
                       cancelBtnText="Cancel"

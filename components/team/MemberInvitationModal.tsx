@@ -3,7 +3,7 @@ import { useState } from "react";
 import Button from "@components/ui/Button";
 import { Team } from "@lib/team";
 
-export default function MemberInvitationModal(props: { team: Team; onExit: () => void }) {
+export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleError = async (res: Response) => {
@@ -26,7 +26,7 @@ export default function MemberInvitationModal(props: { team: Team; onExit: () =>
       sendEmailInvitation: e.target.elements["sendInviteEmail"].checked,
     };
 
-    return fetch("/api/teams/" + props.team.id + "/invite", {
+    return fetch("/api/teams/" + props?.team?.id + "/invite", {
       method: "POST",
       body: JSON.stringify(payload),
       headers: {

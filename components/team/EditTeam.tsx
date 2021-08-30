@@ -261,7 +261,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                         Disband Team
                       </DialogTrigger>
                       <ConfirmationDialogContent
-                        alert="danger"
+                        variety="danger"
                         title="Disband Team"
                         confirmBtnText="Yes, disband team"
                         cancelBtnText="Cancel"

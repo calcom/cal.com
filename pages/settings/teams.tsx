@@ -13,6 +13,7 @@ import EditTeam from "@components/team/EditTeam";
 import Button from "@components/ui/Button";
 import { Member } from "@lib/member";
 import { Team } from "@lib/team";
+import { PlusIcon } from "@heroicons/react/solid";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -63,14 +64,9 @@ export default function Teams() {
     });
   };
 
-  const editTeam = (team) => {
+  const editTeam = (team: Team) => {
     setEditTeamEnabled(true);
     setTeamToEdit(team);
-  };
-
-  const inviteMember = (team: any) => {
-    setShowMemberInvitationModal(true);
-    setInviteModalTeam(team);
   };
 
   const onCloseEdit = () => {
@@ -106,15 +102,8 @@ export default function Teams() {
                     className="btn btn-white">
                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
                     New Team
-                  </button>
+                  </Button>
                 </div>
-                {/* {!!(invites.length || teams.length) && (
-                  <div>
-                    <button className="mb-4 btn-sm btn-white" onClick={() => setShowCreateTeamModal(true)}>
-                      + New Team
-                    </button>
-                  </div>
-                )} */}
               </div>
               <div>
                 {!!teams.length && (
@@ -125,29 +114,23 @@ export default function Teams() {
                   <div>
                     <h2 className="text-lg font-medium leading-6 text-gray-900">Open Invitations</h2>
                     <ul className="px-2 mt-2 mb-2 border divide-y divide-gray-200 rounded">
-                      {invites.map((team) => (
-                        <TeamListItem onChange={loadData} key={team.id} team={team}></TeamListItem>
+                      {invites.map((team: Team) => (
+                        <TeamListItem
+                          onChange={loadData}
+                          key={team.id}
+                          team={team}
+                          onActionSelect={() => {
+                            return undefined;
+                          }}></TeamListItem>
                       ))}
                     </ul>
                   </div>
                 )}
               </div>
-              {/*{teamsLoaded && <div className="flex justify-between">
-                <div>
-                  <h2 className="mb-1 text-lg font-medium leading-6 text-gray-900">Transform account</h2>
-                  <p className="mb-1 text-sm text-gray-500">
-                    {membership.length !== 0 && "You cannot convert this account into a team until you leave all teams that you’re a member of."}
-                    {membership.length === 0 && "A user account can be turned into a team, as a team ...."}
-                  </p>
-                </div>
-                <div>
-                  <button className="mt-2 opacity-50 cursor-not-allowed btn-sm btn-primary" disabled>Convert {session.user.username} into a team</button>
-                </div>
-              </div>}*/}
             </div>
           </div>
         )}
-        {!!editTeamEnabled && <EditTeam team={teamToEdit} onCloseEdit={() => setEditTeamEnabled(false)} />}
+        {!!editTeamEnabled && <EditTeam team={teamToEdit} onCloseEdit={onCloseEdit} />}
         {showCreateTeamModal && (
           <div
             className="fixed inset-0 z-50 overflow-y-auto"
@@ -207,11 +190,6 @@ export default function Teams() {
               </div>
             </div>
           </div>
-        )}
-        {showMemberInvitationModal && (
-          <MemberInvitationModal
-            team={inviteModalTeam}
-            onExit={() => setShowMemberInvitationModal(false)}></MemberInvitationModal>
         )}
       </SettingsShell>
     </Shell>

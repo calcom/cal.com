@@ -142,7 +142,7 @@ export default function TeamListItem(props: {
                         Disband Team
                       </DialogTrigger>
                       <ConfirmationDialogContent
-                        alert="danger"
+                        variety="danger"
                         title="Disband Team"
                         confirmBtnText="Yes, disband team"
                         cancelBtnText="Cancel"
