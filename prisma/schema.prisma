@@ -24,7 +24,7 @@ model EventType {
   length        Int
   hidden        Boolean @default(false)
   userId        Int?
-  organizers    User[]
+  organizers    User[]  @relation("user_eventtype")
   team          Team?   @relation(fields: [teamId], references: [id])
   teamId        Int?
   bookings      Booking[]
@@ -52,7 +52,7 @@ model Credential {
 
 model User {
   id            Int       @default(autoincrement()) @id
-  username      String?
+  username      String?   @unique
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -67,10 +67,10 @@ model User {
   hideBranding  Boolean @default(false)
   theme         String?
   createdDate   DateTime  @default(now()) @map(name: "created")
-  eventTypes    EventType[]
+  eventTypes    EventType[]   @relation("user_eventtype")
   credentials   Credential[]
   teams         Membership[]
-  bookings      Booking[]
+  bookings      Booking[]     @relation("user_booking")
   availability  Availability[]
   selectedCalendars      SelectedCalendar[]
 
@@ -80,9 +80,10 @@ model User {
 model Team {
   id            Int       @default(autoincrement()) @id
   name          String?
-  slug          String?
+  slug          String?      @unique
   members       Membership[]
   eventTypes    EventType[]
+  bookings      Booking[]
 }
 
 enum MembershipRole {
@@ -131,8 +132,10 @@ model Attendee {
 model Booking {
   id            Int         @default(autoincrement()) @id
   uid           String      @unique
-  user          User?       @relation(fields: [userId], references: [id])
+  organizers    User[]      @relation("user_booking")
   userId        Int?
+  team          Team?       @relation(fields: [teamId], references: [id])
+  teamId        Int?
   references    BookingReference[]
   eventType     EventType?  @relation(fields: [eventTypeId], references: [id])
   eventTypeId   Int?
