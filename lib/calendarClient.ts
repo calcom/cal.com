@@ -109,7 +109,7 @@ const o365Auth = (credential) => {
 };
 
 interface Person {
-  name?: string;
+  name: string;
   email: string;
   timeZone: string;
 }
@@ -121,7 +121,12 @@ export interface CalendarEvent {
   endTime: string;
   description?: string;
   location?: string;
-  organizer: Person;
+  organizer:
+    | Person
+    | {
+        attendees: Person[];
+        name: string;
+      };
   attendees: Person[];
   conferenceData?: ConferenceData;
 }
