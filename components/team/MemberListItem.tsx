@@ -5,6 +5,7 @@ import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/Avatar";
 import { Member } from "@lib/member";
+import Button from "@components/ui/Button";
 
 export default function MemberListItem(props: {
   member: Member;
@@ -66,11 +67,13 @@ export default function MemberListItem(props: {
                 <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                   <Dialog>
                     <DialogTrigger
+                      as={Button}
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
-                      className="flex items-center w-full px-4 py-2 text-left text-red-700 bg-red-50">
-                      <UserRemoveIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" />
+                      color="warn"
+                      StartIcon={UserRemoveIcon}
+                      className="w-full">
                       Remove User
                     </DialogTrigger>
                     <ConfirmationDialogContent
