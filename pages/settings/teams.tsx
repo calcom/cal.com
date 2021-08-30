@@ -14,6 +14,7 @@ import Button from "@components/ui/Button";
 import { Member } from "@lib/member";
 import { Team } from "@lib/team";
 import { PlusIcon } from "@heroicons/react/solid";
+import { noop } from "react-query/types/core/utils";
 
 export default function Teams() {
   const [, loading] = useSession();
@@ -119,9 +120,7 @@ export default function Teams() {
                           onChange={loadData}
                           key={team.id}
                           team={team}
-                          onActionSelect={() => {
-                            return undefined;
-                          }}></TeamListItem>
+                          onActionSelect={noop}></TeamListItem>
                       ))}
                     </ul>
                   </div>
