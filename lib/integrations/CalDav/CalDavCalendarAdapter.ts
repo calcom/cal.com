@@ -198,6 +198,9 @@ export class CalDavCalendar implements CalendarApiAdapter {
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
     try {
+      if (selectedCalendars.length == 0) {
+        selectedCalendars = await this.listCalendars();
+      }
       const selectedCalendarIds = selectedCalendars
         .filter((e) => e.integration === this.integrationName)
         .map((e) => e.externalId);
