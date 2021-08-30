@@ -6,10 +6,21 @@ jobs:
     name: ${{ matrix.node }} and ${{ matrix.os }}
 
     env:
-      # SOME_SECRET: ${{ secrets.CI_SOME_SECRET }}
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NODE_ENV: test
       BASE_URL: http://localhost:3000
+      GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      # CRON_API_KEY: xxx
+      # CALENDSO_ENCRYPTION_KEY: xxx
+      # NEXTAUTH_URL: xxx
+      # EMAIL_FROM: xxx
+      # EMAIL_SERVER_HOST: xxx
+      # EMAIL_SERVER_PORT: xxx
+      # EMAIL_SERVER_USER: xxx
+      # MS_GRAPH_CLIENT_ID: xxx
+      # MS_GRAPH_CLIENT_SECRET: xxx
+      # ZOOM_CLIENT_ID: xxx
+      # ZOOM_CLIENT_SECRET: xxx
     services:
       postgres:
         image: postgres:12.1
