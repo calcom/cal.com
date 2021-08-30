@@ -16,6 +16,7 @@ type RadioAreaSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 
 export const RadioAreaSelect = function RadioAreaSelect(props: RadioAreaSelectProps) {
   const options: Option[] = props.options || [];
+  const disabled: boolean = !options.length || props.disabled;
 
   const [option, setOption] = useState<Option | null>(
     props.defaultValue
@@ -36,10 +37,11 @@ export const RadioAreaSelect = function RadioAreaSelect(props: RadioAreaSelectPr
   return (
     <Collapsible className={classNames("w-full", props.className)}>
       <CollapsibleTrigger
-        as="button"
+        type="button"
+        disabled={disabled}
         className={classNames(
-          "mb-1 cursor-pointer focus:outline-none focus:ring focus:ring-neutral-500 text-left border border-1 bg-white p-2 shadow-sm block w-full sm:text-sm border-gray-300 rounded-sm",
-          (!options.length || props.disabled) && "focus:ring-0 cursor-default bg-gray-200 "
+          "mb-1 cursor-pointer focus:ring-primary-500 text-left border border-1 bg-white p-2 shadow-sm block w-full sm:text-sm border-gray-300 rounded-sm",
+          disabled && "focus:ring-0 cursor-default bg-gray-200 "
         )}>
         {option?.label || props.placeholder || "Select..."}
         <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
