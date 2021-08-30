@@ -4,6 +4,7 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 generator client {
@@ -17,6 +18,7 @@ model EventType {
   description   String?
   locations     Json?
   length        Int
+  price         Int?
   hidden        Boolean @default(false)
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
