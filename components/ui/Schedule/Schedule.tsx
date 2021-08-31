@@ -1,9 +1,8 @@
 import React from "react";
 import Text from "@components/ui/Text";
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import Dayjs from "dayjs";
-import dayjs from "dayjs";
-
+import dayjs, { Dayjs } from "dayjs";
+import classnames from "classnames";
 export const SCHEDULE_FORM_ID = "SCHEDULE_FORM_ID";
 export const toCalendsoAvailabilityFormat = (schedule: Schedule) => {
   return schedule;
@@ -15,14 +14,20 @@ export const _24_HOUR_TIME_FORMAT = `HH:mm:ss`;
 const DEFAULT_START_TIME = "09:00:00";
 const DEFAULT_END_TIME = "17:00:00";
 
+/** Begin Time Increments For Select */
 const increment = 15;
 
+/**
+ * Creates an array of times on a 15 minute interval from
+ * 00:00:00 (Start of day) to
+ * 23:45:00 (End of day with enough time for 15 min booking)
+ */
 const TIMES = (() => {
   const starting_time = dayjs().startOf("day");
   const ending_time = dayjs().endOf("day");
 
   const times = [];
-  let t: Dayjs.Dayjs = starting_time;
+  let t: Dayjs = starting_time;
 
   while (t.isBefore(ending_time)) {
     times.push(t.format(_24_HOUR_TIME_FORMAT));
@@ -30,8 +35,9 @@ const TIMES = (() => {
   }
   return times;
 })();
+/** End Time Increments For Select */
 
-const DEFAULT_SCHEDULE = {
+const DEFAULT_SCHEDULE: Schedule = {
   monday: [{ start: "09:00:00", end: "17:00:00" }],
   tuesday: [{ start: "09:00:00", end: "17:00:00" }],
   wednesday: [{ start: "09:00:00", end: "17:00:00" }],
@@ -41,7 +47,7 @@ const DEFAULT_SCHEDULE = {
   sunday: null,
 };
 
-type Day = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+type DayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 export type TimeRange = {
   start: string;
   end: string;
@@ -60,7 +66,7 @@ export type Schedule = {
 };
 
 type ScheduleBlockProps = {
-  day: Day;
+  day: DayOfWeek;
   ranges?: FreeBusyTime | null;
   selected?: boolean;
 };
@@ -71,7 +77,7 @@ type Props = {
   onSubmit: (data: Schedule) => void;
 };
 
-const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
+const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
   const ref = React.useRef<HTMLFormElement>(null);
 
   const transformElementsToSchedule = (elements: HTMLFormControlsCollection): Schedule => {
@@ -206,7 +212,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
       }
     };
 
-    const TimeRangeField = ({ range, day, index }: { range: TimeRange; day: Day; index: number }) => {
+    const TimeRangeField = ({ range, day, index }: { range: TimeRange; day: DayOfWeek; index: number }) => {
       return (
         <div key={`${day}-range-${index}`} className="flex items-center justify-between space-x-2">
           <div className="flex items-center space-x-2">
@@ -251,7 +257,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
       return (
         <div className="flex items-center space-x-2">
           <button type="button" onClick={() => handleAddRange()}>
-            <PlusIcon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-500" />
+            <PlusIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-500" />
           </button>
         </div>
       );
@@ -260,14 +266,18 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
     const DeleteAction = ({ range }: { range: TimeRange }) => {
       return (
         <button type="button" onClick={() => handleDeleteRange(range)}>
-          <TrashIcon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-500" />
+          <TrashIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-500" />
         </button>
       );
     };
 
     return (
       <fieldset className=" py-6">
-        <section className="flex flex-col space-y-6 sm:space-y-0 sm:flex-row  sm:items-start sm:justify-between ">
+        <section
+          className={classnames(
+            "flex flex-col space-y-6 sm:space-y-0 sm:flex-row  sm:justify-between",
+            ranges && ranges?.length > 1 ? "sm:items-start" : "sm:items-center"
+          )}>
           <div style={{ minWidth: "33%" }} className="flex items-center justify-between">
             <div className="flex items-center space-x-2 ">
               <input
@@ -285,7 +295,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             {selected && ranges && ranges.length != 0 ? (
               ranges.map((range, index) => (
                 <TimeRangeField key={`${day}-range-${index}`} range={range} index={index} day={day} />
@@ -297,7 +307,7 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
             )}
           </div>
 
-          <div className="hidden sm:block">
+          <div className="hidden sm:block px-2">
             <Actions />
           </div>
         </section>
@@ -309,12 +319,12 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
     <>
       <form id={SCHEDULE_FORM_ID} onSubmit={handleSubmit} ref={ref} className="divide-y divide-gray-200">
         {Object.keys(schedule).map((day) => {
-          const selected = schedule[day as Day] != null;
+          const selected = schedule[day as DayOfWeek] != null;
           return (
             <ScheduleBlock
               key={`${day}`}
-              day={day as Day}
-              ranges={schedule[day as Day]}
+              day={day as DayOfWeek}
+              ranges={schedule[day as DayOfWeek]}
               selected={selected}
             />
           );
@@ -324,4 +334,4 @@ const Scheduler = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
   );
 };
 
-export default Scheduler;
+export default SchedulerForm;

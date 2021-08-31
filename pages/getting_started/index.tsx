@@ -23,7 +23,7 @@ import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Dialog";
-import Scheduler, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
+import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import { useRouter } from "next/router";
 import { Integration } from "pages/integrations";
 import { AddCalDavIntegrationRequest } from "../../lib/integrations/CalDav/components/AddCalDavIntegration";
@@ -433,7 +433,7 @@ export default function Onboarding(props: OnboardingProps) {
       Component: (
         <>
           <section className="bg-white dark:bg-opacity-5 text-black dark:text-white mx-auto max-w-lg">
-            <Scheduler
+            <SchedulerForm
               onSubmit={async (data) => {
                 try {
                   await createSchedule({
@@ -452,7 +452,7 @@ export default function Onboarding(props: OnboardingProps) {
               form={SCHEDULE_FORM_ID}
               className="w-full btn btn-primary text-center justify-center space-x-2">
               <Text variant="subtitle" className="text-white">
-              Continue
+                Continue
               </Text>
               <ArrowRightIcon className="text-white h-4 w-4" />
             </button>
@@ -577,15 +577,15 @@ export default function Onboarding(props: OnboardingProps) {
 
             {!steps[currentStep].hideConfirm && (
               <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
-              <button
-                onClick={handleConfirmStep}
-                type="button"
+                <button
+                  onClick={handleConfirmStep}
+                  type="button"
                   className="w-full btn btn-primary text-center justify-center space-x-2">
                   <Text variant="subtitle" className="text-white">
-                {steps[currentStep].confirmText}
+                    {steps[currentStep].confirmText}
                   </Text>
                   <ArrowRightIcon className="text-white h-4 w-4" />
-              </button>
+                </button>
               </footer>
             )}
           </section>
