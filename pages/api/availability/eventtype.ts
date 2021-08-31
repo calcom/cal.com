@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       slug: req.body.slug.trim(),
       description: req.body.description,
       length: parseInt(req.body.length),
-      price: parseInt(req.body.price),
+      price: req.body.price ? parseInt(req.body.price) : undefined,
       hidden: req.body.hidden,
       requiresConfirmation: req.body.requiresConfirmation,
       locations: req.body.locations,
