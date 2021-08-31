@@ -13,7 +13,6 @@ import { NextPageContext } from "next";
 import React, { useState, useEffect, useRef } from "react";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
-import useTheme from "@components/Theme";
 import Text from "@components/ui/Text";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -28,6 +27,8 @@ import Scheduler, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import { useRouter } from "next/router";
 import { Integration } from "pages/integrations";
 import { AddCalDavIntegrationRequest } from "../../lib/integrations/CalDav/components/AddCalDavIntegration";
+import classnames from "classnames";
+import { ArrowRightIcon } from "@heroicons/react/outline";
 
 const DEFAULT_EVENT_TYPES = [
   {
@@ -58,7 +59,6 @@ type OnboardingProps = {
 };
 
 export default function Onboarding(props: OnboardingProps) {
-  useTheme();
   const router = useRouter();
 
   const [enteredName, setEnteredName] = React.useState();
@@ -140,14 +140,16 @@ export default function Onboarding(props: OnboardingProps) {
           <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
         </div>
         <div className="w-10/12">
-          <h2 className="text-gray-800 font-medium">{integration.title}</h2>
-          <p className="text-gray-400 text-sm">{integration.description}</p>
+          <Text className="text-gray-800 font-medium">{integration.title}</Text>
+          <Text className="text-gray-400" variant="subtitle">
+            {integration.description}
+          </Text>
         </div>
         <div className="w-2/12 text-right pt-2">
           <button
             onClick={() => integrationHandler(integration.type)}
-            className="font-medium text-neutral-900 hover:text-neutral-500">
-            Add
+            className="font-medium text-neutral-900 hover:text-neutral-500 border px-4 py-2 border-gray-200 rounded-sm">
+            Connect
           </button>
         </div>
       </li>
@@ -304,7 +306,20 @@ export default function Onboarding(props: OnboardingProps) {
       completeOnboarding();
       return;
     }
-    setCurrentStep(currentStep + 1);
+    setCurrentStep(nextStep);
+  };
+
+  const decrementStep = () => {
+    const previous = currentStep - 1;
+
+    if (previous < 0) {
+      return;
+    }
+    setCurrentStep(previous);
+  };
+
+  const goToStep = (step: number) => {
+    setCurrentStep(step);
   };
 
   /**
@@ -362,7 +377,10 @@ export default function Onboarding(props: OnboardingProps) {
                 <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                   Timezone
                 </label>
-                <Text variant="caption">Current time: {currentTime}</Text>
+                <Text variant="caption">
+                  Current time:&nbsp;
+                  <span className="text-black">{currentTime}</span>
+                </Text>
               </section>
               <TimezoneSelect
                 id="timeZone"
@@ -414,7 +432,7 @@ export default function Onboarding(props: OnboardingProps) {
         "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
       Component: (
         <>
-          <section className="bg-white dark:bg-opacity-5 text-black dark:text-white p-8 mx-auto max-w-lg">
+          <section className="bg-white dark:bg-opacity-5 text-black dark:text-white mx-auto max-w-lg">
             <Scheduler
               onSubmit={async (data) => {
                 try {
@@ -432,10 +450,12 @@ export default function Onboarding(props: OnboardingProps) {
             <button
               type="submit"
               form={SCHEDULE_FORM_ID}
-              className="w-full btn btn-primary text-center justify-center">
+              className="w-full btn btn-primary text-center justify-center space-x-2">
+              <Text variant="subtitle" className="text-white">
               Continue
+              </Text>
+              <ArrowRightIcon className="text-white h-4 w-4" />
             </button>
-            <button onClick={handleSkipStep}>Set up later</button>
           </footer>
         </>
       ),
@@ -513,7 +533,7 @@ export default function Onboarding(props: OnboardingProps) {
   }
 
   return (
-    <div>
+    <div className="bg-black min-h-screen">
       <Head>
         <title>Calendso - Getting Started</title>
         <link rel="icon" href="/favicon.ico" />
@@ -523,37 +543,62 @@ export default function Onboarding(props: OnboardingProps) {
         <article>
           <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
             <header className="">
-              <Text variant="headline">{steps[currentStep].title}</Text>
-              <Text>{steps[currentStep].description}</Text>
+              <Text className="text-white" variant="largetitle">
+                {steps[currentStep].title}
+              </Text>
+              <Text className="text-white" variant="subtitle">
+                {steps[currentStep].description}
+              </Text>
             </header>
-            <section>
-              <Text>
+            <section className="space-y-2">
+              <Text variant="footnote">
                 Step {currentStep + 1} of {steps.length}
               </Text>
 
               <section className="w-full space-x-2 flex">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
-                    <div key={`step-${index}`} className="h-2 bg-black w-1/4"></div>
+                    <div
+                      key={`step-${index}`}
+                      onClick={() => goToStep(index)}
+                      className={classnames(
+                        "h-1 bg-white w-1/4",
+                        index < currentStep ? "cursor-pointer" : ""
+                      )}></div>
                   ) : (
-                    <div key={`step-${index}`} className="h-2 bg-black bg-opacity-25 w-1/4"></div>
+                    <div key={`step-${index}`} className="h-1 bg-white bg-opacity-25 w-1/4"></div>
                   );
                 })}
               </section>
             </section>
           </section>
-          <section className="py-6 mx-auto max-w-2xl">{steps[currentStep].Component}</section>
-          <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
+          <section className="py-6 mt-10 mx-auto max-w-xl bg-white p-10 rounded-sm">
+            {steps[currentStep].Component}
+
             {!steps[currentStep].hideConfirm && (
+              <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
               <button
                 onClick={handleConfirmStep}
                 type="button"
-                className="w-full btn btn-primary text-center justify-center">
+                  className="w-full btn btn-primary text-center justify-center space-x-2">
+                  <Text variant="subtitle" className="text-white">
                 {steps[currentStep].confirmText}
+                  </Text>
+                  <ArrowRightIcon className="text-white h-4 w-4" />
               </button>
+              </footer>
             )}
-            <button onClick={handleSkipStep}>{steps[currentStep].cancelText}</button>
-          </footer>
+          </section>
+          <section className="py-6 mt-8 mx-auto max-w-xl">
+            <div className="flex justify-between">
+              <button onClick={decrementStep}>
+                <Text variant="caption">Prev Step</Text>
+              </button>
+              <button onClick={handleSkipStep}>
+                <Text variant="caption">Skip Step</Text>
+              </button>
+            </div>
+          </section>
         </article>
       </div>
       <ConnectCalDavServerDialog />
