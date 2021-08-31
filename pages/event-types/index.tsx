@@ -625,18 +625,19 @@ export async function getServerSideProps(context) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-      username: true,
-      startTime: true,
-      endTime: true,
-      bufferTime: true,
-    },
-  });
+  const user =
+    (await prisma.user.findFirst({
+      where: {
+        email: session.user.email,
+      },
+      select: {
+        id: true,
+        username: true,
+        startTime: true,
+        endTime: true,
+        bufferTime: true,
+      },
+    })) || {};
 
   const types = await prisma.eventType.findMany({
     where: {

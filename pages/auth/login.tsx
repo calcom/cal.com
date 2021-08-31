@@ -1,5 +1,5 @@
 import Head from "next/head";
-import Link from "next/link";
+// import Link from "next/link";
 import { getCsrfToken, getSession } from "next-auth/client";
 
 export default function Login({ csrfToken }) {
@@ -16,7 +16,15 @@ export default function Login({ csrfToken }) {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-neutral-200">
-          <form className="space-y-6" method="post" action="/api/auth/callback/credentials">
+          <form method="POST" action="/api/auth/signin/yac">
+            <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
+            <button
+              type="submit"
+              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              Sign in with Yac
+            </button>
+          </form>
+          {/* <form className="space-y-6" method="post" action="/api/auth/callback/credentials">
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
@@ -66,14 +74,14 @@ export default function Login({ csrfToken }) {
                 Sign in
               </button>
             </div>
-          </form>
+          </form> */}
         </div>
-        <div className="mt-4 text-sm text-center text-neutral-600">
-          Don&apos;t have an account? {/* replace this with your account creation flow */}
+        {/* <div className="mt-4 text-sm text-center text-neutral-600">
+          Don&apos;t have an account?
           <Link href="/auth/signup">
             <a className="font-medium text-neutral-900">Create an account</a>
           </Link>
-        </div>
+        </div> */}
       </div>
     </div>
   );
