@@ -428,7 +428,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <span className="text-gray-500 sm:text-sm" id="duration">
-                            {process.env.NEXT_PUBLIC_CURRENCY_CODE}
+                            {process.env.NEXT_PUBLIC_CURRENCY_CODE || "USD"}
                           </span>
                         </div>
                       </div>

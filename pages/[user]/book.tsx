@@ -1,25 +1,34 @@
+import Avatar from "@components/Avatar";
 import { HeadSeo } from "@components/seo/head-seo";
+import Theme from "@components/Theme";
+import { Button } from "@components/ui/Button";
+import PhoneInput from "@components/ui/form/PhoneInput";
+import {
+  CalendarIcon,
+  ClockIcon,
+  CurrencyDollarIcon,
+  ExclamationIcon,
+  LocationMarkerIcon,
+} from "@heroicons/react/solid";
+import formatCurrency from "@lib/formatCurrency";
+import { EventTypeLocation, LocationType } from "@lib/location";
+import prisma from "@lib/prisma";
+import serverSideErrorHandler from "@lib/serverSideErrorHandler";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { EventTypeCustomInputType } from "@prisma/client";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
-import prisma, { whereAndSelect } from "@lib/prisma";
-import { EventTypeCustomInputType } from "@prisma/client";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { useEffect, useState } from "react";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import PhoneInput from "@components/ui/form/PhoneInput";
-import { LocationType } from "@lib/location";
-import Avatar from "@components/Avatar";
-import { Button } from "@components/ui/Button";
-import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function Book(props: any): JSX.Element {
+export default function Book(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
   const { date, user, rescheduleUid } = router.query;
 
@@ -29,13 +38,13 @@ export default function Book(props: any): JSX.Element {
   const [error, setError] = useState(false);
   const [guestToggle, setGuestToggle] = useState(false);
   const [guestEmails, setGuestEmails] = useState([]);
-  const locations = props.eventType.locations || [];
+  const locations = (props.eventType.locations as EventTypeLocation[]) || [];
 
-  const [selectedLocation, setSelectedLocation] = useState<LocationType>(
+  const [selectedLocation, setSelectedLocation] = useState<`${LocationType}` | "">(
     locations.length === 1 ? locations[0].type : ""
   );
 
-  const { isReady } = Theme(props.user.theme);
+  const { isReady } = Theme(props.user.theme || undefined);
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -160,41 +169,49 @@ export default function Book(props: any): JSX.Element {
         />
 
         <main className="max-w-3xl mx-auto my-0 sm:my-24">
-          <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">
-            <div className="sm:flex px-4 py-5 sm:p-4">
+          <div className="overflow-hidden bg-white border border-gray-200 dark:bg-neutral-900 dark:border-0 sm:rounded-sm">
+            <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
                 <Avatar
                   displayName={props.user.name}
                   imageSrc={props.user.avatar}
-                  className="w-16 h-16 rounded-full mb-4"
+                  className="w-16 h-16 mb-4 rounded-full"
                 />
-                <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
-                <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
+                <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
+                <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                   {props.eventType.title}
                 </h1>
-                <p className="text-gray-500 mb-2">
+                <p className="mb-2 text-gray-500">
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {props.eventType.length} minutes
                 </p>
+
+                {props.eventType.price && (
+                  <p className="mb-2 text-gray-500">
+                    <CurrencyDollarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {formatCurrency(props.eventType.price)}
+                  </p>
+                )}
+
                 {selectedLocation === LocationType.InPerson && (
-                  <p className="text-gray-500 mb-2">
+                  <p className="mb-2 text-gray-500">
                     <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {locationInfo(selectedLocation).address}
                   </p>
                 )}
-                <p className="text-green-500 mb-4">
+                <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {preferredTimeZone &&
                     dayjs(date)
                       .tz(preferredTimeZone)
                       .format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
                 </p>
-                <p className="dark:text-white text-gray-600 mb-8">{props.eventType.description}</p>
+                <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                       Your name
                     </label>
                     <div className="mt-1">
@@ -203,7 +220,7 @@ export default function Book(props: any): JSX.Element {
                         name="name"
                         id="name"
                         required
-                        className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                         placeholder="John Doe"
                         defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
@@ -212,7 +229,7 @@ export default function Book(props: any): JSX.Element {
                   <div className="mb-4">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium dark:text-white text-gray-700">
+                      className="block text-sm font-medium text-gray-700 dark:text-white">
                       Email address
                     </label>
                     <div className="mt-1">
@@ -221,7 +238,7 @@ export default function Book(props: any): JSX.Element {
                         name="email"
                         id="email"
                         required
-                        className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                         placeholder="you@example.com"
                         defaultValue={props.booking ? props.booking.attendees[0].email : ""}
                       />
@@ -229,7 +246,7 @@ export default function Book(props: any): JSX.Element {
                   </div>
                   {locations.length > 1 && (
                     <div className="mb-4">
-                      <span className="block text-sm font-medium dark:text-white text-gray-700">
+                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
                         Location
                       </span>
                       {locations.map((location) => (
@@ -238,12 +255,12 @@ export default function Book(props: any): JSX.Element {
                             type="radio"
                             required
                             onChange={(e) => setSelectedLocation(e.target.value)}
-                            className="location focus:ring-black h-4 w-4 text-black border-gray-300 mr-2"
+                            className="w-4 h-4 mr-2 text-black border-gray-300 location focus:ring-black"
                             name="location"
                             value={location.type}
                             checked={selectedLocation === location.type}
                           />
-                          <span className="text-sm ml-2 dark:text-gray-500">
+                          <span className="ml-2 text-sm dark:text-gray-500">
                             {locationLabels[location.type]}
                           </span>
                         </label>
@@ -254,7 +271,7 @@ export default function Book(props: any): JSX.Element {
                     <div className="mb-4">
                       <label
                         htmlFor="phone"
-                        className="block text-sm font-medium dark:text-white text-gray-700">
+                        className="block text-sm font-medium text-gray-700 dark:text-white">
                         Phone number
                       </label>
                       <div className="mt-1">
@@ -270,7 +287,7 @@ export default function Book(props: any): JSX.Element {
                           {input.type !== EventTypeCustomInputType.BOOL && (
                             <label
                               htmlFor={"custom_" + input.id}
-                              className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                              className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
                               {input.label}
                             </label>
                           )}
@@ -280,7 +297,7 @@ export default function Book(props: any): JSX.Element {
                               id={"custom_" + input.id}
                               required={input.required}
                               rows={3}
-                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -290,7 +307,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -300,7 +317,7 @@ export default function Book(props: any): JSX.Element {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                               placeholder=""
                             />
                           )}
@@ -310,12 +327,12 @@ export default function Book(props: any): JSX.Element {
                                 type="checkbox"
                                 name={"custom_" + input.id}
                                 id={"custom_" + input.id}
-                                className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
+                                className="w-4 h-4 mr-2 text-black border-gray-300 rounded focus:ring-black"
                                 placeholder=""
                               />
                               <label
                                 htmlFor={"custom_" + input.id}
-                                className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                                className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
                                 {input.label}
                               </label>
                             </div>
@@ -327,7 +344,7 @@ export default function Book(props: any): JSX.Element {
                       <label
                         onClick={toggleGuestEmailInput}
                         htmlFor="guests"
-                        className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
+                        className="block mb-1 text-sm font-medium text-blue-500 dark:text-white hover:cursor-pointer">
                         + Additional Guests
                       </label>
                     )}
@@ -335,7 +352,7 @@ export default function Book(props: any): JSX.Element {
                       <div>
                         <label
                           htmlFor="guests"
-                          className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
+                          className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
                           Guests
                         </label>
                         <ReactMultiEmail
@@ -361,14 +378,14 @@ export default function Book(props: any): JSX.Element {
                   <div className="mb-4">
                     <label
                       htmlFor="notes"
-                      className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
+                      className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
                       Additional notes
                     </label>
                     <textarea
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                       placeholder="Please share anything that will help prepare for our meeting."
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
@@ -386,22 +403,22 @@ export default function Book(props: any): JSX.Element {
                         props.eventType.slug +
                         (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
                       }>
-                      <a className="ml-2 text-sm dark:text-white p-2">Cancel</a>
+                      <a className="p-2 ml-2 text-sm dark:text-white">Cancel</a>
                     </Link>
                   </div>
                 </form>
                 {error && (
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-2">
+                  <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
                     <div className="flex">
                       <div className="flex-shrink-0">
-                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                        <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
                       </div>
                       <div className="ml-3">
                         <p className="text-sm text-yellow-700">
                           Could not {rescheduleUid ? "reschedule" : "book"} the meeting. Please try again or{" "}
                           <a
                             href={"mailto:" + props.user.email}
-                            className="font-medium underline text-yellow-700 hover:text-yellow-600">
+                            className="font-medium text-yellow-700 underline hover:text-yellow-600">
                             Contact {props.user.name} via e-mail
                           </a>
                         </p>
@@ -418,67 +435,82 @@ export default function Book(props: any): JSX.Element {
   );
 }
 
-export async function getServerSideProps(context) {
-  const user = await whereAndSelect(
-    prisma.user.findFirst,
-    {
-      username: context.query.user,
-    },
-    ["username", "name", "email", "bio", "avatar", "theme"]
-  );
-
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id: parseInt(context.query.type),
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      locations: true,
-      customInputs: true,
-      periodType: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-    },
-  });
-
-  const eventTypeObject = [eventType].map((e) => {
-    return {
-      ...e,
-      periodStartDate: e.periodStartDate?.toString() ?? null,
-      periodEndDate: e.periodEndDate?.toString() ?? null,
-    };
-  })[0];
-
-  let booking = null;
-
-  if (context.query.rescheduleUid) {
-    booking = await prisma.booking.findFirst({
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  try {
+    const user = await prisma.user.findFirst({
       where: {
-        uid: context.query.rescheduleUid,
+        username: (context.query.user as string).toLowerCase(),
       },
       select: {
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
+        username: true,
+        name: true,
+        email: true,
+        bio: true,
+        avatar: true,
+        theme: true,
       },
     });
-  }
 
-  return {
-    props: {
-      user,
-      eventType: eventTypeObject,
-      booking,
-    },
-  };
+    if (!user) throw "notFound";
+
+    const eventType = await prisma.eventType.findUnique({
+      where: {
+        id: parseInt(context.query.type as string),
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        length: true,
+        price: true,
+        locations: true,
+        customInputs: true,
+        periodType: true,
+        periodDays: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        periodCountCalendarDays: true,
+      },
+    });
+
+    if (!eventType) throw "notFound";
+
+    const eventTypeObject = [eventType].map((e) => {
+      return {
+        ...e,
+        periodStartDate: e.periodStartDate?.toString() ?? null,
+        periodEndDate: e.periodEndDate?.toString() ?? null,
+      };
+    })[0];
+
+    let booking = null;
+
+    if (context.query.rescheduleUid) {
+      booking = await prisma.booking.findFirst({
+        where: {
+          uid: context.query.rescheduleUid as string,
+        },
+        select: {
+          description: true,
+          attendees: {
+            select: {
+              email: true,
+              name: true,
+            },
+          },
+        },
+      });
+    }
+
+    return {
+      props: {
+        user,
+        eventType: eventTypeObject,
+        booking,
+      },
+    };
+  } catch (error) {
+    return serverSideErrorHandler(error);
+  }
 }

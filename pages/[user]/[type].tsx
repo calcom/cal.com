@@ -1,31 +1,39 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Availability } from "@prisma/client";
-import Theme from "@components/Theme";
-import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
-import prisma from "@lib/prisma";
-import * as Collapsible from "@radix-ui/react-collapsible";
-import dayjs, { Dayjs } from "dayjs";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { HeadSeo } from "@components/seo/head-seo";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import Avatar from "@components/Avatar";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
+import { HeadSeo } from "@components/seo/head-seo";
+import Theme from "@components/Theme";
 import PoweredByCalendso from "@components/ui/PoweredByCalendso";
-import { timeZone } from "@lib/clock";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClockIcon,
+  CurrencyDollarIcon,
+  GlobeIcon,
+} from "@heroicons/react/solid";
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
+import formatCurrency from "@lib/formatCurrency";
+import prisma from "@lib/prisma";
+import serverSideErrorHandler from "@lib/serverSideErrorHandler";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { Availability } from "@prisma/client";
+import * as Collapsible from "@radix-ui/react-collapsible";
+import dayjs, { Dayjs } from "dayjs";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Get router variables
   const router = useRouter();
   const { rescheduleUid } = router.query;
 
-  const { isReady } = Theme(props.user.theme);
+  const { isReady } = Theme(props.user.theme || undefined);
 
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(() => {
     return props.date && dayjs(props.date).isValid() ? dayjs(props.date) : null;
   });
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
@@ -87,8 +95,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
           props.user.name || props.user.username
         }`}
         description={`${rescheduleUid ? "Reschedule" : ""} ${props.eventType.title}`}
-        name={props.user.name || props.user.username}
-        avatar={props.user.avatar}
+        name={props.user.name || props.user.username || ""}
+        avatar={props.user.avatar || ""}
       />
       {isReady && (
         <div>
@@ -102,8 +110,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <Avatar
-                    imageSrc={props.user.avatar}
-                    displayName={props.user.name}
+                    imageSrc={props.user.avatar || ""}
+                    displayName={props.user.name || ""}
                     className="inline-block rounded-full h-9 w-9"
                   />
                   <div className="ml-3">
@@ -139,6 +147,12 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                     <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {props.eventType.length} minutes
                   </p>
+                  {props.eventType.price && (
+                    <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                      <CurrencyDollarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                      {formatCurrency(props.eventType.price)}
+                    </p>
+                  )}
 
                   <TimezoneDropdown />
 
@@ -206,99 +220,94 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  // get query params and typecast them to string
-  // (would be even better to assert them instead of typecasting)
-  const userParam = asStringOrNull(context.query.user);
-  const typeParam = asStringOrNull(context.query.type);
-  const dateParam = asStringOrNull(context.query.date);
+  try {
+    // get query params and typecast them to string
+    // (would be even better to assert them instead of typecasting)
+    const userParam = asStringOrNull(context.query.user);
+    const typeParam = asStringOrNull(context.query.type);
+    const dateParam = asStringOrNull(context.query.date);
 
-  if (!userParam || !typeParam) {
-    throw new Error(`File is not named [type]/[user]`);
-  }
+    if (!userParam || !typeParam) throw "invalidFileName";
 
-  const user = await prisma.user.findFirst({
-    where: {
-      username: userParam.toLowerCase(),
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      startTime: true,
-      endTime: true,
-      timeZone: true,
-      weekStart: true,
-      availability: true,
-      hideBranding: true,
-      theme: true,
-    },
-  });
-
-  if (!user) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      userId: user.id,
-      slug: typeParam,
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      length: true,
-      availability: true,
-      timeZone: true,
-      periodType: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-      minimumBookingNotice: true,
-    },
-  });
-
-  if (!eventType) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
-  const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
-    providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
-      : null;
-
-  const workingHours =
-    getWorkingHours(eventType) ||
-    getWorkingHours(user) ||
-    [
-      {
-        days: [0, 1, 2, 3, 4, 5, 6],
-        startTime: user.startTime,
-        endTime: user.endTime,
+    const user = await prisma.user.findFirst({
+      where: {
+        username: userParam.toLowerCase(),
       },
-    ].filter((availability): boolean => typeof availability["days"] !== "undefined");
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        bio: true,
+        avatar: true,
+        startTime: true,
+        endTime: true,
+        timeZone: true,
+        weekStart: true,
+        availability: true,
+        hideBranding: true,
+        theme: true,
+      },
+    });
 
-  workingHours.sort((a, b) => a.startTime - b.startTime);
+    if (!user) throw "notFound";
 
-  const eventTypeObject = Object.assign({}, eventType, {
-    periodStartDate: eventType.periodStartDate?.toString() ?? null,
-    periodEndDate: eventType.periodEndDate?.toString() ?? null,
-  });
+    const eventType = await prisma.eventType.findFirst({
+      where: {
+        userId: user.id,
+        slug: typeParam,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        length: true,
+        price: true,
+        availability: true,
+        timeZone: true,
+        periodType: true,
+        periodDays: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        periodCountCalendarDays: true,
+        minimumBookingNotice: true,
+      },
+    });
 
-  return {
-    props: {
-      user,
-      date: dateParam,
-      eventType: eventTypeObject,
-      workingHours,
-    },
-  };
+    if (!eventType) throw "notFound";
+
+    const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
+      providesAvailability.availability && providesAvailability.availability.length
+        ? providesAvailability.availability
+        : null;
+
+    const workingHours =
+      getWorkingHours(eventType) ||
+      getWorkingHours(user) ||
+      [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: user.startTime,
+          endTime: user.endTime,
+        },
+      ].filter((availability): boolean => typeof availability["days"] !== "undefined");
+
+    workingHours.sort((a, b) => a.startTime - b.startTime);
+
+    const eventTypeObject = Object.assign({}, eventType, {
+      periodStartDate: eventType.periodStartDate?.toString() ?? null,
+      periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    });
+
+    return {
+      props: {
+        user,
+        date: dateParam,
+        eventType: eventTypeObject,
+        workingHours,
+      },
+    };
+  } catch (error) {
+    return serverSideErrorHandler(error);
+  }
 };
