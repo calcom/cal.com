@@ -104,7 +104,7 @@ export default function TeamListItem(props: {
                 </Button>
               </Tooltip>
               <Dropdown className="relative flex text-left">
-                <Button color="minimal" className="ml-2">
+                <Button color="minimal" className="ml-2" type="button">
                   <DotsHorizontalIcon className="w-5 h-5 group-hover:text-black" />
                 </Button>
                 <ul

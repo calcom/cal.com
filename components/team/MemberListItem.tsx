@@ -56,11 +56,9 @@ export default function MemberListItem(props: {
               </span>
             )}
             <Dropdown className="relative flex text-left">
-              <button
-                type="button"
-                className="p-2 border border-transparent rounded-md group text-neutral-400 hover:border-gray-200 focus:ring-black focus:border-black">
+              <Button type="button" color="minimal" className="ml-2">
                 <DotsHorizontalIcon className="w-5 h-5 group-hover:text-black" />
-              </button>
+              </Button>
               <ul
                 role="menu"
                 className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
