@@ -114,7 +114,7 @@ export default function Teams() {
                 {!!invites.length && (
                   <div>
                     <h2 className="text-lg font-medium leading-6 text-gray-900">Open Invitations</h2>
-                    <ul className="px-2 mt-2 mb-2 border divide-y divide-gray-200 rounded">
+                    <ul className="px-4 mt-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
                       {invites.map((team: Team) => (
                         <TeamListItem
                           onChange={loadData}

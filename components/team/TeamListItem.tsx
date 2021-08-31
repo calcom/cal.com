@@ -12,7 +12,7 @@ import Link from "next/link";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/Avatar";
-// import { useRouter } from "next/router";
+import Button from "@components/ui/Button";
 
 interface Team {
   id: number;
@@ -73,23 +73,19 @@ export default function TeamListItem(props: {
           </div>
           {props.team.role === "INVITEE" && (
             <div>
-              <button
-                className="px-3 py-1 ml-2 text-green-500 bg-transparent border border-green-500 rounded-sm btn-sm"
-                onClick={acceptInvite}>
-                Accept invitation
-              </button>
-              <button className="px-2 py-1 ml-1 bg-transparent btn-sm">
-                <TrashIcon className="inline w-6 h-6 -mt-1 text-gray-400" onClick={declineInvite} />
-              </button>
+              <Button type="button" color="secondary" onClick={declineInvite}>
+                Reject
+              </Button>
+              <Button type="button" color="primary" className="ml-1" onClick={acceptInvite}>
+                Accept
+              </Button>
             </div>
           )}
           {props.team.role === "MEMBER" && (
             <div>
-              <button
-                onClick={declineInvite}
-                className="px-3 py-1 ml-2 text-gray-400 bg-transparent border border-gray-400 rounded-sm btn-sm">
+              <Button type="button" color="primary" onClick={declineInvite}>
                 Leave
-              </button>
+              </Button>
             </div>
           )}
           {props.team.role === "OWNER" && (
@@ -98,47 +94,53 @@ export default function TeamListItem(props: {
                 Owner
               </span>
               <Tooltip content="Copy link">
-                <button
+                <Button
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.hostname + "/" + props.team.slug);
                   }}
-                  className="p-2 ml-4 border border-transparent rounded-md group text-neutral-400 hover:border-gray-200 focus:ring-black focus:border-black">
+                  color="minimal"
+                  className="ml-8">
                   <LinkIcon className="w-5 h-5 group-hover:text-black" />
-                </button>
+                </Button>
               </Tooltip>
               <Dropdown className="relative flex text-left">
-                <button className="p-2 border border-transparent rounded-md group text-neutral-400 hover:border-gray-200 focus:ring-black focus:border-black">
+                <Button color="minimal" className="ml-2">
                   <DotsHorizontalIcon className="w-5 h-5 group-hover:text-black" />
-                </button>
+                </Button>
                 <ul
                   role="menu"
                   className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
-                    <button
-                      className="flex items-center w-full px-4 py-2 text-left"
-                      onClick={() => props.onActionSelect("edit")}>
-                      <PencilAltIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />{" "}
+                    <Button
+                      type="button"
+                      color="minimal"
+                      className="w-full"
+                      onClick={() => props.onActionSelect("edit")}
+                      StartIcon={PencilAltIcon}>
+                      {" "}
                       Edit team
-                    </button>
+                    </Button>
                   </li>
                   <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                     <Link href={`/${props.team.slug}`} passHref={true}>
                       <a target="_blank">
-                        <button className="flex items-center w-full px-4 py-2 text-left">
-                          <ExternalLinkIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />{" "}
+                        <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
+                          {" "}
                           Preview team page
-                        </button>
+                        </Button>
                       </a>
                     </Link>
                   </li>
                   <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                     <Dialog>
                       <DialogTrigger
+                        as={Button}
                         onClick={(e) => {
                           e.stopPropagation();
                         }}
-                        className="flex items-center w-full px-4 py-2 text-left text-red-700 bg-red-50">
-                        <TrashIcon className="group-hover:text-red text-red-700 w-3.5 h-3.5 mr-2 inline-block" />
+                        color="warn"
+                        StartIcon={TrashIcon}
+                        className="w-full">
                         Disband Team
                       </DialogTrigger>
                       <ConfirmationDialogContent
