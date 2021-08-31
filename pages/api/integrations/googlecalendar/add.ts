@@ -6,6 +6,7 @@ const credentials = process.env.GOOGLE_API_CREDENTIALS!;
 const scopes = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/calendar.events",
+  "email",
 ];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -40,6 +40,28 @@ model Credential {
   key           Json
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
+  externalAccount   ExternalAccount[]
+}
+
+model ExternalAccount {
+  id                 Int         @id @default(autoincrement())
+  type               String
+  user               User?       @relation(fields: [userId], references: [id])
+  userId             Int?
+  credential         Credential? @relation(fields: [credentialId], references: [id])
+  credentialId       Int?
+  integration        String?
+  externalId         String?
+  email              String
+  emailVerified      Boolean     @default(false)
+  name               String?
+  firstname          String?
+  lastname           String?
+  link               String?
+  picture            String?
+  gender             String?
+  locale             String?
+  organizationDomain String?
 }
 
 model User {
@@ -61,6 +83,7 @@ model User {
   createdDate   DateTime  @default(now()) @map(name: "created")
   eventTypes    EventType[]
   credentials   Credential[]
+  externalAccounts ExternalAccount[]
   teams         Membership[]
   bookings      Booking[]
   availability  Availability[]

@@ -124,7 +124,7 @@ export default function Home({ integrations }: Props) {
         <div className="my-4">
           <ul className="divide-y divide-gray-200">
             {integrations
-              .filter((integration) => integration.installed)
+              .filter((integration) => integration.installed && integration.isTemplate)
               .map((integration) => {
                 return (
                   <li key={integration.type} className="flex py-4">
@@ -180,6 +180,9 @@ export default function Home({ integrations }: Props) {
                 </div>
                 <div className="w-10/12 pt-3">
                   <h2 className="text-gray-800 font-medium">{calendar.name}</h2>
+                  <span className="text-gray-400 font-small">
+                    {calendar.primary ? "[Primary]" : ""} {calendar.externalAccount[0]?.email}
+                  </span>
                 </div>
                 <div className="w-2/12 text-right pt-3">
                   <Switch
@@ -289,7 +292,9 @@ export default function Home({ integrations }: Props) {
                                 <p className="text-sm font-medium text-neutral-900 truncate">{ig.title}</p>
                                 <p className="flex items-center text-sm text-gray-500">
                                   {ig.type.endsWith("_calendar") && (
-                                    <span className="truncate">Calendar Integration</span>
+                                    <span className="truncate">
+                                      {ig.credential?.externalAccount[0]?.email} Calendar Integration
+                                    </span>
                                   )}
                                   {ig.type.endsWith("_video") && (
                                     <span className="truncate">Video Conferencing</span>
@@ -404,43 +409,95 @@ export async function getServerSideProps(context) {
       id: true,
       type: true,
       key: true,
+      externalAccount: true,
     },
   });
 
   const integrations = [
     {
       installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      credential: credentials.find((integration) => integration.type === "google_calendar") || null,
+      //credential: credentials.find((integration) => integration.type === "google_calendar") || null,
       type: "google_calendar",
       title: "Google Calendar",
       imageSrc: "integrations/google-calendar.svg",
       description: "For personal and business calendars",
+      isTemplate: true,
     },
     {
       installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
       type: "office365_calendar",
-      credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
+      //credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
       title: "Office 365 / Outlook.com Calendar",
       imageSrc: "integrations/outlook.svg",
       description: "For personal and business calendars",
+      isTemplate: true,
     },
     {
       installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
       type: "zoom_video",
-      credential: credentials.find((integration) => integration.type === "zoom_video") || null,
+      //credential: credentials.find((integration) => integration.type === "zoom_video") || null,
       title: "Zoom",
       imageSrc: "integrations/zoom.svg",
       description: "Video Conferencing",
+      isTemplate: true,
     },
     {
       installed: true,
       type: "caldav_calendar",
-      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
+      //credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
       title: "CalDav Server",
       imageSrc: "integrations/caldav.svg",
       description: "For personal and business calendars",
+      isTemplate: true,
     },
   ];
+  credentials.map((element) => {
+    switch (element.type) {
+      case "google_calendar":
+        integrations.push({
+          installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
+          credential: credentials.find((integration) => integration.id === element.id) || null,
+          type: "google_calendar",
+          title: "Google Calendar",
+          imageSrc: "integrations/google-calendar.svg",
+          description: "For personal and business calendars",
+        });
+        break;
+      case "office365_calendar":
+        integrations.push({
+          installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
+          type: "office365_calendar",
+          credential:
+            credentials.find(
+              (integration) => integration.id === element.id && integration.type === "office365_calendar"
+            ) || null,
+          title: "Office 365 / Outlook.com Calendar",
+          imageSrc: "integrations/outlook.svg",
+          description: "For personal and business calendars",
+        });
+        break;
+      case "zoom_video":
+        integrations.push({
+          installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
+          type: "zoom_video",
+          credential: credentials.find((integration) => integration.id === element.id) || null,
+          title: "Zoom",
+          imageSrc: "integrations/zoom.svg",
+          description: "Video Conferencing",
+        });
+        break;
+      case "caldav_calendar":
+        integrations.push({
+          installed: true,
+          type: "caldav_calendar",
+          credential: credentials.find((integration) => integration.id === element.id) || null,
+          title: "CalDav Server",
+          imageSrc: "integrations/caldav.svg",
+          description: "For personal and business calendars",
+        });
+        break;
+    }
+  });
 
   return {
     props: { integrations },

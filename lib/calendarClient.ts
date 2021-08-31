@@ -494,6 +494,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
                     integration: integrationType,
                     name: cal.summary,
                     primary: cal.primary,
+                    externalAccount: credential.externalAccount,
                   };
                   return calendar;
                 })

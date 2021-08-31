@@ -16,7 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: session.user.id,
     },
     select: {
-      credentials: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+          externalAccount: true,
+        },
+      },
       timeZone: true,
       id: true,
     },
