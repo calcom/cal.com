@@ -14,9 +14,9 @@ import Button from "@components/ui/Button";
 import { Member } from "@lib/member";
 import { Team } from "@lib/team";
 import { PlusIcon } from "@heroicons/react/solid";
-import { noop } from "react-query/types/core/utils";
 
 export default function Teams() {
+  const noop = () => undefined;
   const [, loading] = useSession();
   const [teams, setTeams] = useState([]);
   const [invites, setInvites] = useState([]);
