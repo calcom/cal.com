@@ -32,6 +32,15 @@ model EventType {
   periodCountCalendarDays Boolean?
   requiresConfirmation Boolean @default(false)
   minimumBookingNotice Int @default(120)
+  selectedCalendar      EventTypeSelectedCalendar?
+}
+
+model EventTypeSelectedCalendar {
+  id            Int     @default(autoincrement()) @id
+  eventType     EventType   @relation(fields: [eventTypeId], references: [id])
+  eventTypeId   Int
+  integration   String
+  externalId    String
 }
 
 model Credential {

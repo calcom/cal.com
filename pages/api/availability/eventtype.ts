@@ -59,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       periodEndDate: req.body.periodEndDate,
       periodCountCalendarDays: req.body.periodCountCalendarDays,
       minimumBookingNotice: req.body.minimumBookingNotice,
+      selectedCalendar: req.body.calendar,
     };
 
     if (req.method == "POST") {

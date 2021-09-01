@@ -24,6 +24,11 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 
+import { useEffect, useState } from "react";
+import Select from "react-select";
+//import { getCalendarIntegrationImage } from "../integrations/index";
+//import { IntegrationCalendar, listCalendars } from "../../lib/calendarClient";
+
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
   const [session, loading] = useSession();
@@ -42,6 +47,33 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const lengthRef = useRef<HTMLInputElement>();
+  const [selectedCalendar, setSelectedCalendar] = useState(false);
+
+  const [selectableCalendars, setSelectableCalendars] = useState([]);
+  function loadCalendars() {
+    fetch("api/availability/eventtypecalendar?eventTypeId=0")
+      .then((response) => response.json())
+      .then((data) => {
+        setSelectableCalendars(data);
+      });
+  }
+  useEffect(loadCalendars, []);
+
+  const SelectCalendarDialog = () => (
+    <Select
+      value={selectedCalendar}
+      onChange={setSelectedCalendar}
+      id="selectedCalendar"
+      classNamePrefix="react-select"
+      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
+      options={selectableCalendars.map((calendar) => {
+        return {
+          value: calendar.externalId,
+          label: calendar.name + "(" + calendar.externalAccount[0]?.email + ")",
+        };
+      })}
+    />
+  );
 
   const dialogOpen = router.query.new === "1";
 
@@ -52,12 +84,14 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
     const enteredSlug = slugRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredLength = parseInt(lengthRef.current.value);
+    const enteredCalendar = selectedCalendar.value;
 
     const body = {
       title: enteredTitle,
       slug: enteredSlug,
       description: enteredDescription,
       length: enteredLength,
+      calendar: enteredCalendar,
     };
 
     createMutation.mutate(body);
@@ -142,6 +176,17 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                     className="flex-1 block w-full min-w-0 border-gray-300 rounded-none focus:border-neutral-900 rounded-r-md focus:ring-neutral-900 sm:text-sm"
                   />
                 </div>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="calendar" className="block text-sm font-medium text-gray-700">
+                Calendar
+              </label>
+              <div className="mt-2 max-w-xl text-sm text-gray-500">
+                <p>Select to add meetings into a specific calendar.</p>
+              </div>
+              <div className="relative mt-1 rounded-sm shadow-sm">
+                <SelectCalendarDialog />
               </div>
             </div>
             <div className="mb-4">
