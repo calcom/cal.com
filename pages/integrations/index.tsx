@@ -193,7 +193,7 @@ export default function Home({ integrations }: Props) {
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose as="button" className="btn btn-white mx-2">
-            Cancel
+            Confirm
           </DialogClose>
         </div>
       </DialogContent>

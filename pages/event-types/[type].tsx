@@ -858,7 +858,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                   Delete
                 </DialogTrigger>
                 <ConfirmationDialogContent
-                  alert="danger"
+                  variety="danger"
                   title="Delete Event Type"
                   confirmBtnText="Yes, delete event type"
                   onConfirm={deleteEventTypeHandler}>
