@@ -1,10 +1,12 @@
 import Head from "next/head";
 import Link from "next/link";
 import React from "react";
-import { getCsrfToken, getSession } from "next-auth/client";
 import debounce from "lodash.debounce";
+import { InferGetServerSidePropsType } from "next";
 
-export default function ForgotPassword({ csrfToken }) {
+export default function ForgotPassword({
+  csrfToken,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(false);
@@ -62,7 +64,7 @@ export default function ForgotPassword({ csrfToken }) {
   const Success = () => {
     return (
       <div className="space-y-6">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Done</h2>
+        <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">Done</h2>
         <p>Check your email. We sent you a link to reset your password.</p>
         {error && <p className="text-red-600">{error.message}</p>}
       </div>
@@ -70,19 +72,19 @@ export default function ForgotPassword({ csrfToken }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8">
       <Head>
         <title>Forgot Password</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 mx-2 shadow rounded-lg sm:px-10 space-y-6">
+        <div className="px-4 py-8 mx-2 space-y-6 bg-white rounded-lg shadow sm:px-10">
           {success && <Success />}
           {!success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Forgot Password</h2>
+                <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">Forgot Password</h2>
                 <p>
                   Enter the email address associated with your account and we will send you a link to reset
                   your password.
@@ -104,7 +106,7 @@ export default function ForgotPassword({ csrfToken }) {
                       autoComplete="email"
                       placeholder="john.doe@example.com"
                       required
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                      className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-black focus:border-black sm:text-sm"
                     />
                   </div>
                 </div>
@@ -118,7 +120,7 @@ export default function ForgotPassword({ csrfToken }) {
                     }`}>
                     {loading && (
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        className="w-5 h-5 mr-3 -ml-1 text-white animate-spin"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24">
@@ -142,7 +144,7 @@ export default function ForgotPassword({ csrfToken }) {
                   <Link href="/auth/login">
                     <button
                       type="button"
-                      className="w-full flex justify-center py-2 px-4 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                      className="flex justify-center w-full px-4 py-2 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                       Login
                     </button>
                   </Link>
@@ -156,6 +158,13 @@ export default function ForgotPassword({ csrfToken }) {
   );
 }
 
+export async function getServerSideProps() {
+  return {
+    notFound: true,
+  };
+}
+
+/*
 ForgotPassword.getInitialProps = async (context) => {
   const { req, res } = context;
   const session = await getSession({ req });
@@ -170,3 +179,4 @@ ForgotPassword.getInitialProps = async (context) => {
     csrfToken: await getCsrfToken(context),
   };
 };
+*/

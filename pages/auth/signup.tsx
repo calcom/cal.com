@@ -5,8 +5,9 @@ import ErrorAlert from "../../components/ui/alerts/Error";
 import { useState } from "react";
 import { UsernameInput } from "../../components/ui/UsernameInput";
 import prisma from "../../lib/prisma";
+import { InferGetServerSidePropsType } from "next";
 
-export default function Signup(props) {
+export default function Signup(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
 
   const [hasErrors, setHasErrors] = useState(false);
@@ -134,7 +135,7 @@ export default function Signup(props) {
 
 export async function getServerSideProps(ctx) {
   return {
-    props: {},
+    notFound: true,
   };
   if (!ctx.query.token) {
     return {
