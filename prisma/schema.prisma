@@ -32,8 +32,6 @@ model EventType {
   periodCountCalendarDays Boolean?
   requiresConfirmation Boolean @default(false)
   minimumBookingNotice Int @default(120)
-
-  @@unique([userId, slug])
 }
 
 model Credential {
@@ -42,12 +40,6 @@ model Credential {
   key           Json
   user          User?   @relation(fields: [userId], references: [id])
   userId        Int?
-}
-
-enum UserPlan {
-  FREE
-  TRIAL
-  PRO
 }
 
 
@@ -74,7 +66,6 @@ model User {
   bookings      Booking[]
   availability  Availability[]
   selectedCalendars      SelectedCalendar[]
-  plan UserPlan @default(PRO)
 
   @@map(name: "users")
 }

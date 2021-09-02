@@ -45,7 +45,7 @@ async function main() {
       email: "free@example.com",
       password: "free",
       username: "free",
-      plan: "FREE",
+      // plan: "FREE",
     },
     eventTypes: [
       {
@@ -65,7 +65,7 @@ async function main() {
       email: "pro@example.com",
       password: "pro",
       username: "pro",
-      plan: "PRO",
+      // plan: "PRO",
     },
 
     eventTypes: [
@@ -86,7 +86,7 @@ async function main() {
       email: "trial@example.com",
       password: "trial",
       username: "trial",
-      plan: "TRIAL",
+      // plan: "TRIAL",
     },
     eventTypes: [
       {
