@@ -24,7 +24,7 @@ import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
-import { ONBOARDING_INTRODUCED_AT } from "../getting-started";
+import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
