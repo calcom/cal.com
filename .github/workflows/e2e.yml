@@ -54,10 +54,9 @@ jobs:
 
       - run: yarn build
       - run: yarn prisma migrate deploy
-
+      - run: yarn db-seed
       - run: yarn start &
       - run: npx wait-port 3000 --timeout 10000
-
       - run: yarn cypress run
 
       - name: Upload videos
