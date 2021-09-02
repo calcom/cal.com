@@ -2,6 +2,7 @@ import { hashPassword } from "../lib/auth";
 import { Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+let idx = 0;
 async function createUserAndEventType(opts: {
   user: Omit<Prisma.UserCreateArgs["data"], "password" | "email"> & { password: string; email: string };
   eventTypes: Array<Prisma.EventTypeCreateArgs["data"]>;
@@ -25,10 +26,7 @@ async function createUserAndEventType(opts: {
     eventTypeData.userId = user.id;
     await prisma.eventType.upsert({
       where: {
-        userId_slug: {
-          slug: eventTypeData.slug,
-          userId: user.id,
-        },
+        id: ++idx,
       },
       update: eventTypeData,
       create: eventTypeData,
