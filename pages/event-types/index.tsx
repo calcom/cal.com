@@ -91,7 +91,8 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
       <Button
         className="mt-2 hidden sm:block"
         StartIcon={PlusIcon}
-        href={{ query: { ...router.query, new: "1" } }}>
+        href={{ query: { ...router.query, new: "1" } }}
+        data-testid="new-event-type">
         New event type
       </Button>
 
@@ -200,7 +201,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
         subtitle="Create events to share for people to book on your calendar."
         CTA={types.length !== 0 && <CreateNewEventDialog />}>
         <div className="-mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
-          <ul className="divide-y divide-neutral-200">
+          <ul className="divide-y divide-neutral-200" data-testid="event-types">
             {types.map((type) => (
               <li key={type.id}>
                 <div className="hover:bg-neutral-50">

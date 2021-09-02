@@ -19,7 +19,7 @@ async function createUserAndEventType(opts: {
   });
 
   console.log(
-    `👤 Created '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
+    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
   );
   for (const rawData of opts.eventTypes) {
     const id = ++idx;
