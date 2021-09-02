@@ -44,6 +44,13 @@ model Credential {
   userId        Int?
 }
 
+enum UserPlan {
+  FREE
+  TRIAL
+  PRO
+}
+
+
 model User {
   id            Int       @default(autoincrement()) @id
   username      String?
@@ -67,6 +74,7 @@ model User {
   bookings      Booking[]
   availability  Availability[]
   selectedCalendars      SelectedCalendar[]
+  plan UserPlan @default(PRO)
 
   @@map(name: "users")
 }
