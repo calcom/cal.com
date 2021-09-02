@@ -41,36 +41,9 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
     },
   });
 
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-
   const dialogOpen = router.query.new === "1";
 
-  async function createEventTypeHandler(event) {
-    event.preventDefault();
-
-    const enteredTitle = titleRef.current.value;
-    const enteredSlug = slugRef.current.value;
-    const enteredDescription = descriptionRef.current.value;
-    const enteredLength = parseInt(lengthRef.current.value);
-
-    const body = {
-      title: enteredTitle,
-      slug: enteredSlug,
-      description: enteredDescription,
-      length: enteredLength,
-    };
-
-    createMutation.mutate(body);
-  }
-
-  function autoPopulateSlug() {
-    let t = titleRef.current.value;
-    t = t.replace(/\s+/g, "-").toLowerCase();
-    slugRef.current.value = t;
-  }
+  const slugRef = useRef<HTMLInputElement>(null);
 
   if (loading) {
     return <Loader />;
@@ -109,7 +82,24 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
             <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
           </div>
         </div>
-        <form onSubmit={createEventTypeHandler}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            const target = e.target as unknown as Record<
+              "title" | "slug" | "description" | "length",
+              { value: string }
+            >;
+
+            const body = {
+              title: target.title.value,
+              slug: target.slug.value,
+              description: target.description.value,
+              length: parseInt(target.length.value),
+            };
+
+            createMutation.mutate(body);
+          }}>
           <div>
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -117,8 +107,13 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
               </label>
               <div className="mt-1">
                 <input
-                  onChange={autoPopulateSlug}
-                  ref={titleRef}
+                  onChange={(e) => {
+                    if (!slugRef.current) {
+                      return;
+                    }
+                    const slug = e.target.value.replace(/\s+/g, "-").toLowerCase();
+                    slugRef.current.value = slug;
+                  }}
                   type="text"
                   name="title"
                   id="title"
@@ -138,10 +133,10 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                     {location.hostname}/{user.username}/
                   </span>
                   <input
-                    ref={slugRef}
                     type="text"
                     name="slug"
                     id="slug"
+                    ref={slugRef}
                     required
                     className="flex-1 block w-full min-w-0 border-gray-300 rounded-none focus:border-neutral-900 rounded-r-md focus:ring-neutral-900 sm:text-sm"
                   />
@@ -154,7 +149,6 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
               </label>
               <div className="mt-1">
                 <textarea
-                  ref={descriptionRef}
                   name="description"
                   id="description"
                   className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
@@ -167,7 +161,6 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
               </label>
               <div className="relative mt-1 rounded-sm shadow-sm">
                 <input
-                  ref={lengthRef}
                   type="number"
                   name="length"
                   id="length"
