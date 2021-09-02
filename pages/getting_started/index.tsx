@@ -14,6 +14,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
 import Text from "@components/ui/Text";
+import ErrorAlert from "@components/ui/alerts/Error";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -554,6 +555,8 @@ export default function Onboarding(props: OnboardingProps) {
               <Text variant="footnote">
                 Step {currentStep + 1} of {steps.length}
               </Text>
+
+              {error && <ErrorAlert {...error} />}
 
               <section className="w-full space-x-2 flex">
                 {steps.map((s, index) => {
