@@ -1,4 +1,4 @@
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
+import { Dialog, DialogContent } from "@components/Dialog";
 import Loader from "@components/Loader";
 import { Tooltip } from "@components/Tooltip";
 import { Button } from "@components/ui/Button";
@@ -49,7 +49,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
     return <Loader />;
   }
 
-  const CreateNewEventDialog = () => (
+  const renderEventDialog = () => (
     <Dialog
       open={dialogOpen}
       onOpenChange={(isOpen) => {
@@ -175,12 +175,12 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
             </div>
           </div>
           <div className="mt-8 sm:flex sm:flex-row-reverse">
-            <button type="submit" className="btn btn-primary">
+            <Button type="submit" loading={createMutation.isLoading}>
               Continue
-            </button>
-            <DialogClose as="button" className="mx-2 btn btn-white">
+            </Button>
+            <Button href={{ query: {} }} color="secondary" className="mr-2">
               Cancel
-            </DialogClose>
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -192,7 +192,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
-        CTA={types.length !== 0 && <CreateNewEventDialog />}>
+        CTA={types.length !== 0 && renderEventDialog()}>
         <div className="-mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
           <ul className="divide-y divide-neutral-200" data-testid="event-types">
             {types.map((type) => (
@@ -627,7 +627,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                 Event types enable you to share links that show available times on your calendar and allow
                 people to make bookings with you.
               </p>
-              <CreateNewEventDialog />
+              {renderEventDialog()}
             </div>
           </div>
         )}
