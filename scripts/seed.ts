@@ -16,6 +16,10 @@ async function createUserAndEventType(opts: {
     update: userData,
     create: userData,
   });
+
+  console.log(
+    `👤 Created '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
+  );
   for (const rawData of opts.eventTypes) {
     const eventTypeData: Prisma.EventTypeCreateArgs["data"] = { ...rawData };
     eventTypeData.userId = user.id;
@@ -29,10 +33,10 @@ async function createUserAndEventType(opts: {
       update: eventTypeData,
       create: eventTypeData,
     });
+    console.log(
+      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}: http://localhost:3000/${user.username}/${eventTypeData.slug}`
+    );
   }
-  console.log(
-    `👤 Created user '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
-  );
 }
 
 async function main() {
