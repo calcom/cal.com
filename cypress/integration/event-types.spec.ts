@@ -27,9 +27,8 @@ describe("/event-types", () => {
 
     cy.get("[name=title]").focus().type(eventTitle);
     cy.get("[name=length]").focus().type("10");
-    cy.wait(1000);
     cy.get("[type=submit]").click();
-    cy.wait(1000);
+
     cy.location("pathname").should("not.eq", "/event-types");
     cy.visit("/event-types");
 
