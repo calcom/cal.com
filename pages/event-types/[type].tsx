@@ -35,12 +35,13 @@ import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext } from "next";
 import { useMutation } from "react-query";
 import { EventTypeInput } from "@lib/types/event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -60,7 +61,7 @@ const PERIOD_TYPES = [
   },
 ];
 
-const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, eventType, locationOptions, availability } = props;
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -1082,7 +1083,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventType) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const credentials = await prisma.credential.findMany({
