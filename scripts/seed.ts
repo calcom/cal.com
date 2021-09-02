@@ -53,6 +53,11 @@ async function main() {
         slug: "30min",
         length: 30,
       },
+      {
+        title: "60min",
+        slug: "60min",
+        length: 30,
+      },
     ],
   });
   await createUserAndEventType({
