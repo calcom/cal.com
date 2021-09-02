@@ -22,11 +22,13 @@ async function createUserAndEventType(opts: {
     `👤 Created '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
   );
   for (const rawData of opts.eventTypes) {
+    const id = ++idx;
     const eventTypeData: Prisma.EventTypeCreateArgs["data"] = { ...rawData };
     eventTypeData.userId = user.id;
+    eventTypeData.id = id;
     await prisma.eventType.upsert({
       where: {
-        id: ++idx,
+        id,
       },
       update: eventTypeData,
       create: eventTypeData,
