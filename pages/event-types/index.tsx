@@ -24,7 +24,7 @@ import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
-import { ONBOARDING_INTRODUCED_AT } from "../getting_started/index";
+import { ONBOARDING_INTRODUCED_AT } from "../getting-started";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -668,7 +668,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       redirect: {
         permanent: false,
-        destination: "/getting_started",
+        destination: "/getting-started",
       },
     };
   }
