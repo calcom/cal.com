@@ -11,69 +11,72 @@ generator client {
 }
 
 model EventType {
-  id            Int     @default(autoincrement()) @id
-  title         String
-  slug          String
-  description   String?
-  locations     Json?
-  length        Int
-  hidden        Boolean @default(false)
-  user          User?   @relation(fields: [userId], references: [id])
-  userId        Int?
-  bookings      Booking[]
-  availability  Availability[]
-  eventName     String?
-  customInputs  EventTypeCustomInput[]
-  timeZone      String?
-  periodType String? @default("unlimited") // unlimited | rolling | range
-  periodStartDate DateTime?
-  periodEndDate DateTime?
-  periodDays Int?
+  id                      Int                    @id @default(autoincrement())
+  title                   String
+  slug                    String
+  description             String?
+  locations               Json?
+  length                  Int
+  hidden                  Boolean                @default(false)
+  user                    User?                  @relation(fields: [userId], references: [id])
+  userId                  Int?
+  bookings                Booking[]
+  availability            Availability[]
+  eventName               String?
+  customInputs            EventTypeCustomInput[]
+  timeZone                String?
+  periodType              String?                @default("unlimited") // unlimited | rolling | range
+  periodStartDate         DateTime?
+  periodEndDate           DateTime?
+  periodDays              Int?
   periodCountCalendarDays Boolean?
-  requiresConfirmation Boolean @default(false)
-  minimumBookingNotice Int @default(120)
+  requiresConfirmation    Boolean                @default(false)
+  minimumBookingNotice    Int                    @default(120)
+  Schedule                Schedule[]
 }
 
 model Credential {
-  id            Int     @default(autoincrement()) @id
-  type          String
-  key           Json
-  user          User?   @relation(fields: [userId], references: [id])
-  userId        Int?
+  id     Int    @id @default(autoincrement())
+  type   String
+  key    Json
+  user   User?  @relation(fields: [userId], references: [id])
+  userId Int?
 }
 
 model User {
-  id            Int       @default(autoincrement()) @id
-  username      String?
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?
-  bio           String?
-  avatar        String?
-  timeZone      String @default("Europe/London")
-  weekStart     String? @default("Sunday")
-  startTime     Int @default(0)
-  endTime       Int @default(1440)
-  bufferTime    Int @default(0)
-  hideBranding  Boolean @default(false)
-  theme         String?
-  createdDate   DateTime  @default(now()) @map(name: "created")
-  eventTypes    EventType[]
-  credentials   Credential[]
-  teams         Membership[]
-  bookings      Booking[]
-  availability  Availability[]
-  selectedCalendars      SelectedCalendar[]
+  id                  Int                @id @default(autoincrement())
+  username            String?
+  name                String?
+  email               String?            @unique
+  emailVerified       DateTime?
+  password            String?
+  bio                 String?
+  avatar              String?
+  timeZone            String             @default("Europe/London")
+  weekStart           String?            @default("Sunday")
+  startTime           Int                @default(0)
+  endTime             Int                @default(1440)
+  bufferTime          Int                @default(0)
+  hideBranding        Boolean            @default(false)
+  theme               String?
+  createdDate         DateTime           @default(now()) @map(name: "created")
+  eventTypes          EventType[]
+  credentials         Credential[]
+  teams               Membership[]
+  bookings            Booking[]
+  availability        Availability[]
+  selectedCalendars   SelectedCalendar[]
+  completedOnboarding Boolean?           @default(false)
 
+  Schedule Schedule[]
   @@map(name: "users")
 }
 
 model Team {
-  id            Int       @default(autoincrement()) @id
-  name          String?
-  slug          String?
-  members       Membership[]
+  id      Int          @id @default(autoincrement())
+  name    String?
+  slug    String?
+  members Membership[]
 }
 
 enum MembershipRole {
@@ -82,98 +85,110 @@ enum MembershipRole {
 }
 
 model Membership {
-  teamId        Int
-  userId        Int
-  accepted      Boolean         @default(false)
-  role          MembershipRole
-  team          Team            @relation(fields: [teamId], references: [id])
-  user          User            @relation(fields: [userId], references: [id])
+  teamId   Int
+  userId   Int
+  accepted Boolean        @default(false)
+  role     MembershipRole
+  team     Team           @relation(fields: [teamId], references: [id])
+  user     User           @relation(fields: [userId], references: [id])
 
-  @@id([userId,teamId])
+  @@id([userId, teamId])
 }
 
 model VerificationRequest {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   identifier String
   token      String   @unique
   expires    DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
   @@unique([identifier, token])
 }
 
 model BookingReference {
-  id            Int         @default(autoincrement()) @id
-  type          String
-  uid           String
-  booking       Booking?    @relation(fields: [bookingId], references: [id])
-  bookingId     Int?
+  id        Int      @id @default(autoincrement())
+  type      String
+  uid       String
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  bookingId Int?
 }
 
 model Attendee {
-  id            Int         @default(autoincrement()) @id
-  email         String
-  name          String
-  timeZone      String
-  booking       Booking?    @relation(fields: [bookingId], references: [id])
-  bookingId     Int?
+  id        Int      @id @default(autoincrement())
+  email     String
+  name      String
+  timeZone  String
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  bookingId Int?
 }
 
 model Booking {
-  id            Int         @default(autoincrement()) @id
-  uid           String      @unique
-  user          User?       @relation(fields: [userId], references: [id])
-  userId        Int?
-  references    BookingReference[]
-  eventType     EventType?  @relation(fields: [eventTypeId], references: [id])
-  eventTypeId   Int?
+  id          Int                @id @default(autoincrement())
+  uid         String             @unique
+  user        User?              @relation(fields: [userId], references: [id])
+  userId      Int?
+  references  BookingReference[]
+  eventType   EventType?         @relation(fields: [eventTypeId], references: [id])
+  eventTypeId Int?
 
-  title         String
-  description   String?
-  startTime     DateTime
-  endTime       DateTime
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
 
-  attendees     Attendee[]
-  location      String?
+  attendees Attendee[]
+  location  String?
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime?
-  confirmed     Boolean @default(true)
-  rejected      Boolean @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  confirmed Boolean   @default(true)
+  rejected  Boolean   @default(false)
 }
 
-model Availability {
-  id            Int        @default(autoincrement()) @id
-  label         String?
+model Schedule {
+  id            Int        @id @default(autoincrement())
   user          User?      @relation(fields: [userId], references: [id])
   userId        Int?
   eventType     EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId   Int?
-  days          Int[]
-  startTime     Int
-  endTime       Int
-  date          DateTime?  @db.Date
+  title         String?
+  freeBusyTimes Json?
+}
+
+model Availability {
+  id          Int        @id @default(autoincrement())
+  label       String?
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      Int?
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+  eventTypeId Int?
+  days        Int[]
+  startTime   Int
+  endTime     Int
+  date        DateTime?  @db.Date
 }
 
 model SelectedCalendar {
-  user          User       @relation(fields: [userId], references: [id])
-  userId        Int
-  integration   String
-  externalId    String
-  @@id([userId,integration,externalId])
+  user        User   @relation(fields: [userId], references: [id])
+  userId      Int
+  integration String
+  externalId  String
+
+  @@id([userId, integration, externalId])
 }
 
 enum EventTypeCustomInputType {
-  TEXT @map("text")
-  TEXTLONG @map("textLong")
-  NUMBER @map("number")
-  BOOL @map("bool")
+  TEXT      @map("text")
+  TEXTLONG  @map("textLong")
+  NUMBER    @map("number")
+  BOOL      @map("bool")
 }
 
 model EventTypeCustomInput {
-  id          Int       @id @default(autoincrement())
+  id          Int                      @id @default(autoincrement())
   eventTypeId Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType                @relation(fields: [eventTypeId], references: [id])
   label       String
   type        EventTypeCustomInputType
   required    Boolean
@@ -181,11 +196,11 @@ model EventTypeCustomInput {
 }
 
 model ResetPasswordRequest {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  email      String
-  expires    DateTime
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  email     String
+  expires   DateTime
 }
 
 enum ReminderType {
@@ -193,9 +208,9 @@ enum ReminderType {
 }
 
 model ReminderMail {
-  id             Int      @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   referenceId    Int
   reminderType   ReminderType
   elapsedMinutes Int
-  createdAt      DateTime @default(now())
+  createdAt      DateTime     @default(now())
 }
