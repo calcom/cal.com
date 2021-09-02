@@ -9,11 +9,12 @@ const createEventType = async (data: CreateEventType) => {
     },
   });
 
+  const obj = await response.json();
   if (!response.ok) {
-    throw new Error(response.statusText);
+    throw new Error(obj.message);
   }
 
-  return response.json();
+  return obj;
 };
 
 export default createEventType;
