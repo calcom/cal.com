@@ -668,7 +668,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       redirect: {
         permanent: false,
-        destination: "/getting_started",
+        destination: "/getting-started",
       },
     };
   }

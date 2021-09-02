@@ -27,7 +27,7 @@ import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Di
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import { useRouter } from "next/router";
 import { Integration } from "pages/integrations";
-import { AddCalDavIntegrationRequest } from "../../lib/integrations/CalDav/components/AddCalDavIntegration";
+import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
 import classnames from "classnames";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 
