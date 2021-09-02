@@ -24,10 +24,12 @@ describe("/event-types", () => {
     cy.get("[data-testid=new-event-type]").click();
     const nonce = randomString(3);
     const eventTitle = `hello ${nonce}`;
+
     cy.get("[name=title]").focus().type(eventTitle);
     cy.get("[name=length]").focus().type("10");
     cy.get("[type=submit]").click();
-    cy.contains("event type created successfully");
+
+    cy.location("pathname").should("not.eq", "/event-types");
     cy.visit("/event-types");
 
     cy.get("[data-testid=event-types]").contains(eventTitle);
