@@ -15,6 +15,7 @@ type Props = {
   timeZone: string;
   availability: Availability[];
   setTimeZone: unknown;
+  setAvailability: unknown;
 };
 
 export const Scheduler = ({

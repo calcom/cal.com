@@ -1,24 +1,25 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Availability } from "@prisma/client";
+import Avatar from "@components/Avatar";
+import AvailableTimes from "@components/booking/AvailableTimes";
+import DatePicker from "@components/booking/DatePicker";
+import TimeOptions from "@components/booking/TimeOptions";
+import { HeadSeo } from "@components/seo/head-seo";
 import Theme from "@components/Theme";
+import PoweredByCalendso from "@components/ui/PoweredByCalendso";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
+import { asStringOrNull } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
 import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Availability } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import Head from "next/head";
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Avatar from "../../components/Avatar";
-import AvailableTimes from "../../components/booking/AvailableTimes";
-import DatePicker from "../../components/booking/DatePicker";
-import TimeOptions from "../../components/booking/TimeOptions";
-import PoweredByCalendso from "../../components/ui/PoweredByCalendso";
-import { timeZone } from "../../lib/clock";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
-import { asStringOrNull } from "@lib/asStringOrNull";
 
-export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   // Get router variables
   const router = useRouter();
   const { rescheduleUid } = router.query;
@@ -82,53 +83,14 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
 
   return (
     <>
-      <Head>
-        <title>
-          {rescheduleUid && "Reschedule"} {props.eventType.title} | {props.user.name || props.user.username} |
-          Calendso
-        </title>
-        <meta name="title" content={"Meet " + (props.user.name || props.user.username) + " via Calendso"} />
-        <meta name="description" content={props.eventType.description} />
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://calendso/" />
-        <meta
-          property="og:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-        />
-        <meta property="og:description" content={props.eventType.description} />
-        <meta
-          property="og:image"
-          content={
-            "https://og-image-one-pi.vercel.app/" +
-            encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-            ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
-          }
-        />
-
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://calendso/" />
-        <meta
-          property="twitter:title"
-          content={"Meet " + (props.user.name || props.user.username) + " via Calendso"}
-        />
-        <meta property="twitter:description" content={props.eventType.description} />
-        <meta
-          property="twitter:image"
-          content={
-            "https://og-image-one-pi.vercel.app/" +
-            encodeURIComponent(
-              "Meet **" + (props.user.name || props.user.username) + "** <br>" + props.eventType.description
-            ).replace(/'/g, "%27") +
-            ".png?md=1&images=https%3A%2F%2Fcalendso.com%2Fcalendso-logo-white.svg&images=" +
-            encodeURIComponent(props.user.avatar)
-          }
-        />
-      </Head>
-
+      <HeadSeo
+        title={`${rescheduleUid ? "Reschedule" : ""} ${props.eventType.title} | ${
+          props.user.name || props.user.username
+        }`}
+        description={`${rescheduleUid ? "Reschedule" : ""} ${props.eventType.title}`}
+        name={props.user.name || props.user.username}
+        avatar={props.user.avatar}
+      />
       {isReady && (
         <div>
           <main
@@ -140,7 +102,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
-                  <Avatar user={props.user} className="inline-block rounded-full h-9 w-9" />
+                  <Avatar
+                    imageSrc={props.user.avatar}
+                    displayName={props.user.name}
+                    className="inline-block rounded-full h-9 w-9"
+                  />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-black dark:text-gray-300">{props.user.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
@@ -161,7 +127,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                     "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
-                  <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
+                  <Avatar
+                    imageSrc={props.user.avatar}
+                    displayName={props.user.name}
+                    className="w-16 h-16 mb-4 rounded-full"
+                  />
                   <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {props.eventType.title}

@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
-import prisma from "../../../lib/prisma";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
+
   if (!session) {
     res.status(401).json({ message: "Not authenticated" });
     return;
@@ -35,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   type: input.type,
                   label: input.label,
                   required: input.required,
+                  placeholder: input.placeholder,
                 })),
             },
             update: req.body.customInputs
@@ -44,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   type: input.type,
                   label: input.label,
                   required: input.required,
+                  placeholder: input.placeholder,
                 },
                 where: {
                   id: input.id,
@@ -59,13 +62,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (req.method == "POST") {
-      await prisma.eventType.create({
+      const eventType = await prisma.eventType.create({
         data: {
           userId: session.user.id,
           ...data,
         },
       });
-      res.status(200).json({ message: "Event created successfully" });
+      res.status(201).json({ eventType });
     } else if (req.method == "PATCH") {
       if (req.body.timeZone) {
         data.timeZone = req.body.timeZone;
@@ -96,23 +99,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      await prisma.eventType.update({
+      const eventType = await prisma.eventType.update({
         where: {
           id: req.body.id,
         },
         data,
       });
-      res.status(200).json({ message: "Event updated successfully" });
+      res.status(200).json({ eventType });
     }
   }
 
   if (req.method == "DELETE") {
+    await prisma.eventTypeCustomInput.deleteMany({
+      where: {
+        eventTypeId: req.body.id,
+      },
+    });
+
     await prisma.eventType.delete({
       where: {
         id: req.body.id,
       },
     });
 
-    res.status(200).json({ message: "Event deleted successfully" });
+    res.status(200).json({});
   }
 }
