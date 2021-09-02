@@ -76,6 +76,18 @@ You will also need Google API credentials. You can get this from the [Google API
 
 ### Development Setup
 
+#### Quick start with `yarn dx`
+
+> - **Requires Docker to be installed**
+> - Will start a local Postgres instance with a user called `testuser` with credentials of `testuser@example.com` / `testpassword`
+
+
+```bash
+yarn dx 
+```
+
+#### Manual
+
 1. Clone the repo
    ```sh
    git clone https://github.com/calendso/calendso.git
