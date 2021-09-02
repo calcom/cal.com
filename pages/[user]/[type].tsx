@@ -1,24 +1,25 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Availability } from "@prisma/client";
-import Theme from "@components/Theme";
-import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
-import prisma from "@lib/prisma";
-import * as Collapsible from "@radix-ui/react-collapsible";
-import dayjs, { Dayjs } from "dayjs";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { HeadSeo } from "@components/seo/head-seo";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import Avatar from "@components/Avatar";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
+import { HeadSeo } from "@components/seo/head-seo";
+import Theme from "@components/Theme";
 import PoweredByCalendso from "@components/ui/PoweredByCalendso";
-import { timeZone } from "@lib/clock";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
+import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Availability } from "@prisma/client";
+import * as Collapsible from "@radix-ui/react-collapsible";
+import dayjs, { Dayjs } from "dayjs";
+import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
-export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   // Get router variables
   const router = useRouter();
   const { rescheduleUid } = router.query;
