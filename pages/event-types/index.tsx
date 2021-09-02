@@ -15,7 +15,7 @@ import {
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
 import dayjs from "dayjs";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
@@ -25,6 +25,7 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import { ONBOARDING_INTRODUCED_AT } from "../getting_started/index";
+import { getSession } from "@lib/auth";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -645,13 +646,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req } = context;
   const session = await getSession({ req });
 
-  if (!session) {
+  if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       id: true,
@@ -663,6 +664,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       createdDate: true,
     },
   });
+
+  if (!user) {
+    // this shouldn't happen
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
 
   if (!user.completedOnboarding && dayjs(user.createdDate).isBefore(ONBOARDING_INTRODUCED_AT)) {
     return {
