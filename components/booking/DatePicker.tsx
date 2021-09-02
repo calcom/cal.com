@@ -147,7 +147,7 @@ const DatePicker = ({
           style={{
             paddingTop: "100%",
           }}
-          className="relative w-full">
+          className="w-full relative">
           <button
             onClick={() => setSelectedDate(inviteeDate.date(day))}
             disabled={isDisabled(day)}
@@ -177,14 +177,14 @@ const DatePicker = ({
           ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
           : "w-full sm:pl-4")
       }>
-      <div className="flex mb-4 text-gray-600 text-xl font-light">
+      <div className="flex text-gray-600 font-light text-xl mb-4">
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">
             {dayjs().month(selectedMonth).format("MMMM")}
           </strong>
           <span className="text-gray-500"> {dayjs().month(selectedMonth).format("YYYY")}</span>
         </span>
-        <div className="w-1/2 text-right dark:text-gray-400 text-gray-600">
+        <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
             className={
@@ -192,23 +192,23 @@ const DatePicker = ({
               (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400 dark:text-gray-600")
             }
             disabled={selectedMonth <= dayjs().tz(inviteeTimeZone).month()}>
-            <ChevronLeftIcon className="dark:group-hover:text-white w-5 h-5 group-hover:text-black" />
+            <ChevronLeftIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
           <button className="group p-1" onClick={incrementMonth}>
-            <ChevronRightIcon className="dark:group-hover:text-white w-5 h-5 group-hover:text-black" />
+            <ChevronRightIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
         </div>
       </div>
-      <div className="grid gap-4 grid-cols-7 text-center border-b border-t dark:border-gray-800 sm:border-0">
+      <div className="grid grid-cols-7 gap-4 text-center border-b border-t dark:border-gray-800 sm:border-0">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
-            <div key={weekDay} className="my-4 text-gray-500 text-xs tracking-widest uppercase">
+            <div key={weekDay} className="uppercase text-gray-500 text-xs tracking-widest my-4">
               {weekDay}
             </div>
           ))}
       </div>
-      <div className="grid gap-2 grid-cols-7 text-center">{calendar}</div>
+      <div className="grid grid-cols-7 gap-2 text-center">{calendar}</div>
     </div>
   ) : null;
 };

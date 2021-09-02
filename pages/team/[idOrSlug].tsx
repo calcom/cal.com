@@ -16,7 +16,7 @@ export default function Page(props) {
           <link rel="icon" href="/favicon.ico" />
         </Head>
 
-        <main className="mx-auto px-4 py-24">
+        <main className="mx-auto py-24 px-4">
           <Team team={props.team} />
         </main>
       </div>

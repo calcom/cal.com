@@ -11,7 +11,7 @@ export default function Billing() {
         <title>Billing | Calendso</title>
       </Head>
       <SettingsShell>
-        <div className="py-6 lg:col-span-9 lg:pb-8">
+        <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="my-6">
             <iframe
               src="https://calendso.com/subscription-embed"

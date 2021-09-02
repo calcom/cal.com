@@ -37,7 +37,7 @@ export default function SettingsShell(props) {
   return (
     <div>
       <div className="sm:mx-auto">
-        <nav className="flex -mb-px space-x-2 sm:space-x-8" aria-label="Tabs">
+        <nav className="-mb-px flex space-x-2 sm:space-x-8" aria-label="Tabs">
           {tabs.map((tab) => (
             <Link key={tab.name} href={tab.href}>
               <a
@@ -45,13 +45,13 @@ export default function SettingsShell(props) {
                   tab.current
                     ? "border-neutral-900 text-neutral-900"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                  "group inline-flex items-center px-1 py-4 text-sm font-medium border-b-2"
+                  "group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm"
                 )}
                 aria-current={tab.current ? "page" : undefined}>
                 <tab.icon
                   className={classNames(
                     tab.current ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
-                    "hidden -ml-0.5 mr-2 w-5 h-5 sm:inline-block"
+                    "-ml-0.5 mr-2 h-5 w-5 hidden sm:inline-block"
                   )}
                   aria-hidden="true"
                 />

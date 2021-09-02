@@ -51,11 +51,11 @@ export default function Settings() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <SettingsShell>
-        <form className="divide-gray-200 divide-y lg:col-span-9" onSubmit={changePasswordHandler}>
+        <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
           <div className="py-6 lg:pb-8">
             <div className="flex">
-              <div className="mr-2 w-1/2">
-                <label htmlFor="current_password" className="block text-gray-700 text-sm font-medium">
+              <div className="w-1/2 mr-2">
+                <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
                   Current Password
                 </label>
                 <div className="mt-1">
@@ -65,13 +65,13 @@ export default function Settings() {
                     name="current_password"
                     id="current_password"
                     required
-                    className="block w-full focus:border-black border-gray-300 rounded-sm shadow-sm focus:ring-black sm:text-sm"
+                    className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="Your old password"
                   />
                 </div>
               </div>
-              <div className="ml-2 w-1/2">
-                <label htmlFor="new_password" className="block text-gray-700 text-sm font-medium">
+              <div className="w-1/2 ml-2">
+                <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">
                   New Password
                 </label>
                 <div className="mt-1">
@@ -81,17 +81,17 @@ export default function Settings() {
                     name="new_password"
                     id="new_password"
                     required
-                    className="block w-full focus:border-black border-gray-300 rounded-sm shadow-sm focus:ring-black sm:text-sm"
+                    className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="Your super secure new password"
                   />
                 </div>
               </div>
             </div>
             <hr className="mt-8" />
-            <div className="flex justify-end py-4">
+            <div className="py-4 flex justify-end">
               <button
                 type="submit"
-                className="inline-flex justify-center ml-2 px-4 py-2 text-white text-sm font-medium hover:bg-blue-700 bg-neutral-900 border border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-black focus:ring-offset-2">
+                className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 Save
               </button>
             </div>

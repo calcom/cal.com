@@ -18,21 +18,21 @@ export default function Switch(props) {
   };
 
   return (
-    <div className="h-[20px] flex items-center">
+    <div className="flex items-center h-[20px]">
       <PrimitiveSwitch.Root
-        className={classNames(checked ? "bg-gray-900" : "bg-gray-400", "w-[36px] h-[20px] p-0.5 rounded-sm")}
+        className={classNames(checked ? "bg-gray-900" : "bg-gray-400", "rounded-sm w-[36px] p-0.5 h-[20px]")}
         checked={checked}
         onCheckedChange={onPrimitiveCheckedChange}
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb
           className={classNames(
-            "w-[16px] h-[16px] block bg-white transition-transform",
+            "bg-white w-[16px] h-[16px] block transition-transform",
             checked ? "translate-x-[16px]" : "translate-x-0"
           )}
         />
       </PrimitiveSwitch.Root>
       {label && (
-        <Label.Root className="align-text-top ml-3 text-neutral-700 font-medium cursor-pointer">
+        <Label.Root className="text-neutral-700 align-text-top ml-3 font-medium cursor-pointer">
           {label}
         </Label.Root>
       )}

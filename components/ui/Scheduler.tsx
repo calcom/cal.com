@@ -69,11 +69,11 @@ export const Scheduler = ({
   };
 
   const OpeningHours = ({ idx, item }) => (
-    <li className="flex justify-between py-2 border-b">
+    <li className="py-2 flex justify-between border-b">
       <div className="flex flex-col space-y-4 lg:inline-flex">
         <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
         <button
-          className="px-3 py-2 text-sm bg-neutral-100 rounded-sm"
+          className="text-sm bg-neutral-100 rounded-sm py-2 px-3"
           type="button"
           onClick={() => setEditSchedule(idx)}>
           {dayjs()
@@ -90,8 +90,8 @@ export const Scheduler = ({
       <button
         type="button"
         onClick={() => removeScheduleAt(idx)}
-        className="btn-sm ml-1 px-2 py-1 bg-transparent">
-        <TrashIcon className="inline -mt-1 w-5 h-5 text-gray-400" />
+        className="btn-sm bg-transparent px-2 py-1 ml-1">
+        <TrashIcon className="h-5 w-5 inline text-gray-400 -mt-1" />
       </button>
     </li>
   );
@@ -101,7 +101,7 @@ export const Scheduler = ({
       <div className="flex">
         <div className="w-full">
           <div className="">
-            <label htmlFor="timeZone" className="block text-gray-700 text-sm font-medium">
+            <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
               Timezone
             </label>
             <div className="mt-1">
@@ -109,7 +109,7 @@ export const Scheduler = ({
                 id="timeZone"
                 value={selectedTimeZone}
                 onChange={(tz) => setTimeZone(tz.value)}
-                className="block mt-1 w-full focus:border-black border-gray-300 rounded-md shadow-sm focus:ring-black sm:text-sm"
+                className="shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
               />
             </div>
           </div>

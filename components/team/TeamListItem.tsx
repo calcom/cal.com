@@ -26,10 +26,10 @@ export default function TeamListItem(props) {
       <li className="mb-2 mt-2 divide-y">
         <div className="flex justify-between mb-2 mt-2">
           <div>
-            <UsersIcon className="inline flex-shrink-0 -mt-4 mr-2 w-6 h-6 text-gray-400 group-hover:text-gray-500" />
+            <UsersIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-4 mr-2 h-6 w-6 inline" />
             <div className="inline-block -mt-1">
-              <span className="text-neutral-700 text-sm font-bold">{props.team.name}</span>
-              <span className="block -mt-1 text-gray-400 text-xs capitalize">
+              <span className="font-bold text-neutral-700 text-sm">{props.team.name}</span>
+              <span className="text-xs text-gray-400 -mt-1 block capitalize">
                 {props.team.role.toLowerCase()}
               </span>
             </div>
@@ -37,12 +37,12 @@ export default function TeamListItem(props) {
           {props.team.role === "INVITEE" && (
             <div>
               <button
-                className="btn-sm ml-2 px-3 py-1 text-green-500 bg-transparent border border-green-500 rounded-sm"
+                className="btn-sm bg-transparent text-green-500 border border-green-500 px-3 py-1 rounded-sm ml-2"
                 onClick={acceptInvite}>
                 Accept invitation
               </button>
-              <button className="btn-sm ml-1 px-2 py-1 bg-transparent">
-                <TrashIcon className="inline -mt-1 w-6 h-6 text-gray-400" onClick={declineInvite} />
+              <button className="btn-sm bg-transparent px-2 py-1 ml-1">
+                <TrashIcon className="h-6 w-6 inline text-gray-400 -mt-1" onClick={declineInvite} />
               </button>
             </div>
           )}
@@ -50,7 +50,7 @@ export default function TeamListItem(props) {
             <div>
               <button
                 onClick={declineInvite}
-                className="btn-sm ml-2 px-3 py-1 text-gray-400 bg-transparent border border-gray-400 rounded-sm">
+                className="btn-sm bg-transparent text-gray-400 border border-gray-400 px-3 py-1 rounded-sm ml-2">
                 Leave
               </button>
             </div>
@@ -58,18 +58,22 @@ export default function TeamListItem(props) {
           {props.team.role === "OWNER" && (
             <div>
               <Dropdown className="relative inline-block text-left">
-                <button className="btn-sm ml-2 px-3 py-1 text-gray-400 bg-transparent rounded-sm">
-                  <CogIcon className="inline w-6 h-6 text-gray-400" />
+                <button className="btn-sm bg-transparent text-gray-400 px-3 py-1 rounded-sm ml-2">
+                  <CogIcon className="h-6 w-6 inline text-gray-400" />
                 </button>
                 <ul
                   role="menu"
-                  className="absolute z-10 right-0 w-36 bg-white rounded-sm focus:outline-none shadow-lg origin-top-right ring-1 ring-black ring-opacity-5">
-                  <li className="text-gray-700 hover:text-gray-900 text-sm hover:bg-gray-100" role="menuitem">
+                  className="z-10 origin-top-right absolute right-0 w-36 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <li
+                    className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
+                    role="menuitem">
                     <button className="block px-4 py-2" onClick={() => props.onActionSelect("invite")}>
                       Invite members
                     </button>
                   </li>
-                  <li className="text-gray-700 hover:text-gray-900 text-sm hover:bg-gray-100" role="menuitem">
+                  <li
+                    className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
+                    role="menuitem">
                     <button className="block px-4 py-2" onClick={() => props.onActionSelect("edit")}>
                       Manage team
                     </button>

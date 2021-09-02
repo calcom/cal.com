@@ -315,7 +315,7 @@ export default function EventTypePage({
       case LocationType.InPerson:
         return (
           <div>
-            <label htmlFor="address" className="block text-gray-700 text-sm font-medium">
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
               Set an address or place
             </label>
             <div className="mt-1">
@@ -324,7 +324,7 @@ export default function EventTypePage({
                 name="address"
                 id="address"
                 required
-                className="block w-full border-gray-300 focus:border-primary-500 rounded-sm shadow-sm focus:ring-primary-500 sm:text-sm"
+                className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 defaultValue={locations.find((location) => location.type === LocationType.InPerson)?.address}
               />
             </div>
@@ -380,26 +380,26 @@ export default function EventTypePage({
             name="title"
             id="title"
             required
-            className="pl-0 text-gray-900 text-xl font-bold bg-transparent border-none focus:outline-none cursor-pointer focus:ring-0"
+            className="pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
             placeholder="Quick Chat"
             defaultValue={eventType.title}
           />
         }
         subtitle={eventType.description}>
         <div className="block sm:flex">
-          <div className="mr-2 w-full sm:w-10/12">
-            <div className="-mx-4 p-4 bg-white border border-neutral-200 rounded-sm sm:mx-0 sm:p-8">
+          <div className="w-full mr-2 sm:w-10/12">
+            <div className="p-4 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:p-8">
               <form onSubmit={updateEventTypeHandler} className="space-y-4">
-                <div className="block items-center sm:flex">
+                <div className="items-center block sm:flex">
                   <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="slug" className="flex mt-0 text-neutral-700 text-sm font-medium">
-                      <LinkIcon className="mr-2 mt-0.5 w-4 h-4 text-neutral-500" />
+                    <label htmlFor="slug" className="flex mt-0 text-sm font-medium text-neutral-700">
+                      <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                       URL
                     </label>
                   </div>
                   <div className="w-full">
                     <div className="flex rounded-sm shadow-sm">
-                      <span className="inline-flex items-center px-3 text-gray-500 bg-gray-50 border border-r-0 border-gray-300 rounded-l-sm sm:text-sm">
+                      <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
                         {typeof location !== "undefined" ? location.hostname : ""}/{user.username}/
                       </span>
                       <input
@@ -408,17 +408,17 @@ export default function EventTypePage({
                         name="slug"
                         id="slug"
                         required
-                        className="block flex-1 w-full min-w-0 border-gray-300 focus:border-primary-500 rounded-none rounded-r-sm focus:ring-primary-500 sm:text-sm"
+                        className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                         defaultValue={eventType.slug}
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="block items-center sm:flex">
+                <div className="items-center block sm:flex">
                   <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="length" className="flex mt-0 text-neutral-700 text-sm font-medium">
-                      <ClockIcon className="mr-2 mt-0.5 w-4 h-4 text-neutral-500" />
+                    <label htmlFor="length" className="flex mt-0 text-sm font-medium text-neutral-700">
+                      <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                       Duration
                     </label>
                   </div>
@@ -430,7 +430,7 @@ export default function EventTypePage({
                         name="length"
                         id="length"
                         required
-                        className="block pl-2 pr-12 w-full border-gray-300 focus:border-primary-500 rounded-sm focus:ring-primary-500 sm:text-sm"
+                        className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                         placeholder="15"
                         defaultValue={eventType.length}
                       />
@@ -445,16 +445,16 @@ export default function EventTypePage({
 
                 <hr />
 
-                <div className="block items-center sm:flex">
+                <div className="items-center block sm:flex">
                   <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="location" className="flex mt-0 text-neutral-700 text-sm font-medium">
-                      <LocationMarkerIcon className="mr-2 mt-0.5 w-4 h-4 text-neutral-500" />
+                    <label htmlFor="location" className="flex mt-0 text-sm font-medium text-neutral-700">
+                      <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                       Location
                     </label>
                   </div>
                   <div className="w-full">
                     {locations.length === 0 && (
-                      <div className="mb-2 mt-1">
+                      <div className="mt-1 mb-2">
                         <div className="flex">
                           <Select
                             name="location"
@@ -462,7 +462,7 @@ export default function EventTypePage({
                             options={locationOptions}
                             isSearchable="false"
                             classNamePrefix="react-select"
-                            className="react-select-container block flex-1 w-full min-w-0 border border-gray-300 focus:border-primary-500 rounded-sm focus:ring-primary-500 sm:text-sm"
+                            className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                             onChange={(e) => openLocationModal(e.value)}
                           />
                         </div>
@@ -473,22 +473,22 @@ export default function EventTypePage({
                         {locations.map((location) => (
                           <li
                             key={location.type}
-                            className="mb-2 p-2 border border-neutral-300 rounded-sm shadow-sm">
+                            className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
                             <div className="flex justify-between">
                               {location.type === LocationType.InPerson && (
-                                <div className="flex flex-grow items-center">
+                                <div className="flex items-center flex-grow">
                                   <LocationMarkerIcon className="w-6 h-6" />
                                   <span className="ml-2 text-sm">{location.address}</span>
                                 </div>
                               )}
                               {location.type === LocationType.Phone && (
-                                <div className="flex flex-grow items-center">
+                                <div className="flex items-center flex-grow">
                                   <PhoneIcon className="w-6 h-6" />
                                   <span className="ml-2 text-sm">Phone call</span>
                                 </div>
                               )}
                               {location.type === LocationType.GoogleMeet && (
-                                <div className="flex flex-grow items-center">
+                                <div className="flex items-center flex-grow">
                                   <svg
                                     className="w-6 h-6"
                                     viewBox="0 0 64 54"
@@ -519,7 +519,7 @@ export default function EventTypePage({
                                 </div>
                               )}
                               {location.type === LocationType.Zoom && (
-                                <div className="flex flex-grow items-center">
+                                <div className="flex items-center flex-grow">
                                   <svg
                                     className="w-6 h-6"
                                     viewBox="0 0 64 64"
@@ -549,11 +549,11 @@ export default function EventTypePage({
                                 <button
                                   type="button"
                                   onClick={() => openLocationModal(location.type)}
-                                  className="mr-2 text-primary-600 text-sm">
+                                  className="mr-2 text-sm text-primary-600">
                                   Edit
                                 </button>
                                 <button onClick={() => removeLocation(location)}>
-                                  <XIcon className="pl-1 w-6 h-6 hover:text-red-500 border-l-2" />
+                                  <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
                                 </button>
                               </div>
                             </div>
@@ -563,10 +563,10 @@ export default function EventTypePage({
                           <li>
                             <button
                               type="button"
-                              className="flex px-3 py-2 bg-neutral-100 rounded-sm"
+                              className="flex px-3 py-2 rounded-sm bg-neutral-100"
                               onClick={() => setShowLocationModal(true)}>
-                              <PlusIcon className="mt-0.5 w-4 h-4 text-neutral-900" />
-                              <span className="ml-1 text-neutral-700 text-sm font-medium">
+                              <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
+                              <span className="ml-1 text-sm font-medium text-neutral-700">
                                 Add another location
                               </span>
                             </button>
@@ -579,10 +579,10 @@ export default function EventTypePage({
 
                 <hr className="border-neutral-200" />
 
-                <div className="block items-center sm:flex">
+                <div className="items-center block sm:flex">
                   <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="description" className="flex mt-0 text-neutral-700 text-sm font-medium">
-                      <DocumentIcon className="mr-2 mt-0.5 w-4 h-4 text-neutral-500" />
+                    <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
+                      <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                       Description
                     </label>
                   </div>
@@ -591,7 +591,7 @@ export default function EventTypePage({
                       ref={descriptionRef}
                       name="description"
                       id="description"
-                      className="block w-full border-gray-300 focus:border-primary-500 rounded-sm shadow-sm focus:ring-primary-500 sm:text-sm"
+                      className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                       placeholder="A quick video meeting."
                       defaultValue={eventType.description}></textarea>
                   </div>
@@ -603,14 +603,14 @@ export default function EventTypePage({
                         <ChevronRightIcon
                           className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-neutral-500 ml-auto`}
                         />
-                        <span className="text-neutral-700 text-sm font-medium">Show advanced settings</span>
+                        <span className="text-sm font-medium text-neutral-700">Show advanced settings</span>
                       </Disclosure.Button>
                       <Disclosure.Panel className="space-y-4">
-                        <div className="block items-center sm:flex">
+                        <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-44 sm:mb-0">
                             <label
                               htmlFor="eventName"
-                              className="flex mt-2 text-neutral-700 text-sm font-medium">
+                              className="flex mt-2 text-sm font-medium text-neutral-700">
                               Event name
                             </label>
                           </div>
@@ -621,25 +621,25 @@ export default function EventTypePage({
                                 type="text"
                                 name="title"
                                 id="title"
-                                className="block w-full border-gray-300 focus:border-primary-500 rounded-sm shadow-sm focus:ring-primary-500 sm:text-sm"
+                                className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                 placeholder="Meeting with {USER}"
                                 defaultValue={eventType.eventName}
                               />
                             </div>
                           </div>
                         </div>
-                        <div className="block items-center sm:flex">
+                        <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-44 sm:mb-0">
                             <label
                               htmlFor="additionalFields"
-                              className="flex mt-2 text-neutral-700 text-sm font-medium">
+                              className="flex mt-2 text-sm font-medium text-neutral-700">
                               Additional inputs
                             </label>
                           </div>
                           <div className="w-full">
                             <ul className="mt-1 w-96">
                               {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
-                                <li key={idx} className="mb-2 p-2 bg-secondary-50 border">
+                                <li key={idx} className="p-2 mb-2 border bg-secondary-50">
                                   <div className="flex justify-between">
                                     <div>
                                       <div>
@@ -658,11 +658,11 @@ export default function EventTypePage({
                                       <button
                                         type="button"
                                         onClick={() => openEditCustomModel(customInput)}
-                                        className="mr-2 text-primary-600 text-sm">
+                                        className="mr-2 text-sm text-primary-600">
                                         Edit
                                       </button>
                                       <button type="button" onClick={() => removeCustom(idx)}>
-                                        <XIcon className="pl-1 w-6 h-6 hover:text-red-500 border-l-2" />
+                                        <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
                                       </button>
                                     </div>
                                   </div>
@@ -671,10 +671,10 @@ export default function EventTypePage({
                               <li>
                                 <button
                                   type="button"
-                                  className="flex px-3 py-2 bg-neutral-100 rounded-sm"
+                                  className="flex px-3 py-2 rounded-sm bg-neutral-100"
                                   onClick={() => setShowAddCustomModal(true)}>
-                                  <PlusIcon className="mt-0.5 w-4 h-4 text-neutral-900" />
-                                  <span className="ml-1 text-neutral-700 text-sm font-medium">
+                                  <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
+                                  <span className="ml-1 text-sm font-medium text-neutral-700">
                                     Add an input
                                   </span>
                                 </button>
@@ -682,11 +682,11 @@ export default function EventTypePage({
                             </ul>
                           </div>
                         </div>
-                        <div className="block items-center sm:flex">
+                        <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-44 sm:mb-0">
                             <label
                               htmlFor="requiresConfirmation"
-                              className="flex text-neutral-700 text-sm font-medium">
+                              className="flex text-sm font-medium text-neutral-700">
                               Opt-in booking
                             </label>
                           </div>
@@ -698,7 +698,7 @@ export default function EventTypePage({
                                   id="requiresConfirmation"
                                   name="requiresConfirmation"
                                   type="checkbox"
-                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                  className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
                                   defaultChecked={eventType.requiresConfirmation}
                                 />
                               </div>
@@ -718,7 +718,7 @@ export default function EventTypePage({
                           <div className="mb-4 min-w-44 sm:mb-0">
                             <label
                               htmlFor="inviteesCanSchedule"
-                              className="flex mt-2 text-neutral-700 text-sm font-medium">
+                              className="flex mt-2 text-sm font-medium text-neutral-700">
                               Invitees can schedule
                             </label>
                           </div>
@@ -747,7 +747,7 @@ export default function EventTypePage({
                                             "h-4 w-4 mt-0.5 mr-2 cursor-pointer rounded-full border items-center justify-center"
                                           )}
                                           aria-hidden="true">
-                                          <span className="w-1.5 h-1.5 bg-white rounded-full" />
+                                          <span className="rounded-full bg-white w-1.5 h-1.5" />
                                         </div>
                                         <div className="flex flex-col lg:ml-3">
                                           <RadioGroup.Label
@@ -764,7 +764,7 @@ export default function EventTypePage({
                                                   type="text"
                                                   name="periodDays"
                                                   id=""
-                                                  className="block mr-2 w-12 border-gray-300 focus:border-primary-500 rounded-sm shadow-sm focus:ring-primary-500 sm:text-sm"
+                                                  className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                                   placeholder="30"
                                                   defaultValue={eventType.periodDays || 30}
                                                 />
@@ -772,7 +772,7 @@ export default function EventTypePage({
                                                   ref={periodDaysTypeRef}
                                                   id=""
                                                   name="periodDaysType"
-                                                  className="block pl-3 pr-10 py-2 w-full text-base border-gray-300 focus:border-primary-500 rounded-sm focus:outline-none focus:ring-primary-500 sm:text-sm"
+                                                  className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm  focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                                   defaultValue={
                                                     eventType.periodCountCalendarDays ? "1" : "0"
                                                   }>
@@ -820,7 +820,7 @@ export default function EventTypePage({
                           <div className="mb-4 min-w-44 sm:mb-0">
                             <label
                               htmlFor="availability"
-                              className="flex mt-2 text-neutral-700 text-sm font-medium">
+                              className="flex mt-2 text-sm font-medium text-neutral-700">
                               Availability
                             </label>
                           </div>
@@ -839,13 +839,13 @@ export default function EventTypePage({
                 </Disclosure>
                 <div className="flex justify-end mt-4">
                   <Link href="/event-types">
-                    <a className="inline-flex items-center mr-2 px-4 py-2 text-neutral-700 text-sm font-medium hover:bg-neutral-100 bg-white border border-neutral-300 border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-black focus:ring-offset-2">
+                    <a className="inline-flex items-center px-4 py-2 mr-2 text-sm font-medium bg-white border border-transparent rounded-sm shadow-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                       Cancel
                     </a>
                   </Link>
                   <button
                     type="submit"
-                    className="inline-flex items-center px-4 py-2 text-white text-sm font-medium hover:bg-neutral-700 bg-neutral-900 border border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-black focus:ring-offset-2">
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                     Update
                   </button>
                 </div>
@@ -858,7 +858,7 @@ export default function EventTypePage({
               />
             </div>
           </div>
-          <div className="ml-2 mt-8 px-4 w-full min-w-32 sm:mt-0 sm:w-2/12">
+          <div className="w-full px-4 mt-8 ml-2 sm:w-2/12 sm:mt-0 min-w-32">
             <div className="space-y-4">
               <Switch
                 name="isHidden"
@@ -870,8 +870,8 @@ export default function EventTypePage({
                 href={"/" + user.username + "/" + eventType.slug}
                 target="_blank"
                 rel="noreferrer"
-                className="text-md flex text-neutral-700 font-medium">
-                <ExternalLinkIcon className="mr-2 mt-1 w-4 h-4 text-neutral-500" aria-hidden="true" />
+                className="flex font-medium text-md text-neutral-700">
+                <ExternalLinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" aria-hidden="true" />
                 Preview
               </a>
               <button
@@ -882,13 +882,13 @@ export default function EventTypePage({
                   showToast("Link copied!", "success");
                 }}
                 type="button"
-                className="text-md flex text-neutral-700 font-medium">
-                <LinkIcon className="mr-2 mt-1 w-4 h-4 text-neutral-500" />
+                className="flex font-medium text-md text-neutral-700">
+                <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
                 Copy link
               </button>
               <Dialog>
-                <DialogTrigger className="text-md flex text-neutral-700 font-medium">
-                  <TrashIcon className="mr-2 mt-1 w-4 h-4 text-neutral-500" />
+                <DialogTrigger className="flex font-medium text-md text-neutral-700">
+                  <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
                   Delete
                 </DialogTrigger>
                 <ConfirmationDialogContent
@@ -905,26 +905,26 @@ export default function EventTypePage({
         </div>
         {showLocationModal && (
           <div
-            className="fixed z-50 inset-0 overflow-y-auto"
+            className="fixed inset-0 z-50 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true">
-            <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
+            <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div
-                className="fixed z-0 inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
                 aria-hidden="true"></div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
               </span>
 
-              <div className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-sm shadow-xl transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-lg">
+              <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div className="mb-4 sm:flex sm:items-start">
-                  <div className="flex flex-shrink-0 items-center justify-center mx-auto w-12 h-12 bg-secondary-100 rounded-full sm:mx-0 sm:w-10 sm:h-10">
+                  <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
                     <LocationMarkerIcon className="w-6 h-6 text-primary-600" />
                   </div>
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                    <h3 className="text-gray-900 text-lg font-medium leading-6" id="modal-title">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
                       Edit location
                     </h3>
                   </div>
@@ -936,15 +936,15 @@ export default function EventTypePage({
                     options={locationOptions}
                     isSearchable="false"
                     classNamePrefix="react-select"
-                    className="react-select-container block flex-1 my-4 w-full min-w-0 border border-gray-300 focus:border-primary-500 rounded-sm focus:ring-primary-500 sm:text-sm"
+                    className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     onChange={setSelectedLocation}
                   />
                   <LocationOptions />
-                  <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
                       Update
                     </button>
-                    <button onClick={closeLocationModal} type="button" className="btn btn-white mr-2">
+                    <button onClick={closeLocationModal} type="button" className="mr-2 btn btn-white">
                       Cancel
                     </button>
                   </div>
@@ -955,13 +955,13 @@ export default function EventTypePage({
         )}
         {showAddCustomModal && (
           <div
-            className="fixed z-50 inset-0 overflow-y-auto"
+            className="fixed inset-0 z-50 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true">
-            <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
+            <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div
-                className="fixed z-0 inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
                 aria-hidden="true"
               />
 
@@ -969,17 +969,17 @@ export default function EventTypePage({
                 &#8203;
               </span>
 
-              <div className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-sm shadow-xl transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-lg">
+              <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div className="mb-4 sm:flex sm:items-start">
-                  <div className="flex flex-shrink-0 items-center justify-center mx-auto w-12 h-12 bg-secondary-100 rounded-full sm:mx-0 sm:w-10 sm:h-10">
+                  <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
                     <PlusIcon className="w-6 h-6 text-primary-600" />
                   </div>
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                    <h3 className="text-gray-900 text-lg font-medium leading-6" id="modal-title">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
                       Add new custom input field
                     </h3>
                     <div>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-sm text-gray-400">
                         This input will be shown when booking this event
                       </p>
                     </div>
@@ -987,7 +987,7 @@ export default function EventTypePage({
                 </div>
                 <form onSubmit={updateCustom}>
                   <div className="mb-2">
-                    <label htmlFor="type" className="block text-gray-700 text-sm font-medium">
+                    <label htmlFor="type" className="block text-sm font-medium text-gray-700">
                       Input type
                     </label>
                     <Select
@@ -996,12 +996,12 @@ export default function EventTypePage({
                       options={inputOptions}
                       isSearchable="false"
                       required
-                      className="block flex-1 mb-2 mt-1 w-full min-w-0 border-gray-300 focus:border-primary-500 rounded-none rounded-r-md focus:ring-primary-500 sm:text-sm"
+                      className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
                       onChange={setSelectedInputOption}
                     />
                   </div>
                   <div className="mb-2">
-                    <label htmlFor="label" className="block text-gray-700 text-sm font-medium">
+                    <label htmlFor="label" className="block text-sm font-medium text-gray-700">
                       Label
                     </label>
                     <div className="mt-1">
@@ -1010,7 +1010,7 @@ export default function EventTypePage({
                         name="label"
                         id="label"
                         required
-                        className="block w-full border-gray-300 focus:border-primary-500 rounded-sm shadow-sm focus:ring-primary-500 sm:text-sm"
+                        className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                         defaultValue={selectedCustomInput?.label}
                       />
                     </div>
@@ -1020,19 +1020,19 @@ export default function EventTypePage({
                       id="required"
                       name="required"
                       type="checkbox"
-                      className="mr-2 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-4 h-4 mr-2 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
                       defaultChecked={selectedCustomInput?.required ?? true}
                     />
-                    <label htmlFor="required" className="block text-gray-700 text-sm font-medium">
+                    <label htmlFor="required" className="block text-sm font-medium text-gray-700">
                       Is required
                     </label>
                   </div>
                   <input type="hidden" name="id" id="id" value={selectedCustomInput?.id} />
-                  <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
                       Save
                     </button>
-                    <button onClick={closeAddCustomModal} type="button" className="btn btn-white mr-2">
+                    <button onClick={closeAddCustomModal} type="button" className="mr-2 btn btn-white">
                       Cancel
                     </button>
                   </div>

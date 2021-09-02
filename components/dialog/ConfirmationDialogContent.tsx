@@ -20,18 +20,18 @@ export default function ConfirmationDialogContent({
         {alert && (
           <div className="mr-3 mt-0.5">
             {alert === "danger" && (
-              <div className="mx-auto p-2 text-center bg-red-100 rounded-full">
+              <div className="text-center p-2 rounded-full mx-auto bg-red-100">
                 <ExclamationIcon className="w-5 h-5 text-red-600" />
               </div>
             )}
           </div>
         )}
         <div>
-          <DialogPrimitive.Title className="text-gray-900 text-xl font-bold">{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Title className="text-xl font-bold text-gray-900">{title}</DialogPrimitive.Title>
           <DialogPrimitive.Description className="text-neutral-500">{children}</DialogPrimitive.Description>
         </div>
       </div>
-      <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
+      <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
         <DialogClose onClick={onConfirm} className="btn btn-primary">
           {confirmBtnText}
         </DialogClose>

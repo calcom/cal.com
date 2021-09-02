@@ -136,44 +136,44 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
               "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
               (selectedDate ? "max-w-5xl" : "max-w-3xl")
             }>
-            <div className="sm:dark:border-gray-600 dark:bg-gray-900 bg-white border-gray-200 rounded-sm md:border">
+            <div className="bg-white border-gray-200 rounded-sm sm:dark:border-gray-600 dark:bg-gray-900 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
-                  <Avatar user={props.user} className="inline-block w-9 h-9 rounded-full" />
+                  <Avatar user={props.user} className="inline-block rounded-full h-9 w-9" />
                   <div className="ml-3">
-                    <p className="text-black dark:text-gray-300 text-sm font-medium">{props.user.name}</p>
-                    <div className="flex gap-2 text-gray-600 text-xs font-medium">
+                    <p className="text-sm font-medium text-black dark:text-gray-300">{props.user.name}</p>
+                    <div className="flex gap-2 text-xs font-medium text-gray-600">
                       {props.eventType.title}
                       <div>
-                        <ClockIcon className="inline-block -mt-1 mr-1 w-4 h-4" />
+                        <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                         {props.eventType.length} minutes
                       </div>
                     </div>
                   </div>
                 </div>
-                <p className="mt-3 dark:text-gray-200 text-gray-600">{props.eventType.description}</p>
+                <p className="mt-3 text-gray-600 dark:text-gray-200">{props.eventType.description}</p>
               </div>
 
-              <div className="px-4 sm:flex sm:p-4 sm:py-5">
+              <div className="px-4 sm:flex sm:py-5 sm:p-4">
                 <div
                   className={
                     "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
-                  <Avatar user={props.user} className="mb-4 w-16 h-16 rounded-full" />
-                  <h2 className="dark:text-gray-300 text-gray-500 font-medium">{props.user.name}</h2>
-                  <h1 className="mb-4 text-gray-800 dark:text-white text-3xl font-semibold">
+                  <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
+                  <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
+                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {props.eventType.title}
                   </h1>
-                  <p className="-ml-2 mb-1 px-2 py-1 text-gray-500">
-                    <ClockIcon className="inline-block -mt-1 mr-1 w-4 h-4" />
+                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                    <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {props.eventType.length} minutes
                   </p>
 
                   <TimezoneDropdown />
 
-                  <p className="mb-8 mt-3 dark:text-gray-200 text-gray-600">{props.eventType.description}</p>
+                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{props.eventType.description}</p>
                 </div>
                 <DatePicker
                   date={selectedDate}
@@ -191,7 +191,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                   minimumBookingNotice={props.eventType.minimumBookingNotice}
                 />
 
-                <div className="block ml-1 mt-4 sm:hidden">
+                <div className="block mt-4 ml-1 sm:hidden">
                   <TimezoneDropdown />
                 </div>
 
@@ -219,13 +219,13 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="-ml-2 mb-1 px-2 py-1 min-w-32 text-left text-gray-500">
-          <GlobeIcon className="inline-block -mt-1 mr-1 w-4 h-4" />
+        <Collapsible.Trigger className="px-2 py-1 mb-1 -ml-2 text-left text-gray-500 min-w-32">
+          <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
           {timeZone()}
           {isTimeOptionsOpen ? (
-            <ChevronUpIcon className="inline-block -mt-1 ml-1 w-4 h-4" />
+            <ChevronUpIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
           ) : (
-            <ChevronDownIcon className="inline-block -mt-1 ml-1 w-4 h-4" />
+            <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
           )}
         </Collapsible.Trigger>
         <Collapsible.Content>

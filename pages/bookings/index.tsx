@@ -41,12 +41,12 @@ export default function Bookings({ bookings }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
-        <div className="flex flex-col -mx-4 sm:mx-auto">
+        <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block align-middle py-2 min-w-full sm:px-6 lg:px-8">
-              <div className="border border-b border-gray-200 rounded-sm overflow-hidden">
-                <table className="min-w-full divide-gray-200 divide-y">
-                  <tbody className="bg-white divide-gray-200 divide-y">
+            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+              <div className="border border-gray-200 overflow-hidden border-b rounded-sm">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {bookings
                       .filter((booking) => !booking.confirmed && !booking.rejected)
                       .concat(bookings.filter((booking) => booking.confirmed || booking.rejected))
@@ -54,48 +54,48 @@ export default function Bookings({ bookings }) {
                         <tr key={booking.id}>
                           <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
                             {!booking.confirmed && !booking.rejected && (
-                              <span className="inline-flex items-center mb-2 px-1.5 py-0.5 text-yellow-800 text-xs font-medium bg-yellow-100 rounded-sm">
+                              <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                                 Unconfirmed
                               </span>
                             )}
-                            <div className="max-w-60 text-neutral-900 text-sm font-medium truncate md:max-w-96">
+                            <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
-                              <div className="text-gray-900 text-sm">
+                              <div className="text-sm text-gray-900">
                                 {dayjs(booking.startTime).format("D MMMM YYYY")}:{" "}
-                                <small className="text-gray-500 text-sm">
+                                <small className="text-sm text-gray-500">
                                   {dayjs(booking.startTime).format("HH:mm")} -{" "}
                                   {dayjs(booking.endTime).format("HH:mm")}
                                 </small>
                               </div>
                             </div>
-                            <div className="text-blue-500 text-sm">
+                            <div className="text-sm text-blue-500">
                               <a href={"mailto:" + booking.attendees[0].email}>
                                 {booking.attendees[0].email}
                               </a>
                             </div>
                           </td>
-                          <td className="hidden px-6 py-4 whitespace-nowrap sm:table-cell">
-                            <div className="text-gray-900 text-sm">
+                          <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
                               {dayjs(booking.startTime).format("D MMMM YYYY")}
                             </div>
-                            <div className="text-gray-500 text-sm">
+                            <div className="text-sm text-gray-500">
                               {dayjs(booking.startTime).format("HH:mm")} -{" "}
                               {dayjs(booking.endTime).format("HH:mm")}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-right whitespace-nowrap text-sm font-medium">
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {!booking.confirmed && !booking.rejected && (
                               <>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, true)}
-                                  className="inline-flex items-center ml-2 px-4 py-2 text-neutral-700 text-xs font-medium hover:bg-neutral-100 bg-white border border-neutral-300 border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-black focus:ring-offset-2 sm:text-sm">
+                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Confirm
                                 </button>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, false)}
-                                  className="inline-flex items-center ml-2 px-4 py-2 text-neutral-700 text-xs font-medium hover:bg-neutral-100 bg-white border border-neutral-300 border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-black focus:ring-offset-2 sm:text-sm">
+                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Reject
                                 </button>
                               </>
@@ -104,29 +104,29 @@ export default function Bookings({ bookings }) {
                               <>
                                 <a
                                   href={window.location.href + "/../cancel/" + booking.uid}
-                                  className="hidden items-center ml-2 px-4 py-2 text-neutral-700 text-xs font-medium hover:bg-neutral-100 bg-white border border-neutral-300 border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-black focus:ring-offset-2 sm:text-sm lg:inline-flex">
+                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   <XIcon
-                                    className="mr-3 w-5 h-5 text-neutral-400 group-hover:text-neutral-500"
+                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   Cancel
                                 </a>
                                 <a
                                   href={window.location.href + "/../reschedule/" + booking.uid}
-                                  className="hidden items-center ml-2 px-4 py-2 text-neutral-700 text-xs font-medium hover:bg-neutral-100 bg-white border border-neutral-300 border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-black focus:ring-offset-2 sm:text-sm lg:inline-flex">
+                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   <ClockIcon
-                                    className="mr-3 w-5 h-5 text-neutral-400 group-hover:text-neutral-500"
+                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   Reschedule
                                 </a>
-                                <Menu as="div" className="inline-block text-left lg:hidden">
+                                <Menu as="div" className="inline-block lg:hidden text-left ">
                                   {({ open }) => (
                                     <>
                                       <div>
-                                        <Menu.Button className="mt-1 p-2 text-neutral-400 border hover:border-gray-200 border-transparent">
+                                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
                                           <span className="sr-only">Open options</span>
-                                          <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
+                                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                                         </Menu.Button>
                                       </div>
 
@@ -141,7 +141,7 @@ export default function Bookings({ bookings }) {
                                         leaveTo="transform opacity-0 scale-95">
                                         <Menu.Items
                                           static
-                                          className="absolute right-0 mt-2 w-56 bg-white rounded-sm focus:outline-none shadow-lg divide-neutral-100 divide-y origin-top-right ring-1 ring-black ring-opacity-5">
+                                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
                                           <div className="py-1">
                                             <Menu.Item>
                                               {({ active }) => (
@@ -154,7 +154,7 @@ export default function Bookings({ bookings }) {
                                                     "group flex items-center px-4 py-2 text-sm font-medium"
                                                   )}>
                                                   <XIcon
-                                                    className="mr-3 w-5 h-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
                                                   Cancel
@@ -171,10 +171,10 @@ export default function Bookings({ bookings }) {
                                                     active
                                                       ? "bg-neutral-100 text-neutral-900"
                                                       : "text-neutral-700",
-                                                    "group flex items-center px-4 py-2 w-full text-sm font-medium"
+                                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
                                                   )}>
                                                   <ClockIcon
-                                                    className="mr-3 w-5 h-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
                                                   Reschedule
@@ -190,7 +190,7 @@ export default function Bookings({ bookings }) {
                               </>
                             )}
                             {!booking.confirmed && booking.rejected && (
-                              <div className="text-gray-500 text-sm">Rejected</div>
+                              <div className="text-sm text-gray-500">Rejected</div>
                             )}
                           </td>
                         </tr>

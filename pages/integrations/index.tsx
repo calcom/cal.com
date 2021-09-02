@@ -115,31 +115,31 @@ export default function Home({ integrations }: Props) {
 
   const ConnectNewAppDialog = () => (
     <Dialog>
-      <DialogTrigger className="mt-6 px-4 py-2 text-white text-sm font-medium hover:bg-neutral-700 bg-neutral-900 border border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2">
-        <PlusIcon className="inline mr-1 w-5 h-5" />
+      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+        <PlusIcon className="w-5 h-5 mr-1 inline" />
         Connect a new App
       </DialogTrigger>
 
       <DialogContent>
         <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
         <div className="my-4">
-          <ul className="divide-gray-200 divide-y">
+          <ul className="divide-y divide-gray-200">
             {integrations
               .filter((integration) => integration.installed)
               .map((integration) => {
                 return (
                   <li key={integration.type} className="flex py-4">
-                    <div className="mr-4 pt-2 w-1/12">
-                      <img className="mr-2 w-8 h-8" src={integration.imageSrc} alt={integration.title} />
+                    <div className="w-1/12 mr-4 pt-2">
+                      <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                     </div>
                     <div className="w-10/12">
                       <h2 className="text-gray-800 font-medium">{integration.title}</h2>
                       <p className="text-gray-400 text-sm">{integration.description}</p>
                     </div>
-                    <div className="pt-2 w-2/12 text-right">
+                    <div className="w-2/12 text-right pt-2">
                       <button
                         onClick={() => integrationHandler(integration.type)}
-                        className="hover:text-neutral-500 text-neutral-900 font-medium">
+                        className="font-medium text-neutral-900 hover:text-neutral-500">
                         Add
                       </button>
                     </div>
@@ -148,7 +148,7 @@ export default function Home({ integrations }: Props) {
               })}
           </ul>
         </div>
-        <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose as="button" className="btn btn-white mx-2">
             Cancel
           </DialogClose>
@@ -159,7 +159,7 @@ export default function Home({ integrations }: Props) {
 
   const SelectCalendarDialog = () => (
     <Dialog onOpenChange={(open) => !open && onCloseSelectCalendar()}>
-      <DialogTrigger className="mt-6 px-4 py-2 text-white text-sm font-medium hover:bg-neutral-700 bg-neutral-900 border border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2">
+      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
         Select calendars
       </DialogTrigger>
 
@@ -169,20 +169,20 @@ export default function Home({ integrations }: Props) {
           subtitle="If no entry is selected, all calendars will be checked"
         />
         <div className="my-4">
-          <ul className="divide-gray-200 divide-y">
+          <ul className="divide-y divide-gray-200">
             {selectableCalendars.map((calendar) => (
               <li key={calendar.name} className="flex py-4">
-                <div className="mr-4 pt-2 w-1/12">
+                <div className="w-1/12 mr-4 pt-2">
                   <img
-                    className="mr-2 w-8 h-8"
+                    className="h-8 w-8 mr-2"
                     src={getCalendarIntegrationImage(calendar.integration)}
                     alt={calendar.integration}
                   />
                 </div>
-                <div className="pt-3 w-10/12">
+                <div className="w-10/12 pt-3">
                   <h2 className="text-gray-800 font-medium">{calendar.name}</h2>
                 </div>
-                <div className="pt-3 w-2/12 text-right">
+                <div className="w-2/12 text-right pt-3">
                   <Switch
                     defaultChecked={calendar.selected}
                     onCheckedChange={calendarSelectionHandler(calendar)}
@@ -192,7 +192,7 @@ export default function Home({ integrations }: Props) {
             ))}
           </ul>
         </div>
-        <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose as="button" className="btn btn-white mx-2">
             Cancel
           </DialogClose>
@@ -243,11 +243,11 @@ export default function Home({ integrations }: Props) {
               onSubmit={handleAddCalDavIntegrationSaveButtonPress}
             />
           </div>
-          <div className="mt-5 sm:flex sm:flex-row-reverse sm:mt-4">
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center px-4 py-2 text-white text-sm font-medium hover:bg-neutral-700 bg-neutral-900 border border-transparent rounded-sm focus:outline-none shadow-sm focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2">
+              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </button>
             <DialogClose
@@ -276,9 +276,9 @@ export default function Home({ integrations }: Props) {
       </Head>
 
       <Shell heading="App Store" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
-        <div className="mb-8 bg-white border border-gray-200 rounded-sm overflow-hidden">
+        <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
-            <ul className="divide-gray-200 divide-y">
+            <ul className="divide-y divide-gray-200">
               {integrations
                 .filter((ig) => ig.credential)
                 .map((ig) => (
@@ -286,14 +286,14 @@ export default function Home({ integrations }: Props) {
                     <Link href={"/integrations/" + ig.credential.id}>
                       <a className="block hover:bg-gray-50">
                         <div className="flex items-center px-4 py-4 sm:px-6">
-                          <div className="flex flex-1 items-center min-w-0">
+                          <div className="min-w-0 flex-1 flex items-center">
                             <div className="flex-shrink-0">
-                              <img className="mr-2 w-10 h-10" src={ig.imageSrc} alt={ig.title} />
+                              <img className="h-10 w-10 mr-2" src={ig.imageSrc} alt={ig.title} />
                             </div>
-                            <div className="flex-1 px-4 min-w-0 md:grid md:gap-4 md:grid-cols-2">
+                            <div className="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
                               <div>
-                                <p className="text-neutral-900 text-sm font-medium truncate">{ig.title}</p>
-                                <p className="flex items-center text-gray-500 text-sm">
+                                <p className="text-sm font-medium text-neutral-900 truncate">{ig.title}</p>
+                                <p className="flex items-center text-sm text-gray-500">
                                   {ig.type.endsWith("_calendar") && (
                                     <span className="truncate">Calendar Integration</span>
                                   )}
@@ -304,21 +304,21 @@ export default function Home({ integrations }: Props) {
                               </div>
                               <div className="hidden md:block">
                                 {ig.credential.key && (
-                                  <p className="text flex items-center mt-2 text-gray-500">
-                                    <CheckCircleIcon className="flex-shrink-0 mr-1.5 w-5 h-5 text-green-400" />
+                                  <p className="mt-2 flex items-center text text-gray-500">
+                                    <CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" />
                                     Connected
                                   </p>
                                 )}
                                 {!ig.credential.key && (
-                                  <p className="text flex items-center mt-3 text-gray-500">
-                                    <XCircleIcon className="flex-shrink-0 mr-1.5 w-5 h-5 text-yellow-400" />
+                                  <p className="mt-3 flex items-center text text-gray-500">
+                                    <XCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" />
                                     Not connected
                                   </p>
                                 )}
                               </div>
                             </div>
                             <div>
-                              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
+                              <ChevronRightIcon className="h-5 w-5 text-gray-400" />
                             </div>
                           </div>
                         </div>
@@ -328,16 +328,16 @@ export default function Home({ integrations }: Props) {
                 ))}
             </ul>
           ) : (
-            <div className="bg-white rounded-sm shadow">
+            <div className="bg-white shadow rounded-sm">
               <div className="flex">
-                <div className="pl-8 py-9">
-                  <InformationCircleIcon className="w-16 text-neutral-900" />
+                <div className="py-9 pl-8">
+                  <InformationCircleIcon className="text-neutral-900 w-16" />
                 </div>
                 <div className="py-5 sm:p-6">
-                  <h3 className="text-gray-900 text-lg font-medium leading-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
                     You don&apos;t have any apps connected.
                   </h3>
-                  <div className="mt-2 text-gray-500 text-sm">
+                  <div className="mt-2 text-sm text-gray-500">
                     <p>
                       You currently do not have any apps connected. Connect your first app to get started.
                     </p>
@@ -348,10 +348,10 @@ export default function Home({ integrations }: Props) {
             </div>
           )}
         </div>
-        <div className="mb-8 bg-white border border-gray-200 rounded-sm">
+        <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-gray-900 text-lg font-medium leading-6">Select calendars</h3>
-            <div className="mt-2 max-w-xl text-gray-500 text-sm">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
+            <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>Select which calendars are checked for availability to prevent double bookings.</p>
             </div>
             <SelectCalendarDialog />
@@ -359,8 +359,8 @@ export default function Home({ integrations }: Props) {
         </div>
         <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-gray-900 text-lg font-medium leading-6">Launch your own App</h3>
-            <div className="mt-2 max-w-xl text-gray-500 text-sm">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
+            <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
             <div className="mt-5">

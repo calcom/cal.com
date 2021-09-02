@@ -56,7 +56,7 @@ const Team = ({ team }) => {
     }
 
     return (
-      <section className="lg:min-w-lg grid gap-x-12 gap-y-6 grid-cols-1 mx-auto min-w-full max-w-5xl sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <section className="mx-auto min-w-full lg:min-w-lg max-w-5xl grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6">
         {members.map((member) => {
           return <Member key={member.id} member={member} />;
         })}
@@ -71,7 +71,7 @@ const Team = ({ team }) => {
           user={{
             email: team.name,
           }}
-          className="mb-4 mx-auto w-20 h-20 rounded-full"
+          className="mx-auto w-20 h-20 rounded-full mb-4"
         />
         <Text variant="headline">{team.name}</Text>
       </div>

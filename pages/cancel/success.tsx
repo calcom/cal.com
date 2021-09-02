@@ -25,37 +25,37 @@ export default function Type(props) {
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="mx-auto my-24 max-w-3xl">
+      <main className="max-w-3xl mx-auto my-24">
         <div className="fixed z-50 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center pb-20 pt-4 px-4 min-h-screen text-center sm:block sm:p-0">
-            <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 my-4 sm:my-0 transition-opacity" aria-hidden="true">
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
               </span>
               <div
-                className="inline-block align-bottom pb-4 pt-5 px-4 text-left bg-white rounded-lg shadow-xl overflow-hidden transform transition-all sm:align-middle sm:my-8 sm:p-6 sm:w-full sm:max-w-sm"
+                className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 <div>
-                  <div className="flex items-center justify-center mx-auto w-12 h-12 bg-green-100 rounded-full">
-                    <CheckIcon className="w-6 h-6 text-green-600" />
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <CheckIcon className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-gray-900 text-lg font-medium leading-6" id="modal-headline">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
                       Cancellation successful
                     </h3>
                     <div className="mt-2">
-                      <p className="text-gray-500 text-sm">Feel free to pick another event anytime.</p>
+                      <p className="text-sm text-gray-500">Feel free to pick another event anytime.</p>
                     </div>
                   </div>
                 </div>
-                <div className="mt-5 text-center sm:mt-6">
+                <div className="mt-5 sm:mt-6 text-center">
                   <div className="mt-5">
                     <button
                       onClick={() => router.push("/" + props.user.username)}
                       type="button"
-                      className="btn-white inline-flex items-center justify-center mx-2 px-4 py-2 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 sm:text-sm">
+                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm mx-2 btn-white">
                       Pick another
                     </button>
                   </div>

@@ -5,6 +5,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "eslint.run": "onSave",
-  "headwind"
+  "eslint.run": "onSave"
 }
