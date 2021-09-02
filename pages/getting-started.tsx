@@ -50,8 +50,6 @@ const DEFAULT_EVENT_TYPES = [
   },
 ];
 
-export const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
-
 type OnboardingProps = {
   user: User;
   integrations?: Record<string, string>[];
