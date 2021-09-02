@@ -5,7 +5,8 @@ const prisma = new PrismaClient();
 async function main() {
   const email = "testuser@example.com";
   const username = "testuser";
-  const password = await hashPassword("testpassword");
+  const rawPassword = "testpassword";
+  const password = await hashPassword(rawPassword);
 
   const userData: Prisma.UserCreateArgs["data"] = {
     email,
@@ -37,6 +38,10 @@ async function main() {
     update: eventTypeData,
     create: eventTypeData,
   });
+
+  console.log(
+    `👤 Created user '${username}' with email "${email}" & password "${rawPassword}". Booking page 👉 http://localhost:3000/${username}`
+  );
 
   await prisma.$disconnect();
 }
