@@ -2,7 +2,7 @@ import { hashPassword } from "../lib/auth";
 import { Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-let idx = 0;
+let idx = 1e3;
 async function createUserAndEventType(opts: {
   user: Omit<Prisma.UserCreateArgs["data"], "password" | "email"> & { password: string; email: string };
   eventTypes: Array<Prisma.EventTypeCreateArgs["data"]>;
