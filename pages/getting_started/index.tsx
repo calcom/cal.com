@@ -1,6 +1,6 @@
 import Head from "next/head";
 import prisma from "@lib/prisma";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import {
   EventTypeCreateInput,
   ScheduleCreateInput,
@@ -30,6 +30,7 @@ import { Integration } from "pages/integrations";
 import { AddCalDavIntegrationRequest } from "../../lib/integrations/CalDav/components/AddCalDavIntegration";
 import classnames from "classnames";
 import { ArrowRightIcon } from "@heroicons/react/outline";
+import { getSession } from "@lib/auth";
 
 const DEFAULT_EVENT_TYPES = [
   {
@@ -616,7 +617,7 @@ export async function getServerSideProps(context: NextPageContext) {
   let credentials = [];
   let eventTypes = [];
   let schedules = [];
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return {
       redirect: {
         permanent: false,
@@ -626,7 +627,7 @@ export async function getServerSideProps(context: NextPageContext) {
   }
   const user = await prisma.user.findFirst({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       id: true,
@@ -642,7 +643,7 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
   if (!user) {
-    throw new Error(`Signed in as ${session.user.email} but cannot be found in db`);
+    throw new Error(`Signed in as ${session.user.id} but cannot be found in db`);
   }
 
   if (user.completedOnboarding) {
