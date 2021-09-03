@@ -19,14 +19,15 @@ import formatCurrency from "@lib/formatCurrency";
 import prisma from "@lib/prisma";
 import serverSideErrorHandler from "@lib/serverSideErrorHandler";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Availability } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   // Get router variables
   const router = useRouter();
   const { rescheduleUid } = router.query;
