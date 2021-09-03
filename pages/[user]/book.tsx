@@ -82,26 +82,26 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
       setError(false);
       /* Attempt payment if applicable */
       if (props.eventType.price) {
-        if (!isCardComplete) {
-          setLoading(false);
-          setError(true);
-          return;
-        }
-        const response = await createPaymentIntent({
-          eventTypeId: props.eventType.id,
-          username: props.user.username as string,
-        });
-        const cardElement = elements!.getElement(CardElement);
-        const { error } = await stripe!.confirmCardPayment(response.client_secret, {
-          payment_method: {
-            card: cardElement!,
-            billing_details: {
-              name: event.target.name.value,
-              email: event.target.email.value,
+        try {
+          if (!isCardComplete) throw "cardIncomplete";
+          const response = await createPaymentIntent({
+            eventTypeId: props.eventType.id,
+            username: props.user.username as string,
+          });
+          if (!response.client_secret) throw "noClientSecret";
+          const cardElement = elements!.getElement(CardElement);
+          const { error } = await stripe!.confirmCardPayment(response.client_secret, {
+            payment_method: {
+              card: cardElement!,
+              billing_details: {
+                name: event.target.name.value,
+                email: event.target.email.value,
+              },
             },
-          },
-        });
-        if (error) {
+          });
+          if (error) throw "confirmCardPaymentError";
+        } catch (error) {
+          console.log(`error`, error);
           setLoading(false);
           setError(true);
           return;
