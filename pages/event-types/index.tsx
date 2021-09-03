@@ -190,16 +190,21 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
         CTA={types.length !== 0 && renderEventDialog()}>
         <div className="-mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
           <ul className="divide-y divide-neutral-200" data-testid="event-types">
-            {types.map((type) => (
-              <li key={type.id}>
-                <div className="hover:bg-neutral-50">
-                  <div className="flex items-center px-4 py-4 sm:px-6">
-                    <Link href={"/event-types/" + type.id}>
-                      <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between">
+            {types.map((item) => (
+              <li key={item.id} className={classNames(item.$disabled && "opacity-30 cursor-not-allowed")}>
+                <div
+                  className={classNames(
+                    "hover:bg-neutral-50",
+                    item.$disabled && "pointer-events-none select-none"
+                  )}
+                  tabIndex={item.$disabled ? -1 : undefined}>
+                  <div className={"flex items-center px-4 py-4 sm:px-6"}>
+                    <Link href={"/event-types/" + item.id}>
+                      <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between hover:bg-neutral-50">
                         <span className="truncate">
                           <div className="flex text-sm">
-                            <p className="font-medium truncate text-neutral-900">{type.title}</p>
-                            {type.hidden && (
+                            <p className="font-medium truncate text-neutral-900">{item.title}</p>
+                            {item.hidden && (
                               <span className="inline-flex items-center ml-2 px-1.5 py-0.5 text-yellow-800 text-xs font-medium bg-yellow-100 rounded-sm">
                                 Hidden
                               </span>
@@ -211,7 +216,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                 aria-hidden="true"
                               />
-                              <p>{type.length}m</p>
+                              <p>{item.length}m</p>
                             </div>
                             <div className="flex items-center text-sm text-neutral-500">
                               <UserIcon
@@ -220,14 +225,14 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               />
                               <p>1-on-1</p>
                             </div>
-                            {type.description && (
+                            {item.description && (
                               <div className="flex items-center text-sm text-neutral-500">
                                 <InformationCircleIcon
                                   className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                   aria-hidden="true"
                                 />
                                 <div className="truncate max-w-32 sm:max-w-full">
-                                  {type.description.substring(0, 100)}
+                                  {item.description.substring(0, 100)}
                                 </div>
                               </div>
                             )}
@@ -240,7 +245,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="flex space-x-5 overflow-hidden">
                         <Tooltip content="Preview">
                           <a
-                            href={"/" + session.user.username + "/" + type.slug}
+                            href={"/" + session.user.username + "/" + item.slug}
                             target="_blank"
                             rel="noreferrer"
                             className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
@@ -253,7 +258,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             onClick={() => {
                               showToast("Link copied!", "success");
                               navigator.clipboard.writeText(
-                                window.location.hostname + "/" + session.user.username + "/" + type.slug
+                                window.location.hostname + "/" + session.user.username + "/" + item.slug
                               );
                             }}
                             className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
@@ -289,7 +294,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <Menu.Item>
                                     {({ active }) => (
                                       <a
-                                        href={"/" + session.user.username + "/" + type.slug}
+                                        href={"/" + session.user.username + "/" + item.slug}
                                         target="_blank"
                                         rel="noreferrer"
                                         className={classNames(
@@ -314,7 +319,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                               "/" +
                                               session.user.username +
                                               "/" +
-                                              type.slug
+                                              item.slug
                                           );
                                         }}
                                         className={classNames(
@@ -656,6 +661,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       bufferTime: true,
       completedOnboarding: true,
       createdDate: true,
+      plan: true,
     },
   });
 
@@ -678,7 +684,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const types = await prisma.eventType.findMany({
+  const typesRaw = await prisma.eventType.findMany({
     where: {
       userId: user.id,
     },
@@ -691,6 +697,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hidden: true,
     },
   });
+
+  const types = typesRaw.map((type, index) =>
+    user.plan === "FREE" && index > 0
+      ? {
+          ...type,
+          $disabled: true,
+        }
+      : {
+          ...type,
+          $disabled: false,
+        }
+  );
 
   const userObj = Object.assign({}, user, {
     createdDate: user.createdDate.toString(),
