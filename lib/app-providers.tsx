@@ -12,7 +12,7 @@ const StripeProvider: React.FC = ({ children }) =>
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY ? (
     <Elements stripe={getStripe()}>{children}</Elements>
   ) : (
-    <>children</>
+    <>{children}</>
   );
 
 const AppProviders: React.FC = (props, pageProps) => {
