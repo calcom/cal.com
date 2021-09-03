@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { getSession } from "next-auth/client";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
@@ -93,10 +94,16 @@ export default function Type(props) {
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
                         <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                          Really cancel your booking?
+                          {props.cancellationAllowed
+                            ? "Really cancel your booking?"
+                            : "You cannot cancel this booking"}
                         </h3>
                         <div className="mt-2">
-                          <p className="text-sm text-gray-500">Instead, you could also reschedule it.</p>
+                          <p className="text-sm text-gray-500">
+                            {props.cancellationAllowed
+                              ? "Instead, you could also reschedule it."
+                              : "The event is in the past"}
+                          </p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
                           <h2 className="text-lg font-medium text-gray-600 mb-2">{props.booking.title}</h2>
@@ -109,24 +116,26 @@ export default function Type(props) {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-5 sm:mt-6 text-center">
-                      <div className="mt-5">
-                        <button
-                          onClick={cancellationHandler}
-                          disabled={loading}
-                          type="button"
-                          className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm mx-2 btn-white">
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => router.push("/reschedule/" + uid)}
-                          disabled={loading}
-                          type="button"
-                          className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm mx-2 btn-white">
-                          Reschedule
-                        </button>
+                    {props.cancellationAllowed && (
+                      <div className="mt-5 sm:mt-6 text-center">
+                        <div className="mt-5">
+                          <button
+                            onClick={cancellationHandler}
+                            disabled={loading}
+                            type="button"
+                            className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm mx-2 btn-white">
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => router.push("/reschedule/" + uid)}
+                            disabled={loading}
+                            type="button"
+                            className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm mx-2 btn-white">
+                            Reschedule
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 )}
               </div>
@@ -139,6 +148,7 @@ export default function Type(props) {
 }
 
 export async function getServerSideProps(context) {
+  const session = await getSession(context);
   const booking = await prisma.booking.findFirst({
     where: {
       uid: context.query.uid,
@@ -178,6 +188,8 @@ export async function getServerSideProps(context) {
       user: booking.user,
       eventType: booking.eventType,
       booking: bookingObj,
+      cancellationAllowed:
+        (!!session?.user && session.user.id == booking.user?.id) || booking.startTime >= new Date(),
     },
   };
 }

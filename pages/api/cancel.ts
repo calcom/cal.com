@@ -2,10 +2,12 @@ import prisma from "../../lib/prisma";
 import { deleteEvent } from "../../lib/calendarClient";
 import async from "async";
 import { deleteMeeting } from "../../lib/videoClient";
+import { getSession } from "@lib/auth";
 
 export default async function handler(req, res) {
   if (req.method == "POST") {
     const uid = req.body.uid;
+    const session = await getSession({ req: req });
 
     const bookingToDelete = await prisma.booking.findFirst({
       where: {
@@ -15,6 +17,7 @@ export default async function handler(req, res) {
         id: true,
         user: {
           select: {
+            id: true,
             credentials: true,
           },
         },
@@ -25,8 +28,20 @@ export default async function handler(req, res) {
             type: true,
           },
         },
+        startTime: true,
       },
     });
+
+    if (!bookingToDelete || !bookingToDelete.user) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
+    if (
+      (!session || session.user?.id != bookingToDelete.user?.id) &&
+      bookingToDelete.startTime < new Date()
+    ) {
+      return res.status(403).json({ message: "Cannot cancel past events" });
+    }
 
     const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
       const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
