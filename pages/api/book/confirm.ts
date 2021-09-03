@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import prisma from "../../../lib/prisma";
 import { handleLegacyConfirmationMail } from "./[user]";
 import { CalendarEvent } from "@lib/calendarClient";

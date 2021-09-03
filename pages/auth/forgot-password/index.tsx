@@ -1,8 +1,9 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import React from "react";
-import { getCsrfToken, getSession } from "next-auth/client";
+import { getCsrfToken } from "next-auth/client";
 import debounce from "lodash.debounce";
+import { getSession } from "@lib/auth";
 
 export default function ForgotPassword({ csrfToken }) {
   const [loading, setLoading] = React.useState(false);

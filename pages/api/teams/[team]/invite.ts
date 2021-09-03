@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../../lib/prisma";
 import createInvitationEmail from "../../../../lib/emails/invitation";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import { randomBytes } from "crypto";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

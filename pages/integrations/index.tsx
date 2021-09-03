@@ -4,13 +4,14 @@ import Shell from "@components/Shell";
 import Switch from "@components/ui/Switch";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
+import { getSession } from "@lib/auth";
 import { IntegrationCalendar } from "@lib/calendarClient";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
