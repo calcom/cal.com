@@ -26,6 +26,7 @@ import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import { getSession } from "@lib/auth";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -40,8 +41,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
       showToast(err.message, "error");
     },
   });
-
-  const dialogOpen = router.query.new === "1";
+  const modalOpen = useToggleQuery("new");
 
   const slugRef = useRef<HTMLInputElement>(null);
 
@@ -51,25 +51,19 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
 
   const renderEventDialog = () => (
     <Dialog
-      open={dialogOpen}
+      open={modalOpen.isOn}
       onOpenChange={(isOpen) => {
-        const newQuery = {
-          ...router.query,
-        };
-        delete newQuery["new"];
-        if (!isOpen) {
-          router.push({ pathname: router.pathname, query: newQuery });
-        }
+        router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
       }}>
       <Button
         className="mt-2 hidden sm:block"
         StartIcon={PlusIcon}
-        href={{ query: { ...router.query, new: "1" } }}
+        href={modalOpen.hrefOn}
         data-testid="new-event-type">
         New event type
       </Button>
 
-      <Button size="fab" className="block sm:hidden" href={{ query: { ...router.query, new: "1" } }}>
+      <Button size="fab" className="block sm:hidden" href={modalOpen.hrefOn}>
         <PlusIcon className="w-8 h-8 text-white" />
       </Button>
 
@@ -178,7 +172,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
             <Button type="submit" loading={createMutation.isLoading}>
               Continue
             </Button>
-            <Button href={{ query: {} }} color="secondary" className="mr-2">
+            <Button href={modalOpen.hrefOff} color="secondary" className="mr-2">
               Cancel
             </Button>
           </div>
