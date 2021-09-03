@@ -21,14 +21,15 @@ import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
 import Shell from "@components/Shell";
 import prisma from "@lib/prisma";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import { getSession } from "@lib/auth";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, types } = props;
   const [session, loading] = useSession();
   const router = useRouter();
@@ -635,7 +636,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getSession({ req });
 
   if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    } as const;
   }
 
   const user = await prisma.user.findUnique({
@@ -655,7 +661,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!user) {
     // this shouldn't happen
-    return { redirect: { permanent: false, destination: "/auth/login" } };
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    } as const;
   }
 
   if (!user.completedOnboarding && dayjs(user.createdDate).isBefore(ONBOARDING_INTRODUCED_AT)) {
@@ -664,7 +675,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         permanent: false,
         destination: "/getting-started",
       },
-    };
+    } as const;
   }
 
   const types = await prisma.eventType.findMany({
