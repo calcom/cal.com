@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { username, eventTypeId } = req.body;
       const currentUser = await prisma.user.findFirst({
         where: {
-          username: username as string,
+          username,
         },
         select: {
           id: true,
@@ -35,10 +35,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (!eventType) throw "noEventType";
+      if (!eventType.price) throw "noEventTypePrice";
 
       const [stripeCredentials] = currentUser.credentials.filter((cred) => cred.type === "stripe");
-      const { stripe_user_id } = JSON.parse(stripeCredentials.key as string) as Stripe.OAuthToken;
+      if (!stripeCredentials) throw "noStripeCredentials";
+
+      const { stripe_user_id } = stripeCredentials.key as Stripe.OAuthToken;
+      if (!stripe_user_id) throw "noStripeUserId";
+
       const payment_intent = await createPaymentIntent(eventType.price, stripe_user_id);
+
       res.status(200).json(payment_intent);
     } catch (err) {
       res.status(500).json({ statusCode: 500, message: err.message });
