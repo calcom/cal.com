@@ -1,6 +1,6 @@
 import Head from "next/head";
 import prisma from "@lib/prisma";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import {
   EventTypeCreateInput,
   ScheduleCreateInput,
@@ -30,6 +30,7 @@ import { Integration } from "pages/integrations";
 import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
 import classnames from "classnames";
 import { ArrowRightIcon } from "@heroicons/react/outline";
+import { getSession } from "@lib/auth";
 
 const DEFAULT_EVENT_TYPES = [
   {
@@ -610,109 +611,116 @@ export default function Onboarding(props: OnboardingProps) {
 export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
 
-  let user: User = null;
   let integrations = [];
   let credentials = [];
   let eventTypes = [];
   let schedules = [];
-
-  if (session) {
-    user = await prisma.user.findFirst({
-      where: {
-        email: session.user.email,
-      },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        username: true,
-        name: true,
-        email: true,
-        bio: true,
-        avatar: true,
-        timeZone: true,
-        completedOnboarding: true,
-      },
-    });
-
-    if (user.completedOnboarding) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/event-types",
-        },
-      };
-    }
-
-    credentials = await prisma.credential.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        id: true,
-        type: true,
-        key: true,
-      },
-    });
-
-    integrations = [
-      {
-        installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-        credential: credentials.find((integration) => integration.type === "google_calendar") || null,
-        type: "google_calendar",
-        title: "Google Calendar",
-        imageSrc: "integrations/google-calendar.svg",
-        description: "Gmail, G Suite",
-      },
-      {
-        installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-        credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
-        type: "office365_calendar",
-        title: "Office 365 Calendar",
-        imageSrc: "integrations/outlook.svg",
-        description: "Office 365, Outlook.com, live.com, or hotmail calendar",
-      },
-      {
-        installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-        credential: credentials.find((integration) => integration.type === "zoom_video") || null,
-        type: "zoom_video",
-        title: "Zoom",
-        imageSrc: "integrations/zoom.svg",
-        description: "Video Conferencing",
-      },
-      {
-        installed: true,
-        credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
-        type: "caldav_calendar",
-        title: "Caldav",
-        imageSrc: "integrations/caldav.svg",
-        description: "CalDav Server",
-      },
-    ];
-
-    eventTypes = await prisma.eventType.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        description: true,
-        length: true,
-        hidden: true,
-      },
-    });
-
-    schedules = await prisma.schedule.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        id: true,
-      },
-    });
+  if (!session?.user?.id) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      } as const,
+    };
   }
+  const user = await prisma.user.findFirst({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      id: true,
+      startTime: true,
+      endTime: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      timeZone: true,
+      completedOnboarding: true,
+    },
+  });
+  if (!user) {
+    throw new Error(`Signed in as ${session.user.id} but cannot be found in db`);
+  }
+
+  if (user.completedOnboarding) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/event-types",
+      },
+    };
+  }
+
+  credentials = await prisma.credential.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+    },
+  });
+
+  integrations = [
+    {
+      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
+      credential: credentials.find((integration) => integration.type === "google_calendar") || null,
+      type: "google_calendar",
+      title: "Google Calendar",
+      imageSrc: "integrations/google-calendar.svg",
+      description: "Gmail, G Suite",
+    },
+    {
+      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
+      credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
+      type: "office365_calendar",
+      title: "Office 365 Calendar",
+      imageSrc: "integrations/outlook.svg",
+      description: "Office 365, Outlook.com, live.com, or hotmail calendar",
+    },
+    {
+      installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
+      credential: credentials.find((integration) => integration.type === "zoom_video") || null,
+      type: "zoom_video",
+      title: "Zoom",
+      imageSrc: "integrations/zoom.svg",
+      description: "Video Conferencing",
+    },
+    {
+      installed: true,
+      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
+      type: "caldav_calendar",
+      title: "Caldav",
+      imageSrc: "integrations/caldav.svg",
+      description: "CalDav Server",
+    },
+  ];
+
+  eventTypes = await prisma.eventType.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      hidden: true,
+    },
+  });
+
+  schedules = await prisma.schedule.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+    },
+  });
 
   return {
     props: {
