@@ -1,0 +1,16 @@
+# this file is a helper to run calendso locally
+# starts a postgres instance on port 5450 to use as a local db
+version: "3.6"
+services:
+  postgres:
+    image: postgres:13
+    ports:
+      - "5450:5432" # expose pg on port 5450 to not collide with pg from elswhere
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ""
+      POSTGRES_HOST_AUTH_METHOD: trust
+volumes:
+  db_data:

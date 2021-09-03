@@ -134,7 +134,7 @@ export default class EventAttendeeMail extends EventMail {
       replyTo: this.calEvent.organizer.email,
       subject: `Confirmed: ${this.calEvent.type} with ${
         this.calEvent.organizer.name
-      } on ${this.getInviteeStart().format("dddd, LL")}`,
+      } on ${this.getInviteeStart().format("LT dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };

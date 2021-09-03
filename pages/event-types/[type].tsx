@@ -22,14 +22,16 @@ import { LocationType } from "@lib/location";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
 import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import throttle from "lodash.throttle";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -39,7 +41,6 @@ import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
 import { useMutation } from "react-query";
 import Select, { OptionBase } from "react-select";
-import prisma from "../../lib/prisma";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -59,7 +60,7 @@ const PERIOD_TYPES = [
   },
 ];
 
-const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, eventType, locationOptions, availability, canPrice } = props;
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -428,7 +429,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <span className="text-gray-500 sm:text-sm" id="duration">
-                            {process.env.NEXT_PUBLIC_CURRENCY_CODE}
+                            {process.env.NEXT_PUBLIC_CURRENCY_CODE || "USD"}
                           </span>
                         </div>
                       </div>

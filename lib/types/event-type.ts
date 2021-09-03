@@ -1,3 +1,5 @@
+import { EventTypeLocation } from "@lib/location";
+
 export type OpeningHours = {
   days: number[];
   startTime: number;
@@ -43,7 +45,7 @@ export type EventTypeInput = AdvancedOptions & {
   length: number;
   price?: number;
   hidden: boolean;
-  locations: unknown;
+  locations: EventTypeLocation[];
   customInputs: EventTypeCustomInput[];
   timeZone: string;
   availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
