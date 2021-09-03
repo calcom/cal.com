@@ -53,7 +53,7 @@ enum UserPlan {
 
 model User {
   id                  Int                @id @default(autoincrement())
-  username            String?
+  username            String?            @unique
   name                String?
   email               String?            @unique
   emailVerified       DateTime?
