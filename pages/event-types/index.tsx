@@ -5,6 +5,7 @@ import { Button } from "@components/ui/Button";
 import { Menu, Transition } from "@headlessui/react";
 import {
   ClockIcon,
+  CurrencyDollarIcon,
   DotsHorizontalIcon,
   ExternalLinkIcon,
   InformationCircleIcon,
@@ -25,6 +26,7 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import formatCurrency from "@lib/formatCurrency";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -230,6 +232,15 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                               />
                               <p>1-on-1</p>
                             </div>
+                            {type.price && (
+                              <div className="flex items-center text-sm text-neutral-500">
+                                <CurrencyDollarIcon
+                                  className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
+                                  aria-hidden="true"
+                                />
+                                <p>{formatCurrency(type.price)}</p>
+                              </div>
+                            )}
                             {type.description && (
                               <div className="flex items-center text-sm text-neutral-500">
                                 <InformationCircleIcon
@@ -683,6 +694,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: true,
       description: true,
       length: true,
+      price: true,
       hidden: true,
     },
   });
