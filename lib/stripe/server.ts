@@ -9,12 +9,17 @@ export async function createPaymentIntent(amount: number, connectedAccountId?: s
     payment_method_types: ["card"],
     amount,
     currency: process.env.NEXT_PUBLIC_CURRENCY_CODE!,
-    application_fee_amount: amount * 0.1,
+    application_fee_amount: amount * 0.01,
   };
 
-  const payment_intent: Stripe.PaymentIntent = await stripe.paymentIntents.create(params, {
-    stripeAccount: connectedAccountId,
-  });
+  if (connectedAccountId) {
+    params.on_behalf_of = connectedAccountId;
+    params.transfer_data = {
+      destination: connectedAccountId,
+    };
+  }
+
+  const payment_intent: Stripe.PaymentIntent = await stripe.paymentIntents.create(params);
 
   return payment_intent;
 }
