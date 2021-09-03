@@ -89,7 +89,7 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
         }
         const response = await createPaymentIntent({
           eventTypeId: props.eventType.id,
-          username: props.user.username,
+          username: props.user.username as string,
         });
         const cardElement = elements!.getElement(CardElement);
         const { error } = await stripe!.confirmCardPayment(response.client_secret, {
