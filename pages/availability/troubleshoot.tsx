@@ -3,7 +3,7 @@ import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import { useEffect, useState } from "react";
 import Shell from "@components/Shell";
 

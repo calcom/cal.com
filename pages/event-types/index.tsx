@@ -15,7 +15,7 @@ import {
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
 import dayjs from "dayjs";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
@@ -25,6 +25,7 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { getSession } from "@lib/auth";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;

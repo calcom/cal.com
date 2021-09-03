@@ -2,7 +2,7 @@ import Link from "next/link";
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
@@ -11,6 +11,7 @@ import Loader from "@components/Loader";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import { getSession } from "@lib/auth";
 
 export type Integration = {
   installed: boolean;
