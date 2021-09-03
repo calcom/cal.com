@@ -3,11 +3,12 @@ import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import { useEffect, useState } from "react";
 import type { Session } from "next-auth";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import { UsersIcon } from "@heroicons/react/outline";
 import TeamList from "@components/team/TeamList";
 import TeamListItem from "@components/team/TeamListItem";
 import Loader from "@components/Loader";
+import { getSession } from "@lib/auth";
 
 export default function Teams() {
   const [, loading] = useSession();

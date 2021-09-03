@@ -17,6 +17,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/solid";
+import { getSession } from "@lib/auth";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
@@ -32,7 +33,6 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import throttle from "lodash.throttle";
 import { GetServerSidePropsContext } from "next";
-import { getSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect, useRef, useState } from "react";
