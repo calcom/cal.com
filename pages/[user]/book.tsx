@@ -1,4 +1,5 @@
 import Avatar from "@components/Avatar";
+import CustomCardElement from "@components/booking/CustomCardElement";
 import { HeadSeo } from "@components/seo/head-seo";
 import Theme from "@components/Theme";
 import { Button } from "@components/ui/Button";
@@ -14,8 +15,10 @@ import formatCurrency from "@lib/formatCurrency";
 import { EventTypeLocation, LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import serverSideErrorHandler from "@lib/serverSideErrorHandler";
+import { createPaymentIntent } from "@lib/stripe/client";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { EventTypeCustomInputType } from "@prisma/client";
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -38,6 +41,9 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
   const [error, setError] = useState(false);
   const [guestToggle, setGuestToggle] = useState(false);
   const [guestEmails, setGuestEmails] = useState([]);
+  const [isCardComplete, setCardComplete] = useState(false);
+  const stripe = useStripe();
+  const elements = useElements();
   const locations = (props.eventType.locations as EventTypeLocation[]) || [];
 
   const [selectedLocation, setSelectedLocation] = useState<`${LocationType}` | "">(
@@ -68,10 +74,39 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
     [LocationType.Zoom]: "Zoom Video",
   };
 
-  const bookingHandler = (event) => {
+  const bookingHandler: React.FormEventHandler<HTMLFormElement> = (event) => {
+    if (!event.currentTarget.reportValidity()) return;
+
     const book = async () => {
       setLoading(true);
       setError(false);
+      /* Attempt payment if applicable */
+      if (props.eventType.price) {
+        if (!isCardComplete) {
+          setLoading(false);
+          setError(true);
+          return;
+        }
+        const response = await createPaymentIntent({
+          eventTypeId: props.eventType.id,
+          username: props.user.username,
+        });
+        const cardElement = elements!.getElement(CardElement);
+        const { error } = await stripe!.confirmCardPayment(response.client_secret, {
+          payment_method: {
+            card: cardElement!,
+            billing_details: {
+              name: event.target.name.value,
+              email: event.target.email.value,
+            },
+          },
+        });
+        if (error) {
+          setLoading(false);
+          setError(true);
+          return;
+        }
+      }
       let notes = "";
       if (props.eventType.customInputs) {
         notes = props.eventType.customInputs
@@ -390,6 +425,36 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
                   </div>
+                  {props.eventType.price && (
+                    <div className="mb-4">
+                      <label
+                        htmlFor="notes"
+                        className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                        Payment details
+                      </label>
+                      <div className="mt-1">
+                        <CustomCardElement
+                          onChange={(e) => {
+                            console.log(`e`, e);
+                            if (e.error) {
+                              console.log(`e.error`, e.error);
+                            }
+                            setCardComplete(e.complete);
+                          }}
+                        />
+                        {/* We prevent form submision if card isn't complete */}
+                        <input
+                          type="text"
+                          tabIndex={-1}
+                          name="is_card_complete"
+                          id="is_card_complete"
+                          value={isCardComplete ? "true" : ""}
+                          required
+                          className="sr-only"
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-start">
                     {/* TODO: add styling props to <Button variant="" color="" /> and get rid of btn-primary */}
                     <Button type="submit" loading={loading}>
