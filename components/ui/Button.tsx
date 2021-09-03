@@ -63,7 +63,7 @@ export const Button = function Button(props: ButtonProps) {
             : "text-gray-700 bg-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-neutral-500"),
 
         // set not-allowed cursor if disabled
-        disabled && "cursor-not-allowed",
+        loading ? "cursor-wait" : disabled ? "cursor-not-allowed" : "",
         props.className
       ),
       // if we click a disabled button, we prevent going through the click handler
