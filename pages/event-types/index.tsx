@@ -664,7 +664,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!user.completedOnboarding && dayjs(user.createdDate).isBefore(ONBOARDING_INTRODUCED_AT)) {
+  if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
     return {
       redirect: {
         permanent: false,
