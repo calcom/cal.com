@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Availability, EventType } from "@prisma/client";
+import { EventType, User } from "@prisma/client";
 import Theme from "@components/Theme";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
@@ -140,11 +140,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
-                  <Avatar
-                    imageSrc={props.user.avatar}
-                    displayName={props.user.name}
-                    className="inline-block rounded-full h-9 w-9"
-                  />
+                  <Avatar imageSrc={props.user.avatar} displayName={props.user.name} className="h-9 w-9" />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-black dark:text-gray-300">{props.user.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
@@ -168,7 +164,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                   <Avatar
                     imageSrc={props.user.avatar}
                     displayName={props.user.name}
-                    className="w-16 h-16 mb-4 rounded-full"
+                    className="w-16 h-16 mb-2"
+                    tooltipDisabled={true}
                   />
                   <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.user.name}</h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
@@ -255,7 +252,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error(`File is not named [type]/[user]`);
   }
 
-  const { eventTypes, ...user } = await prisma.user.findFirst({
+  const user: User = await prisma.user.findUnique({
     where: {
       username: userParam.toLowerCase(),
     },
@@ -290,8 +287,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           periodEndDate: true,
           periodCountCalendarDays: true,
           minimumBookingNotice: true,
-        }
-      }
+        },
+      },
     },
   });
 
@@ -301,22 +298,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  if (eventTypes.length != 1) {
+  const eventType: EventType | null = user.eventTypes.length ? user.eventTypes[0] : null;
+  if (!eventType) {
     return {
       notFound: true,
     } as const;
   }
 
-  const eventType: EventType = eventTypes[0];
-
-  const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
+  const getWorkingHours = (providesAvailability: User | EventType) =>
     providesAvailability.availability && providesAvailability.availability.length
       ? providesAvailability.availability
       : null;
 
   const workingHours =
-    getWorkingHours(eventType) ||
-    getWorkingHours(user) ||
+    getWorkingHours(eventType.availability) ||
+    getWorkingHours(user.availability) ||
     [
       {
         days: [0, 1, 2, 3, 4, 5, 6],

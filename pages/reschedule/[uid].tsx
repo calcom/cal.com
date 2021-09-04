@@ -13,8 +13,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     select: {
       id: true,
-      user: { select: { username: true } },
-      eventType: { select: { slug: true } },
+      eventType: {
+        select: {
+          organizers: {
+            select: {
+              username: true,
+            },
+          },
+          slug: true,
+          team: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      },
       title: true,
       description: true,
       startTime: true,
@@ -22,16 +35,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       attendees: true,
     },
   });
-  if (!booking?.user || !booking.eventType) {
+
+  if (!booking.eventType) {
     return {
       notFound: true,
     } as const;
   }
 
+  const eventPage =
+    (booking.eventType.team
+      ? "team/" + booking.eventType.team.slug
+      : booking.eventType.organizers[0].username) +
+    "/" +
+    booking.eventType.slug;
+
   return {
     redirect: {
-      destination:
-        "/" + booking.user.username + "/" + booking.eventType.slug + "?rescheduleUid=" + context.query.uid,
+      destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,
       permanent: false,
     },
   };

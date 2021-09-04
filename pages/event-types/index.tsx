@@ -1,285 +1,83 @@
-import { Dialog, DialogClose, DialogTrigger, DialogContent } from "@components/Dialog";
+import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
 import Loader from "@components/Loader";
 import { Tooltip } from "@components/Tooltip";
 import { Button } from "@components/ui/Button";
 import { Menu, Transition } from "@headlessui/react";
 import {
-  ClockIcon,
+  ChevronDownIcon,
   DotsHorizontalIcon,
   ExternalLinkIcon,
-  InformationCircleIcon,
   LinkIcon,
   PlusIcon,
-  UserIcon, UsersIcon,
+  UsersIcon,
 } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import { getSession, useSession } from "next-auth/client";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, {Fragment, useRef, useState} from "react";
+import React, { Fragment, useRef } from "react";
 import Shell from "../../components/Shell";
 import prisma from "../../lib/prisma";
-import { User, EventType } from "@prisma/client";
+import { User, EventType, SchedulingType } from "@prisma/client";
 import showToast from "@lib/notification";
-import { RadioAreaInput, RadioAreaInputGroup } from "@components/ui/form/radioarea/RadioAreaInput";
 import Avatar from "@components/Avatar";
 import { UserCalendarImage } from "@components/svg/UserCalendarImage";
-import {defaultAvatarSrc} from "@lib/profile";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import EventTypeDescription from "@components/eventtype/EventTypeDescription";
+import * as RadioArea from "@components/ui/form/radio-area";
 
-
-export default function Availability({ user, eventTypes }: {
-  user: User,
-  eventTypes: EventType[],
-}) {
-  const [session, loading] = useSession();
-  const router = useRouter();
-
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-
-  const dialogOpen = router.query.new === "1";
-
-  async function createEventTypeHandler(event) {
-    event.preventDefault();
-
-    const formData: {
-      title: string,
-      url: string,
-      description: string,
-      length: number,
-      schedulingType?: 'collective' | 'roundRobin',
-    } = Object.fromEntries((new FormData(event.target)).entries());
-
-    await fetch("/api/availability/eventtype", {
-      method: "POST",
-      body: JSON.stringify(formData),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    await router.replace(router.asPath);
-
-    showToast("Event Type created", "success");
-  }
-
-  function autoPopulateSlug() {
-    let t = titleRef.current.value;
-    t = t.replace(/\s+/g, "-").toLowerCase();
-    slugRef.current.value = t;
-  }
+export default function Availability({ eventTypes, profiles }: { eventTypes: EventType[]; profiles: [] }) {
+  const [loading] = useSession();
 
   if (loading) {
     return <Loader />;
   }
 
-  const CreateNewEventDialog = () => {
-    const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
-    return (
-      <Dialog>
-        <DialogTrigger as={Button} className="mt-2 mr-2" StartIcon={PlusIcon} onClick={() => setIsTeamEvent(false)}>
-          New event type
-        </DialogTrigger>
-        <DialogTrigger as={Button} StartIcon={PlusIcon} onClick={() => setIsTeamEvent(true)}>
-          New team event type
-        </DialogTrigger>
-        <DialogContent>
-          <div className="mb-8">
-            <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-              Add a new {isTeamEvent ? 'team ' : ''}event type
-            </h3>
-            <div>
-              <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
-              {/*
-  const CreateNewEventDialog = () => (
-    <Dialog
-      open={dialogOpen}
-      onOpenChange={(isOpen) => {
-        const newQuery = {
-          ...router.query,
-        };
-        delete newQuery["new"];
-        if (!isOpen) {
-          router.push({ pathname: router.pathname, query: newQuery });
-        }
-      }}>
-      <Button
-        className="mt-2 hidden sm:block"
-        StartIcon={PlusIcon}
-        href={{ query: { ...router.query, new: "1" } }}>
-        New event type
-      </Button>
-
-      <Button size="fab" className="block sm:hidden" href={{ query: { ...router.query, new: "1" } }}>
-        <PlusIcon className="w-8 h-8 text-white" />
-      </Button>
-
-      <DialogContent>
-        <div className="mb-8">
-          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            Add a new event type
-          </h3>
-          <div>
-            <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
-          </div>
-        </div>
-        <form onSubmit={createEventTypeHandler}>
-          <div>
-            <div className="mb-4">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                Title
-              </label>
-              <div className="mt-1">
-                <input
-                  onChange={autoPopulateSlug}
-                  ref={titleRef}
-                  type="text"
-                  name="title"
-                  id="title"
-                  required
-                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
-                  placeholder="Quick Chat"
-                />
-              </div>
-*/}
-            </div>
-          </div>
-          <form onSubmit={createEventTypeHandler}>
-            <div>
-              <div className="mb-4">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                  Title
-                </label>
-                <div className="mt-1">
-                  <input
-                    onChange={autoPopulateSlug}
-                    ref={titleRef}
-                    type="text"
-                    name="title"
-                    id="title"
-                    required
-                    className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
-                    placeholder="Quick Chat"
-                  />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                  URL
-                </label>
-                <div className="mt-1">
-                  <div className="flex rounded-sm shadow-sm">
-                    <span
-                      className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                      {location.hostname}/{user.username}/
-                    </span>
-                    <input
-                      ref={slugRef}
-                      type="text"
-                      name="slug"
-                      id="slug"
-                      required
-                      className="flex-1 block w-full focus:ring-neutral-900 focus:border-neutral-900 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <div className="mt-1">
-                  <textarea
-                    ref={descriptionRef}
-                    name="description"
-                    id="description"
-                    className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
-                    placeholder="A quick video meeting."></textarea>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="length" className="block text-sm font-medium text-gray-700">
-                  Length
-                </label>
-                <div className="mt-1 relative rounded-sm shadow-sm">
-                  <input
-                    ref={lengthRef}
-                    type="number"
-                    name="length"
-                    id="length"
-                    required
-                    className="focus:ring-neutral-900 focus:border-neutral-900 block w-full pr-20 sm:text-sm border-gray-300 rounded-sm"
-                    placeholder="15"
-                  />
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
-                    minutes
-                  </div>
-                </div>
-              </div>
-            </div>
-            {isTeamEvent && <div className="mb-4">
-              <label htmlFor="schedulingType" className="block text-sm font-medium text-gray-700">
-                Scheduling Type
-              </label>
-              <RadioAreaInputGroup name="schedulingType" className="flex space-x-6 mt-1 relative rounded-sm shadow-sm">
-                <RadioAreaInput value="collective" className="text-sm w-1/2">
-                  <strong className="block mb-1">Collective</strong>
-                  <p>
-                    Schedule meetings when all selected team members are available.
-                  </p>
-                </RadioAreaInput>
-                <RadioAreaInput value="roundRobin" className="text-sm w-1/2">
-                  <strong className="block mb-1">Round Robin</strong>
-                  <p>
-                    Cycle meetings between multiple team members.
-                  </p>
-                </RadioAreaInput>
-              </RadioAreaInputGroup>
-            </div>}
-            <div className="mt-8 sm:flex sm:flex-row-reverse">
-              <button type="submit" className="btn btn-primary">
-                Continue
-              </button>
-              <DialogClose as="button" className="btn btn-white mx-2">
-                Cancel
-              </DialogClose>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  const CreateFirstEventTypeView = () =>
+  const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarImage />
       <div className="text-center block md:max-w-screen-sm mx-auto">
         <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
-        <p className="mt-1 text-md text-neutral-600">
-          Event types enable you to share links that show available times on your calendar and allow
-          people to make bookings with you.
+        <p className="mt-1 text-md text-neutral-600 mb-2">
+          Event types enable you to share links that show available times on your calendar and allow people to
+          make bookings with you.
         </p>
-        <CreateNewEventDialog/>
+        <CreateNewEventDialog profiles={profiles} />
       </div>
-    </div>;
+    </div>
+  );
 
-  const EventTypeListHeading = ({ displayName, imageSrc, slug, membershipCount }) =>
+  const EventTypeListHeading = ({ profile, membershipCount }) => (
     <div className="flex mb-3">
       <Avatar
-        displayName={displayName}
-        imageSrc={imageSrc}
+        displayName={profile.name}
+        imageSrc={profile.image}
         className="w-8 mt-1 h-8 rounded-full inline mr-2"
       />
       <div>
-        <span className="font-bold">{displayName}</span>{membershipCount && <span className="text-neutral-500 ml-2"><UsersIcon className="w-4 h-4 inline" /> {membershipCount}</span>}
-        <p className="text-neutral-500 leading-none">{`calendso.com${membershipCount ? "/team" : ""}/${slug}`}</p>
+        <span className="font-bold">{profile.name}</span>
+        {membershipCount && (
+          <span className="text-neutral-500 ml-2">
+            <UsersIcon className="w-4 h-4 inline" /> {membershipCount}
+          </span>
+        )}
+        <Link href={profile.slug}>
+          <a className="block text-neutral-500 leading-none">{`calendso.com/${profile.slug}`}</a>
+        </Link>
       </div>
-    </div>;
+    </div>
+  );
 
-  const EventTypeList = ({ owner, types }: { types: EventType[] }) =>
+  const EventTypeList = ({
+    readOnly,
+    types,
+    profile,
+  }: {
+    profile;
+    readOnly: boolean;
+    types: EventType[];
+  }) => (
     <div className="bg-white border border-gray-200 rounded-sm overflow-hidden -mx-4 sm:mx-0 mb-4">
       <ul className="divide-y divide-neutral-200">
         {types.map((type: EventType) => (
@@ -288,67 +86,36 @@ export default function Availability({ user, eventTypes }: {
               <Link href={"/event-types/" + type.id}>
                 <a className="truncate flex-grow text-sm">
                   <div>
-                      <span className="font-medium text-neutral-900 truncate">{type.title}</span>
-                      {type.hidden && (
-                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Hidden
-                        </span>
-                      )}
-                  </div>
-                  <ul className="mt-2 space-x-4 text-neutral-500">
-                    <li className="inline-block">
-                      <ClockIcon
-                        className="inline mr-1.5 h-4 w-4 text-neutral-400"
-                        aria-hidden="true"
-                      />
-                      {type.length}m
-                    </li>
-                    {type.schedulingType ? (
-                      <li className="inline-block">
-                        <UsersIcon
-                          className="inline mr-1.5 h-4 w-4 text-neutral-400"
-                          aria-hidden="true"
-                        />
-                        {type.schedulingType === "ROUND_ROBIN" ? "Round Robin" : "Collective"}
-                      </li>
-                    ) : (
-                      <li className="inline-block">
-                        <UserIcon
-                          className="inline mr-1.5 h-4 w-4 text-neutral-400"
-                          aria-hidden="true"
-                        />
-                        1-on-1
-                      </li>
-                    )}
-                    <li className="inline-block">
-                      <InformationCircleIcon
-                        className="inline mr-1.5 h-4 w-4 text-neutral-400"
-                        aria-hidden="true"
-                      />
-                      <span className="max-w-32 sm:max-w-full truncate">
-                        {type.description.substring(0, 100)}
+                    <span className="font-medium text-neutral-900 truncate">{type.title}</span>
+                    {type.hidden && (
+                      <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Hidden
                       </span>
-                    </li>
-                  </ul>
+                    )}
+                    {readOnly && (
+                      <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
+                        Readonly
+                      </span>
+                    )}
+                  </div>
+                  <EventTypeDescription eventType={type} />
                 </a>
               </Link>
 
               <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
                 <div className="flex items-center overflow-hidden space-x-5">
-                  <ul className="inline-flex">
-                  {type.team && type.organizers.map((organizer, idx: number) => (
-                    <li className={idx ? "-ml-1" : ""}>
-                      <Avatar
-                        className="h-6 w-6 rounded-full"
-                        displayName={organizer.name}
-                        imageSrc={organizer.avatar}
-                      />
-                    </li>
-                  ))}
-                  </ul>
+                  {type.organizers.length > 1 && (
+                    <ul className="inline-flex">
+                      {type.organizers.map((organizer, idx: number) => (
+                        <li key={idx} className={"h-6 w-6 " + (idx ? "-ml-1" : "")}>
+                          <Avatar displayName={organizer.name} imageSrc={organizer.avatar} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <Tooltip content="Preview">
                     <a
-                      href={"/" + owner.slug + "/" + type.slug}
+                      href={`/${profile.slug}/${type.slug}`}
                       target="_blank"
                       rel="noreferrer"
                       className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
@@ -361,7 +128,7 @@ export default function Availability({ user, eventTypes }: {
                       onClick={() => {
                         showToast("Link copied!", "success");
                         navigator.clipboard.writeText(
-                          window.location.hostname + "/" + owner.slug
+                          window.location.hostname + "/" + profile.slug + "/" + type.slug
                         );
                       }}
                       className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
@@ -397,7 +164,7 @@ export default function Availability({ user, eventTypes }: {
                             <Menu.Item>
                               {({ active }) => (
                                 <a
-                                  href={"/" + owner.slug + "/" + type.slug}
+                                  href={`/${slug}/${type.slug}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={classNames(
@@ -418,11 +185,7 @@ export default function Availability({ user, eventTypes }: {
                                   onClick={() => {
                                     showToast("Link copied!", "success");
                                     navigator.clipboard.writeText(
-                                      window.location.hostname +
-                                      "/" +
-                                      owner.slug +
-                                      "/" +
-                                      type.slug
+                                      window.location.hostname + `/${slug}/${type.slug}`
                                     );
                                   }}
                                   className={classNames(
@@ -448,7 +211,8 @@ export default function Availability({ user, eventTypes }: {
           </li>
         ))}
       </ul>
-    </div>;
+    </div>
+  );
 
   return (
     <div>
@@ -459,37 +223,242 @@ export default function Availability({ user, eventTypes }: {
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
-        CTA={eventTypes.length !== 0 && <CreateNewEventDialog />}>
+        CTA={eventTypes.length !== 0 && <CreateNewEventDialog profiles={profiles} />}>
+        {eventTypes &&
+          eventTypes.map((input) => (
+            <>
+              <EventTypeListHeading
+                profile={input.profile}
+                membershipCount={input.metadata?.membershipCount}
+              />
+              <EventTypeList
+                types={input.eventTypes}
+                profile={input.profile}
+                readOnly={input.metadata?.readOnly}
+              />
+            </>
+          ))}
 
-        {eventTypes.map( (eventTypeGroup: OwnerGroupedEventType) => (
-          <>
-            <EventTypeListHeading
-              membershipCount={eventTypeGroup.owner.teamMemberCount}
-              displayName={eventTypeGroup.owner.displayName}
-              imageSrc={eventTypeGroup.owner.image}
-              slug={eventTypeGroup.owner.slug}
-            />
-            <EventTypeList owner={eventTypeGroup.owner} types={eventTypeGroup.eventTypes} />
-          </>
-        ))}
-
-        {eventTypes.length === 0 && <CreateFirstEventTypeView />}
+        {eventTypes.length === 0 && teams && <CreateFirstEventTypeView />}
       </Shell>
     </div>
   );
 }
 
-type EventTypeOwner = {
-  displayName: string;
-  image: string;
-  slug: string;
-  id: number;
-  teamMemberCount?: number;
-};
+const CreateNewEventDialog = ({ profiles }) => {
+  const router = useRouter();
+  const dialogOpen = router.query.new === "1";
+  const teamId: number | null = Number(router.query.teamId) || null;
+  const titleRef = useRef<HTMLInputElement>();
+  const slugRef = useRef<HTMLInputElement>();
 
-type OwnerGroupedEventType = {
-  owner: EventTypeOwner;
-  eventTypes: EventType[];
+  function autoPopulateSlug() {
+    let t = titleRef.current.value;
+    t = t.replace(/\s+/g, "-").toLowerCase();
+    slugRef.current.value = t;
+  }
+
+  async function createEventTypeHandler(event) {
+    event.preventDefault();
+
+    const formData = Object.fromEntries(new FormData(event.target).entries());
+    const payload: {
+      title: string;
+      url: string;
+      description: string;
+      length: number;
+      schedulingType?: "collective" | "roundRobin";
+      teamId?: number;
+    } = {
+      ...formData,
+      length: Number(formData.length),
+      ...(router.query.teamId
+        ? {
+            teamId: Number(router.query.teamId),
+          }
+        : {}),
+    };
+
+    await fetch("/api/availability/eventtype", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    await router.push({ pathname: router.pathname });
+
+    showToast("Event Type created", "success");
+  }
+
+  return (
+    <Dialog
+      open={dialogOpen}
+      onOpenChange={(isOpen) => {
+        const newQuery = {
+          ...router.query,
+        };
+        delete newQuery["new"];
+        delete newQuery["eventPage"];
+        delete newQuery["teamId"];
+        if (!isOpen) {
+          router.push({ pathname: router.pathname, query: newQuery });
+        }
+      }}>
+      {!profiles.filter((profile) => profile.teamId).length && (
+        <Button href={{ query: { ...router.query, new: "1" } }} StartIcon={PlusIcon}>
+          New event type
+        </Button>
+      )}
+      {profiles.filter((profile) => profile.teamId).length > 0 && (
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger as="span">
+            <Button EndIcon={ChevronDownIcon}>New event type</Button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end" className="shadow-sm rounded-sm bg-white text-sm mt-1">
+            <DropdownMenu.Label className="text-neutral-500 px-3 py-2">
+              Create an event type under
+              <br />
+              your name or a team.
+            </DropdownMenu.Label>
+            <DropdownMenu.Separator className="h-px bg-gray-200" />
+            {profiles.map((profile) => (
+              <DropdownMenu.Item
+                key={profile.slug}
+                className="px-3 py-2 cursor-pointer"
+                onSelect={() =>
+                  router.push({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      new: "1",
+                      eventPage: profile.slug,
+                      ...(profile.teamId
+                        ? {
+                            teamId: profile.teamId,
+                          }
+                        : {}),
+                    },
+                  })
+                }>
+                {profile.name}
+              </DropdownMenu.Item>
+            ))}
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      )}
+      <DialogContent>
+        <div className="mb-8">
+          <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+            Add a new {teamId ? "team " : ""}event type
+          </h3>
+          <div>
+            <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
+          </div>
+        </div>
+        <form onSubmit={createEventTypeHandler}>
+          <div>
+            <div className="mb-4">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                Title
+              </label>
+              <div className="mt-1">
+                <input
+                  onChange={autoPopulateSlug}
+                  ref={titleRef}
+                  type="text"
+                  name="title"
+                  id="title"
+                  required
+                  className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  placeholder="Quick Chat"
+                />
+              </div>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+                URL
+              </label>
+              <div className="mt-1">
+                <div className="flex rounded-sm shadow-sm">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                    {location.hostname}/{teamId ? router.query.eventPage : profiles[0].slug}/
+                  </span>
+                  <input
+                    ref={slugRef}
+                    type="text"
+                    name="slug"
+                    id="slug"
+                    required
+                    className="flex-1 block w-full focus:ring-neutral-900 focus:border-neutral-900 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Description
+              </label>
+              <div className="mt-1">
+                <textarea
+                  name="description"
+                  id="description"
+                  className="shadow-sm focus:ring-neutral-900 focus:border-neutral-900 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  placeholder="A quick video meeting."
+                />
+              </div>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="length" className="block text-sm font-medium text-gray-700">
+                Length
+              </label>
+              <div className="mt-1 relative rounded-sm shadow-sm">
+                <input
+                  type="number"
+                  name="length"
+                  id="length"
+                  required
+                  className="focus:ring-neutral-900 focus:border-neutral-900 block w-full pr-20 sm:text-sm border-gray-300 rounded-sm"
+                  placeholder="15"
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
+                  minutes
+                </div>
+              </div>
+            </div>
+          </div>
+          {teamId && (
+            <div className="mb-4">
+              <label htmlFor="schedulingType" className="block text-sm font-medium text-gray-700">
+                Scheduling Type
+              </label>
+              <RadioArea.Group
+                name="schedulingType"
+                className="flex space-x-6 mt-1 relative rounded-sm shadow-sm">
+                <RadioArea.Item value={SchedulingType.COLLECTIVE} className="text-sm w-1/2">
+                  <strong className="block mb-1">Collective</strong>
+                  <p>Schedule meetings when all selected team members are available.</p>
+                </RadioArea.Item>
+                <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="text-sm w-1/2">
+                  <strong className="block mb-1">Round Robin</strong>
+                  <p>Cycle meetings between multiple team members.</p>
+                </RadioArea.Item>
+              </RadioArea.Group>
+            </div>
+          )}
+          <div className="mt-8 sm:flex sm:flex-row-reverse">
+            <DialogClose as="span" className="ml-2">
+              <Button type="submit">Continue</Button>
+            </DialogClose>
+            <DialogClose as={Button} color="secondary">
+              Cancel
+            </DialogClose>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 export async function getServerSideProps(context) {
@@ -498,9 +467,9 @@ export async function getServerSideProps(context) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user: User = await prisma.user.findFirst({
+  const user: User = await prisma.user.findUnique({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       id: true,
@@ -510,89 +479,107 @@ export async function getServerSideProps(context) {
       endTime: true,
       bufferTime: true,
       avatar: true,
-      eventTypes: {
+      teams: {
         select: {
-          schedulingType: true,
+          role: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              members: {
+                select: {
+                  userId: true,
+                },
+              },
+              eventTypes: {
+                select: {
+                  id: true,
+                  title: true,
+                  description: true,
+                  length: true,
+                  schedulingType: true,
+                  slug: true,
+                  hidden: true,
+                  organizers: {
+                    select: {
+                      id: true,
+                      avatar: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      eventTypes: {
+        where: {
+          team: null,
+        },
+        select: {
           id: true,
-          length: true,
-          description: true,
-          team: true,
-          hidden: true,
           title: true,
+          description: true,
+          length: true,
+          schedulingType: true,
           slug: true,
+          hidden: true,
           organizers: {
             select: {
-              name: true,
+              id: true,
               avatar: true,
-              email: true,
-            }
+              name: true,
+            },
           },
         },
       },
     },
   });
 
-  const eventTypes: OwnerGroupedEventType[] = user.eventTypes.reduce( (acc: OwnerGroupedEventType[], eventType: EventType) => {
+  let eventTypes = [];
 
-    const avatar = (
-      eventType.team ? eventType.team.logo : (
-        user.avatar || defaultAvatarSrc({ email: user.email })
-      )
-    );
+  if (user.eventTypes) {
+    eventTypes.push({
+      teamId: null,
+      profile: {
+        slug: user.username,
+        name: user.name,
+        image: user.avatar,
+      },
+      eventTypes: user.eventTypes,
+    });
+  }
 
-    eventType.organizers = eventType.organizers.map(user => ({
-      ...user,
-      avatar: user.avatar || defaultAvatarSrc({ email: user.email })
-    }));
-
-    const owner: EventTypeOwner = {
-      id: eventType.team ? eventType.team.id : user.id,
-      displayName: eventType.team ? eventType.team.name : user.name,
-      image: avatar || null,
-      slug: eventType.team ? eventType.team.slug : user.username,
-    };
-
-    const groupIndex: number = acc.findIndex( (group: OwnerGroupedEventType) => group.owner.slug === owner.slug );
-    if (groupIndex !== -1) {
-      acc[ groupIndex ].eventTypes.push(eventType);
-    } else {
-      acc.push({
-        owner,
-        eventTypes: [eventType],
-      });
-    }
-    return acc;
-  }, []);
-
-  const countMemberships = await Promise.all(
-    eventTypes.map( async (eventTypes: OwnerGroupedEventType) => {
-      if (eventTypes.owner.slug === user.username) {
-        return;
-      }
-      return await prisma.team.findUnique({
-        where: {
-          id: eventTypes.owner.id,
-        },
-        select: {
-          id: true,
-          members: true,
-        }
-      });
-    })
+  eventTypes = [].concat(
+    eventTypes,
+    user.teams.map((membership) => ({
+      teamId: membership.team.id,
+      profile: {
+        name: membership.team.name,
+        logo: membership.team.logo || "",
+        slug: "team/" + membership.team.slug,
+      },
+      metadata: {
+        membershipCount: membership.team.members.length,
+        readOnly: membership.role !== "OWNER",
+      },
+      eventTypes: membership.team.eventTypes,
+    }))
   );
 
-  eventTypes.forEach( (eventType: OwnerGroupedEventType, idx: number) => {
-    if (eventType.owner.slug !== user.username) {
-      eventTypes[idx].owner.teamMemberCount = countMemberships.find((countResult) => eventType.owner.id === countResult?.id).members.length
-    }
-  });
-
-  const sortedEventTypes: OwnerGroupedEventType[] = eventTypes.sort( (group) => {
-    if (group.owner.displayName === user.name) return -1;
-    else return 1;
-  });
-
   return {
-    props: { eventTypes: sortedEventTypes, user }, // will be passed to the page component as props
+    props: {
+      user,
+      // don't display event teams without event types,
+      eventTypes: eventTypes.filter((groupBy) => groupBy.eventTypes.length > 0),
+      // so we can show a dropdown when the user has teams
+      profiles: eventTypes.map((group) => ({
+        teamId: group.teamId,
+        ...group.profile,
+        ...group.metadata,
+      })),
+    },
   };
 }

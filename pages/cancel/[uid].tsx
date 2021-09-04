@@ -9,6 +9,8 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import prisma from "../../lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
+import { Button } from "@components/ui/Button";
+import { User } from "@prisma/client";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
@@ -42,11 +44,11 @@ export default function Type(props) {
       headers: {
         "Content-Type": "application/json",
       },
-      method: "POST",
+      method: "DELETE",
     });
 
     if (res.status >= 200 && res.status < 300) {
-      router.push("/cancel/success?user=" + props.user.username + "&title=" + props.booking.title);
+      // router.push("/cancel/success?user=" + props.profile.username + "&title=" + props.booking.title);
     } else {
       setLoading(false);
       setError("An error with status code " + res.status + " occurred. Please try again later.");
@@ -56,10 +58,7 @@ export default function Type(props) {
   return (
     <div>
       <Head>
-        <title>
-          Cancel {props.booking && `${props.booking.title} | ${props.user.name || props.user.username} `}|
-          Calendso
-        </title>
+        <title>Cancel {props.booking && `${props.booking.title} | ${props.profile.name}`}| Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="max-w-3xl mx-auto my-24">
@@ -110,23 +109,11 @@ export default function Type(props) {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-5 sm:mt-6 text-center">
-                      <div className="mt-5">
-                        <button
-                          onClick={cancellationHandler}
-                          disabled={loading}
-                          type="button"
-                          className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm mx-2 btn-white">
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => router.push("/reschedule/" + uid)}
-                          disabled={loading}
-                          type="button"
-                          className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm mx-2 btn-white">
-                          Reschedule
-                        </button>
-                      </div>
+                    <div className="mt-5 sm:mt-6 text-center space-x-2">
+                      <Button color="secondary" onClick={cancellationHandler} loading={loading}>
+                        Cancel
+                      </Button>
+                      <Button onClick={() => router.push("/reschedule/" + uid)}>Reschedule</Button>
                     </div>
                   </>
                 )}
@@ -151,14 +138,19 @@ export async function getServerSideProps(context) {
       startTime: true,
       endTime: true,
       attendees: true,
-      eventType: true,
-      user: {
+      team: {
         select: {
-          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+      organizers: {
+        select: {
           username: true,
           name: true,
         },
       },
+      userId: true,
     },
   });
 
@@ -174,10 +166,33 @@ export async function getServerSideProps(context) {
     endTime: booking.endTime.toString(),
   });
 
+  let profile;
+  if (booking.userId) {
+    const user: User = await prisma.user.findUnique({
+      where: {
+        id: booking.userId,
+      },
+      select: {
+        username: true,
+        name: true,
+      },
+    });
+    profile = {
+      slug: user.username,
+      name: user.name,
+    };
+  } else {
+    profile = booking.team
+      ? {
+          name: booking.team.name,
+          slug: booking.team.slug,
+        }
+      : booking.organizers[0];
+  }
+
   return {
     props: {
-      user: booking.user,
-      eventType: booking.eventType,
+      profile,
       booking: bookingObj,
     },
   };

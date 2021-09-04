@@ -23,7 +23,7 @@ export default function Success(props) {
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(router.query.date));
-  const { isReady } = Theme(props.user.theme);
+  const { isReady } = Theme();
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
@@ -98,9 +98,7 @@ export default function Success(props) {
                       <div className="mt-3">
                         <p className="text-sm text-neutral-600 dark:text-gray-300">
                           {props.eventType.requiresConfirmation
-                            ? `${
-                                props.user.name || props.user.username
-                              } still needs to confirm or reject the booking.`
+                            ? `${props.profile.name} still needs to confirm or reject the booking.`
                             : `We emailed you and the other attendees a calendar invitation with all the details.`}
                         </p>
                       </div>
@@ -223,11 +221,11 @@ export default function Success(props) {
                       </div>
                     </div>
                   )}
-                  {!props.user.hideBranding && (
+                  {/*!props.user.hideBranding && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
                     </div>
-                  )}
+                  )*/}
                 </div>
               </div>
             </div>
@@ -239,22 +237,6 @@ export default function Success(props) {
 }
 
 export async function getServerSideProps(context) {
-  const user = context.query.user
-    ? await whereAndSelect(
-        prisma.user.findFirst,
-        {
-          username: context.query.user,
-        },
-        ["username", "name", "bio", "avatar", "hideBranding", "theme"]
-      )
-    : null;
-
-  if (!user) {
-    return {
-      notFound: true,
-    };
-  }
-
   const eventType = await whereAndSelect(
     prisma.eventType.findUnique,
     {
@@ -265,7 +247,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
-      user,
+      profile: {},
       eventType,
     },
   };

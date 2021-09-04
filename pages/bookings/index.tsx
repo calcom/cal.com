@@ -10,6 +10,7 @@ import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
+import { Button } from "@components/ui/Button";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,6 +60,7 @@ export default function Bookings({ bookings }) {
                               </span>
                             )}
                             <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
+                              {booking.team && <strong>{booking.team.name}: </strong>}
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
@@ -101,25 +103,16 @@ export default function Bookings({ bookings }) {
                               </>
                             )}
                             {booking.confirmed && !booking.rejected && (
-                              <>
-                                <a
-                                  href={window.location.href + "/../cancel/" + booking.uid}
-                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  <XIcon
-                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
+                              <div className="space-x-2">
+                                <Button href={"cancel/" + booking.uid} StartIcon={XIcon} color="secondary">
                                   Cancel
-                                </a>
-                                <a
-                                  href={window.location.href + "/../reschedule/" + booking.uid}
-                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  <ClockIcon
-                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
+                                </Button>
+                                <Button
+                                  href={"reschedule/" + booking.uid}
+                                  StartIcon={ClockIcon}
+                                  color="secondary">
                                   Reschedule
-                                </a>
+                                </Button>
                                 <Menu as="div" className="inline-block lg:hidden text-left ">
                                   {({ open }) => (
                                     <>
@@ -187,7 +180,7 @@ export default function Bookings({ bookings }) {
                                     </>
                                   )}
                                 </Menu>
-                              </>
+                              </div>
                             )}
                             {!booking.confirmed && booking.rejected && (
                               <div className="text-sm text-gray-500">Rejected</div>
@@ -213,18 +206,29 @@ export async function getServerSideProps(context) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       id: true,
+      teams: {
+        select: {
+          teamId: true,
+        },
+      },
     },
   });
 
+  const teamIds: { teamId: number }[] = user.teams.map((team) => ({ teamId: team.teamId }));
+
   const b = await prisma.booking.findMany({
     where: {
-      userId: user.id,
+      OR: [
+        {
+          userId: user.id,
+        },
+      ].concat(teamIds),
     },
     select: {
       uid: true,
@@ -236,6 +240,11 @@ export async function getServerSideProps(context) {
       id: true,
       startTime: true,
       endTime: true,
+      team: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
       startTime: "asc",

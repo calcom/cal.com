@@ -37,18 +37,15 @@ const Team = ({ team }) => {
             )}
           />
 
-          <Avatar
-            displayName={member.user.name}
-            imageSrc={member.user.avatar}
-            className="w-12 h-12 rounded-full"
-          />
-
-          <section className="space-y-2">
-            <Text variant="title">{member.user.name}</Text>
-            <Text variant="subtitle" className="w-6/8">
-              {member.user.bio}
-            </Text>
-          </section>
+          <div>
+            <Avatar displayName={member.user.name} imageSrc={member.user.avatar} className="w-12 h-12" />
+            <section className="space-y-2">
+              <Text variant="title">{member.user.name}</Text>
+              <Text variant="subtitle" className="w-6/8">
+                {member.user.bio}
+              </Text>
+            </section>
+          </div>
         </div>
       </Link>
     );
