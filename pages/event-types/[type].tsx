@@ -672,7 +672,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <div className="ml-3 text-sm">
                                 <p className="text-neutral-900">
                                   The booking needs to be manually confirmed before it is pushed to the
-                                  integrations and a integrations and a confirmation mail is sent.
+                                  integrations and a confirmation mail is sent.
                                 </p>
                               </div>
                             </div>
