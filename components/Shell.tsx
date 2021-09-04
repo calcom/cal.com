@@ -48,7 +48,7 @@ export default function Shell(props) {
       current: router.pathname.startsWith("/availability"),
     },
     {
-      name: "App Store",
+      name: "Integrations",
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.pathname.startsWith("/integrations"),
