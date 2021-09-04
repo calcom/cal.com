@@ -7,19 +7,20 @@ info:
     email: support@calendso.com
   license:
     name: MIT License
-    url: https://opensource.org/licenses/MIT
+    url: 'https://opensource.org/licenses/MIT'
   version: 1.0.0
+  termsOfService: 'https://calendso.com/terms'
 server:
-  url: http://localhost:{port}
+  url: 'http://localhost:{port}'
   description: Local Development Server
   variables:
     port:
       default: '3000'
 tags:
   - name: Authentication
-    description: Auth routes, powered by Next-Auth.js
+    description: 'Auth routes, powered by Next-Auth.js'
     externalDocs:
-      url: http://next-auth.js.org/
+      url: 'http://next-auth.js.org/'
   - name: Availability
     description: Checking and setting user availability
   - name: Booking
@@ -37,15 +38,15 @@ paths:
       summary: Displays the sign in page
       tags:
         - Authentication
-  /api/auth/signin/:provider:
+  '/api/auth/signin/:provider':
     post:
       description: Starts an OAuth signin flow for the specified provider. The POST submission requires CSRF token from /api/auth/csrf.
       summary: Starts an OAuth signin flow for the specified provider
       tags:
         - Authentication
-  /api/auth/callback/:provider:
+  '/api/auth/callback/:provider':
     get:
-      description: Handles returning requests from OAuth services during sign in. For OAuth 2.0 providers that support the state option, the value of the state parameter is checked against the one that was generated when the sign in flow was started - this uses a hash of the CSRF token which MUST match for both the POST and GET calls during sign in.
+      description: 'Handles returning requests from OAuth services during sign in. For OAuth 2.0 providers that support the state option, the value of the state parameter is checked against the one that was generated when the sign in flow was started - this uses a hash of the CSRF token which MUST match for both the POST and GET calls during sign in.'
       summary: Handles returning requests from OAuth services
       tags:
         - Authentication
@@ -74,7 +75,7 @@ paths:
         - Authentication
   /api/auth/csrf:
     get:
-      description: Returns object containing CSRF token. In NextAuth.js, CSRF protection is present on all authentication routes. It uses the "double submit cookie method", which uses a signed HttpOnly, host-only cookie. The CSRF token returned by this endpoint must be passed as form variable named csrfToken in all POST submissions to any API endpoint.
+      description: 'Returns object containing CSRF token. In NextAuth.js, CSRF protection is present on all authentication routes. It uses the "double submit cookie method", which uses a signed HttpOnly, host-only cookie. The CSRF token returned by this endpoint must be passed as form variable named csrfToken in all POST submissions to any API endpoint.'
       summary: Returns object containing CSRF token
       tags:
         - Authentication
@@ -102,62 +103,354 @@ paths:
       summary: Reset a user's password
       tags:
         - Authentication
-  /api/availability/:user:
+  '/api/availability/{user}?dateFrom={dateFrom}&dateTo={dateTo}':
     get:
-      description: Gets the busy times for a particular user, by username.
+      description: 'Gets the busy times for a particular user, by username.'
       summary: Gets the busy times for a user
       tags:
         - Availability
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                    - start: 'Fri, 03 Sep 2021 17:00:00 GMT'
+                      end: 'Fri, 03 Sep 2021 17:40:00 GMT'
+                items:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      minLength: 1
+                    end:
+                      type: string
+                      minLength: 1
+                  required:
+                    - start
+                    - end
+        '500':
+          description: Internal Server Error
+    parameters:
+      - schema:
+          type: string
+        name: user
+        in: path
+        required: true
+        description: The username of who you want to check availability for
+      - schema:
+          type: string
+        name: dateFrom
+        in: path
+        required: true
+        description: The timestamp of which time you want to get busy times from
+      - schema:
+          type: string
+        name: dateTo
+        in: path
+        required: true
+        description: The timestamp of which time you want to get busy times until
   /api/availability/calendar:
     get:
       description: Gets the user's selected calendars.
       summary: Gets the user's selected calendars
       tags:
         - Availability
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  required:
+                    - selected
+                    - externalId
+                    - integration
+                    - name
+                    - primary
+                  properties:
+                    selected:
+                      type: boolean
+                    externalId:
+                      type: string
+                      minLength: 1
+                    integration:
+                      type: string
+                      minLength: 1
+                    name:
+                      type: string
+                      minLength: 1
+                    primary:
+                      type: boolean
+                x-examples:
+                  example-1:
+                    - selected: false
+                      externalId: en.uk#holiday@group.v.calendar.google.com
+                      integration: google_calendar
+                      name: Holidays in United Kingdom
+                    - selected: false
+                      externalId: addressbook#contacts@group.v.calendar.google.com
+                      integration: google_calendar
+                      name: Birthdays
+                    - selected: true
+                      externalId: bailey@calendso.com
+                      integration: google_calendar
+                      name: Calendso
+                      primary: true
+                    - selected: true
+                      externalId: bpumfleet@gmail.com
+                      integration: google_calendar
+                      name: Personal
+                    - selected: false
+                      externalId: connor@cal.com
+                      integration: google_calendar
+                      name: connor@cal.com
+                    - selected: false
+                      externalId: c_feunmui1m8el5o1oo885fu48k8@group.calendar.google.com
+                      integration: google_calendar
+                      name: 1.0 Launch
+        '500':
+          description: Internal Server Error
     post:
       description: Adds a selected calendar for the user.
       summary: Adds a selected calendar for the user
       tags:
         - Availability
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                integration:
+                  type: string
+                externalId:
+                  type: string
     delete:
       description: Removes a selected calendar for the user.
       summary: Removes a selected calendar for the user
       tags:
         - Availability
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                externalId:
+                  type: string
+                integration:
+                  type: string
   /api/availability/day:
     patch:
       description: Updates the start and end times for a user's availability.
       summary: Updates the user's start and end times
       tags:
         - Availability
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startMins:
+                  type: string
+                endMins:
+                  type: string
+                bufferMins:
+                  type: string
+        description: ''
   /api/availability/eventtype:
     post:
       description: Adds a new event type for the user.
       summary: Adds a new event type
       tags:
         - Availability
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                slug:
+                  type: string
+                description:
+                  type: string
+                length:
+                  type: string
+                hidden:
+                  type: boolean
+                requiresConfirmation:
+                  type: boolean
+                locations:
+                  type: array
+                  items: {}
+                eventName:
+                  type: string
+                customInputs:
+                  type: array
+                  items: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventType:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      slug:
+                        type: string
+                      description:
+                        type: string
+                      length:
+                        type: string
+                      hidden:
+                        type: boolean
+                      requiresConfirmation:
+                        type: boolean
+                      locations:
+                        type: array
+                        items: {}
+                      eventName:
+                        type: string
+                      customInputs:
+                        type: array
+                        items: {}
+        '500':
+          description: Internal Server Error
     patch:
       description: Updates an event type for the user.
       summary: Updates an event type
       tags:
         - Availability
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                slug:
+                  type: string
+                description:
+                  type: string
+                length:
+                  type: string
+                hidden:
+                  type: boolean
+                requiresConfirmation:
+                  type: boolean
+                locations:
+                  type: array
+                  items: {}
+                eventName:
+                  type: string
+                customInputs:
+                  type: array
+                  items: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventType:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      slug:
+                        type: string
+                      description:
+                        type: string
+                      length:
+                        type: string
+                      hidden:
+                        type: boolean
+                      requiresConfirmation:
+                        type: boolean
+                      locations:
+                        type: array
+                        items: {}
+                      eventName:
+                        type: string
+                      customInputs:
+                        type: array
+                        items: {}
+        '500':
+          description: Internal Server Error
     delete:
       description: Deletes an event type for the user.
       summary: Deletes an event type
       tags:
         - Availability
-  /api/availability/calendars:
-    post:
-      description: Selects calendar for availability checking.
-      summary: Adds selected calendar
-      tags:
-        - Availability
-    delete:
-      description: Removes a calendar from availability checking.
-      summary: Deletes a selected calendar
-      tags:
-        - Availability
-  /api/book/:user:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        '500':
+          description: Internal Server Error
+  '/api/book/:user':
     post:
       description: Creates a booking in the user's calendar.
       summary: Creates a booking for a user
@@ -238,19 +531,19 @@ paths:
       summary: Leave team or decline team invite.
       tags:
         - User
-  /api/:team:
+  '/api/:team':
     delete:
       description: Deletes a team
       summary: Deletes a team
       tags:
         - Teams
-  /api/:team/invite:
+  '/api/:team/invite':
     post:
       description: Invites someone to a team.
       summary: Invites someone to a team
       tags:
         - Teams
-  /api/:team/membership:
+  '/api/:team/membership':
     get:
       description: Lists the members of a team.
       summary: Lists members of a team
@@ -261,3 +554,8 @@ paths:
       summary: Cancels a membership
       tags:
         - Teams
+servers:
+  - url: 'https://app.calendso.com'
+    description: Production
+components:
+  securitySchemes: {}
