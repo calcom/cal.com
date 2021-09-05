@@ -2,14 +2,11 @@ import React from "react";
 import Text from "@components/ui/Text";
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import dayjs, { Dayjs } from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
 import classnames from "classnames";
 export const SCHEDULE_FORM_ID = "SCHEDULE_FORM_ID";
 export const toCalendsoAvailabilityFormat = (schedule: Schedule) => {
   return schedule;
 };
-
-dayjs.extend(localizedFormat);
 
 export const _24_HOUR_TIME_FORMAT = `HH:mm:ss`;
 
@@ -220,7 +217,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
           <option
             key={`${day}.${index}.${type}.${time.format(_24_HOUR_TIME_FORMAT)}`}
             value={time.format(_24_HOUR_TIME_FORMAT)}>
-            {time.format("LT")}
+            {time.toDate().toLocaleTimeString(undefined, { minute: "numeric", hour: "numeric" })}
           </option>
         ));
       return (
