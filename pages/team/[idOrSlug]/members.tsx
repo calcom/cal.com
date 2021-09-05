@@ -1,20 +1,16 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import Head from "next/head";
-
 import Theme from "@components/Theme";
 import { getTeam } from "@lib/teams/getTeam";
 import Team from "@components/team/screens/Team";
+import { HeadSeo } from "@components/seo/head-seo";
+import React from "react";
 
 const TeamMembersPage: InferGetServerSidePropsType<typeof getServerSideProps> = ({ team }) => {
   const { isReady } = Theme();
   return (
     isReady && (
       <div>
-        <Head>
-          <title>{team.name} | Calendso</title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-
+        <HeadSeo title={team.name + " | Members"} description={team.name} />
         <main className="mx-auto py-24 px-4">
           <Team team={team} />
         </main>

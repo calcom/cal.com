@@ -1,9 +1,10 @@
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import Head from "next/head";
+import { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import { HeadSeo } from "@components/seo/head-seo";
 import Theme from "@components/Theme";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
+import { Team } from "@prisma/client";
 import Avatar from "@components/Avatar";
 import Text from "@components/ui/Text";
 import React from "react";
@@ -11,7 +12,8 @@ import { defaultAvatarSrc } from "@lib/profile";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import classNames from "@lib/classNames";
 
-const TeamPage: InferGetServerSidePropsType<typeof getServerSideProps> = ({ team }) => {
+function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+
   const { isReady } = Theme();
 
   const eventTypes = team.eventTypes.map((type) => (
@@ -40,15 +42,12 @@ const TeamPage: InferGetServerSidePropsType<typeof getServerSideProps> = ({ team
   return (
     isReady && (
       <div>
-        <Head>
-          <title>{team.name} | Calendso</title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-
+        <HeadSeo title={team.name} description={team.name} />
         <main className="max-w-3xl mx-auto pt-24 pb-12 px-4">
           <article className="flex flex-col space-y-8 lg:space-y-12">
             <div className="mb-8 text-center">
               <Avatar
+                displayName={team.name}
                 imageSrc={"http://placekitten.com/200/200"}
                 className="mx-auto w-20 h-20 rounded-full mb-4"
               />
@@ -67,9 +66,9 @@ const TeamPage: InferGetServerSidePropsType<typeof getServerSideProps> = ({ team
       </div>
     )
   );
-};
+}
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps = async (context) => {
   const teamIdOrSlug = Array.isArray(context.query?.idOrSlug)
     ? context.query.idOrSlug.pop()
     : context.query.idOrSlug;
@@ -101,7 +100,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 
-  const team = await prisma.team.findFirst({
+  const team: Team = await prisma.team.findFirst({
     where: {
       OR: [
         {

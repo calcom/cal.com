@@ -1,8 +1,9 @@
-import Head from "next/head";
+import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import React from "react";
-import { getCsrfToken, getSession } from "next-auth/client";
+import { getCsrfToken } from "next-auth/client";
 import debounce from "lodash.debounce";
+import { getSession } from "@lib/auth";
 
 export default function ForgotPassword({ csrfToken }) {
   const [loading, setLoading] = React.useState(false);
@@ -71,11 +72,7 @@ export default function ForgotPassword({ csrfToken }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <Head>
-        <title>Forgot Password</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
+      <HeadSeo title="Forgot Password" description="Forgot Password" />
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 mx-2 shadow rounded-lg sm:px-10 space-y-6">
           {success && <Success />}

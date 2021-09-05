@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
+
   if (!session) {
     res.status(401).json({ message: "Not authenticated" });
     return;
@@ -65,6 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method == "POST") {
+
       if (req.body.teamId) {
         data.team = {
           connect: {
@@ -73,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
       }
 
-      await prisma.eventType.create({
+      const eventType = await prisma.eventType.create({
         data: {
           ...data,
           organizers: {
@@ -83,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
       });
-      res.status(200).json({ message: "Event created successfully" });
+      res.status(201).json({ eventType });
     } else if (req.method == "PATCH") {
       if (req.body.organizers) {
         data.organizers = {
@@ -121,18 +123,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      await prisma.eventType.update({
+      const eventType = await prisma.eventType.update({
         where: {
           id: req.body.id,
         },
         data,
       });
-      res.status(200).json({ message: "Event updated successfully" });
+      res.status(200).json({ eventType });
     }
   }
 
   if (req.method == "DELETE") {
-    // Delete associations first
     await prisma.eventTypeCustomInput.deleteMany({
       where: {
         eventTypeId: req.body.id,
@@ -145,6 +146,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    res.status(200).json({ message: "Event deleted successfully" });
+    res.status(200).json({});
   }
 }

@@ -2,9 +2,6 @@ import classNames from "@lib/classNames";
 import Link, { LinkProps } from "next/link";
 import React from "react";
 
-type HTMLAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
-type HTMLButtonProps = React.ButtonHTMLAttributes<HTMLButtonProps>;
-
 type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
 export type ButtonProps = {
@@ -15,7 +12,10 @@ export type ButtonProps = {
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
-} & ((Omit<HTMLAnchorProps, "href"> & { href: LinkProps["href"] }) | (HTMLButtonProps & { href?: never }));
+} & (
+  | (Omit<JSX.IntrinsicElements["a"], "href"> & { href: LinkProps["href"] })
+  | (JSX.IntrinsicElements["button"] & { href?: never })
+);
 
 export const Button = function Button(props: ButtonProps) {
   const {

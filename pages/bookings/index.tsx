@@ -1,7 +1,6 @@
-import Head from "next/head";
-import prisma from "../../lib/prisma";
-import { getSession, useSession } from "next-auth/client";
-import Shell from "../../components/Shell";
+import prisma from "@lib/prisma";
+import { useSession } from "next-auth/client";
+import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { Fragment } from "react";
@@ -11,6 +10,7 @@ import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
 import { Button } from "@components/ui/Button";
+import { getSession } from "@lib/auth";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -37,10 +37,6 @@ export default function Bookings({ bookings }) {
 
   return (
     <div>
-      <Head>
-        <title>Bookings | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

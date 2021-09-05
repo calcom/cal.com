@@ -4,13 +4,13 @@ import isBetween from "dayjs/plugin/isBetween";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import Head from "next/head";
+import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import prisma from "../../lib/prisma";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
 import { Button } from "@components/ui/Button";
 import { User } from "@prisma/client";
+import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
@@ -57,10 +57,10 @@ export default function Type(props) {
 
   return (
     <div>
-      <Head>
-        <title>Cancel {props.booking && `${props.booking.title} | ${props.profile.name}`}| Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <HeadSeo
+        title={`Cancel ${props.booking && props.booking.title} | ${props.profile.name}`}
+        description={`Cancel ${props.booking && props.booking.title} | ${props.profile.name}`}
+      />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">

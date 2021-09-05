@@ -69,14 +69,6 @@ export default class EventAttendeeMail extends EventMail {
           ${this.calEvent.organizer.name}<br />
           <small>
             ${this.calEvent.organizer.email ? this.calEvent.organizer.email : ""}
-            ${
-              this.calEvent.organizer.attendees
-                ? this.calEvent.organizer.attendees
-                    .map((attendee) => attendee.name)
-                    .filter(Boolean)
-                    .join(", ")
-                : ""
-            }
           </small>
         </td>
       </tr>
@@ -141,19 +133,13 @@ export default class EventAttendeeMail extends EventMail {
    * @protected
    */
   protected getNodeMailerPayload(): Record<string, unknown> {
-    let subject = `Confirmed: ${this.calEvent.type} `;
-
-    if (this.calEvent.organizer.name) {
-      subject += `with ${this.calEvent.organizer.name} `;
-    }
-
-    subject += `on ${this.getInviteeStart().format("dddd, LL")}`;
-
     return {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject,
+      subject: `Confirmed: ${this.calEvent.type} with ${
+        this.calEvent.organizer.name
+      } on ${this.getInviteeStart().format("LT dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };

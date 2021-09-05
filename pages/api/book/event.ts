@@ -89,25 +89,6 @@ function isOutOfBounds(
   }
 }
 
-export async function handleLegacyConfirmationMail(
-  results: Array<EventResult>,
-  eventType: EventType,
-  evt: CalendarEvent,
-  hashUID: string
-): Promise<{ error: Exception; message: string | null }> {
-  if (results.length === 0 && !eventType.requiresConfirmation) {
-    // Legacy as well, as soon as we have a separate email integration class. Just used
-    // to send an email even if there is no integration at all.
-    try {
-      const mail = new EventAttendeeMail(evt, hashUID);
-      await mail.sendEmail();
-    } catch (e) {
-      return { error: e, message: "Booking failed" };
-    }
-  }
-  return null;
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const eventTypeId = parseInt(req.body.eventTypeId as string);
 
@@ -132,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: eventTypeId,
     },
     select: {
-      organizers: {
+      users: {
         select: {
           id: true,
           email: true,
@@ -160,14 +141,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  let organizers: User[] = eventType.organizers;
+  let users: User[] = eventType.users;
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    const selectedOrganizers = req.body.organizers || [];
+    const selectedUsers = req.body.users || [];
     // one of these things that can probably be done better
     // prisma is not well documented.
-    organizers = await Promise.all(
-      selectedOrganizers.map(async (username) => {
+    users = await Promise.all(
+      selectedUsers.map(async (username) => {
         const user = await prisma.user.findUnique({
           where: {
             username,
@@ -191,8 +172,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
       })
     ).then((bookingCounts) => {
+      if (!bookingCounts.length) {
+        return users.slice(0, 1);
+      }
       const sorted = bookingCounts.sort((a, b) => (a.bookingCount > b.bookingCount ? 1 : -1));
-      return [organizers.find((organizer) => organizer.username === sorted[0].username)];
+      return [users.find((user) => user.username === sorted[0].username)];
     });
   }
 
@@ -205,14 +189,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
     return g;
   });
-  const attendeesList = [...invitee, ...guests];
 
-  let seed = `${eventTypeId}:${dayjs(req.body.start).utc().format()}`;
-  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    // round-robin explicitly means double-booking of this event type, so make the username part of the UID
-    seed += ":" + organizers[0].username;
-  }
+  const teamMembers = (
+    eventType.schedulingType === SchedulingType.COLLECTIVE
+  ) ? users.slice(1).map(user => ({
+    email: user.email,
+    name: user.name,
+    timeZone: user.timeZone,
+  })) : [];
 
+  const attendeesList = [...invitee, ...guests, ...teamMembers];
+
+  let seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const evt: CalendarEvent = {
@@ -221,23 +209,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     description: req.body.notes,
     startTime: req.body.start,
     endTime: req.body.end,
-    organizer:
-      organizers.length > 1
-        ? {
-            name: eventType.team.name,
-            attendees: organizers,
-          }
-        : {
-            name: organizers[0].name,
-            email: organizers[0].email,
-            timeZone: organizers[0].timeZone,
-          },
+    organizer: {
+      name: users[0].name,
+      email: users[0].email,
+      timeZone: users[0].timeZone,
+    },
     attendees: attendeesList,
     location: req.body.location, // Will be processed by the EventManager later.
   };
 
+  if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
+    evt.team = {
+      members: users.map(user => user.name || user.username),
+      name: eventType.team.name,
+    } // used for invitee emails
+  }
+
   const bookingCreateInput: Prisma.BookingCreateInput = {
-    uid: uid,
+    uid,
     title: evt.title,
     startTime: dayjs(evt.startTime).toDate(),
     endTime: dayjs(evt.endTime).toDate(),
@@ -254,18 +243,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: evt.attendees,
       },
     },
-    organizers: {
-      connect: organizers.map((user: User) => ({ id: user.id })),
+    user: {
+      connect: {
+        id: users[0].id
+      },
     },
   };
-
-  if (eventType.team) {
-    bookingCreateInput.team = {
-      connect: {
-        id: eventType.team.id,
-      },
-    };
-  }
 
   let booking: Booking | null;
   try {
@@ -280,37 +263,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).end();
   }
 
-  const legacyMailError = await handleLegacyConfirmationMail([], eventType, evt, uid);
-  if (legacyMailError) {
-    log.error("Sending legacy event mail failed", legacyMailError.error);
-    log.error(`Booking ${eventTypeId} failed`);
-    res.status(500).json({ message: legacyMailError.message });
-  }
-
   let results: EventResult[] = [];
   let referencesToCreate = [];
 
-  for (const currentUser of await Promise.all(
-    organizers.map((organizer) =>
-      prisma.user.findUnique({
-        where: {
-          id: organizer.id,
-        },
-        select: {
-          id: true,
-          credentials: true,
-          timeZone: true,
-          email: true,
-          username: true,
-          name: true,
-          bufferTime: true,
-        },
-      })
-    )
-  )) {
-    // this sorts out organizer emails during collective events
-    if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
-      evt.organizer = currentUser;
+  const loadUser = async (id): Promise<User> => await prisma.user.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      credentials: true,
+      timeZone: true,
+      email: true,
+      username: true,
+      name: true,
+      bufferTime: true,
+    },
+  });
+
+  let user: User;
+  for (const currentUser of await Promise.all(users.map(user => loadUser(user.id)))) {
+    if (!user) {
+      user = currentUser;
     }
 
     const selectedCalendars: SelectedCalendar[] = await prisma.selectedCalendar.findMany({
@@ -318,8 +292,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: currentUser.id,
       },
     });
-    const credentials: Credential[] = currentUser.credentials;
 
+    const credentials: Credential[] = currentUser.credentials;
     if (credentials) {
       const calendarBusyTimes = await getBusyCalendarTimes(
         credentials,
@@ -381,48 +355,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(400).json(error);
       }
     }
-
-    // Initialize EventManager with credentials
-    const eventManager = new EventManager(credentials);
-    const rescheduleUid = req.body.rescheduleUid;
-    if (rescheduleUid) {
-      // Use EventManager to conditionally use all needed integrations.
-      const updateResults: CreateUpdateResult = await eventManager.update(evt, rescheduleUid);
-
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingReschedulingMeetingFailed",
-          message: "Booking Rescheduling failed",
-        };
-
-        log.error(`Booking ${currentUser.name} failed`, error, results);
-      }
-
-      results = updateResults.results;
-      referencesToCreate = updateResults.referencesToCreate;
-    } else if (!eventType.requiresConfirmation) {
-      // Use EventManager to conditionally use all needed integrations.
-      const createResults: CreateUpdateResult = await eventManager.create(evt);
-
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingCreatingMeetingFailed",
-          message: "Booking failed",
-        };
-
-        log.error(`Booking ${currentUser.username} failed`, error, results);
-      }
-
-      results = createResults.results;
-      referencesToCreate = createResults.referencesToCreate;
-    }
-
-    if (eventType.requiresConfirmation) {
-      await new EventOrganizerRequestMail(evt, uid).sendEmail();
-    }
-
-    log.debug(`Booking ${currentUser.username} completed`);
   }
+
+  // Initialize EventManager with credentials
+  const eventManager = new EventManager(user.credentials);
+  const rescheduleUid = req.body.rescheduleUid;
+  if (rescheduleUid) {
+    // Use EventManager to conditionally use all needed integrations.
+    const updateResults: CreateUpdateResult = await eventManager.update(evt, rescheduleUid);
+
+    results = updateResults.results;
+    referencesToCreate = updateResults.referencesToCreate;
+
+    if (results.length > 0 && results.every((res) => !res.success)) {
+      const error = {
+        errorCode: "BookingReschedulingMeetingFailed",
+        message: "Booking Rescheduling failed",
+      };
+
+      log.error(`Booking ${user.name} failed`, error, results);
+    }
+
+  } else if (!eventType.requiresConfirmation) {
+    // Use EventManager to conditionally use all needed integrations.
+    const createResults: CreateUpdateResult = await eventManager.create(evt);
+
+    results = createResults.results;
+    referencesToCreate = createResults.referencesToCreate;
+
+    if (results.length > 0 && results.every((res) => !res.success)) {
+      const error = {
+        errorCode: "BookingCreatingMeetingFailed",
+        message: "Booking failed",
+      };
+
+      log.error(`Booking ${user.username} failed`, error, results);
+    }
+  }
+
+  if (eventType.requiresConfirmation) {
+    await new EventOrganizerRequestMail(evt, uid).sendEmail();
+  }
+
+  log.debug(`Booking ${user.username} completed`);
 
   await prisma.booking.update({
     where: {

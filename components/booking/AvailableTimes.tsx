@@ -13,7 +13,7 @@ const AvailableTimes = ({
   minimumBookingNotice,
   workingHours,
   timeFormat,
-  organizers,
+  users,
   schedulingType,
 }) => {
   const router = useRouter();
@@ -24,7 +24,7 @@ const AvailableTimes = ({
     eventLength,
     schedulingType,
     workingHours,
-    organizers,
+    users,
     minimumBookingNotice,
   });
   return (
@@ -40,7 +40,8 @@ const AvailableTimes = ({
           const bookingUrl = {
             pathname: "book",
             query: {
-              date: slot.time.utc().format(),
+              ...router.query,
+              date: slot.time.format(),
               type: eventTypeId,
             },
           };
@@ -50,10 +51,8 @@ const AvailableTimes = ({
           }
 
           if (schedulingType === SchedulingType.ROUND_ROBIN) {
-            bookingUrl.query.user = slot.organizers;
+            bookingUrl.query.user = slot.users;
           }
-
-          console.log(bookingUrl);
 
           return (
             <div key={slot.time.format()}>

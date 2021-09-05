@@ -1,11 +1,13 @@
-import { Availability, EventType, Team } from "@prisma/client";
+import { Availability, EventType } from "@prisma/client";
 import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { asStringOrNull } from "@lib/asStringOrNull";
-import Book from "@components/booking/Book";
+import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 export default function TeamType(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  return <Book {...props} />;
+  return (
+    <AvailabilityPage {...props} />
+  );
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -18,7 +20,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error(`File is not named [idOrSlug]/[user]`);
   }
 
-  const team: Team = await prisma.team.findFirst({
+  const team = await prisma.team.findFirst({
     where: {
       OR: [
         {
@@ -39,22 +41,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
-          organizers: {
+          users: {
             select: {
               id: true,
               name: true,
               avatar: true,
               username: true,
               timeZone: true,
-            },
+            }
           },
-          schedulingType: true,
           title: true,
           availability: true,
           description: true,
           length: true,
-        },
-      },
+          schedulingType: true,
+        }
+      }
     },
   });
 
@@ -88,6 +90,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       profile,
+      team,
       eventType: eventTypeObject,
       workingHours,
     },

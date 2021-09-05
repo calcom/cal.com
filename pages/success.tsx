@@ -1,6 +1,6 @@
-import Head from "next/head";
+import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
-import prisma, { whereAndSelect } from "../lib/prisma";
+import prisma, { whereAndSelect } from "@lib/prisma";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
@@ -10,7 +10,7 @@ import utc from "dayjs/plugin/utc";
 import toArray from "dayjs/plugin/toArray";
 import timezone from "dayjs/plugin/timezone";
 import { createEvent } from "ics";
-import { getEventName } from "../lib/event";
+import { getEventName } from "@lib/event";
 import Theme from "@components/Theme";
 
 dayjs.extend(utc);
@@ -61,13 +61,10 @@ export default function Success(props) {
   return (
     isReady && (
       <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
-        <Head>
-          <title>
-            Booking {props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"} | {eventName} |
-            Calendso
-          </title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+        <HeadSeo
+          title={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
+          description={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
+        />
         <main className="max-w-3xl mx-auto py-24">
           <div className="fixed z-50 inset-0 overflow-y-auto">
             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">

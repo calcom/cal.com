@@ -27,10 +27,12 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           1-on-1
         </li>
       )}
-      <li className="inline-block">
-        <InformationCircleIcon className="inline mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
-        <span className="max-w-32 sm:max-w-full truncate">{eventType.description.substring(0, 100)}</span>
-      </li>
+      {eventType.description && (
+        <li className="inline-block">
+          <InformationCircleIcon className="inline mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
+          <span className="max-w-32 sm:max-w-full truncate">{eventType.description.substring(0, 100)}</span>
+        </li>
+      )}
     </ul>
   );
 };

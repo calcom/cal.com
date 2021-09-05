@@ -1,14 +1,12 @@
-import { GetServerSideProps } from "next";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Modal from "../../components/Modal";
+import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import prisma from "@lib/prisma";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
@@ -28,7 +26,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { Availability, EventType, User, Team, SchedulingType } from "@prisma/client";
+import { Availability, EventType, User, SchedulingType } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
 import throttle from "lodash.throttle";
 import "react-dates/initialize";
@@ -37,59 +35,21 @@ import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { GetServerSidePropsContext } from "next";
+import { useMutation } from "react-query";
+import { EventTypeInput } from "@lib/types/event-type";
+import updateEventType from "@lib/mutations/event-types/update-event-type";
+import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
 import Select from "@components/ui/form/Select";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { defaultAvatarSrc } from "@lib/profile";
 import * as RadioArea from "@components/ui/form/radio-area";
 import classNames from "@lib/classNames";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-type Props = {
-  user: User;
-  eventType: EventType;
-  locationOptions: OptionBase[];
-  availability: Availability[];
-  team?: Team;
-  teamMembers: [];
-};
-
-type OpeningHours = {
-  days: number[];
-  startTime: number;
-  endTime: number;
-};
-
-type DateOverride = {
-  date: string;
-  startTime: number;
-  endTime: number;
-};
-
-type AdvancedOptions = {
-  eventName?: string;
-  periodType?: string;
-  periodDays?: number;
-  periodStartDate?: Date | string;
-  periodEndDate?: Date | string;
-  periodCountCalendarDays?: boolean;
-  requiresConfirmation?: boolean;
-};
-
-type EventTypeInput = AdvancedOptions & {
-  id: number;
-  title: string;
-  slug: string;
-  description: string;
-  length: number;
-  hidden: boolean;
-  locations: unknown;
-  customInputs: EventTypeCustomInput[];
-  timeZone: string;
-  availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
-};
 
 const PERIOD_TYPES = [
   {
@@ -106,14 +66,9 @@ const PERIOD_TYPES = [
   },
 ];
 
-export default function EventTypePage({
-  user,
-  eventType,
-  locationOptions,
-  availability,
-  team,
-  teamMembers,
-}: Props): JSX.Element {
+const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const { user, eventType, locationOptions, availability } = props;
+
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -126,6 +81,26 @@ export default function EventTypePage({
 
   const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
+
+  const updateMutation = useMutation(updateEventType, {
+    onSuccess: async ({ eventType }) => {
+      await router.push("/event-types");
+      showToast(`${eventType.title} event type updated successfully`, "success");
+    },
+    onError: (err: Error) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const deleteMutation = useMutation(deleteEventType, {
+    onSuccess: async () => {
+      await router.push("/event-types");
+      showToast("Event type deleted successfully", "success");
+    },
+    onError: (err: Error) => {
+      showToast(err.message, "error");
+    },
+  });
 
   const handleResizeEvent = () => {
     const elementWidth = parseFloat(getComputedStyle(document.body).width);
@@ -244,31 +219,14 @@ export default function EventTypePage({
         : {}),
     };
 
-    await fetch("/api/availability/eventtype", {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    router.push("/event-types");
-    showToast("Event Type updated", "success");
-    setSuccessModalOpen(true);
+    updateMutation.mutate(payload);
   }
 
   async function deleteEventTypeHandler(event) {
     event.preventDefault();
 
-    await fetch("/api/availability/eventtype", {
-      method: "DELETE",
-      body: JSON.stringify({ id: eventType.id }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    showToast("Event Type deleted", "success");
-    router.push("/event-types");
+    const payload = { id: eventType.id };
+    deleteMutation.mutate(payload);
   }
 
   const openLocationModal = (type: LocationType) => {
@@ -397,11 +355,8 @@ export default function EventTypePage({
 
   return (
     <div>
-      <Head>
-        <title>{eventType.title} | Event Type | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
+        title={`${eventType.title} | Event Type`}
         heading={
           <input
             ref={titleRef}
@@ -979,7 +934,7 @@ export default function EventTypePage({
                   Delete
                 </DialogTrigger>
                 <ConfirmationDialogContent
-                  alert="danger"
+                  variety="danger"
                   title="Delete Event Type"
                   confirmBtnText="Yes, delete event type"
                   onConfirm={deleteEventTypeHandler}>
@@ -1148,9 +1103,10 @@ export default function EventTypePage({
       </Shell>
     </div>
   );
-}
+};
 
-export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query }) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req, query } = context;
   const session = await getSession({ req });
   if (!session) {
     return {
@@ -1217,7 +1173,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
   if (!eventType) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const credentials = await prisma.credential.findMany({
@@ -1302,3 +1258,5 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, query
     },
   };
 };
+
+export default EventTypePage;

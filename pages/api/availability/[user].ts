@@ -1,13 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
-import { getBusyVideoTimes } from "@lib/videoClient";
+// import { getBusyVideoTimes } from "@lib/videoClient";
 import dayjs from "dayjs";
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { User } from "@prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { user } = req.query;
 
+  const user = asStringOrNull(req.query.user);
   const dateFrom = dayjs(asStringOrNull(req.query.dateFrom));
   const dateTo = dayjs(asStringOrNull(req.query.dateTo));
 
@@ -15,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "Invalid time range given." });
   }
 
-  const currentUser = await prisma.user.findFirst({
+  const currentUser: User = await prisma.user.findUnique({
     where: {
       username: user,
     },
@@ -36,16 +37,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const calendarBusyTimes = await getBusyCalendarTimes(
+  const busyTimes = await getBusyCalendarTimes(
     currentUser.credentials,
     dateFrom.format(),
     dateTo.format(),
     selectedCalendars
   );
-  const videoBusyTimes = await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format());
-  calendarBusyTimes.push(...videoBusyTimes);
 
-  const bufferedBusyTimes = calendarBusyTimes.map((a) => ({
+  // busyTimes.push(...await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format()));
+
+  const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
     end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
   }));

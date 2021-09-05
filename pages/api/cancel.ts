@@ -2,9 +2,9 @@ import prisma from "@lib/prisma";
 import { deleteEvent } from "@lib/calendarClient";
 import { deleteMeeting } from "@lib/videoClient";
 import async from "async";
-import { Credential } from "@prisma/client";
 
 export default async function handler(req, res) {
+
   if (req.method !== "DELETE") {
     return res.status(405).end();
   }
@@ -15,12 +15,11 @@ export default async function handler(req, res) {
     },
     select: {
       id: true,
-      organizers: {
+      user: {
         select: {
           credentials: true,
         },
       },
-      userId: true,
       attendees: true,
       references: {
         select: {
@@ -35,18 +34,7 @@ export default async function handler(req, res) {
     return res.status(404).end();
   }
 
-  // merge all credentials of all organizers..
-  const credentials: Credential[] = bookingToDelete.organizers || [];
-  // backwards compat, todo: remove.
-  if (bookingToDelete.userId) {
-    credentials.concat(
-      await prisma.credential.findMany({
-        where: {
-          userId: bookingToDelete.userId,
-        },
-      })
-    );
-  }
+  const credentials = bookingToDelete.user.credentials;
 
   const apiDeletes = async.mapLimit(credentials, 5, async (credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
