@@ -50,8 +50,10 @@ export default class EventOrganizerMail extends EventMail {
     return "A new event has been scheduled.";
   }
 
-  protected getBodyText(): string {
-    return "You and any other attendees have been emailed with this information.";
+  protected getAdditionalFooter(): string {
+    return `<p style="color: #4b5563; margin-top: 20px;">Need to make a change? <a href=${
+      process.env.BASE_URL + "/bookings"
+    } style="color: #161e2e;">Manage my bookings</a></p>`;
   }
 
   protected getImage(): string {
@@ -94,7 +96,6 @@ export default class EventOrganizerMail extends EventMail {
   >
     ${this.getImage()}
     <h1 style="font-weight: 500; color: #161e2e;">${this.getBodyHeader()}</h1>
-    <p style="color: #4b5563; margin-bottom: 30px;">${this.getBodyText()}</p>
     <hr />
     <table style="border-spacing: 20px; color: #161e2e; margin-bottom: 10px;">
       <colgroup>
