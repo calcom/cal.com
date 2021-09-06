@@ -241,7 +241,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   const eventType = await prisma.eventType.findFirst({
@@ -268,7 +268,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventType) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>

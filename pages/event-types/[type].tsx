@@ -1083,7 +1083,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventType) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   const credentials = await prisma.credential.findMany({
