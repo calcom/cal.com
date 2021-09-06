@@ -25,7 +25,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { Availability, EventType, User } from "@prisma/client";
+import { Availability } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
 import classnames from "classnames";
 import throttle from "lodash.throttle";
@@ -1033,7 +1033,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  if (!session) {
+  if (!session?.user?.id) {
     return {
       redirect: {
         permanent: false,
@@ -1042,9 +1042,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const user: User = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       username: true,
@@ -1055,7 +1055,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const eventType: EventType | null = await prisma.eventType.findUnique({
+  const eventType = await prisma.eventType.findUnique({
     where: {
       id: parseInt(query.type as string),
     },
