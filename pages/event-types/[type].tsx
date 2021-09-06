@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { useRouter } from "next/router";
 import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionBase } from "react-select";
+import Select, { OptionTypeBase } from "react-select";
 import prisma from "@lib/prisma";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
@@ -43,6 +42,7 @@ import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import Button from "@components/ui/Button";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -67,7 +67,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
-  const inputOptions: OptionBase[] = [
+  const inputOptions: OptionTypeBase[] = [
     { value: EventTypeCustomInputType.TEXT, label: "Text" },
     { value: EventTypeCustomInputType.TEXTLONG, label: "Multiline Text" },
     { value: EventTypeCustomInputType.NUMBER, label: "Number" },
@@ -131,8 +131,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<OptionBase | undefined>(undefined);
-  const [selectedInputOption, setSelectedInputOption] = useState<OptionBase>(inputOptions[0]);
+  const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [selectedInputOption, setSelectedInputOption] = useState<OptionTypeBase>(inputOptions[0]);
   const [locations, setLocations] = useState(eventType.locations || []);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
@@ -805,17 +805,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </>
                   )}
                 </Disclosure>
-                <div className="flex justify-end mt-4">
-                  <Link href="/event-types">
-                    <a className="inline-flex items-center px-4 py-2 mr-2 text-sm font-medium bg-white border border-transparent rounded-sm shadow-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                      Cancel
-                    </a>
-                  </Link>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                    Update
-                  </button>
+                <div className="flex justify-end mt-4 space-x-2">
+                  <Button href="/event-types" color="secondary" tabIndex={-1}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Update</Button>
                 </div>
               </form>
               <Modal
@@ -1135,10 +1129,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   ];
 
-  const locationOptions: OptionBase[] = [
+  const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
-    { value: LocationType.Zoom, label: "Zoom Video" },
+    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
   const hasGoogleCalendarIntegration = integrations.find(
