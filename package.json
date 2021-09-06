@@ -8,7 +8,7 @@
     "db-migrate": "yarn prisma migrate dev",
     "db-seed": "yarn ts-node scripts/seed.ts",
     "db-nuke": "docker-compose down --volumes --remove-orphans",
-    "dx": "DATABASE_URL=postgresql://postgres:@localhost:5450/calendso eval 'yarn db-up && yarn prisma migrate dev && yarn db-seed && yarn dev'",
+    "dx": "BASE_URL='http://localhost:3000' DATABASE_URL=postgresql://postgres:@localhost:5450/calendso eval 'yarn db-up && yarn prisma migrate dev && yarn db-seed && yarn dev'",
     "test": "node node_modules/.bin/jest",
     "build": "next build",
     "start": "next start",
@@ -51,6 +51,7 @@
     "next-seo": "^4.26.0",
     "next-transpile-modules": "^8.0.0",
     "nodemailer": "^6.6.3",
+    "npm-run-all": "^4.1.5",
     "react": "17.0.2",
     "react-dates": "^21.8.0",
     "react-dom": "17.0.2",
@@ -73,6 +74,7 @@
     "@types/nodemailer": "^6.4.4",
     "@types/react": "^17.0.18",
     "@types/react-dates": "^21.8.3",
+    "@types/react-select": "^4.0.17",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.29.2",
     "autoprefixer": "^10.3.1",
@@ -91,7 +93,7 @@
     "prisma": "^2.30.2",
     "tailwindcss": "^2.2.7",
     "ts-node": "^10.2.1",
-    "typescript": "^4.3.5"
+    "typescript": "^4.4.2"
   },
   "lint-staged": {
     "./{*,{pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
