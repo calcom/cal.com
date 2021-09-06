@@ -13,50 +13,6 @@ import React from "react";
 export default function User(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { isReady } = Theme(props.user.theme || undefined);
 
-  const eventTypes = props.eventTypes.map((type) => (
-    <div
-      key={type.id}
-      className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-black">
-      <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
-      <Link href={`/${props.user.username}/${type.slug}`}>
-        <a className="block px-6 py-4">
-          <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-          <div className="flex mt-2 space-x-4">
-            <div className="flex text-sm text-neutral-500">
-              <ClockIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
-                aria-hidden="true"
-              />
-              <p className="dark:text-white">{type.length}m</p>
-            </div>
-            <div className="flex text-sm min-w-16 text-neutral-500">
-              <UserIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
-                aria-hidden="true"
-              />
-              <p className="dark:text-white">1-on-1</p>
-            </div>
-            {type.price && (
-              <div className="flex text-sm text-neutral-500">
-                <CurrencyDollarIcon
-                  className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
-                  aria-hidden="true"
-                />
-                <p className="dark:text-white">{formatCurrency(type.price)}</p>
-              </div>
-            )}
-            <div className="flex text-sm text-neutral-500">
-              <InformationCircleIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
-                aria-hidden="true"
-              />
-              <p className="dark:text-white">{type.description}</p>
-            </div>
-          </div>
-        </a>
-      </Link>
-    </div>
-  ));
   return (
     <>
       <HeadSeo
@@ -79,8 +35,53 @@ export default function User(props: InferGetServerSidePropsType<typeof getServer
               </h1>
               <p className="text-neutral-500 dark:text-white">{props.user.bio}</p>
             </div>
-            <div className="space-y-6">{eventTypes}</div>
-            {eventTypes.length == 0 && (
+            <div className="space-y-6" data-testid="event-types">
+              {props.eventTypes.map((type) => (
+                <div
+                  key={type.id}
+                  className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-black">
+                  <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
+                  <Link href={`/${props.user.username}/${type.slug}`}>
+                    <a className="block px-6 py-4">
+                      <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                      <div className="flex mt-2 space-x-4">
+                        <div className="flex text-sm text-neutral-500">
+                          <ClockIcon
+                            className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
+                            aria-hidden="true"
+                          />
+                          <p className="dark:text-white">{type.length}m</p>
+                        </div>
+                        <div className="flex text-sm min-w-16 text-neutral-500">
+                          <UserIcon
+                            className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
+                            aria-hidden="true"
+                          />
+                          <p className="dark:text-white">1-on-1</p>
+                        </div>
+                        {type.price && (
+                          <div className="flex text-sm text-neutral-500">
+                            <CurrencyDollarIcon
+                              className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
+                              aria-hidden="true"
+                            />
+                            <p className="dark:text-white">{formatCurrency(type.price)}</p>
+                          </div>
+                        )}
+                        <div className="flex text-sm text-neutral-500">
+                          <InformationCircleIcon
+                            className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
+                            aria-hidden="true"
+                          />
+                          <p className="dark:text-white">{type.description}</p>
+                        </div>
+                      </div>
+                    </a>
+                  </Link>
+                </div>
+              ))}
+            </div>
+            {props.eventTypes.length == 0 && (
               <div className="overflow-hidden rounded-sm shadow">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
                   <h2 className="text-3xl font-semibold text-gray-600 dark:text-white">Uh oh!</h2>
@@ -97,9 +98,11 @@ export default function User(props: InferGetServerSidePropsType<typeof getServer
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   try {
+    const username = (context.query.user as string).toLowerCase();
+
     const user = await prisma.user.findFirst({
       where: {
-        username: (context.query.user as string).toLowerCase(),
+        username,
       },
       select: {
         id: true,
@@ -109,15 +112,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         bio: true,
         avatar: true,
         theme: true,
+        plan: true,
       },
     });
 
     if (!user) throw "notFound";
 
-    const eventTypes = await prisma.eventType.findMany({
+    const eventTypesWithHidden = await prisma.eventType.findMany({
       where: {
         userId: user.id,
-        hidden: false,
       },
       select: {
         id: true,
@@ -126,10 +129,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         length: true,
         price: true,
         description: true,
+        hidden: true,
       },
+      take: user.plan === "FREE" ? 1 : undefined,
     });
 
-    if (!eventTypes) throw "notFound";
+    if (!eventTypesWithHidden) throw "notFound";
+
+    const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
     return {
       props: {

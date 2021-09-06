@@ -7,6 +7,13 @@ function serverSideErrorHandler(error: string) {
       };
     case "invalidFileName":
       throw new Error(`File is not named [type]/[user]`);
+    case "shouldOnboard":
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/getting-started",
+        },
+      } as const;
     case "notFound":
     default:
       return { notFound: true, props: {} as never };

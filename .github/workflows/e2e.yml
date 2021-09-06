@@ -66,3 +66,4 @@ jobs:
           name: videos
           path: |
             cypress/videos
+            cypress/screenshots
