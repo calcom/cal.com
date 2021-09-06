@@ -8,7 +8,6 @@ export const toCalendsoAvailabilityFormat = (schedule: Schedule) => {
   return schedule;
 };
 
-export const AM_PM_TIME_FORMAT = `h:mm:ss a`;
 export const _24_HOUR_TIME_FORMAT = `HH:mm:ss`;
 
 const DEFAULT_START_TIME = "09:00:00";
@@ -30,7 +29,7 @@ const TIMES = (() => {
   let t: Dayjs = starting_time;
 
   while (t.isBefore(ending_time)) {
-    times.push(t.format(_24_HOUR_TIME_FORMAT));
+    times.push(t);
     t = t.add(increment, "minutes");
   }
   return times;
@@ -213,6 +212,14 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
     };
 
     const TimeRangeField = ({ range, day, index }: { range: TimeRange; day: DayOfWeek; index: number }) => {
+      const timeOptions = (type: "start" | "end") =>
+        TIMES.map((time) => (
+          <option
+            key={`${day}.${index}.${type}.${time.format(_24_HOUR_TIME_FORMAT)}`}
+            value={time.format(_24_HOUR_TIME_FORMAT)}>
+            {time.toDate().toLocaleTimeString(undefined, { minute: "numeric", hour: "numeric" })}
+          </option>
+        ));
       return (
         <div key={`${day}-range-${index}`} className="flex items-center justify-between space-x-2">
           <div className="flex items-center space-x-2">
@@ -222,13 +229,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
               defaultValue={range?.start || DEFAULT_START_TIME}
               onChange={handleSelectRangeChange}
               className="block px-4 pr-8 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-sm">
-              {TIMES.map((time) => {
-                return (
-                  <option key={`${day}.${index}.start.${time}`} value={time}>
-                    {time}
-                  </option>
-                );
-              })}
+              {timeOptions("start")}
             </select>
             <Text>-</Text>
             <select
@@ -237,13 +238,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
               defaultValue={range?.end || DEFAULT_END_TIME}
               onChange={handleSelectRangeChange}
               className=" block px-4 pr-8 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-sm">
-              {TIMES.map((time) => {
-                return (
-                  <option key={`${day}.${index}.end.${time}`} value={time}>
-                    {time}
-                  </option>
-                );
-              })}
+              {timeOptions("end")}
             </select>
           </div>
           <div className="">
