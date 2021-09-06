@@ -162,14 +162,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   });
 
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-  const requiresConfirmationRef = useRef<HTMLInputElement>();
-  const eventNameRef = useRef<HTMLInputElement>();
-  const periodDaysRef = useRef<HTMLInputElement>();
-  const periodDaysTypeRef = useRef<HTMLSelectElement>();
+  const titleRef = useRef<HTMLInputElement>(null);
+  const slugRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const lengthRef = useRef<HTMLInputElement>(null);
+  const requiresConfirmationRef = useRef<HTMLInputElement>(null);
+  const eventNameRef = useRef<HTMLInputElement>(null);
+  const periodDaysRef = useRef<HTMLInputElement>(null);
+  const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || user.timeZone);
