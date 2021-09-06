@@ -7,7 +7,7 @@ import prisma from "@lib/prisma";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
@@ -672,7 +672,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <div className="ml-3 text-sm">
                                 <p className="text-neutral-900">
                                   The booking needs to be manually confirmed before it is pushed to the
-                                  integrations and a integrations and a confirmation mail is sent.
+                                  integrations and a confirmation mail is sent.
                                 </p>
                               </div>
                             </div>

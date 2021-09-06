@@ -1,7 +1,7 @@
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import prisma from "@lib/prisma";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 
 export default function Billing() {
   return (
