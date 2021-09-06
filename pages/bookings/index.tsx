@@ -4,6 +4,7 @@ import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { Fragment } from "react";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { Menu, Transition } from "@headlessui/react";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
@@ -11,7 +12,7 @@ import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 
-export default function Bookings({ bookings }) {
+export default function Bookings({ bookings }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
@@ -202,45 +203,63 @@ export default function Bookings({ bookings }) {
   );
 }
 
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
-
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+    try {
+      const session = await getSession(context);
+  
+      if (!session?.user?.id) throw "noSession";
+  
+      const user = await prisma.user.findFirst({
+        where: {
+          id: session.user.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+  
+      if (!user) throw "noUser";
+  
+      const b = await prisma.booking.findMany({
+        where: {
+          userId: user.id,
+        },
+        select: {
+          uid: true,
+          title: true,
+          description: true,
+          attendees: true,
+          confirmed: true,
+          rejected: true,
+          id: true,
+          startTime: true,
+          endTime: true,
+        },
+        orderBy: {
+          startTime: "asc",
+        },
+      });
+  
+      const bookings = b.reverse().map((booking) => {
+        return {
+          ...booking,
+          startTime: booking.startTime.toISOString(),
+          endTime: booking.endTime.toISOString(),
+        };
+      });
+  
+      return { props: { bookings } };
+    } catch (error) {
+      switch (error) {
+        case "noSession":
+        case "noUser":
+          return {
+            redirect: { permanent: false, destination: "/auth/login" },
+            props: {} as never,
+          };
+        default:
+          return { notFound: true, props: {} as never };
+      }
+    }
   }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  const b = await prisma.booking.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      uid: true,
-      title: true,
-      description: true,
-      attendees: true,
-      confirmed: true,
-      rejected: true,
-      id: true,
-      startTime: true,
-      endTime: true,
-    },
-    orderBy: {
-      startTime: "asc",
-    },
-  });
-
-  const bookings = b.reverse().map((booking) => {
-    return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
-  });
-
-  return { props: { bookings } };
-}
+  
