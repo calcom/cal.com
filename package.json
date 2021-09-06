@@ -22,7 +22,7 @@
     "node": "^14.0.0"
   },
   "dependencies": {
-    "@headlessui/react": "^1.4.0",
+    "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
     "@jitsu/sdk-js": "^2.2.4",
     "@prisma/client": "^2.30.2",
