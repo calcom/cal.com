@@ -1,6 +1,7 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
-import { getCsrfToken, getSession } from "next-auth/client";
+import { getCsrfToken } from "next-auth/client";
+import { getSession } from "@lib/auth";
 
 export default function Login({ csrfToken }) {
   return (

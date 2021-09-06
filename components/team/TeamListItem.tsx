@@ -1,9 +1,38 @@
-import { CogIcon, TrashIcon, UsersIcon } from "@heroicons/react/outline";
+import {
+  TrashIcon,
+  DotsHorizontalIcon,
+  LinkIcon,
+  PencilAltIcon,
+  ExternalLinkIcon,
+} from "@heroicons/react/outline";
 import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
+import { Tooltip } from "@components/Tooltip";
+import Link from "next/link";
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Avatar from "@components/Avatar";
+import Button from "@components/ui/Button";
+import showToast from "@lib/notification";
 
-export default function TeamListItem(props) {
-  const [team, setTeam] = useState(props.team);
+interface Team {
+  id: number;
+  name: string | null;
+  slug: string | null;
+  logo: string | null;
+  bio: string | null;
+  role: string | null;
+  hideBranding: boolean;
+  prevState: null;
+}
+
+export default function TeamListItem(props: {
+  onChange: () => void;
+  key: number;
+  team: Team;
+  onActionSelect: (text: string) => void;
+}) {
+  const [team, setTeam] = useState<Team | null>(props.team);
 
   const acceptInvite = () => invitationResponse(true);
   const declineInvite = () => invitationResponse(false);
@@ -23,84 +52,117 @@ export default function TeamListItem(props) {
 
   return (
     team && (
-      <li className="mb-2 mt-2 divide-y">
-        <div className="flex justify-between mb-2 mt-2">
-          <div>
-            <UsersIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-4 mr-2 h-6 w-6 inline" />
-            <div className="inline-block -mt-1">
-              <span className="font-bold text-neutral-700 text-sm">{props.team.name}</span>
-              <span className="text-xs text-gray-400 -mt-1 block capitalize">
-                {props.team.role.toLowerCase()}
+      <li className="divide-y">
+        <div className="flex justify-between my-4">
+          <div className="flex">
+            <Avatar
+              imageSrc={
+                props.team.logo
+                  ? props.team.logo
+                  : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
+                    encodeURIComponent(props.team.name || "")
+              }
+              displayName="Team Logo"
+              className="rounded-full w-9 h-9"
+            />
+            <div className="inline-block ml-3">
+              <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>
+              <span className="block -mt-1 text-xs text-gray-400">
+                {window.location.hostname}/{props.team.slug}
               </span>
             </div>
           </div>
           {props.team.role === "INVITEE" && (
             <div>
-              <button
-                className="btn-sm bg-transparent text-green-500 border border-green-500 px-3 py-1 rounded-sm ml-2"
-                onClick={acceptInvite}>
-                Accept invitation
-              </button>
-              <button className="btn-sm bg-transparent px-2 py-1 ml-1">
-                <TrashIcon className="h-6 w-6 inline text-gray-400 -mt-1" onClick={declineInvite} />
-              </button>
+              <Button type="button" color="secondary" onClick={declineInvite}>
+                Reject
+              </Button>
+              <Button type="button" color="primary" className="ml-1" onClick={acceptInvite}>
+                Accept
+              </Button>
             </div>
           )}
           {props.team.role === "MEMBER" && (
             <div>
-              <button
-                onClick={declineInvite}
-                className="btn-sm bg-transparent text-gray-400 border border-gray-400 px-3 py-1 rounded-sm ml-2">
+              <Button type="button" color="primary" onClick={declineInvite}>
                 Leave
-              </button>
+              </Button>
             </div>
           )}
           {props.team.role === "OWNER" && (
-            <div>
-              <Dropdown className="relative inline-block text-left">
-                <button className="btn-sm bg-transparent text-gray-400 px-3 py-1 rounded-sm ml-2">
-                  <CogIcon className="h-6 w-6 inline text-gray-400" />
-                </button>
+            <div className="flex">
+              <span className="self-center h-6 px-3 py-1 text-xs text-gray-700 capitalize rounded-md bg-gray-50">
+                Owner
+              </span>
+              <Tooltip content="Copy link">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.hostname + "/team/" + props.team.slug);
+                    showToast("Link copied!", "success");
+                  }}
+                  color="minimal"
+                  className="w-full pl-5 ml-8"
+                  StartIcon={LinkIcon}
+                  type="button"></Button>
+              </Tooltip>
+              <Dropdown className="relative flex text-left">
+                <Button
+                  color="minimal"
+                  className="w-full pl-5 ml-2"
+                  StartIcon={DotsHorizontalIcon}
+                  type="button"></Button>
                 <ul
                   role="menu"
-                  className="z-10 origin-top-right absolute right-0 w-36 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <li
-                    className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
-                    role="menuitem">
-                    <button className="block px-4 py-2" onClick={() => props.onActionSelect("invite")}>
-                      Invite members
-                    </button>
+                  className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                    <Button
+                      type="button"
+                      color="minimal"
+                      className="w-full"
+                      onClick={() => props.onActionSelect("edit")}
+                      StartIcon={PencilAltIcon}>
+                      {" "}
+                      Edit team
+                    </Button>
                   </li>
-                  <li
-                    className="text-sm text-gray-700  hover:bg-gray-100 hover:text-gray-900"
-                    role="menuitem">
-                    <button className="block px-4 py-2" onClick={() => props.onActionSelect("edit")}>
-                      Manage team
-                    </button>
+                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                    <Link href={`/team/${props.team.slug}`} passHref={true}>
+                      <a target="_blank">
+                        <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
+                          {" "}
+                          Preview team page
+                        </Button>
+                      </a>
+                    </Link>
+                  </li>
+                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                    <Dialog>
+                      <DialogTrigger
+                        as={Button}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        color="warn"
+                        StartIcon={TrashIcon}
+                        className="w-full">
+                        Disband Team
+                      </DialogTrigger>
+                      <ConfirmationDialogContent
+                        variety="danger"
+                        title="Disband Team"
+                        confirmBtnText="Yes, disband team"
+                        cancelBtnText="Cancel"
+                        onConfirm={() => props.onActionSelect("disband")}>
+                        Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
+                        link with will no longer be able to book using it.
+                      </ConfirmationDialogContent>
+                    </Dialog>
                   </li>
                 </ul>
               </Dropdown>
             </div>
           )}
         </div>
-        {/*{props.team.userRole === 'Owner' && expanded && <div className="pt-2">
-      {props.team.members.length > 0 && <div>
-        <h2 className="text-lg font-medium text-gray-900 mb-1">Members</h2>
-        <table className="table-auto mb-2 w-full">
-          <tbody>
-            {props.team.members.map( (member) => <tr key={member.email}>
-              <td className="py-1 pl-2">Alex van Andel ({ member.email })</td>
-              <td>Owner</td>
-              <td className="text-right p-1">
-                  <button className="btn-sm text-xs bg-transparent text-red-400 border border-red-400 px-3 py-1 rounded-sm ml-2"><UserRemoveIcon className="text-red-400 group-hover:text-gray-500 flex-shrink-0 -mt-1 mr-1 h-4 w-4 inline"/>Remove</button>
-              </td>
-            </tr>)}
-          </tbody>
-        </table>
-      </div>}
-      <button className="btn-sm bg-transparent text-gray-400 border border-gray-400 px-3 py-1 rounded-sm"><UserAddIcon className="text-gray-400 group-hover:text-gray-500 flex-shrink-0 -mt-1 h-6 w-6 inline"/> Invite member</button>
-      <button className="btn-sm bg-transparent text-red-400 border border-red-400 px-3 py-1 rounded-sm ml-2">Disband</button>
-    </div>}*/}
       </li>
     )
   );

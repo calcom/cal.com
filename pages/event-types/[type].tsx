@@ -1,13 +1,12 @@
-import Link from "next/link";
 import { useRouter } from "next/router";
 import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionBase } from "react-select";
+import Select, { OptionTypeBase } from "react-select";
 import prisma from "@lib/prisma";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
@@ -25,7 +24,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { Availability, EventType, User } from "@prisma/client";
+import { Availability } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
 import classnames from "classnames";
 import throttle from "lodash.throttle";
@@ -35,12 +34,15 @@ import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext } from "next";
 import { useMutation } from "react-query";
 import { EventTypeInput } from "@lib/types/event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import Button from "@components/ui/Button";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -60,12 +62,12 @@ const PERIOD_TYPES = [
   },
 ];
 
-const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, eventType, locationOptions, availability } = props;
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
-  const inputOptions: OptionBase[] = [
+  const inputOptions: OptionTypeBase[] = [
     { value: EventTypeCustomInputType.TEXT, label: "Text" },
     { value: EventTypeCustomInputType.TEXTLONG, label: "Multiline Text" },
     { value: EventTypeCustomInputType.NUMBER, label: "Number" },
@@ -129,8 +131,8 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<OptionBase | undefined>(undefined);
-  const [selectedInputOption, setSelectedInputOption] = useState<OptionBase>(inputOptions[0]);
+  const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [selectedInputOption, setSelectedInputOption] = useState<OptionTypeBase>(inputOptions[0]);
   const [locations, setLocations] = useState(eventType.locations || []);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
@@ -161,14 +163,14 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   });
 
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-  const requiresConfirmationRef = useRef<HTMLInputElement>();
-  const eventNameRef = useRef<HTMLInputElement>();
-  const periodDaysRef = useRef<HTMLInputElement>();
-  const periodDaysTypeRef = useRef<HTMLSelectElement>();
+  const titleRef = useRef<HTMLInputElement>(null);
+  const slugRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const lengthRef = useRef<HTMLInputElement>(null);
+  const requiresConfirmationRef = useRef<HTMLInputElement>(null);
+  const eventNameRef = useRef<HTMLInputElement>(null);
+  const periodDaysRef = useRef<HTMLInputElement>(null);
+  const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || user.timeZone);
@@ -671,7 +673,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                               <div className="ml-3 text-sm">
                                 <p className="text-neutral-900">
                                   The booking needs to be manually confirmed before it is pushed to the
-                                  integrations and a integrations and a confirmation mail is sent.
+                                  integrations and a confirmation mail is sent.
                                 </p>
                               </div>
                             </div>
@@ -803,17 +805,11 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                     </>
                   )}
                 </Disclosure>
-                <div className="flex justify-end mt-4">
-                  <Link href="/event-types">
-                    <a className="inline-flex items-center px-4 py-2 mr-2 text-sm font-medium bg-white border border-transparent rounded-sm shadow-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                      Cancel
-                    </a>
-                  </Link>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                    Update
-                  </button>
+                <div className="flex justify-end mt-4 space-x-2">
+                  <Button href="/event-types" color="secondary" tabIndex={-1}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Update</Button>
                 </div>
               </form>
               <Modal
@@ -1032,7 +1028,9 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  if (!session) {
+  const typeParam = asStringOrThrow(query.type);
+
+  if (!session?.user?.id) {
     return {
       redirect: {
         permanent: false,
@@ -1041,22 +1039,38 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const user: User = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
+      id: true,
       username: true,
       timeZone: true,
       startTime: true,
       endTime: true,
       availability: true,
+      plan: true,
     },
   });
 
-  const eventType: EventType | null = await prisma.eventType.findUnique({
+  if (!user) {
+    return {
+      notFound: true,
+    } as const;
+  }
+
+  const eventType = await prisma.eventType.findFirst({
     where: {
-      id: parseInt(query.type as string),
+      userId: user.id,
+      OR: [
+        {
+          slug: typeParam,
+        },
+        {
+          id: parseInt(typeParam),
+        },
+      ],
     },
     select: {
       id: true,
@@ -1082,7 +1096,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventType) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const credentials = await prisma.credential.findMany({
@@ -1115,10 +1129,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   ];
 
-  const locationOptions: OptionBase[] = [
+  const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
-    { value: LocationType.Zoom, label: "Zoom Video" },
+    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
   const hasGoogleCalendarIntegration = integrations.find(

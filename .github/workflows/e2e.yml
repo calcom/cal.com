@@ -1,0 +1,69 @@
+name: E2E test
+on: [push]
+jobs:
+  test:
+    timeout-minutes: 10
+    name: ${{ matrix.node }} and ${{ matrix.os }}
+
+    env:
+      DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      NODE_ENV: test
+      BASE_URL: http://localhost:3000
+      # GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      # CRON_API_KEY: xxx
+      # CALENDSO_ENCRYPTION_KEY: xxx
+      # NEXTAUTH_URL: xxx
+      # EMAIL_FROM: xxx
+      # EMAIL_SERVER_HOST: xxx
+      # EMAIL_SERVER_PORT: xxx
+      # EMAIL_SERVER_USER: xxx
+      # MS_GRAPH_CLIENT_ID: xxx
+      # MS_GRAPH_CLIENT_SECRET: xxx
+      # ZOOM_CLIENT_ID: xxx
+      # ZOOM_CLIENT_SECRET: xxx
+    services:
+      postgres:
+        image: postgres:12.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: calendso
+        ports:
+          - 5432:5432
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ["14.x"]
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install deps
+        uses: bahmutov/npm-install@v1
+      - name: Next.js cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs
+
+      - run: yarn build
+      - run: yarn prisma migrate deploy
+      - run: yarn db-seed
+      - run: yarn start &
+      - run: npx wait-port 3000 --timeout 10000
+      - run: yarn cypress run
+
+      - name: Upload videos
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: videos
+          path: |
+            cypress/videos
+            cypress/screenshots
