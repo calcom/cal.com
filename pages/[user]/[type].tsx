@@ -235,6 +235,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       availability: true,
       hideBranding: true,
       theme: true,
+      plan: true,
     },
   });
 
@@ -243,7 +244,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     } as const;
   }
-
   const eventType = await prisma.eventType.findFirst({
     where: {
       userId: user.id,
@@ -271,6 +271,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
+  // check this is the first event
+  if (user.plan === "FREE") {
+    const firstEventType = await prisma.eventType.findFirst({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (firstEventType?.id !== eventType.id) {
+      return {
+        notFound: true,
+      } as const;
+    }
+  }
   const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
     providesAvailability.availability && providesAvailability.availability.length
       ? providesAvailability.availability
