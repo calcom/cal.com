@@ -59,8 +59,14 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
       <Button
         className="mt-2 hidden sm:block"
         StartIcon={PlusIcon}
-        href={modalOpen.hrefOn}
-        data-testid="new-event-type">
+        data-testid="new-event-type"
+        {...(props.canAddEvents
+          ? {
+              href: modalOpen.hrefOn,
+            }
+          : {
+              disabled: true,
+            })}>
         New event type
       </Button>
 
@@ -716,10 +722,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     createdDate: user.createdDate.toString(),
   });
 
+  const canAddEvents = user.plan !== "FREE" || types.length < 1;
+
   return {
     props: {
       user: userObj,
       types,
+      canAddEvents,
     },
   };
 };

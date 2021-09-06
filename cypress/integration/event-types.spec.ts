@@ -41,3 +41,26 @@ describe("pro user", () => {
     cy.get("[data-testid=event-types]").contains(eventTitle);
   });
 });
+
+describe("free user", () => {
+  before(() => {
+    cy.visit("/event-types");
+    cy.login("free@example.com", "free");
+  });
+  describe("/event-types", () => {
+    beforeEach(() => {
+      cy.visit("/event-types");
+    });
+
+    it("has at least 2 events where first is enabled", () => {
+      cy.get("[data-testid=event-types]").children().should("have.length.at.least", 2);
+
+      cy.get("[data-testid=event-types]").children().first().should("have.attr", "data-disabled", "0");
+      cy.get("[data-testid=event-types]").children().last().should("have.attr", "data-disabled", "1");
+    });
+
+    it("can not add new event type", () => {
+      cy.get("[data-testid=new-event-type]").should("be.disabled");
+    });
+  });
+});
