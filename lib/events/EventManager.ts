@@ -6,6 +6,7 @@ import prisma from "@lib/prisma";
 import { LocationType } from "@lib/location";
 import { v5 as uuidv5 } from "uuid";
 import merge from "lodash.merge";
+import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
 
 export interface EventResult {
   type: string;
@@ -65,10 +66,25 @@ export default class EventManager {
 
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
     const results: Array<EventResult> = await this.createAllCalendarEvents(event, isDedicated, maybeUid);
-
     // If and only if event type is a dedicated meeting, create a dedicated video meeting as well.
     if (isDedicated) {
       results.push(await this.createVideoEvent(event, maybeUid));
+    } else {
+      if (!results.length || !results.some((eRes) => eRes.createdEvent.disableConfirmationEmail)) {
+        const metadata: { hangoutLink?: string; conferenceData?: unknown; entryPoints?: unknown } = {};
+        if (results.length) {
+          // TODO: Handle created event metadata more elegantly
+          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+          metadata.conferenceData = results[0].createdEvent?.conferenceData;
+          metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        }
+        const attendeeMail = new EventAttendeeMail(event, maybeUid, metadata);
+        try {
+          await attendeeMail.sendEmail();
+        } catch (e) {
+          console.error("attendeeMail.sendEmail failed", e);
+        }
+      }
     }
 
     const referencesToCreate: Array<PartialReference> = results.map((result) => {
