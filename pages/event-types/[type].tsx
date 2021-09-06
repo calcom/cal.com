@@ -1052,6 +1052,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       startTime: true,
       endTime: true,
       availability: true,
+      plan: true,
     },
   });
 

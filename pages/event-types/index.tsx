@@ -28,6 +28,7 @@ import { getSession } from "@lib/auth";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Alert } from "@components/ui/Alert";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -194,6 +195,21 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
         CTA={types.length !== 0 && renderEventDialog()}>
+        {props.user.plan === "FREE" && (
+          <Alert
+            severity="warning"
+            title={<>You need to upgrade your plan to have more than one active event type.</>}
+            message={
+              <>
+                To upgrade go to{" "}
+                <a href="https://calendso.com/upgrade" className="underline">
+                  calendso.com/upgrade
+                </a>
+              </>
+            }
+            className="my-4"
+          />
+        )}
         <div className="-mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
           <ul className="divide-y divide-neutral-200" data-testid="event-types">
             {types.map((item) => (
