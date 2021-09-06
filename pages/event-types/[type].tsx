@@ -42,6 +42,7 @@ import updateEventType from "@lib/mutations/event-types/update-event-type";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { asStringOrThrow } from "@lib/asStringOrNull";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1033,6 +1034,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
+  const typeParam = asStringOrThrow(query.type);
+
   if (!session?.user?.id) {
     return {
       redirect: {
@@ -1047,6 +1050,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       id: session.user.id,
     },
     select: {
+      id: true,
       username: true,
       timeZone: true,
       startTime: true,
@@ -1056,9 +1060,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const eventType = await prisma.eventType.findUnique({
+  if (!user) {
+    return {
+      notFound: true,
+    } as const;
+  }
+
+  const eventType = await prisma.eventType.findFirst({
     where: {
-      id: parseInt(query.type as string),
+      userId: user.id,
+      OR: [
+        {
+          slug: typeParam,
+        },
+        {
+          id: parseInt(typeParam),
+        },
+      ],
     },
     select: {
       id: true,
