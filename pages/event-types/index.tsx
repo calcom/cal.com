@@ -1,6 +1,8 @@
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
+import { Dialog, DialogContent } from "@components/Dialog";
 import Loader from "@components/Loader";
+import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
+import { Alert } from "@components/ui/Alert";
 import { Button } from "@components/ui/Button";
 import { Menu, Transition } from "@headlessui/react";
 import {
@@ -13,91 +15,66 @@ import {
   PlusIcon,
   UserIcon,
 } from "@heroicons/react/solid";
+import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
+import formatCurrency from "@lib/formatCurrency";
+import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import createEventType from "@lib/mutations/event-types/create-event-type";
 import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
+import serverSideErrorHandler from "@lib/serverSideErrorHandler";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 import dayjs from "dayjs";
+import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
-import Shell from "@components/Shell";
-import prisma from "@lib/prisma";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
-import createEventType from "@lib/mutations/event-types/create-event-type";
-import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
-import formatCurrency from "@lib/formatCurrency";
-import { getSession } from "@lib/auth";
 
-const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, types } = props;
   const [session, loading] = useSession();
   const router = useRouter();
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
-      await router.replace("/event-types/" + eventType.id);
+      await router.push("/event-types/" + eventType.id);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
     onError: (err: Error) => {
       showToast(err.message, "error");
     },
   });
+  const modalOpen = useToggleQuery("new");
 
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-
-  const dialogOpen = router.query.new === "1";
-
-  async function createEventTypeHandler(event) {
-    event.preventDefault();
-
-    const enteredTitle = titleRef.current.value;
-    const enteredSlug = slugRef.current.value;
-    const enteredDescription = descriptionRef.current.value;
-    const enteredLength = parseInt(lengthRef.current.value);
-
-    const body = {
-      title: enteredTitle,
-      slug: enteredSlug,
-      description: enteredDescription,
-      length: enteredLength,
-    };
-
-    createMutation.mutate(body);
-  }
-
-  function autoPopulateSlug() {
-    let t = titleRef.current.value;
-    t = t.replace(/\s+/g, "-").toLowerCase();
-    slugRef.current.value = t;
-  }
+  const slugRef = useRef<HTMLInputElement>(null);
 
   if (loading) {
     return <Loader />;
   }
 
-  const CreateNewEventDialog = () => (
+  const renderEventDialog = () => (
     <Dialog
-      open={dialogOpen}
+      open={modalOpen.isOn}
       onOpenChange={(isOpen) => {
-        const newQuery = {
-          ...router.query,
-        };
-        delete newQuery["new"];
-        if (!isOpen) {
-          router.push({ pathname: router.pathname, query: newQuery });
-        }
+        router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
       }}>
       <Button
-        className="mt-2 hidden sm:block"
+        className="hidden mt-2 sm:block"
         StartIcon={PlusIcon}
-        href={{ query: { ...router.query, new: "1" } }}>
+        data-testid="new-event-type"
+        {...(props.canAddEvents
+          ? {
+              href: modalOpen.hrefOn,
+            }
+          : {
+              disabled: true,
+            })}>
         New event type
       </Button>
 
-      <Button size="fab" className="block sm:hidden" href={{ query: { ...router.query, new: "1" } }}>
+      <Button size="fab" className="block sm:hidden" href={modalOpen.hrefOn}>
         <PlusIcon className="w-8 h-8 text-white" />
       </Button>
 
@@ -110,7 +87,24 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
             <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
           </div>
         </div>
-        <form onSubmit={createEventTypeHandler}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            const target = e.target as unknown as Record<
+              "title" | "slug" | "description" | "length",
+              { value: string }
+            >;
+
+            const body = {
+              title: target.title.value,
+              slug: target.slug.value,
+              description: target.description.value,
+              length: parseInt(target.length.value),
+            };
+
+            createMutation.mutate(body);
+          }}>
           <div>
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -118,8 +112,13 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
               </label>
               <div className="mt-1">
                 <input
-                  onChange={autoPopulateSlug}
-                  ref={titleRef}
+                  onChange={(e) => {
+                    if (!slugRef.current) {
+                      return;
+                    }
+                    const slug = e.target.value.replace(/\s+/g, "-").toLowerCase();
+                    slugRef.current.value = slug;
+                  }}
                   type="text"
                   name="title"
                   id="title"
@@ -139,10 +138,10 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                     {location.hostname}/{user.username}/
                   </span>
                   <input
-                    ref={slugRef}
                     type="text"
                     name="slug"
                     id="slug"
+                    ref={slugRef}
                     required
                     className="flex-1 block w-full min-w-0 border-gray-300 rounded-none focus:border-neutral-900 rounded-r-md focus:ring-neutral-900 sm:text-sm"
                   />
@@ -155,7 +154,6 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
               </label>
               <div className="mt-1">
                 <textarea
-                  ref={descriptionRef}
                   name="description"
                   id="description"
                   className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
@@ -168,7 +166,6 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
               </label>
               <div className="relative mt-1 rounded-sm shadow-sm">
                 <input
-                  ref={lengthRef}
                   type="number"
                   name="length"
                   id="length"
@@ -183,12 +180,12 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
             </div>
           </div>
           <div className="mt-8 sm:flex sm:flex-row-reverse">
-            <button type="submit" className="btn btn-primary">
+            <Button type="submit" loading={createMutation.isLoading}>
               Continue
-            </button>
-            <DialogClose as="button" className="mx-2 btn btn-white">
+            </Button>
+            <Button href={modalOpen.hrefOff} color="secondary" className="mr-2">
               Cancel
-            </DialogClose>
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -200,19 +197,41 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
-        CTA={types.length !== 0 && <CreateNewEventDialog />}>
+        CTA={types.length !== 0 && renderEventDialog()}>
+        {props.user.plan === "FREE" && (
+          <Alert
+            severity="warning"
+            title={<>You need to upgrade your plan to have more than one active event type.</>}
+            message={
+              <>
+                To upgrade go to{" "}
+                <a href="https://calendso.com/upgrade" className="underline">
+                  calendso.com/upgrade
+                </a>
+              </>
+            }
+            className="my-4"
+          />
+        )}
         <div className="-mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
-          <ul className="divide-y divide-neutral-200">
-            {types.map((type) => (
-              <li key={type.id}>
-                <div className="hover:bg-neutral-50">
-                  <div className="flex items-center px-4 py-4 sm:px-6">
-                    <Link href={"/event-types/" + type.id}>
-                      <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between">
+          <ul className="divide-y divide-neutral-200" data-testid="event-types">
+            {types.map((item) => (
+              <li
+                key={item.id}
+                className={classNames(
+                  item.$disabled && "opacity-30 cursor-not-allowed pointer-events-none select-none"
+                )}
+                data-disabled={item.$disabled ? 1 : 0}>
+                <div
+                  className={classNames("hover:bg-neutral-50", item.$disabled && "pointer-events-none")}
+                  tabIndex={item.$disabled ? -1 : undefined}>
+                  <div className={"flex items-center px-4 py-4 sm:px-6"}>
+                    <Link href={"/event-types/" + item.id}>
+                      <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between hover:bg-neutral-50">
                         <span className="truncate">
                           <div className="flex text-sm">
-                            <p className="font-medium truncate text-neutral-900">{type.title}</p>
-                            {type.hidden && (
+                            <p className="font-medium truncate text-neutral-900">{item.title}</p>
+                            {item.hidden && (
                               <span className="inline-flex items-center ml-2 px-1.5 py-0.5 text-yellow-800 text-xs font-medium bg-yellow-100 rounded-sm">
                                 Hidden
                               </span>
@@ -224,7 +243,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                 className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                 aria-hidden="true"
                               />
-                              <p>{type.length}m</p>
+                              <p>{item.length}m</p>
                             </div>
                             <div className="flex items-center text-sm text-neutral-500">
                               <UserIcon
@@ -233,23 +252,23 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                               />
                               <p>1-on-1</p>
                             </div>
-                            {type.price && (
+                            {item.price && (
                               <div className="flex items-center text-sm text-neutral-500">
                                 <CurrencyDollarIcon
                                   className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                   aria-hidden="true"
                                 />
-                                <p>{formatCurrency(type.price)}</p>
+                                <p>{formatCurrency(item.price)}</p>
                               </div>
                             )}
-                            {type.description && (
+                            {item.description && (
                               <div className="flex items-center text-sm text-neutral-500">
                                 <InformationCircleIcon
                                   className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                   aria-hidden="true"
                                 />
                                 <div className="truncate max-w-32 sm:max-w-full">
-                                  {type.description.substring(0, 100)}
+                                  {item.description.substring(0, 100)}
                                 </div>
                               </div>
                             )}
@@ -262,7 +281,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                       <div className="flex space-x-5 overflow-hidden">
                         <Tooltip content="Preview">
                           <a
-                            href={"/" + session.user.username + "/" + type.slug}
+                            href={"/" + session.user.username + "/" + item.slug}
                             target="_blank"
                             rel="noreferrer"
                             className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
@@ -275,7 +294,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                             onClick={() => {
                               showToast("Link copied!", "success");
                               navigator.clipboard.writeText(
-                                window.location.hostname + "/" + session.user.username + "/" + type.slug
+                                window.location.hostname + "/" + session.user.username + "/" + item.slug
                               );
                             }}
                             className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
@@ -311,7 +330,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                   <Menu.Item>
                                     {({ active }) => (
                                       <a
-                                        href={"/" + session.user.username + "/" + type.slug}
+                                        href={"/" + session.user.username + "/" + item.slug}
                                         target="_blank"
                                         rel="noreferrer"
                                         className={classNames(
@@ -336,7 +355,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                               "/" +
                                               session.user.username +
                                               "/" +
-                                              type.slug
+                                              item.slug
                                           );
                                         }}
                                         className={classNames(
@@ -644,7 +663,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                 Event types enable you to share links that show available times on your calendar and allow
                 people to make bookings with you.
               </p>
-              <CreateNewEventDialog />
+              {renderEventDialog()}
             </div>
           </div>
         )}
@@ -654,62 +673,77 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req } = context;
-  const session = await getSession({ req });
+  try {
+    const { req } = context;
+    const session = await getSession({ req });
 
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
+    if (!session?.user?.id) throw "noSession";
 
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-      username: true,
-      startTime: true,
-      endTime: true,
-      bufferTime: true,
-      completedOnboarding: true,
-      createdDate: true,
-    },
-  });
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        id: true,
+        username: true,
+        startTime: true,
+        endTime: true,
+        bufferTime: true,
+        completedOnboarding: true,
+        createdDate: true,
+        plan: true,
+      },
+    });
 
-  if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
+    if (!user) throw "noSession";
+
+    if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
+      throw "shouldOnboard";
+    }
+
+    const typesRaw = await prisma.eventType.findMany({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        length: true,
+        price: true,
+        hidden: true,
+      },
+    });
+
+    const types = typesRaw.map((type, index) =>
+      user.plan === "FREE" && index > 0
+        ? {
+            ...type,
+            $disabled: true,
+          }
+        : {
+            ...type,
+            $disabled: false,
+          }
+    );
+
+    const userObj = Object.assign({}, user, {
+      createdDate: user.createdDate.toString(),
+    });
+
+    const canAddEvents = user.plan !== "FREE" || types.length < 1;
+
     return {
-      redirect: {
-        permanent: false,
-        destination: "/getting-started",
+      props: {
+        user: userObj,
+        types,
+        canAddEvents,
       },
     };
+  } catch (error) {
+    return serverSideErrorHandler(error as string);
   }
-
-  const types = await prisma.eventType.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      price: true,
-      hidden: true,
-    },
-  });
-
-  const userObj = Object.assign({}, user, {
-    createdDate: user.createdDate.toString(),
-  });
-
-  return {
-    props: {
-      user: userObj,
-      types,
-    },
-  };
 };
 
 export default EventTypesPage;

@@ -9,6 +9,7 @@ import { IntegrationCalendar } from "@lib/calendarClient";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useSession } from "next-auth/client";
@@ -264,7 +265,7 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
 
   return (
     <div>
-      <Shell heading="App Store" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
+      <Shell heading="Integrations" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
         <div className="mb-8 overflow-hidden bg-white border border-gray-200 rounded-sm">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
@@ -365,18 +366,6 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
   );
 }
 
-const validJson = (jsonString: string) => {
-  try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return false;
-};
-
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
   if (!session) {
@@ -403,52 +392,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      credential: credentials.find((integration) => integration.type === "google_calendar") || null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-      type: "zoom_video",
-      credential: credentials.find((integration) => integration.type === "zoom_video") || null,
-      title: "Zoom",
-      imageSrc: "integrations/zoom.svg",
-      description: "Video Conferencing",
-    },
-    {
-      installed: true,
-      type: "caldav_calendar",
-      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
-      title: "CalDav Server",
-      imageSrc: "integrations/caldav.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(
-        process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID &&
-        process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-        process.env.STRIPE_SECRET_KEY
-      ),
-      type: "stripe",
-      credential: credentials.find((integration) => integration.type === "stripe") || null,
-      title: "Stripe",
-      imageSrc: "integrations/stripe.svg",
-      description: "Receive payments",
-    },
-  ];
+  const integrations = getIntegrations(credentials);
 
   return {
     props: { integrations },

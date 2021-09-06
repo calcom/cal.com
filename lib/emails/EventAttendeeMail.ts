@@ -65,7 +65,13 @@ export default class EventAttendeeMail extends EventMail {
       </tr>
       <tr>
         <td>Who</td>
-        <td>${this.calEvent.organizer.name}<br /><small>${this.calEvent.organizer.email}</small></td>
+        <td>
+          ${this.calEvent.team?.name || this.calEvent.organizer.name}<br />
+          <small>
+            ${this.calEvent.organizer.email && !this.calEvent.team ? this.calEvent.organizer.email : ""}
+            ${this.calEvent.team ? this.calEvent.team.members.join(", ") : ""}
+          </small>
+        </td>
       </tr>
       <tr>
         <td>Where</td>
@@ -122,6 +128,10 @@ export default class EventAttendeeMail extends EventMail {
     return ``;
   }
 
+  protected getAdditionalFooter(): string {
+    return this.parser.getChangeEventFooterHtml();
+  }
+
   /**
    * Returns the payload object for the nodemailer.
    *
@@ -133,7 +143,7 @@ export default class EventAttendeeMail extends EventMail {
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
       subject: `Confirmed: ${this.calEvent.type} with ${
-        this.calEvent.organizer.name
+        this.calEvent.team?.name || this.calEvent.organizer.name
       } on ${this.getInviteeStart().format("LT dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
