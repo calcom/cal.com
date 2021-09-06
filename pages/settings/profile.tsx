@@ -5,7 +5,7 @@ import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import Avatar from "@components/Avatar";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 import { UsernameInput } from "@components/ui/UsernameInput";

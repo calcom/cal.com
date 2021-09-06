@@ -4,9 +4,10 @@ import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import { ClockIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
+import { getSession } from "@lib/auth";
 
 export default function Availability(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
