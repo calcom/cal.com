@@ -84,7 +84,7 @@ export default function Teams() {
               <div className="flex flex-col justify-between md:flex-row">
                 <div>
                   {!(invites.length || teams.length) && (
-                    <div className="bg-gray-50 sm:rounded-sm">
+                    <div className="sm:rounded-sm">
                       <div className="pb-5 pr-4 sm:pb-6">
                         <h3 className="text-lg font-medium leading-6 text-gray-900">
                           Create a team to get started

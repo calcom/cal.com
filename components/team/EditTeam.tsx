@@ -149,7 +149,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
               <div className="flex-grow space-y-6">
                 <div className="block sm:flex">
                   <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
-                    <UsernameInput ref={teamUrlRef} defaultValue={props.team?.slug} />
+                    <UsernameInput ref={teamUrlRef} defaultValue={props.team?.slug} label={"My team URL"} />
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -176,10 +176,12 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       ref={descriptionRef}
                       id="about"
                       name="about"
-                      placeholder="A little something about your team."
                       rows={3}
                       defaultValue={props.team?.bio}
                       className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"></textarea>
+                    <p className="mt-2 text-sm text-gray-500">
+                      A few sentences about your team. This will appear on your team&apos;s URL page.
+                    </p>
                   </div>
                 </div>
                 <div>
@@ -201,7 +203,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                     <ImageUploader
                       target="logo"
                       id="logo-upload"
-                      buttonMsg="Change logo"
+                      buttonMsg={imageSrc !== "" ? "Edit logo" : "Upload a logo"}
                       handleAvatarChange={handleLogoChange}
                       imageRef={imageSrc ? imageSrc : props.team?.logo}
                     />
@@ -209,7 +211,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                   <hr className="mt-6" />
                 </div>
                 <div className="flex justify-between mt-7">
-                  <h3 className="font-bold leading-6 text-gray-900 text-md">Member</h3>
+                  <h3 className="font-bold leading-6 text-gray-900 text-md">Members</h3>
                   <div className="relative flex items-center">
                     <Button
                       type="button"
@@ -226,7 +228,6 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                   )}
                   <hr className="mt-6" />
                 </div>
-                <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">Branding</h3>
                 <div>
                   <div className="relative flex items-start">
                     <div className="flex items-center h-5">
