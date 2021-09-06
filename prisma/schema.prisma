@@ -73,10 +73,13 @@ model User {
 }
 
 model Team {
-  id      Int          @id @default(autoincrement())
-  name    String?
-  slug    String?
-  members Membership[]
+  id            Int       @default(autoincrement()) @id
+  name          String?
+  slug          String?   @unique
+  logo          String?
+  bio           String?
+  hideBranding  Boolean @default(false)    
+  members       Membership[]
 }
 
 enum MembershipRole {
