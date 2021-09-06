@@ -1,29 +1,32 @@
-import { useState } from "react";
 import TeamListItem from "./TeamListItem";
-import EditTeamModal from "./EditTeamModal";
-import MemberInvitationModal from "./MemberInvitationModal";
+import { Team } from "@lib/team";
 
-export default function TeamList(props) {
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
-  const [showEditTeamModal, setShowEditTeamModal] = useState(false);
-  const [team, setTeam] = useState(null);
-
-  const selectAction = (action: string, team: any) => {
-    setTeam(team);
+export default function TeamList(props: {
+  teams: Team[];
+  onChange: () => void;
+  onEditTeam: (text: Team) => void;
+}) {
+  const selectAction = (action: string, team: Team) => {
     switch (action) {
       case "edit":
-        setShowEditTeamModal(true);
+        props.onEditTeam(team);
         break;
-      case "invite":
-        setShowMemberInvitationModal(true);
+      case "disband":
+        deleteTeam(team);
         break;
     }
   };
 
+  const deleteTeam = (team: Team) => {
+    return fetch("/api/teams/" + team.id, {
+      method: "DELETE",
+    }).then(props.onChange());
+  };
+
   return (
     <div>
-      <ul className="bg-white border px-2 mb-2 rounded divide-y divide-gray-200">
-        {props.teams.map((team: any) => (
+      <ul className="px-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
+        {props.teams.map((team: Team) => (
           <TeamListItem
             onChange={props.onChange}
             key={team.id}
@@ -31,19 +34,6 @@ export default function TeamList(props) {
             onActionSelect={(action: string) => selectAction(action, team)}></TeamListItem>
         ))}
       </ul>
-      {showEditTeamModal && (
-        <EditTeamModal
-          team={team}
-          onExit={() => {
-            props.onChange();
-            setShowEditTeamModal(false);
-          }}></EditTeamModal>
-      )}
-      {showMemberInvitationModal && (
-        <MemberInvitationModal
-          team={team}
-          onExit={() => setShowMemberInvitationModal(false)}></MemberInvitationModal>
-      )}
     </div>
   );
 }

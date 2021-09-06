@@ -1,4 +1,4 @@
-/*import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
+import { Dialog, DialogContent } from "@components/Dialog";
 import Loader from "@components/Loader";
 import { Tooltip } from "@components/Tooltip";
 import { Button } from "@components/ui/Button";
@@ -264,113 +264,59 @@ import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
 import Shell from "@components/Shell";
 import prisma from "@lib/prisma";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
-import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { getSession } from "@lib/auth";
+import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Alert } from "@components/ui/Alert";
 
-function autoPopulateSlug() {
-  let t = titleRef.current.value;
-  t = t.replace(/\s+/g, "-").toLowerCase();
-  slugRef.current.value = t;
-}
-
-
-const CreateNewEventDialog = ({ profiles }) => {
-
+const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const { user, types } = props;
+  const [session, loading] = useSession();
+  const router = useRouter();
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
-      await router.replace("/event-types/" + eventType.id);
+      await router.push("/event-types/" + eventType.id);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
     onError: (err: Error) => {
       showToast(err.message, "error");
     },
   });
+  const modalOpen = useToggleQuery("new");
 
-  const router = useRouter();
-  const dialogOpen = router.query.new === "1";
-  const teamId: number | null = Number(router.query.teamId) || null;
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-
-  async function createEventTypeHandler(event) {
-    event.preventDefault();
-
-    const enteredTitle = titleRef.current.value;
-    const enteredSlug = slugRef.current.value;
-    const enteredDescription = descriptionRef.current.value;
-    const enteredLength = parseInt(lengthRef.current.value);
-
-    const body = {
-      title: enteredTitle,
-      slug: enteredSlug,
-      description: enteredDescription,
-      length: enteredLength,
-    };
-
-    createMutation.mutate(body);
+  const slugRef = useRef<HTMLInputElement>(null);
 
     showToast("Event Type created", "success");
   }
 
-  return (
+  const renderEventDialog = () => (
     <Dialog
-      open={dialogOpen}
+      open={modalOpen.isOn}
       onOpenChange={(isOpen) => {
-        const newQuery = {
-          ...router.query,
-        };
-        delete newQuery["new"];
-        delete newQuery["eventPage"];
-        delete newQuery["teamId"];
-        if (!isOpen) {
-          router.push({ pathname: router.pathname, query: newQuery });
-        }
+        router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
       }}>
-      {!profiles.filter((profile) => profile.teamId).length && (
-        <Button href={{ query: { ...router.query, new: "1" } }} StartIcon={PlusIcon}>
-          New event type
-        </Button>
-      )}
-      {profiles.filter((profile) => profile.teamId).length > 0 && (
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger as="span">
-            <Button EndIcon={ChevronDownIcon}>New event type</Button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content align="end" className="shadow-sm rounded-sm bg-white text-sm mt-1">
-            <DropdownMenu.Label className="text-neutral-500 px-3 py-2">
-              Create an event type under
-              <br />
-              your name or a team.
-            </DropdownMenu.Label>
-            <DropdownMenu.Separator className="h-px bg-gray-200" />
-            {profiles.map((profile) => (
-              <DropdownMenu.Item
-                key={profile.slug}
-                className="px-3 py-2 cursor-pointer"
-                onSelect={() =>
-                  router.push({
-                    pathname: router.pathname,
-                    query: {
-                      ...router.query,
-                      new: "1",
-                      eventPage: profile.slug,
-                      ...(profile.teamId
-                        ? {
-                          teamId: profile.teamId,
-                        }
-                        : {}),
-                    },
-                  })
-                }>
-                {profile.name}
-              </DropdownMenu.Item>
-            ))}
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
-      )}
+      <Button
+        className="mt-2 hidden sm:block"
+        StartIcon={PlusIcon}
+        data-testid="new-event-type"
+        {...(props.canAddEvents
+          ? {
+              href: modalOpen.hrefOn,
+            }
+          : {
+              disabled: true,
+            })}>
+        New event type
+      </Button>
+
+      <Button size="fab" className="block sm:hidden" href={modalOpen.hrefOn}>
+        <PlusIcon className="w-8 h-8 text-white" />
+      </Button>
+
       <DialogContent>
         <div className="mb-8">
           <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
@@ -380,7 +326,24 @@ const CreateNewEventDialog = ({ profiles }) => {
             <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
           </div>
         </div>
-        <form onSubmit={createEventTypeHandler}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            const target = e.target as unknown as Record<
+              "title" | "slug" | "description" | "length",
+              { value: string }
+            >;
+
+            const body = {
+              title: target.title.value,
+              slug: target.slug.value,
+              description: target.description.value,
+              length: parseInt(target.length.value),
+            };
+
+            createMutation.mutate(body);
+          }}>
           <div>
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -388,8 +351,13 @@ const CreateNewEventDialog = ({ profiles }) => {
               </label>
               <div className="mt-1">
                 <input
-                  onChange={autoPopulateSlug}
-                  ref={titleRef}
+                  onChange={(e) => {
+                    if (!slugRef.current) {
+                      return;
+                    }
+                    const slug = e.target.value.replace(/\s+/g, "-").toLowerCase();
+                    slugRef.current.value = slug;
+                  }}
                   type="text"
                   name="title"
                   id="title"
@@ -409,10 +377,10 @@ const CreateNewEventDialog = ({ profiles }) => {
                     {location.hostname}/{teamId ? router.query.eventPage : profiles[0].slug}/
                   </span>
                   <input
-                    ref={slugRef}
                     type="text"
                     name="slug"
                     id="slug"
+                    ref={slugRef}
                     required
                     className="flex-1 block w-full focus:ring-neutral-900 focus:border-neutral-900 min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
                   />
@@ -471,12 +439,12 @@ const CreateNewEventDialog = ({ profiles }) => {
             </div>
           )}
           <div className="mt-8 sm:flex sm:flex-row-reverse">
-            <DialogClose as="span" className="ml-2">
-              <Button type="submit">Continue</Button>
-            </DialogClose>
-            <DialogClose as={Button} color="secondary">
+            <Button type="submit" loading={createMutation.isLoading}>
+              Continue
+            </Button>
+            <Button href={modalOpen.hrefOff} color="secondary" className="mr-2">
               Cancel
-            </DialogClose>
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -494,19 +462,41 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
-        CTA={types.length !== 0 && <CreateNewEventDialog />}>
+        CTA={types.length !== 0 && renderEventDialog()}>
+        {props.user.plan === "FREE" && (
+          <Alert
+            severity="warning"
+            title={<>You need to upgrade your plan to have more than one active event type.</>}
+            message={
+              <>
+                To upgrade go to{" "}
+                <a href="https://calendso.com/upgrade" className="underline">
+                  calendso.com/upgrade
+                </a>
+              </>
+            }
+            className="my-4"
+          />
+        )}
         <div className="-mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
-          <ul className="divide-y divide-neutral-200">
-            {types.map((type) => (
-              <li key={type.id}>
-                <div className="hover:bg-neutral-50">
-                  <div className="flex items-center px-4 py-4 sm:px-6">
-                    <Link href={"/event-types/" + type.id}>
-                      <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between">
+          <ul className="divide-y divide-neutral-200" data-testid="event-types">
+            {types.map((item) => (
+              <li
+                key={item.id}
+                className={classNames(
+                  item.$disabled && "opacity-30 cursor-not-allowed pointer-events-none select-none"
+                )}
+                data-disabled={item.$disabled ? 1 : 0}>
+                <div
+                  className={classNames("hover:bg-neutral-50", item.$disabled && "pointer-events-none")}
+                  tabIndex={item.$disabled ? -1 : undefined}>
+                  <div className={"flex items-center px-4 py-4 sm:px-6"}>
+                    <Link href={"/event-types/" + item.id}>
+                      <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between hover:bg-neutral-50">
                         <span className="truncate">
                           <div className="flex text-sm">
-                            <p className="font-medium truncate text-neutral-900">{type.title}</p>
-                            {type.hidden && (
+                            <p className="font-medium truncate text-neutral-900">{item.title}</p>
+                            {item.hidden && (
                               <span className="inline-flex items-center ml-2 px-1.5 py-0.5 text-yellow-800 text-xs font-medium bg-yellow-100 rounded-sm">
                                 Hidden
                               </span>
@@ -518,7 +508,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                 className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                 aria-hidden="true"
                               />
-                              <p>{type.length}m</p>
+                              <p>{item.length}m</p>
                             </div>
                             <div className="flex items-center text-sm text-neutral-500">
                               <UserIcon
@@ -527,14 +517,14 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                               />
                               <p>1-on-1</p>
                             </div>
-                            {type.description && (
+                            {item.description && (
                               <div className="flex items-center text-sm text-neutral-500">
                                 <InformationCircleIcon
                                   className="flex-shrink-0 mr-1.5 w-4 h-4 text-neutral-400"
                                   aria-hidden="true"
                                 />
                                 <div className="truncate max-w-32 sm:max-w-full">
-                                  {type.description.substring(0, 100)}
+                                  {item.description.substring(0, 100)}
                                 </div>
                               </div>
                             )}
@@ -547,7 +537,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                       <div className="flex space-x-5 overflow-hidden">
                         <Tooltip content="Preview">
                           <a
-                            href={"/" + session.user.username + "/" + type.slug}
+                            href={"/" + session.user.username + "/" + item.slug}
                             target="_blank"
                             rel="noreferrer"
                             className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
@@ -560,7 +550,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                             onClick={() => {
                               showToast("Link copied!", "success");
                               navigator.clipboard.writeText(
-                                window.location.hostname + "/" + session.user.username + "/" + type.slug
+                                window.location.hostname + "/" + session.user.username + "/" + item.slug
                               );
                             }}
                             className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
@@ -596,7 +586,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                   <Menu.Item>
                                     {({ active }) => (
                                       <a
-                                        href={"/" + session.user.username + "/" + type.slug}
+                                        href={"/" + session.user.username + "/" + item.slug}
                                         target="_blank"
                                         rel="noreferrer"
                                         className={classNames(
@@ -621,7 +611,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                               "/" +
                                               session.user.username +
                                               "/" +
-                                              type.slug
+                                              item.slug
                                           );
                                         }}
                                         className={classNames(
@@ -895,7 +885,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                 Event types enable you to share links that show available times on your calendar and allow
                 people to make bookings with you.
               </p>
-              <CreateNewEventDialog />
+              {renderEventDialog()}
             </div>
           </div>
         )}
@@ -906,12 +896,16 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
 
-  const session = await getSession({ req });
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
+  if (!session?.user?.id) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    } as const;
   }
 
-  const user: User = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
     },
@@ -1026,8 +1020,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })),
       completedOnboarding: true,
       createdDate: true,
+      plan: true,
     },
   });
+
+  if (!user) {
+    // this shouldn't happen
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    } as const;
+  }
 
   if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
     return {
@@ -1035,10 +1040,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         permanent: false,
         destination: "/getting-started",
       },
-    };
+    } as const;
   }
 
-  const types = await prisma.eventType.findMany({
+  const typesRaw = await prisma.eventType.findMany({
     where: {
       userId: user.id,
     },
@@ -1052,14 +1057,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  const types = typesRaw.map((type, index) =>
+    user.plan === "FREE" && index > 0
+      ? {
+          ...type,
+          $disabled: true,
+        }
+      : {
+          ...type,
+          $disabled: false,
+        }
+  );
+
   const userObj = Object.assign({}, user, {
     createdDate: user.createdDate.toString(),
   });
+
+  const canAddEvents = user.plan !== "FREE" || types.length < 1;
 
   return {
     props: {
       user: userObj,
       types,
+      canAddEvents,
     },
   };
 };

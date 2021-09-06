@@ -231,25 +231,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       availability: true,
       hideBranding: true,
       theme: true,
-      eventTypes: {
-        where: {
-          slug: typeParam,
-        },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          length: true,
-          availability: true,
-          timeZone: true,
-          periodType: true,
-          periodDays: true,
-          periodStartDate: true,
-          periodEndDate: true,
-          periodCountCalendarDays: true,
-          minimumBookingNotice: true,
-        },
-      },
+      plan: true,
     },
   });
 
@@ -258,15 +240,53 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     } as const;
   }
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      userId_slug: {
+        userId: user.id,
+        slug: typeParam,
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true,
+      availability: true,
+      timeZone: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      minimumBookingNotice: true,
+      hidden: true,
+    },
+  });
 
-  const eventType: EventType | null = user.eventTypes.length ? user.eventTypes[0] : null;
-  if (!eventType) {
+  if (!eventType || eventType.hidden) {
     return {
       notFound: true,
     } as const;
   }
 
-  const getWorkingHours = (providesAvailability: User | EventType) =>
+  // check this is the first event
+  if (user.plan === "FREE") {
+    const firstEventType = await prisma.eventType.findFirst({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (firstEventType?.id !== eventType.id) {
+      return {
+        notFound: true,
+      } as const;
+    }
+  }
+  const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
     providesAvailability.availability && providesAvailability.availability.length
       ? providesAvailability.availability
       : null;
