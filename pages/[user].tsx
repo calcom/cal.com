@@ -110,10 +110,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const eventTypes = await prisma.eventType.findMany({
+  const eventTypesWithHidden = await prisma.eventType.findMany({
     where: {
       userId: user.id,
-      hidden: false,
     },
     select: {
       id: true,
@@ -121,10 +120,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       title: true,
       length: true,
       description: true,
+      hidden: true,
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });
-
+  const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
   return {
     props: {
       user,

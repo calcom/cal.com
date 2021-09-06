@@ -244,10 +244,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     } as const;
   }
-  const eventType = await prisma.eventType.findFirst({
+  const eventType = await prisma.eventType.findUnique({
     where: {
-      userId: user.id,
-      slug: typeParam,
+      userId_slug: {
+        userId: user.id,
+        slug: typeParam,
+      },
     },
     select: {
       id: true,
@@ -262,10 +264,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       minimumBookingNotice: true,
+      hidden: true,
     },
   });
 
-  if (!eventType) {
+  if (!eventType || eventType.hidden) {
     return {
       notFound: true,
     } as const;

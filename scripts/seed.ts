@@ -61,6 +61,28 @@ async function main() {
       },
     ],
   });
+
+  await createUserAndEventType({
+    user: {
+      email: "free-first-hidden@example.com",
+      password: "free-first-hidden",
+      username: "free-first-hidden",
+      plan: "FREE",
+    },
+    eventTypes: [
+      {
+        title: "30min",
+        slug: "30min",
+        length: 30,
+        hidden: true,
+      },
+      {
+        title: "60min",
+        slug: "60min",
+        length: 30,
+      },
+    ],
+  });
   await createUserAndEventType({
     user: {
       email: "pro@example.com",
