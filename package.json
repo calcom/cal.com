@@ -81,7 +81,7 @@
     "mockdate": "^3.0.5",
     "postcss": "^8.3.6",
     "prettier": "^2.3.2",
-    "prisma": "^2.29.1",
+    "prisma": "^2.30.3",
     "tailwindcss": "^2.2.7",
     "typescript": "^4.3.5"
   },

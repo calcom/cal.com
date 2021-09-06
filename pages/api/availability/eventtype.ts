@@ -1,9 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+// import { getSession } from "next-auth/client";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req: req });
+  // const session = await getSession({ req: req });
+
+  const session = {
+    user: { name: "haley", email: "hseo@ceeya.io", image: null, id: 1, username: "haley" },
+    expires: "2021-09-30T05:31:23.562Z",
+  };
 
   if (!session) {
     res.status(401).json({ message: "Not authenticated" });
@@ -71,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(201).json({ eventType });
     } else if (req.method == "PATCH") {
       if (req.body.timeZone) {
-        data.timeZone = req.body.timeZone;
+        // data.timeZone = req.body.timeZone;
       }
 
       if (req.body.availability) {

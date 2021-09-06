@@ -9,7 +9,7 @@
     },
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false, //change
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
