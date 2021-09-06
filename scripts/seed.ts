@@ -10,6 +10,7 @@ async function createUserAndEventType(opts: {
     ...opts.user,
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
+    completedOnboarding: true,
   };
   const user = await prisma.user.upsert({
     where: { email: opts.user.email },

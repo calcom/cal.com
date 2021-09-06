@@ -191,12 +191,14 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
         <div className="-mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
           <ul className="divide-y divide-neutral-200" data-testid="event-types">
             {types.map((item) => (
-              <li key={item.id} className={classNames(item.$disabled && "opacity-30 cursor-not-allowed")}>
+              <li
+                key={item.id}
+                className={classNames(
+                  item.$disabled && "opacity-30 cursor-not-allowed pointer-events-none select-none"
+                )}
+                data-disabled={item.$disabled ? 1 : 0}>
                 <div
-                  className={classNames(
-                    "hover:bg-neutral-50",
-                    item.$disabled && "pointer-events-none select-none"
-                  )}
+                  className={classNames("hover:bg-neutral-50", item.$disabled && "pointer-events-none")}
                   tabIndex={item.$disabled ? -1 : undefined}>
                   <div className={"flex items-center px-4 py-4 sm:px-6"}>
                     <Link href={"/event-types/" + item.id}>

@@ -1,7 +1,3 @@
-before(() => {
-  cy.visit("/event-types");
-  cy.login("pro@example.com", "pro");
-});
 function randomString(length: number) {
   let result = "";
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -12,12 +8,22 @@ function randomString(length: number) {
   return result;
 }
 
-describe("/event-types", () => {
+describe("pro user", () => {
+  before(() => {
+    cy.visit("/event-types");
+    cy.login("pro@example.com", "pro");
+  });
   beforeEach(() => {
     cy.visit("/event-types");
   });
+
   it("has at least 2 events", () => {
     cy.get("[data-testid=event-types]").children().should("have.length.at.least", 2);
+    cy.get("[data-testid=event-types]")
+      .children()
+      .each(($el) => {
+        expect($el).to.have.attr("data-disabled", "0");
+      });
   });
 
   it("can add new event type", () => {
