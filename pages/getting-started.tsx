@@ -31,6 +31,7 @@ import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/componen
 import classnames from "classnames";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { getSession } from "@lib/auth";
+import Button from "@components/ui/Button";
 
 const DEFAULT_EVENT_TYPES = [
   {
@@ -146,11 +147,9 @@ export default function Onboarding(props: OnboardingProps) {
           </Text>
         </div>
         <div className="w-2/12 text-right pt-2">
-          <button
-            onClick={() => integrationHandler(integration.type)}
-            className="font-medium text-neutral-900 hover:text-neutral-500 border px-4 py-2 border-gray-200 rounded-sm">
+          <Button color="secondary" onClick={() => integrationHandler(integration.type)}>
             Connect
-          </button>
+          </Button>
         </div>
       </li>
     );
@@ -447,15 +446,9 @@ export default function Onboarding(props: OnboardingProps) {
             />
           </section>
           <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
-            <button
-              type="submit"
-              form={SCHEDULE_FORM_ID}
-              className="w-full btn btn-primary text-center justify-center space-x-2">
-              <Text variant="subtitle" className="text-white">
-                Continue
-              </Text>
-              <ArrowRightIcon className="text-white h-4 w-4" />
-            </button>
+            <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
+              Continue
+            </Button>
           </footer>
         </>
       ),
@@ -579,26 +572,22 @@ export default function Onboarding(props: OnboardingProps) {
 
             {!steps[currentStep].hideConfirm && (
               <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
-                <button
-                  onClick={handleConfirmStep}
-                  type="button"
-                  className="w-full btn btn-primary text-center justify-center space-x-2">
-                  <Text variant="subtitle" className="text-white">
-                    {steps[currentStep].confirmText}
-                  </Text>
-                  <ArrowRightIcon className="text-white h-4 w-4" />
-                </button>
+                <Button className="justify-center" onClick={handleConfirmStep} EndIcon={ArrowRightIcon}>
+                  {steps[currentStep].confirmText}
+                </Button>
               </footer>
             )}
           </section>
           <section className="py-6 mt-8 mx-auto max-w-xl">
-            <div className="flex justify-between">
-              <button onClick={decrementStep}>
-                <Text variant="caption">Prev Step</Text>
-              </button>
+            <div className="flex justify-between flex-row-reverse">
               <button onClick={handleSkipStep}>
                 <Text variant="caption">Skip Step</Text>
               </button>
+              {currentStep !== 0 && (
+                <button onClick={decrementStep}>
+                  <Text variant="caption">Prev Step</Text>
+                </button>
+              )}
             </div>
           </section>
         </article>
