@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
-// import { getBusyVideoTimes } from "@lib/videoClient";
+import { getBusyVideoTimes } from "@lib/videoClient";
 import dayjs from "dayjs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -31,12 +31,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     req.query.dateTo,
     selectedCalendars
   );
-  // const videoBusyTimes = await getBusyVideoTimes(
-  //   currentUser.credentials,
-  //   req.query.dateFrom,
-  //   req.query.dateTo
-  // );
-  // calendarBusyTimes.push(...videoBusyTimes);
+  const videoBusyTimes = await getBusyVideoTimes(
+    currentUser.credentials,
+    req.query.dateFrom,
+    req.query.dateTo
+  );
+  calendarBusyTimes.push(...videoBusyTimes);
 
   const bufferedBusyTimes = calendarBusyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),

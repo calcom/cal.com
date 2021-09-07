@@ -89,7 +89,7 @@ interface VideoApiAdapter {
 
   deleteMeeting(uid: string): Promise<unknown>;
 
-  getAvailability(dateFrom, dateTo): Promise<any>;
+  getAvailability(): Promise<any>;
 }
 
 const ZoomVideo = (credential): VideoApiAdapter => {
