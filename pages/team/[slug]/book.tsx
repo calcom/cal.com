@@ -5,15 +5,12 @@ import BookingPage from "@components/booking/pages/BookingPage";
 import { InferGetServerSidePropsType } from "next";
 
 export default function TeamBookingPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  return (
-    <BookingPage {...props} />
-  );
+  return <BookingPage {...props} />;
 }
 
 export async function getServerSideProps(context) {
-
   const eventTypeId = parseInt(context.query.type);
-  if (typeof eventTypeId !== "number" || (eventTypeId % 1 !== 0)) {
+  if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
     return {
       notFound: true,
     } as const;
@@ -82,7 +79,7 @@ export async function getServerSideProps(context) {
     props: {
       profile: {
         ...eventTypeObject.team,
-        slug: 'team/' + eventTypeObject.slug,
+        slug: "team/" + eventTypeObject.slug,
       },
       eventType: eventTypeObject,
       booking,

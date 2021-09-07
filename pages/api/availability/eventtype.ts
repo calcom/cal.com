@@ -66,7 +66,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method == "POST") {
-
       if (req.body.teamId) {
         data.team = {
           connect: {
@@ -78,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const eventType = await prisma.eventType.create({
         data: {
           ...data,
-          organizers: {
+          users: {
             connect: {
               id: parseInt(session.user.id),
             },
@@ -87,10 +86,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       res.status(201).json({ eventType });
     } else if (req.method == "PATCH") {
-      if (req.body.organizers) {
-        data.organizers = {
+      if (req.body.users) {
+        data.users = {
           set: [],
-          connect: req.body.organizers.map((id: number) => ({ id })),
+          connect: req.body.users.map((id: number) => ({ id })),
         };
       }
 

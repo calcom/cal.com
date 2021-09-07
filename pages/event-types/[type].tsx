@@ -3,7 +3,7 @@ import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionTypeBase } from "react-select";
 import prisma from "@lib/prisma";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
+import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "@lib/auth";
@@ -41,7 +41,6 @@ import { EventTypeInput } from "@lib/types/event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
-import Select from "@components/ui/form/Select";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { defaultAvatarSrc } from "@lib/profile";
 import * as RadioArea from "@components/ui/form/radio-area";
@@ -69,7 +68,7 @@ const PERIOD_TYPES = [
 ];
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { user, eventType, locationOptions, availability } = props;
+  const { eventType, locationOptions, availability, team, teamMembers } = props;
 
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -134,6 +133,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     }
   }, [contentSize]);
 
+  const [users, setUsers] = useState([]);
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
@@ -172,8 +172,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
   const titleRef = useRef<HTMLInputElement>(null);
   const slugRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const lengthRef = useRef<HTMLInputElement>(null);
   const requiresConfirmationRef = useRef<HTMLInputElement>(null);
   const eventNameRef = useRef<HTMLInputElement>(null);
   const periodDaysRef = useRef<HTMLInputElement>(null);
@@ -217,7 +215,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       ...(team
         ? {
             schedulingType: formData.schedulingType as string,
-            organizers,
+            users,
           }
         : {}),
     };
@@ -389,7 +387,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="flex rounded-sm shadow-sm">
                         <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
                           {typeof location !== "undefined" ? location.hostname : ""}/
-                          {team ? "team/" + team.slug : user.username}/
+                          {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
                           ref={slugRef}
@@ -601,18 +599,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                     <div className="block sm:flex">
                       <div className="mb-4 min-w-44 sm:mb-0">
-                        <label
-                          htmlFor="organizers"
-                          className="flex mt-2 text-sm font-medium text-neutral-700">
-                          <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Organizers
+                        <label htmlFor="users" className="flex mt-2 text-sm font-medium text-neutral-700">
+                          <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Attendees
                         </label>
                       </div>
                       <div className="w-full space-y-2">
                         <CheckedSelect
-                          onChange={(options: unknown) =>
-                            setOrganizers(options.map((option) => option.value))
-                          }
-                          defaultValue={eventType.organizers.map((user: User) => ({
+                          onChange={(options: unknown) => setUsers(options.map((option) => option.value))}
+                          defaultValue={eventType.users.map((user: User) => ({
                             value: user.id,
                             label: user.name,
                             avatar: user.avatar,
@@ -622,8 +616,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             label: user.name,
                             avatar: user.avatar,
                           }))}
-                          id="organizers"
-                          placeholder="Add organizers"
+                          id="users"
+                          placeholder="Add attendees"
                         />
                       </div>
                     </div>
@@ -902,7 +896,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 label="Hide event type"
               />
               <a
-                href={"/" + (team ? "team/" + team.slug : user.username) + "/" + eventType.slug}
+                href={"/" + (team ? "team/" + team.slug : eventType.users[0].username) + "/" + eventType.slug}
                 target="_blank"
                 rel="noreferrer"
                 className="flex font-medium text-md text-neutral-700">
@@ -914,7 +908,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   navigator.clipboard.writeText(
                     window.location.hostname +
                       "/" +
-                      (team ? "team/" + team.slug : user.username) +
+                      (team ? "team/" + team.slug : eventType.users[0].username) +
                       "/" +
                       eventType.slug
                   );
@@ -1116,30 +1110,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      timeZone: true,
-      startTime: true,
-      endTime: true,
-      availability: true,
-      plan: true,
-    },
-  });
-
-  if (!user) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
   const eventType = await prisma.eventType.findFirst({
     where: {
-      userId: user.id,
+      users: {
+        some: {
+          id: session.user.id,
+        },
+      },
       OR: [
         {
           slug: typeParam,
@@ -1187,11 +1164,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
         },
       },
-      organizers: {
+      users: {
         select: {
           name: true,
           id: true,
           avatar: true,
+          username: true,
         },
       },
       schedulingType: true,
@@ -1268,7 +1246,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
-  const teamMembers: User[] = eventTypeObject.team
+  const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
         user.avatar = user.avatar || defaultAvatarSrc({ email: user.email });

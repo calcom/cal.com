@@ -5,6 +5,7 @@ import Avatar from "@components/Avatar";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import useTheme from "@components/Theme";
 import classnames from "classnames";
+import { ArrowLeftIcon } from "@heroicons/react/solid";
 
 const Team = ({ team }) => {
   useTheme();
@@ -66,17 +67,18 @@ const Team = ({ team }) => {
   };
 
   return (
-    <article className="flex flex-col space-y-8 lg:space-y-12">
-      <div className="mb-8 text-center">
-        <Avatar
-          displayName={team.name}
-          imageSrc={team.logo}
-          className="mx-auto w-20 h-20 rounded-full mb-4"
-        />
-        <Text variant="headline">{team.name}</Text>
-      </div>
+    <div>
       <Members members={team.members} />
-    </article>
+      {team.eventTypes.length && (
+        <aside className="text-center dark:text-white mt-8">
+          <Link href={`/team/${team.slug}`} shallow={true}>
+            <a>
+              <ArrowLeftIcon className="h-6 w-6 inline text-neutral-500" /> Go back
+            </a>
+          </Link>
+        </aside>
+      )}
+    </div>
   );
 };
 

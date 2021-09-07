@@ -178,13 +178,23 @@ export default class EventOrganizerMail extends EventMail {
    * @protected
    */
   protected getNodeMailerPayload(): Record<string, unknown> {
+    const toAddresses = [this.calEvent.organizer.email];
+    if (this.calEvent.team) {
+      this.calEvent.team.members.forEach((member) => {
+        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
+        if (memberAttendee) {
+          toAddresses.push(memberAttendee.email);
+        }
+      });
+    }
+
     return {
       icalEvent: {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
       from: `Calendso <${this.getMailerOptions().from}>`,
-      to: this.calEvent.organizer.email,
+      to: toAddresses.join(","),
       subject: this.getSubject(),
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),

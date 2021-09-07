@@ -39,6 +39,7 @@ model EventType {
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
+  schedulingType          SchedulingType?
   Schedule                Schedule[]
 
   @@unique([userId, slug])
@@ -78,7 +79,7 @@ model User {
   eventTypes          EventType[]        @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
-  bookings            Booking[]          @relation("user_booking")
+  bookings            Booking[]
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
@@ -91,13 +92,14 @@ model User {
 }
 
 model Team {
-  id            Int       @default(autoincrement()) @id
+  id            Int          @id @default(autoincrement())
   name          String?
-  slug          String?   @unique
+  slug          String?      @unique
   logo          String?
   bio           String?
-  hideBranding  Boolean @default(false)    
+  hideBranding  Boolean      @default(false)
   members       Membership[]
+  eventTypes    EventType[]
 }
 
 enum MembershipRole {

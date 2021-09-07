@@ -11,7 +11,7 @@ import { timeZone } from "@lib/clock";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import {HeadSeo} from "@components/seo/head-seo";
+import { HeadSeo } from "@components/seo/head-seo";
 
 type AvailabilityPageProps = {
   eventType: EventType;
@@ -81,9 +81,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
   return (
     <>
       <HeadSeo
-        title={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title} | ${
-          profile.name
-        }`}
+        title={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title}`}
         name={profile.name}
         avatar={profile.image}
@@ -98,6 +96,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
             {/* mobile: details */}
             <div className="block p-4 sm:p-8 md:hidden">
               <div className="flex items-center">
+                <ul className="h-9">
+                  <li className="inline-block">
+                    <Avatar imageSrc={profile.image} displayName={profile.name} size="9" />
+                  </li>
+                  {eventType.users
+                    .filter((user) => user.name !== profile.name)
+                    .map((user) => (
+                      <li key={user.id} className="inline-block -ml-2">
+                        <Avatar imageSrc={user.avatar} displayName={user.name} size="9" tooltip={true} />
+                      </li>
+                    ))}
+                </ul>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
                   <div className="flex gap-2 text-xs font-medium text-gray-600">
@@ -120,21 +130,13 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                 }>
                 <ul className="flex flex-inline mb-2">
                   <li>
-                    <Avatar
-                      imageSrc={profile.image}
-                      displayName={profile.name}
-                      className="inline-block rounded-full h-16 w-16"
-                    />
+                    <Avatar imageSrc={profile.image} displayName={profile.name} size="16" />
                   </li>
                   {eventType.users
                     .filter((user) => user.name !== profile.name)
                     .map((user) => (
                       <li key={user.id} className="-ml-2">
-                        <Avatar
-                          imageSrc={user.avatar}
-                          displayName={user.name}
-                          className="h-16 w-16"
-                        />
+                        <Avatar imageSrc={user.avatar} displayName={user.name} size="16" tooltip={true} />
                       </li>
                     ))}
                 </ul>
