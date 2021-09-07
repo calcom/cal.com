@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "../../../lib/prisma";
-import { handleLegacyConfirmationMail } from "./[user]";
 import { CalendarEvent } from "@lib/calendarClient";
 import EventRejectionMail from "@lib/emails/EventRejectionMail";
 import EventManager from "@lib/events/EventManager";
@@ -70,13 +69,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.body.confirmed) {
       const eventManager = new EventManager(currentUser.credentials);
       const scheduleResult = await eventManager.create(evt, booking.uid);
-
-      await handleLegacyConfirmationMail(
-        scheduleResult.results,
-        { requiresConfirmation: false },
-        evt,
-        booking.uid
-      );
 
       await prisma.booking.update({
         where: {
