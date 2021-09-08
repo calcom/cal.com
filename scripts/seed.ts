@@ -2,7 +2,6 @@ import { hashPassword } from "../lib/auth";
 import { Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-let idx = 0;
 async function createUserAndEventType(opts: {
   user: Omit<Prisma.UserCreateArgs["data"], "password" | "email"> & { password: string; email: string };
   eventTypes: Array<Prisma.EventTypeCreateArgs["data"]>;
@@ -11,6 +10,7 @@ async function createUserAndEventType(opts: {
     ...opts.user,
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
+    completedOnboarding: true,
   };
   const user = await prisma.user.upsert({
     where: { email: opts.user.email },
@@ -19,16 +19,17 @@ async function createUserAndEventType(opts: {
   });
 
   console.log(
-    `👤 Created '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
+    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
   );
   for (const rawData of opts.eventTypes) {
-    const id = ++idx;
     const eventTypeData: Prisma.EventTypeCreateArgs["data"] = { ...rawData };
     eventTypeData.userId = user.id;
-    eventTypeData.id = id;
     await prisma.eventType.upsert({
       where: {
-        id,
+        userId_slug: {
+          slug: eventTypeData.slug,
+          userId: user.id,
+        },
       },
       update: eventTypeData,
       create: eventTypeData,
@@ -45,7 +46,7 @@ async function main() {
       email: "free@example.com",
       password: "free",
       username: "free",
-      // plan: "FREE",
+      plan: "FREE",
     },
     eventTypes: [
       {
@@ -60,12 +61,34 @@ async function main() {
       },
     ],
   });
+
+  await createUserAndEventType({
+    user: {
+      email: "free-first-hidden@example.com",
+      password: "free-first-hidden",
+      username: "free-first-hidden",
+      plan: "FREE",
+    },
+    eventTypes: [
+      {
+        title: "30min",
+        slug: "30min",
+        length: 30,
+        hidden: true,
+      },
+      {
+        title: "60min",
+        slug: "60min",
+        length: 30,
+      },
+    ],
+  });
   await createUserAndEventType({
     user: {
       email: "pro@example.com",
       password: "pro",
       username: "pro",
-      // plan: "PRO",
+      plan: "PRO",
     },
 
     eventTypes: [
@@ -86,7 +109,7 @@ async function main() {
       email: "trial@example.com",
       password: "trial",
       username: "trial",
-      // plan: "TRIAL",
+      plan: "TRIAL",
     },
     eventTypes: [
       {

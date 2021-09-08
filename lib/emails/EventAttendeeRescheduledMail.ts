@@ -13,8 +13,8 @@ export default class EventAttendeeRescheduledMail extends EventAttendeeMail {
       Hi ${this.calEvent.attendees[0].name},<br />
       <br />
       Your ${this.calEvent.type} with ${
-        this.calEvent.organizer.name
-      } has been rescheduled to ${this.getInviteeStart().format("h:mma")} 
+        this.calEvent.team?.name || this.calEvent.organizer.name
+      } has been rescheduled to ${this.getInviteeStart().format("h:mma")}
       (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format("dddd, LL")}.<br />
       ` +
       this.getAdditionalFooter() +

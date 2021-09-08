@@ -1,5 +1,5 @@
 import prisma from "@lib/prisma";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
@@ -9,6 +9,7 @@ import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
+import { getSession } from "@lib/auth";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
