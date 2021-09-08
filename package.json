@@ -85,6 +85,7 @@
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
     "react-use-intercom": "1.4.0",
+    "react-router-dom": "^5.2.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.168.0",
     "superjson": "1.7.5",

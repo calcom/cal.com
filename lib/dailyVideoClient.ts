@@ -171,7 +171,7 @@ const getBusyVideoTimes: (withCredentials) => Promise<unknown[]> = (withCredenti
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-  //lola internal i changed credential to dailycredential
+
 const dailyCreateMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
@@ -195,11 +195,13 @@ const dailyCreateMeeting = async (
       success = false;
     });
 
+  const currentRoute=process.env.BASE_URL ;
+
   const videoCallData: DailyVideoCallData = {
     type: "Daily Video Chat & Conferencing",
     id: creationResult.name,
     password: creationResult.password,
-    url: creationResult.url,
+    url: currentRoute + '/call/'+ uid,
   };
 
   //lola todo - we probably don't need an entry point
@@ -296,5 +298,6 @@ const dailyDeleteMeeting = (credential: Credential, uid: string): Promise<unknow
 
   return Promise.resolve({});
 };
+
 
 export { getBusyVideoTimes, dailyCreateMeeting, dailyUpdateMeeting, dailyDeleteMeeting };
