@@ -23,6 +23,7 @@ import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
+import { HttpException } from "@lib/core/error/http";
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -33,7 +34,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
       await router.replace("/event-types/" + eventType.id);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
-    onError: (err: Error) => {
+    onError: (err: HttpException) => {
       showToast(err.message, "error");
     },
   });
