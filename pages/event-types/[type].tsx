@@ -1173,10 +1173,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
       schedulingType: true,
+      userId: true,
     },
   });
 
   if (!eventType) {
+    return {
+      notFound: true,
+    };
+  }
+
+  if (eventType.userId != session.user.id) {
     return {
       notFound: true,
     } as const;

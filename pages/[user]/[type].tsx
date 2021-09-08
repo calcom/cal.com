@@ -71,13 +71,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   if (user.eventTypes.length !== 1) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   const eventType = user.eventTypes[0];

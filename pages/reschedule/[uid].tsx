@@ -1,6 +1,5 @@
 import { GetServerSidePropsContext } from "next";
 import prisma from "@lib/prisma";
-import { Booking, EventType, Prisma } from "@prisma/client";
 import { asStringOrNull } from "@lib/asStringOrNull";
 
 export default function Type() {
@@ -9,7 +8,6 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-
   const booking = await prisma.booking.findUnique({
     where: {
       uid: asStringOrNull(context.query.uid),
@@ -43,15 +41,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!booking.eventType) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   const eventType = booking.eventType;
 
-  const eventPage = ( eventType.team
-    ? "team/" + eventType.team.slug
-    : booking.user.username
-  ) + "/" + booking.eventType.slug;
+  const eventPage =
+    (eventType.team ? "team/" + eventType.team.slug : booking.user.username) + "/" + booking.eventType.slug;
 
   return {
     redirect: {

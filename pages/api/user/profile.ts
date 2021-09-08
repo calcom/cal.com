@@ -10,20 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const user = prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      username: true,
-    },
-  });
-
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
-  }
-
   const description = req.body.description;
   delete req.body.description;
 
@@ -41,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (e.code === "P2002") {
       return res.status(409).json({ message: "Username already taken" });
     }
+    throw e;
   }
 
   return res.status(200).json({ message: "Profile updated successfully" });
