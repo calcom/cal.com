@@ -49,3 +49,7 @@ yarn-error.log*
 
 # Local History for Visual Studio Code
 .history/
+
+
+cypress/videos
+cypress/screenshots

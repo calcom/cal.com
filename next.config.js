@@ -38,12 +38,13 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 module.exports = withTM({
-  future: {
-    webpack5: true,
-  },
   i18n: {
     locales: ["en"],
     defaultLocale: "en",
+  },
+  eslint: {
+    // This allows production builds to successfully complete even if the project has ESLint errors.
+    ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -65,5 +66,8 @@ module.exports = withTM({
         permanent: true,
       },
     ];
+  },
+  publicRuntimeConfig: {
+    BASE_URL: process.env.BASE_URL || "http://localhost:3000",
   },
 });
