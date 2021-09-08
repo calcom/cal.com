@@ -26,7 +26,6 @@ import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
-import serverSideErrorHandler from "@lib/serverSideErrorHandler";
 import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
@@ -1065,126 +1064,124 @@ function hasIntegration(integrations: ReturnType<typeof getIntegrations>, type: 
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  try {
-    const { req, query } = context;
-    const session = await getSession({ req });
-    const typeParam = asStringOrThrow(query.type);
+  const { req, query } = context;
+  const session = await getSession({ req });
+  const typeParam = asStringOrThrow(query.type);
 
-    if (!session?.user?.id) throw "noSession";
+  if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: session.user.id,
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      id: true,
+      username: true,
+      timeZone: true,
+      startTime: true,
+      endTime: true,
+      availability: true,
+      plan: true,
+    },
+  });
+
+  if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
+
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      userId: user.id,
+      OR: [
+        {
+          slug: typeParam,
+        },
+        {
+          id: parseInt(typeParam),
+        },
+      ],
+    },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      hidden: true,
+      locations: true,
+      eventName: true,
+      availability: true,
+      customInputs: true,
+      timeZone: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      requiresConfirmation: true,
+      userId: true,
+    },
+  });
+
+  if (!eventType) return { notFound: true };
+
+  if (eventType.userId != session.user.id) return { notFound: true };
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+    },
+  });
+
+  const integrations = getIntegrations(credentials);
+
+  const locationOptions: OptionTypeBase[] = [
+    { value: LocationType.InPerson, label: "In-person meeting" },
+    { value: LocationType.Phone, label: "Phone call" },
+    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
+  ];
+
+  if (hasIntegration(integrations, "google_calendar")) {
+    locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
+  }
+  if (hasIntegration(integrations, "office365_calendar")) {
+    // TODO: Add default meeting option of the office integration.
+    // Assuming it's Microsoft Teams.
+  }
+
+  const getAvailability = (providesAvailability: NonNullable<typeof user | typeof eventType>) =>
+    providesAvailability.availability && providesAvailability.availability.length
+      ? providesAvailability.availability
+      : null;
+
+  const availability = getAvailability(eventType) ||
+    getAvailability(user) || [
+      {
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startTime: user.startTime,
+        endTime: user.endTime,
       },
-      select: {
-        id: true,
-        username: true,
-        timeZone: true,
-        startTime: true,
-        endTime: true,
-        availability: true,
-        plan: true,
-      },
-    });
-
-    if (!user) throw "notFound";
-
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        userId: user.id,
-        OR: [
-          {
-            slug: typeParam,
-          },
-          {
-            id: parseInt(typeParam),
-          },
-        ],
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        description: true,
-        length: true,
-        price: true,
-        hidden: true,
-        locations: true,
-        eventName: true,
-        availability: true,
-        customInputs: true,
-        timeZone: true,
-        periodType: true,
-        periodDays: true,
-        periodStartDate: true,
-        periodEndDate: true,
-        periodCountCalendarDays: true,
-        requiresConfirmation: true,
-      },
-    });
-
-    if (!eventType) throw "notFound";
-
-    const credentials = await prisma.credential.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        id: true,
-        type: true,
-        key: true,
-      },
-    });
-
-    const integrations = getIntegrations(credentials);
-
-    const locationOptions: OptionTypeBase[] = [
-      { value: LocationType.InPerson, label: "In-person meeting" },
-      { value: LocationType.Phone, label: "Phone call" },
-      { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
     ];
 
-    if (hasIntegration(integrations, "google_calendar")) {
-      locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
-    }
-    if (hasIntegration(integrations, "office365_calendar")) {
-      // TODO: Add default meeting option of the office integration.
-      // Assuming it's Microsoft Teams.
-    }
+  availability.sort((a, b) => a.startTime - b.startTime);
 
-    const getAvailability = (providesAvailability: NonNullable<typeof user | typeof eventType>) =>
-      providesAvailability.availability && providesAvailability.availability.length
-        ? providesAvailability.availability
-        : null;
+  const eventTypeObject = Object.assign({}, eventType, {
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
+  });
 
-    const availability = getAvailability(eventType) ||
-      getAvailability(user) || [
-        {
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: user.startTime,
-          endTime: user.endTime,
-        },
-      ];
-
-    availability.sort((a, b) => a.startTime - b.startTime);
-
-    const eventTypeObject = Object.assign({}, eventType, {
-      periodStartDate: eventType.periodStartDate?.toString() ?? null,
-      periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    });
-
-    return {
-      props: {
-        user,
-        eventType: eventTypeObject,
-        locationOptions,
-        availability,
-        canPrice: hasIntegration(integrations, "stripe"),
-      },
-    };
-  } catch (error) {
-    return serverSideErrorHandler(error as string);
-  }
+  return {
+    props: {
+      user,
+      eventType: eventTypeObject,
+      locationOptions,
+      availability,
+      canPrice: hasIntegration(integrations, "stripe"),
+    },
+  };
 };
 
 export default EventTypePage;
