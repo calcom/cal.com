@@ -12,9 +12,9 @@ import Avatar from "@components/Avatar";
 import { Button } from "@components/ui/Button";
 import { ReactMultiEmail } from "react-multi-email";
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
 
 const BookingPage = (props: any): JSX.Element => {
-
   const router = useRouter();
   const { rescheduleUid } = router.query;
 
@@ -85,6 +85,7 @@ const BookingPage = (props: any): JSX.Element => {
         guests: guestEmails,
         eventTypeId: props.eventType.id,
         rescheduleUid: rescheduleUid,
+        timeZone: timeZone(),
       };
 
       if (router.query.user) {
@@ -142,8 +143,8 @@ const BookingPage = (props: any): JSX.Element => {
     <div>
       <Head>
         <title>
-          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with{" "}
-          {props.profile.name} | Calendso
+          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name} |
+          Calendso
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -162,7 +163,7 @@ const BookingPage = (props: any): JSX.Element => {
                     />
                   </li>
                 )}
-                {props.eventType.users.map( (user, idx: number) => (
+                {props.eventType.users.map((user, idx: number) => (
                   <li key={user.id} className={idx !== 0 ? "-ml-3" : ""}>
                     <Avatar
                       displayName={user.name}
@@ -211,9 +212,7 @@ const BookingPage = (props: any): JSX.Element => {
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium dark:text-white text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium dark:text-white text-gray-700">
                     Email address
                   </label>
                   <div className="mt-1">
@@ -230,9 +229,7 @@ const BookingPage = (props: any): JSX.Element => {
                 </div>
                 {locations.length > 1 && (
                   <div className="mb-4">
-                    <span className="block text-sm font-medium dark:text-white text-gray-700">
-                      Location
-                    </span>
+                    <span className="block text-sm font-medium dark:text-white text-gray-700">Location</span>
                     {locations.map((location) => (
                       <label key={location.type} className="block">
                         <input
@@ -273,65 +270,65 @@ const BookingPage = (props: any): JSX.Element => {
                   </div>
                 )}
                 {props.eventType.customInputs &&
-                props.eventType.customInputs
-                  .sort((a, b) => a.id - b.id)
-                  .map((input) => (
-                    <div className="mb-4" key={"input-" + input.label.toLowerCase}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
-                        <label
-                          htmlFor={"custom_" + input.id}
-                          className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
-                          {input.label}
-                        </label>
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXTLONG && (
-                        <textarea
-                          name={"custom_" + input.id}
-                          id={"custom_" + input.id}
-                          required={input.required}
-                          rows={3}
-                          className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder={input.placeholder}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXT && (
-                        <input
-                          type="text"
-                          name={"custom_" + input.id}
-                          id={"custom_" + input.id}
-                          required={input.required}
-                          className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder={input.placeholder}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.NUMBER && (
-                        <input
-                          type="number"
-                          name={"custom_" + input.id}
-                          id={"custom_" + input.id}
-                          required={input.required}
-                          className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder=""
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.BOOL && (
-                        <div className="flex items-center h-5">
-                          <input
-                            type="checkbox"
-                            name={"custom_" + input.id}
-                            id={"custom_" + input.id}
-                            className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
-                            placeholder=""
-                          />
+                  props.eventType.customInputs
+                    .sort((a, b) => a.id - b.id)
+                    .map((input) => (
+                      <div className="mb-4" key={"input-" + input.label.toLowerCase}>
+                        {input.type !== EventTypeCustomInputType.BOOL && (
                           <label
                             htmlFor={"custom_" + input.id}
                             className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                             {input.label}
                           </label>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        )}
+                        {input.type === EventTypeCustomInputType.TEXTLONG && (
+                          <textarea
+                            name={"custom_" + input.id}
+                            id={"custom_" + input.id}
+                            required={input.required}
+                            rows={3}
+                            className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                            placeholder={input.placeholder}
+                          />
+                        )}
+                        {input.type === EventTypeCustomInputType.TEXT && (
+                          <input
+                            type="text"
+                            name={"custom_" + input.id}
+                            id={"custom_" + input.id}
+                            required={input.required}
+                            className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                            placeholder={input.placeholder}
+                          />
+                        )}
+                        {input.type === EventTypeCustomInputType.NUMBER && (
+                          <input
+                            type="number"
+                            name={"custom_" + input.id}
+                            id={"custom_" + input.id}
+                            required={input.required}
+                            className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                            placeholder=""
+                          />
+                        )}
+                        {input.type === EventTypeCustomInputType.BOOL && (
+                          <div className="flex items-center h-5">
+                            <input
+                              type="checkbox"
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
+                              placeholder=""
+                            />
+                            <label
+                              htmlFor={"custom_" + input.id}
+                              className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                              {input.label}
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                 <div className="mb-4">
                   {!guestToggle && (
                     <label
@@ -388,10 +385,11 @@ const BookingPage = (props: any): JSX.Element => {
                   <Button type="submit" loading={loading}>
                     {rescheduleUid ? "Reschedule" : "Confirm"}
                   </Button>
-                  <Button color="secondary" href={
-                    `${props.eventType.slug}` +
-                    (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
-                  }>
+                  <Button
+                    color="secondary"
+                    href={
+                      `${props.eventType.slug}` + (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
+                    }>
                     Cancel
                   </Button>
                 </div>
@@ -416,6 +414,6 @@ const BookingPage = (props: any): JSX.Element => {
       </main>
     </div>
   );
-}
+};
 
 export default BookingPage;

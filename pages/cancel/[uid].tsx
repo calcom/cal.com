@@ -1,21 +1,14 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Button } from "@components/ui/Button";
-import { User } from "@prisma/client";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
-dayjs.extend(isSameOrBefore);
-dayjs.extend(isBetween);
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export default function Type(props) {
   // Get router variables
@@ -39,6 +32,7 @@ export default function Type(props) {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(telemetryEventTypes.bookingCancelled, collectPageParameters())
     );
+
     const res = await fetch("/api/cancel", {
       body: JSON.stringify(payload),
       headers: {
@@ -48,7 +42,11 @@ export default function Type(props) {
     });
 
     if (res.status >= 200 && res.status < 300) {
-      // router.push("/cancel/success?user=" + props.profile.username + "&title=" + props.booking.title);
+      await router.push(
+        `/cancel/success?name=${props.profile.name}&title=${props.booking.title}&eventPage=${
+          props.profile.slug
+        }&team=${props.booking.eventType.team ? 1 : 0}`
+      );
     } else {
       setLoading(false);
       setError("An error with status code " + res.status + " occurred. Please try again later.");
@@ -102,9 +100,9 @@ export default function Type(props) {
                           <h2 className="text-lg font-medium text-gray-600 mb-2">{props.booking.title}</h2>
                           <p className="text-gray-500">
                             <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                            {dayjs
-                              .utc(props.booking.startTime)
-                              .format((is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY")}
+                            {dayjs(props.booking.startTime).format(
+                              (is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY"
+                            )}
                           </p>
                         </div>
                       </div>
@@ -127,7 +125,7 @@ export default function Type(props) {
 }
 
 export async function getServerSideProps(context) {
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid,
     },
@@ -138,57 +136,43 @@ export async function getServerSideProps(context) {
       startTime: true,
       endTime: true,
       attendees: true,
-      team: {
-        select: {
-          name: true,
-          slug: true,
-        },
-      },
-      organizers: {
+      user: {
         select: {
           username: true,
           name: true,
         },
       },
-      userId: true,
+      eventType: {
+        select: {
+          team: {
+            select: {
+              slug: true,
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 
   if (!booking) {
+    // TODO: Booking is already cancelled
     return {
       props: { booking: null },
     };
   }
 
-  // Workaround since Next.js has problems serializing date objects (see https://github.com/vercel/next.js/issues/11993)
   const bookingObj = Object.assign({}, booking, {
     startTime: booking.startTime.toString(),
     endTime: booking.endTime.toString(),
   });
 
-  let profile;
-  if (booking.userId) {
-    const user: User = await prisma.user.findUnique({
-      where: {
-        id: booking.userId,
-      },
-      select: {
-        username: true,
-        name: true,
-      },
-    });
-    profile = {
-      slug: user.username,
-      name: user.name,
-    };
-  } else {
-    profile = booking.team
-      ? {
-          name: booking.team.name,
-          slug: booking.team.slug,
-        }
-      : booking.organizers[0];
-  }
+  const profile = booking.eventType.team
+    ? {
+        name: booking.eventType.team.name,
+        slug: booking.eventType.team.slug,
+      }
+    : booking.user;
 
   return {
     props: {

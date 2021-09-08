@@ -1,5 +1,4 @@
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import Loader from "@components/Loader";
 import { Tooltip } from "@components/Tooltip";
 import { Button } from "@components/ui/Button";
 import { Menu, Transition } from "@headlessui/react";
@@ -12,28 +11,27 @@ import {
   UsersIcon,
 } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
-import { getSession, useSession } from "next-auth/client";
+import { getSession } from "next-auth/client";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
+import dayjs from "dayjs";
 import Shell from "../../components/Shell";
 import prisma from "../../lib/prisma";
-import { User, EventType, SchedulingType } from "@prisma/client";
+import { EventType, SchedulingType } from "@prisma/client";
 import showToast from "@lib/notification";
 import Avatar from "@components/Avatar";
 import { UserCalendarIllustration } from "@components/ui/svg/UserCalendarIllustration";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import * as RadioArea from "@components/ui/form/radio-area";
+import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Alert } from "@components/ui/Alert";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 
-export default function Availability({ eventTypes, profiles }: { eventTypes: EventType[]; profiles: [] }) {
-  const [loading] = useSession();
-
-  if (loading) {
-    return <Loader />;
-  }
-
+const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
@@ -43,7 +41,7 @@ export default function Availability({ eventTypes, profiles }: { eventTypes: Eve
           Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you.
         </p>
-        <CreateNewEventDialog profiles={profiles} />
+        <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
       </div>
     </div>
   );
@@ -105,8 +103,8 @@ export default function Availability({ eventTypes, profiles }: { eventTypes: Eve
                   {type.users.length > 1 && (
                     <ul className="inline-flex">
                       {type.users.map((organizer, idx: number) => (
-                        <li key={idx} className={"h-6 w-6 " + (idx ? "-ml-1" : "")}>
-                          <Avatar displayName={organizer.name} imageSrc={organizer.avatar} />
+                        <li key={idx} className={idx ? "-ml-1" : ""}>
+                          <Avatar size="6" displayName={organizer.name} imageSrc={organizer.avatar} />
                         </li>
                       ))}
                     </ul>
@@ -162,7 +160,7 @@ export default function Availability({ eventTypes, profiles }: { eventTypes: Eve
                             <Menu.Item>
                               {({ active }) => (
                                 <a
-                                  href={`/${slug}/${type.slug}`}
+                                  href={`/${profile.slug}/${type.slug}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={classNames(
@@ -223,14 +221,36 @@ export default function Availability({ eventTypes, profiles }: { eventTypes: Eve
       <Shell
         heading="Event Types"
         subtitle="Create events to share for people to book on your calendar."
-        CTA={eventTypes.length !== 0 && <CreateNewEventDialog profiles={profiles} />}>
-        {eventTypes &&
-          eventTypes.map((input) => (
+        CTA={
+          props.eventTypes.length !== 0 && (
+            <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
+          )
+        }>
+        {props.user.plan === "FREE" && (
+          <Alert
+            severity="warning"
+            title={<>You need to upgrade your plan to have more than one active event type.</>}
+            message={
+              <>
+                To upgrade go to{" "}
+                <a href={process.env.NEXT_PUBLIC_BASE_URL + "/upgrade"} className="underline">
+                  {process.env.NEXT_PUBLIC_BASE_URL + "/upgrade"}
+                </a>
+              </>
+            }
+            className="my-4"
+          />
+        )}
+        {props.eventTypes &&
+          props.eventTypes.map((input) => (
             <>
-              <EventTypeListHeading
-                profile={input.profile}
-                membershipCount={input.metadata?.membershipCount}
-              />
+              {/* hide list heading when there is only one (current user) */}
+              {props.eventTypes.length !== 1 && (
+                <EventTypeListHeading
+                  profile={input.profile}
+                  membershipCount={input.metadata?.membershipCount}
+                />
+              )}
               <EventTypeList
                 types={input.eventTypes}
                 profile={input.profile}
@@ -239,16 +259,16 @@ export default function Availability({ eventTypes, profiles }: { eventTypes: Eve
             </>
           ))}
 
-        {eventTypes.length === 0 && teams && <CreateFirstEventTypeView />}
+        {props.eventTypes.length === 0 && <CreateFirstEventTypeView />}
       </Shell>
     </div>
   );
-}
+};
 
-const CreateNewEventDialog = ({ profiles }) => {
+const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
   const router = useRouter();
-  const dialogOpen = router.query.new === "1";
   const teamId: number | null = Number(router.query.teamId) || null;
+  const modalOpen = useToggleQuery("new");
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
 
@@ -294,8 +314,11 @@ const CreateNewEventDialog = ({ profiles }) => {
 
   return (
     <Dialog
-      open={dialogOpen}
+      open={modalOpen.isOn}
       onOpenChange={(isOpen) => {
+        router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
+      }}>
+      {/*onOpenChange={(isOpen) => {
         const newQuery = {
           ...router.query,
         };
@@ -305,9 +328,17 @@ const CreateNewEventDialog = ({ profiles }) => {
         if (!isOpen) {
           router.push({ pathname: router.pathname, query: newQuery });
         }
-      }}>
+      }}>*/}
       {!profiles.filter((profile) => profile.teamId).length && (
-        <Button href={{ query: { ...router.query, new: "1" } }} StartIcon={PlusIcon}>
+        <Button
+          {...(canAddEvents
+            ? {
+                href: modalOpen.hrefOn,
+              }
+            : {
+                disabled: true,
+              })}
+          StartIcon={PlusIcon}>
           New event type
         </Button>
       )}
@@ -473,7 +504,7 @@ export async function getServerSideProps(context) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user: User = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
     },
@@ -485,6 +516,9 @@ export async function getServerSideProps(context) {
       endTime: true,
       bufferTime: true,
       avatar: true,
+      completedOnboarding: true,
+      createdDate: true,
+      plan: true,
       teams: {
         select: {
           role: true,
@@ -545,7 +579,72 @@ export async function getServerSideProps(context) {
     },
   });
 
+  if (!user) {
+    // this shouldn't happen
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    } as const;
+  }
+
+  if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/getting-started",
+      },
+    } as const;
+  }
+
   let eventTypes = [];
+
+  // backwards compatibility, TMP:
+  if (eventTypes.length === 0) {
+    const typesRaw = await prisma.eventType.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        length: true,
+        hidden: true,
+        users: {
+          select: {
+            id: true,
+            avatar: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (typesRaw) {
+      eventTypes.push({
+        teamId: null,
+        profile: {
+          slug: user.username,
+          name: user.name,
+          image: user.avatar,
+        },
+        eventTypes: typesRaw.map((type, index) =>
+          user.plan === "FREE" && index > 0
+            ? {
+                ...type,
+                $disabled: true,
+              }
+            : {
+                ...type,
+                $disabled: false,
+              }
+        ),
+      });
+    }
+  }
 
   if (user.eventTypes) {
     eventTypes.push({
@@ -576,9 +675,16 @@ export async function getServerSideProps(context) {
     }))
   );
 
+  const userObj = Object.assign({}, user, {
+    createdDate: user.createdDate.toString(),
+  });
+
+  const canAddEvents = user.plan !== "FREE" || user.eventTypes[0].length < 1;
+
   return {
     props: {
-      user,
+      canAddEvents,
+      user: userObj,
       // don't display event teams without event types,
       eventTypes: eventTypes.filter((groupBy) => groupBy.eventTypes.length > 0),
       // so we can show a dropdown when the user has teams
@@ -590,3 +696,5 @@ export async function getServerSideProps(context) {
     },
   };
 }
+
+export default EventTypesPage;

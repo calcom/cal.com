@@ -10,7 +10,7 @@ dayjs.extend(utc);
 type Slot = {
   time: Dayjs;
   users?: string[];
-}
+};
 
 type UseSlotsProps = {
   eventLength: number;
@@ -22,14 +22,12 @@ type UseSlotsProps = {
 };
 
 export const useSlots = (props: UseSlotsProps) => {
-
   const { eventLength, minimumBookingNotice = 0, date, workingHours, users } = props;
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect( () => {
-
+  useEffect(() => {
     setSlots([]);
     setLoading(true);
     setError(null);
@@ -38,42 +36,43 @@ export const useSlots = (props: UseSlotsProps) => {
     const dateTo = encodeURIComponent(date.endOf("day").format());
 
     Promise.all(
-      users.map( (user: User) => fetch(
-        `/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`
+      users.map((user: User) =>
+        fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
+          .then(handleAvailableSlots)
+          .catch((e) => {
+            console.error(e);
+            setError(e);
+          })
       )
-      .then(handleAvailableSlots)
-      .catch((e) => {
-        console.error(e);
-        setError(e);
-      }))
-    ).then( (results) => {
+    ).then((results) => {
       let slots: Slot[] = results[0];
       if (results.length === 1) {
-        return slots;
+        setSlots(slots);
+        setLoading(false);
+        return;
       }
 
       let poolingMethod;
       switch (props.schedulingType) {
         // intersect by time, does not take into account eventLength (yet)
         case SchedulingType.COLLECTIVE:
-          poolingMethod = (slots, compareWith) => slots.filter(
-            (slot) => compareWith.some( compare => compare.time.isSame(slot.time) )
-          );
+          poolingMethod = (slots, compareWith) =>
+            slots.filter((slot) => compareWith.some((compare) => compare.time.isSame(slot.time)));
           break;
         case SchedulingType.ROUND_ROBIN:
           // TODO: Create a Reservation (lock this slot for X minutes)
           //       this will make the following code redundant
           poolingMethod = (slots, compareWith) => {
-            compareWith.forEach( compare => {
-              const match = slots.findIndex( slot => slot.time.isSame(compare.time));
+            compareWith.forEach((compare) => {
+              const match = slots.findIndex((slot) => slot.time.isSame(compare.time));
               if (match !== -1) {
-                slots[ match ].users.push(compare.users[0]);
+                slots[match].users.push(compare.users[0]);
               } else {
                 slots.push(compare);
               }
             });
             return slots;
-          }
+          };
           break;
       }
 
@@ -86,7 +85,6 @@ export const useSlots = (props: UseSlotsProps) => {
   }, [date]);
 
   const handleAvailableSlots = async (res) => {
-
     const responseBody = await res.json();
     responseBody.workingHours.days = responseBody.workingHours.daysOfWeek;
 
@@ -122,11 +120,11 @@ export const useSlots = (props: UseSlotsProps) => {
     }
 
     // temporary
-    const user = res.url.substring(res.url.lastIndexOf('/')+1, res.url.indexOf('?'))
+    const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
 
-    return times.map( time => ({
+    return times.map((time) => ({
       time,
-      users: [ user ]
+      users: [user],
     }));
   };
 

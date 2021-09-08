@@ -1,18 +1,18 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
+import { useSession } from "next-auth/client";
+import Button from "@components/ui/Button";
+import { ArrowRightIcon } from "@heroicons/react/solid";
 
-export default function CancelSuccess(props) {
+export default function CancelSuccess() {
   // Get router variables
   const router = useRouter();
-  const { title } = router.query;
-
+  const { title, name, eventPage } = router.query;
+  const [session, loading] = useSession();
   return (
     <div>
-      <HeadSeo
-        title={`Cancelled ${title} | ${props.profile.name}`}
-        description={`Cancelled ${title} | ${props.profile.name}`}
-      />
+      <HeadSeo title={`Cancelled ${title} | ${name}`} description={`Cancelled ${title} | ${name}`} />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -33,19 +33,21 @@ export default function CancelSuccess(props) {
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
                       Cancellation successful
                     </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">Feel free to pick another event anytime.</p>
-                    </div>
+                    {!loading && !session.user && (
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">Feel free to pick another event anytime.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="mt-5 sm:mt-6 text-center">
                   <div className="mt-5">
-                    <button
-                      onClick={() => router.push("/" + props.profile.slug)}
-                      type="button"
-                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm mx-2 btn-white">
-                      Pick another
-                    </button>
+                    {!loading && !session.user && <Button href={eventPage}>Pick another</Button>}
+                    {!loading && session.user && (
+                      <Button href="/bookings" EndIcon={ArrowRightIcon}>
+                        Back to bookings
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

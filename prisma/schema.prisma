@@ -41,8 +41,6 @@ model EventType {
   minimumBookingNotice    Int                    @default(120)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
-
-  @@unique([userId, slug])
 }
 
 model Credential {

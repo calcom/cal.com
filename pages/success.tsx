@@ -1,6 +1,6 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
-import prisma, { whereAndSelect } from "@lib/prisma";
+import prisma from "@lib/prisma";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
@@ -95,7 +95,9 @@ export default function Success(props) {
                       <div className="mt-3">
                         <p className="text-sm text-neutral-600 dark:text-gray-300">
                           {props.eventType.requiresConfirmation
-                            ? `${props.profile.name} still needs to confirm or reject the booking.`
+                            ? props.bookedWith !== null
+                              ? `${props.bookedWith} still needs to confirm or reject the booking.`
+                              : "Your booking still needs to be confirmed or rejected."
                             : `We emailed you and the other attendees a calendar invitation with all the details.`}
                         </p>
                       </div>
@@ -218,11 +220,11 @@ export default function Success(props) {
                       </div>
                     </div>
                   )}
-                  {/*!props.user.hideBranding && (
-                    <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
+                  {!props.hideBranding && (
+                    <div className="mt-4 dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
                     </div>
-                  )*/}
+                  )}
                 </div>
               </div>
             </div>
@@ -234,17 +236,40 @@ export default function Success(props) {
 }
 
 export async function getServerSideProps(context) {
-  const eventType = await whereAndSelect(
-    prisma.eventType.findUnique,
-    {
+  const eventType = await prisma.eventType.findUnique({
+    where: {
       id: parseInt(context.query.type),
     },
-    ["id", "title", "description", "length", "eventName", "requiresConfirmation"]
-  );
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true,
+      eventName: true,
+      requiresConfirmation: true,
+      users: {
+        select: {
+          name: true,
+          hideBranding: true,
+        },
+      },
+      team: {
+        select: {
+          name: true,
+          hideBranding: true,
+        },
+      },
+    },
+  });
 
   return {
     props: {
-      profile: {},
+      hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
+      bookedWith: eventType.team
+        ? eventType.team.name
+        : eventType.users.length === 1
+        ? eventType.users[0].name
+        : null,
       eventType,
     },
   };

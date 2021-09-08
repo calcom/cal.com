@@ -56,7 +56,7 @@ export default function Bookings({ bookings }) {
                               </span>
                             )}
                             <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
-                              {booking.team && <strong>{booking.team.name}: </strong>}
+                              {booking.eventType.team && <strong>{booking.eventType.team.name}: </strong>}
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
@@ -201,30 +201,20 @@ export async function getServerSideProps(context) {
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      teams: {
-        select: {
-          teamId: true,
-        },
-      },
-    },
-  });
-
-  const teamIds: { teamId: number }[] = user.teams.map((team) => ({ teamId: team.teamId }));
-
   const b = await prisma.booking.findMany({
     where: {
       OR: [
         {
-          userId: user.id,
+          userId: session.user.id,
         },
-      ].concat(teamIds),
+        {
+          attendees: {
+            some: {
+              id: session.user.id,
+            },
+          },
+        },
+      ],
     },
     select: {
       uid: true,
@@ -236,9 +226,13 @@ export async function getServerSideProps(context) {
       id: true,
       startTime: true,
       endTime: true,
-      team: {
+      eventType: {
         select: {
-          name: true,
+          team: {
+            select: {
+              name: true,
+            },
+          },
         },
       },
     },
