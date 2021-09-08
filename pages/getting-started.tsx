@@ -610,7 +610,7 @@ export async function getServerSideProps(context: NextPageContext) {
       redirect: {
         permanent: false,
         destination: "/auth/login",
-      } as const,
+      },
     };
   }
   const user = await prisma.user.findFirst({

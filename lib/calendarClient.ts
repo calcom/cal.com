@@ -1,6 +1,5 @@
 import EventOrganizerMail from "./emails/EventOrganizerMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
@@ -616,19 +615,10 @@ const updateEvent = async (
 
   if (!noMail) {
     const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-    const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
     try {
       await organizerMail.sendEmail();
     } catch (e) {
       console.error("organizerMail.sendEmail failed", e);
-    }
-
-    if (!updateResult || !updateResult.disableConfirmationEmail) {
-      try {
-        await attendeeMail.sendEmail();
-      } catch (e) {
-        console.error("attendeeMail.sendEmail failed", e);
-      }
     }
   }
 
