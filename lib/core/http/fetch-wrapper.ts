@@ -1,4 +1,4 @@
-import { HttpError } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/http/error";
 
 async function http<T>(path: string, config: RequestInit): Promise<T> {
   const request = new Request(path, config);

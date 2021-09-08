@@ -1,5 +1,5 @@
 import React from "react";
-import { HttpError } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/http/error";
 
 type Props = {
   hasRunOnServer: boolean;

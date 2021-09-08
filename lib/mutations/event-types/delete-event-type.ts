@@ -1,4 +1,4 @@
-import * as fetch from "@lib/core/api/fetch-wrapper";
+import * as fetch from "@lib/core/http/fetch-wrapper";
 
 const deleteEventType = async (data: { id: number }) => {
   const response = await fetch.remove<{ id: number }, Record<string, never>>(

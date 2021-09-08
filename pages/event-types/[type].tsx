@@ -10,7 +10,7 @@ import { getSession } from "@lib/auth";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
-import { HttpError } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/http/error";
 import {
   LocationMarkerIcon,
   LinkIcon,

@@ -2,8 +2,8 @@ export class HttpError<TCode extends number = number> extends Error {
   public readonly cause: unknown;
   public readonly statusCode: TCode;
   public readonly message: string;
-  public readonly url: string;
-  public readonly method: string;
+  public readonly url: string | undefined;
+  public readonly method: string | undefined;
 
   constructor(opts: { url?: string; method?: string; message?: string; statusCode: TCode; cause?: unknown }) {
     super(opts.message ?? `HTTP Error ${opts.statusCode} `);
@@ -15,7 +15,7 @@ export class HttpError<TCode extends number = number> extends Error {
     this.statusCode = opts.statusCode;
     this.url = opts.url;
     this.method = opts.method;
-    this.message = opts.message;
+    this.message = opts.message ?? `HTTP Error ${opts.statusCode}`;
 
     if (opts.cause instanceof Error && opts.cause.stack) {
       this.stack = opts.cause.stack;

@@ -1,4 +1,4 @@
-import * as fetch from "@lib/core/api/fetch-wrapper";
+import * as fetch from "@lib/core/http/fetch-wrapper";
 import { CreateEventType } from "@lib/types/event-type";
 import { EventType } from "@prisma/client";
 

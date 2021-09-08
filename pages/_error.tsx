@@ -5,7 +5,7 @@
 import React from "react";
 import { NextPage, NextPageContext } from "next";
 import NextError, { ErrorProps } from "next/error";
-import { HttpError } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/http/error";
 import { ErrorPage } from "@components/error/error-page";
 import logger from "@lib/logger";
 
