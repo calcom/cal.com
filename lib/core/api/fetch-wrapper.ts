@@ -1,33 +1,12 @@
-import { mapFetchErrorToHttpException } from "./fetch-exception.mapper";
-import { ServerErrorPayload } from "@lib/core/error/http/http-exception";
-import { HttpExceptionFactory } from "@lib/core/error/http/http-exception.factory";
+import { HttpError } from "@lib/core/error/http";
 
 async function http<T>(path: string, config: RequestInit): Promise<T> {
   const request = new Request(path, config);
   const response: Response = await fetch(request);
 
   if (!response.ok) {
-    const err = HttpExceptionFactory.fromStatus(response.status, response.statusText);
-    let errorPayload: ServerErrorPayload | undefined;
-    try {
-      errorPayload = {
-        type: "json",
-        content: await response.json(),
-      };
-    } catch (e) {
-      // ignore if the error response does not contain valid json.
-    }
-    if (!errorPayload) {
-      try {
-        errorPayload = {
-          type: "text",
-          content: await response.text(),
-        };
-      } catch (e) {
-        // ignore if the error response does not contain valid json.
-      }
-    }
-    throw mapFetchErrorToHttpException(err, path, config.method, errorPayload);
+    const err = HttpError.errorFactory(request, response);
+    throw err;
   }
   // may error if there is no body, return empty array
   return response.json().catch(() => ({}));

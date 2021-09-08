@@ -5,13 +5,13 @@
 import React from "react";
 import { NextPage, NextPageContext } from "next";
 import NextError, { ErrorProps } from "next/error";
-import { HttpException } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/error/http";
 import { ErrorPage } from "@components/error/error-page";
 import logger from "@lib/logger";
 import { ErrorWithProps } from "@lib/core/error/error-with-props";
 
 // Adds HttpException to the list of possible error types.
-type AugmentedError = (NonNullable<NextPageContext["err"]> & HttpException) | null;
+type AugmentedError = (NonNullable<NextPageContext["err"]> & HttpError) | null;
 type CustomErrorProps = {
   err?: AugmentedError;
   message?: string;
@@ -56,9 +56,9 @@ CustomError.getInitialProps = async ({ res, err, asPath }: AugmentedNextPageCont
   // getInitialProps has run
   errorInitialProps.hasGetInitialPropsRun = true;
 
-  // If a HttpException message, let's override defaults
-  if (err instanceof HttpException) {
-    errorInitialProps.statusCode = err.status;
+  // If a HttpError message, let's override defaults
+  if (err instanceof HttpError) {
+    errorInitialProps.statusCode = err.statusCode;
     errorInitialProps.title = err.name;
     errorInitialProps.message = err.message;
     errorInitialProps.err = err;

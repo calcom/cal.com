@@ -1,5 +1,5 @@
 import React from "react";
-import { HttpException } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/error/http";
 
 type Props = {
   hasRunOnServer: boolean;
@@ -7,7 +7,7 @@ type Props = {
 
 const TestErrorRoute: React.FC<Props> = (props) => {
   if (!props.hasRunOnServer) {
-    throw new HttpException({ status: 400, message: "test-error.tsx" });
+    throw new HttpError({ statusCode: 400, message: "test-error.tsx" });
   }
   return <>If you see this message, there is really something wrong ;)</>;
 };

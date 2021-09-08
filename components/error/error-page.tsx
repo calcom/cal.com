@@ -1,9 +1,9 @@
 import React from "react";
-import { HttpException } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/error/http";
 
 type Props = {
   statusCode?: number | null;
-  error?: Error | HttpException | null;
+  error?: Error | HttpError | null;
   message?: string;
   /** Display debugging information */
   displayDebug?: boolean;
@@ -21,9 +21,9 @@ const ErrorDebugPanel: React.FC<{ error: Props["error"]; children?: never }> = (
     ["error.message", e?.message],
     ["error.name", e?.name],
     ["error.class", e instanceof Error ? e.constructor.name : undefined],
-    ["http.url", e instanceof HttpException ? e.url : undefined],
-    ["http.status", e instanceof HttpException ? e.status : undefined],
-    ["http.previous", e instanceof HttpException ? e.previousError?.message : undefined],
+    ["http.url", e instanceof HttpError ? e.url : undefined],
+    ["http.status", e instanceof HttpError ? e.statusCode : undefined],
+    ["http.cause", e instanceof HttpError ? e.cause?.message : undefined],
     ["error.stack", e instanceof Error ? e.stack : undefined],
   ];
 

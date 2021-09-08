@@ -29,7 +29,7 @@ import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Alert } from "@components/ui/Alert";
-import { HttpException } from "@lib/core/error/http";
+import { HttpError } from "@lib/core/error/http";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -40,8 +40,9 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
       await router.push("/event-types/" + eventType.id);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
-    onError: (err: HttpException) => {
-      showToast(err.message, "error");
+    onError: (err: HttpError) => {
+      const message = `${err.statusCode}: ${err.message}`;
+      showToast(message, "error");
     },
   });
   const modalOpen = useToggleQuery("new");
