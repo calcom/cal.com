@@ -242,7 +242,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) {
     return {
       notFound: true,
-    } as const;
+    };
   }
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -271,7 +271,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventType || eventType.hidden) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   // check this is the first event
