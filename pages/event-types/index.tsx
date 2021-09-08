@@ -36,7 +36,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const router = useRouter();
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
-      await router.push("/event-types/" + eventType.id);
+      await router.push("/event-types/" + eventType.slug);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
     onError: (err: Error) => {
