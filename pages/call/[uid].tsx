@@ -79,6 +79,8 @@ export default function JoinCall(props, session) {
   );
 }
 
+
+
 export async function getServerSideProps(context) {
   const booking = await prisma.booking.findFirst({
     where: {
@@ -91,6 +93,7 @@ export async function getServerSideProps(context) {
           credentials: true,
         },
       },
+      dailyurl: true,
       attendees: true,
       dailyRef: {
         select: {
