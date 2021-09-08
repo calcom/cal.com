@@ -1097,7 +1097,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventType) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   if (eventType.userId != session.user.id) {
