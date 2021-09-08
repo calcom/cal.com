@@ -17,7 +17,6 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import formatCurrency from "@lib/formatCurrency";
 import prisma from "@lib/prisma";
-import serverSideErrorHandler from "@lib/serverSideErrorHandler";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Availability } from "@prisma/client";
@@ -221,110 +220,119 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  try {
-    // get query params and typecast them to string
-    // (would be even better to assert them instead of typecasting)
-    const userParam = asStringOrNull(context.query.user);
-    const typeParam = asStringOrNull(context.query.type);
-    const dateParam = asStringOrNull(context.query.date);
+  // get query params and typecast them to string
+  // (would be even better to assert them instead of typecasting)
+  const userParam = asStringOrNull(context.query.user);
+  const typeParam = asStringOrNull(context.query.type);
+  const dateParam = asStringOrNull(context.query.date);
 
-    if (!userParam || !typeParam) throw "invalidFileName";
-
-    const user = await prisma.user.findFirst({
-      where: {
-        username: userParam.toLowerCase(),
-      },
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        email: true,
-        bio: true,
-        avatar: true,
-        startTime: true,
-        endTime: true,
-        timeZone: true,
-        weekStart: true,
-        availability: true,
-        hideBranding: true,
-        theme: true,
-        plan: true,
-      },
-    });
-
-    if (!user) throw "notFound";
-
-    const eventType = await prisma.eventType.findUnique({
-      where: {
-        userId_slug: {
-          userId: user.id,
-          slug: typeParam,
-        },
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        price: true,
-        availability: true,
-        timeZone: true,
-        periodType: true,
-        periodDays: true,
-        periodStartDate: true,
-        periodEndDate: true,
-        periodCountCalendarDays: true,
-        minimumBookingNotice: true,
-        hidden: true,
-      },
-    });
-
-    if (!eventType || eventType.hidden) throw "notFound";
-
-    // check this is the first event
-    if (user.plan === "FREE") {
-      const firstEventType = await prisma.eventType.findFirst({
-        where: {
-          userId: user.id,
-        },
-        select: {
-          id: true,
-        },
-      });
-      if (firstEventType?.id !== eventType.id) throw "notFound";
-    }
-    const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
-      providesAvailability.availability && providesAvailability.availability.length
-        ? providesAvailability.availability
-        : null;
-
-    const workingHours =
-      getWorkingHours(eventType) ||
-      getWorkingHours(user) ||
-      [
-        {
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: user.startTime,
-          endTime: user.endTime,
-        },
-      ].filter((availability): boolean => typeof availability["days"] !== "undefined");
-
-    workingHours.sort((a, b) => a.startTime - b.startTime);
-
-    const eventTypeObject = Object.assign({}, eventType, {
-      periodStartDate: eventType.periodStartDate?.toString() ?? null,
-      periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    });
-
-    return {
-      props: {
-        user,
-        date: dateParam,
-        eventType: eventTypeObject,
-        workingHours,
-      },
-    };
-  } catch (error) {
-    return serverSideErrorHandler(error);
+  if (!userParam || !typeParam) {
+    throw new Error(`File is not named [type]/[user]`);
   }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      username: userParam.toLowerCase(),
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      startTime: true,
+      endTime: true,
+      timeZone: true,
+      weekStart: true,
+      availability: true,
+      hideBranding: true,
+      theme: true,
+      plan: true,
+    },
+  });
+
+  if (!user) {
+    return {
+      notFound: true,
+    };
+  }
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      userId_slug: {
+        userId: user.id,
+        slug: typeParam,
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true,
+      price: true,
+      availability: true,
+      timeZone: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      minimumBookingNotice: true,
+      hidden: true,
+    },
+  });
+
+  if (!eventType || eventType.hidden) {
+    return {
+      notFound: true,
+    };
+  }
+
+  // check this is the first event
+  if (user.plan === "FREE") {
+    const firstEventType = await prisma.eventType.findFirst({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (firstEventType?.id !== eventType.id) {
+      return {
+        notFound: true,
+      } as const;
+    }
+  }
+  const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
+    providesAvailability.availability && providesAvailability.availability.length
+      ? providesAvailability.availability
+      : null;
+
+  const workingHours =
+    getWorkingHours(eventType) ||
+    getWorkingHours(user) ||
+    [
+      {
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startTime: user.startTime,
+        endTime: user.endTime,
+      },
+    ].filter((availability): boolean => typeof availability["days"] !== "undefined");
+
+  workingHours.sort((a, b) => a.startTime - b.startTime);
+
+  const eventTypeObject = Object.assign({}, eventType, {
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
+  });
+
+  return {
+    props: {
+      user,
+      date: dateParam,
+      eventType: eventTypeObject,
+      workingHours,
+    },
+  };
 };
