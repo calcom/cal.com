@@ -27,7 +27,7 @@ export default function Custom404() {
           <div className="text-center">
             <p className="text-sm font-semibold tracking-wide text-black uppercase">Error 404</p>
             <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-              Ésta página no existe.
+              Esta página no existe.
             </h1>
             <a href={CHECKOUT_URL} className="inline-block mt-2 text-lg ">
               El usuario <strong className="text-blue-500">a.genda.me{username}</strong> aun está disponible.{" "}
