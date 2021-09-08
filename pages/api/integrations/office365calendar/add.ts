@@ -1,22 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import prisma from "../../../../lib/prisma";
 
 const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  function generateAuthUrl() {
-    return (
-      "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=code&scope=" +
-      scopes.join(" ") +
-      "&client_id=" +
-      process.env.MS_GRAPH_CLIENT_ID +
-      "&redirect_uri=" +
-      process.env.BASE_URL +
-      "/api/integrations/office365calendar/callback"
-    );
-  }
+function generateAuthUrl() {
+  return (
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=code&scope=" +
+    scopes.join(" ") +
+    "&client_id=" +
+    process.env.MS_GRAPH_CLIENT_ID +
+    "&redirect_uri=" +
+    process.env.BASE_URL +
+    "/api/integrations/office365calendar/callback"
+  );
+}
 
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     // Check that user is authenticated
     const session = await getSession({ req: req });
@@ -27,8 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Get user
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const user = await prisma.user.findFirst({
+    await prisma.user.findFirst({
       where: {
         email: session.user.email,
       },

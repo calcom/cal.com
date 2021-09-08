@@ -1,9 +1,8 @@
-import Head from "next/head";
 import Link from "next/link";
-import prisma from "../../lib/prisma";
-import Shell from "../../components/Shell";
+import prisma from "@lib/prisma";
+import Shell from "@components/Shell";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
@@ -12,8 +11,9 @@ import Loader from "@components/Loader";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import { getSession } from "@lib/auth";
 
-type Integration = {
+export type Integration = {
   installed: boolean;
   credential: unknown;
   type: string;
@@ -169,7 +169,7 @@ export default function Home({ integrations }: Props) {
           subtitle="If no entry is selected, all calendars will be checked"
         />
         <div className="my-4">
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
             {selectableCalendars.map((calendar) => (
               <li key={calendar.name} className="flex py-4">
                 <div className="w-1/12 mr-4 pt-2">
@@ -194,7 +194,7 @@ export default function Home({ integrations }: Props) {
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose as="button" className="btn btn-white mx-2">
-            Cancel
+            Confirm
           </DialogClose>
         </div>
       </DialogContent>
@@ -270,12 +270,7 @@ export default function Home({ integrations }: Props) {
 
   return (
     <div>
-      <Head>
-        <title>App Store | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <Shell heading="App Store" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
+      <Shell heading="Integrations" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
         <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">

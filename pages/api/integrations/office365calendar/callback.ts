@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 import prisma from "../../../../lib/prisma";
 
 const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
@@ -52,8 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const credential = await prisma.credential.create({
+  await prisma.credential.create({
     data: {
       type: "office365_calendar",
       key: responseBody,

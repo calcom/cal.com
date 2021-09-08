@@ -1,5 +1,4 @@
 import EventOrganizerMail from "./emails/EventOrganizerMail";
-import EventAttendeeMail from "./emails/EventAttendeeMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 import prisma from "./prisma";
@@ -120,6 +119,10 @@ export interface CalendarEvent {
   startTime: string;
   endTime: string;
   description?: string;
+  team?: {
+    name: string;
+    members: string[];
+  };
   location?: string;
   organizer: Person;
   attendees: Person[];
@@ -574,24 +577,10 @@ const createEvent = async (
       entryPoints: maybeEntryPoints,
     });
 
-    const attendeeMail = new EventAttendeeMail(calEvent, uid, {
-      hangoutLink: maybeHangoutLink,
-      conferenceData: maybeConferenceData,
-      entryPoints: maybeEntryPoints,
-    });
-
     try {
       await organizerMail.sendEmail();
     } catch (e) {
       console.error("organizerMail.sendEmail failed", e);
-    }
-
-    if (!creationResult || !creationResult.disableConfirmationEmail) {
-      try {
-        await attendeeMail.sendEmail();
-      } catch (e) {
-        console.error("attendeeMail.sendEmail failed", e);
-      }
     }
   }
 

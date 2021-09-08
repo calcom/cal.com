@@ -1,19 +1,18 @@
-import Head from "next/head";
+import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
-import prisma, { whereAndSelect } from "../../lib/prisma";
+import prisma, { whereAndSelect } from "@lib/prisma";
 import { EventTypeCustomInputType } from "@prisma/client";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
-import { LocationType } from "../../lib/location";
-import Avatar from "../../components/Avatar";
-import Button from "../../components/ui/Button";
+import PhoneInput from "@components/ui/form/PhoneInput";
+import { LocationType } from "@lib/location";
+import Avatar from "@components/Avatar";
+import { Button } from "@components/ui/Button";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
 
@@ -151,19 +150,24 @@ export default function Book(props: any): JSX.Element {
   return (
     isReady && (
       <div>
-        <Head>
-          <title>
-            {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with{" "}
-            {props.user.name || props.user.username} | Calendso
-          </title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+        <HeadSeo
+          title={`${rescheduleUid ? "Reschedule" : "Confirm"} your ${props.eventType.title} with ${
+            props.user.name || props.user.username
+          }`}
+          description={`${rescheduleUid ? "Reschedule" : "Confirm"} your ${props.eventType.title} with ${
+            props.user.name || props.user.username
+          }`}
+        />
 
         <main className="max-w-3xl mx-auto my-0 sm:my-24">
           <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">
             <div className="sm:flex px-4 py-5 sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
-                <Avatar user={props.user} className="w-16 h-16 rounded-full mb-4" />
+                <Avatar
+                  displayName={props.user.name}
+                  imageSrc={props.user.avatar}
+                  className="w-16 h-16 rounded-full mb-4"
+                />
                 <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.user.name}</h2>
                 <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
                   {props.eventType.title}
@@ -234,7 +238,7 @@ export default function Book(props: any): JSX.Element {
                             type="radio"
                             required
                             onChange={(e) => setSelectedLocation(e.target.value)}
-                            className="location"
+                            className="location focus:ring-black h-4 w-4 text-black border-gray-300 mr-2"
                             name="location"
                             value={location.type}
                             checked={selectedLocation === location.type}
@@ -251,19 +255,10 @@ export default function Book(props: any): JSX.Element {
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium dark:text-white text-gray-700">
-                        Phone Number
+                        Phone number
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          name="phone"
-                          placeholder="Enter phone number"
-                          id="phone"
-                          required
-                          className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                          onChange={() => {
-                            /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
-                          }}
-                        />
+                        <PhoneInput name="phone" placeholder="Enter phone number" id="phone" required />
                       </div>
                     </div>
                   )}
@@ -274,7 +269,7 @@ export default function Book(props: any): JSX.Element {
                         <div className="mb-4" key={"input-" + input.label.toLowerCase}>
                           {input.type !== EventTypeCustomInputType.BOOL && (
                             <label
-                              htmlFor={input.label}
+                              htmlFor={"custom_" + input.id}
                               className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                               {input.label}
                             </label>
@@ -286,7 +281,7 @@ export default function Book(props: any): JSX.Element {
                               required={input.required}
                               rows={3}
                               className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                              placeholder=""
+                              placeholder={input.placeholder}
                             />
                           )}
                           {input.type === EventTypeCustomInputType.TEXT && (
@@ -296,7 +291,7 @@ export default function Book(props: any): JSX.Element {
                               id={"custom_" + input.id}
                               required={input.required}
                               className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                              placeholder=""
+                              placeholder={input.placeholder}
                             />
                           )}
                           {input.type === EventTypeCustomInputType.NUMBER && (
@@ -319,8 +314,8 @@ export default function Book(props: any): JSX.Element {
                                 placeholder=""
                               />
                               <label
-                                htmlFor={input.label}
-                                className="block text-sm font-medium text-gray-700">
+                                htmlFor={"custom_" + input.id}
+                                className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                                 {input.label}
                               </label>
                             </div>

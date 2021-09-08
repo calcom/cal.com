@@ -12,8 +12,6 @@ import Title from "./Title";
 import Title2 from "./Title2";
 import Title3 from "./Title3";
 
-import classnames from "classnames";
-
 type Props = {
   variant?:
     | "overline"
@@ -32,14 +30,12 @@ type Props = {
   text?: string;
   tx?: string;
   className?: string;
-  color?: string;
 };
 
 export type TextProps = {
   children: any;
   text?: string;
   tx?: string;
-  color?: string;
   className?: string;
 };
 
@@ -79,84 +75,82 @@ export type TextProps = {
  */
 
 const Text: React.FunctionComponent<Props> = (props: Props) => {
-  const classes = classnames(props?.className, props?.color);
-
   switch (props?.variant) {
     case "overline":
       return (
-        <Overline className={classes} {...props}>
+        <Overline text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Overline>
       );
     case "body":
       return (
-        <Body className={classes} {...props}>
+        <Body text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Body>
       );
     case "caption":
       return (
-        <Caption className={classes} {...props}>
+        <Caption text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Caption>
       );
     case "caption2":
       return (
-        <Caption2 className={classes} {...props}>
+        <Caption2 text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Caption2>
       );
     case "footnote":
       return (
-        <Footnote className={classes} {...props}>
+        <Footnote text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Footnote>
       );
     case "headline":
       return (
-        <Headline className={classes} {...props}>
+        <Headline text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Headline>
       );
     case "largetitle":
       return (
-        <Largetitle className={classes} {...props}>
+        <Largetitle text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Largetitle>
       );
     case "subheadline":
       return (
-        <Subheadline className={classes} {...props}>
+        <Subheadline text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Subheadline>
       );
     case "subtitle":
       return (
-        <Subtitle className={classes} {...props}>
+        <Subtitle text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Subtitle>
       );
     case "title":
       return (
-        <Title className={classes} {...props}>
+        <Title text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Title>
       );
     case "title2":
       return (
-        <Title2 className={classes} {...props}>
+        <Title2 text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Title2>
       );
     case "title3":
       return (
-        <Title3 className={classes} {...props}>
+        <Title3 text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Title3>
       );
     default:
       return (
-        <Body className={classes} {...props}>
+        <Body text={props?.text} tx={props?.tx} className={props?.className}>
           {props.children}
         </Body>
       );

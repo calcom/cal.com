@@ -1,11 +1,11 @@
-import Head from "next/head";
 import { useRef, useState } from "react";
-import prisma from "../../lib/prisma";
-import Modal from "../../components/Modal";
-import Shell from "../../components/Shell";
-import SettingsShell from "../../components/Settings";
-import { getSession, useSession } from "next-auth/client";
+import prisma from "@lib/prisma";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
+import SettingsShell from "@components/Settings";
+import { useSession } from "next-auth/client";
 import Loader from "@components/Loader";
+import { getSession } from "@lib/auth";
 
 export default function Settings() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,11 +45,7 @@ export default function Settings() {
   }
 
   return (
-    <Shell heading="Password" subtitle="Change the password that you use to sign in to your account.">
-      <Head>
-        <title>Change Password | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <Shell heading="Change Password" subtitle="Change the password that you use to sign in to your account.">
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
           <div className="py-6 lg:pb-8">

@@ -1,13 +1,13 @@
-import Head from "next/head";
 import Link from "next/link";
-import prisma from "../../lib/prisma";
-import Modal from "../../components/Modal";
-import Shell from "../../components/Shell";
+import prisma from "@lib/prisma";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import { ClockIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
+import { getSession } from "@lib/auth";
 
 export default function Availability(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -115,15 +115,7 @@ export default function Availability(props) {
 
   return (
     <div>
-      <Head>
-        <title>Availability | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Shell
-        heading="Availability"
-        subtitle="Configure times when you are available for bookings.
-
-">
+      <Shell heading="Availability" subtitle="Configure times when you are available for bookings.">
         <div className="flex">
           <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">

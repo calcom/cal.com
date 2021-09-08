@@ -5,6 +5,11 @@ type Props = {
 };
 
 export const ADD_CALDAV_INTEGRATION_FORM_TITLE = "addCalDav";
+export type AddCalDavIntegrationRequest = {
+  url: string;
+  username: string;
+  password: string;
+};
 
 const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, ref) => {
   const onSubmit = (event) => {
