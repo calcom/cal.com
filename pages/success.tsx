@@ -12,6 +12,7 @@ import timezone from "dayjs/plugin/timezone";
 import { createEvent } from "ics";
 import { getEventName } from "@lib/event";
 import Theme from "@components/Theme";
+import { CHECKOUT_URL } from "@lib/config/globals";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -60,35 +61,35 @@ export default function Success(props) {
 
   return (
     isReady && (
-      <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
+      <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
         <HeadSeo
           title={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
           description={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
         />
-        <main className="max-w-3xl mx-auto py-24">
-          <div className="fixed z-50 inset-0 overflow-y-auto">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 my-4 sm:my-0 transition-opacity" aria-hidden="true">
+        <main className="max-w-3xl py-24 mx-auto">
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                   &#8203;
                 </span>
                 <div
-                  className="inline-block align-bottom dark:bg-gray-800 bg-white rounded-sm px-8 pt-5 pb-4 text-left overflow-hidden border border-neutral-200 dark:border-neutral-700 transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
+                  className="inline-block px-8 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white border rounded-sm dark:bg-gray-800 border-neutral-200 dark:border-neutral-700 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
                   <div>
-                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full">
                       {!props.eventType.requiresConfirmation && (
-                        <CheckIcon className="h-8 w-8 text-green-600" />
+                        <CheckIcon className="w-8 h-8 text-green-600" />
                       )}
                       {props.eventType.requiresConfirmation && (
-                        <ClockIcon className="h-8 w-8 text-green-600" />
+                        <ClockIcon className="w-8 h-8 text-green-600" />
                       )}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3
-                        className="text-2xl leading-6 font-semibold dark:text-white text-neutral-900"
+                        className="text-2xl font-semibold leading-6 dark:text-white text-neutral-900"
                         id="modal-headline">
                         {props.eventType.requiresConfirmation ? "Submitted" : "This meeting is scheduled"}
                       </h3>
@@ -101,11 +102,11 @@ export default function Success(props) {
                             : `We emailed you and the other attendees a calendar invitation with all the details.`}
                         </p>
                       </div>
-                      <div className="mt-4 text-gray-700 dark:text-gray-300 border-t border-b dark:border-gray-900 py-4 grid grid-cols-3 text-left">
+                      <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b dark:text-gray-300 dark:border-gray-900">
                         <div className="font-medium">What</div>
-                        <div className="mb-6 col-span-2">{eventName}</div>
+                        <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">When</div>
-                        <div className="mb-6 col-span-2">
+                        <div className="col-span-2 mb-6">
                           {date.format("dddd, DD MMMM YYYY")}
                           <br />
                           {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
@@ -123,8 +124,8 @@ export default function Success(props) {
                     </div>
                   </div>
                   {!props.eventType.requiresConfirmation && (
-                    <div className="mt-5 sm:mt-0 sm:pt-4 pt-2 text-center flex">
-                      <span className="font-medium text-gray-700 dark:text-gray-50 flex self-center mr-6">
+                    <div className="flex pt-2 mt-5 text-center sm:mt-0 sm:pt-4">
+                      <span className="flex self-center mr-6 font-medium text-gray-700 dark:text-gray-50">
                         Add to calendar
                       </span>
                       <div className="flex">
@@ -139,7 +140,7 @@ export default function Success(props) {
                               props.eventType.description
                             }` + (location ? "&location=" + encodeURIComponent(location) : "")
                           }>
-                          <a className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3">
+                          <a className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white">
                             <svg
                               className="inline-block w-4 h-4 -mt-1"
                               fill="currentColor"
@@ -164,7 +165,7 @@ export default function Success(props) {
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3"
+                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
@@ -190,7 +191,7 @@ export default function Success(props) {
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3"
+                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
@@ -204,7 +205,7 @@ export default function Success(props) {
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
                           <a
-                            className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3"
+                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -221,8 +222,8 @@ export default function Success(props) {
                     </div>
                   )}
                   {!props.user.hideBranding && (
-                    <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
-                      <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
+                    <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
+                      <a href={CHECKOUT_URL}>Create your own booking link with Calendso</a>
                     </div>
                   )}
                 </div>
