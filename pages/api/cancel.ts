@@ -7,7 +7,7 @@ import { BookingStatus } from "@prisma/client";
 
 export default async function handler(req, res) {
   if (req.method == "POST") {
-    const uid: string | null = asStringOrNull(req.body.uid);
+    const uid = asStringOrNull(req.body.uid);
 
     const bookingToDelete = await prisma.booking.findUnique({
       where: {
