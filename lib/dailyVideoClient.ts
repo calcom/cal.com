@@ -14,6 +14,7 @@ import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMai
 import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
 import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
 
+
 const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
 const translator = short();

@@ -78,6 +78,7 @@ export default function JoinCall(props, session) {
     </>
   );
 }
+*/
 
 
 
@@ -94,6 +95,7 @@ export async function getServerSideProps(context) {
         },
       },
       dailyurl: true,
+      dailytoken: true,
       attendees: true,
       dailyRef: {
         select: {
