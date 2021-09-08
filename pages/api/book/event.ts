@@ -13,7 +13,6 @@ import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
 import { getBusyVideoTimes } from "@lib/videoClient";
-import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
 import { getEventName } from "@lib/event";
 import dayjs from "dayjs";
 import logger from "@lib/logger";
@@ -23,7 +22,6 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import isBetween from "dayjs/plugin/isBetween";
 import dayjsBusinessDays from "dayjs-business-days";
-import { Exception } from "handlebars";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
 
 dayjs.extend(dayjsBusinessDays);
@@ -190,17 +188,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return g;
   });
 
-  const teamMembers = (
+  const teamMembers =
     eventType.schedulingType === SchedulingType.COLLECTIVE
-  ) ? users.slice(1).map(user => ({
-    email: user.email,
-    name: user.name,
-    timeZone: user.timeZone,
-  })) : [];
+      ? users.slice(1).map((user) => ({
+          email: user.email,
+          name: user.name,
+          timeZone: user.timeZone,
+        }))
+      : [];
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  let seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
+  const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const evt: CalendarEvent = {
@@ -220,9 +219,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
     evt.team = {
-      members: users.map(user => user.name || user.username),
+      members: users.map((user) => user.name || user.username),
       name: eventType.team.name,
-    } // used for invitee emails
+    }; // used for invitee emails
   }
 
   const bookingCreateInput: Prisma.BookingCreateInput = {
@@ -245,7 +244,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     user: {
       connect: {
-        id: users[0].id
+        id: users[0].id,
       },
     },
   };
@@ -266,23 +265,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let results: EventResult[] = [];
   let referencesToCreate = [];
 
-  const loadUser = async (id): Promise<User> => await prisma.user.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      id: true,
-      credentials: true,
-      timeZone: true,
-      email: true,
-      username: true,
-      name: true,
-      bufferTime: true,
-    },
-  });
+  const loadUser = async (id): Promise<User> =>
+    await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        credentials: true,
+        timeZone: true,
+        email: true,
+        username: true,
+        name: true,
+        bufferTime: true,
+      },
+    });
 
   let user: User;
-  for (const currentUser of await Promise.all(users.map(user => loadUser(user.id)))) {
+  for (const currentUser of await Promise.all(users.map((user) => loadUser(user.id)))) {
     if (!user) {
       user = currentUser;
     }
@@ -375,10 +375,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.name} failed`, error, results);
     }
-
   } else if (!eventType.requiresConfirmation) {
     // Use EventManager to conditionally use all needed integrations.
-    const createResults: CreateUpdateResult = await eventManager.create(evt);
+    const createResults: CreateUpdateResult = await eventManager.create(evt, uid);
 
     results = createResults.results;
     referencesToCreate = createResults.referencesToCreate;
