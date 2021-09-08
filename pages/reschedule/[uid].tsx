@@ -25,7 +25,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!booking?.user || !booking.eventType) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   return {

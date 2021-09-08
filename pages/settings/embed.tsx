@@ -69,7 +69,7 @@ export default function Embed(props) {
               Leverage our API for full control and customizability.
             </p>
           </div>
-          <a href="https://api.docs.calendso.com" className="btn btn-primary">
+          <a href="https://developer.calendso.com/api" className="btn btn-primary">
             Browse our API documentation
           </a>
         </div>

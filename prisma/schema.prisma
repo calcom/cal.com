@@ -33,6 +33,8 @@ model EventType {
   requiresConfirmation    Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
   Schedule                Schedule[]
+
+  @@unique([userId, slug])
 }
 
 model Credential {
@@ -43,9 +45,15 @@ model Credential {
   userId Int?
 }
 
+enum UserPlan {
+  FREE
+  TRIAL
+  PRO
+}
+
 model User {
   id                  Int                @id @default(autoincrement())
-  username            String?
+  username            String?            @unique
   name                String?
   email               String?            @unique
   emailVerified       DateTime?
@@ -68,15 +76,20 @@ model User {
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
 
+
+  plan     UserPlan   @default(PRO)
   Schedule Schedule[]
   @@map(name: "users")
 }
 
 model Team {
-  id      Int          @id @default(autoincrement())
-  name    String?
-  slug    String?
-  members Membership[]
+  id            Int       @default(autoincrement()) @id
+  name          String?
+  slug          String?   @unique
+  logo          String?
+  bio           String?
+  hideBranding  Boolean @default(false)    
+  members       Membership[]
 }
 
 enum MembershipRole {
@@ -200,7 +213,7 @@ model EventTypeCustomInput {
   label       String
   type        EventTypeCustomInputType
   required    Boolean
-  placeholder String @default("")
+  placeholder String                   @default("")
 }
 
 model ResetPasswordRequest {
