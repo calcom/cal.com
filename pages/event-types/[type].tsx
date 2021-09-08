@@ -1090,10 +1090,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      userId: true,
     },
   });
 
   if (!eventType) {
+    return {
+      notFound: true,
+    } as const;
+  }
+
+  if (eventType.userId != session.user.id) {
     return {
       notFound: true,
     } as const;
