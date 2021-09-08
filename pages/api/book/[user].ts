@@ -296,8 +296,21 @@ if (!rescheduleUid) {
 } else {
  dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent ;
 }
+  
+let meetingToken;
+if (isDaily && !rescheduleUid){  
+   const response = await fetch('https://api.daily.co/v1/meeting-tokens', {
+    method: 'POST',
+    body:JSON.stringify({properties: {room_name: dailyEvent.name, is_owner: true}}),
+    headers: {
+      'Authorization': 'Bearer ' + process.env.DAILY_API_KEY,
+      'Content-Type': 'application/json'
+    },
+  })
+  meetingToken = await response.json()
+};
 
-
+    
 
     const hashUID =
       results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));

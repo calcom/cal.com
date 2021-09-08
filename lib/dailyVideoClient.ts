@@ -13,6 +13,7 @@ import { getIntegrationName } from "@lib/emails/helpers";
 import CalEventParser from "@lib/CalEventParser";
 import { Credential } from "@prisma/client";
 
+
 const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
 const translator = short();
@@ -49,7 +50,9 @@ function handleErrorsRaw(response) {
   return response.text();
 }
 
+
 var dailyCredential = process.env.DAILY_API_KEY
+
 
 
 //lola internal - we can probably do later but we might want to follow this for the meetingToken piece
@@ -106,19 +109,23 @@ interface DailyVideoApiAdapter {
 }
 
 const DailyVideo = (credential): DailyVideoApiAdapter => {
-  // lola todo yea this zoom auth stuff
+
 
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // lola todo i'll need to actually pull in the dynamic data but I think I can draw inspiration from the zoom translate event
+    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 1440;
+    const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 1440;
     return {
-      privacy: "public",
+      privacy: "private",
       properties: {
         enable_new_call_ui: true,
         enable_prejoin_ui: true, 
         enable_knocking: true,  
         enable_screenshare: true,
-        enable_chat: true
+        enable_chat: true,
+        exp: exp,
+        nbf: nbf
       }
     };
   };
@@ -194,7 +201,7 @@ const dailyCreateMeeting = async (
       log.error("createMeeting failed", e, calEvent);
       success = false;
     });
-
+    
   const currentRoute=process.env.BASE_URL ;
 
   const videoCallData: DailyVideoCallData = {
