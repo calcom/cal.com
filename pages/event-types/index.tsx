@@ -245,7 +245,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
           props.eventTypes.map((input) => (
             <>
               {/* hide list heading when there is only one (current user) */}
-              {props.eventTypes.length !== 1 && (
+              {(props.eventTypes.length !== 1 || input.teamId) && (
                 <EventTypeListHeading
                   profile={input.profile}
                   membershipCount={input.metadata?.membershipCount}
@@ -318,17 +318,6 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
       onOpenChange={(isOpen) => {
         router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
       }}>
-      {/*onOpenChange={(isOpen) => {
-        const newQuery = {
-          ...router.query,
-        };
-        delete newQuery["new"];
-        delete newQuery["eventPage"];
-        delete newQuery["teamId"];
-        if (!isOpen) {
-          router.push({ pathname: router.pathname, query: newQuery });
-        }
-      }}>*/}
       {!profiles.filter((profile) => profile.teamId).length && (
         <Button
           {...(canAddEvents
@@ -520,6 +509,9 @@ export async function getServerSideProps(context) {
       createdDate: true,
       plan: true,
       teams: {
+        where: {
+          accepted: true,
+        },
         select: {
           role: true,
           team: {
@@ -601,7 +593,7 @@ export async function getServerSideProps(context) {
   let eventTypes = [];
 
   // backwards compatibility, TMP:
-  if (eventTypes.length === 0) {
+  if (user.eventTypes.length === 0) {
     const typesRaw = await prisma.eventType.findMany({
       where: {
         userId: session.user.id,
