@@ -22,7 +22,7 @@ export class HttpError<TCode extends number = number> extends Error {
     }
   }
 
-  static errorFactory(request, response: Response) {
+  public static fromRequest(request: Request, response: Response) {
     return new HttpError({
       message: response.statusText,
       url: response.url,

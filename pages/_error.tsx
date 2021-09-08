@@ -8,7 +8,6 @@ import NextError, { ErrorProps } from "next/error";
 import { HttpError } from "@lib/core/error/http";
 import { ErrorPage } from "@components/error/error-page";
 import logger from "@lib/logger";
-import { ErrorWithProps } from "@lib/core/error/error-with-props";
 
 // Adds HttpException to the list of possible error types.
 type AugmentedError = (NonNullable<NextPageContext["err"]> & HttpError) | null;
@@ -24,6 +23,18 @@ type AugmentedNextPageContext = Omit<NextPageContext, "err"> & {
 
 const log = logger.getChildLogger({ prefix: ["[error]"] });
 
+export function getErrorFromUnknown(cause: unknown): Error {
+  if (cause instanceof Error) {
+    return cause;
+  }
+  if (typeof cause === "string") {
+    // @ts-expect-error https://github.com/tc39/proposal-error-cause
+    return new Error(cause, { cause });
+  }
+
+  return new Error(`Unhandled error of type '${typeof cause}''`);
+}
+
 const CustomError: NextPage<CustomErrorProps> = (props) => {
   const { statusCode, err, message, hasGetInitialPropsRun } = props;
 
@@ -32,10 +43,7 @@ const CustomError: NextPage<CustomErrorProps> = (props) => {
     // https://github.com/vercel/next.js/issues/8592. As a workaround, we pass
     // err via _app.tsx so it can be captured
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const e =
-      (err as unknown) instanceof Error
-        ? err
-        : ErrorWithProps.createFromProps(err as unknown, "Returned err is not an Error object");
+    const e = getErrorFromUnknown(err);
     // can be captured here
     // e.g. Sentry.captureException(e);
   }
