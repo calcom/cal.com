@@ -1090,6 +1090,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      userId: true,
     },
   });
 
@@ -1097,6 +1098,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       notFound: true,
     };
+  }
+
+  if (eventType.userId != session.user.id) {
+    return {
+      notFound: true,
+    } as const;
   }
 
   const credentials = await prisma.credential.findMany({
