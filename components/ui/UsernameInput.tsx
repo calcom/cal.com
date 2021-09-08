@@ -4,11 +4,11 @@ const UsernameInput = React.forwardRef((props, ref) => (
   // todo, check if username is already taken here?
   <div>
     <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-      Username
+      {props.label ? props.label : "Username"}
     </label>
-    <div className="mt-1 rounded-md shadow-sm flex">
-      <span className="bg-gray-50 border border-r-0 border-gray-300 rounded-l-sm px-3 inline-flex items-center text-gray-500 sm:text-sm">
-        {typeof window !== "undefined" && window.location.hostname}/
+    <div className="flex mt-1 rounded-md shadow-sm">
+      <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+        {typeof window !== "undefined" && window.location.hostname}/{props.label && "team/"}
       </span>
       <input
         ref={ref}
@@ -18,7 +18,7 @@ const UsernameInput = React.forwardRef((props, ref) => (
         autoComplete="username"
         required
         {...props}
-        className="focus:ring-black focus:border-black flex-grow block w-full min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300 lowercase"
+        className="flex-grow block w-full min-w-0 lowercase border-gray-300 rounded-none rounded-r-sm focus:ring-black focus:border-black sm:text-sm"
       />
     </div>
   </div>
