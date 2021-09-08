@@ -7,6 +7,7 @@ import { LocationType } from "@lib/location";
 import { v5 as uuidv5 } from "uuid";
 import merge from "lodash.merge";
 import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
+import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
 
 export interface EventResult {
   type: string;
@@ -70,21 +71,7 @@ export default class EventManager {
     if (isDedicated) {
       results.push(await this.createVideoEvent(event, maybeUid));
     } else {
-      if (!results.length || !results.some((eRes) => eRes.createdEvent.disableConfirmationEmail)) {
-        const metadata: { hangoutLink?: string; conferenceData?: unknown; entryPoints?: unknown } = {};
-        if (results.length) {
-          // TODO: Handle created event metadata more elegantly
-          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-          metadata.conferenceData = results[0].createdEvent?.conferenceData;
-          metadata.entryPoints = results[0].createdEvent?.entryPoints;
-        }
-        const attendeeMail = new EventAttendeeMail(event, maybeUid, metadata);
-        try {
-          await attendeeMail.sendEmail();
-        } catch (e) {
-          console.error("attendeeMail.sendEmail failed", e);
-        }
-      }
+      await this.sendAttendeeMail("new", results, event, maybeUid);
     }
 
     const referencesToCreate: Array<PartialReference> = results.map((result) => {
@@ -135,6 +122,8 @@ export default class EventManager {
     // If and only if event type is a dedicated meeting, update the dedicated video meeting as well.
     if (isDedicated) {
       results.push(await this.updateVideoEvent(event, booking));
+    } else {
+      await this.sendAttendeeMail("reschedule", results, event, rescheduleUid);
     }
 
     // Now we can delete the old booking and its references.
@@ -318,5 +307,34 @@ export default class EventManager {
     }
 
     return event;
+  }
+
+  private async sendAttendeeMail(type: "new" | "reschedule", results, event, maybeUid) {
+    if (
+      !results.length ||
+      !results.some((eRes) => (eRes.createdEvent || eRes.updatedEvent).disableConfirmationEmail)
+    ) {
+      const metadata: { hangoutLink?: string; conferenceData?: unknown; entryPoints?: unknown } = {};
+      if (results.length) {
+        // TODO: Handle created event metadata more elegantly
+        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+        metadata.conferenceData = results[0].createdEvent?.conferenceData;
+        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+      }
+      let attendeeMail;
+      switch (type) {
+        case "reschedule":
+          attendeeMail = new EventAttendeeRescheduledMail(event, maybeUid, metadata);
+          break;
+        case "new":
+          attendeeMail = new EventAttendeeMail(event, maybeUid, metadata);
+          break;
+      }
+      try {
+        await attendeeMail.sendEmail();
+      } catch (e) {
+        console.error("attendeeMail.sendEmail failed", e);
+      }
+    }
   }
 }
