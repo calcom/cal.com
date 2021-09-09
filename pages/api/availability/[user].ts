@@ -7,7 +7,6 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { User } from "@prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
   const user = asStringOrNull(req.query.user);
   const dateFrom = dayjs(asStringOrNull(req.query.dateFrom));
   const dateTo = dayjs(asStringOrNull(req.query.dateTo));

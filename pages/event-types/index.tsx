@@ -274,7 +274,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
-      await router.push("/event-types/" + eventType.slug);
+      await router.push("/event-types/" + eventType.id);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
     onError: (err: Error) => {

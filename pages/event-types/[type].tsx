@@ -1099,7 +1099,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  const typeParam = asStringOrThrow(query.type);
+  const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
     return {
@@ -1128,7 +1128,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           ],
         },
         {
-          slug: typeParam,
+          id: typeParam,
         },
       ],
     },
