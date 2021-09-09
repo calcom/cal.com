@@ -1,9 +1,9 @@
 import { hashPassword } from "../lib/auth";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient, UserPlan } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function createUserAndEventType(opts: {
-  user: Omit<Prisma.UserCreateArgs["data"], "password" | "email"> & { password: string; email: string };
+  user: { email: string; password: string; username: string; plan: UserPlan };
   eventTypes: Array<Prisma.EventTypeCreateArgs["data"]>;
 }) {
   const userData: Prisma.UserCreateArgs["data"] = {
@@ -24,16 +24,34 @@ async function createUserAndEventType(opts: {
   for (const rawData of opts.eventTypes) {
     const eventTypeData: Prisma.EventTypeCreateArgs["data"] = { ...rawData };
     eventTypeData.userId = user.id;
-    await prisma.eventType.upsert({
+
+    const eventType = await prisma.eventType.findFirst({
       where: {
-        userId_slug: {
-          slug: eventTypeData.slug,
-          userId: user.id,
+        slug: eventTypeData.slug,
+        users: {
+          some: {
+            id: eventTypeData.userId,
+          },
         },
       },
-      update: eventTypeData,
-      create: eventTypeData,
+      select: {
+        id: true,
+      },
     });
+
+    if (eventType) {
+      await prisma.eventType.update({
+        where: {
+          id: eventType.id,
+        },
+        data: eventTypeData,
+      });
+    } else {
+      await prisma.eventType.create({
+        data: eventTypeData,
+      });
+    }
+
     console.log(
       `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}: http://localhost:3000/${user.username}/${eventTypeData.slug}`
     );
