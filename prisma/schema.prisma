@@ -5,7 +5,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 
-  previewFeatures = ["nativeTypes"]
+
 }
 
 generator client {
