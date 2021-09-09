@@ -1128,14 +1128,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           ],
         },
         {
-          OR: [
-            {
-              slug: typeParam,
-            },
-            {
-              id: parseInt(typeParam),
-            },
-          ],
+          slug: typeParam,
         },
       ],
     },

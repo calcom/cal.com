@@ -30,6 +30,8 @@ import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Alert } from "@components/ui/Alert";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import { useMutation } from "react-query";
+import createEventType from "@lib/mutations/event-types/create-event-type";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const CreateFirstEventTypeView = () => (
@@ -269,48 +271,18 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
 
-  function autoPopulateSlug() {
-    let t = titleRef.current.value;
-    t = t.replace(/\s+/g, "-").toLowerCase();
-    slugRef.current.value = t;
-  }
+  const createMutation = useMutation(createEventType, {
+    onSuccess: async ({ eventType }) => {
+      await router.push("/event-types/" + eventType.slug);
+      showToast(`${eventType.title} event type created successfully`, "success");
+    },
+    onError: (err: Error) => {
+      showToast(err.message, "error");
+    },
+  });
 
-  async function createEventTypeHandler(event) {
-    event.preventDefault();
-
-    const formData = Object.fromEntries(new FormData(event.target).entries());
-    const payload: {
-      title: string;
-      url: string;
-      description: string;
-      length: number;
-      schedulingType?: "collective" | "roundRobin";
-      teamId?: number;
-    } = {
-      ...formData,
-      length: Number(formData.length),
-      ...(router.query.teamId
-        ? {
-            teamId: Number(router.query.teamId),
-          }
-        : {}),
-    };
-
-    await fetch("/api/availability/eventtype", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    await router.push({ pathname: router.pathname });
-
-    showToast("Event Type created", "success");
-  }
+  const slugRef = useRef<HTMLInputElement>(null);
 
   return (
     <Dialog
@@ -383,7 +355,28 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
             <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
           </div>
         </div>
-        <form onSubmit={createEventTypeHandler}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            const target = e.target as unknown as Record<
+              "title" | "slug" | "description" | "length" | "schedulingType",
+              { value: string }
+            >;
+
+            const payload = {
+              title: target.title.value,
+              slug: target.slug.value,
+              description: target.description.value,
+              length: parseInt(target.length.value),
+            };
+
+            if (target.schedulingType?.value) {
+              payload.schedulingType = target.schedulingType.value;
+            }
+
+            createMutation.mutate(payload);
+          }}>
           <div>
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -391,8 +384,12 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
               </label>
               <div className="mt-1">
                 <input
-                  onChange={autoPopulateSlug}
-                  ref={titleRef}
+                  onChange={(e) => {
+                    if (!slugRef.current) {
+                      return;
+                    }
+                    slugRef.current.value = e.target.value.replace(/\s+/g, "-").toLowerCase();
+                  }}
                   type="text"
                   name="title"
                   id="title"
