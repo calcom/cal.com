@@ -2,7 +2,7 @@
  * This file contains the root router of your tRPC-backend
  */
 import { createRouter } from "../createRouter";
-import { testRouter } from "./testRouter";
+import { testRouter } from "./test";
 
 /**
  * Create your application's root router
