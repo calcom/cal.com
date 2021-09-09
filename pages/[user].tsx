@@ -4,6 +4,7 @@ import Theme from "@components/Theme";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
@@ -11,7 +12,10 @@ import React from "react";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = Theme(props.user.theme);
-
+  // FIXME delete me before merge
+  const query1 = trpc.useQuery(["test.hello"]);
+  const query2 = trpc.useQuery(["test.hello", "alex"]);
+  console.log("result", { query1, query2 });
   return (
     <>
       <HeadSeo
