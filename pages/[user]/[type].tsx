@@ -113,7 +113,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (user.plan === "FREE") {
     const firstEventType = await prisma.eventType.findFirst({
       where: {
-        userId: user.id,
+        OR: [
+          {
+            userId: user.id,
+          },
+          {
+            users: {
+              some: {
+                id: user.id,
+              },
+            },
+          },
+        ],
       },
       select: {
         id: true,
