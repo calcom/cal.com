@@ -16,7 +16,7 @@ const links = [
     title: "API Reference",
     description: "A complete API reference for our libraries",
     icon: CodeIcon,
-    href: "https://api.docs.calendso.com",
+    href: "https://developer.calendso.com/api",
   },
   {
     title: "Blog",
