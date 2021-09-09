@@ -177,9 +177,9 @@
     js-tokens "^4.0.0"
 
 "@babel/parser@^7.1.0", "@babel/parser@^7.15.4", "@babel/parser@^7.15.5", "@babel/parser@^7.7.2":
-  version "7.15.5"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.15.5.tgz#d33a58ca69facc05b26adfe4abebfed56c1c2dac"
-  integrity sha512-2hQstc6I7T6tQsWzlboMh3SgMRPaS4H6H7cPQsJkdzTzEGqQrpLDsE2BGASU5sBPoEQyHzeqU6C8uKbFeEk6sg==
+  version "7.15.6"
+  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.15.6.tgz#043b9aa3c303c0722e5377fef9197f4cf1796549"
+  integrity sha512-S/TSCcsRuCkmpUuoWijua0Snt+f3ewU/8spLo+4AXJCZfT0bVCzLD5MuOKdrx0mlAptbKzn5AdgEIIKXxXkz9Q==
 
 "@babel/plugin-syntax-async-generators@^7.8.4":
   version "7.8.4"
@@ -326,9 +326,9 @@
     to-fast-properties "^2.0.0"
 
 "@babel/types@^7.0.0", "@babel/types@^7.15.4", "@babel/types@^7.3.0", "@babel/types@^7.3.3":
-  version "7.15.4"
-  resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.15.4.tgz#74eeb86dbd6748d2741396557b9860e57fce0a0d"
-  integrity sha512-0f1HJFuGmmbrKTCZtbm3cU+b/AqdEYk5toj5iQur58xkVMlS0JWaKxTBSmCXd47uiN7vbcozAupm6Mvs80GNhw==
+  version "7.15.6"
+  resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.15.6.tgz#99abdc48218b2881c058dd0a7ab05b99c9be758f"
+  integrity sha512-BPU+7QhqNjmWyDO0/vitH/CuhpV8ZmK1wpKva8nuyNF5MJfuRNWMc+hc14+u9xT93kvykMdncrJT19h74uB1Ig==
   dependencies:
     "@babel/helper-validator-identifier" "^7.14.9"
     to-fast-properties "^2.0.0"
@@ -1361,9 +1361,9 @@
   integrity sha512-/BHF5HAx3em7/KkzVKm3LrsD6HZAXuXO1AJZQ3cRRBZj4oHZDviWPYu0aEplAqDFNHZPW6d3G7KN+ONcCCC7pw==
 
 "@types/node@*", "@types/node@^16.6.1":
-  version "16.9.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.0.tgz#d9512fe037472dcb58931ce19f837348db828a62"
-  integrity sha512-nmP+VR4oT0pJUPFbKE4SXj3Yb4Q/kz3M9dSAO1GGMebRKWHQxLfDNmU/yh3xxCJha3N60nQ/JwXWwOE/ZSEVag==
+  version "16.9.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.1.tgz#0611b37db4246c937feef529ddcc018cf8e35708"
+  integrity sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==
 
 "@types/node@^14.14.31":
   version "14.17.15"
@@ -3000,9 +3000,9 @@ efrt-unpack@2.2.0:
   integrity sha512-9xUSSj7qcUxz+0r4X3+bwUNttEfGfK5AH+LVa1aTpqdAfrN5VhROYCfcF+up4hp5OL7IUKcZJJrzAGipQRDoiQ==
 
 electron-to-chromium@^1.3.723, electron-to-chromium@^1.3.830:
-  version "1.3.833"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.833.tgz#e1394eb32ab8a9430ffd7d5adf632ce6c3b05e18"
-  integrity sha512-h+9aVaUHjyunLqtCjJF2jrJ73tYcJqo2cCGKtVAXH9WmnBsb8hiChRQ0P1uXjdxR6Wcfxibephy41c1YlZA/pA==
+  version "1.3.834"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.834.tgz#57a94f4a6529c926a8c332b184b291230a3f2140"
+  integrity sha512-9hnYJOlj2zbVn59Oy1R2mW/jntsRG7Gy56/aAOq8s29DzDYW/kOrq/ryJXGAQRRMg4MreHjI63XavGZTsnPubg==
 
 elliptic@^6.5.3:
   version "6.5.4"
