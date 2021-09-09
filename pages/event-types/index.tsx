@@ -17,8 +17,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
 import dayjs from "dayjs";
-import Shell from "../../components/Shell";
-import prisma from "../../lib/prisma";
+import Shell from "@components/Shell";
+import prisma from "@lib/prisma";
 import { EventType, SchedulingType } from "@prisma/client";
 import showToast from "@lib/notification";
 import Avatar from "@components/Avatar";
@@ -32,6 +32,7 @@ import { Alert } from "@components/ui/Alert";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
+import { HttpError } from "@lib/core/http/error";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const CreateFirstEventTypeView = () => (
@@ -277,8 +278,9 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
       await router.push("/event-types/" + eventType.id);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
-    onError: (err: Error) => {
-      showToast(err.message, "error");
+    onError: (err: HttpError) => {
+      const message = `${err.statusCode}: ${err.message}`;
+      showToast(message, "error");
     },
   });
 
