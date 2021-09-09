@@ -9,7 +9,7 @@ async function http<T>(path: string, config: RequestInit): Promise<T> {
     throw err;
   }
   // may error if there is no body, return empty array
-  return response.json().catch(() => ({}));
+  return await response.json();
 }
 
 export async function get<T>(path: string, config?: RequestInit): Promise<T> {
