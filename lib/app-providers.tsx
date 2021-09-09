@@ -3,12 +3,13 @@ import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
 import { loggerLink } from "@trpc/client/links/loggerLink";
 import { withTRPC } from "@trpc/next";
 import { Provider } from "next-auth/client";
+import { AppProps } from "next/dist/shared/lib/router/router";
 import React from "react";
 
-const AppProviders: React.FC = (props, pageProps) => {
+const AppProviders = (props: AppProps) => {
   return (
     <TelemetryProvider value={createTelemetryClient()}>
-      <Provider session={pageProps.session}>{props.children}</Provider>
+      <Provider session={props.pageProps.session}>{props.children}</Provider>
     </TelemetryProvider>
   );
 };
