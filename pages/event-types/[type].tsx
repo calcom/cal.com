@@ -10,6 +10,7 @@ import { getSession } from "@lib/auth";
 import { Scheduler } from "@components/ui/Scheduler";
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
+import { HttpError } from "@lib/core/http/error";
 import {
   LocationMarkerIcon,
   LinkIcon,
@@ -82,8 +83,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       await router.push("/event-types");
       showToast(`${eventType.title} event type updated successfully`, "success");
     },
-    onError: (err: Error) => {
-      showToast(err.message, "error");
+    onError: (err: HttpError) => {
+      const message = `${err.statusCode}: ${err.message}`;
+      showToast(message, "error");
     },
   });
 
@@ -92,8 +94,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       await router.push("/event-types");
       showToast("Event type deleted successfully", "success");
     },
-    onError: (err: Error) => {
-      showToast(err.message, "error");
+    onError: (err: HttpError) => {
+      const message = `${err.statusCode}: ${err.message}`;
+      showToast(message, "error");
     },
   });
 
