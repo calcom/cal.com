@@ -213,28 +213,28 @@ export class CalDavCalendar implements CalendarApiAdapter {
         return Promise.resolve([]);
       }
 
-      const busyTimes: EventBusyDate[] = [];
-
-      (selectedCalendarIds.length === 0
-        ? this.listCalendars().then((calendars) => calendars.map((calendar) => calendar.externalId))
-        : Promise.resolve(selectedCalendarIds)
+      return (
+        selectedCalendarIds.length === 0
+          ? this.listCalendars().then((calendars) => calendars.map((calendar) => calendar.externalId))
+          : Promise.resolve(selectedCalendarIds)
       ).then(async (ids: string[]) => {
         if (ids.length === 0) {
           return Promise.resolve([]);
         }
 
-        await Promise.all(
-          selectedCalendarIds.map(async (calId) => {
-            const calEvents = await this.getEvents(calId, dateFrom, dateTo);
-
-            for (const ev of calEvents) {
-              busyTimes.push({ start: ev.startDate, end: ev.endDate });
-            }
-          })
-        );
+        return (
+          await Promise.all(
+            ids.map(async (calId) => {
+              return (await this.getEvents(calId, dateFrom, dateTo)).map((event) => {
+                return {
+                  start: event.startDate,
+                  end: event.endDate,
+                };
+              });
+            })
+          )
+        ).flatMap((event) => event);
       });
-
-      return busyTimes;
     } catch (reason) {
       log.error(reason);
       throw reason;
