@@ -1112,17 +1112,30 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventType = await prisma.eventType.findFirst({
     where: {
-      users: {
-        some: {
-          id: session.user.id,
-        },
-      },
-      OR: [
+      AND: [
         {
-          slug: typeParam,
+          OR: [
+            {
+              users: {
+                some: {
+                  id: session.user.id,
+                },
+              },
+            },
+            {
+              userId: session.user.id,
+            },
+          ],
         },
         {
-          id: parseInt(typeParam),
+          OR: [
+            {
+              slug: typeParam,
+            },
+            {
+              id: parseInt(typeParam),
+            },
+          ],
         },
       ],
     },
@@ -1183,10 +1196,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  if (eventType.userId != session.user.id) {
-    return {
-      notFound: true,
-    } as const;
+  // backwards compat
+  if (eventType.users.length === 0) {
+    eventType.users.push(
+      await prisma.user.findUnique({
+        where: {
+          id: session.user.id,
+        },
+        select: {
+          username: true,
+        },
+      })
+    );
   }
 
   const credentials = await prisma.credential.findMany({

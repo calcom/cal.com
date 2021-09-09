@@ -153,25 +153,17 @@ const BookingPage = (props: any): JSX.Element => {
         <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">
           <div className="sm:flex px-4 py-5 sm:p-4">
             <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
-              <ul className="flex flex-inline">
-                {props.eventType.user && (
-                  <li>
-                    <Avatar
-                      displayName={props.eventType.user.name}
-                      imageSrc={props.eventType.user.avatar}
-                      className="w-16 h-16 rounded-full mb-4"
-                    />
-                  </li>
-                )}
-                {props.eventType.users.map((user, idx: number) => (
-                  <li key={user.id} className={idx !== 0 ? "-ml-3" : ""}>
-                    <Avatar
-                      displayName={user.name}
-                      imageSrc={user.avatar}
-                      className="w-16 h-16 rounded-full mb-4"
-                    />
-                  </li>
-                ))}
+              <ul className="flex flex-inline mb-2">
+                <li>
+                  <Avatar imageSrc={props.profile.image} displayName={props.profile.name} size="16" />
+                </li>
+                {props.eventType.users
+                  .filter((user) => user.name !== props.profile.name)
+                  .map((user) => (
+                    <li key={user.id} className="-ml-2">
+                      <Avatar imageSrc={user.avatar} displayName={user.name} size="16" tooltip={true} />
+                    </li>
+                  ))}
               </ul>
               <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.profile.name}</h2>
               <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">

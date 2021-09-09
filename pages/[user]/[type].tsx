@@ -75,9 +75,36 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   if (user.eventTypes.length !== 1) {
-    return {
-      notFound: true,
-    };
+    const eventTypeBackwardsCompat = await prisma.eventType.findFirst({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        title: true,
+        availability: true,
+        description: true,
+        length: true,
+        users: {
+          select: {
+            avatar: true,
+            name: true,
+            username: true,
+          },
+        },
+      },
+    });
+    if (!eventTypeBackwardsCompat) {
+      return {
+        notFound: true,
+      };
+    }
+    eventTypeBackwardsCompat.users.push({
+      avatar: user.avatar,
+      name: user.name,
+      username: user.username,
+    });
+    user.eventTypes.push(eventTypeBackwardsCompat);
   }
 
   const eventType = user.eventTypes[0];

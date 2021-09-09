@@ -1,6 +1,6 @@
 // Get router variables
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { EventType, SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -12,6 +12,7 @@ import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { HeadSeo } from "@components/seo/head-seo";
+import { asStringOrNull } from "@lib/asStringOrNull";
 
 type AvailabilityPageProps = {
   eventType: EventType;
@@ -21,11 +22,13 @@ type AvailabilityPageProps = {
 
 const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPageProps) => {
   const router = useRouter();
-  const { date, rescheduleUid } = router.query;
+  const { rescheduleUid } = router.query;
 
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
-    return typeof date === "string" && dayjs(date).isValid() ? dayjs(date) : null;
-  });
+  const selectedDate = useMemo(() => {
+    const date = dayjs(asStringOrNull(router.query.date));
+    return date.isValid() ? date : null;
+  }, [router.query.date]);
+
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
@@ -35,41 +38,25 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
-  const changeDate = (date: Dayjs) => {
+  const changeDate = (newDate: Dayjs) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
-    setSelectedDate(date);
-  };
-
-  useEffect(() => {
-    if (!selectedDate) {
-      return;
-    }
-
-    const formattedDate = selectedDate.utc().format("YYYY-MM-DD");
-
     router.replace(
       {
-        query: Object.assign(
-          {},
-          {
-            ...router.query,
-          },
-          {
-            date: formattedDate,
-          }
-        ),
+        query: {
+          ...router.query,
+          date: newDate.format("YYYY-MM-DD"),
+        },
       },
       undefined,
       {
         shallow: true,
       }
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  };
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
     if (selectedDate) {
-      setSelectedDate(selectedDate.tz(selectedTimeZone));
+      changeDate(selectedDate.tz(selectedTimeZone));
     }
     setIsTimeOptionsOpen(false);
   };
@@ -170,7 +157,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                 ]}
                 weekStart="Sunday"
                 eventLength={eventType.length}
-                minimumBookingNotice={120}
+                minimumBookingNotice={eventType.minimumBookingNotice}
               />
 
               <div className="block mt-4 ml-1 sm:hidden">

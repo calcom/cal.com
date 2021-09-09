@@ -27,6 +27,7 @@ const AvailableTimes = ({
     users,
     minimumBookingNotice,
   });
+
   return (
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:max-h-97 overflow-y-auto">
       <div className="text-gray-600 font-light text-lg mb-4 text-left">
@@ -35,7 +36,8 @@ const AvailableTimes = ({
           <span className="text-gray-500">{date.format(", DD MMMM")}</span>
         </span>
       </div>
-      {slots.length > 0 &&
+      {!loading &&
+        slots?.length > 0 &&
         slots.map((slot) => {
           const bookingUrl = {
             pathname: "book",

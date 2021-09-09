@@ -22,7 +22,7 @@ type UseSlotsProps = {
 };
 
 export const useSlots = (props: UseSlotsProps) => {
-  const { eventLength, minimumBookingNotice = 0, date, workingHours, users } = props;
+  const { eventLength, minimumBookingNotice = 0, date, users } = props;
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -45,9 +45,9 @@ export const useSlots = (props: UseSlotsProps) => {
           })
       )
     ).then((results) => {
-      let slots: Slot[] = results[0];
+      let loadedSlots: Slot[] = results[0];
       if (results.length === 1) {
-        setSlots(slots);
+        setSlots(loadedSlots);
         setLoading(false);
         return;
       }
@@ -77,21 +77,22 @@ export const useSlots = (props: UseSlotsProps) => {
       }
 
       for (let i = 1; i < results.length; i++) {
-        slots = poolingMethod(slots, results[i]);
+        loadedSlots = poolingMethod(loadedSlots, results[i]);
       }
-      setSlots(slots);
+      setSlots(loadedSlots);
       setLoading(false);
     });
   }, [date]);
 
   const handleAvailableSlots = async (res) => {
     const responseBody = await res.json();
+
     responseBody.workingHours.days = responseBody.workingHours.daysOfWeek;
 
     const times = getSlots({
       frequency: eventLength,
       inviteeDate: date,
-      workingHours: workingHours.concat(responseBody.workingHours),
+      workingHours: [responseBody.workingHours],
       minimumBookingNotice,
       organizerTimeZone: responseBody.workingHours.timeZone,
     });
@@ -121,7 +122,6 @@ export const useSlots = (props: UseSlotsProps) => {
 
     // temporary
     const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
-
     return times.map((time) => ({
       time,
       users: [user],

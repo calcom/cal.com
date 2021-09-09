@@ -136,8 +136,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       periodDays: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      userId: true,
     },
   });
+
+  if (!eventType.users.length && eventType.userId) {
+    eventType.users.push(
+      await prisma.user.findUnique({
+        where: {
+          id: eventType.userId,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          username: true,
+          timeZone: true,
+        },
+      })
+    );
+  }
 
   let users: User[] = eventType.users;
 

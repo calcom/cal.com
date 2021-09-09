@@ -247,6 +247,7 @@ export async function getServerSideProps(context) {
       length: true,
       eventName: true,
       requiresConfirmation: true,
+      userId: true,
       users: {
         select: {
           name: true,
@@ -261,6 +262,20 @@ export async function getServerSideProps(context) {
       },
     },
   });
+
+  if (!eventType.users.length && eventType.userId) {
+    eventType.users.push(
+      await prisma.user.findUnique({
+        where: {
+          id: eventType.userId,
+        },
+        select: {
+          hideBranding: true,
+          name: true,
+        },
+      })
+    );
+  }
 
   return {
     props: {
