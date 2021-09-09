@@ -4,6 +4,7 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 generator client {
@@ -30,6 +31,7 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
+  webhooks                WebhookEventTypes[]
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
@@ -274,4 +276,30 @@ model Payment {
   refunded       Boolean
   data           Json
   externalId     String   @unique
+}
+
+enum WebhookTriggerEvents {
+  BOOKING_CREATED
+  BOOKING_RESCHEDULED
+  BOOKING_CANCELLED
+}
+
+model Webhook {
+  id            Int       @id @default(autoincrement())
+  userId        Int       
+  subscriberUrl String
+  eventType     WebhookEventTypes[]
+  createdAt     DateTime  @default(now())
+  active        Boolean   @default(true)         
+  eventTriggers WebhookTriggerEvents[]
+}
+
+model WebhookEventTypes {
+  webhook       Webhook     @relation(fields: [webhookId], references: [id])
+  webhookId     Int
+  eventType     EventType   @relation(fields: [eventTypeId], references: [id])
+  eventTypeId   Int
+  createdAt     DateTime @default(now())
+  
+  @@id([webhookId, eventTypeId])
 }

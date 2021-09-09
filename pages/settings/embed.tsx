@@ -1,13 +1,12 @@
-import { GetServerSidePropsContext } from "next";
-import { useSession } from "next-auth/client";
-
-import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
+import { getSession } from "@lib/auth";
+// import { Member } from "@lib/member";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/client";
 
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
@@ -20,11 +19,13 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
 
   return (
-    <Shell heading="Embed" subtitle="Integrate with your website using our embed options.">
+    <Shell
+      heading="Embed &amp; Webhooks"
+      subtitle="Integrate with your website using our embed options, or get real-time booking information using custom webhooks.">
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">
-            <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">iframe Embed</h2>
+            <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">iframe Embed</h2>
             <p className="mt-1 text-sm text-gray-500">The easiest way to embed Cal.com on your website.</p>
           </div>
           <div className="grid grid-cols-2 space-x-4">
@@ -35,7 +36,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
               <div className="mt-1">
                 <textarea
                   id="iframe"
-                  className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
                   placeholder="Loading..."
                   defaultValue={iframeTemplate}
                   readOnly
@@ -49,7 +50,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
               <div className="mt-1">
                 <textarea
                   id="fullscreen"
-                  className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
                   placeholder="Loading..."
                   defaultValue={htmlTemplate}
                   readOnly
@@ -58,7 +59,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
             </div>
           </div>
           <div className="my-6">
-            <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">Cal.com API</h2>
+            <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">Cal.com API</h2>
             <p className="mt-1 text-sm text-gray-500">
               Leverage our API for full control and customizability.
             </p>
