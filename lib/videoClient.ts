@@ -266,6 +266,7 @@ const createMeeting = async (
     uid,
     createdEvent: creationResult,
     originalEvent: calEvent,
+    videoCalldata: videoCallData,
   };
 };
 

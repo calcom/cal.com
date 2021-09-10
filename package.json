@@ -68,13 +68,16 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/async": "^3.2.7",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
+    "@types/lodash.merge": "^4.6.6",
     "@types/node": "^16.6.1",
     "@types/nodemailer": "^6.4.4",
     "@types/react": "^17.0.18",
     "@types/react-dates": "^21.8.3",
     "@types/react-select": "^4.0.17",
+    "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.29.2",
     "autoprefixer": "^10.3.1",

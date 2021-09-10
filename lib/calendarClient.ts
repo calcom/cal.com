@@ -5,9 +5,10 @@ import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
+import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import { VideoCallData } from "@lib/videoClient";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
-import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -543,9 +544,10 @@ const createEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
   noMail = false,
-  maybeUid: string = null
+  maybeUid?: string,
+  optionalVideoCallData?: VideoCallData
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
+  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid, optionalVideoCallData);
   const uid: string = parser.getUid();
   /*
    * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
