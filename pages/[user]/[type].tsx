@@ -268,7 +268,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!eventType || eventType.hidden) {
+  if (!eventType) {
     return {
       notFound: true,
     };

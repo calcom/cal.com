@@ -39,13 +39,13 @@ describe("booking pages", () => {
       cy.contains("This user hasn't set up any event types yet.");
     });
 
-    it("/free-first-hidden/30min is not bookable", () => {
+    it("/free-first-hidden/30min is bookable", () => {
       cy.request({
         method: "GET",
         url: "/free-first-hidden/30min",
         failOnStatusCode: false,
       }).then((res) => {
-        expect(res.status).to.eql(404);
+        expect(res.status).to.eql(200);
       });
     });
 

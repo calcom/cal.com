@@ -29,6 +29,7 @@ import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Alert } from "@components/ui/Alert";
+import { HttpError } from "@lib/core/http/error";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { user, types } = props;
@@ -36,11 +37,12 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const router = useRouter();
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
-      await router.push("/event-types/" + eventType.id);
+      await router.push("/event-types/" + eventType.slug);
       showToast(`${eventType.title} event type created successfully`, "success");
     },
-    onError: (err: Error) => {
-      showToast(err.message, "error");
+    onError: (err: HttpError) => {
+      const message = `${err.statusCode}: ${err.message}`;
+      showToast(message, "error");
     },
   });
   const modalOpen = useToggleQuery("new");
@@ -223,7 +225,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   className={classNames("hover:bg-neutral-50", item.$disabled && "pointer-events-none")}
                   tabIndex={item.$disabled ? -1 : undefined}>
                   <div className={"flex items-center px-4 py-4 sm:px-6"}>
-                    <Link href={"/event-types/" + item.id}>
+                    <Link href={"/event-types/" + item.slug}>
                       <a className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between hover:bg-neutral-50">
                         <span className="truncate">
                           <div className="flex text-sm">
