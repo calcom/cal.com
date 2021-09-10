@@ -1,19 +1,10 @@
+import * as fetch from "@lib/core/http/fetch-wrapper";
 import { EventTypeInput } from "@lib/types/event-type";
+import { EventType } from "@prisma/client";
 
 const updateEventType = async (data: EventTypeInput) => {
-  const response = await fetch("/api/availability/eventtype", {
-    method: "PATCH",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  return response.json();
+  const response = await fetch.patch<EventTypeInput, EventType>("/api/availability/eventtype", data);
+  return response;
 };
 
 export default updateEventType;

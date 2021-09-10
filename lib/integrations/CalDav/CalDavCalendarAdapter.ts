@@ -208,17 +208,33 @@ export class CalDavCalendar implements CalendarApiAdapter {
         .filter((e) => e.integration === this.integrationName)
         .map((e) => e.externalId);
 
-      const events = [];
-
-      for (const calId of selectedCalendarIds) {
-        const calEvents = await this.getEvents(calId, dateFrom, dateTo);
-
-        for (const ev of calEvents) {
-          events.push({ start: ev.startDate, end: ev.endDate });
-        }
+      if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0) {
+        // Only calendars of other integrations selected
+        return Promise.resolve([]);
       }
 
-      return events;
+      return (
+        selectedCalendarIds.length === 0
+          ? this.listCalendars().then((calendars) => calendars.map((calendar) => calendar.externalId))
+          : Promise.resolve(selectedCalendarIds)
+      ).then(async (ids: string[]) => {
+        if (ids.length === 0) {
+          return Promise.resolve([]);
+        }
+
+        return (
+          await Promise.all(
+            ids.map(async (calId) => {
+              return (await this.getEvents(calId, dateFrom, dateTo)).map((event) => {
+                return {
+                  start: event.startDate,
+                  end: event.endDate,
+                };
+              });
+            })
+          )
+        ).flatMap((event) => event);
+      });
     } catch (reason) {
       log.error(reason);
       throw reason;
@@ -249,7 +265,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
     }
   }
 
-  async getEvents(calId: string, dateFrom: string | null, dateTo: string | null): Promise<unknown> {
+  async getEvents(calId: string, dateFrom: string | null, dateTo: string | null): Promise<unknown[]> {
     try {
       const objects = await fetchCalendarObjects({
         calendar: {
