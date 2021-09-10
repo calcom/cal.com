@@ -206,7 +206,7 @@ const getBusyVideoTimes: (withCredentials) => Promise<unknown[]> = (withCredenti
 const createMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  maybeUid: string = null
+  maybeUid?: string
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
   const uid: string = parser.getUid();
@@ -266,7 +266,7 @@ const createMeeting = async (
     uid,
     createdEvent: creationResult,
     originalEvent: calEvent,
-    videoCalldata: videoCallData,
+    videoCallData: videoCallData,
   };
 };
 
@@ -294,6 +294,13 @@ const updateMeeting = async (
         })
     : null;
 
+  const videoCallData: VideoCallData = {
+    type: credential.type,
+    id: updateResult.id,
+    password: updateResult.password,
+    url: updateResult.join_url,
+  };
+
   const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
   const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
   try {
@@ -316,6 +323,7 @@ const updateMeeting = async (
     uid: newUid,
     updatedEvent: updateResult,
     originalEvent: calEvent,
+    videoCallData: videoCallData,
   };
 };
 

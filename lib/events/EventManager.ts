@@ -16,7 +16,7 @@ export interface EventResult {
   createdEvent?: unknown;
   updatedEvent?: unknown;
   originalEvent: CalendarEvent;
-  videoCalldata?: VideoCallData;
+  videoCallData?: VideoCallData;
 }
 
 export interface CreateUpdateResult {
@@ -72,8 +72,8 @@ export default class EventManager {
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(event, maybeUid);
-      if (result.videoCalldata) {
-        optionalVideoCallData = result.videoCalldata;
+      if (result.videoCallData) {
+        optionalVideoCallData = result.videoCallData;
       }
       results.push(result);
     } else {
@@ -128,15 +128,25 @@ export default class EventManager {
 
     const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
-    // First, update all calendar events. If this is a dedicated event, don't send a mail right here.
-    const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isDedicated);
+    let results: Array<EventResult> = [];
+    let optionalVideoCallData: VideoCallData | undefined = undefined;
 
-    // If and only if event type is a dedicated meeting, update the dedicated video meeting as well.
+    // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
-      results.push(await this.updateVideoEvent(event, booking));
+      const result = await this.updateVideoEvent(event, booking);
+      if (result.videoCallData) {
+        optionalVideoCallData = result.videoCallData;
+      }
+      results.push(result);
     } else {
       await EventManager.sendAttendeeMail("reschedule", results, event, rescheduleUid);
     }
+
+    // Now update all calendar events. If this is a dedicated integration event,
+    // don't send a mail right here, because it has already been sent.
+    results = results.concat(
+      await this.updateAllCalendarEvents(event, booking, isDedicated, optionalVideoCallData)
+    );
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -233,11 +243,12 @@ export default class EventManager {
   private updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking,
-    noMail: boolean
+    noMail: boolean,
+    optionalVideoCallData?: VideoCallData
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0]?.uid;
-      return updateEvent(credential, bookingRefUid, event, noMail);
+      return updateEvent(credential, bookingRefUid, event, noMail, optionalVideoCallData);
     });
   }
 

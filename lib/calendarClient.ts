@@ -598,9 +598,10 @@ const updateEvent = async (
   credential: Credential,
   uidToUpdate: string,
   calEvent: CalendarEvent,
-  noMail = false
+  noMail = false,
+  optionalVideoCallData?: VideoCallData
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
+  const parser: CalEventParser = new CalEventParser(calEvent, undefined, optionalVideoCallData);
   const newUid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
