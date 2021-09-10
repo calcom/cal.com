@@ -25,7 +25,7 @@
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
     "@jitsu/sdk-js": "^2.2.4",
-    "@prisma/client": "^2.30.2",
+    "@prisma/client": "^3.0.2",
     "@radix-ui/react-avatar": "^0.0.15",
     "@radix-ui/react-collapsible": "^0.0.17",
     "@radix-ui/react-dialog": "^0.1.0",
