@@ -16,7 +16,7 @@ const links = [
     title: "API Reference",
     description: "A complete API reference for our libraries",
     icon: CodeIcon,
-    href: "https://developer.calendso.com/api",
+    href: "https://api.docs.calendso.com",
   },
   {
     title: "Blog",
@@ -50,9 +50,9 @@ export default function Custom404() {
               This page does not exist.
             </h1>
             {isEventType404 ? (
-              <a href="https://checkout.calendso.com" className="inline-block mt-2 text-lg ">
+              <span className="inline-block mt-2 text-lg ">
                 Check for spelling mistakes or go back to the previous page.
-              </a>
+              </span>
             ) : (
               <a href="https://checkout.calendso.com" className="inline-block mt-2 text-lg ">
                 The username <strong className="text-blue-500">calendso.com{username}</strong> is still
