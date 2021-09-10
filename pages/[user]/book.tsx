@@ -177,7 +177,7 @@ export default function Book(props: any): JSX.Element {
                   {props.eventType.length} minutes
                 </p>
                 {selectedLocation === LocationType.InPerson && (
-                  <p className="text-gray-500 mb-2">
+                  <p className="text-gray-500 mb-2 break-words">
                     <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {locationInfo(selectedLocation).address}
                   </p>
