@@ -66,7 +66,7 @@ export default class EventManager {
     event = EventManager.processLocation(event);
     const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
-    const results: Array<EventResult> = [];
+    let results: Array<EventResult> = [];
     let optionalVideoCallData: VideoCallData | undefined = undefined;
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
@@ -82,7 +82,9 @@ export default class EventManager {
 
     // Now create all calendar events. If this is a dedicated integration event,
     // don't send a mail right here, because it has already been sent.
-    results.concat(await this.createAllCalendarEvents(event, isDedicated, maybeUid, optionalVideoCallData));
+    results = results.concat(
+      await this.createAllCalendarEvents(event, isDedicated, maybeUid, optionalVideoCallData)
+    );
 
     const referencesToCreate: Array<PartialReference> = results.map((result) => {
       return {
