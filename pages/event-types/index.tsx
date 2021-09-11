@@ -33,9 +33,10 @@ import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import { HttpError } from "@lib/core/http/error";
+import { asStringOrNull } from "@lib/asStringOrNull";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const CreateFirstEventTypeView = ({ eventPage }) => (
+  const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="text-center block md:max-w-screen-sm mx-auto">
@@ -44,11 +45,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
           Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you.
         </p>
-        <CreateNewEventDialog
-          defaultEventPage={eventPage}
-          canAddEvents={props.canAddEvents}
-          profiles={props.profiles}
-        />
+        <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
       </div>
     </div>
   );
@@ -273,13 +270,13 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </>
           ))}
 
-        {props.eventTypes.length === 0 && <CreateFirstEventTypeView eventPage={props.user.username} />}
+        {props.eventTypes.length === 0 && <CreateFirstEventTypeView />}
       </Shell>
     </div>
   );
 };
 
-const CreateNewEventDialog = ({ profiles, canAddEvents, defaultEventPage }) => {
+const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
@@ -385,7 +382,8 @@ const CreateNewEventDialog = ({ profiles, canAddEvents, defaultEventPage }) => {
               length: parseInt(target.length.value),
             };
 
-            if (target.schedulingType?.value) {
+            if (router.query.teamId) {
+              payload.teamId = parseInt(asStringOrNull(router.query.teamId), 10);
               payload.schedulingType = target.schedulingType.value;
             }
 
@@ -420,7 +418,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents, defaultEventPage }) => {
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
                   <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                    {location.hostname}/{router.query.eventPage || defaultEventPage}/
+                    {location.hostname}/{router.query.eventPage || profiles[0].slug}/
                   </span>
                   <input
                     ref={slugRef}
@@ -484,7 +482,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents, defaultEventPage }) => {
               </RadioArea.Group>
             </div>
           )}
-          <div className="mt-8 sm:flex sm:flex-row-reverse">
+          <div className="mt-8 sm:flex sm:flex-row-reverse gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>
               Continue
             </Button>
@@ -625,27 +623,25 @@ export async function getServerSideProps(context) {
     },
   });
 
-  if (typesRaw.length > 0 || user.eventTypes.length > 0) {
-    eventTypes.push({
-      teamId: null,
-      profile: {
-        slug: user.username,
-        name: user.name,
-        image: user.avatar,
-      },
-      eventTypes: user.eventTypes.concat(typesRaw).map((type, index) =>
-        user.plan === "FREE" && index > 0
-          ? {
-              ...type,
-              $disabled: true,
-            }
-          : {
-              ...type,
-              $disabled: false,
-            }
-      ),
-    });
-  }
+  eventTypes.push({
+    teamId: null,
+    profile: {
+      slug: user.username,
+      name: user.name,
+      image: user.avatar,
+    },
+    eventTypes: user.eventTypes.concat(typesRaw).map((type, index) =>
+      user.plan === "FREE" && index > 0
+        ? {
+            ...type,
+            $disabled: true,
+          }
+        : {
+            ...type,
+            $disabled: false,
+          }
+    ),
+  });
 
   eventTypes = [].concat(
     eventTypes,
@@ -663,6 +659,8 @@ export async function getServerSideProps(context) {
       eventTypes: membership.team.eventTypes,
     }))
   );
+
+  console.log(eventTypes);
 
   const userObj = Object.assign({}, user, {
     createdDate: user.createdDate.toString(),
