@@ -60,11 +60,11 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <UsersIcon className="w-4 h-4 inline" /> {membershipCount}
           </span>
         )}
-        <Link href={profile.slug}>
-          <a className="block text-neutral-500 leading-none">{`${
-            new URL(process.env.NEXT_PUBLIC_BASE_URL).host
-          }/${profile.slug}`}</a>
-        </Link>
+        {typeof window !== "undefined" && (
+          <Link href={profile.slug}>
+            <a className="block text-neutral-500 leading-none">{`${window.location.host}/${profile.slug}`}</a>
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -134,7 +134,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         onClick={() => {
                           showToast("Link copied!", "success");
                           navigator.clipboard.writeText(
-                            `${new URL(process.env.NEXT_PUBLIC_BASE_URL).origin}/${profile.slug}/${type.slug}`
+                            `${window.location.origin}/${profile.slug}/${type.slug}`
                           );
                         }}
                         className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
@@ -192,9 +192,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   onClick={() => {
                                     showToast("Link copied!", "success");
                                     navigator.clipboard.writeText(
-                                      `${new URL(process.env.NEXT_PUBLIC_BASE_URL).origin}/${profile.slug}/${
-                                        type.slug
-                                      }`
+                                      `${window.location.origin}/${profile.slug}/${type.slug}`
                                     );
                                   }}
                                   className={classNames(
@@ -237,15 +235,15 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
         }>
-        {props.user.plan === "FREE" && (
+        {props.user.plan === "FREE" && typeof window !== "undefined" && (
           <Alert
             severity="warning"
             title={<>You need to upgrade your plan to have more than one active event type.</>}
             message={
               <>
                 To upgrade go to{" "}
-                <a href={process.env.NEXT_PUBLIC_BASE_URL + "/upgrade"} className="underline">
-                  {process.env.NEXT_PUBLIC_BASE_URL + "/upgrade"}
+                <a href={`${window.location.origin}/upgrade`} className="underline">
+                  {`${window.location.origin}/upgrade`}
                 </a>
               </>
             }
