@@ -601,7 +601,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </label>
                           </div>
                           <div className="w-full">
-                            <ul className="mt-1 w-96">
+                            <ul className="mt-1 w-max">
                               {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
                                 <li key={idx} className="p-2 mb-2 border bg-secondary-50">
                                   <div className="flex justify-between">
