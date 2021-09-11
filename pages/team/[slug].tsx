@@ -26,11 +26,11 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
           <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="block px-6 py-4 flex items-center">
-              <div className="flex-grow">
+              <div className="flex-shrink">
                 <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <ul className="flex-shrink inline-flex">
+              <ul className="inline-flex flex-none">
                 {type.users.map((user, idx: number) => (
                   <li className={classNames(idx && "-ml-3", "w-10 h-10")} key={user.id}>
                     <Avatar displayName={user.name} imageSrc={user.avatar} />
@@ -51,11 +51,11 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
         <div className="pt-24 pb-12 px-4">
           <div className="mb-8 text-center">
             <Avatar
-              displayName={team?.name}
-              imageSrc={"http://placekitten.com/200/200"}
+              displayName={team.name}
+              imageSrc={team.logo}
               className="mx-auto w-20 h-20 rounded-full mb-4"
             />
-            <Text variant="headline">{team?.name}</Text>
+            <Text variant="headline">{team.name}</Text>
           </div>
           {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
           {!showMembers.isOn && team.eventTypes.length && (
