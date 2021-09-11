@@ -35,7 +35,7 @@ import createEventType from "@lib/mutations/event-types/create-event-type";
 import { HttpError } from "@lib/core/http/error";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const CreateFirstEventTypeView = () => (
+  const CreateFirstEventTypeView = ({ eventPage }) => (
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="text-center block md:max-w-screen-sm mx-auto">
@@ -44,7 +44,11 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
           Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you.
         </p>
-        <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
+        <CreateNewEventDialog
+          defaultEventPage={eventPage}
+          canAddEvents={props.canAddEvents}
+          profiles={props.profiles}
+        />
       </div>
     </div>
   );
@@ -78,62 +82,69 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
     types: EventType[];
   }) => (
     <div className="bg-white border border-gray-200 rounded-sm overflow-hidden -mx-4 sm:mx-0 mb-4">
-      <ul className="divide-y divide-neutral-200">
-        {types.map((type: EventType) => (
-          <li key={type.id}>
-            <div className="px-4 py-4 flex items-center sm:px-6 hover:bg-neutral-50">
-              <Link href={"/event-types/" + type.id}>
-                <a className="truncate flex-grow text-sm">
-                  <div>
-                    <span className="font-medium text-neutral-900 truncate">{type.title}</span>
-                    {type.hidden && (
-                      <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Hidden
-                      </span>
+      <ul className="divide-y divide-neutral-200" data-testid="event-types">
+        {types.map((type) => (
+          <li
+            key={type.id}
+            className={classNames(
+              type.$disabled && "opacity-30 cursor-not-allowed pointer-events-none select-none"
+            )}
+            data-disabled={type.$disabled ? 1 : 0}>
+            <div className={classNames("hover:bg-neutral-50", type.$disabled && "pointer-events-none")}>
+              <div className="px-4 py-4 flex items-center sm:px-6 hover:bg-neutral-50">
+                <Link href={"/event-types/" + type.id}>
+                  <a className="truncate flex-grow text-sm">
+                    <div>
+                      <span className="font-medium text-neutral-900 truncate">{type.title}</span>
+                      {type.hidden && (
+                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Hidden
+                        </span>
+                      )}
+                      {readOnly && (
+                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
+                          Readonly
+                        </span>
+                      )}
+                    </div>
+                    <EventTypeDescription eventType={type} />
+                  </a>
+                </Link>
+
+                <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+                  <div className="flex items-center overflow-hidden space-x-5">
+                    {type.users.length > 1 && (
+                      <ul className="inline-flex">
+                        {type.users.map((organizer, idx: number) => (
+                          <li key={idx} className={idx ? "-ml-1" : ""}>
+                            <Avatar size="6" displayName={organizer.name} imageSrc={organizer.avatar} />
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                    {readOnly && (
-                      <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
-                        Readonly
-                      </span>
-                    )}
+                    <Tooltip content="Preview">
+                      <a
+                        href={`/${profile.slug}/${type.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                        <ExternalLinkIcon className="group-hover:text-black w-5 h-5" />
+                      </a>
+                    </Tooltip>
+
+                    <Tooltip content="Copy link">
+                      <button
+                        onClick={() => {
+                          showToast("Link copied!", "success");
+                          navigator.clipboard.writeText(
+                            `${new URL(process.env.NEXT_PUBLIC_BASE_URL).origin}/${profile.slug}/${type.slug}`
+                          );
+                        }}
+                        className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
+                        <LinkIcon className="group-hover:text-black w-5 h-5" />
+                      </button>
+                    </Tooltip>
                   </div>
-                  <EventTypeDescription eventType={type} />
-                </a>
-              </Link>
-
-              <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
-                <div className="flex items-center overflow-hidden space-x-5">
-                  {type.users.length > 1 && (
-                    <ul className="inline-flex">
-                      {type.users.map((organizer, idx: number) => (
-                        <li key={idx} className={idx ? "-ml-1" : ""}>
-                          <Avatar size="6" displayName={organizer.name} imageSrc={organizer.avatar} />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <Tooltip content="Preview">
-                    <a
-                      href={`/${profile.slug}/${type.slug}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group cursor-pointer text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                      <ExternalLinkIcon className="group-hover:text-black w-5 h-5" />
-                    </a>
-                  </Tooltip>
-
-                  <Tooltip content="Copy link">
-                    <button
-                      onClick={() => {
-                        showToast("Link copied!", "success");
-                        navigator.clipboard.writeText(
-                          `${new URL(process.env.NEXT_PUBLIC_BASE_URL).origin}/${profile.slug}/${type.slug}`
-                        );
-                      }}
-                      className="group text-neutral-400 p-2 border border-transparent hover:border-gray-200">
-                      <LinkIcon className="group-hover:text-black w-5 h-5" />
-                    </button>
-                  </Tooltip>
                 </div>
               </div>
               <div className="flex sm:hidden ml-5 flex-shrink-0">
@@ -262,13 +273,13 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </>
           ))}
 
-        {props.eventTypes.length === 0 && <CreateFirstEventTypeView />}
+        {props.eventTypes.length === 0 && <CreateFirstEventTypeView eventPage={props.user.username} />}
       </Shell>
     </div>
   );
 };
 
-const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
+const CreateNewEventDialog = ({ profiles, canAddEvents, defaultEventPage }) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
@@ -294,6 +305,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
       }}>
       {!profiles.filter((profile) => profile.teamId).length && (
         <Button
+          data-testid="new-event-type"
           {...(canAddEvents
             ? {
                 href: modalOpen.hrefOn,
@@ -408,7 +420,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
                   <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                    {location.hostname}/{teamId ? router.query.eventPage : profiles[0].slug}/
+                    {location.hostname}/{router.query.eventPage || defaultEventPage}/
                   </span>
                   <input
                     ref={slugRef}
@@ -473,9 +485,9 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
             </div>
           )}
           <div className="mt-8 sm:flex sm:flex-row-reverse">
-            <DialogClose as="span" className="ml-2">
-              <Button type="submit">Continue</Button>
-            </DialogClose>
+            <Button type="submit" loading={createMutation.isLoading}>
+              Continue
+            </Button>
             <DialogClose as={Button} color="secondary">
               Cancel
             </DialogClose>
@@ -592,52 +604,28 @@ export async function getServerSideProps(context) {
   let eventTypes = [];
 
   // backwards compatibility, TMP:
-  if (user.eventTypes.length === 0) {
-    const typesRaw = await prisma.eventType.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        description: true,
-        length: true,
-        hidden: true,
-        users: {
-          select: {
-            id: true,
-            avatar: true,
-            name: true,
-          },
+  const typesRaw = await prisma.eventType.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      hidden: true,
+      users: {
+        select: {
+          id: true,
+          avatar: true,
+          name: true,
         },
       },
-    });
+    },
+  });
 
-    if (typesRaw) {
-      eventTypes.push({
-        teamId: null,
-        profile: {
-          slug: user.username,
-          name: user.name,
-          image: user.avatar,
-        },
-        eventTypes: typesRaw.map((type, index) =>
-          user.plan === "FREE" && index > 0
-            ? {
-                ...type,
-                $disabled: true,
-              }
-            : {
-                ...type,
-                $disabled: false,
-              }
-        ),
-      });
-    }
-  }
-
-  if (user.eventTypes) {
+  if (typesRaw.length > 0 || user.eventTypes.length > 0) {
     eventTypes.push({
       teamId: null,
       profile: {
@@ -645,7 +633,17 @@ export async function getServerSideProps(context) {
         name: user.name,
         image: user.avatar,
       },
-      eventTypes: user.eventTypes,
+      eventTypes: user.eventTypes.concat(typesRaw).map((type, index) =>
+        user.plan === "FREE" && index > 0
+          ? {
+              ...type,
+              $disabled: true,
+            }
+          : {
+              ...type,
+              $disabled: false,
+            }
+      ),
     });
   }
 
@@ -670,7 +668,7 @@ export async function getServerSideProps(context) {
     createdDate: user.createdDate.toString(),
   });
 
-  const canAddEvents = user.plan !== "FREE" || user.eventTypes[0].length < 1;
+  const canAddEvents = user.plan !== "FREE" || eventTypes.length < 1;
 
   return {
     props: {
