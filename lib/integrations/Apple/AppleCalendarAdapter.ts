@@ -17,25 +17,24 @@ import { v4 as uuidv4 } from "uuid";
 import { stripHtml } from "../../emails/helpers";
 import logger from "@lib/logger";
 
-const log = logger.getChildLogger({ prefix: ["[[lib] caldav"] });
+const log = logger.getChildLogger({ prefix: ["[[lib] apple calendar"] });
 
 type EventBusyDate = Record<"start" | "end", Date>;
 
-export class CalDavCalendar implements CalendarApiAdapter {
+export class AppleCalendar implements CalendarApiAdapter {
   private url: string;
   private credentials: Record<string, string>;
   private headers: Record<string, string>;
-  private readonly integrationName: string = "caldav_calendar";
+  private readonly integrationName: string = "apple_calendar";
 
   constructor(credential: Credential) {
     const decryptedCredential = JSON.parse(
       symmetricDecrypt(credential.key, process.env.CALENDSO_ENCRYPTION_KEY)
     );
     const username = decryptedCredential.username;
-    const url = decryptedCredential.url;
     const password = decryptedCredential.password;
 
-    this.url = url;
+    this.url = "https://caldav.icloud.com";
 
     this.credentials = {
       username,
@@ -70,7 +69,6 @@ export class CalDavCalendar implements CalendarApiAdapter {
     try {
       const calendars = await this.listCalendars();
       const uid = uuidv4();
-
       const { error, value: iCalString } = await createEvent({
         uid,
         startInputType: "utc",
@@ -122,7 +120,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const events = [];
 
       for (const cal of calendars) {
-        const calEvents = await this.getEvents(cal.externalId, null, null);
+        const calEvents = await this.getEvents(cal.externalId, null, null, [`${cal.externalId}${uid}.ics`]);
 
         for (const ev of calEvents) {
           events.push(ev);
@@ -172,7 +170,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const events = [];
 
       for (const cal of calendars) {
-        const calEvents = await this.getEvents(cal.externalId, null, null);
+        const calEvents = await this.getEvents(cal.externalId, null, null, [`${cal.externalId}${uid}.ics`]);
 
         for (const ev of calEvents) {
           events.push(ev);
@@ -207,7 +205,6 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const selectedCalendarIds = selectedCalendars
         .filter((e) => e.integration === this.integrationName)
         .map((e) => e.externalId);
-
       if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0) {
         // Only calendars of other integrations selected
         return Promise.resolve([]);
@@ -265,12 +262,18 @@ export class CalDavCalendar implements CalendarApiAdapter {
     }
   }
 
-  async getEvents(calId: string, dateFrom: string | null, dateTo: string | null): Promise<unknown[]> {
+  async getEvents(
+    calId: string,
+    dateFrom: string | null,
+    dateTo: string | null,
+    objectUrls: string[] | null
+  ): Promise<unknown[]> {
     try {
       const objects = await fetchCalendarObjects({
         calendar: {
           url: calId,
         },
+        objectUrls: objectUrls ? objectUrls : undefined,
         timeRange:
           dateFrom && dateTo
             ? {
@@ -340,7 +343,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
   private async getAccount() {
     const account = await createAccount({
       account: {
-        serverUrl: `${this.url}`,
+        serverUrl: this.url,
         accountType: "caldav",
         credentials: this.credentials,
       },
