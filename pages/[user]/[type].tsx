@@ -77,7 +77,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (user.eventTypes.length !== 1) {
     const eventTypeBackwardsCompat = await prisma.eventType.findFirst({
       where: {
-        userId: user.id,
+        AND: [
+          {
+            userId: user.id,
+          },
+          {
+            slug: typeParam,
+          },
+        ],
       },
       select: {
         id: true,

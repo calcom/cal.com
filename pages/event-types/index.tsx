@@ -22,7 +22,7 @@ import prisma from "@lib/prisma";
 import { EventType, SchedulingType } from "@prisma/client";
 import showToast from "@lib/notification";
 import Avatar from "@components/Avatar";
-import { UserCalendarIllustration } from "@components/ui/svg/UserCalendarIllustration";
+import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import * as RadioArea from "@components/ui/form/radio-area";
