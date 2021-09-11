@@ -6,6 +6,7 @@ import CalEventParser from "./CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
@@ -521,6 +522,8 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
           return MicrosoftOffice365Calendar(cred);
         case "caldav_calendar":
           return new CalDavCalendar(cred);
+        case "apple_calendar":
+          return new AppleCalendar(cred);
         default:
           return; // unknown credential, could be legacy? In any case, ignore
       }
