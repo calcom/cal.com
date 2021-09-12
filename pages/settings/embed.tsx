@@ -1,6 +1,7 @@
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
+import Button from "@components/ui/Button";
 import { getSession } from "@lib/auth";
 // import { Member } from "@lib/member";
 import prisma from "@lib/prisma";
@@ -17,6 +18,22 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
 
   const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/${props.user?.username}" frameborder="0" allowfullscreen></iframe>`;
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
+  const handleErrors = async (resp: Response) => {
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message);
+    }
+    return resp.json();
+  };
+
+  const getWebhooks = () => {
+    fetch("/api/webhook")
+      .then(handleErrors)
+      .then((data) => {
+        console.log("success", data);
+      })
+      .catch(console.log);
+  };
 
   return (
     <Shell
@@ -67,6 +84,9 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
           <a href="https://developer.cal.com/api" className="btn btn-primary">
             Browse our API documentation
           </a>
+          <Button type="button" color="secondary" onClick={getWebhooks}>
+            GET WEBHOOKS
+          </Button>
         </div>
       </SettingsShell>
     </Shell>
@@ -81,7 +101,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const user = await prisma.user.findFirst({
     where: {
-      email: session.user.email,
+      email: session?.user?.email,
     },
     select: {
       id: true,
