@@ -83,6 +83,7 @@ export const getServerSideProps = async (context) => {
     id: true,
     name: true,
     slug: true,
+    logo: true,
     members: {
       select: {
         user: {
