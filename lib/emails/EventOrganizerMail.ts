@@ -50,8 +50,10 @@ export default class EventOrganizerMail extends EventMail {
     return "A new event has been scheduled.";
   }
 
-  protected getBodyText(): string {
-    return "You and any other attendees have been emailed with this information.";
+  protected getAdditionalFooter(): string {
+    return `<p style="color: #4b5563; margin-top: 20px;">Need to make a change? <a href=${
+      process.env.BASE_URL + "/bookings"
+    } style="color: #161e2e;">Manage my bookings</a></p>`;
   }
 
   protected getImage(): string {
@@ -94,7 +96,6 @@ export default class EventOrganizerMail extends EventMail {
   >
     ${this.getImage()}
     <h1 style="font-weight: 500; color: #161e2e;">${this.getBodyHeader()}</h1>
-    <p style="color: #4b5563; margin-bottom: 30px;">${this.getBodyText()}</p>
     <hr />
     <table style="border-spacing: 20px; color: #161e2e; margin-bottom: 10px;">
       <colgroup>
@@ -107,8 +108,8 @@ export default class EventOrganizerMail extends EventMail {
       </tr>
       <tr>
         <td>When</td>
-        <td>${this.getInviteeStart().format("dddd, LL")}<br>${this.getInviteeStart().format("h:mma")} (${
-        this.calEvent.attendees[0].timeZone
+        <td>${this.getOrganizerStart().format("dddd, LL")}<br>${this.getOrganizerStart().format("h:mma")} (${
+        this.calEvent.organizer.timeZone
       })</td>
       </tr>
       <tr>
@@ -191,10 +192,9 @@ export default class EventOrganizerMail extends EventMail {
   }
 
   protected getSubject(): string {
-    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
-    return `New event: ${this.calEvent.attendees[0].name} - ${organizerStart.format("LT dddd, LL")} - ${
-      this.calEvent.type
-    }`;
+    return `New event: ${this.calEvent.attendees[0].name} - ${this.getOrganizerStart().format(
+      "LT dddd, LL"
+    )} - ${this.calEvent.type}`;
   }
 
   protected printNodeMailerError(error: string): void {
@@ -202,11 +202,11 @@ export default class EventOrganizerMail extends EventMail {
   }
 
   /**
-   * Returns the inviteeStart value used at multiple points.
+   * Returns the organizerStart value used at multiple points.
    *
    * @private
    */
-  protected getInviteeStart(): Dayjs {
-    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
+  protected getOrganizerStart(): Dayjs {
+    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
   }
 }

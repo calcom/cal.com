@@ -1,16 +1,18 @@
 import Loader from "@components/Loader";
+import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
 import { Menu, Transition } from "@headlessui/react";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
-import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
+import { getSession } from "@lib/auth";
+
 
 export default function Bookings({ bookings }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
