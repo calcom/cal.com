@@ -72,9 +72,6 @@ export default class EventManager {
       this.videoCredentials.push(dailyCredential);
     }
   }
-  
-
-
 
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
@@ -271,8 +268,6 @@ export default class EventManager {
    */
   private createVideoEvent(event: CalendarEvent, maybeUid?: string): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
-    
-    const isDaily = event.location === "integrations:daily";
 
     const isDaily = event.location === dailyLocation;
 
@@ -291,11 +286,9 @@ export default class EventManager {
 
     if (credential && !isDaily) {
       return createMeeting(credential, event, maybeUid);
-    } else
-    if (isDaily) {
+    } else if (isDaily) {
       return dailyCreateMeeting(credential, event, maybeUid);
-    }
-    else {
+    } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
   }

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
-import { EventType, User } from "@prisma/client";
+import { EventType, User  } from "@prisma/client";
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
@@ -295,8 +295,8 @@ if (!rescheduleUid) {
  dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent ;
 }
   
-let meetingToken;
-if (isDaily){  
+    let meetingToken;
+    if (isDaily){  
    const response = await fetch('https://api.daily.co/v1/meeting-tokens', {
     method: 'POST',
     body:JSON.stringify({properties: {room_name: dailyEvent.name, is_owner: true}}),
@@ -304,10 +304,23 @@ if (isDaily){
       'Authorization': 'Bearer ' + process.env.DAILY_API_KEY,
       'Content-Type': 'application/json'
     },
-  })
-  meetingToken = await response.json()
+    })
+    meetingToken = await response.json()
 };
 
+  //saving the Daily reference info
+
+  if(isDaily){
+    await prisma.dailyEventReference.create({
+      data: {
+        dailyurl: dailyEvent.url,
+        dailytoken: meetingToken.token,
+        bookingId: hashUID
+      }
+      
+      
+    })
+  }
     
 
     const hashUID =
@@ -339,36 +352,7 @@ if (isDaily){
       res.status(500).json({ message: "Booking already exists" });
       return;
     }}
-
-
-    if (!isDaily){
-      try {
-        await prisma.booking.create({
-          data: {
-            uid: hashUID,
-            userId: currentUser.id,
-            references: {
-              create: referencesToCreate,
-            },
-            eventTypeId: eventType.id,
-            title: evt.title,
-            description: evt.description,
-            startTime: evt.startTime,
-            endTime: evt.endTime,
-            attendees: {
-              create: evt.attendees,
-            },
-            location: evt.location, // This is the raw location that can be processed by the EventManager.
-            confirmed: !selectedEventType.requiresConfirmation,
-          },
-        });
-      } catch (e) {
-        log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
-        res.status(500).json({ message: "Booking already exists" });
-        return;
-      }}
-
-    
+ 
 
     if (eventType.requiresConfirmation) {
       await new EventOrganizerRequestMail(evt, hashUID).sendEmail();
