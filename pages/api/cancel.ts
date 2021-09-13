@@ -1,15 +1,17 @@
-import prisma from "../../lib/prisma";
-import { deleteEvent } from "../../lib/calendarClient";
+import prisma from "@lib/prisma";
+import { deleteEvent } from "@lib/calendarClient";
 import async from "async";
-import { deleteMeeting } from "../../lib/videoClient";
+import { deleteMeeting } from "@lib/videoClient";
+import { asStringOrNull } from "@lib/asStringOrNull";
+import { BookingStatus } from "@prisma/client";
 
 export default async function handler(req, res) {
   if (req.method == "POST") {
-    const uid = req.body.uid;
+    const uid = asStringOrNull(req.body.uid);
 
-    const bookingToDelete = await prisma.booking.findFirst({
+    const bookingToDelete = await prisma.booking.findUnique({
       where: {
-        uid: uid,
+        uid,
       },
       select: {
         id: true,
@@ -28,6 +30,21 @@ export default async function handler(req, res) {
       },
     });
 
+    if (!bookingToDelete) {
+      return res.status(404).end();
+    }
+
+    // by cancelling first, and blocking whilst doing so; we can ensure a cancel
+    // action always succeeds even if subsequent integrations fail cancellation.
+    await prisma.booking.update({
+      where: {
+        uid,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+      },
+    });
+
     const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
       const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
       if (bookingRefUid) {
@@ -38,23 +55,20 @@ export default async function handler(req, res) {
         }
       }
     });
+
     const attendeeDeletes = prisma.attendee.deleteMany({
       where: {
         bookingId: bookingToDelete.id,
       },
     });
+
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
       where: {
         bookingId: bookingToDelete.id,
       },
     });
-    const bookingDeletes = prisma.booking.delete({
-      where: {
-        id: bookingToDelete.id,
-      },
-    });
 
-    await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes, bookingDeletes]);
+    await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
 
     //TODO Perhaps send emails to user and client to tell about the cancellation
 
