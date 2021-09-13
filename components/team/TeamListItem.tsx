@@ -138,14 +138,12 @@ export default function TeamListItem(props: {
                   <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                     <Dialog>
                       <DialogTrigger
-                        as={Button}
                         onClick={(e) => {
                           e.stopPropagation();
-                        }}
-                        color="warn"
-                        StartIcon={TrashIcon}
-                        className="w-full">
-                        Disband Team
+                        }}>
+                        <Button color="warn" StartIcon={TrashIcon} className="w-full">
+                          Disband Team
+                        </Button>
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         variety="danger"
