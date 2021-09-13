@@ -25,7 +25,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
           className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
           <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
           <Link href={`${team.slug}/${type.slug}`}>
-            <a className="block px-6 py-4 flex items-center">
+            <a className="block px-6 py-4 flex space-x-2 items-center">
               <div className="flex-shrink">
                 <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
