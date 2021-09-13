@@ -93,7 +93,7 @@ export default class EventManager {
       return {
         type: result.type,
         uid: result.createdEvent.id.toString(),
-        meetingId: result.videoCallData?.id,
+        meetingId: result.videoCallData?.id.toString(),
         meetingPassword: result.videoCallData?.password,
         meetingUrl: result.videoCallData?.url,
       };
