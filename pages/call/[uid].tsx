@@ -1,58 +1,52 @@
 import { useEffect } from "react";
-import DailyIframe from '@daily-co/daily-js';
+import DailyIframe from "@daily-co/daily-js";
 import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
-import { getSession } from 'next-auth/client';
-import type {NextApiRequest, NextApiResponse} from 'next';
-
-
+import { getSession } from "next-auth/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default function joinCall(props, session) {
-   // Get router variables
-   const router = useRouter();
-   const { uid } = router.query;
-   const owner = session.userid === props.booking.user.id
-   
+  // Get router variables
+  const router = useRouter();
+  const { uid } = router.query;
+  const owner = session.userid === props.booking.user.id;
 
-  const url = props.booking.dailyurl
-  const token = props.booking.dailytoken
+  const url = props.booking.dailyurl;
+  const token = props.booking.dailytoken;
   useEffect(() => {
-    if(!owner){
-  const callFrame = DailyIframe.createFrame({
-    showLeaveButton: true,
-    iframeStyle: {
-      position: 'fixed',
-      width: '100%',
-     height: '100%'
-    }
-  });
-      callFrame.join({
-        url: url,
-        showLeaveButton: true,
-        
-    })}
-    if(owner){
+    if (!owner) {
       const callFrame = DailyIframe.createFrame({
         showLeaveButton: true,
         iframeStyle: {
-          position: 'fixed',
-          width: '100%',
-         height: '100%'
-        }
+          position: "fixed",
+          width: "100%",
+          height: "100%",
+        },
       });
-          callFrame.join({
-            url: url,
-            showLeaveButton: true,
-            token: token,
-            
-        })}
+      callFrame.join({
+        url: url,
+        showLeaveButton: true,
+      });
+    }
+    if (owner) {
+      const callFrame = DailyIframe.createFrame({
+        showLeaveButton: true,
+        iframeStyle: {
+          position: "fixed",
+          width: "100%",
+          height: "100%",
+        },
+      });
+      callFrame.join({
+        url: url,
+        showLeaveButton: true,
+        token: token,
+      });
+    }
+  }, []);
 
-}, [])
-
-return joinCall;
-
+  return joinCall;
 }
-
 
 export async function getServerSideProps(context) {
   const booking = await prisma.booking.findFirst({
@@ -77,18 +71,18 @@ export async function getServerSideProps(context) {
       },
     },
   });
-  
+
   return {
     props: {
-      booking: booking
+      booking: booking,
     },
-
   };
 }
 
 export async function handler(req: NextApiRequest, res: NextApiResponse, props) {
-  const session = await getSession({req: req});
+  const session = await getSession({ req: req });
 
   if (session) {
-      return session;
-  }}
+    return session;
+  }
+}
