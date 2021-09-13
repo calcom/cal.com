@@ -71,6 +71,7 @@ export default class EventManager {
       this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
     }
   }
+  
 
 
 
@@ -256,7 +257,7 @@ export default class EventManager {
    */
   private createVideoEvent(event: Ensure<CalendarEvent, "language">): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
-    // lola internal - add this is this daily check to get around credentials because we're not storing them
+    
     const isDaily = event.location === "integrations:daily";
 
     if (credential) {

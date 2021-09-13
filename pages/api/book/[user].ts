@@ -287,8 +287,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       referencesToCreate = createResults.referencesToCreate;
     }
 
-
-//lola-internal get the details from the created daily event like the url not sure why it's daily_video but we could make it so that we don't have to do an isdaily
 const isDaily = evt.location === "integrations:daily"    
 let dailyEvent;
 if (!rescheduleUid) {
@@ -298,7 +296,7 @@ if (!rescheduleUid) {
 }
   
 let meetingToken;
-if (isDaily && !rescheduleUid){  
+if (isDaily){  
    const response = await fetch('https://api.daily.co/v1/meeting-tokens', {
     method: 'POST',
     body:JSON.stringify({properties: {room_name: dailyEvent.name, is_owner: true}}),
@@ -342,7 +340,6 @@ if (isDaily && !rescheduleUid){
       return;
     }}
 
-    //lola - internal log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
 
     if (!isDaily){
       try {
