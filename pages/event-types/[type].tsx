@@ -1239,7 +1239,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   const hasDailyIntegration = integrations.find((i) => i.type === "daily_video" && i.installed === true);
   if (hasDailyIntegration) {
-    locationOptions.push({ value: LocationType.Daily, label: "Daily Video" });
+    locationOptions.push({ value: LocationType.Daily, label: "Calendso Video, powered by Daily.co" });
   }
 
   const currency =

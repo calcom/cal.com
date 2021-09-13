@@ -13,11 +13,9 @@ import { getIntegrationName } from "@lib/emails/helpers";
 import CalEventParser from "@lib/CalEventParser";
 import { Credential } from "@prisma/client";
 
-
 const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
 const translator = short();
-
 
 export interface DailyVideoCallData {
   type: string;
@@ -42,9 +40,7 @@ function handleErrorsRaw(response) {
   return response.text();
 }
 
-
-var dailyCredential = process.env.DAILY_API_KEY
-
+const dailyCredential = process.env.DAILY_API_KEY;
 
 interface DailyVideoApiAdapter {
   dailyCreateMeeting(event: CalendarEvent): Promise<any>;
@@ -57,8 +53,6 @@ interface DailyVideoApiAdapter {
 }
 
 const DailyVideo = (credential): DailyVideoApiAdapter => {
-
-
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration and room entry
@@ -68,13 +62,13 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
       privacy: "private",
       properties: {
         enable_new_call_ui: true,
-        enable_prejoin_ui: true, 
-        enable_knocking: true,  
+        enable_prejoin_ui: true,
+        enable_knocking: true,
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        nbf: nbf
-      }
+        nbf: nbf,
+      },
     };
   };
 
@@ -82,32 +76,35 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
     getAvailability: () => {
       return credential;
     },
-    dailyCreateMeeting: (event: CalendarEvent) => fetch('https://api.daily.co/v1/rooms', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + dailyCredential,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(translateEvent(event))
-    }).then(handleErrorsJson),
-    dailyDeleteMeeting: (uid: String) => fetch('https://api.daily.co/v1/rooms/' + uid, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': 'Bearer ' + dailyCredential,
-      }
-    }).then(handleErrorsRaw),
-    dailyUpdateMeeting: (uid: String, event: CalendarEvent) => fetch('https://api.daily.co/v1/rooms/' + uid, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + dailyCredential,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(translateEvent(event))
-    }).then(handleErrorsRaw),
+    dailyCreateMeeting: (event: CalendarEvent) =>
+      fetch("https://api.daily.co/v1/rooms", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + dailyCredential,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsJson),
+    dailyDeleteMeeting: (uid: string) =>
+      fetch("https://api.daily.co/v1/rooms/" + uid, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + dailyCredential,
+        },
+      }).then(handleErrorsRaw),
+    dailyUpdateMeeting: (uid: string, event: CalendarEvent) =>
+      fetch("https://api.daily.co/v1/rooms/" + uid, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + dailyCredential,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsRaw),
   };
 };
 
-// factory 
+// factory
 const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
   withCredentials
     .map((cred) => {
@@ -124,7 +121,6 @@ const getBusyVideoTimes: (withCredentials) => Promise<unknown[]> = (withCredenti
   Promise.all(videoIntegrations(withCredentials).map((c) => c.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
-
 
 const dailyCreateMeeting = async (
   credential: Credential,
@@ -148,17 +144,16 @@ const dailyCreateMeeting = async (
       log.error("createMeeting failed", e, calEvent);
       success = false;
     });
-    
-  const currentRoute=process.env.BASE_URL ;
+
+  const currentRoute = process.env.BASE_URL;
 
   const videoCallData: DailyVideoCallData = {
-    type: "Daily Video Chat & Conferencing",
+    type: "Calendso Video, powered by Daily.co",
     id: creationResult.name,
     password: creationResult.password,
-    url: currentRoute + '/call/'+ uid,
+    url: currentRoute + "/call/" + uid,
   };
 
-  
   const entryPoint: EntryPoint = {
     entryPointType: getIntegrationName(videoCallData),
     uri: videoCallData.url,
@@ -170,7 +165,6 @@ const dailyCreateMeeting = async (
     entryPoints: [entryPoint],
   };
 
-  
   const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
   const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
   try {
@@ -252,6 +246,5 @@ const dailyDeleteMeeting = (credential: Credential, uid: string): Promise<unknow
 
   return Promise.resolve({});
 };
-
 
 export { getBusyVideoTimes, dailyCreateMeeting, dailyUpdateMeeting, dailyDeleteMeeting };

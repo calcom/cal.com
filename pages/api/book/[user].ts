@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
-import { EventType, User  } from "@prisma/client";
+import { EventType, User } from "@prisma/client";
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
 import { getBusyVideoTimes } from "@lib/videoClient";
+import EventAttendeeMail from "../../../lib/emails/EventAttendeeMail";
 import { getEventName } from "@lib/event";
 import dayjs from "dayjs";
 import logger from "../../../lib/logger";
@@ -14,6 +15,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import isBetween from "dayjs/plugin/isBetween";
 import dayjsBusinessDays from "dayjs-business-days";
+import { Exception } from "handlebars";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
 
 dayjs.extend(dayjsBusinessDays);
@@ -77,6 +79,25 @@ function isOutOfBounds(
     default:
       return false;
   }
+}
+
+export async function handleLegacyConfirmationMail(
+  results: Array<EventResult>,
+  eventType: EventType,
+  evt: CalendarEvent,
+  hashUID: string
+): Promise<{ error: Exception; message: string | null }> {
+  if (results.length === 0 && !eventType.requiresConfirmation) {
+    // Legacy as well, as soon as we have a separate email integration class. Just used
+    // to send an email even if there is no integration at all.
+    try {
+      const mail = new EventAttendeeMail(evt, hashUID);
+      await mail.sendEmail();
+    } catch (e) {
+      return { error: e, message: "Booking failed" };
+    }
+  }
+  return null;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
@@ -287,46 +308,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       referencesToCreate = createResults.referencesToCreate;
     }
 
-const isDaily = evt.location === "integrations:daily"    
-let dailyEvent;
-if (!rescheduleUid) {
- dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent ;
-} else {
- dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent ;
-}
-  
+    const isDaily = evt.location === "integrations:daily";
+    let dailyEvent;
+    if (!rescheduleUid) {
+      dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent;
+    } else {
+      dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent;
+    }
+
     let meetingToken;
-    if (isDaily){  
-   const response = await fetch('https://api.daily.co/v1/meeting-tokens', {
-    method: 'POST',
-    body:JSON.stringify({properties: {room_name: dailyEvent.name, is_owner: true}}),
-    headers: {
-      'Authorization': 'Bearer ' + process.env.DAILY_API_KEY,
-      'Content-Type': 'application/json'
-    },
-    })
-    meetingToken = await response.json()
-};
-
-  //saving the Daily reference info
-
-  if(isDaily){
-    await prisma.dailyEventReference.create({
-      data: {
-        dailyurl: dailyEvent.url,
-        dailytoken: meetingToken.token,
-        bookingId: hashUID
-      }
-      
-      
-    })
-  }
-    
+    if (isDaily) {
+      const response = await fetch("https://api.daily.co/v1/meeting-tokens", {
+        method: "POST",
+        body: JSON.stringify({ properties: { room_name: dailyEvent.name, is_owner: true } }),
+        headers: {
+          Authorization: "Bearer " + process.env.DAILY_API_KEY,
+          "Content-Type": "application/json",
+        },
+      });
+      meetingToken = await response.json();
+    }
 
     const hashUID =
       results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
     // TODO Should just be set to the true case as soon as we have a "bare email" integration class.
     // UID generation should happen in the integration itself, not here.
+    const legacyMailError = await handleLegacyConfirmationMail(results, eventType, evt, hashUID);
+    if (legacyMailError) {
+      log.error("Sending legacy event mail failed", legacyMailError.error);
+      log.error(`Booking ${user} failed`);
+      res.status(500).json({ message: legacyMailError.message });
+      return;
+    }
+
     try {
       await prisma.booking.create({
         data: {
@@ -348,11 +362,24 @@ if (!rescheduleUid) {
         },
       });
     } catch (e) {
-      log.error(results, e);
+      log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
       res.status(500).json({ message: "Booking already exists" });
       return;
-    }}
- 
+    }
+
+    if (isDaily) {
+      await prisma.dailyEventReference.create({
+        data: {
+          dailyurl: dailyEvent.url,
+          dailytoken: meetingToken.token,
+          booking: {
+            connect: {
+              uid: hashUID,
+            },
+          },
+        },
+      });
+    }
 
     if (eventType.requiresConfirmation) {
       await new EventOrganizerRequestMail(evt, hashUID).sendEmail();

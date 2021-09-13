@@ -26,22 +26,21 @@ export default class VideoEventOrganizerMail extends EventOrganizerMail {
    * @protected
    */
   protected getAdditionalBody(): string {
-    const isDaily = this.videoCallData.type === "Daily Video Chat & Conferencing"
+    const isDaily = this.videoCallData.type === "Calendso Video, powered by Daily.co"
     // This odd indentation is necessary because otherwise the leading tabs will be applied into the event description.
-    if (!isDaily){
-    return `
+    if (!isDaily) {
+      return `
 <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
 <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
 <strong>Meeting Password:</strong> ${this.videoCallData.password}<br />
 <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
-  }
-  if (isDaily){
-    return `
+    }
+    if (isDaily) {
+      return `
 <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
 <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
+    }
   }
-}
-
 }

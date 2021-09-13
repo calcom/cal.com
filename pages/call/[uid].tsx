@@ -11,8 +11,8 @@ export default function joinCall(props, session) {
   const { uid } = router.query;
   const owner = session.userid === props.booking.user.id;
 
-  const url = props.booking.dailyurl;
-  const token = props.booking.dailytoken;
+  const url = props.booking.dailyRef.dailyurl;
+  const token = props.booking.dailyRef.dailytoken;
   useEffect(() => {
     if (!owner) {
       const callFrame = DailyIframe.createFrame({
@@ -60,9 +60,13 @@ export async function getServerSideProps(context) {
           credentials: true,
         },
       },
-      dailyurl: true,
-      dailytoken: true,
       attendees: true,
+      dailyRef: {
+        select: {
+          dailyurl: true,
+          dailytoken: true,
+        },
+      },
       references: {
         select: {
           uid: true,
