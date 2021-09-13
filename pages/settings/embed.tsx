@@ -2,15 +2,23 @@ import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
+import WebhookList from "@components/webhook/WebhookList";
+import { PlusIcon, ShareIcon } from "@heroicons/react/outline";
 import { getSession } from "@lib/auth";
 // import { Member } from "@lib/member";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
+import { useEffect, useState, useRef } from "react";
 
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
+  const [showCreateWebhookModal, setShowCreateWebhookModal] = useState(false);
+  const [webhooks, setWebhooks] = useState([]);
+  const [webhookEventTypes, setWebhookEventTypes] = useState([]);
+
+  const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
   if (loading) {
     return <Loader />;
@@ -30,10 +38,22 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     fetch("/api/webhook")
       .then(handleErrors)
       .then((data) => {
+        setWebhooks(data.webhooks);
+        setWebhookEventTypes(data.webhookEventTypes);
         console.log("success", data);
       })
       .catch(console.log);
   };
+
+  useEffect(() => {
+    getWebhooks();
+  }, []);
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  const createWebhook = () => {};
 
   return (
     <Shell
@@ -75,6 +95,114 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
               </div>
             </div>
           </div>
+          <hr className="mt-8" />
+          <div className="my-6">
+            <h2 className="text-lg font-medium leading-6 text-gray-900">Webhooks</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Receive Calendso meeting data at a specified URL, in real-time, when an event is scheduled or
+              canceled.{" "}
+            </p>
+          </div>
+          <div className="divide-y divide-gray-200 lg:col-span-9">
+            <div className="py-6 lg:pb-8">
+              <div className="flex flex-col justify-between md:flex-row">
+                <div>
+                  {!webhooks.length && (
+                    <div className="sm:rounded-sm">
+                      <div className="pb-5 pr-4 sm:pb-6">
+                        <h3 className="text-lg font-medium leading-6 text-gray-900">
+                          Create a webhook to get started
+                        </h3>
+                        <div className="max-w-xl mt-2 text-sm text-gray-500">
+                          <p>
+                            Create your first webhook and get real-time meeting data when an event is
+                            scheduled or canceled.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-start mb-4">
+                  <Button
+                    type="button"
+                    onClick={() => setShowCreateWebhookModal(true)}
+                    color="secondary"
+                    StartIcon={PlusIcon}>
+                    New Webhook
+                  </Button>
+                </div>
+              </div>
+              <div>
+                {!!webhooks.length && <WebhookList webhooks={webhooks} onChange={getWebhooks}></WebhookList>}
+              </div>
+            </div>
+          </div>
+
+          {showCreateWebhookModal && (
+            <div
+              className="fixed inset-0 z-50 overflow-y-auto"
+              aria-labelledby="modal-title"
+              role="dialog"
+              aria-modal="true">
+              <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div
+                  className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
+                  aria-hidden="true"></div>
+
+                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+                  &#8203;
+                </span>
+
+                <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                  <div className="mb-4 sm:flex sm:items-start">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <ShareIcon className="w-6 h-6 text-neutral-900" />
+                    </div>
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                        Create a new Webhook
+                      </h3>
+                      <div>
+                        <p className="text-sm text-gray-400">
+                          Create a new webhook to get real-time calendso meeting data
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <form onSubmit={createWebhook}>
+                    <div className="mb-4">
+                      <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
+                        Subscriber Url
+                      </label>
+                      <input
+                        ref={subUrlRef}
+                        type="text"
+                        name="subUrl"
+                        id="subUrl"
+                        placeholder="https://example.com/sub"
+                        required
+                        className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                      />
+                    </div>
+                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                      <Button type="submit" color="primary" className="ml-2">
+                        Create Webhook
+                      </Button>
+                      <Button
+                        onClick={() => setShowCreateWebhookModal(false)}
+                        type="button"
+                        color="secondary">
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <hr className="mt-8" />
           <div className="my-6">
             <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">Cal.com API</h2>
             <p className="mt-1 text-sm text-gray-500">
@@ -84,9 +212,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
           <a href="https://developer.cal.com/api" className="btn btn-primary">
             Browse our API documentation
           </a>
-          <Button type="button" color="secondary" onClick={getWebhooks}>
-            GET WEBHOOKS
-          </Button>
         </div>
       </SettingsShell>
     </Shell>
