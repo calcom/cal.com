@@ -7,6 +7,8 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/t
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import Avatar from "@components/Avatar";
 import DatePicker from "@components/booking/DatePicker";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
+import PoweredByCalendso from "@components/ui/PoweredByCalendso";
 import { timeZone } from "@lib/clock";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
@@ -178,6 +180,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
               )}
             </div>
           </div>
+          {eventType.users.length && isBrandingHidden(eventType.users[0]) && <PoweredByCalendso />}
         </main>
       </div>
     </>

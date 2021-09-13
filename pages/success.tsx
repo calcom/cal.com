@@ -12,12 +12,15 @@ import timezone from "dayjs/plugin/timezone";
 import { createEvent } from "ics";
 import { getEventName } from "@lib/event";
 import Theme from "@components/Theme";
+import { asStringOrNull } from "../lib/asStringOrNull";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
 
-export default function Success(props) {
+export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
   const { location, name } = router.query;
 
@@ -220,8 +223,8 @@ export default function Success(props) {
                       </div>
                     </div>
                   )}
-                  {!props.hideBranding && (
-                    <div className="mt-4 dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
+                  {!hideBranding && (
+                    <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
                     </div>
                   )}
@@ -236,9 +239,15 @@ export default function Success(props) {
 }
 
 export async function getServerSideProps(context) {
+  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  if (isNaN(typeId)) {
+    return {
+      notFound: true,
+    };
+  }
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: parseInt(context.query.type),
+      id: typeId,
     },
     select: {
       id: true,
@@ -252,6 +261,7 @@ export async function getServerSideProps(context) {
         select: {
           name: true,
           hideBranding: true,
+          plan: true,
         },
       },
       team: {
@@ -262,6 +272,12 @@ export async function getServerSideProps(context) {
       },
     },
   });
+
+  if (!eventType) {
+    return {
+      notFound: true,
+    };
+  }
 
   if (!eventType.users.length && eventType.userId) {
     eventType.users.push(
@@ -277,9 +293,15 @@ export async function getServerSideProps(context) {
     );
   }
 
+  if (!eventType.users.length) {
+    return {
+      notFound: true,
+    };
+  }
+
   return {
     props: {
-      hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
+      hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
       bookedWith: eventType.team
         ? eventType.team.name
         : eventType.users.length === 1

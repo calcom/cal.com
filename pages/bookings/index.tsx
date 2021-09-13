@@ -11,6 +11,7 @@ import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
 import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
+import { BookingStatus } from "@prisma/client";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,8 +46,7 @@ export default function Bookings({ bookings }) {
                 <table className="min-w-full divide-y divide-gray-200">
                   <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
                     {bookings
-                      .filter((booking) => !booking.confirmed && !booking.rejected)
-                      .concat(bookings.filter((booking) => booking.confirmed || booking.rejected))
+                      .filter((booking) => booking.status !== BookingStatus.CANCELLED)
                       .map((booking) => (
                         <tr key={booking.id}>
                           <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
@@ -68,11 +68,13 @@ export default function Bookings({ bookings }) {
                                 </small>
                               </div>
                             </div>
-                            <div className="text-sm text-blue-500">
-                              <a href={"mailto:" + booking.attendees[0].email}>
-                                {booking.attendees[0].email}
-                              </a>
-                            </div>
+                            {booking.attendees.length !== 0 && (
+                              <div className="text-sm text-blue-500">
+                                <a href={"mailto:" + booking.attendees[0].email}>
+                                  {booking.attendees[0].email}
+                                </a>
+                              </div>
+                            )}
                           </td>
                           <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
@@ -239,6 +241,7 @@ export async function getServerSideProps(context) {
           },
         },
       },
+      status: true,
     },
     orderBy: {
       startTime: "asc",

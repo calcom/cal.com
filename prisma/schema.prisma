@@ -144,6 +144,13 @@ model Attendee {
   bookingId Int?
 }
 
+enum BookingStatus {
+  CANCELLED @map("cancelled")
+  ACCEPTED  @map("accepted")
+  REJECTED  @map("rejected")
+  PENDING   @map("pending")
+}
+
 model Booking {
   id          Int                @id @default(autoincrement())
   uid         String             @unique
@@ -165,6 +172,7 @@ model Booking {
   updatedAt DateTime?
   confirmed Boolean   @default(true)
   rejected  Boolean   @default(false)
+  status    BookingStatus @default(ACCEPTED)
 }
 
 model Schedule {

@@ -1,5 +1,5 @@
-import { GetServerSideProps } from "next";
-import { useEffect, useRef, useState } from "react";
+import { GetServerSidePropsContext } from "next";
+import { RefObject, useEffect, useRef, useState } from "react";
 import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
@@ -12,19 +12,80 @@ import { UsernameInput } from "@components/ui/UsernameInput";
 import ErrorAlert from "@components/ui/alerts/Error";
 import ImageUploader from "@components/ImageUploader";
 import crypto from "crypto";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import Badge from "@components/ui/Badge";
+import Button from "@components/ui/Button";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 const themeOptions = [
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
 ];
 
-export default function Settings(props) {
+type Props = inferSSRProps<typeof getServerSideProps>;
+function HideBrandingInput(props: {
+  //
+  hideBrandingRef: RefObject<HTMLInputElement>;
+  user: Props["user"];
+}) {
+  const [modelOpen, setModalOpen] = useState(false);
+  return (
+    <>
+      <input
+        id="hide-branding"
+        name="hide-branding"
+        type="checkbox"
+        ref={props.hideBrandingRef}
+        defaultChecked={isBrandingHidden(props.user)}
+        className={
+          "focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50"
+        }
+        onClick={(e) => {
+          if (!e.currentTarget.checked || props.user.plan !== "FREE") {
+            return;
+          }
+
+          // prevent checking the input
+          e.preventDefault();
+
+          setModalOpen(true);
+        }}
+      />
+
+      <Modal
+        heading="This feature is only available in paid plan"
+        variant="warning"
+        description={
+          <div className="flex flex-col space-y-3">
+            <p>
+              In order to remove the Calendso branding from your booking pages, you need to upgrade to a paid
+              account.
+            </p>
+
+            <p>
+              {" "}
+              To upgrade go to{" "}
+              <a href="https://calendso.com/upgrade" className="underline">
+                calendso.com/upgrade
+              </a>
+              .
+            </p>
+          </div>
+        }
+        open={modelOpen}
+        handleClose={() => setModalOpen(false)}
+      />
+    </>
+  );
+}
+
+export default function Settings(props: Props) {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const usernameRef = useRef<HTMLInputElement>();
-  const nameRef = useRef<HTMLInputElement>();
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>();
-  const avatarRef = useRef<HTMLInputElement>();
-  const hideBrandingRef = useRef<HTMLInputElement>();
+  const avatarRef = useRef<HTMLInputElement>(null);
+  const hideBrandingRef = useRef<HTMLInputElement>(null);
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
@@ -244,18 +305,12 @@ export default function Settings(props) {
                 <div>
                   <div className="relative flex items-start">
                     <div className="flex items-center h-5">
-                      <input
-                        id="hide-branding"
-                        name="hide-branding"
-                        type="checkbox"
-                        ref={hideBrandingRef}
-                        defaultChecked={props.user.hideBranding}
-                        className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
-                      />
+                      <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Calendso branding
+                        Disable Calendso branding{" "}
+                        {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
                       <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
                     </div>
@@ -302,11 +357,7 @@ export default function Settings(props) {
             </div>
             <hr className="mt-8" />
             <div className="py-4 flex justify-end">
-              <button
-                type="submit"
-                className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500">
-                Save
-              </button>
+              <Button type="submit">Save</Button>
             </div>
           </div>
         </form>
@@ -321,9 +372,9 @@ export default function Settings(props) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
@@ -342,9 +393,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       weekStart: true,
       hideBranding: true,
       theme: true,
+      plan: true,
     },
   });
 
+  if (!user) {
+    throw new Error("User seems logged in but cannot be found in the db");
+  }
   return {
     props: {
       user: {

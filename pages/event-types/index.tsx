@@ -658,8 +658,6 @@ export async function getServerSideProps(context) {
     }))
   );
 
-  console.log(eventTypes);
-
   const userObj = Object.assign({}, user, {
     createdDate: user.createdDate.toString(),
   });
