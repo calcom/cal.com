@@ -108,7 +108,11 @@ export default function Type(props) {
                       </div>
                     </div>
                     <div className="mt-5 sm:mt-6 text-center space-x-2">
-                      <Button color="secondary" onClick={cancellationHandler} loading={loading}>
+                      <Button
+                        color="secondary"
+                        data-testid="cancel"
+                        onClick={cancellationHandler}
+                        loading={loading}>
                         Cancel
                       </Button>
                       <Button onClick={() => router.push("/reschedule/" + uid)}>Reschedule</Button>

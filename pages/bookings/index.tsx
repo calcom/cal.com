@@ -43,7 +43,7 @@ export default function Bookings({ bookings }) {
             <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
               <div className="border border-gray-200 overflow-hidden border-b rounded-sm">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
                     {bookings
                       .filter((booking) => !booking.confirmed && !booking.rejected)
                       .concat(bookings.filter((booking) => booking.confirmed || booking.rejected))
@@ -100,7 +100,11 @@ export default function Bookings({ bookings }) {
                             )}
                             {booking.confirmed && !booking.rejected && (
                               <div className="space-x-2">
-                                <Button href={"cancel/" + booking.uid} StartIcon={XIcon} color="secondary">
+                                <Button
+                                  data-testid="cancel"
+                                  href={"/cancel/" + booking.uid}
+                                  StartIcon={XIcon}
+                                  color="secondary">
                                   Cancel
                                 </Button>
                                 <Button

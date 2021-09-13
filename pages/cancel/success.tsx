@@ -44,7 +44,7 @@ export default function CancelSuccess() {
                   <div className="mt-5">
                     {!loading && !session.user && <Button href={eventPage}>Pick another</Button>}
                     {!loading && session.user && (
-                      <Button href="/bookings" EndIcon={ArrowRightIcon}>
+                      <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
                         Back to bookings
                       </Button>
                     )}
