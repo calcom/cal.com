@@ -5,10 +5,11 @@ import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
-import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
-import { VideoCallData } from "@lib/videoClient";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
+import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
+import { VideoCallData } from "@lib/videoClient";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -522,6 +523,8 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
           return MicrosoftOffice365Calendar(cred);
         case "caldav_calendar":
           return new CalDavCalendar(cred);
+        case "apple_calendar":
+          return new AppleCalendar(cred);
         default:
           return; // unknown credential, could be legacy? In any case, ignore
       }

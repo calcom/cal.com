@@ -9,6 +9,7 @@ import PoweredByCalendso from "@components/ui/PoweredByCalendso";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -179,7 +180,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                 )}
               </div>
             </div>
-            {!props.user.hideBranding && <PoweredByCalendso />}
+            {!isBrandingHidden(props.user) && <PoweredByCalendso />}
           </main>
         </div>
       )}
