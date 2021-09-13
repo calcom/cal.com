@@ -1,6 +1,7 @@
 import { Credential } from "@prisma/client";
 import async from "async";
-import merge from "lodash/merge";
+import prisma from "@lib/prisma";
+import { LocationType } from "@lib/location";
 import { v5 as uuidv5 } from "uuid";
 
 import { AdditionInformation, CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
@@ -71,6 +72,8 @@ export default class EventManager {
     }
   }
 
+
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
@@ -113,12 +116,6 @@ export default class EventManager {
         meetingUrl: result.videoCallData?.url,
       };
     });
-
-    return {
-      results,
-      referencesToCreate,
-    };
-  }
 
   /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the
@@ -226,15 +223,27 @@ export default class EventManager {
    * @param event
    * @private
    */
-
   private getVideoCredential(event: CalendarEvent): Credential | undefined {
     if (!event.location) {
       return undefined;
     }
 
     const integrationName = event.location.replace("integrations:", "");
-
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
+    }
+    const isDaily = event.location === "integrations:daily";
+    const dailycredential: Credential = {
+      id: 1,
+      type: "daily",
+      key: 1,
+      userId: 1,
+    };
+
+    if(isDaily){
+    return  dailycredential
+    }
+    */
+  
   }
 
   /**
@@ -247,10 +256,27 @@ export default class EventManager {
    */
   private createVideoEvent(event: Ensure<CalendarEvent, "language">): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
+    // lola internal - add this is this daily check to get around credentials because we're not storing them
+    const isDaily = event.location === "integrations:daily";
 
     if (credential) {
       return createMeeting(credential, event);
     } else {
+      return Promise.reject("No suitable credentials given for the requested integration name.");
+    }
+
+    */
+   //so it saved credential but it didn't do dailyCreateMeeting
+
+    //lola internal creates a credential in the database for daily if one doesn't exist
+
+    if (credential && !isDaily) {
+      return createMeeting(credential, event, maybeUid);
+    } else
+    if (isDaily) {
+      return dailyCreateMeeting(credential, event, maybeUid);
+    }
+    else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
   }

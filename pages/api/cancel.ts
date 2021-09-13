@@ -132,6 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
+
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {
         return await deleteEvent(credential, bookingRefUid);
@@ -178,7 +179,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       bookingId: bookingToDelete.id,
     },
   });
-
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
     where: {
       bookingId: bookingToDelete.id,
