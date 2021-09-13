@@ -1,7 +1,7 @@
 import React from "react";
 import Text from "@components/ui/Text";
 import Link from "next/link";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import classnames from "classnames";
 import { ArrowLeftIcon } from "@heroicons/react/solid";

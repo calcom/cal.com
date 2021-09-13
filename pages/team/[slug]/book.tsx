@@ -37,6 +37,7 @@ export async function getServerSideProps(context) {
         select: {
           slug: true,
           name: true,
+          logo: true,
         },
       },
       users: {
@@ -80,6 +81,7 @@ export async function getServerSideProps(context) {
       profile: {
         ...eventTypeObject.team,
         slug: "team/" + eventTypeObject.slug,
+        image: eventTypeObject.team.logo,
       },
       eventType: eventTypeObject,
       booking,

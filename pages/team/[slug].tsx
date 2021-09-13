@@ -4,14 +4,14 @@ import { HeadSeo } from "@components/seo/head-seo";
 import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import Text from "@components/ui/Text";
 import React from "react";
 import { defaultAvatarSrc } from "@lib/profile";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-import classNames from "@lib/classNames";
 import Team from "@components/team/screens/Team";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import AvatarGroup from "@components/ui/AvatarGroup";
 
 function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { isReady } = useTheme();
@@ -30,13 +30,15 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
                 <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <ul className="inline-flex flex-none">
-                {type.users.map((user, idx: number) => (
-                  <li className={classNames(idx && "-ml-3", "w-10 h-10")} key={user.id}>
-                    <Avatar displayName={user.name} imageSrc={user.avatar} />
-                  </li>
-                ))}
-              </ul>
+              <AvatarGroup
+                truncateAfter={4}
+                className="flex-shrink-0"
+                size={10}
+                items={type.users.map((user) => ({
+                  alt: user.name,
+                  image: user.avatar,
+                }))}
+              />
             </a>
           </Link>
         </li>

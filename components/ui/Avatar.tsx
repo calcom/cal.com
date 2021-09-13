@@ -7,19 +7,12 @@ export type AvatarProps = {
   className?: string;
   size: number;
   imageSrc?: string;
-  displayName: string;
+  title?: string;
+  alt: string;
   gravatarFallbackMd5?: string;
-  tooltip?: boolean;
 };
 
-export default function Avatar({
-  imageSrc,
-  displayName,
-  gravatarFallbackMd5,
-  size,
-  tooltip = false,
-  ...props
-}: AvatarProps) {
+export default function Avatar({ imageSrc, gravatarFallbackMd5, size, alt, title, ...props }: AvatarProps) {
   const className = classNames(
     "border-2 border-gray-300 rounded-full",
     props.className,
@@ -29,7 +22,7 @@ export default function Avatar({
     <AvatarPrimitive.Root>
       <AvatarPrimitive.Image
         src={imageSrc}
-        alt={displayName}
+        alt={alt}
         className={classNames(
           "border-2 border-gray-300 rounded-full",
           `h-${size} w-${size}`,
@@ -38,18 +31,18 @@ export default function Avatar({
       />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
-          <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={displayName} className={className} />
+          <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={className} />
         )}
       </AvatarPrimitive.Fallback>
     </AvatarPrimitive.Root>
   );
 
-  return tooltip ? (
+  return title ? (
     <Tooltip.Tooltip delayDuration="300">
       <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
       <Tooltip.Content className="p-2 rounded-sm text-sm bg-black text-white shadow-sm">
         <Tooltip.Arrow />
-        {displayName}
+        {title}
       </Tooltip.Content>
     </Tooltip.Tooltip>
   ) : (

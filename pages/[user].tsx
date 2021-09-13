@@ -1,4 +1,4 @@
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { HeadSeo } from "@components/seo/head-seo";
 import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/outline";

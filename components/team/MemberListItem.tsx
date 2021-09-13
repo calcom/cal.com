@@ -3,7 +3,7 @@ import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { Member } from "@lib/member";
 import Button from "@components/ui/Button";
 

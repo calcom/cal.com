@@ -5,7 +5,6 @@ import { EventType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
-import Avatar from "@components/Avatar";
 import DatePicker from "@components/booking/DatePicker";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import PoweredByCalendso from "@components/ui/PoweredByCalendso";
@@ -16,6 +15,7 @@ import * as Collapsible from "@radix-ui/react-collapsible";
 import { HeadSeo } from "@components/seo/head-seo";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import useTheme from "@lib/hooks/useTheme";
+import AvatarGroup from "@components/ui/AvatarGroup";
 
 type AvailabilityPageProps = {
   eventType: EventType;
@@ -92,18 +92,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
-                  <ul className="h-9">
-                    <li className="inline-block">
-                      <Avatar imageSrc={profile.image} displayName={profile.name} size="9" />
-                    </li>
-                    {eventType.users
-                      .filter((user) => user.name !== profile.name)
-                      .map((user) => (
-                        <li key={user.id} className="inline-block -ml-2">
-                          <Avatar imageSrc={user.avatar} displayName={user.name} size="9" tooltip={true} />
-                        </li>
-                      ))}
-                  </ul>
+                  <AvatarGroup
+                    items={[{ image: profile.image, alt: profile.name }].concat(
+                      eventType.users
+                        .filter((user) => user.name !== profile.name)
+                        .map((user) => ({
+                          title: user.name,
+                          image: user.avatar,
+                        }))
+                    )}
+                    size={9}
+                    truncateAfter={5}
+                  />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
@@ -124,18 +124,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
-                  <ul className="flex flex-inline mb-2">
-                    <li>
-                      <Avatar imageSrc={profile.image} displayName={profile.name} size="16" />
-                    </li>
-                    {eventType.users
-                      .filter((user) => user.name !== profile.name)
-                      .map((user) => (
-                        <li key={user.id} className="-ml-2">
-                          <Avatar imageSrc={user.avatar} displayName={user.name} size="16" tooltip={true} />
-                        </li>
-                      ))}
-                  </ul>
+                  <AvatarGroup
+                    items={[{ image: profile.image, alt: profile.name }].concat(
+                      eventType.users
+                        .filter((user) => user.name !== profile.name)
+                        .map((user) => ({
+                          title: user.name,
+                          image: user.avatar,
+                        }))
+                    )}
+                    size={16}
+                    truncateAfter={3}
+                  />
                   <h2 className="font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {eventType.title}

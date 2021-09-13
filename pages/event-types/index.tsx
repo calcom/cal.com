@@ -21,7 +21,7 @@ import Shell from "@components/Shell";
 import prisma from "@lib/prisma";
 import { EventType, SchedulingType } from "@prisma/client";
 import showToast from "@lib/notification";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
@@ -34,6 +34,7 @@ import { useMutation } from "react-query";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import { HttpError } from "@lib/core/http/error";
 import { asStringOrNull } from "@lib/asStringOrNull";
+import AvatarGroup from "@components/ui/AvatarGroup";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const CreateFirstEventTypeView = () => (
@@ -111,13 +112,14 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <div className="hidden sm:flex mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
                   <div className="flex items-center overflow-hidden space-x-5">
                     {type.users.length > 1 && (
-                      <ul className="inline-flex">
-                        {type.users.map((organizer, idx: number) => (
-                          <li key={idx} className={idx ? "-ml-1" : ""}>
-                            <Avatar size="6" displayName={organizer.name} imageSrc={organizer.avatar} />
-                          </li>
-                        ))}
-                      </ul>
+                      <AvatarGroup
+                        size={8}
+                        truncateAfter={4}
+                        items={type.users.map((organizer) => ({
+                          alt: organizer.name,
+                          image: organizer.avatar,
+                        }))}
+                      />
                     )}
                     <Tooltip content="Preview">
                       <a
