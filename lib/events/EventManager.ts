@@ -33,6 +33,9 @@ export interface PartialReference {
   id?: number;
   type: string;
   uid: string;
+  meetingId?: string;
+  meetingPassword?: string;
+  meetingUrl?: string;
 }
 
 interface GetLocationRequestFromIntegrationRequest {
@@ -86,10 +89,13 @@ export default class EventManager {
       await this.createAllCalendarEvents(event, isDedicated, maybeUid, optionalVideoCallData)
     );
 
-    const referencesToCreate: Array<PartialReference> = results.map((result) => {
+    const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
         type: result.type,
         uid: result.createdEvent.id.toString(),
+        meetingId: result.videoCallData?.id,
+        meetingPassword: result.videoCallData?.password,
+        meetingUrl: result.videoCallData?.url,
       };
     });
 
