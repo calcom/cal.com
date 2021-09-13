@@ -4,19 +4,37 @@ import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
 import WebhookList from "@components/webhook/WebhookList";
 import { PlusIcon, ShareIcon } from "@heroicons/react/outline";
-import { getSession } from "@lib/auth";
-// import { Member } from "@lib/member";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
 import { useEffect, useState, useRef } from "react";
 
+import { getSession } from "@lib/auth";
+// import { Member } from "@lib/member";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import Loader from "@components/Loader";
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
+import Button from "@components/ui/Button";
+import Checkbox from "@components/ui/form/checkbox";
+import WebhookList from "@components/webhook/WebhookList";
+
+import { EventTypeCustomInputType } from ".prisma/client";
+
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
   const [showCreateWebhookModal, setShowCreateWebhookModal] = useState(false);
+  const [bookingCreated, setBookingCreated] = useState(true);
+  const [bookingRescheduled, setBookingRescheduled] = useState(true);
+  const [bookingCanceled, setBookingCanceled] = useState(true);
   const [webhooks, setWebhooks] = useState([]);
   const [webhookEventTypes, setWebhookEventTypes] = useState([]);
+  const [webhookEventTrigger, setWebhookEventTriggers] = useState([
+    "BOOKING_CREATED",
+    "BOOKING_RESCHEDULED",
+    "BOOKING_CANCELED",
+  ]);
 
   const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
@@ -34,12 +52,33 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     return resp.json();
   };
 
+  const onCheckedChange = (val: boolean | string, ref: string) => {
+    switch (ref) {
+      case "booking-created":
+        setBookingCreated(!bookingCreated);
+        break;
+      case "booking-rescheduled":
+        setBookingRescheduled(!bookingRescheduled);
+        break;
+      case "booking-canceled":
+        setBookingCanceled(!bookingCanceled);
+        break;
+    }
+    const arr = [];
+    bookingCreated && arr.push("BOOKING_CREATED");
+    bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
+    bookingCanceled && arr.push("BOOKING_CANCELED");
+    setWebhookEventTriggers(arr);
+  };
+
   const getWebhooks = () => {
     fetch("/api/webhook")
       .then(handleErrors)
       .then((data) => {
         setWebhooks(data.webhooks);
-        setWebhookEventTypes(data.webhookEventTypes);
+        setWebhookEventTypes(
+          data.webhookEventTypes.map((eventType: { eventTypeId: number }) => eventType.eventTypeId)
+        );
         console.log("success", data);
       })
       .catch(console.log);
@@ -134,7 +173,12 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                 </div>
               </div>
               <div>
-                {!!webhooks.length && <WebhookList webhooks={webhooks} onChange={getWebhooks}></WebhookList>}
+                {!!webhooks.length && (
+                  <WebhookList
+                    webhooks={webhooks}
+                    webhookEventTypes={webhookEventTypes}
+                    onChange={getWebhooks}></WebhookList>
+                )}
               </div>
             </div>
           </div>
@@ -183,6 +227,31 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                         placeholder="https://example.com/sub"
                         required
                         className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                      />
+                      <legend className="block mt-4 mb-2 text-sm font-medium text-gray-700">
+                        {" "}
+                        Select Event Triggers{" "}
+                      </legend>
+                      <Checkbox
+                        defaultChecked={true}
+                        cid="booking-created"
+                        label="Booking Created"
+                        value={bookingCreated}
+                        onCheckedChange={onCheckedChange}
+                      />
+                      <Checkbox
+                        defaultChecked={true}
+                        cid="booking-rescheduled"
+                        label="Booking Rescheduled"
+                        value={bookingRescheduled}
+                        onCheckedChange={onCheckedChange}
+                      />
+                      <Checkbox
+                        defaultChecked={true}
+                        cid="booking-canceled"
+                        label="Booking Canceled"
+                        value={bookingCanceled}
+                        onCheckedChange={onCheckedChange}
                       />
                     </div>
                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">

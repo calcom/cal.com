@@ -1,7 +1,11 @@
 import WebhookListItem from "./WebhookListItem";
 import { Webhook } from "@lib/webhook";
 
-export default function WebhookList(props: { webhooks: Webhook[]; onChange: () => void }) {
+export default function WebhookList(props: {
+  webhooks: Webhook[];
+  onChange: () => void;
+  webhookEventTypes: number[];
+}) {
   const deleteWebhook = (webhook: Webhook) => {
     return fetch("/api/webhook/" + webhook.id, {
       method: "DELETE",
@@ -12,7 +16,11 @@ export default function WebhookList(props: { webhooks: Webhook[]; onChange: () =
     <div>
       <ul className="px-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
         {props.webhooks.map((webhook: Webhook) => (
-          <WebhookListItem onChange={props.onChange} key={webhook.id} webhook={webhook}></WebhookListItem>
+          <WebhookListItem
+            onChange={props.onChange}
+            key={webhook.id}
+            webhookEvents={props.webhookEventTypes}
+            webhook={webhook}></WebhookListItem>
         ))}
       </ul>
     </div>

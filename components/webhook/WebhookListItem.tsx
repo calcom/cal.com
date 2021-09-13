@@ -1,14 +1,18 @@
 import { TrashIcon, DotsHorizontalIcon, PencilAltIcon, GlobeAltIcon } from "@heroicons/react/outline";
 import Dropdown from "../ui/Dropdown";
-// import { useState } from "react";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Button from "@components/ui/Button";
 import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
 
-export default function WebhookListItem(props: { onChange: () => void; key: number; webhook: Webhook }) {
-  //   const [webhook, setWebhook] = useState<Webhook | null>(props.webhook);
+export default function WebhookListItem(props: {
+  onChange: () => void;
+  key: number;
+  webhook: Webhook;
+  webhookEvents: number[];
+}) {
+  // fetch webhookEventType names from ID
 
   return (
     <li className="divide-y">
