@@ -72,6 +72,7 @@ export default class EventManager {
       this.videoCredentials.push(dailyCredential);
     }
   }
+  
 
 
 
@@ -270,7 +271,7 @@ export default class EventManager {
    */
   private createVideoEvent(event: CalendarEvent, maybeUid?: string): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
-    // lola internal - add this is this daily check to get around credentials because we're not storing them
+    
     const isDaily = event.location === "integrations:daily";
 
     const isDaily = event.location === dailyLocation;
