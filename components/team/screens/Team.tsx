@@ -3,13 +3,10 @@ import Text from "@components/ui/Text";
 import Link from "next/link";
 import Avatar from "@components/Avatar";
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import useTheme from "@components/Theme";
 import classnames from "classnames";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
 
 const Team = ({ team }) => {
-  useTheme();
-
   const Member = ({ member }) => {
     const classes = classnames(
       "group",

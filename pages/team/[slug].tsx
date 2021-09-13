@@ -1,7 +1,7 @@
 import { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { HeadSeo } from "@components/seo/head-seo";
-import Theme from "@components/Theme";
+import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
 import Avatar from "@components/Avatar";
@@ -14,7 +14,7 @@ import Team from "@components/team/screens/Team";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 
 function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { isReady } = Theme();
+  const { isReady } = useTheme();
   const showMembers = useToggleQuery("members");
 
   const eventTypes = (

@@ -1,6 +1,6 @@
 import Avatar from "@components/Avatar";
 import { HeadSeo } from "@components/seo/head-seo";
-import Theme from "@components/Theme";
+import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -10,7 +10,7 @@ import React from "react";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { isReady } = Theme(props.user.theme);
+  const { isReady } = useTheme(props.user.theme);
 
   return (
     <>

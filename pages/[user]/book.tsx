@@ -89,6 +89,7 @@ export async function getServerSideProps(context) {
         slug: user.username,
         name: user.name,
         image: user.avatar,
+        theme: user.theme,
       },
       eventType: eventTypeObject,
       booking,
