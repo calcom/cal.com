@@ -18,14 +18,6 @@ const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
 const translator = short();
 
-const daily2credential : Credential =  {
-  id:6736,
-  type:"daily_video",
-  key: {apikey: process.env.DAILY_API_KEY},
-  userId: 1
-
-}
-
 
 export interface DailyVideoCallData {
   type: string;
@@ -54,50 +46,6 @@ function handleErrorsRaw(response) {
 var dailyCredential = process.env.DAILY_API_KEY
 
 
-
-//lola internal - we can probably do later but we might want to follow this for the meetingToken piece
-const zoomAuth = (credential) => {
-  const isExpired = (expiryDate) => expiryDate < +new Date();
-  const authHeader =
-    "Basic " +
-    Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
-
-  const refreshAccessToken = (refreshToken) =>
-    fetch("https://zoom.us/oauth/token", {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
-    })
-      .then(handleErrorsJson)
-      .then(async (responseBody) => {
-        // Store new tokens in database.
-        await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: responseBody,
-          },
-        });
-        credential.key.access_token = responseBody.access_token;
-        credential.key.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
-        return credential.key.access_token;
-      });
-
-  return {
-    getToken: () =>
-      !isExpired(credential.key.expires_in)
-        ? Promise.resolve(credential.key.access_token)
-        : refreshAccessToken(credential.key.refresh_token),
-  };
-};
-
 interface DailyVideoApiAdapter {
   dailyCreateMeeting(event: CalendarEvent): Promise<any>;
 
@@ -113,9 +61,9 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
 
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
-    // lola todo i'll need to actually pull in the dynamic data but I think I can draw inspiration from the zoom translate event
-    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 1440;
-    const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 1440;
+    // added a 1 hour buffer for room expiration and room entry
+    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
+    const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 60;
     return {
       privacy: "private",
       properties: {
@@ -160,7 +108,6 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
 };
 
 // factory 
-//lola-internal but this whole rigmaroe isn't necessary i should just yea...
 const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
   withCredentials
     .map((cred) => {
@@ -211,7 +158,7 @@ const dailyCreateMeeting = async (
     url: currentRoute + '/call/'+ uid,
   };
 
-  //lola todo - we probably don't need an entry point
+  
   const entryPoint: EntryPoint = {
     entryPointType: getIntegrationName(videoCallData),
     uri: videoCallData.url,
@@ -223,7 +170,7 @@ const dailyCreateMeeting = async (
     entryPoints: [entryPoint],
   };
 
-  //lola todo - this is where i'll need different things for organizer mail
+  
   const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
   const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
   try {

@@ -6,8 +6,6 @@ import { getSession } from 'next-auth/client';
 import type {NextApiRequest, NextApiResponse} from 'next';
 
 
-//lola-internal so we would have something be conditional to join the call when there is a session yea
-
 
 export default function joinCall(props, session) {
    // Get router variables
@@ -55,38 +53,6 @@ return joinCall;
 
 }
 
-/*lola internal oldworkingcode 
-
-export default function joinCall(props, session) {
-   // Get router variables
-   const router = useRouter();
-   const { uid } = router.query;
-   
-   
-
-  const url = props.booking.dailyurl
-  useEffect(() => {
-  const callFrame = DailyIframe.createFrame({
-    showLeaveButton: true,
-    iframeStyle: {
-      position: 'fixed',
-      width: '100%',
-     height: '100%'
-    }
-  });
-      callFrame.join({
-        url: url,
-        showLeaveButton: true,
-        
-    })
-}, [])
-
-return joinCall;
-
-}
-*/
-
-
 
 export async function getServerSideProps(context) {
   const booking = await prisma.booking.findFirst({
@@ -119,8 +85,6 @@ export async function getServerSideProps(context) {
 
   };
 }
-
-// lola internal this action finds the meeting owner token for the request 
 
 export async function handler(req: NextApiRequest, res: NextApiResponse, props) {
   const session = await getSession({req: req});
