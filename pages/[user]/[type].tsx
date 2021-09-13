@@ -179,7 +179,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                 )}
               </div>
             </div>
-            {!props.user.hideBranding && <PoweredByCalendso />}
+            {(!props.user.hideBranding || props.user.plan === "FREE") && <PoweredByCalendso />}
           </main>
         </div>
       )}
