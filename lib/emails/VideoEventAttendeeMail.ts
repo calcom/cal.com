@@ -1,8 +1,6 @@
 import EventAttendeeMail from "./EventAttendeeMail";
 import { getFormattedMeetingId, getIntegrationName } from "./helpers";
 
-
-
 export default class VideoEventAttendeeMail extends EventAttendeeMail {
   /**
    * Adds the video call information to the mail body.

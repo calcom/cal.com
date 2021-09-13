@@ -147,8 +147,6 @@ export async function getServerSideProps(context) {
           credentials: true,
         },
       },
-      dailyurl: true,
-      dailytoken: true,
       attendees: true,
       dailyRef: {
         select: {
