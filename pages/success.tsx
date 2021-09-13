@@ -1,6 +1,6 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
-import prisma, { whereAndSelect } from "@lib/prisma";
+import prisma from "@lib/prisma";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
@@ -12,12 +12,16 @@ import timezone from "dayjs/plugin/timezone";
 import { createEvent } from "ics";
 import { getEventName } from "@lib/event";
 import Theme from "@components/Theme";
+import { GetServerSidePropsContext } from "next";
+import { asStringOrNull } from "../lib/asStringOrNull";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
 
-export default function Success(props) {
+export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
   const { location, name } = router.query;
 
@@ -220,7 +224,7 @@ export default function Success(props) {
                       </div>
                     </div>
                   )}
-                  {!props.user.hideBranding && (
+                  {!isBrandingHidden(props.user) && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
                     </div>
@@ -235,30 +239,52 @@ export default function Success(props) {
   );
 }
 
-export async function getServerSideProps(context) {
-  const user = context.query.user
-    ? await whereAndSelect(
-        prisma.user.findFirst,
-        {
-          username: context.query.user,
-        },
-        ["username", "name", "bio", "avatar", "hideBranding", "theme"]
-      )
-    : null;
-
-  if (!user) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const username = asStringOrNull(context.query.user);
+  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  if (!username || isNaN(typeId)) {
     return {
       notFound: true,
     };
   }
 
-  const eventType = await whereAndSelect(
-    prisma.eventType.findUnique,
-    {
-      id: parseInt(context.query.type),
+  const user = await prisma.user.findUnique({
+    where: {
+      username,
     },
-    ["id", "title", "description", "length", "eventName", "requiresConfirmation"]
-  );
+    select: {
+      username: true,
+      name: true,
+      bio: true,
+      avatar: true,
+      hideBranding: true,
+      theme: true,
+      plan: true,
+    },
+  });
+  if (!user) {
+    return {
+      notFound: true,
+    };
+  }
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      id: typeId,
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true,
+      eventName: true,
+      requiresConfirmation: true,
+    },
+  });
+  if (!eventType) {
+    return {
+      notFound: true,
+    };
+  }
 
   return {
     props: {
