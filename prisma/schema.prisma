@@ -88,7 +88,7 @@ model Team {
   slug          String?   @unique
   logo          String?
   bio           String?
-  hideBranding  Boolean @default(false)    
+  hideBranding  Boolean @default(false)
   members       Membership[]
 }
 
@@ -120,11 +120,14 @@ model VerificationRequest {
 }
 
 model BookingReference {
-  id        Int      @id @default(autoincrement())
-  type      String
-  uid       String
-  booking   Booking? @relation(fields: [bookingId], references: [id])
-  bookingId Int?
+  id              Int      @id @default(autoincrement())
+  type            String
+  uid             String
+  meetingId       String?
+  meetingPassword String?
+  meetingUrl      String?
+  booking         Booking? @relation(fields: [bookingId], references: [id])
+  bookingId       Int?
 }
 
 model Attendee {
