@@ -391,6 +391,17 @@
     debug "^3.1.0"
     lodash.once "^4.1.1"
 
+"@daily-co/daily-js@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@daily-co/daily-js/-/daily-js-0.16.0.tgz#9020104bb88de62dcc1966e713da65844243b9ab"
+  integrity sha512-DBWzbZs2IR7uYqfbABva1Ms3f/oX85dnQnCpVbGbexTN63LPIGknFSQp31ZYED88qcG+YJNydywBTb+ApNiNXA==
+  dependencies:
+    "@babel/runtime" "^7.12.5"
+    bowser "^2.8.1"
+    events "^3.1.0"
+    fast-equals "^1.6.3"
+    lodash "^4.17.15"
+
 "@emotion/cache@^11.4.0":
   version "11.4.0"
   resolved "https://registry.npmjs.org/@emotion/cache/-/cache-11.4.0.tgz"
@@ -2478,6 +2489,11 @@ bn.js@^5.0.0, bn.js@^5.1.1:
   version "5.2.0"
   resolved "https://registry.npmjs.org/bn.js/-/bn.js-5.2.0.tgz"
 
+bowser@^2.8.1:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/bowser/-/bowser-2.11.0.tgz#5ca3c35757a7aa5771500c70a73a9f91ef420a8f"
+  integrity sha512-AlcaJBi/pqqJBIQ8U9Mcpc9i8Aqxn88Skv5d+xBX006BY5u8N3mGLHa5Lgppa7L/HfwgwLgZ6NYs+Ag6uUmJRA==
+
 brace-expansion@^1.1.7:
   version "1.1.11"
   resolved "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.11.tgz"
@@ -3703,7 +3719,7 @@ eventemitter2@^6.4.3:
   version "6.4.4"
   resolved "https://registry.npmjs.org/eventemitter2/-/eventemitter2-6.4.4.tgz"
 
-events@^3.0.0:
+events@^3.0.0, events@^3.1.0:
   version "3.3.0"
   resolved "https://registry.npmjs.org/events/-/events-3.3.0.tgz"
 

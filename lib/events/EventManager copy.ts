@@ -1,14 +1,12 @@
+import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import { Credential } from "@prisma/client";
 import async from "async";
+import { createMeeting, updateMeeting } from "@lib/videoClient";
 import { dailyCreateMeeting, dailyUpdateMeeting } from "@lib/dailyVideoClient";
 import prisma from "@lib/prisma";
 import { LocationType } from "@lib/location";
 import { v5 as uuidv5 } from "uuid";
 import merge from "lodash.merge";
-import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
-import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
-import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
-import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
 export interface EventResult {
   type: string;
@@ -17,7 +15,6 @@ export interface EventResult {
   createdEvent?: unknown;
   updatedEvent?: unknown;
   originalEvent: CalendarEvent;
-  videoCallData?: VideoCallData;
 }
 
 export interface CreateUpdateResult {
@@ -34,9 +31,6 @@ export interface PartialReference {
   id?: number;
   type: string;
   uid: string;
-  meetingId?: string;
-  meetingPassword?: string;
-  meetingUrl?: string;
 }
 
 interface GetLocationRequestFromIntegrationRequest {
@@ -56,7 +50,7 @@ export default class EventManager {
     this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
 
-   //lola internal need to updae this so that the credential is something ransom or the id...idk look at what they do when saving a credential
+   
     const hasDailyIntegration = process.env.DAILY_API_KEY != null;
     const dailyCredential : Credential =  {
       id:6736,
@@ -98,39 +92,54 @@ export default class EventManager {
    * @param event
    * @param maybeUid
    */
-  public async create(event: CalendarEvent, maybeUid?: string): Promise<CreateUpdateResult> {
+  public async create(event: CalendarEvent, maybeUid: string = null): Promise<CreateUpdateResult> {
     event = EventManager.processLocation(event);
     const isDedicated = EventManager.isDedicatedIntegration(event.location);
+    const isDaily = event.location === "integrations:daily"
+  
+    
+    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
+    //lola internal - maybe we should update the isdedicated which might get the createvideoevent action in there or we could try updating a is daily the same way. 
+    //lola internal -- i think I also need to create a video event, i think that's actually the problem not the credential are we creating all calendar events and creating video eventd
+    const results: Array<EventResult> = await this.createAllCalendarEvents(event, isDedicated, maybeUid);
 
-    let results: Array<EventResult> = [];
-    let optionalVideoCallData: VideoCallData | undefined = undefined;
-
-    // If and only if event type is a dedicated meeting, create a dedicated video meeting.
-    if (isDedicated) {
-      const result = await this.createVideoEvent(event, maybeUid);
-      if (result.videoCallData) {
-        optionalVideoCallData = result.videoCallData;
-      }
-      results.push(result);
-    } else {
-      await EventManager.sendAttendeeMail("new", results, event, maybeUid);
+    // If and only if event type is a dedicated meeting, create a dedicated video meeting as well.
+    if (isDedicated || isDaily) {
+      results.push(await this.createVideoEvent(event, maybeUid));
     }
 
-    // Now create all calendar events. If this is a dedicated integration event,
-    // don't send a mail right here, because it has already been sent.
-    results = results.concat(
-      await this.createAllCalendarEvents(event, isDedicated, maybeUid, optionalVideoCallData)
-    );
-
-    const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
+/*   const referencesToCreate: Array<PartialReference> = results.map((result) => {
+      const isDailyResult = result.type === "daily";
+      if(!isDailyResult){}
       return {
         type: result.type,
         uid: result.createdEvent.id.toString(),
-        meetingId: result.videoCallData?.id.toString(),
-        meetingPassword: result.videoCallData?.password,
-        meetingUrl: result.videoCallData?.url,
       };
     });
+    */
+
+    //lola - internal updated the references to also add the dail name which is unique
+
+    const referencesToCreate: Array<PartialReference> = results.map((result) => {
+      const isDailyResult = result.type === "daily";
+     if (!isDailyResult) {
+       return {
+        type: result.type,
+        uid: result.createdEvent.id.toString(),
+      }};
+      if (isDailyResult) {
+        return {
+         type: result.type,
+         uid: result.createdEvent.name.toString(),
+       }};
+    });
+
+
+    return {
+      results,
+      referencesToCreate,
+    };
+  }
 
   /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the
@@ -154,9 +163,6 @@ export default class EventManager {
             id: true,
             type: true,
             uid: true,
-            meetingId: true,
-            meetingPassword: true,
-            meetingUrl: true,
           },
         },
       },
@@ -166,25 +172,13 @@ export default class EventManager {
 
     const isDedicated = EventManager.isDedicatedIntegration(event.location) || event.location === "integrations:daily";
 
-    let results: Array<EventResult> = [];
-    let optionalVideoCallData: VideoCallData | undefined = undefined;
+    // First, update all calendar events. If this is a dedicated event, don't send a mail right here.
+    const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isDedicated);
 
-    // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+    // If and only if event type is a dedicated meeting, update the dedicated video meeting as well.
     if (isDedicated) {
-      const result = await this.updateVideoEvent(event, booking);
-      if (result.videoCallData) {
-        optionalVideoCallData = result.videoCallData;
-      }
-      results.push(result);
-    } else {
-      await EventManager.sendAttendeeMail("reschedule", results, event, rescheduleUid);
+      results.push(await this.updateVideoEvent(event, booking));
     }
-
-    // Now update all calendar events. If this is a dedicated integration event,
-    // don't send a mail right here, because it has already been sent.
-    results = results.concat(
-      await this.updateAllCalendarEvents(event, booking, isDedicated, optionalVideoCallData)
-    );
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -223,18 +217,16 @@ export default class EventManager {
    * @param event
    * @param noMail
    * @param maybeUid
-   * @param optionalVideoCallData
    * @private
    */
   //lola internal do we have the credential piece in there...i think so..
   private createAllCalendarEvents(
     event: CalendarEvent,
     noMail: boolean,
-    maybeUid?: string,
-    optionalVideoCallData?: VideoCallData
+    maybeUid: string = null
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      return createEvent(credential, event, noMail, maybeUid, optionalVideoCallData);
+      return createEvent(credential, event, noMail, maybeUid);
     });
   }
 
@@ -278,7 +270,7 @@ export default class EventManager {
    * @param maybeUid
    * @private
    */
-  private createVideoEvent(event: CalendarEvent, maybeUid?: string): Promise<EventResult> {
+  private createVideoEvent(event: CalendarEvent, maybeUid: string = null): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
     // lola internal - add this is this daily check to get around credentials because we're not storing them
     const isDaily = event.location === "integrations:daily";
@@ -320,12 +312,11 @@ if (credential) {
   private updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking,
-    noMail: boolean,
-    optionalVideoCallData?: VideoCallData
+    noMail: boolean
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0]?.uid;
-      return updateEvent(credential, bookingRefUid, event, noMail, optionalVideoCallData);
+      return updateEvent(credential, bookingRefUid, event, noMail);
     });
   }
 
@@ -341,19 +332,12 @@ if (credential) {
     const isDaily = event.location === "integrations:daily";
 
     if (credential) {
-      const bookingRef = booking.references.filter((ref) => ref.type === credential.type)[0];
-
-      return updateMeeting(credential, bookingRef.uid, event).then((returnVal: EventResult) => {
-        // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
-        if (returnVal.videoCallData == undefined) {
-          returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
-        }
-        return returnVal;
-      });
+      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
+      return updateMeeting(credential, bookingRefUid, event);
     } else {
       if (isDaily){
-        const bookingRefUid = booking.references.filter((ref) => ref.type === "daily")[0].uid;
-        return dailyUpdateMeeting(credential, bookingRefUid, event);
+        const dailyNameId = "2344aas"
+        return dailyUpdateMeeting (credential, dailyNameId, event);
       }
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
@@ -422,85 +406,5 @@ if (credential) {
     }
 
     return event;
-  }
-
-  /**
-   * Accepts a PartialReference object and, if all data is complete,
-   * returns a VideoCallData object containing the meeting information.
-   *
-   * @param reference
-   * @private
-   */
-  private static bookingReferenceToVideoCallData(reference: PartialReference): VideoCallData | undefined {
-    let isComplete = true;
-
-    switch (reference.type) {
-      case "zoom_video":
-        // Zoom meetings in our system should always have an ID, a password and a join URL. In the
-        // future, it might happen that we consider making passwords for Zoom meetings optional.
-        // Then, this part below (where the password existence is checked) needs to be adapted.
-        isComplete =
-          reference.meetingId != undefined &&
-          reference.meetingPassword != undefined &&
-          reference.meetingUrl != undefined;
-        break;
-      default:
-        isComplete = true;
-    }
-
-    if (isComplete) {
-      return {
-        type: reference.type,
-        // The null coalescing operator should actually never be used here, because we checked if it's defined beforehand.
-        id: reference.meetingId ?? "",
-        password: reference.meetingPassword ?? "",
-        url: reference.meetingUrl ?? "",
-      };
-    } else {
-      return undefined;
-    }
-  }
-
-  /**
-   * Conditionally sends an email to the attendee.
-   *
-   * @param type
-   * @param results
-   * @param event
-   * @param maybeUid
-   * @private
-   */
-  private static async sendAttendeeMail(
-    type: "new" | "reschedule",
-    results: Array<EventResult>,
-    event: CalendarEvent,
-    maybeUid?: string
-  ) {
-    if (
-      !results.length ||
-      !results.some((eRes) => (eRes.createdEvent || eRes.updatedEvent).disableConfirmationEmail)
-    ) {
-      const metadata: { hangoutLink?: string; conferenceData?: unknown; entryPoints?: unknown } = {};
-      if (results.length) {
-        // TODO: Handle created event metadata more elegantly
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
-      }
-      let attendeeMail;
-      switch (type) {
-        case "reschedule":
-          attendeeMail = new EventAttendeeRescheduledMail(event, maybeUid, metadata);
-          break;
-        case "new":
-          attendeeMail = new EventAttendeeMail(event, maybeUid, metadata);
-          break;
-      }
-      try {
-        await attendeeMail.sendEmail();
-      } catch (e) {
-        console.error("attendeeMail.sendEmail failed", e);
-      }
-    }
   }
 }
