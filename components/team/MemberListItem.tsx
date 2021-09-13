@@ -64,15 +64,16 @@ export default function MemberListItem(props: {
                 className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
                 <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                   <Dialog>
-                    <DialogTrigger
-                      as={Button}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      color="warn"
-                      StartIcon={UserRemoveIcon}
-                      className="w-full">
-                      Remove User
+                    <DialogTrigger asChild>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        color="warn"
+                        StartIcon={UserRemoveIcon}
+                        className="w-full">
+                        Remove User
+                      </Button>
                     </DialogTrigger>
                     <ConfirmationDialogContent
                       variety="danger"
