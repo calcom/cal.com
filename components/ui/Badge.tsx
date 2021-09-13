@@ -16,8 +16,7 @@ export const Badge = function Badge(props: BadgeProps) {
         variant === "default" && "bg-yellow-100 text-yellow-800",
         variant === "success" && "bg-green-100 text-green-800",
         className
-      )}
-    >
+      )}>
       {props.children}
     </span>
   );

@@ -18,8 +18,7 @@ export default function Modal(props: {
         static
         className="fixed z-50 inset-0 overflow-y-auto"
         open={props.open}
-        onClose={props.handleClose}
-      >
+        onClose={props.handleClose}>
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
           <Transition.Child
             as={Fragment}
@@ -28,8 +27,7 @@ export default function Modal(props: {
             enterTo="opacity-100"
             leave="ease-in duration-200"
             leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
+            leaveTo="opacity-0">
             <Dialog.Overlay className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity" />
           </Transition.Child>
 
@@ -44,8 +42,7 @@ export default function Modal(props: {
             enterTo="opacity-100 translate-y-0 sm:scale-100"
             leave="ease-in duration-200"
             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-          >
+            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
               <div>
                 <div
@@ -53,8 +50,7 @@ export default function Modal(props: {
                     "mx-auto flex items-center justify-center h-12 w-12 rounded-full",
                     variant === "success" && "bg-green-100",
                     variant === "warning" && "bg-yellow-100"
-                  )}
-                >
+                  )}>
                   {variant === "success" && (
                     <CheckIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
                   )}
