@@ -15,6 +15,7 @@ import crypto from "crypto";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -35,7 +36,7 @@ function HideBrandingInput(props: {
         name="hide-branding"
         type="checkbox"
         ref={props.hideBrandingRef}
-        defaultChecked={props.user.hideBranding && props.user.plan !== "FREE"}
+        defaultChecked={isBrandingHidden(props.user)}
         className={
           "focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50"
         }
@@ -372,7 +373,7 @@ export default function Settings(props: Props) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
@@ -395,6 +396,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  if (!user) {
+    throw new Error("User seems logged in but cannot be found in the db");
+  }
   return {
     props: {
       user: {

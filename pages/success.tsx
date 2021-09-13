@@ -15,6 +15,7 @@ import Theme from "@components/Theme";
 import { GetServerSidePropsContext } from "next";
 import { asStringOrNull } from "../lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -223,7 +224,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </div>
                     </div>
                   )}
-                  {(!props.user.hideBranding || props.user.plan === "FREE") && (
+                  {!isBrandingHidden(props.user) && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
                     </div>
