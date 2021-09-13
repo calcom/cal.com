@@ -16,6 +16,8 @@ import AddAppleIntegration, {
   ADD_APPLE_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import Button from "@components/ui/Button";
+import { ONBOARDING_NEXT_REDIRECT, shouldShowOnboarding } from "@lib/getting-started";
+import { GetServerSidePropsContext } from "next";
 
 export type Integration = {
   installed: boolean;
@@ -475,7 +477,7 @@ const validJson = (jsonString: string) => {
   return false;
 };
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
@@ -486,8 +488,16 @@ export async function getServerSideProps(context) {
     },
     select: {
       id: true,
+      completedOnboarding: true,
+      createdDate: true,
     },
   });
+
+  if (
+    shouldShowOnboarding({ completedOnboarding: user.completedOnboarding, createdDate: user.createdDate })
+  ) {
+    return ONBOARDING_NEXT_REDIRECT;
+  }
 
   const credentials = await prisma.credential.findMany({
     where: {

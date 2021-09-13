@@ -17,7 +17,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
-import dayjs from "dayjs";
 import Shell from "@components/Shell";
 import prisma from "@lib/prisma";
 import { EventType, SchedulingType } from "@prisma/client";
@@ -27,7 +26,6 @@ import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustratio
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import * as RadioArea from "@components/ui/form/radio-area";
-import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Alert } from "@components/ui/Alert";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -36,6 +34,8 @@ import createEventType from "@lib/mutations/event-types/create-event-type";
 import { HttpError } from "@lib/core/http/error";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { shouldShowOnboarding, ONBOARDING_NEXT_REDIRECT } from "../../lib/getting-started";
+import { GetServerSidePropsContext } from "next";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const CreateFirstEventTypeView = () => (
@@ -497,7 +497,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
   );
 };
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
@@ -591,13 +591,10 @@ export async function getServerSideProps(context) {
     } as const;
   }
 
-  if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/getting-started",
-      },
-    } as const;
+  if (
+    shouldShowOnboarding({ completedOnboarding: user.completedOnboarding, createdDate: user.createdDate })
+  ) {
+    return ONBOARDING_NEXT_REDIRECT;
   }
 
   let eventTypes = [];
