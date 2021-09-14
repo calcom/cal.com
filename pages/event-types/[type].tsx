@@ -8,6 +8,7 @@ import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "@lib/auth";
 import { Scheduler } from "@components/ui/Scheduler";
+// TODO: replace headlessui with radix-ui
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import { HttpError } from "@lib/core/http/error";

@@ -15,6 +15,7 @@ import { getSession } from "@lib/auth";
 import AddAppleIntegration, {
   ADD_APPLE_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/Apple/components/AddAppleIntegration";
+import Button from "@components/ui/Button";
 
 export type Integration = {
   installed: boolean;
@@ -178,9 +179,9 @@ export default function Home({ integrations }: Props) {
               })}
           </ul>
         </div>
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-          <DialogClose as="button" className="btn btn-white mx-2">
-            Cancel
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+          <DialogClose asChild>
+            <Button color="secondary">Cancel</Button>
           </DialogClose>
         </div>
       </DialogContent>
@@ -222,9 +223,9 @@ export default function Home({ integrations }: Props) {
             ))}
           </ul>
         </div>
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-          <DialogClose as="button" className="btn btn-white mx-2">
-            Confirm
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+          <DialogClose asChild>
+            <Button color="secondary">Confirm</Button>
           </DialogClose>
         </div>
       </DialogContent>
@@ -292,20 +293,19 @@ export default function Home({ integrations }: Props) {
               onSubmit={handleAddCalDavIntegrationSaveButtonPress}
             />
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+            <Button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
-            </button>
+            </Button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
-              as="button"
-              className="btn btn-white mx-2">
-              Cancel
+              asChild>
+              <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -335,7 +335,7 @@ export default function Home({ integrations }: Props) {
               onSubmit={handleAddAppleIntegrationSaveButtonPress}
             />
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
             <button
               type="submit"
               form={ADD_APPLE_INTEGRATION_FORM_TITLE}
@@ -346,9 +346,8 @@ export default function Home({ integrations }: Props) {
               onClick={() => {
                 setIsAddAppleIntegrationDialogOpen(false);
               }}
-              as="button"
-              className="btn btn-white mx-2">
-              Cancel
+              asChild>
+              <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
         </DialogContent>
