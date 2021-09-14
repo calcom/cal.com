@@ -1,13 +1,10 @@
 import Loader from "@components/Loader";
 import prisma from "@lib/prisma";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
 import { getSession } from "@lib/auth";
 import { useEffect, useState } from "react";
 import Shell from "@components/Shell";
-
-dayjs.extend(utc);
 
 export default function Troubleshoot({ user }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,15 +22,15 @@ export default function Troubleshoot({ user }) {
   }
 
   const fetchAvailability = (date) => {
-    const dateFrom = date.startOf("day").utc().format();
-    const dateTo = date.endOf("day").utc().format();
+    const dateFrom = encodeURIComponent(date.startOf("day").format());
+    const dateTo = encodeURIComponent(date.endOf("day").format());
 
     fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
       .then((res) => {
         return res.json();
       })
-      .then((availableIntervals) => {
-        setAvailability(availableIntervals);
+      .then((availability) => {
+        setAvailability(availability.busy);
         setLoading(false);
       })
       .catch((e) => {
@@ -81,7 +78,11 @@ export default function Troubleshoot({ user }) {
                   </div>
                 </div>
               ))}
-              {availability.length === 0 && <Loader />}
+              {availability.length === 0 && (
+                <p>
+                  No scheduled events found on this day, all slots during your working hours are available.
+                </p>
+              )}
               <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
                   Your day ends at {convertMinsToHrsMins(user.endTime)}
