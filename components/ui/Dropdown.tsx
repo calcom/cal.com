@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
-export default function Dropdown(props) {
+const Dropdown: FC = (props) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -17,4 +17,6 @@ export default function Dropdown(props) {
       {open && props.children[1]}
     </div>
   );
-}
+};
+
+export default Dropdown;
