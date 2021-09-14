@@ -9,13 +9,14 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import prisma from "../../lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "../../lib/telemetry";
+import { InferGetServerSidePropsType } from "next";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isBetween);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function Type(props) {
+export default function Type(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Get router variables
   const router = useRouter();
   const { uid } = router.query;
@@ -46,7 +47,7 @@ export default function Type(props) {
     });
 
     if (res.status >= 200 && res.status < 300) {
-      router.push("/cancel/success?user=" + props.user.username + "&title=" + props.booking.title);
+      router.push("/cancel/success/syncs?user=" + props.user.username + "&title=" + props.booking.title);
     } else {
       setLoading(false);
       setError("An error with status code " + res.status + " occurred. Please try again later.");
