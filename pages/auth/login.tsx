@@ -2,15 +2,15 @@ import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import { getCsrfToken } from "next-auth/client";
 import { getSession } from "@lib/auth";
-// import { useEffect } from "react";
-// import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 export default function Login({ csrfToken }) {
-  // const router = useRouter();
-  // useEffect(() => {
-  //   if (!router.query?.callbackUrl) {
-  //     window.history.replaceState(null, document.title, "?callbackUrl=/");
-  //   }
-  // }, [router.query]);
+  const router = useRouter();
+  useEffect(() => {
+    if (!router.query?.callbackUrl) {
+      window.history.replaceState(null, document.title, "?callbackUrl=/");
+    }
+  }, [router.query]);
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
