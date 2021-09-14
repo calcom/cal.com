@@ -29,12 +29,12 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [bookingRescheduled, setBookingRescheduled] = useState(true);
   const [bookingCanceled, setBookingCanceled] = useState(true);
   const [webhooks, setWebhooks] = useState([]);
-  const [webhookEventTypes, setWebhookEventTypes] = useState([]);
   const [webhookEventTrigger, setWebhookEventTriggers] = useState([
     "BOOKING_CREATED",
     "BOOKING_RESCHEDULED",
     "BOOKING_CANCELED",
   ]);
+  const [webhookEventTypes, setWebhookEventTypes] = useState([]);
 
   const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
@@ -76,23 +76,38 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
       .then(handleErrors)
       .then((data) => {
         setWebhooks(data.webhooks);
-        setWebhookEventTypes(
-          data.webhookEventTypes.map((eventType: { eventTypeId: number }) => eventType.eventTypeId)
-        );
-        console.log("success", data);
       })
       .catch(console.log);
   };
 
+  const getEventTypes = () => {
+    fetch("/api/eventType")
+      .then(handleErrors)
+      .then((data) => {
+        setWebhookEventTypes(data.webhook);
+        console.log("Success:", data);
+      });
+  };
+
   useEffect(() => {
     getWebhooks();
+    getEventTypes();
   }, []);
 
   if (loading) {
     return <Loader />;
   }
 
-  const createWebhook = () => {};
+  const createWebhook = () => {
+    const webhook = {
+      subscriberUrl: subUrlRef,
+      eventTriggers: webhookEventTrigger,
+      eventTypes: webhookEventTypes,
+    };
+    fetch("/api/webhook", { method: "POST", body: JSON.stringify(webhook) })
+      .then(getWebhooks)
+      .catch(console.log);
+  };
 
   return (
     <Shell
@@ -176,7 +191,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                 {!!webhooks.length && (
                   <WebhookList
                     webhooks={webhooks}
-                    webhookEventTypes={webhookEventTypes}
+                    // webhookEventTypes={webhookEventTypes}
                     onChange={getWebhooks}></WebhookList>
                 )}
               </div>

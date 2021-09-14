@@ -6,14 +6,7 @@ import Button from "@components/ui/Button";
 import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
 
-export default function WebhookListItem(props: {
-  onChange: () => void;
-  key: number;
-  webhook: Webhook;
-  webhookEvents: number[];
-}) {
-  // fetch webhookEventType names from ID
-
+export default function WebhookListItem(props: { onChange: () => void; key: number; webhook: Webhook }) {
   return (
     <li className="divide-y">
       <div className="flex justify-between my-4">
@@ -25,7 +18,7 @@ export default function WebhookListItem(props: {
             </span>
             <span className="block ml-8 space-x-2 text-xs">
               {props.webhook.eventTriggers.map((webhookEventTrigger, ind) => (
-                <span key={ind} className="px-1 text-blue-700 rounded-md bg-blue-50">
+                <span key={ind} className="px-1 text-xs text-blue-700 rounded-md bg-blue-50">
                   {webhookEventTrigger}
                 </span>
               ))}

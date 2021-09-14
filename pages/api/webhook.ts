@@ -26,15 +26,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // webhookEventTypes = webhooks.map((webhook)=>{
-    //   const eventType = webhookEventTypes.find((webhookEventType)=>{webhook.id === webhookEventType.webhookId});
-    //   return{
-    //     ...webhook,
-    //     eventTypes: eventType
-    //   }
-    // })
+    const webhookEvents = await prisma.eventType.findMany({
+      where: {
+        id: {
+          in: webhookEventTypes.map((event) => event.eventTypeId),
+        },
+      },
+    });
 
-    return res.status(200).json({ webhooks: webhooks, webhookEventTypes: webhookEventTypes });
+    const webhookList = webhooks.map((webhook) => {
+      return {
+        ...webhook,
+        webhookEvents: webhookEvents,
+      };
+    });
+
+    return res.status(200).json({ webhooks: webhookList });
   }
 
   if (req.method === "POST") {
