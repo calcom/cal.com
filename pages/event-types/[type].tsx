@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionTypeBase } from "react-select";
+import { FormattedMessage } from "react-intl";
 import prisma from "@lib/prisma";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import { LocationType } from "@lib/location";
@@ -281,7 +282,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return (
           <div>
             <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              Set an address or place
+              <FormattedMessage id="setAnAddressOrPlace" defaultMessage="Set an address or place" />
             </label>
             <div className="mt-1">
               <input
@@ -297,12 +298,31 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         );
       case LocationType.Phone:
         return (
-          <p className="text-sm">Calendso will ask your invitee to enter a phone number before scheduling.</p>
+          <p className="text-sm">
+            <FormattedMessage
+              id="calendsoWillProviderPhone"
+              defaultMessage="Calendso will ask your invitee to enter a phone number before scheduling."
+            />
+          </p>
         );
       case LocationType.GoogleMeet:
-        return <p className="text-sm">Calendso will provide a Google Meet location.</p>;
+        return (
+          <p className="text-sm">
+            <FormattedMessage
+              id="calendsoWillProviderGoogleMeet"
+              defaultMessage="Calendso will provide a Google Meet location."
+            />
+          </p>
+        );
       case LocationType.Zoom:
-        return <p className="text-sm">Calendso will provide a Zoom meeting URL.</p>;
+        return (
+          <p className="text-sm">
+            <FormattedMessage
+              id="calendsoWillProviderZoom"
+              defaultMessage="Calendso will provide a Zoom meeting URL."
+            />
+          </p>
+        );
     }
     return null;
   };
@@ -358,7 +378,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="mb-4 min-w-44 sm:mb-0">
                     <label htmlFor="slug" className="flex mt-0 text-sm font-medium text-neutral-700">
                       <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      URL
+                      <FormattedMessage id="url" defaultMessage="URL" />
                     </label>
                   </div>
                   <div className="w-full">
@@ -383,7 +403,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="mb-4 min-w-44 sm:mb-0">
                     <label htmlFor="length" className="flex mt-0 text-sm font-medium text-neutral-700">
                       <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      Duration
+                      <FormattedMessage id="duration" defaultMessage="Duration" />
                     </label>
                   </div>
                   <div className="w-full">
@@ -400,7 +420,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <span className="text-gray-500 sm:text-sm" id="duration">
-                          mins
+                          <FormattedMessage id="minutes" defaultMessage="mins" />
                         </span>
                       </div>
                     </div>
@@ -413,7 +433,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="mb-4 min-w-44 sm:mb-0">
                     <label htmlFor="location" className="flex mt-0 text-sm font-medium text-neutral-700">
                       <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      Location
+                      <FormattedMessage id="location" defaultMessage="Location" />
                     </label>
                   </div>
                   <div className="w-full">
@@ -448,7 +468,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               {location.type === LocationType.Phone && (
                                 <div className="flex items-center flex-grow">
                                   <PhoneIcon className="w-6 h-6" />
-                                  <span className="ml-2 text-sm">Phone call</span>
+                                  <span className="ml-2 text-sm">
+                                    <FormattedMessage id="phoneCall" defaultMessage="Phone call" />
+                                  </span>
                                 </div>
                               )}
                               {location.type === LocationType.GoogleMeet && (
@@ -513,8 +535,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 <button
                                   type="button"
                                   onClick={() => openLocationModal(location.type)}
-                                  className="mr-2 text-sm text-primary-600">
-                                  Edit
+                                  className="mr-2 text-sm text-primary-600 capitalize">
+                                  <FormattedMessage id="edit" defaultMessage="Edit" />
                                 </button>
                                 <button onClick={() => removeLocation(location)}>
                                   <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
@@ -531,7 +553,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               onClick={() => setShowLocationModal(true)}>
                               <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
                               <span className="ml-1 text-sm font-medium text-neutral-700">
-                                Add another location
+                                <FormattedMessage
+                                  id="addAnotherLocation"
+                                  defaultMessage="Add another location"
+                                />
                               </span>
                             </button>
                           </li>
@@ -547,7 +572,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="mb-4 min-w-44 sm:mb-0">
                     <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
                       <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      Description
+                      <FormattedMessage id="description" defaultMessage="Description" />
                     </label>
                   </div>
                   <div className="w-full">
@@ -567,7 +592,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <ChevronRightIcon
                           className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-neutral-500 ml-auto`}
                         />
-                        <span className="text-sm font-medium text-neutral-700">Show advanced settings</span>
+                        <span className="text-sm font-medium text-neutral-700">
+                          <FormattedMessage
+                            id="showAdvancedSettings"
+                            defaultMessage="Show advanced settings"
+                          />
+                        </span>
                       </Disclosure.Button>
                       <Disclosure.Panel className="space-y-4">
                         <div className="items-center block sm:flex">
@@ -575,7 +605,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <label
                               htmlFor="eventName"
                               className="flex mt-2 text-sm font-medium text-neutral-700">
-                              Event name
+                              <FormattedMessage id="eventName" defaultMessage="Event name" />
                             </label>
                           </div>
                           <div className="w-full">
@@ -597,7 +627,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <label
                               htmlFor="additionalFields"
                               className="flex mt-2 text-sm font-medium text-neutral-700">
-                              Additional inputs
+                              <FormattedMessage id="additionalInputs" defaultMessage="Additional inputs" />
                             </label>
                           </div>
                           <div className="w-full">
@@ -607,17 +637,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <div className="flex justify-between">
                                     <div>
                                       <div>
-                                        <span className="ml-2 text-sm">Label: {customInput.label}</span>
+                                        <span className="ml-2 text-sm">
+                                          <FormattedMessage id="label" defaultMessage="Label" />:{" "}
+                                          {customInput.label}
+                                        </span>
                                       </div>
                                       {customInput.placeholder && (
                                         <div>
                                           <span className="ml-2 text-sm">
-                                            Placeholder: {customInput.placeholder}
+                                            <FormattedMessage id="placeholder" defaultMessage="Placeholder" />
+                                            : {customInput.placeholder}
                                           </span>
                                         </div>
                                       )}
                                       <div>
-                                        <span className="ml-2 text-sm">Type: {customInput.type}</span>
+                                        <span className="ml-2 text-sm">
+                                          <FormattedMessage id="type" defaultMessage="Type" />:{" "}
+                                          {customInput.type}
+                                        </span>
                                       </div>
                                       <div>
                                         <span className="ml-2 text-sm">
@@ -630,7 +667,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         type="button"
                                         onClick={() => openEditCustomModel(customInput)}
                                         className="mr-2 text-sm text-primary-600">
-                                        Edit
+                                        <FormattedMessage id="edit" defaultMessage="Edit" />
                                       </button>
                                       <button type="button" onClick={() => removeCustom(idx)}>
                                         <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
@@ -646,7 +683,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   onClick={() => setShowAddCustomModal(true)}>
                                   <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
                                   <span className="ml-1 text-sm font-medium text-neutral-700">
-                                    Add an input
+                                    <FormattedMessage id="addAnInput" defaultMessage="Add an input" />
                                   </span>
                                 </button>
                               </li>
@@ -658,7 +695,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <label
                               htmlFor="requiresConfirmation"
                               className="flex text-sm font-medium text-neutral-700">
-                              Opt-in booking
+                              <FormattedMessage id="optInBooking" defaultMessage="Opt-in booking" />
                             </label>
                           </div>
                           <div className="w-full">
@@ -675,8 +712,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </div>
                               <div className="ml-3 text-sm">
                                 <p className="text-neutral-900">
-                                  The booking needs to be manually confirmed before it is pushed to the
-                                  integrations and a confirmation mail is sent.
+                                  <FormattedMessage
+                                    id="theBookingNeedsToBeConfirmed"
+                                    defaultMessage="The booking needs to be manually confirmed before it is pushed to the
+                                  integrations and a confirmation mail is sent."
+                                  />
                                 </p>
                               </div>
                             </div>
@@ -690,12 +730,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <label
                               htmlFor="inviteesCanSchedule"
                               className="flex mt-2 text-sm font-medium text-neutral-700">
-                              Invitees can schedule
+                              <FormattedMessage
+                                id="inviteesCanSchedule"
+                                defaultMessage="Invitees can schedule"
+                              />
                             </label>
                           </div>
                           <div className="w-full">
                             <RadioGroup value={periodType} onChange={setPeriodType}>
-                              <RadioGroup.Label className="sr-only">Date Range</RadioGroup.Label>
+                              <RadioGroup.Label className="sr-only">
+                                <FormattedMessage id="dateRange" defaultMessage="Date Range" />
+                              </RadioGroup.Label>
                               <div>
                                 {PERIOD_TYPES.map((period) => (
                                   <RadioGroup.Option
@@ -747,8 +792,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   defaultValue={
                                                     eventType.periodCountCalendarDays ? "1" : "0"
                                                   }>
-                                                  <option value="1">calendar days</option>
-                                                  <option value="0">business days</option>
+                                                  <option value="1">
+                                                    <FormattedMessage
+                                                      id="calendarDays"
+                                                      defaultMessage="calendar days"
+                                                    />
+                                                  </option>
+                                                  <option value="0">
+                                                    <FormattedMessage
+                                                      id="businessDays"
+                                                      defaultMessage="business days"
+                                                    />
+                                                  </option>
                                                 </select>
                                               </div>
                                             )}
@@ -791,8 +846,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <div className="mb-4 min-w-44 sm:mb-0">
                             <label
                               htmlFor="availability"
-                              className="flex mt-2 text-sm font-medium text-neutral-700">
-                              Availability
+                              className="flex mt-2 text-sm font-medium text-neutral-700 capitalize">
+                              <FormattedMessage id="availability" defaultMessage="Availability" />
                             </label>
                           </div>
                           <div className="w-full">
@@ -810,9 +865,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </Disclosure>
                 <div className="flex justify-end mt-4 space-x-2">
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
-                    Cancel
+                    <FormattedMessage id="cancel" defaultMessage="Cancel" />
                   </Button>
-                  <Button type="submit">Update</Button>
+                  <Button type="submit">
+                    <FormattedMessage id="update" defaultMessage="Update" />
+                  </Button>
                 </div>
               </form>
               <Modal
@@ -837,7 +894,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 rel="noreferrer"
                 className="flex font-medium text-md text-neutral-700">
                 <ExternalLinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" aria-hidden="true" />
-                Preview
+                <FormattedMessage id="preview" defaultMessage="Preview" />
               </a>
               <button
                 onClick={() => {
@@ -849,20 +906,27 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 type="button"
                 className="flex font-medium text-md text-neutral-700">
                 <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
-                Copy link
+                <FormattedMessage id="copyLink" defaultMessage="Copy link" />
               </button>
               <Dialog>
                 <DialogTrigger className="flex font-medium text-md text-neutral-700">
                   <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
-                  Delete
+
+                  <FormattedMessage id="delete" defaultMessage="Delete" />
                 </DialogTrigger>
                 <ConfirmationDialogContent
                   variety="danger"
                   title="Delete Event Type"
                   confirmBtnText="Yes, delete event type"
                   onConfirm={deleteEventTypeHandler}>
-                  Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link
-                  with will no longer be able to book using it.
+                  <FormattedMessage
+                    id="sureYouWantDeleteThisEventType"
+                    defaultMessage="Are you sure you want to delete this event type?"
+                  />{" "}
+                  <FormattedMessage
+                    id="anyoneSharedLinkNoLongerBookUsingIt"
+                    defaultMessage="Anyone who you've shared this link with will no longer be able to book using it."
+                  />
                 </ConfirmationDialogContent>
               </Dialog>
             </div>
@@ -890,7 +954,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                      Edit location
+                      <FormattedMessage id="editLocation" defaultMessage="Edit location" />
                     </h3>
                   </div>
                 </div>
@@ -907,10 +971,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <LocationOptions />
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
-                      Update
+                      <FormattedMessage id="update" defaultMessage="Update" />
                     </button>
                     <button onClick={closeLocationModal} type="button" className="mr-2 btn btn-white">
-                      Cancel
+                      <FormattedMessage id="cancel" defaultMessage="Cancel" />
                     </button>
                   </div>
                 </form>
@@ -941,11 +1005,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                      Add new custom input field
+                      <FormattedMessage
+                        id="addNewCustomInputField"
+                        defaultMessage="Add new custom input field"
+                      />
                     </h3>
                     <div>
                       <p className="text-sm text-gray-400">
-                        This input will be shown when booking this event
+                        <FormattedMessage
+                          id="thisInputShownWhenBookingThisEvent"
+                          defaultMessage="This input will be shown when booking this event"
+                        />
                       </p>
                     </div>
                   </div>
@@ -953,7 +1023,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <form onSubmit={updateCustom}>
                   <div className="mb-2">
                     <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-                      Input type
+                      <FormattedMessage id="inputType" defaultMessage="Input type" />
                     </label>
                     <Select
                       name="type"
@@ -966,8 +1036,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     />
                   </div>
                   <div className="mb-2">
-                    <label htmlFor="label" className="block text-sm font-medium text-gray-700">
-                      Label
+                    <label htmlFor="label" className="block text-sm font-medium text-gray-700 capitalize">
+                      <FormattedMessage id="label" defaultMessage="Label" />
                     </label>
                     <div className="mt-1">
                       <input
@@ -984,7 +1054,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     selectedInputOption.value === EventTypeCustomInputType.TEXTLONG) && (
                     <div className="mb-2">
                       <label htmlFor="placeholder" className="block text-sm font-medium text-gray-700">
-                        Placeholder
+                        <FormattedMessage id="placeholder" defaultMessage="Placeholder" />
                       </label>
                       <div className="mt-1">
                         <input
@@ -1006,16 +1076,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       defaultChecked={selectedCustomInput?.required ?? true}
                     />
                     <label htmlFor="required" className="block text-sm font-medium text-gray-700">
-                      Is required
+                      <FormattedMessage id="isRequired" defaultMessage="Is required" />
                     </label>
                   </div>
                   <input type="hidden" name="id" id="id" value={selectedCustomInput?.id} />
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
-                      Save
+                      <FormattedMessage id="save" defaultMessage="Save" />
                     </button>
                     <button onClick={closeAddCustomModal} type="button" className="mr-2 btn btn-white">
-                      Cancel
+                      <FormattedMessage id="cancel" defaultMessage="Cancel" />
                     </button>
                   </div>
                 </form>

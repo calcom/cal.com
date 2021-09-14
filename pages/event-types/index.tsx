@@ -12,6 +12,7 @@ import {
   PlusIcon,
   UserIcon,
 } from "@heroicons/react/solid";
+import { FormattedMessage } from "react-intl";
 import classNames from "@lib/classNames";
 import showToast from "@lib/notification";
 import dayjs from "dayjs";
@@ -70,7 +71,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
           : {
               disabled: true,
             })}>
-        New event type
+        <FormattedMessage id="newEventType" defaultMessage="New event type" />
       </Button>
 
       <Button size="fab" className="block sm:hidden" href={modalOpen.hrefOn}>
@@ -80,10 +81,15 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
       <DialogContent>
         <div className="mb-8">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            Add a new event type
+            <FormattedMessage id="addNewEventType" defaultMessage="Add a new event type" />
           </h3>
           <div>
-            <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
+            <p className="text-sm text-gray-500">
+              <FormattedMessage
+                id="createNewEventType"
+                defaultMessage="Create a new event type for people to book times with."
+              />
+            </p>
           </div>
         </div>
         <form
@@ -106,8 +112,8 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
           }}>
           <div>
             <div className="mb-4">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                Title
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 capitalize">
+                <FormattedMessage id="title" defaultMessage="Title" />
               </label>
               <div className="mt-1">
                 <input
@@ -129,7 +135,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
             <div className="mb-4">
               <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                URL
+                <FormattedMessage id="url" defaultMessage="URL" />
               </label>
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
@@ -149,7 +155,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
             <div className="mb-4">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
+                <FormattedMessage id="description" defaultMessage="description" />
               </label>
               <div className="mt-1">
                 <textarea
@@ -160,8 +166,8 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="length" className="block text-sm font-medium text-gray-700">
-                Length
+              <label htmlFor="length" className="block text-sm font-medium text-gray-700 capitalize">
+                <FormattedMessage id="length" defaultMessage="Length" />
               </label>
               <div className="relative mt-1 rounded-sm shadow-sm">
                 <input
@@ -173,17 +179,17 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   placeholder="15"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-400">
-                  minutes
+                  <FormattedMessage id="minutes" defaultMessage="minutes" />
                 </div>
               </div>
             </div>
           </div>
           <div className="mt-8 sm:flex sm:flex-row-reverse">
             <Button type="submit" loading={createMutation.isLoading}>
-              Continue
+              <FormattedMessage id="continue" defaultMessage="Continue" />
             </Button>
             <Button href={modalOpen.hrefOff} color="secondary" className="mr-2">
-              Cancel
+              <FormattedMessage id="cancel" defaultMessage="cancel" />
             </Button>
           </div>
         </form>
@@ -200,10 +206,17 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
         {props.user.plan === "FREE" && (
           <Alert
             severity="warning"
-            title={<>You need to upgrade your plan to have more than one active event type.</>}
+            title={
+              <>
+                <FormattedMessage
+                  id="youNeedUpgradeYourPlan"
+                  defaultMessage="You need to upgrade your plan to have more than one active event type."
+                />
+              </>
+            }
             message={
               <>
-                To upgrade go to{" "}
+                <FormattedMessage id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
                 <a href="https://calendso.com/upgrade" className="underline">
                   calendso.com/upgrade
                 </a>
@@ -232,7 +245,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <p className="font-medium truncate text-neutral-900">{item.title}</p>
                             {item.hidden && (
                               <span className="inline-flex items-center ml-2 px-1.5 py-0.5 text-yellow-800 text-xs font-medium bg-yellow-100 rounded-sm">
-                                Hidden
+                                <FormattedMessage id="hidden" defaultMessage="Hidden" />
                               </span>
                             )}
                           </div>
@@ -299,7 +312,9 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <>
                             <div>
                               <Menu.Button className="p-2 mt-1 border border-transparent text-neutral-400 hover:border-gray-200">
-                                <span className="sr-only">Open options</span>
+                                <span className="sr-only">
+                                  <FormattedMessage id="openOptions" defaultMessage="Open options" />
+                                </span>
                                 <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
                               </Menu.Button>
                             </div>
@@ -331,7 +346,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                           aria-hidden="true"
                                         />
-                                        Preview
+                                        <FormattedMessage id="preview" defaultMessage="Preview" />
                                       </a>
                                     )}
                                   </Menu.Item>
@@ -356,7 +371,10 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                           aria-hidden="true"
                                         />
-                                        Copy link to event
+                                        <FormattedMessage
+                                          id="copyLinkToEvent"
+                                          defaultMessage="Copy link to event"
+                                        />
                                       </button>
                                     )}
                                   </Menu.Item>
@@ -648,10 +666,17 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </defs>
             </svg>
             <div className="block mx-auto text-center md:max-w-screen-sm">
-              <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
+              <h3 className="mt-2 text-xl font-bold text-neutral-900">
+                <FormattedMessage
+                  id="createYourFistEventType"
+                  defaultMessage="Create your first event type"
+                />
+              </h3>
               <p className="mt-1 text-md text-neutral-600">
-                Event types enable you to share links that show available times on your calendar and allow
-                people to make bookings with you.
+                <FormattedMessage
+                  id="eventTypesEnableToShareLinks"
+                  defaultMessage="Event types enable you to share links that show available times on your calendar and allow people to make bookings with you."
+                />
               </p>
               {renderEventDialog()}
             </div>
