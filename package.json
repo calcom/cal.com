@@ -116,7 +116,7 @@
     },
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "cypress"
+      "/cypress/"
     ]
   }
 }
