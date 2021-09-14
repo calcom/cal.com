@@ -75,7 +75,14 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     fetch("/api/webhook")
       .then(handleErrors)
       .then((data) => {
-        setWebhooks(data.webhooks);
+        setWebhooks(
+          data.webhooks.map((webhook) => {
+            return {
+              ...webhook,
+              eventTriggers: webhook.eventTriggers.map((eventTrigger: string) => eventTrigger.toLowerCase()),
+            };
+          })
+        );
       })
       .catch(console.log);
   };
@@ -85,7 +92,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
       .then(handleErrors)
       .then((data) => {
         setWebhookEventTypes(data.webhook);
-        console.log("Success:", data);
       });
   };
 

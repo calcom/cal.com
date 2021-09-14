@@ -16,9 +16,9 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
               <GlobeAltIcon className="w-6 h-6 mr-2 text-neutral-900" />
               {props.webhook.subscriberUrl}
             </span>
-            <span className="block ml-8 space-x-2 text-xs">
+            <span className="flex flex-col ml-8 space-y-2 text-xs">
               {props.webhook.eventTriggers.map((webhookEventTrigger, ind) => (
-                <span key={ind} className="px-1 text-xs text-blue-700 rounded-md bg-blue-50">
+                <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
                   {webhookEventTrigger}
                 </span>
               ))}
