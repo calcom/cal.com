@@ -294,13 +294,6 @@ const updateMeeting = async (
         })
     : null;
 
-  const videoCallData: VideoCallData = {
-    type: credential.type,
-    id: updateResult.id,
-    password: updateResult.password,
-    url: updateResult.join_url,
-  };
-
   const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
   const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
   try {
@@ -323,7 +316,6 @@ const updateMeeting = async (
     uid: newUid,
     updatedEvent: updateResult,
     originalEvent: calEvent,
-    videoCallData: videoCallData,
   };
 };
 

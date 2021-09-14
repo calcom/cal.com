@@ -127,6 +127,9 @@ export default class EventManager {
             id: true,
             type: true,
             uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
           },
         },
       },
@@ -269,8 +272,15 @@ export default class EventManager {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
-      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return updateMeeting(credential, bookingRefUid, event);
+      const bookingRef = booking.references.filter((ref) => ref.type === credential.type)[0];
+
+      return updateMeeting(credential, bookingRef.uid, event).then((returnVal: EventResult) => {
+        // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
+        if (returnVal.videoCallData == undefined) {
+          returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
+        }
+        return returnVal;
+      });
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
@@ -338,6 +348,43 @@ export default class EventManager {
     }
 
     return event;
+  }
+
+  /**
+   * Accepts a PartialReference object and, if all data is complete,
+   * returns a VideoCallData object containing the meeting information.
+   *
+   * @param reference
+   * @private
+   */
+  private static bookingReferenceToVideoCallData(reference: PartialReference): VideoCallData | undefined {
+    let isComplete = true;
+
+    switch (reference.type) {
+      case "zoom_video":
+        // Zoom meetings in our system should always have an ID, a password and a join URL. In the
+        // future, it might happen that we consider making passwords for Zoom meetings optional.
+        // Then, this part below (where the password existence is checked) needs to be adapted.
+        isComplete =
+          reference.meetingId != undefined &&
+          reference.meetingPassword != undefined &&
+          reference.meetingUrl != undefined;
+        break;
+      default:
+        isComplete = true;
+    }
+
+    if (isComplete) {
+      return {
+        type: reference.type,
+        // The null coalescing operator should actually never be used here, because we checked if it's defined beforehand.
+        id: reference.meetingId ?? "",
+        password: reference.meetingPassword ?? "",
+        url: reference.meetingUrl ?? "",
+      };
+    } else {
+      return undefined;
+    }
   }
 
   /**
