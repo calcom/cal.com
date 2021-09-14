@@ -1,3 +1,4 @@
+// TODO: replace headlessui with radix-ui
 import { Switch } from "@headlessui/react";
 import TimezoneSelect from "react-timezone-select";
 import { useEffect, useState } from "react";

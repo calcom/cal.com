@@ -1,6 +1,5 @@
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { Slot } from "@radix-ui/react-slot";
 
 export function Tooltip({
   children,
@@ -23,7 +22,7 @@ export function Tooltip({
       open={open}
       defaultOpen={defaultOpen}
       onOpenChange={onOpenChange}>
-      <TooltipPrimitive.Trigger as={Slot}>{children}</TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
         className="bg-black text-xs -mt-2 text-white px-1 py-0.5 shadow-lg rounded-sm"
         side="top"

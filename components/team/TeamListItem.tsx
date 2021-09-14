@@ -11,7 +11,7 @@ import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import showToast from "@lib/notification";
 
@@ -137,15 +137,16 @@ export default function TeamListItem(props: {
                   </li>
                   <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                     <Dialog>
-                      <DialogTrigger
-                        as={Button}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                        color="warn"
-                        StartIcon={TrashIcon}
-                        className="w-full">
-                        Disband Team
+                      <DialogTrigger asChild>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          color="warn"
+                          StartIcon={TrashIcon}
+                          className="w-full">
+                          Disband Team
+                        </Button>
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         variety="danger"
