@@ -4,6 +4,7 @@ import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
+import { FormattedMessage } from "react-intl";
 import Theme from "@components/Theme";
 import PoweredByCalendso from "@components/ui/PoweredByCalendso";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
@@ -114,7 +115,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                       {props.eventType.title}
                       <div>
                         <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                        {props.eventType.length} minutes
+                        {props.eventType.length} <FormattedMessage id="minutes" defaultMessage="minutes" />
                       </div>
                     </div>
                   </div>
@@ -139,7 +140,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                   </h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                    {props.eventType.length} minutes
+                    {props.eventType.length} <FormattedMessage id="minutes" defaultMessage="minutes" />
                   </p>
 
                   <TimezoneDropdown />

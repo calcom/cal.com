@@ -13,6 +13,7 @@ import PhoneInput from "@components/ui/form/PhoneInput";
 import { LocationType } from "@lib/location";
 import Avatar from "@components/Avatar";
 import { Button } from "@components/ui/Button";
+import { FormattedMessage } from "react-intl";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
 
@@ -174,7 +175,7 @@ export default function Book(props: any): JSX.Element {
                 </h1>
                 <p className="text-gray-500 mb-2">
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {props.eventType.length} minutes
+                  {props.eventType.length} <FormattedMessage id="minutes" defaultMessage="minutes" />
                 </p>
                 {selectedLocation === LocationType.InPerson && (
                   <p className="text-gray-500 mb-2 break-words">
@@ -195,7 +196,7 @@ export default function Book(props: any): JSX.Element {
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
-                      Your name
+                      <FormattedMessage id="yourName" defaultMessage="Your name" />
                     </label>
                     <div className="mt-1">
                       <input
@@ -213,7 +214,7 @@ export default function Book(props: any): JSX.Element {
                     <label
                       htmlFor="email"
                       className="block text-sm font-medium dark:text-white text-gray-700">
-                      Email address
+                      <FormattedMessage id="emailAddress" defaultMessage="Email address" />
                     </label>
                     <div className="mt-1">
                       <input
@@ -230,7 +231,7 @@ export default function Book(props: any): JSX.Element {
                   {locations.length > 1 && (
                     <div className="mb-4">
                       <span className="block text-sm font-medium dark:text-white text-gray-700">
-                        Location
+                        <FormattedMessage id="location" defaultMessage="Location" />
                       </span>
                       {locations.map((location) => (
                         <label key={location.type} className="block">
@@ -255,7 +256,7 @@ export default function Book(props: any): JSX.Element {
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium dark:text-white text-gray-700">
-                        Phone number
+                        <FormattedMessage id="phoneNumber" defaultMessage="Phone number" />
                       </label>
                       <div className="mt-1">
                         <PhoneInput name="phone" placeholder="Enter phone number" id="phone" required />
@@ -328,7 +329,7 @@ export default function Book(props: any): JSX.Element {
                         onClick={toggleGuestEmailInput}
                         htmlFor="guests"
                         className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
-                        + Additional Guests
+                        + <FormattedMessage id="additionalGuests" defaultMessage="Additional Guests" />
                       </label>
                     )}
                     {guestToggle && (
@@ -336,7 +337,7 @@ export default function Book(props: any): JSX.Element {
                         <label
                           htmlFor="guests"
                           className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
-                          Guests
+                          <FormattedMessage id="guests" defaultMessage="Guests" />
                         </label>
                         <ReactMultiEmail
                           placeholder="guest@example.com"
@@ -362,7 +363,7 @@ export default function Book(props: any): JSX.Element {
                     <label
                       htmlFor="notes"
                       className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
-                      Additional notes
+                      <FormattedMessage id="aditionalNotes" defaultMessage="Additional notes" />
                     </label>
                     <textarea
                       name="notes"
@@ -376,7 +377,11 @@ export default function Book(props: any): JSX.Element {
                   <div className="flex items-start">
                     {/* TODO: add styling props to <Button variant="" color="" /> and get rid of btn-primary */}
                     <Button type="submit" loading={loading}>
-                      {rescheduleUid ? "Reschedule" : "Confirm"}
+                      {rescheduleUid ? (
+                        <FormattedMessage id="reschedule" defaultMessage="Reschedule" />
+                      ) : (
+                        <FormattedMessage id="confirm" defaultMessage="Confirm" />
+                      )}
                     </Button>
                     <Link
                       href={
@@ -386,7 +391,9 @@ export default function Book(props: any): JSX.Element {
                         props.eventType.slug +
                         (rescheduleUid ? "?rescheduleUid=" + rescheduleUid : "")
                       }>
-                      <a className="ml-2 text-sm dark:text-white p-2">Cancel</a>
+                      <a className="ml-2 text-sm dark:text-white p-2">
+                        <FormattedMessage id="cancel" defaultMessage="Cancel" />
+                      </a>
                     </Link>
                   </div>
                 </form>
@@ -398,11 +405,23 @@ export default function Book(props: any): JSX.Element {
                       </div>
                       <div className="ml-3">
                         <p className="text-sm text-yellow-700">
-                          Could not {rescheduleUid ? "reschedule" : "book"} the meeting. Please try again or{" "}
+                          <FormattedMessage
+                            id="couldNotRescheduleMeeting"
+                            defaultMessage="Could not {rescheduleUid} the meeting."
+                            values={{
+                              rescheduleUid: rescheduleUid ? "reschedule" : "book",
+                            }}
+                          />{" "}
+                          <FormattedMessage id="pleaseTryAgain" defaultMessage="Please try again" />{" "}
+                          <FormattedMessage id="or" defaultMessage="or" />{" "}
                           <a
                             href={"mailto:" + props.user.email}
                             className="font-medium underline text-yellow-700 hover:text-yellow-600">
-                            Contact {props.user.name} via e-mail
+                            <FormattedMessage
+                              id="contactViaEmail"
+                              defaultMessage="Contact {name} via e-mail"
+                              values={props.user}
+                            />
                           </a>
                         </p>
                       </div>
