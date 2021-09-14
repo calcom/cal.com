@@ -36,6 +36,7 @@ import createEventType from "@lib/mutations/event-types/create-event-type";
 import { HttpError } from "@lib/core/http/error";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import Badge from "@components/ui/Badge";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const CreateFirstEventTypeView = () => (
@@ -53,18 +54,31 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   );
 
   const EventTypeListHeading = ({ profile, membershipCount }) => (
-    <div className="flex mb-3">
-      <Avatar displayName={profile.name} imageSrc={profile.image} size="8" className="mt-1 inline mr-2" />
+    <div className="flex mb-4">
+      <Link href="/settings/teams">
+        <a>
+          <Avatar displayName={profile.name} imageSrc={profile.image} size={8} className="mt-1 inline mr-2" />
+        </a>
+      </Link>
       <div>
-        <span className="font-bold">{profile.name}</span>
+        <Link href="/settings/teams">
+          <a className="font-bold">{profile.name}</a>
+        </Link>
         {membershipCount && (
-          <span className="text-neutral-500 ml-2">
-            <UsersIcon className="w-4 h-4 inline" /> {membershipCount}
+          <span className="text-xs text-neutral-500 ml-2 -top-px relative">
+            <Link href="/settings/teams">
+              <a>
+                <Badge variant="gray">
+                  <UsersIcon className="w-3 h-3 inline -mt-px mr-1" />
+                  {membershipCount}
+                </Badge>
+              </a>
+            </Link>
           </span>
         )}
         {typeof window !== "undefined" && (
           <Link href={profile.slug}>
-            <a className="block text-neutral-500 leading-none">{`${window.location.host}/${profile.slug}`}</a>
+            <a className="block text-xs text-neutral-500">{`${window.location.host}/${profile.slug}`}</a>
           </Link>
         )}
       </div>
@@ -80,7 +94,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
     readOnly: boolean;
     types: EventType[];
   }) => (
-    <div className="bg-white border border-gray-200 rounded-sm overflow-hidden -mx-4 sm:mx-0 mb-4">
+    <div className="bg-white border border-gray-200 rounded-sm overflow-hidden -mx-4 sm:mx-0 mb-16">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type) => (
           <li
@@ -330,7 +344,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
             {profiles.map((profile) => (
               <DropdownMenu.Item
                 key={profile.slug}
-                className="px-3 py-2 cursor-pointer hover:bg-neutral-100"
+                className="px-3 py-2 cursor-pointer hover:bg-neutral-100 focus:outline-none"
                 onSelect={() =>
                   router.push({
                     pathname: router.pathname,
