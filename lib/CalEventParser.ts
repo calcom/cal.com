@@ -120,6 +120,7 @@ ${this.calEvent.description}`;
   public asRichEvent(): CalendarEvent {
     const eventCopy: CalendarEvent = { ...this.calEvent };
     eventCopy.description = this.getRichDescriptionHtml();
+    eventCopy.location = this.getLocation();
     return eventCopy;
   }
 
@@ -129,6 +130,7 @@ ${this.calEvent.description}`;
   public asRichEventPlain(): CalendarEvent {
     const eventCopy: CalendarEvent = { ...this.calEvent };
     eventCopy.description = this.getRichDescription();
+    eventCopy.location = this.getLocation();
     return eventCopy;
   }
 }
