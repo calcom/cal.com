@@ -344,7 +344,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
             {profiles.map((profile) => (
               <DropdownMenu.Item
                 key={profile.slug}
-                className="px-3 py-2 cursor-pointer hover:bg-neutral-100"
+                className="px-3 py-2 cursor-pointer hover:bg-neutral-100 focus:outline-none"
                 onSelect={() =>
                   router.push({
                     pathname: router.pathname,
