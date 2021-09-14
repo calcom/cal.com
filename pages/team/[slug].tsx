@@ -26,20 +26,22 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
           className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
           <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
           <Link href={`${team.slug}/${type.slug}`}>
-            <a className="block px-6 py-4 flex space-x-2 items-center">
+            <a className="px-6 py-4 flex justify-between">
               <div className="flex-shrink">
                 <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <AvatarGroup
-                truncateAfter={4}
-                className="flex-shrink-0"
-                size={10}
-                items={type.users.map((user) => ({
-                  alt: user.name,
-                  image: user.avatar,
-                }))}
-              />
+              <div className="mt-1">
+                <AvatarGroup
+                  truncateAfter={4}
+                  className="flex-shrink-0"
+                  size={10}
+                  items={type.users.map((user) => ({
+                    alt: user.name,
+                    image: user.avatar,
+                  }))}
+                />
+              </div>
             </a>
           </Link>
         </li>
