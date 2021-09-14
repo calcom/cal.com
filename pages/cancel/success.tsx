@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
+import { FormattedMessage } from "react-intl";
 import timezone from "dayjs/plugin/timezone";
 import { CheckIcon } from "@heroicons/react/outline";
 
@@ -41,10 +42,18 @@ export default function Type(props) {
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                      Cancellation successful
+                      <FormattedMessage
+                        id="cancellationSuccessful"
+                        defaultMessage="Cancellation successful"
+                      />
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">Feel free to pick another event anytime.</p>
+                      <p className="text-sm text-gray-500">
+                        <FormattedMessage
+                          id="feelFreePickAnotherEventAnytime"
+                          defaultMessage="Feel free to pick another event anytime."
+                        />
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -54,7 +63,7 @@ export default function Type(props) {
                       onClick={() => router.push("/" + props.user.username)}
                       type="button"
                       className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm mx-2 btn-white">
-                      Pick another
+                      <FormattedMessage id="pickAnother" defaultMessage="Pick another" />
                     </button>
                   </div>
                 </div>
