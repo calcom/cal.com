@@ -2,6 +2,7 @@ import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/client";
+// TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { SelectorIcon } from "@heroicons/react/outline";
@@ -18,7 +19,7 @@ import {
 import Logo from "./Logo";
 import classNames from "@lib/classNames";
 import { Toaster } from "react-hot-toast";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { User } from "@prisma/client";
 import { HeadSeo } from "@components/seo/head-seo";
 

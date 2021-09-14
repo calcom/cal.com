@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import getSlots from "@lib/slots";
 import dayjsBusinessDays from "dayjs-business-days";
+import classNames from "@lib/classNames";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
@@ -15,7 +16,6 @@ const DatePicker = ({
   onDatePicked,
   workingHours,
   organizerTimeZone,
-  inviteeTimeZone,
   eventLength,
   date,
   periodType = "unlimited",
@@ -25,27 +25,22 @@ const DatePicker = ({
   periodCountCalendarDays,
   minimumBookingNotice,
 }) => {
-  const [calendar, setCalendar] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState<number>();
-  const [selectedDate, setSelectedDate] = useState<Dayjs>();
+  const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
+
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(
+    date
+      ? periodType === "range"
+        ? dayjs(periodStartDate).utcOffset(date.utcOffset()).month()
+        : date.month()
+      : dayjs().month() /* High chance server is going to have the same month */
+  );
 
   useEffect(() => {
-    if (date) {
-      setSelectedDate(dayjs(date).tz(inviteeTimeZone));
-      setSelectedMonth(dayjs(date).tz(inviteeTimeZone).month());
-      return;
+    if (dayjs().month() !== selectedMonth) {
+      setSelectedMonth(dayjs().month());
     }
-
-    if (periodType === "range") {
-      setSelectedMonth(dayjs(periodStartDate).tz(inviteeTimeZone).month());
-    } else {
-      setSelectedMonth(dayjs().tz(inviteeTimeZone).month());
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (selectedDate) onDatePicked(selectedDate);
-  }, [selectedDate]);
 
   // Handle month changes
   const incrementMonth = () => {
@@ -56,24 +51,27 @@ const DatePicker = ({
     setSelectedMonth(selectedMonth - 1);
   };
 
+  const inviteeDate = (): Dayjs => (date || dayjs()).month(selectedMonth);
+
   useEffect(() => {
-    if (!selectedMonth) {
-      // wish next had a way of dealing with this magically;
-      return;
+    // Create placeholder elements for empty days in first week
+    let weekdayOfFirst = inviteeDate().date(1).day();
+    if (weekStart === "Monday") {
+      weekdayOfFirst -= 1;
+      if (weekdayOfFirst < 0) weekdayOfFirst = 6;
     }
 
-    const inviteeDate = dayjs().tz(inviteeTimeZone).month(selectedMonth);
+    const days = Array(weekdayOfFirst).fill(null);
 
     const isDisabled = (day: number) => {
-      const date: Dayjs = inviteeDate.date(day);
-
+      const date: Dayjs = inviteeDate().date(day);
       switch (periodType) {
         case "rolling": {
           const periodRollingEndDay = periodCountCalendarDays
             ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
             : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
           return (
-            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isBefore(dayjs().utcOffsett(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
             !getSlots({
               inviteeDate: date,
@@ -89,7 +87,7 @@ const DatePicker = ({
           const periodRangeStartDay = dayjs(periodStartDate).tz(organizerTimeZone).endOf("day");
           const periodRangeEndDay = dayjs(periodEndDate).tz(organizerTimeZone).endOf("day");
           return (
-            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isBefore(periodRangeStartDay) ||
             date.endOf("day").isAfter(periodRangeEndDay) ||
             !getSlots({
@@ -105,7 +103,7 @@ const DatePicker = ({
         case "unlimited":
         default:
           return (
-            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             !getSlots({
               inviteeDate: date,
               frequency: eventLength,
@@ -117,81 +115,35 @@ const DatePicker = ({
       }
     };
 
-    // Set up calendar
-    const daysInMonth = inviteeDate.daysInMonth();
-    const days = [];
+    const daysInMonth = inviteeDate().daysInMonth();
     for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
+      days.push({ disabled: isDisabled(i), date: i });
     }
 
-    // Create placeholder elements for empty days in first week
-    let weekdayOfFirst = inviteeDate.date(1).day();
-    if (weekStart === "Monday") {
-      weekdayOfFirst -= 1;
-      if (weekdayOfFirst < 0) weekdayOfFirst = 6;
-    }
-    const emptyDays = Array(weekdayOfFirst)
-      .fill(null)
-      .map((day, i) => (
-        <div key={`e-${i}`} className={"text-center w-10 h-10 rounded-full mx-auto"}>
-          {null}
-        </div>
-      ));
+    setDays(days);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth]);
 
-    // Combine placeholder days with actual days
-    setCalendar([
-      ...emptyDays,
-      ...days.map((day) => (
-        <div
-          key={day}
-          style={{
-            paddingTop: "100%",
-          }}
-          className="w-full relative">
-          <button
-            onClick={() => setSelectedDate(inviteeDate.date(day))}
-            disabled={isDisabled(day)}
-            className={
-              "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto hover:border hover:border-black dark:hover:border-white" +
-              (isDisabled(day)
-                ? " text-gray-400 font-light hover:border-0 cursor-default"
-                : " dark:text-white text-primary-500 font-medium") +
-              (selectedDate && selectedDate.isSame(inviteeDate.date(day), "day")
-                ? " bg-black text-white-important"
-                : !isDisabled(day)
-                ? " bg-gray-100 dark:bg-gray-600"
-                : "")
-            }>
-            {day}
-          </button>
-        </div>
-      )),
-    ]);
-  }, [selectedMonth, inviteeTimeZone, selectedDate]);
-
-  return selectedMonth ? (
+  return (
     <div
       className={
         "mt-8 sm:mt-0 sm:min-w-[455px] " +
-        (selectedDate
+        (date
           ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
           : "w-full sm:pl-4")
       }>
       <div className="flex text-gray-600 font-light text-xl mb-4">
         <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong className="text-gray-900 dark:text-white">
-            {dayjs().month(selectedMonth).format("MMMM")}
-          </strong>
-          <span className="text-gray-500"> {dayjs().month(selectedMonth).format("YYYY")}</span>
+          <strong className="text-gray-900 dark:text-white">{inviteeDate().format("MMMM")}</strong>
+          <span className="text-gray-500"> {inviteeDate().format("YYYY")}</span>
         </span>
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
             className={
-              "group mr-2 p-1" +
-              (selectedMonth <= dayjs().tz(inviteeTimeZone).month() && "text-gray-400 dark:text-gray-600")
+              "group mr-2 p-1" + (selectedMonth <= dayjs().month() && "text-gray-400 dark:text-gray-600")
             }
-            disabled={selectedMonth <= dayjs().tz(inviteeTimeZone).month()}>
+            disabled={selectedMonth <= dayjs().month()}>
             <ChevronLeftIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
           <button className="group p-1" onClick={incrementMonth}>
@@ -208,9 +160,40 @@ const DatePicker = ({
             </div>
           ))}
       </div>
-      <div className="grid grid-cols-7 gap-2 text-center">{calendar}</div>
+      <div className="grid grid-cols-7 gap-2 text-center">
+        {days.map((day, idx) => (
+          <div
+            key={day === null ? `e-${idx}` : `day-${day.date}`}
+            style={{
+              paddingTop: "100%",
+            }}
+            className="w-full relative">
+            {day === null ? (
+              <div key={`e-${idx}`} />
+            ) : (
+              <button
+                onClick={() => onDatePicked(inviteeDate().date(day.date))}
+                disabled={day.disabled}
+                className={classNames(
+                  "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
+                  "hover:border hover:border-black dark:hover:border-white",
+                  day.disabled
+                    ? "text-gray-400 font-light hover:border-0 cursor-default"
+                    : "dark:text-white text-primary-500 font-medium",
+                  date && date.isSame(inviteeDate().date(day.date), "day")
+                    ? "bg-black text-white-important"
+                    : !day.disabled
+                    ? " bg-gray-100 dark:bg-gray-600"
+                    : ""
+                )}>
+                {day.date}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
-  ) : null;
+  );
 };
 
 export default DatePicker;

@@ -12,6 +12,7 @@ export type ButtonProps = {
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
+  shallow?: boolean;
 } & (
   | (Omit<JSX.IntrinsicElements["a"], "href"> & { href: LinkProps["href"] })
   | (JSX.IntrinsicElements["button"] & { href?: never })
@@ -24,6 +25,7 @@ export const Button = function Button(props: ButtonProps) {
     size = "base",
     StartIcon,
     EndIcon,
+    shallow,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -58,7 +60,7 @@ export const Button = function Button(props: ButtonProps) {
         color === "secondary" &&
           (disabled
             ? "border border-gray-200 text-gray-400 bg-white"
-            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900"),
         color === "minimal" &&
           (disabled
             ? "text-gray-400 bg-transparent"
@@ -109,7 +111,7 @@ export const Button = function Button(props: ButtonProps) {
     </>
   );
   return props.href ? (
-    <Link passHref href={props.href}>
+    <Link passHref href={props.href} shallow={shallow && shallow}>
       {element}
     </Link>
   ) : (

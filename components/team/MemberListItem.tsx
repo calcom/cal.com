@@ -3,7 +3,7 @@ import Dropdown from "../ui/Dropdown";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { Member } from "@lib/member";
 import Button from "@components/ui/Button";
 
@@ -64,15 +64,16 @@ export default function MemberListItem(props: {
                 className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
                 <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                   <Dialog>
-                    <DialogTrigger
-                      as={Button}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      color="warn"
-                      StartIcon={UserRemoveIcon}
-                      className="w-full">
-                      Remove User
+                    <DialogTrigger asChild>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        color="warn"
+                        StartIcon={UserRemoveIcon}
+                        className="w-full">
+                        Remove User
+                      </Button>
                     </DialogTrigger>
                     <ConfirmationDialogContent
                       variety="danger"
