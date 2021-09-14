@@ -1,5 +1,6 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
+import { FormattedMessage } from "react-intl";
 import React from "react";
 import { getCsrfToken } from "next-auth/client";
 import debounce from "lodash.debounce";
@@ -79,10 +80,15 @@ export default function ForgotPassword({ csrfToken }) {
           {!success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Forgot Password</h2>
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  <FormattedMessage id="forgotPassword" defaultMessage="Forgot Password" />
+                </h2>
                 <p>
-                  Enter the email address associated with your account and we will send you a link to reset
-                  your password.
+                  <FormattedMessage
+                    id="forgotPasswordDescription"
+                    defaultMessage="Enter the email address associated with your account and we will send you a link to reset
+                  your password."
+                  />
                 </p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
@@ -90,7 +96,7 @@ export default function ForgotPassword({ csrfToken }) {
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email address
+                    <FormattedMessage id="emailAddress" defaultMessage="Email address" />
                   </label>
                   <div className="mt-1">
                     <input
@@ -132,7 +138,7 @@ export default function ForgotPassword({ csrfToken }) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
-                    Request Password Reset
+                    <FormattedMessage id="requestPasswordReset" defaultMessage="Request Password Reset" />
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -140,7 +146,7 @@ export default function ForgotPassword({ csrfToken }) {
                     <button
                       type="button"
                       className="w-full flex justify-center py-2 px-4 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                      Login
+                      <FormattedMessage id="login" defaultMessage="Login" />
                     </button>
                   </Link>
                 </div>
