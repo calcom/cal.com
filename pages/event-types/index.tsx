@@ -523,8 +523,8 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             <Button type="submit" loading={createMutation.isLoading}>
               Continue
             </Button>
-            <DialogClose as={Button} color="secondary">
-              Cancel
+            <DialogClose asChild>
+              <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
         </form>
