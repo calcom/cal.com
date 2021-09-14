@@ -9,6 +9,7 @@ import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
+import { FormattedMessage } from "react-intl";
 import { getSession } from "@lib/auth";
 import { BookingStatus } from "@prisma/client";
 
@@ -51,7 +52,7 @@ export default function Bookings({ bookings }) {
                           <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
                             {!booking.confirmed && !booking.rejected && (
                               <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Unconfirmed
+                                <FormattedMessage id="unconfirmed" defaultMessage="Unconfirmed" />
                               </span>
                             )}
                             <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
@@ -89,12 +90,12 @@ export default function Bookings({ bookings }) {
                                 <button
                                   onClick={() => confirmBookingHandler(booking, true)}
                                   className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  Confirm
+                                  <FormattedMessage id="confirm" defaultMessage="Confirm" />
                                 </button>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, false)}
                                   className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  Reject
+                                  <FormattedMessage id="reject" defaultMessage="Reject" />
                                 </button>
                               </>
                             )}
@@ -107,7 +108,7 @@ export default function Bookings({ bookings }) {
                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  Cancel
+                                  <FormattedMessage id="cancel" defaultMessage="Cancel" />
                                 </a>
                                 <a
                                   href={window.location.href + "/../reschedule/" + booking.uid}
@@ -116,14 +117,19 @@ export default function Bookings({ bookings }) {
                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  Reschedule
+                                  <FormattedMessage id="reschedule" defaultMessage="Reschedule" />
                                 </a>
                                 <Menu as="div" className="inline-block lg:hidden text-left ">
                                   {({ open }) => (
                                     <>
                                       <div>
                                         <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
-                                          <span className="sr-only">Open options</span>
+                                          <span className="sr-only">
+                                            <FormattedMessage
+                                              id="openOptions"
+                                              defaultMessage="Open options"
+                                            />
+                                          </span>
                                           <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                                         </Menu.Button>
                                       </div>
@@ -155,7 +161,7 @@ export default function Bookings({ bookings }) {
                                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
-                                                  Cancel
+                                                  <FormattedMessage id="cancel" defaultMessage="Cancel" />
                                                 </a>
                                               )}
                                             </Menu.Item>
@@ -175,7 +181,10 @@ export default function Bookings({ bookings }) {
                                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
-                                                  Reschedule
+                                                  <FormattedMessage
+                                                    id="reschedule"
+                                                    defaultMessage="Reschedule"
+                                                  />
                                                 </a>
                                               )}
                                             </Menu.Item>
@@ -188,7 +197,9 @@ export default function Bookings({ bookings }) {
                               </>
                             )}
                             {!booking.confirmed && booking.rejected && (
-                              <div className="text-sm text-gray-500">Rejected</div>
+                              <div className="text-sm text-gray-500 capitalize">
+                                <FormattedMessage id="rejected" defaultMessage="Rejected" />
+                              </div>
                             )}
                           </td>
                         </tr>
