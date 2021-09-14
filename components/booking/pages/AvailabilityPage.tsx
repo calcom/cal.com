@@ -3,6 +3,8 @@ import { useRouter } from "next/router";
 import { useEffect, useState, useMemo } from "react";
 import { EventType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
 import DatePicker from "@components/booking/DatePicker";
@@ -16,6 +18,9 @@ import { HeadSeo } from "@components/seo/head-seo";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import useTheme from "@lib/hooks/useTheme";
 import AvatarGroup from "@components/ui/AvatarGroup";
+
+dayjs.extend(utc);
+dayjs.extend(customParseFormat);
 
 type AvailabilityPageProps = {
   eventType: EventType;
@@ -33,8 +38,17 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
   const themeLoaded = useTheme(profile.theme);
 
   const selectedDate = useMemo(() => {
-    const date = dayjs(asStringOrNull(router.query.date));
-    return date.isValid() ? date : null;
+    const dateString = asStringOrNull(router.query.date);
+    if (dateString) {
+      // todo some extra validation maybe.
+      const utcOffsetAsDate = dayjs(dateString.substr(11, 14), "Hmm");
+      const utcOffset = parseInt(
+        dateString.substr(10, 1) + (utcOffsetAsDate.hour() * 60 + utcOffsetAsDate.minute())
+      );
+      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffset, true);
+      return date.isValid() ? date : null;
+    }
+    return null;
   }, [router.query.date]);
 
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
@@ -52,7 +66,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
       {
         query: {
           ...router.query,
-          date: newDate.format("YYYY-MM-DD"),
+          date: newDate.format("YYYY-MM-DDZZ"),
         },
       },
       undefined,
@@ -64,8 +78,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
     if (selectedDate) {
-      changeDate(selectedDate.tz(selectedTimeZone));
+      changeDate(selectedDate.tz(selectedTimeZone, true));
     }
+    timeZone(selectedTimeZone);
     setIsTimeOptionsOpen(false);
   };
 

@@ -16,7 +16,6 @@ const DatePicker = ({
   onDatePicked,
   workingHours,
   organizerTimeZone,
-  inviteeTimeZone,
   eventLength,
   date,
   periodType = "unlimited",
@@ -72,7 +71,7 @@ const DatePicker = ({
             ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
             : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
           return (
-            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isBefore(dayjs().utcOffsett(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
             !getSlots({
               inviteeDate: date,
@@ -88,7 +87,7 @@ const DatePicker = ({
           const periodRangeStartDay = dayjs(periodStartDate).tz(organizerTimeZone).endOf("day");
           const periodRangeEndDay = dayjs(periodEndDate).tz(organizerTimeZone).endOf("day");
           return (
-            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isBefore(periodRangeStartDay) ||
             date.endOf("day").isAfter(periodRangeEndDay) ||
             !getSlots({
@@ -104,7 +103,7 @@ const DatePicker = ({
         case "unlimited":
         default:
           return (
-            date.endOf("day").isBefore(dayjs().tz(inviteeTimeZone)) ||
+            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             !getSlots({
               inviteeDate: date,
               frequency: eventLength,
