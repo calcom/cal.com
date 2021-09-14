@@ -61,15 +61,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       minimumBookingNotice: req.body.minimumBookingNotice,
     };
 
+    if (req.body.schedulingType) {
+      data.schedulingType = req.body.schedulingType;
+    }
+
     if (req.method == "POST") {
+      if (req.body.teamId) {
+        data.team = {
+          connect: {
+            id: req.body.teamId,
+          },
+        };
+      }
+
       const eventType = await prisma.eventType.create({
         data: {
-          userId: session.user.id,
           ...data,
+          users: {
+            connect: {
+              id: parseInt(session.user.id),
+            },
+          },
         },
       });
       res.status(201).json({ eventType });
     } else if (req.method == "PATCH") {
+      if (req.body.users) {
+        data.users = {
+          set: [],
+          connect: req.body.users.map((id: number) => ({ id })),
+        };
+      }
+
       if (req.body.timeZone) {
         data.timeZone = req.body.timeZone;
       }
