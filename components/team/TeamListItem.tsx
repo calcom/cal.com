@@ -11,7 +11,7 @@ import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import showToast from "@lib/notification";
 

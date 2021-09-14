@@ -1,34 +1,24 @@
 import prisma from "@lib/prisma";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import { EventType } from "@prisma/client";
+import "react-phone-number-input/style.css";
 import BookingPage from "@components/booking/pages/BookingPage";
+import { InferGetServerSidePropsType } from "next";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-export default function Book(props: any): JSX.Element {
+export default function TeamBookingPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return <BookingPage {...props} />;
 }
 
 export async function getServerSideProps(context) {
-  const user = await prisma.user.findUnique({
-    where: {
-      username: context.query.user,
-    },
-    select: {
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      theme: true,
-    },
-  });
+  const eventTypeId = parseInt(context.query.type);
+  if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
+    return {
+      notFound: true,
+    } as const;
+  }
 
-  const eventType = await prisma.eventType.findUnique({
+  const eventType: EventType = await prisma.eventType.findUnique({
     where: {
-      id: parseInt(context.query.type),
+      id: eventTypeId,
     },
     select: {
       id: true,
@@ -43,14 +33,17 @@ export async function getServerSideProps(context) {
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      team: {
+        select: {
+          slug: true,
+          name: true,
+          logo: true,
+        },
+      },
       users: {
         select: {
-          username: true,
-          name: true,
-          email: true,
-          bio: true,
           avatar: true,
-          theme: true,
+          name: true,
         },
       },
     },
@@ -86,10 +79,9 @@ export async function getServerSideProps(context) {
   return {
     props: {
       profile: {
-        slug: user.username,
-        name: user.name,
-        image: user.avatar,
-        theme: user.theme,
+        ...eventTypeObject.team,
+        slug: "team/" + eventTypeObject.slug,
+        image: eventTypeObject.team.logo,
       },
       eventType: eventTypeObject,
       booking,

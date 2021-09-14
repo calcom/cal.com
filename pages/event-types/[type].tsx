@@ -3,7 +3,7 @@ import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionTypeBase } from "react-select";
 import prisma from "@lib/prisma";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
+import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "@lib/auth";
@@ -21,6 +21,8 @@ import {
   ClockIcon,
   TrashIcon,
   ExternalLinkIcon,
+  UsersIcon,
+  UserAddIcon,
 } from "@heroicons/react/solid";
 
 import dayjs from "dayjs";
@@ -28,7 +30,6 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Availability } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
-import classnames from "classnames";
 import throttle from "lodash.throttle";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
@@ -42,6 +43,10 @@ import { EventTypeInput } from "@lib/types/event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
+import CheckedSelect from "@components/ui/form/CheckedSelect";
+import { defaultAvatarSrc } from "@lib/profile";
+import * as RadioArea from "@components/ui/form/radio-area";
+import classNames from "@lib/classNames";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import Button from "@components/ui/Button";
@@ -65,7 +70,8 @@ const PERIOD_TYPES = [
 ];
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { user, eventType, locationOptions, availability } = props;
+  const { eventType, locationOptions, availability, team, teamMembers } = props;
+
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -131,6 +137,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     }
   }, [contentSize]);
 
+  const [users, setUsers] = useState([]);
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
@@ -169,24 +176,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
   const titleRef = useRef<HTMLInputElement>(null);
   const slugRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const lengthRef = useRef<HTMLInputElement>(null);
   const requiresConfirmationRef = useRef<HTMLInputElement>(null);
   const eventNameRef = useRef<HTMLInputElement>(null);
   const periodDaysRef = useRef<HTMLInputElement>(null);
   const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
-    setSelectedTimeZone(eventType.timeZone || user.timeZone);
+    setSelectedTimeZone(eventType.timeZone);
   }, []);
 
   async function updateEventTypeHandler(event) {
     event.preventDefault();
 
+    const formData = Object.fromEntries(new FormData(event.target).entries());
+
     const enteredTitle: string = titleRef.current.value;
     const enteredSlug: string = slugRef.current.value;
-    const enteredDescription: string = descriptionRef.current.value;
-    const enteredLength: number = parseInt(lengthRef.current.value);
 
     const advancedOptionsPayload: AdvancedOptions = {};
     if (requiresConfirmationRef.current) {
@@ -203,14 +208,20 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       id: eventType.id,
       title: enteredTitle,
       slug: enteredSlug,
-      description: enteredDescription,
-      length: enteredLength,
+      description: formData.description as string,
+      length: formData.length as number,
       hidden,
       locations,
       customInputs,
       timeZone: selectedTimeZone,
       availability: enteredAvailability || null,
       ...advancedOptionsPayload,
+      ...(team
+        ? {
+            schedulingType: formData.schedulingType as string,
+            users,
+          }
+        : {}),
     };
 
     updateMutation.mutate(payload);
@@ -334,6 +345,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setCustomInputs([...customInputs]);
   };
 
+  const schedulingTypeOptions: { value: string; label: string }[] = [
+    {
+      value: SchedulingType.COLLECTIVE,
+      label: "Collective",
+      description: "Schedule meetings when all selected team members are available.",
+    },
+    {
+      value: SchedulingType.ROUND_ROBIN,
+      label: "Round Robin",
+      description: "Cycle meetings between multiple team members.",
+    },
+  ];
+
   return (
     <div>
       <Shell
@@ -353,73 +377,72 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         subtitle={eventType.description}>
         <div className="block sm:flex">
           <div className="w-full mr-2 sm:w-10/12">
-            <div className="p-4 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:p-8">
-              <form onSubmit={updateEventTypeHandler} className="space-y-4">
-                <div className="items-center block sm:flex">
-                  <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="slug" className="flex mt-0 text-sm font-medium text-neutral-700">
-                      <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      URL
-                    </label>
-                  </div>
-                  <div className="w-full">
-                    <div className="flex rounded-sm shadow-sm">
-                      <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
-                        {typeof location !== "undefined" ? location.hostname : ""}/{user.username}/
-                      </span>
-                      <input
-                        ref={slugRef}
-                        type="text"
-                        name="slug"
-                        id="slug"
-                        required
-                        className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        defaultValue={eventType.slug}
-                      />
+            <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
+              <form onSubmit={updateEventTypeHandler} className="space-y-6">
+                <div className="space-y-3">
+                  <div className="items-center block sm:flex">
+                    <div className="mb-4 min-w-44 sm:mb-0">
+                      <label htmlFor="slug" className="flex mt-0 text-sm font-medium text-neutral-700">
+                        <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        URL
+                      </label>
+                    </div>
+                    <div className="w-full">
+                      <div className="flex rounded-sm shadow-sm">
+                        <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                          {typeof location !== "undefined" ? location.hostname : ""}/
+                          {team ? "team/" + team.slug : eventType.users[0].username}/
+                        </span>
+                        <input
+                          ref={slugRef}
+                          type="text"
+                          name="slug"
+                          id="slug"
+                          required
+                          className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          defaultValue={eventType.slug}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="items-center block sm:flex">
-                  <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="length" className="flex mt-0 text-sm font-medium text-neutral-700">
-                      <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      Duration
-                    </label>
-                  </div>
-                  <div className="w-full">
-                    <div className="relative mt-1 rounded-sm shadow-sm">
-                      <input
-                        ref={lengthRef}
-                        type="number"
-                        name="length"
-                        id="length"
-                        required
-                        className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        placeholder="15"
-                        defaultValue={eventType.length}
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm" id="duration">
-                          mins
-                        </span>
+                  <div className="items-center block sm:flex">
+                    <div className="mb-4 min-w-44 sm:mb-0">
+                      <label htmlFor="length" className="flex mt-0 text-sm font-medium text-neutral-700">
+                        <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        Duration
+                      </label>
+                    </div>
+                    <div className="w-full">
+                      <div className="relative mt-1 rounded-sm shadow-sm">
+                        <input
+                          type="number"
+                          name="length"
+                          id="length"
+                          required
+                          className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          placeholder="15"
+                          defaultValue={eventType.length}
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm" id="duration">
+                            mins
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
                 <hr />
-
-                <div className="items-center block sm:flex">
-                  <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="location" className="flex mt-0 text-sm font-medium text-neutral-700">
-                      <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      Location
-                    </label>
-                  </div>
-                  <div className="w-full">
-                    {locations.length === 0 && (
-                      <div className="mt-1 mb-2">
+                <div className="space-y-3">
+                  <div className="items-center block sm:flex">
+                    <div className="min-w-44 sm:mb-0">
+                      <label htmlFor="location" className="flex mt-0 text-sm font-medium text-neutral-700">
+                        <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        Location
+                      </label>
+                    </div>
+                    <div className="w-full">
+                      {locations.length === 0 && (
                         <div className="flex">
                           <Select
                             name="location"
@@ -431,136 +454,180 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             onChange={(e) => openLocationModal(e.value)}
                           />
                         </div>
-                      </div>
-                    )}
-                    {locations.length > 0 && (
-                      <ul className="mt-1">
-                        {locations.map((location) => (
-                          <li
-                            key={location.type}
-                            className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
-                            <div className="flex justify-between">
-                              {location.type === LocationType.InPerson && (
-                                <div className="flex items-center flex-grow">
-                                  <LocationMarkerIcon className="w-6 h-6" />
-                                  <span className="ml-2 text-sm">{location.address}</span>
-                                </div>
-                              )}
-                              {location.type === LocationType.Phone && (
-                                <div className="flex items-center flex-grow">
-                                  <PhoneIcon className="w-6 h-6" />
-                                  <span className="ml-2 text-sm">Phone call</span>
-                                </div>
-                              )}
-                              {location.type === LocationType.GoogleMeet && (
-                                <div className="flex items-center flex-grow">
-                                  <svg
-                                    className="w-6 h-6"
-                                    viewBox="0 0 64 54"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M16 0V16H0" fill="#EA4335" />
-                                    <path
-                                      d="M16 0V16H37.3333V27.0222L53.3333 14.0444V5.33332C53.3333 1.77777 51.5555 0 47.9999 0"
-                                      fill="#FFBA00"
-                                    />
-                                    <path
-                                      d="M15.6438 53.3341V37.3341H37.3326V26.6675L53.3326 39.2897V48.0008C53.3326 51.5563 51.5548 53.3341 47.9993 53.3341"
-                                      fill="#00AC47"
-                                    />
-                                    <path d="M37.3335 26.6662L53.3335 13.6885V39.644" fill="#00832D" />
-                                    <path
-                                      d="M53.3335 13.6892L60.8001 7.64481C62.4001 6.40037 64.0001 6.40037 64.0001 8.88925V44.4447C64.0001 46.9336 62.4001 46.9336 60.8001 45.6892L53.3335 39.6447"
-                                      fill="#00AC47"
-                                    />
-                                    <path
-                                      d="M0 36.9785V48.0007C0 51.5563 1.77777 53.334 5.33332 53.334H16V36.9785"
-                                      fill="#0066DA"
-                                    />
-                                    <path d="M0 16H16V37.3333H0" fill="#2684FC" />
-                                  </svg>
+                      )}
+                      {locations.length > 0 && (
+                        <ul>
+                          {locations.map((location) => (
+                            <li
+                              key={location.type}
+                              className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
+                              <div className="flex justify-between">
+                                {location.type === LocationType.InPerson && (
+                                  <div className="flex items-center flex-grow">
+                                    <LocationMarkerIcon className="w-6 h-6" />
+                                    <span className="ml-2 text-sm">{location.address}</span>
+                                  </div>
+                                )}
+                                {location.type === LocationType.Phone && (
+                                  <div className="flex items-center flex-grow">
+                                    <PhoneIcon className="w-6 h-6" />
+                                    <span className="ml-2 text-sm">Phone call</span>
+                                  </div>
+                                )}
+                                {location.type === LocationType.GoogleMeet && (
+                                  <div className="flex items-center flex-grow">
+                                    <svg
+                                      className="w-6 h-6"
+                                      viewBox="0 0 64 54"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M16 0V16H0" fill="#EA4335" />
+                                      <path
+                                        d="M16 0V16H37.3333V27.0222L53.3333 14.0444V5.33332C53.3333 1.77777 51.5555 0 47.9999 0"
+                                        fill="#FFBA00"
+                                      />
+                                      <path
+                                        d="M15.6438 53.3341V37.3341H37.3326V26.6675L53.3326 39.2897V48.0008C53.3326 51.5563 51.5548 53.3341 47.9993 53.3341"
+                                        fill="#00AC47"
+                                      />
+                                      <path d="M37.3335 26.6662L53.3335 13.6885V39.644" fill="#00832D" />
+                                      <path
+                                        d="M53.3335 13.6892L60.8001 7.64481C62.4001 6.40037 64.0001 6.40037 64.0001 8.88925V44.4447C64.0001 46.9336 62.4001 46.9336 60.8001 45.6892L53.3335 39.6447"
+                                        fill="#00AC47"
+                                      />
+                                      <path
+                                        d="M0 36.9785V48.0007C0 51.5563 1.77777 53.334 5.33332 53.334H16V36.9785"
+                                        fill="#0066DA"
+                                      />
+                                      <path d="M0 16H16V37.3333H0" fill="#2684FC" />
+                                    </svg>
 
-                                  <span className="ml-2 text-sm">Google Meet</span>
+                                    <span className="ml-2 text-sm">Google Meet</span>
+                                  </div>
+                                )}
+                                {location.type === LocationType.Zoom && (
+                                  <div className="flex items-center flex-grow">
+                                    <svg
+                                      className="w-6 h-6"
+                                      viewBox="0 0 64 64"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg">
+                                      <path
+                                        d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
+                                        fill="#E5E5E4"
+                                      />
+                                      <path
+                                        d="M32.0002 0.623047C49.3292 0.623047 63.3771 14.6709 63.3771 31.9999C63.3771 49.329 49.3292 63.3768 32.0002 63.3768C14.6711 63.3768 0.623291 49.329 0.623291 31.9999C0.623291 14.6709 14.6716 0.623047 32.0002 0.623047Z"
+                                        fill="white"
+                                      />
+                                      <path
+                                        d="M31.9998 3.14014C47.9386 3.14014 60.8597 16.0612 60.8597 32C60.8597 47.9389 47.9386 60.8599 31.9998 60.8599C16.0609 60.8599 3.13989 47.9389 3.13989 32C3.13989 16.0612 16.0609 3.14014 31.9998 3.14014Z"
+                                        fill="#4A8CFF"
+                                      />
+                                      <path
+                                        d="M13.1711 22.9581V36.5206C13.1832 39.5875 15.6881 42.0558 18.743 42.0433H38.5125C39.0744 42.0433 39.5266 41.5911 39.5266 41.0412V27.4788C39.5145 24.4119 37.0096 21.9435 33.9552 21.956H14.1857C13.6238 21.956 13.1716 22.4082 13.1716 22.9581H13.1711ZM40.7848 28.2487L48.9469 22.2864C49.6557 21.6998 50.2051 21.8462 50.2051 22.9095V41.0903C50.2051 42.2999 49.5329 42.1536 48.9469 41.7134L40.7848 35.7631V28.2487Z"
+                                        fill="white"
+                                      />
+                                    </svg>
+                                    <span className="ml-2 text-sm">Zoom Video</span>
+                                  </div>
+                                )}
+                                <div className="flex">
+                                  <button
+                                    type="button"
+                                    onClick={() => openLocationModal(location.type)}
+                                    className="mr-2 text-sm text-primary-600">
+                                    Edit
+                                  </button>
+                                  <button onClick={() => removeLocation(location)}>
+                                    <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
+                                  </button>
                                 </div>
-                              )}
-                              {location.type === LocationType.Zoom && (
-                                <div className="flex items-center flex-grow">
-                                  <svg
-                                    className="w-6 h-6"
-                                    viewBox="0 0 64 64"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                      d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
-                                      fill="#E5E5E4"
-                                    />
-                                    <path
-                                      d="M32.0002 0.623047C49.3292 0.623047 63.3771 14.6709 63.3771 31.9999C63.3771 49.329 49.3292 63.3768 32.0002 63.3768C14.6711 63.3768 0.623291 49.329 0.623291 31.9999C0.623291 14.6709 14.6716 0.623047 32.0002 0.623047Z"
-                                      fill="white"
-                                    />
-                                    <path
-                                      d="M31.9998 3.14014C47.9386 3.14014 60.8597 16.0612 60.8597 32C60.8597 47.9389 47.9386 60.8599 31.9998 60.8599C16.0609 60.8599 3.13989 47.9389 3.13989 32C3.13989 16.0612 16.0609 3.14014 31.9998 3.14014Z"
-                                      fill="#4A8CFF"
-                                    />
-                                    <path
-                                      d="M13.1711 22.9581V36.5206C13.1832 39.5875 15.6881 42.0558 18.743 42.0433H38.5125C39.0744 42.0433 39.5266 41.5911 39.5266 41.0412V27.4788C39.5145 24.4119 37.0096 21.9435 33.9552 21.956H14.1857C13.6238 21.956 13.1716 22.4082 13.1716 22.9581H13.1711ZM40.7848 28.2487L48.9469 22.2864C49.6557 21.6998 50.2051 21.8462 50.2051 22.9095V41.0903C50.2051 42.2999 49.5329 42.1536 48.9469 41.7134L40.7848 35.7631V28.2487Z"
-                                      fill="white"
-                                    />
-                                  </svg>
-                                  <span className="ml-2 text-sm">Zoom Video</span>
-                                </div>
-                              )}
-                              <div className="flex">
-                                <button
-                                  type="button"
-                                  onClick={() => openLocationModal(location.type)}
-                                  className="mr-2 text-sm text-primary-600">
-                                  Edit
-                                </button>
-                                <button onClick={() => removeLocation(location)}>
-                                  <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
-                                </button>
                               </div>
-                            </div>
-                          </li>
-                        ))}
-                        {locations.length > 0 && locations.length !== locationOptions.length && (
-                          <li>
-                            <button
-                              type="button"
-                              className="flex px-3 py-2 rounded-sm bg-neutral-100"
-                              onClick={() => setShowLocationModal(true)}>
-                              <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
-                              <span className="ml-1 text-sm font-medium text-neutral-700">
-                                Add another location
-                              </span>
-                            </button>
-                          </li>
-                        )}
-                      </ul>
-                    )}
+                            </li>
+                          ))}
+                          {locations.length > 0 && locations.length !== locationOptions.length && (
+                            <li>
+                              <button
+                                type="button"
+                                className="flex px-3 py-2 rounded-sm bg-neutral-100"
+                                onClick={() => setShowLocationModal(true)}>
+                                <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
+                                <span className="ml-1 text-sm font-medium text-neutral-700">
+                                  Add another location
+                                </span>
+                              </button>
+                            </li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </div>
-
                 <hr className="border-neutral-200" />
-
-                <div className="items-center block sm:flex">
-                  <div className="mb-4 min-w-44 sm:mb-0">
-                    <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
-                      <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                      Description
-                    </label>
-                  </div>
-                  <div className="w-full">
-                    <textarea
-                      ref={descriptionRef}
-                      name="description"
-                      id="description"
-                      className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                      placeholder="A quick video meeting."
-                      defaultValue={eventType.description}></textarea>
+                <div className="space-y-3">
+                  <div className="items-center block sm:flex">
+                    <div className="mb-4 min-w-44 sm:mb-0">
+                      <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
+                        <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        Description
+                      </label>
+                    </div>
+                    <div className="w-full">
+                      <textarea
+                        name="description"
+                        id="description"
+                        className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                        placeholder="A quick video meeting."
+                        defaultValue={eventType.description}></textarea>
+                    </div>
                   </div>
                 </div>
+                {team && <hr className="border-neutral-200" />}
+                {team && (
+                  <div className="space-y-3">
+                    <div className="block sm:flex">
+                      <div className="mb-4 min-w-44 sm:mb-0">
+                        <label
+                          htmlFor="schedulingType"
+                          className="flex mt-2 text-sm font-medium text-neutral-700">
+                          <UsersIcon className="text-neutral-500 h-5 w-5 mr-2" /> Scheduling Type
+                        </label>
+                      </div>
+                      <RadioArea.Select
+                        name="schedulingType"
+                        value={eventType.schedulingType}
+                        options={schedulingTypeOptions}
+                      />
+                    </div>
+
+                    <div className="block sm:flex">
+                      <div className="mb-4 min-w-44 sm:mb-0">
+                        <label htmlFor="users" className="flex mt-2 text-sm font-medium text-neutral-700">
+                          <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Attendees
+                        </label>
+                      </div>
+                      <div className="w-full space-y-2">
+                        <CheckedSelect
+                          onChange={(options: unknown) => setUsers(options.map((option) => option.value))}
+                          defaultValue={eventType.users.map((user: User) => ({
+                            value: user.id,
+                            label: user.name,
+                            avatar: user.avatar,
+                          }))}
+                          options={teamMembers.map((user: User) => ({
+                            value: user.id,
+                            label: user.name,
+                            avatar: user.avatar,
+                          }))}
+                          id="users"
+                          placeholder="Add attendees"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <Disclosure>
                   {({ open }) => (
                     <>
@@ -703,7 +770,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     key={period.type}
                                     value={period}
                                     className={({ checked }) =>
-                                      classnames(
+                                      classNames(
                                         checked ? "border-secondary-200 z-10" : "border-gray-200",
                                         "relative min-h-14 flex items-center cursor-pointer focus:outline-none"
                                       )
@@ -711,7 +778,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     {({ active, checked }) => (
                                       <>
                                         <div
-                                          className={classnames(
+                                          className={classNames(
                                             checked
                                               ? "bg-primary-600 border-transparent"
                                               : "bg-white border-gray-300",
@@ -724,7 +791,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="flex flex-col lg:ml-3">
                                           <RadioGroup.Label
                                             as="span"
-                                            className={classnames(
+                                            className={classNames(
                                               checked ? "text-secondary-900" : "text-gray-900",
                                               "block text-sm space-y-2 lg:space-y-0 lg:space-x-2"
                                             )}>
@@ -833,7 +900,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 label="Hide event type"
               />
               <a
-                href={"/" + user.username + "/" + eventType.slug}
+                href={"/" + (team ? "team/" + team.slug : eventType.users[0].username) + "/" + eventType.slug}
                 target="_blank"
                 rel="noreferrer"
                 className="flex font-medium text-md text-neutral-700">
@@ -843,7 +910,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    window.location.hostname + "/" + user.username + "/" + eventType.slug
+                    window.location.hostname +
+                      "/" +
+                      (team ? "team/" + team.slug : eventType.users[0].username) +
+                      "/" +
+                      eventType.slug
                   );
                   showToast("Link copied!", "success");
                 }}
@@ -1032,7 +1103,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  const typeParam = asStringOrThrow(query.type);
+  const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
     return {
@@ -1043,30 +1114,27 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      timeZone: true,
-      startTime: true,
-      endTime: true,
-      availability: true,
-      plan: true,
-    },
-  });
-
-  if (!user) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
   const eventType = await prisma.eventType.findFirst({
     where: {
-      AND: [{ userId: user.id }, { slug: typeParam }],
+      AND: [
+        {
+          OR: [
+            {
+              users: {
+                some: {
+                  id: session.user.id,
+                },
+              },
+            },
+            {
+              userId: session.user.id,
+            },
+          ],
+        },
+        {
+          id: typeParam,
+        },
+      ],
     },
     select: {
       id: true,
@@ -1086,6 +1154,36 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      team: {
+        select: {
+          slug: true,
+          members: {
+            where: {
+              accepted: true,
+            },
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  id: true,
+                  avatar: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      users: {
+        select: {
+          name: true,
+          id: true,
+          avatar: true,
+          username: true,
+        },
+      },
+      schedulingType: true,
+      userId: true,
     },
   });
 
@@ -1095,9 +1193,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  // backwards compat
+  if (eventType.users.length === 0) {
+    eventType.users.push(
+      await prisma.user.findUnique({
+        where: {
+          id: session.user.id,
+        },
+        select: {
+          username: true,
+        },
+      })
+    );
+  }
+
   const credentials = await prisma.credential.findMany({
     where: {
-      userId: user.id,
+      userId: session.user.id,
     },
     select: {
       id: true,
@@ -1151,15 +1263,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ? providesAvailability.availability
       : null;
 
-  const availability: Availability[] = getAvailability(eventType) ||
-    getAvailability(user) || [
-      {
-        days: [0, 1, 2, 3, 4, 5, 6],
-        startTime: user.startTime,
-        endTime: user.endTime,
-      },
-    ];
-
+  const availability: Availability[] = getAvailability(eventType) || [];
   availability.sort((a, b) => a.startTime - b.startTime);
 
   const eventTypeObject = Object.assign({}, eventType, {
@@ -1167,12 +1271,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
+  const teamMembers = eventTypeObject.team
+    ? eventTypeObject.team.members.map((member) => {
+        const user = member.user;
+        user.avatar = user.avatar || defaultAvatarSrc({ email: user.email });
+        return user;
+      })
+    : [];
+
   return {
     props: {
-      user,
       eventType: eventTypeObject,
       locationOptions,
       availability,
+      team: eventTypeObject.team || null,
+      teamMembers,
     },
   };
 };
