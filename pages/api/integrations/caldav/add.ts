@@ -30,10 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const dav = new CalDavCalendar({
         id: 0,
         type: "caldav_calendar",
-        key: symmetricEncrypt(
-          JSON.stringify({ username, password, url }),
-          process.env.CALENDSO_ENCRYPTION_KEY
-        ),
+        key: symmetricEncrypt(JSON.stringify({ username, password, url })),
         userId: session.user.id,
       });
 
@@ -41,10 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.credential.create({
         data: {
           type: "caldav_calendar",
-          key: symmetricEncrypt(
-            JSON.stringify({ username, password, url }),
-            process.env.CALENDSO_ENCRYPTION_KEY
-          ),
+          key: symmetricEncrypt(JSON.stringify({ username, password, url })),
           userId: session.user.id,
         },
       });

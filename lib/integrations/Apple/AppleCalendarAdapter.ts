@@ -28,9 +28,7 @@ export class AppleCalendar implements CalendarApiAdapter {
   private readonly integrationName: string = "apple_calendar";
 
   constructor(credential: Credential) {
-    const decryptedCredential = JSON.parse(
-      symmetricDecrypt(credential.key, process.env.CALENDSO_ENCRYPTION_KEY)
-    );
+    const decryptedCredential = JSON.parse(symmetricDecrypt(credential.key));
     const username = decryptedCredential.username;
     const password = decryptedCredential.password;
 

@@ -29,6 +29,14 @@ const validJson = (jsonString) => {
   return false;
 };
 
+if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+  console.warn(
+    "\x1b[33mwarn",
+    "\x1b[0m",
+    "- Disabled 'Caldav' and 'Apple Calendar' integrations. Reason: Missing value for CALENDSO_ENCRYPTION_KEY environment variable. This value is required in order to encrypt and decrypt user credentials for these integrations."
+  );
+}
+
 if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CREDENTIALS)) {
   console.warn(
     "\x1b[33mwarn",

@@ -5,6 +5,8 @@ const INPUT_ENCODING = "utf8";
 const OUTPUT_ENCODING = "hex";
 const IV_LENGTH = 16; // AES blocksize
 
+const ENCRYPTION_KEY = Buffer.from(process.env.CALENDSO_ENCRYPTION_KEY as string, "latin1");
+
 /**
  *
  * @param text Value to be encrypted
@@ -12,11 +14,10 @@ const IV_LENGTH = 16; // AES blocksize
  *
  * @returns Encrypted value using key
  */
-export const symmetricEncrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
+export const symmetricEncrypt = function (text: string) {
   const iv = crypto.randomBytes(IV_LENGTH);
 
-  const cipher = crypto.createCipheriv(ALGORITHM, _key, iv);
+  const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
   let ciphered = cipher.update(text, INPUT_ENCODING, OUTPUT_ENCODING);
   ciphered += cipher.final(OUTPUT_ENCODING);
   const ciphertext = iv.toString(OUTPUT_ENCODING) + ":" + ciphered;
@@ -29,12 +30,10 @@ export const symmetricEncrypt = function (text: string, key: string) {
  * @param text Value to decrypt
  * @param key Key used to decrypt value must be 32 bytes for AES256 encryption algorithm
  */
-export const symmetricDecrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
-
+export const symmetricDecrypt = function (text: string) {
   const components = text.split(":");
   const iv_from_ciphertext = Buffer.from(components.shift(), OUTPUT_ENCODING);
-  const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv_from_ciphertext);
+  const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv_from_ciphertext);
   let deciphered = decipher.update(components.join(":"), OUTPUT_ENCODING, INPUT_ENCODING);
   deciphered += decipher.final(INPUT_ENCODING);
 

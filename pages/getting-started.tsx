@@ -678,12 +678,20 @@ export async function getServerSideProps(context: NextPageContext) {
       description: "Video Conferencing",
     },
     {
-      installed: true,
+      installed: !!process.env.CALENDSO_ENCRYPTION_KEY,
       credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
       type: "caldav_calendar",
       title: "Caldav",
       imageSrc: "integrations/caldav.svg",
       description: "CalDav Server",
+    },
+    {
+      installed: !!process.env.CALENDSO_ENCRYPTION_KEY,
+      type: "apple_calendar",
+      credential: credentials.find((integration) => integration.type === "apple_calendar") || null,
+      title: "Apple Calendar",
+      imageSrc: "integrations/apple-calendar.svg",
+      description: "For personal and business calendars",
     },
   ];
 
