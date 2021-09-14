@@ -141,6 +141,7 @@ const es = {
   calendarDays: "días de calendario",
   businessDays: "días laborales",
   youNeedUpgradeYourPlan: "Necesitas actualizar tu plan para tener más eventos activos",
+  toUpgradeGoTo: "Para actualizarlo, vaya a",
 };
 
 export default es;

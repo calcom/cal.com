@@ -141,6 +141,7 @@ const en = {
   calendarDays: "calendar days",
   businessDays: "business days",
   youNeedUpgradeYourPlan: "You need to upgrade your plan to have more than one active event type.",
+  toUpgradeGoTo: "To upgrade go to",
 };
 
 export default en;
