@@ -2,6 +2,7 @@ import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/client";
+// TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { SelectorIcon } from "@heroicons/react/outline";
