@@ -18,13 +18,19 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     <DialogPrimitive.Content
       {...props}
       className="min-w-[360px] fixed left-1/2 top-1/2 p-6 text-left bg-white rounded shadow-xl overflow-hidden -translate-x-1/2 -translate-y-1/2 sm:align-middle sm:w-full sm:max-w-lg"
-      ref={forwardedRef}>
+      ref={forwardedRef}
+    >
       {children}
     </DialogPrimitive.Content>
   )
 );
 
-export function DialogHeader({ title, subtitle }: { title: string; subtitle: string }) {
+type DialogHeaderProps = {
+  title: React.ReactElement | string;
+  subtitle: React.ReactElement | string;
+};
+
+export function DialogHeader({ title, subtitle }: DialogHeaderProps) {
   return (
     <div className="mb-8">
       <h3 className="text-gray-900 text-lg font-bold leading-6" id="modal-title">

@@ -5,6 +5,7 @@ import Avatar from "@components/ui/Avatar";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import classnames from "classnames";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
+import Button from "@components/ui/Button";
 
 const Team = ({ team }) => {
   const Member = ({ member }) => {
@@ -68,11 +69,9 @@ const Team = ({ team }) => {
       <Members members={team.members} />
       {team.eventTypes.length && (
         <aside className="text-center dark:text-white mt-8">
-          <Link href={`/team/${team.slug}`} shallow={true}>
-            <a>
-              <ArrowLeftIcon className="h-6 w-6 inline text-neutral-500" /> Go back
-            </a>
-          </Link>
+          <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
+            Go back
+          </Button>
         </aside>
       )}
     </div>
