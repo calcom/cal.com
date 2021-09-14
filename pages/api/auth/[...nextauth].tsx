@@ -3,6 +3,34 @@ import prisma from "../../../lib/prisma";
 import { Session } from "../../../lib/auth";
 
 export default NextAuth({
+  events: {
+    async signIn(message) {
+      const eventType = await prisma.eventType.findFirst({
+        where: {
+          title: "Sync Meeting",
+          userId: message.user.id as any,
+        },
+        select: {
+          title: true,
+        },
+      });
+      if (!eventType) {
+        const x = await fetch(process.env.BASE_URL + "/api/availability/eventtype", {
+          method: "POST",
+          body: JSON.stringify({
+            title: "Sync Meeting",
+            slug: "sync-meeting",
+            description: `Sync meeting with ${message.user.name}.`,
+            length: "45",
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log(x);
+      }
+    },
+  },
   session: {
     jwt: true,
   },
@@ -96,6 +124,28 @@ export default NextAuth({
             emailVerified: new Date(Date.now()),
           },
         });
+        const eventType = await prisma.eventType.findFirst({
+          where: {
+            title: "Sync Meeting",
+            userId: id,
+          },
+          select: {
+            title: true,
+          },
+        });
+        if (!eventType) {
+          await prisma.eventType.create({
+            data: {
+              title: "Sync Meeting",
+              userId: id,
+              slug: "sync-meeting",
+              description: `Sync meeting with ${name}.`,
+              length: 45,
+              eventName: `${name} <> {USER}`,
+            },
+          });
+        }
+
         return {
           id,
           name,

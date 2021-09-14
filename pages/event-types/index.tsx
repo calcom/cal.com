@@ -20,8 +20,12 @@ import React, { Fragment, useRef } from "react";
 import Shell from "../../components/Shell";
 import prisma from "../../lib/prisma";
 import showToast from "@lib/notification";
+import { InferGetServerSidePropsType } from "next";
 
-export default function Availability({ user, types }) {
+export default function Availability({
+  user,
+  types,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [session, loading] = useSession();
   const router = useRouter();
 
@@ -37,6 +41,17 @@ export default function Availability({ user, types }) {
     const enteredSlug = slugRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredLength = lengthRef.current.value;
+
+    console.log({
+      title: enteredTitle,
+      slug: enteredSlug,
+      description: enteredDescription,
+      length: enteredLength,
+    });
+    alert("hello");
+    alert("hello");
+    alert("hello");
+    alert("hello");
 
     // TODO: Add validation
     await fetch("/api/availability/eventtype", {
@@ -620,6 +635,7 @@ export default function Availability({ user, types }) {
 }
 
 export async function getServerSideProps(context) {
+  // return { notFound: true };
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };

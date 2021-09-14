@@ -11,7 +11,7 @@ import {
   ClockIcon,
   CogIcon,
   ExternalLinkIcon,
-  LinkIcon,
+  // LinkIcon,
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
@@ -26,12 +26,12 @@ export default function Shell(props) {
   const telemetry = useTelemetry();
 
   const navigation = [
-    {
-      name: "Event Types",
-      href: "/event-types",
-      icon: LinkIcon,
-      current: router.pathname.startsWith("/event-types"),
-    },
+    // {
+    //   name: "Event Types",
+    //   href: "/event-types",
+    //   icon: LinkIcon,
+    //   current: router.pathname.startsWith("/event-types"),
+    // },
     {
       name: "Bookings",
       href: "/bookings",

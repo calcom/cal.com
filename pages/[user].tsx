@@ -4,48 +4,48 @@ import Link from "next/link";
 import prisma, { whereAndSelect } from "@lib/prisma";
 import Avatar from "../components/Avatar";
 import Theme from "@components/Theme";
-import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
+// import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 
 export default function User(props: InferGetServerSidePropsType<typeof getServerSideProps>): User {
   const { isReady } = Theme(props.user.theme);
 
-  const eventTypes = props.eventTypes.map((type) => (
-    <div
-      key={type.id}
-      className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
-      <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
-      <Link href={`/${props.user.username}/${type.slug}`}>
-        <a className="block px-6 py-4">
-          <h2 className="font-semibold text-neutral-900 ">{type.title}</h2>
-          <div className="flex mt-2 space-x-4">
-            <div className="flex text-sm text-neutral-500">
-              <ClockIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 "
-                aria-hidden="true"
-              />
-              <p className="">{type.length}m</p>
-            </div>
-            <div className="flex text-sm min-w-16 text-neutral-500">
-              <UserIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 "
-                aria-hidden="true"
-              />
-              <p className="">1-on-1</p>
-            </div>
-            <div className="flex text-sm text-neutral-500">
-              <InformationCircleIcon
-                className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 "
-                aria-hidden="true"
-              />
-              <p className="">{type.description}</p>
-            </div>
-          </div>
-        </a>
-      </Link>
-    </div>
-  ));
+  // const eventTypes = props.eventTypes.map((type) => (
+  //   <div
+  //     key={type.id}
+  //     className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
+  //     <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
+  //     <Link href={`/${props.user.username}/${type.slug}`}>
+  //       <a className="block px-6 py-4">
+  //         <h2 className="font-semibold text-neutral-900 ">{type.title}</h2>
+  //         <div className="flex mt-2 space-x-4">
+  //           <div className="flex text-sm text-neutral-500">
+  //             <ClockIcon
+  //               className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 "
+  //               aria-hidden="true"
+  //             />
+  //             <p className="">{type.length}m</p>
+  //           </div>
+  //           <div className="flex text-sm min-w-16 text-neutral-500">
+  //             <UserIcon
+  //               className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 "
+  //               aria-hidden="true"
+  //             />
+  //             <p className="">1-on-1</p>
+  //           </div>
+  //           <div className="flex text-sm text-neutral-500">
+  //             <InformationCircleIcon
+  //               className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 "
+  //               aria-hidden="true"
+  //             />
+  //             <p className="">{type.description}</p>
+  //           </div>
+  //         </div>
+  //       </a>
+  //     </Link>
+  //   </div>
+  // ));
   return (
     <>
       <Head>
@@ -111,7 +111,7 @@ export default function User(props: InferGetServerSidePropsType<typeof getServer
               </h1>
               <p className="text-neutral-500 ">{props.user.bio}</p>
             </div>
-            <div className="space-y-6">{eventTypes}</div>
+            {/* <div className="space-y-6">{eventTypes}</div>
             {eventTypes.length == 0 && (
               <div className="overflow-hidden rounded-sm shadow">
                 <div className="p-8 text-center text-gray-400 ">
@@ -119,34 +119,38 @@ export default function User(props: InferGetServerSidePropsType<typeof getServer
                   <p className="max-w-md mx-auto">This user hasn&apos;t set up any event types yet.</p>
                 </div>
               </div>
-            )}
-            <div className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
-              <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
-              <Link href={`/${props.user.username}/async`}>
-                <a className="block px-6 py-4">
-                  <h2 className="font-semibold text-neutral-900 ">Async</h2>
-                  <div className="flex mt-2 space-x-4">
-                    <div className="flex text-sm text-neutral-500">
-                      <p>
-                        In async meetings data is exchanged at different times among the interested parties.
-                      </p>
+            )} */}
+            <div className="space-y-6">
+              <div className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
+                <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
+                <Link href={`/${props.user.username}/async`}>
+                  <a className="block px-6 py-4">
+                    <h2 className="font-semibold text-neutral-900 ">Async</h2>
+                    <div className="flex mt-2 space-x-4">
+                      <div className="flex text-sm text-neutral-500">
+                        <p>
+                          In async meetings data is exchanged at different times among the interested parties.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </a>
-              </Link>
-            </div>
-            <div className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
-              <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
-              <Link href={`/${props.user.username}/sync`}>
-                <a className="block px-6 py-4">
-                  <h2 className="font-semibold text-neutral-900 ">Sync</h2>
-                  <div className="flex mt-2 space-x-4">
-                    <div className="flex text-sm text-neutral-500">
-                      <p>In sync meetings data is exchanged at the same time among the interested parties.</p>
+                  </a>
+                </Link>
+              </div>
+              <div className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
+                <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
+                <Link href={`/${props.user.username}/sync`}>
+                  <a className="block px-6 py-4">
+                    <h2 className="font-semibold text-neutral-900 ">Sync</h2>
+                    <div className="flex mt-2 space-x-4">
+                      <div className="flex text-sm text-neutral-500">
+                        <p>
+                          In sync meetings data is exchanged at the same time among the interested parties.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </a>
-              </Link>
+                  </a>
+                </Link>
+              </div>
             </div>
           </main>
         </div>

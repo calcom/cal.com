@@ -236,7 +236,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const userParam = context.query.user as string;
-  const typeParam = context.query.type as string;
   const dateParam = context.query.date || ("" as string | undefined);
 
   const user = await prisma.user.findFirst({
@@ -269,7 +268,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventType = await prisma.eventType.findFirst({
     where: {
       userId: user.id,
-      slug: typeParam,
+      slug: "sync-meeting",
     },
     select: {
       id: true,
