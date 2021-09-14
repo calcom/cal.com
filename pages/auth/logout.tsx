@@ -1,6 +1,7 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
 import { CheckIcon } from "@heroicons/react/outline";
+import { FormattedMessage } from "react-intl";
 
 export default function Logout() {
   return (
@@ -21,17 +22,19 @@ export default function Logout() {
             </div>
             <div className="mt-3 text-center sm:mt-5">
               <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                You&apos;ve been logged out
+                <FormattedMessage id="youHaveBeenLoggedOut" defaultMessage="You've been logged out" />
               </h3>
               <div className="mt-2">
-                <p className="text-sm text-gray-500">We hope to see you again soon!</p>
+                <p className="text-sm text-gray-500">
+                  <FormattedMessage id="weHopeSeeAgain" defaultMessage="We hope to see you again soon!" />
+                </p>
               </div>
             </div>
           </div>
           <div className="mt-5 sm:mt-6">
             <Link href="/auth/login">
               <a className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm">
-                Go back to the login page
+                <FormattedMessage id="goBackLoginPage" defaultMessage="Go back to the login page" />
               </a>
             </Link>
           </div>

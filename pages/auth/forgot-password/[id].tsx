@@ -2,6 +2,7 @@ import { getCsrfToken } from "next-auth/client";
 import prisma from "@lib/prisma";
 import { HeadSeo } from "@components/seo/head-seo";
 import React, { useMemo } from "react";
+import { FormattedMessage } from "react-intl";
 import debounce from "lodash.debounce";
 import dayjs from "dayjs";
 import { ResetPasswordRequest } from "@prisma/client";
@@ -75,14 +76,22 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Success</h2>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              <FormattedMessage id="success" defaultMessage="Success" />
+            </h2>
           </div>
-          <p>Your password has been reset. You can now login with your newly created password.</p>
+          <p>
+            <FormattedMessage id="yourPasswordHasBeenReset" defaultMessage="Your password has been reset." />{" "}
+            <FormattedMessage
+              id="youCanLoginWithYourNewlyPassword"
+              defaultMessage="You can now login with your newly created password."
+            />
+          </p>
           <Link href="/auth/login">
             <button
               type="button"
               className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              Login
+              <FormattedMessage id="login" defaultMessage="Login" />
             </button>
           </Link>
         </div>
@@ -96,17 +105,22 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
         <div className="space-y-6">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Whoops</h2>
-            <h2 className="text-center text-3xl font-extrabold text-gray-900">That Request is Expired.</h2>
+            <h2 className="text-center text-3xl font-extrabold text-gray-900">
+              <FormattedMessage id="thatRequestIsExpired" defaultMessage="That Request is Expired." />
+            </h2>
           </div>
           <p>
-            That request is expired. You can back and enter the email associated with your account and we will
-            you another link to reset your password.
+            <FormattedMessage id="thatRequestIsExpired" defaultMessage="That request is expired." />{" "}
+            <FormattedMessage
+              id="enterEmailResetPassword"
+              defaultMessage="You can back and enter the email associated with your account and we will you another link to reset your password."
+            />
           </p>
           <Link href="/auth/forgot-password">
             <button
               type="button"
               className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              Try Again
+              <FormattedMessage id="tryAgain" defaultMessage="Try Again" />
             </button>
           </Link>
         </div>
@@ -128,15 +142,22 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
           {!isRequestExpired && !success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Reset Password</h2>
-                <p>Enter the new password you&apos;d like for your account.</p>
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  <FormattedMessage id="resetPassword" defaultMessage="Reset Password" />
+                </h2>
+                <p>
+                  <FormattedMessage
+                    id="resetPassword"
+                    defaultMessage="Enter the new password you'd like for your account."
+                  />
+                </p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
               <form className="space-y-6" onSubmit={handleSubmit} action="#">
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    New Password
+                    <FormattedMessage id="newPassword" defaultMessage="New Password" />
                   </label>
                   <div className="mt-1">
                     <input
@@ -177,7 +198,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
-                    Submit
+                    <FormattedMessage id="submit" defaultMessage="Submit" />
                   </button>
                 </div>
               </form>
