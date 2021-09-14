@@ -321,7 +321,19 @@ export default function Home({ integrations }: Props) {
         <DialogContent>
           <DialogHeader
             title="Connect to Apple Server"
-            subtitle="Your credentials will be stored and encrypted. Generate an app specific password."
+            subtitle={
+              <p>
+                Generate an app specific password to use with Calendso at{" "}
+                <a
+                  className="text-indigo-400"
+                  href="https://appleid.apple.com/account/manage"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  https://appleid.apple.com/account/manage
+                </a>
+                . Your credentials will be stored and encrypted.
+              </p>
+            }
           />
           <div className="my-4">
             {addAppleError && (

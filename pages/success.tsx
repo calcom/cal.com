@@ -11,11 +11,11 @@ import toArray from "dayjs/plugin/toArray";
 import timezone from "dayjs/plugin/timezone";
 import { createEvent } from "ics";
 import { getEventName } from "@lib/event";
-import Theme from "@components/Theme";
-import { GetServerSidePropsContext } from "next";
-import { asStringOrNull } from "../lib/asStringOrNull";
+import useTheme from "@lib/hooks/useTheme";
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { EventType } from "@prisma/client";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -26,8 +26,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { location, name } = router.query;
 
   const [is24h, setIs24h] = useState(false);
-  const [date, setDate] = useState(dayjs.utc(router.query.date));
-  const { isReady } = Theme(props.user.theme);
+  const [date, setDate] = useState(dayjs.utc(asStringOrNull(router.query.date)));
+  const { isReady } = useTheme(props.profile.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
@@ -99,9 +99,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       <div className="mt-3">
                         <p className="text-sm text-neutral-600 dark:text-gray-300">
                           {props.eventType.requiresConfirmation
-                            ? `${
-                                props.user.name || props.user.username
-                              } still needs to confirm or reject the booking.`
+                            ? props.profile.name !== null
+                              ? `${props.profile.name} still needs to confirm or reject the booking.`
+                              : "Your booking still needs to be confirmed or rejected."
                             : `We emailed you and the other attendees a calendar invitation with all the details.`}
                         </p>
                       </div>
@@ -224,7 +224,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </div>
                     </div>
                   )}
-                  {!isBrandingHidden(props.user) && (
+                  {!props.hideBranding && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
                     </div>
@@ -239,35 +239,14 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const username = asStringOrNull(context.query.user);
+export async function getServerSideProps(context) {
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
-  if (!username || isNaN(typeId)) {
+  if (isNaN(typeId)) {
     return {
       notFound: true,
     };
   }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      username,
-    },
-    select: {
-      username: true,
-      name: true,
-      bio: true,
-      avatar: true,
-      hideBranding: true,
-      theme: true,
-      plan: true,
-    },
-  });
-  if (!user) {
-    return {
-      notFound: true,
-    };
-  }
-  const eventType = await prisma.eventType.findUnique({
+  const eventType: EventType = await prisma.eventType.findUnique({
     where: {
       id: typeId,
     },
@@ -278,17 +257,61 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       length: true,
       eventName: true,
       requiresConfirmation: true,
+      userId: true,
+      users: {
+        select: {
+          name: true,
+          hideBranding: true,
+          plan: true,
+          theme: true,
+        },
+      },
+      team: {
+        select: {
+          name: true,
+          hideBranding: true,
+        },
+      },
     },
   });
+
   if (!eventType) {
     return {
       notFound: true,
     };
   }
 
+  if (!eventType.users.length && eventType.userId) {
+    eventType.users.push(
+      await prisma.user.findUnique({
+        where: {
+          id: eventType.userId,
+        },
+        select: {
+          theme: true,
+          hideBranding: true,
+          name: true,
+          plan: true,
+        },
+      })
+    );
+  }
+
+  if (!eventType.users.length) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const profile = {
+    name: eventType.team?.name || eventType.users[0]?.name || null,
+    theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
+  };
+
   return {
     props: {
-      user,
+      hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
+      profile,
       eventType,
     },
   };

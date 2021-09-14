@@ -3,7 +3,7 @@ import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import ErrorAlert from "@components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import MemberList from "./MemberList";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import ImageUploader from "@components/ImageUploader";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";

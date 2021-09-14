@@ -19,7 +19,7 @@ import {
 import Logo from "./Logo";
 import classNames from "@lib/classNames";
 import { Toaster } from "react-hot-toast";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { User } from "@prisma/client";
 import { HeadSeo } from "@components/seo/head-seo";
 
