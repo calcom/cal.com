@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "studio": "npx prisma studio",
     "test": "node node_modules/.bin/jest",
     "build": "next build",
     "start": "next start",

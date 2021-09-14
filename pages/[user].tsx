@@ -1,4 +1,4 @@
-import { GetServerSideProps } from "next";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import prisma, { whereAndSelect } from "@lib/prisma";
@@ -8,18 +8,18 @@ import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/sol
 import React from "react";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 
-export default function User(props): User {
+export default function User(props: InferGetServerSidePropsType<typeof getServerSideProps>): User {
   const { isReady } = Theme(props.user.theme);
 
   const eventTypes = props.eventTypes.map((type) => (
     <div
       key={type.id}
-      className="group relative    bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
-      <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black  opacity-0 group-hover:opacity-100" />
+      className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
+      <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
       <Link href={`/${props.user.username}/${type.slug}`}>
         <a className="block px-6 py-4">
           <h2 className="font-semibold text-neutral-900 ">{type.title}</h2>
-          <div className="mt-2 flex space-x-4">
+          <div className="flex mt-2 space-x-4">
             <div className="flex text-sm text-neutral-500">
               <ClockIcon
                 className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 "
@@ -102,24 +102,52 @@ export default function User(props): User {
         />
       </Head>
       {isReady && (
-        <div className="bg-neutral-50  h-screen">
-          <main className="max-w-3xl mx-auto py-24 px-4">
+        <div className="h-screen bg-neutral-50">
+          <main className="max-w-3xl px-4 py-24 mx-auto">
             <div className="mb-8 text-center">
-              <Avatar user={props.user} className="mx-auto w-24 h-24 rounded-full mb-4" />
-              <h1 className="text-3xl font-bold text-neutral-900  mb-1">
+              <Avatar user={props.user} className="w-24 h-24 mx-auto mb-4 rounded-full" />
+              <h1 className="mb-1 text-3xl font-bold text-neutral-900">
                 {props.user.name || props.user.username}
               </h1>
               <p className="text-neutral-500 ">{props.user.bio}</p>
             </div>
             <div className="space-y-6">{eventTypes}</div>
             {eventTypes.length == 0 && (
-              <div className="shadow overflow-hidden rounded-sm">
+              <div className="overflow-hidden rounded-sm shadow">
                 <div className="p-8 text-center text-gray-400 ">
-                  <h2 className="font-semibold text-3xl text-gray-600">Uh oh!</h2>
+                  <h2 className="text-3xl font-semibold text-gray-600">Uh oh!</h2>
                   <p className="max-w-md mx-auto">This user hasn&apos;t set up any event types yet.</p>
                 </div>
               </div>
             )}
+            <div className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
+              <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
+              <Link href={`/${props.user.username}/async`}>
+                <a className="block px-6 py-4">
+                  <h2 className="font-semibold text-neutral-900 ">Async</h2>
+                  <div className="flex mt-2 space-x-4">
+                    <div className="flex text-sm text-neutral-500">
+                      <p>
+                        In async meetings data is exchanged at different times among the interested parties.
+                      </p>
+                    </div>
+                  </div>
+                </a>
+              </Link>
+            </div>
+            <div className="relative bg-white border rounded-sm group hover:bg-gray-50 border-neutral-200 hover:border-black">
+              <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 group-hover:opacity-100" />
+              <Link href={`/${props.user.username}/sync`}>
+                <a className="block px-6 py-4">
+                  <h2 className="font-semibold text-neutral-900 ">Sync</h2>
+                  <div className="flex mt-2 space-x-4">
+                    <div className="flex text-sm text-neutral-500">
+                      <p>In sync meetings data is exchanged at the same time among the interested parties.</p>
+                    </div>
+                  </div>
+                </a>
+              </Link>
+            </div>
           </main>
         </div>
       )}
