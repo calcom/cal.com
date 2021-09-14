@@ -127,7 +127,7 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
       });
       // TODO When the endpoint is fixed, change this to await the result again
       //if (res.ok) {
-      let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${
+      let successUrl = `/success/sync?date=${date}&type=${props.eventType.id}&user=${
         props.user.username
       }&reschedule=${!!rescheduleUid}&name=${payload.name}`;
       if (payload["location"]) {

@@ -16,11 +16,12 @@ import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
+import { InferGetServerSidePropsType } from "next";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function Book(props: any): JSX.Element {
+export default function Book(props: InferGetServerSidePropsType<typeof getServerSideProps>): JSX.Element {
   const router = useRouter();
   const { date, user, rescheduleUid } = router.query;
 
@@ -126,7 +127,7 @@ export default function Book(props: any): JSX.Element {
       });
       // TODO When the endpoint is fixed, change this to await the result again
       //if (res.ok) {
-      let successUrl = `/success?date=${date}&type=${props.eventType.id}&user=${
+      let successUrl = `/success/sync?date=${date}&type=${props.eventType.id}&user=${
         props.user.username
       }&reschedule=${!!rescheduleUid}&name=${payload.name}`;
       if (payload["location"]) {
