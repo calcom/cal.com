@@ -13,17 +13,13 @@ export type AvatarProps = {
 };
 
 export default function Avatar({ imageSrc, gravatarFallbackMd5, size, alt, title, ...props }: AvatarProps) {
-  const className = classNames(
-    "border-2 border-gray-300 rounded-full",
-    props.className,
-    `h-${size} w-${size}`
-  );
+  const className = classNames("rounded-full", props.className, `h-${size} w-${size}`);
   const avatar = (
     <AvatarPrimitive.Root>
       <AvatarPrimitive.Image
         src={imageSrc}
         alt={alt}
-        className={classNames("border-2 border-gray-300 rounded-full", `h-auto w-${size}`, props.className)}
+        className={classNames("rounded-full", `h-auto w-${size}`, props.className)}
       />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
@@ -34,7 +30,7 @@ export default function Avatar({ imageSrc, gravatarFallbackMd5, size, alt, title
   );
 
   return title ? (
-    <Tooltip.Tooltip delayDuration="300">
+    <Tooltip.Tooltip delayDuration={300}>
       <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
       <Tooltip.Content className="p-2 rounded-sm text-sm bg-black text-white shadow-sm">
         <Tooltip.Arrow />
