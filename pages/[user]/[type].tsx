@@ -49,7 +49,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
       return;
     }
 
-    const formattedDate = selectedDate.utc().format("YYYY-MM-DD");
+    const formattedDate = selectedDate.format("YYYY-MM-DD");
 
     router.replace(
       {
