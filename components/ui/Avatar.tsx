@@ -23,11 +23,7 @@ export default function Avatar({ imageSrc, gravatarFallbackMd5, size, alt, title
       <AvatarPrimitive.Image
         src={imageSrc}
         alt={alt}
-        className={classNames(
-          "border-2 border-gray-300 rounded-full",
-          `h-${size} w-${size}`,
-          props.className
-        )}
+        className={classNames("border-2 border-gray-300 rounded-full", `h-auto w-${size}`, props.className)}
       />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
