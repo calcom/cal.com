@@ -61,29 +61,6 @@ export default function Integration(props) {
                   <dt className="text-sm font-medium text-gray-500">App Category</dt>
                   <dd className="mt-1 text-sm text-gray-900">{getIntegrationType(props.integration.type)}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">API Key</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {!showAPIKey ? (
-                      <span>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
-                    ) : (
-                      <div>
-                        <textarea
-                          name="apikey"
-                          rows={6}
-                          className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                          readOnly>
-                          {JSON.stringify(props.integration.key)}
-                        </textarea>
-                      </div>
-                    )}
-                    <button
-                      onClick={toggleShowAPIKey}
-                      className="ml-2 font-medium text-neutral-900 hover:text-neutral-700">
-                      {!showAPIKey ? "Show" : "Hide"}
-                    </button>
-                  </dd>
-                </div>
               </dl>
             </div>
           </div>

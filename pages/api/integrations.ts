@@ -17,7 +17,6 @@ export default async function handler(req, res) {
       },
       select: {
         type: true,
-        key: true,
       },
     });
 

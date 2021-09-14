@@ -10,6 +10,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum SchedulingType {
+  ROUND_ROBIN @map("roundRobin")
+  COLLECTIVE  @map("collective")
+}
+
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
@@ -18,8 +23,10 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
-  user                    User?                  @relation(fields: [userId], references: [id])
+  users                   User[]                 @relation("user_eventtype")
   userId                  Int?
+  team                    Team?                  @relation(fields: [teamId], references: [id])
+  teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
   eventName               String?
@@ -32,9 +39,8 @@ model EventType {
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
+  schedulingType          SchedulingType?
   Schedule                Schedule[]
-
-  @@unique([userId, slug])
 }
 
 model Credential {
@@ -68,7 +74,7 @@ model User {
   hideBranding        Boolean            @default(false)
   theme               String?
   createdDate         DateTime           @default(now()) @map(name: "created")
-  eventTypes          EventType[]
+  eventTypes          EventType[]        @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
@@ -79,17 +85,19 @@ model User {
 
   plan     UserPlan   @default(PRO)
   Schedule Schedule[]
+
   @@map(name: "users")
 }
 
 model Team {
-  id            Int       @default(autoincrement()) @id
+  id            Int          @id @default(autoincrement())
   name          String?
-  slug          String?   @unique
+  slug          String?      @unique
   logo          String?
   bio           String?
-  hideBranding  Boolean @default(false)    
+  hideBranding  Boolean      @default(false)
   members       Membership[]
+  eventTypes    EventType[]
 }
 
 enum MembershipRole {
