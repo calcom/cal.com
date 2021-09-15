@@ -274,7 +274,7 @@ const EventTypesPage = (props: PageProps) => {
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
         }>
-        {props.user.plan === "FREE" && typeof window !== "undefined" && (
+        {props.user.plan === "FREE" && !props.canAddEvents && typeof window !== "undefined" && (
           <Alert
             severity="warning"
             title={<>You need to upgrade your plan to have more than one active event type.</>}
@@ -720,7 +720,7 @@ export async function getServerSideProps(context) {
     createdDate: user.createdDate.toString(),
   });
 
-  const canAddEvents = user.plan !== "FREE" || eventTypes.length < 1;
+  const canAddEvents = user.plan !== "FREE" || eventTypes[0].eventTypes.length < 1;
 
   return {
     props: {
