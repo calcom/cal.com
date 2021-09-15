@@ -43,6 +43,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
 import { useMutation } from "react-query";
+import getConfig from "next/config";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 type EventType = PageProps["eventTypes"][number];
@@ -50,6 +51,8 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
+  const { publicRuntimeConfig } = getConfig();
+
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
