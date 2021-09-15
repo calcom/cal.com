@@ -10,19 +10,19 @@ const links = [
     title: "Documentation",
     description: "Learn how to integrate our tools with your app",
     icon: DocumentTextIcon,
-    href: "https://docs.calendso.com",
+    href: "https://docs.cal.com",
   },
   {
     title: "API Reference",
     description: "A complete API reference for our libraries",
     icon: CodeIcon,
-    href: "https://api.docs.calendso.com",
+    href: "https://api.docs.cal.com",
   },
   {
     title: "Blog",
     description: "Read our latest news and articles",
     icon: BookOpenIcon,
-    href: "https://calendso.com/blog",
+    href: "https://cal.com/blog",
   },
 ];
 
@@ -117,7 +117,7 @@ export default function Custom404() {
                 </li>
               ))}
               <li className="px-4 py-2">
-                <a href="https://calendso.com/slack" className="relative py-6 flex items-start space-x-4">
+                <a href="https://cal.com/slack" className="relative py-6 flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-gray-50">
                       <svg viewBox="0 0 2447.6 2452.5" className="h-6 w-6" xmlns="http://www.w3.org/2000/svg">
