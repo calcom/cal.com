@@ -87,7 +87,7 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
     nextSeoProps = {},
   } = props;
 
-  const pageTitle = title + " | Calendso";
+  const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({ title: pageTitle, image, description, canonical, siteName });
 
   if (name && avatar) {

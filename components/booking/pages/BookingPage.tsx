@@ -148,7 +148,7 @@ const BookingPage = (props: any): JSX.Element => {
         <Head>
           <title>
             {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name}{" "}
-            | Calendso
+            | Cal.com
           </title>
           <link rel="icon" href="/favicon.ico" />
         </Head>
