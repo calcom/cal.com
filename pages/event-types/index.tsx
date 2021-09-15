@@ -281,8 +281,8 @@ const EventTypesPage = (props: PageProps) => {
             message={
               <>
                 To upgrade go to{" "}
-                <a href={`${window.location.origin}/upgrade`} className="underline">
-                  {`${window.location.origin}/upgrade`}
+                <a href={process.env.UPGRADE_URL || "https://cal.com/upgrade"} className="underline">
+                  {process.env.UPGRADE_URL || "https://cal.com/upgrade"}
                 </a>
               </>
             }
