@@ -5,12 +5,15 @@ import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Button } from "@components/ui/Button";
+import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { GetServerSidePropsContext } from "next";
 
 dayjs.extend(utc);
 
-export default function Type(props) {
+export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   // Get router variables
   const router = useRouter();
   const { uid } = router.query;
@@ -128,10 +131,10 @@ export default function Type(props) {
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: context.query.uid,
+      uid: asStringOrThrow(context.query.uid),
     },
     select: {
       id: true,
@@ -171,7 +174,7 @@ export async function getServerSideProps(context) {
     endTime: booking.endTime.toString(),
   });
 
-  const profile = booking.eventType.team
+  const profile = booking.eventType?.team
     ? {
         name: booking.eventType.team.name,
         slug: booking.eventType.team.slug,
