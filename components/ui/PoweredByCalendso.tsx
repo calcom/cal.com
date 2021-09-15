@@ -9,13 +9,13 @@ const PoweredByCalendso = () => (
           style={{ top: -2 }}
           className="dark:hidden w-auto inline h-3 relative"
           src="/calendso-logo-word.svg"
-          alt="Calendso Logo"
+          alt="Cal.com Logo"
         />
         <img
           style={{ top: -2 }}
           className="hidden dark:inline w-auto h-3 relative"
           src="/calendso-logo-word-dark.svg"
-          alt="Calendso Logo"
+          alt="Cal.com Logo"
         />
       </a>
     </Link>
