@@ -55,8 +55,8 @@ export default function Custom404() {
               </span>
             ) : (
               <a href="https://cal.com/signup" className="inline-block mt-2 text-lg ">
-                The username <strong className="text-blue-500">calendso.com{username}</strong> is still
-                available. <span className="text-blue-500">Register now</span>.
+                The username <strong className="text-blue-500">cal.com{username}</strong> is still available.{" "}
+                <span className="text-blue-500">Register now</span>.
               </a>
             )}
           </div>
