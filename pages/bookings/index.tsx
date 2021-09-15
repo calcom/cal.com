@@ -12,7 +12,7 @@ import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
 import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, User } from "@prisma/client";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -208,6 +208,16 @@ export async function getServerSideProps(context) {
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
+
+  const user: User = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      email: true,
+    },
+  });
+
   const b = await prisma.booking.findMany({
     where: {
       OR: [
@@ -217,7 +227,7 @@ export async function getServerSideProps(context) {
         {
           attendees: {
             some: {
-              id: session.user.id,
+              email: user.email,
             },
           },
         },
