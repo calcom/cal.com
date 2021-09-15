@@ -245,9 +245,8 @@ export default function Onboarding(props: OnboardingProps) {
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
-              as="button"
-              className="btn btn-white mx-2">
-              Cancel
+              asChild>
+              <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
         </DialogContent>

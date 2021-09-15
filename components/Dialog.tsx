@@ -24,7 +24,12 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
   )
 );
 
-export function DialogHeader({ title, subtitle }: { title: string; subtitle: string }) {
+type DialogHeaderProps = {
+  title: React.ReactElement | string;
+  subtitle: React.ReactElement | string;
+};
+
+export function DialogHeader({ title, subtitle }: DialogHeaderProps) {
   return (
     <div className="mb-8">
       <h3 className="text-gray-900 text-lg font-bold leading-6" id="modal-title">

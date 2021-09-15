@@ -1,20 +1,20 @@
-import Loader from "@components/Loader";
 import prisma from "@lib/prisma";
+import { useSession } from "next-auth/client";
 import Shell from "@components/Shell";
+import { useRouter } from "next/router";
+import dayjs from "dayjs";
+import { Fragment } from "react";
+// TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
-import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
-import dayjs from "dayjs";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { useSession } from "next-auth/client";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { Fragment } from "react";
+import { ClockIcon, XIcon } from "@heroicons/react/outline";
+import Loader from "@components/Loader";
+import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
+import { BookingStatus } from "@prisma/client";
 
-
-export default function Bookings({ bookings }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
@@ -24,7 +24,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
     return <Loader />;
   }
 
-  async function confirmBookingHandler(booking: typeof bookings[number], confirm: boolean) {
+  async function confirmBookingHandler(booking, confirm: boolean) {
     const res = await fetch("/api/book/confirm", {
       method: "PATCH",
       body: JSON.stringify({ id: booking.id, confirmed: confirm }),
@@ -40,15 +40,14 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
   return (
     <div>
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
-        <div className="flex flex-col -mx-4 sm:mx-auto">
+        <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div className="overflow-hidden border border-b border-gray-200 rounded-sm">
+            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+              <div className="border border-gray-200 overflow-hidden border-b rounded-sm">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
                     {bookings
-                      .filter((booking) => !booking.confirmed && !booking.rejected)
-                      .concat(bookings.filter((booking) => booking.confirmed || booking.rejected))
+                      .filter((booking) => booking.status !== BookingStatus.CANCELLED)
                       .map((booking) => (
                         <tr key={booking.id}>
                           <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
@@ -57,7 +56,8 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                 Unconfirmed
                               </span>
                             )}
-                            <div className="text-sm font-medium truncate text-neutral-900 max-w-60 md:max-w-96">
+                            <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
+                              {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
@@ -69,13 +69,15 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                 </small>
                               </div>
                             </div>
-                            <div className="text-sm text-blue-500">
-                              <a href={"mailto:" + booking.attendees[0].email}>
-                                {booking.attendees[0].email}
-                              </a>
-                            </div>
+                            {booking.attendees.length !== 0 && (
+                              <div className="text-sm text-blue-500">
+                                <a href={"mailto:" + booking.attendees[0].email}>
+                                  {booking.attendees[0].email}
+                                </a>
+                              </div>
+                            )}
                           </td>
-                          <td className="hidden px-6 py-4 sm:table-cell whitespace-nowrap">
+                          <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {dayjs(booking.startTime).format("D MMMM YYYY")}
                             </div>
@@ -84,48 +86,43 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                               {dayjs(booking.endTime).format("HH:mm")}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {!booking.confirmed && !booking.rejected && (
                               <>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, true)}
-                                  className="inline-flex items-center px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Confirm
                                 </button>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, false)}
-                                  className="inline-flex items-center px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
                                   Reject
                                 </button>
                               </>
                             )}
                             {booking.confirmed && !booking.rejected && (
-                              <>
-                                <Link href={`/cancel/${booking.uid}?from=/bookings`}>
-                                  <a className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                                    <XIcon
-                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                      aria-hidden="true"
-                                    />
-                                    Cancel
-                                  </a>
-                                </Link>
-                                <Link href={`/reschedule/${booking.uid}?from=/bookings`}>
-                                  <a className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                                    <ClockIcon
-                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                      aria-hidden="true"
-                                    />
-                                    Reschedule
-                                  </a>
-                                </Link>
-                                <Menu as="div" className="inline-block text-left lg:hidden ">
+                              <div className="space-x-2">
+                                <Button
+                                  data-testid="cancel"
+                                  href={"/cancel/" + booking.uid}
+                                  StartIcon={XIcon}
+                                  color="secondary">
+                                  Cancel
+                                </Button>
+                                <Button
+                                  href={"reschedule/" + booking.uid}
+                                  StartIcon={ClockIcon}
+                                  color="secondary">
+                                  Reschedule
+                                </Button>
+                                <Menu as="div" className="inline-block lg:hidden text-left ">
                                   {({ open }) => (
                                     <>
                                       <div>
-                                        <Menu.Button className="p-2 mt-1 border border-transparent text-neutral-400 hover:border-gray-200">
+                                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
                                           <span className="sr-only">Open options</span>
-                                          <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
+                                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                                         </Menu.Button>
                                       </div>
 
@@ -140,44 +137,44 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                         leaveTo="transform opacity-0 scale-95">
                                         <Menu.Items
                                           static
-                                          className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
+                                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
                                           <div className="py-1">
                                             <Menu.Item>
                                               {({ active }) => (
-                                                <Link href={`/cancel/${booking.uid}?from=/bookings`}>
-                                                  <a
-                                                    className={classNames(
-                                                      active
-                                                        ? "bg-neutral-100 text-neutral-900"
-                                                        : "text-neutral-700",
-                                                      "group flex items-center px-4 py-2 text-sm font-medium"
-                                                    )}>
-                                                    <XIcon
-                                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                                      aria-hidden="true"
-                                                    />
-                                                    Cancel
-                                                  </a>
-                                                </Link>
+                                                <a
+                                                  href={window.location.href + "/../cancel/" + booking.uid}
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm font-medium"
+                                                  )}>
+                                                  <XIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
+                                                  Cancel
+                                                </a>
                                               )}
                                             </Menu.Item>
                                             <Menu.Item>
                                               {({ active }) => (
-                                                <Link href={`/reschedule/${booking.uid}?from=/bookings`}>
-                                                  <a
-                                                    className={classNames(
-                                                      active
-                                                        ? "bg-neutral-100 text-neutral-900"
-                                                        : "text-neutral-700",
-                                                      "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                                    )}>
-                                                    <ClockIcon
-                                                      className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
-                                                      aria-hidden="true"
-                                                    />
-                                                    Reschedule
-                                                  </a>
-                                                </Link>
+                                                <a
+                                                  href={
+                                                    window.location.href + "/../reschedule/" + booking.uid
+                                                  }
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                                  )}>
+                                                  <ClockIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
+                                                  Reschedule
+                                                </a>
                                               )}
                                             </Menu.Item>
                                           </div>
@@ -186,7 +183,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                     </>
                                   )}
                                 </Menu>
-                              </>
+                              </div>
                             )}
                             {!booking.confirmed && booking.rejected && (
                               <div className="text-sm text-gray-500">Rejected</div>
@@ -205,27 +202,26 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export async function getServerSideProps(context) {
   const session = await getSession(context);
 
   if (!session) {
-    /* IDK why but this prevents losing type inference: https://stackoverflow.com/a/59923262/6297100 */
-    const redirectReturn = { redirect: { permanent: false, destination: "/auth/login" } } as const;
-    return redirectReturn;
+    return { redirect: { permanent: false, destination: "/auth/login" } };
   }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user?.email,
-    },
-    select: {
-      id: true,
-    },
-  });
-
   const b = await prisma.booking.findMany({
     where: {
-      userId: user?.id,
+      OR: [
+        {
+          userId: session.user.id,
+        },
+        {
+          attendees: {
+            some: {
+              id: session.user.id,
+            },
+          },
+        },
+      ],
     },
     select: {
       uid: true,
@@ -237,6 +233,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       id: true,
       startTime: true,
       endTime: true,
+      eventType: {
+        select: {
+          team: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      status: true,
     },
     orderBy: {
       startTime: "asc",
@@ -248,4 +254,4 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   return { props: { bookings } };
-};
+}

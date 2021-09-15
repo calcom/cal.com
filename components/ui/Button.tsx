@@ -1,6 +1,6 @@
 import classNames from "@lib/classNames";
 import Link, { LinkProps } from "next/link";
-import React from "react";
+import React, { forwardRef } from "react";
 
 type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
@@ -12,18 +12,23 @@ export type ButtonProps = {
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
+  shallow?: boolean;
 } & (
   | (Omit<JSX.IntrinsicElements["a"], "href"> & { href: LinkProps["href"] })
   | (JSX.IntrinsicElements["button"] & { href?: never })
 );
 
-export const Button = function Button(props: ButtonProps) {
+export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(
+  props: ButtonProps,
+  forwardedRef
+) {
   const {
     loading = false,
     color = "primary",
     size = "base",
     StartIcon,
     EndIcon,
+    shallow,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -39,6 +44,7 @@ export const Button = function Button(props: ButtonProps) {
     {
       ...passThroughProps,
       disabled,
+      ref: forwardedRef,
       className: classNames(
         // base styles independent what type of button it is
         "inline-flex items-center",
@@ -58,7 +64,7 @@ export const Button = function Button(props: ButtonProps) {
         color === "secondary" &&
           (disabled
             ? "border border-gray-200 text-gray-400 bg-white"
-            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900"),
         color === "minimal" &&
           (disabled
             ? "text-gray-400 bg-transparent"
@@ -109,12 +115,12 @@ export const Button = function Button(props: ButtonProps) {
     </>
   );
   return props.href ? (
-    <Link passHref href={props.href}>
+    <Link passHref href={props.href} shallow={shallow && shallow}>
       {element}
     </Link>
   ) : (
     element
   );
-};
+});
 
 export default Button;
