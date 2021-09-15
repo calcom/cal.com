@@ -1,7 +1,6 @@
 import prisma from "@lib/prisma";
 import { getIntegrationName, getIntegrationType } from "@lib/integrations";
 import Shell from "@components/Shell";
-import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/client";
 import Loader from "@components/Loader";
@@ -12,14 +11,8 @@ export default function Integration(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
-  const [showAPIKey, setShowAPIKey] = useState(false);
-
   if (loading) {
     return <Loader />;
-  }
-
-  function toggleShowAPIKey() {
-    setShowAPIKey(!showAPIKey);
   }
 
   async function deleteIntegrationHandler(event) {
