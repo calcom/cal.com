@@ -11,6 +11,7 @@ import {
 } from "@prisma/client";
 import { NextPageContext } from "next";
 import React, { useState, useEffect, useRef } from "react";
+import { FormattedMessage } from "react-intl";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
 import Text from "@components/ui/Text";
@@ -148,7 +149,7 @@ export default function Onboarding(props: OnboardingProps) {
         </div>
         <div className="w-2/12 text-right pt-2">
           <Button color="secondary" onClick={() => integrationHandler(integration.type)}>
-            Connect
+            <FormattedMessage id="connect" defaultMessage="Connect" />
           </Button>
         </div>
       </li>
@@ -225,7 +226,9 @@ export default function Onboarding(props: OnboardingProps) {
           <div className="my-4">
             {addCalDavError && (
               <p className="text-red-700 text-sm">
-                <span className="font-bold">Error: </span>
+                <span className="font-bold">
+                  <FormattedMessage id="error" defaultMessage="Error" />:{" "}
+                </span>
                 {addCalDavError.message}
               </p>
             )}
@@ -239,14 +242,16 @@ export default function Onboarding(props: OnboardingProps) {
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              Save
+              <FormattedMessage id="save" defaultMessage="Save" />
             </button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
               asChild>
-              <Button color="secondary">Cancel</Button>
+              <Button color="secondary">
+                <FormattedMessage id="cancel" defaultMessage="Cancel" />
+              </Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -347,6 +352,8 @@ export default function Onboarding(props: OnboardingProps) {
   const steps = [
     {
       id: "welcome",
+      titleId: "welcomeTitle",
+      descriptionId: "welcomeDescription",
       title: "Welcome to Calendso",
       description:
         "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
@@ -355,7 +362,7 @@ export default function Onboarding(props: OnboardingProps) {
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full name
+                <FormattedMessage id="fullName" defaultMessage="Full name" />
               </label>
               <input
                 ref={nameRef}
@@ -373,10 +380,11 @@ export default function Onboarding(props: OnboardingProps) {
             <fieldset>
               <section className="flex justify-between">
                 <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                  Timezone
+                  <FormattedMessage id="timezone" defaultMessage="Timezone" />
                 </label>
                 <Text variant="caption">
-                  Current time:&nbsp;
+                  <FormattedMessage id="currentTime" defaultMessage="Current time" />
+                  :&nbsp;
                   <span className="text-black">{currentTime}</span>
                 </Text>
               </section>
@@ -391,6 +399,7 @@ export default function Onboarding(props: OnboardingProps) {
         </form>
       ),
       hideConfirm: false,
+      confirmTextId: "continue",
       confirmText: "Continue",
       showCancel: true,
       cancelText: "Set up later",
@@ -408,6 +417,8 @@ export default function Onboarding(props: OnboardingProps) {
     },
     {
       id: "connect-calendar",
+      titleId: "connectCalendarTitle",
+      descriptionId: "connectCalendarDescription",
       title: "Connect your calendar",
       description:
         "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
@@ -419,12 +430,15 @@ export default function Onboarding(props: OnboardingProps) {
         </ul>
       ),
       hideConfirm: true,
+      confirmTextId: "continue",
       confirmText: "Continue",
       showCancel: true,
       cancelText: "Continue without calendar",
     },
     {
       id: "set-availability",
+      titleId: "setAvailabilityTitle",
+      descriptionId: "setAvailabilityTitleDescription",
       title: "Set your availability",
       description:
         "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
@@ -446,7 +460,7 @@ export default function Onboarding(props: OnboardingProps) {
           </section>
           <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
             <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
-              Continue
+              <FormattedMessage id="continue" defaultMessage="Continue" />
             </Button>
           </footer>
         </>
@@ -456,6 +470,8 @@ export default function Onboarding(props: OnboardingProps) {
     },
     {
       id: "profile",
+      titleId: "profileTitle",
+      descriptionId: "profileDescription",
       title: "Nearly there",
       description:
         "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re booking with.",
@@ -464,7 +480,7 @@ export default function Onboarding(props: OnboardingProps) {
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full name
+                <FormattedMessage id="fullName" defaultMessage="Full name" />
               </label>
               <input
                 ref={nameRef}
@@ -480,7 +496,7 @@ export default function Onboarding(props: OnboardingProps) {
             </fieldset>
             <fieldset>
               <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                About
+                <FormattedMessage id="about" defaultMessage="About" />
               </label>
               <input
                 ref={bioRef}
@@ -492,13 +508,21 @@ export default function Onboarding(props: OnboardingProps) {
                 defaultValue={props.user.bio}
               />
               <Text variant="caption">
-                A few sentences about yourself. This will appear on your personal url page.
+                <FormattedMessage
+                  id="fewSentencesAboutYourself"
+                  defaultMessage="A few sentences about yourself."
+                />{" "}
+                <FormattedMessage
+                  id="willAppearYourPersonalPage"
+                  defaultMessage="This will appear on your personal url page."
+                />
               </Text>
             </fieldset>
           </section>
         </form>
       ),
       hideConfirm: false,
+      confirmTextId: "finish",
       confirmText: "Finish",
       showCancel: true,
       cancelText: "Set up later",
@@ -527,7 +551,9 @@ export default function Onboarding(props: OnboardingProps) {
   return (
     <div className="bg-black min-h-screen">
       <Head>
-        <title>Calendso - Getting Started</title>
+        <title>
+          Calendso - <FormattedMessage id="gettingStarted" defaultMessage="Getting Started" />
+        </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -536,15 +562,22 @@ export default function Onboarding(props: OnboardingProps) {
           <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
             <header className="">
               <Text className="text-white" variant="largetitle">
-                {steps[currentStep].title}
+                <FormattedMessage id={steps[currentStep].titleId} defaultMessage={steps[currentStep].title} />
               </Text>
               <Text className="text-white" variant="subtitle">
-                {steps[currentStep].description}
+                <FormattedMessage
+                  id={steps[currentStep].descriptionId}
+                  defaultMessage={steps[currentStep].description}
+                />
               </Text>
             </header>
             <section className="space-y-2">
               <Text variant="footnote">
-                Step {currentStep + 1} of {steps.length}
+                <FormattedMessage
+                  id="stepByStep"
+                  defaultMessage="Step {currentStep} of {length}"
+                  values={{ currentStep: currentStep + 1, length: steps.length }}
+                />
               </Text>
 
               {error && <ErrorAlert {...error} />}
@@ -572,7 +605,10 @@ export default function Onboarding(props: OnboardingProps) {
             {!steps[currentStep].hideConfirm && (
               <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
                 <Button className="justify-center" onClick={handleConfirmStep} EndIcon={ArrowRightIcon}>
-                  {steps[currentStep].confirmText}
+                  <FormattedMessage
+                    id={steps[currentStep].confirmTextId}
+                    defaultMessage={steps[currentStep].confirmText}
+                  />
                 </Button>
               </footer>
             )}
@@ -580,11 +616,15 @@ export default function Onboarding(props: OnboardingProps) {
           <section className="py-6 mt-8 mx-auto max-w-xl">
             <div className="flex justify-between flex-row-reverse">
               <button onClick={handleSkipStep}>
-                <Text variant="caption">Skip Step</Text>
+                <Text variant="caption">
+                  <FormattedMessage id="skipStep" defaultMessage="Skip Step" />
+                </Text>
               </button>
               {currentStep !== 0 && (
                 <button onClick={decrementStep}>
-                  <Text variant="caption">Prev Step</Text>
+                  <Text variant="caption">
+                    <FormattedMessage id="prevStep" defaultMessage="Prev Step" />
+                  </Text>
                 </button>
               )}
             </div>

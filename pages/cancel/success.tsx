@@ -44,15 +44,18 @@ export default function CancelSuccess() {
                             id="feelFreePickAnotherEventAnytime"
                             defaultMessage="Feel free to pick another event anytime."
                           />
-                          </p>
+                        </p>
                       </div>
                     )}
-
                   </div>
                 </div>
                 <div className="mt-5 sm:mt-6 text-center">
                   <div className="mt-5">
-                    {!loading && !session.user && <Button href={eventPage}><FormattedMessage id="pickAnother" defaultMessage="Pick another" /></Button>}
+                    {!loading && !session.user && (
+                      <Button href={eventPage}>
+                        <FormattedMessage id="pickAnother" defaultMessage="Pick another" />
+                      </Button>
+                    )}
                     {!loading && session.user && (
                       <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
                         Back to bookings

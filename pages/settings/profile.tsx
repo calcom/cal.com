@@ -4,6 +4,7 @@ import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
+import { FormattedMessage } from "react-intl";
 import Avatar from "@components/ui/Avatar";
 import { getSession } from "@lib/auth";
 import Select from "react-select";
@@ -166,7 +167,11 @@ export default function Settings(props: Props) {
   }
 
   return (
-    <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
+    <Shell
+      headingId="profile"
+      heading="Profile"
+      subtitleId="editYourProfileInformation"
+      subtitle="Edit your profile information, which shows on your scheduling link.">
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
@@ -179,7 +184,7 @@ export default function Settings(props: Props) {
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Full name
+                      <FormattedMessage id="fullName" defaultMessage="Full name" />
                     </label>
                     <input
                       ref={nameRef}
@@ -197,7 +202,7 @@ export default function Settings(props: Props) {
 
                 <div>
                   <label htmlFor="about" className="block text-sm font-medium text-gray-700">
-                    About
+                    <FormattedMessage id="about" defaultMessage="About" />
                   </label>
                   <div className="mt-1">
                     <textarea
@@ -239,7 +244,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                    Timezone
+                    <FormattedMessage id="timezone" defaultMessage="Timezone" />
                   </label>
                   <div className="mt-1">
                     <TimezoneSelect
@@ -253,7 +258,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
-                    First Day of Week
+                    <FormattedMessage id="firstDayOfWeek" defaultMessage="First Day of Week" />
                   </label>
                   <div className="mt-1">
                     <Select
@@ -271,7 +276,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                    Single Theme
+                    <FormattedMessage id="singleTheme" defaultMessage="Single Theme" />
                   </label>
                   <div className="my-1">
                     <Select
@@ -297,7 +302,10 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                        Automatically adjust theme based on invitee preferences
+                        <FormattedMessage
+                          id="automaticallyAdjustInviteePreferences"
+                          defaultMessage="Automatically adjust theme based on invitee preferences"
+                        />
                       </label>
                     </div>
                   </div>
@@ -309,10 +317,18 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Calendso branding{" "}
+                        <FormattedMessage
+                          id="disableCalendsoBranding"
+                          defaultMessage="Disable Calendso branding"
+                        />{" "}
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
-                      <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
+                      <p className="text-gray-500">
+                        <FormattedMessage
+                          id="disableCalendsoBranding"
+                          defaultMessage="Hide all Calendso branding from your public pages."
+                        />
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -357,7 +373,9 @@ export default function Settings(props: Props) {
             </div>
             <hr className="mt-8" />
             <div className="py-4 flex justify-end">
-              <Button type="submit">Save</Button>
+              <Button type="submit">
+                <FormattedMessage id="save" defaultMessage="Save" />
+              </Button>
             </div>
           </div>
         </form>

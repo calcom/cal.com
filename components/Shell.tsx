@@ -17,6 +17,7 @@ import {
   PuzzleIcon,
 } from "@heroicons/react/solid";
 import Logo from "./Logo";
+import { FormattedMessage } from "react-intl";
 import classNames from "@lib/classNames";
 import { Toaster } from "react-hot-toast";
 import Avatar from "@components/ui/Avatar";
@@ -158,8 +159,12 @@ export default function Shell(props) {
             <div className="py-8">
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
                 <div className="mb-8">
-                  <h1 className="text-xl font-bold text-gray-900">{props.heading}</h1>
-                  <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    <FormattedMessage id={props.headingId} defaultMessage={props.heading} />
+                  </h1>
+                  <p className="text-sm text-neutral-500 mr-4">
+                    <FormattedMessage id={props.subtitleId} defaultMessage={props.subtitle} />
+                  </p>
                 </div>
                 <div className="mb-4 flex-shrink-0">{props.CTA}</div>
               </div>
@@ -269,7 +274,8 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
               )}>
               <div className="py-1">
                 <a href={"/" + user?.username} className="flex px-4 py-2 text-sm text-neutral-500">
-                  View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
+                  <FormattedMessage id="viewPublicPage" defaultMessage="View public page" />{" "}
+                  <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
                 </a>
               </div>
               <div className="py-1">
@@ -305,7 +311,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                             fill="#9BA6B6"></path>
                         </g>
                       </svg>
-                      Join our Slack
+                      <FormattedMessage id="joinOur" defaultMessage="Join our" /> Slack
                     </a>
                   )}
                 </Menu.Item>
@@ -345,7 +351,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                         )}
                         aria-hidden="true"
                       />
-                      Sign out
+                      <FormattedMessage id="signOut" defaultMessage="Sign out" />
                     </a>
                   )}
                 </Menu.Item>

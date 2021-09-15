@@ -3,6 +3,7 @@ import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import ErrorAlert from "@components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import MemberList from "./MemberList";
+import { FormattedMessage } from "react-intl";
 import Avatar from "@components/ui/Avatar";
 import ImageUploader from "@components/ImageUploader";
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -169,7 +170,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                 </div>
                 <div>
                   <label htmlFor="about" className="block text-sm font-medium text-gray-700">
-                    About
+                    <FormattedMessage id="about" defaultMessage="About" />
                   </label>
                   <div className="mt-1">
                     <textarea
@@ -278,7 +279,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
             <hr className="mt-8" />
             <div className="flex justify-end py-4">
               <Button type="submit" color="primary">
-                Save
+                <FormattedMessage id="save" defaultMessage="Save" />
               </Button>
             </div>
           </div>

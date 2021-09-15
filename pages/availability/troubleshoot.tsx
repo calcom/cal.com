@@ -53,7 +53,9 @@ export default function Troubleshoot({ user }) {
   return (
     <div>
       <Shell
+        headingId="troubleshoot"
         heading="Troubleshoot"
+        subtitleId="understandWhyCertainTime"
         subtitle="Understand why certain times are available and others are blocked.">
         <div className="bg-white max-w-md overflow-hidden shadow rounded-sm">
           <div className="px-4 py-5 sm:p-6">

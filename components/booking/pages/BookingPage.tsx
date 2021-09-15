@@ -5,6 +5,7 @@ import { EventTypeCustomInputType } from "@prisma/client";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import { FormattedMessage } from "react-intl";
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 import { LocationType } from "@lib/location";
@@ -386,7 +387,7 @@ const BookingPage = (props: any): JSX.Element => {
                       {rescheduleUid ? "Reschedule" : "Confirm"}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
-                      Cancel
+                      <FormattedMessage id="cancel" defaultMessage="Cancel" />
                     </Button>
                   </div>
                 </form>

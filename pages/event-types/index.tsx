@@ -112,12 +112,12 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <span className="font-medium text-neutral-900 truncate">{type.title}</span>
                       {type.hidden && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Hidden
+                          <FormattedMessage id="hidden" defaultMessage="Hidden" />
                         </span>
                       )}
                       {readOnly && (
-                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
-                          Readonly
+                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                          <FormattedMessage id="readonly" defaultMessage="Readonly" />
                         </span>
                       )}
                     </div>
@@ -168,7 +168,9 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <>
                       <div>
                         <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
-                          <span className="sr-only">Open options</span>
+                          <span className="sr-only">
+                            <FormattedMessage id="openOptions" defaultMessage="Open options" />
+                          </span>
                           <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                         </Menu.Button>
                       </div>
@@ -200,7 +202,7 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  Preview
+                                  <FormattedMessage id="preview" defaultMessage="Preview" />
                                 </a>
                               )}
                             </Menu.Item>
@@ -221,7 +223,10 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  Copy link to event
+                                  <FormattedMessage
+                                    id="copyLinkToEvent"
+                                    defaultMessage="Copy link to event"
+                                  />
                                 </button>
                               )}
                             </Menu.Item>
@@ -246,7 +251,9 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
+        headingId="eventTypes"
         heading="Event Types"
+        subtitleId="createEventsToShare"
         subtitle="Create events to share for people to book on your calendar."
         CTA={
           props.eventTypes.length !== 0 && (
@@ -256,10 +263,17 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
         {props.user.plan === "FREE" && typeof window !== "undefined" && (
           <Alert
             severity="warning"
-            title={<>You need to upgrade your plan to have more than one active event type.</>}
+            title={
+              <>
+                <FormattedMessage
+                  id="youNeedUpgradeYourPlan"
+                  defaultMessage="You need to upgrade your plan to have more than one active event type"
+                />
+              </>
+            }
             message={
               <>
-                To upgrade go to{" "}
+                <FormattedMessage id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
                 <a href={`${window.location.origin}/upgrade`} className="underline">
                   {`${window.location.origin}/upgrade`}
                 </a>
@@ -327,7 +341,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          New event type
+          <FormattedMessage id="newEventType" defaultMessage="New event type" />
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
@@ -339,9 +353,9 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
           </DropdownMenu.Trigger>
           <DropdownMenu.Content align="end" className="shadow-sm rounded-sm bg-white text-sm mt-1">
             <DropdownMenu.Label className="text-neutral-500 px-3 py-2">
-              Create an event type under
+              <FormattedMessage id="createEventTypeUnder" defaultMessage="Create an event type under" />
               <br />
-              your name or a team.
+              <FormattedMessage id="yourNameOrTeam" defaultMessage="your name or a team" />.
             </DropdownMenu.Label>
             <DropdownMenu.Separator className="h-px bg-gray-200" />
             {profiles.map((profile) => (
@@ -481,7 +495,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
                   placeholder="15"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">
-                   <FormattedMessage id="minutes" defaultMessage="minutes" />
+                  <FormattedMessage id="minutes" defaultMessage="minutes" />
                 </div>
               </div>
             </div>
@@ -489,7 +503,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
           {teamId && (
             <div className="mb-4">
               <label htmlFor="schedulingType" className="block text-sm font-medium text-gray-700">
-                Scheduling Type
+                <FormattedMessage id="schedulingType" defaultMessage="Scheduling Type" />
               </label>
               <RadioArea.Group
                 name="schedulingType"
@@ -524,7 +538,6 @@ export async function getServerSideProps(context) {
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
-
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,

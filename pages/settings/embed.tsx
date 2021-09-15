@@ -14,7 +14,11 @@ export default function Embed(props) {
   }
 
   return (
-    <Shell heading="Embed" subtitle="Integrate with your website using our embed options.">
+    <Shell
+      headingId="embed"
+      heading="Embed"
+      subtitleId="integrateWithYourWebsite"
+      subtitle="Integrate with your website using our embed options.">
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">

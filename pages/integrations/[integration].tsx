@@ -1,7 +1,7 @@
 import prisma from "@lib/prisma";
 import { getIntegrationName, getIntegrationType } from "@lib/integrations";
+import { FormattedMessage } from "react-intl";
 import Shell from "@components/Shell";
-import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/client";
 import Loader from "@components/Loader";
@@ -9,31 +9,22 @@ import { getSession } from "@lib/auth";
 
 export default function Integration(props) {
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
-
-  const [showAPIKey, setShowAPIKey] = useState(false);
+  const [, loading] = useSession();
 
   if (loading) {
     return <Loader />;
   }
 
-  function toggleShowAPIKey() {
-    setShowAPIKey(!showAPIKey);
-  }
-
   async function deleteIntegrationHandler(event) {
     event.preventDefault();
-
-    /*eslint-disable */
-    const response = await fetch("/api/integrations", {
+    // FIXME: const response ??
+    await fetch("/api/integrations", {
       method: "DELETE",
       body: JSON.stringify({ id: props.integration.id }),
       headers: {
         "Content-Type": "application/json",
       },
     });
-    /*eslint-enable */
 
     router.push("/integrations");
   }
@@ -42,23 +33,34 @@ export default function Integration(props) {
     <div>
       <Shell
         heading={`${getIntegrationName(props.integration.type)} App`}
-        subtitle="Manage and delete this app.">
+        subtitle="Manage and delete this app."
+        subtitleId="manageAndDeleteThisApp">
         <div className="block sm:grid grid-cols-3 gap-4">
           <div className="col-span-2 bg-white border border-gray-200 mb-6 overflow-hidden rounded-sm">
             <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Integration Details</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                <FormattedMessage id="integrationDetails" defaultMessage="Integration Details" />
+              </h3>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                Information about your {getIntegrationName(props.integration.type)} App.
+                <FormattedMessage
+                  id="informationAboutYourApp"
+                  defaultMessage="Information about your {type} App."
+                  values={{ type: getIntegrationName(props.integration.type) }}
+                />
               </p>
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
               <dl className="grid gap-y-8">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">App name</dt>
+                  <dt className="text-sm font-medium text-gray-500">
+                    <FormattedMessage id="appName" defaultMessage="App name" />
+                  </dt>
                   <dd className="mt-1 text-sm text-gray-900">{getIntegrationName(props.integration.type)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">App Category</dt>
+                  <dt className="text-sm font-medium text-gray-500">
+                    <FormattedMessage id="appCategory" defaultMessage="App Category" />
+                  </dt>
                   <dd className="mt-1 text-sm text-gray-900">{getIntegrationType(props.integration.type)}</dd>
                 </div>
               </dl>
@@ -67,16 +69,24 @@ export default function Integration(props) {
           <div>
             <div className="bg-white border border-gray-200 mb-6 rounded-sm">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Delete this app</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  <FormattedMessage id="deleteThisApp" defaultMessage="Delete this app" />
+                </h3>
                 <div className="mt-2 max-w-xl text-sm text-gray-500">
-                  <p>Once you delete this app, it will be permanently removed.</p>
+                  <p>
+                    <FormattedMessage id="onceYourDeleteThisApp" defaultMessage="Once you delete this app," />{" "}
+                    <FormattedMessage
+                      id="willBePermanentlyRemoved"
+                      defaultMessage="it will be permanently removed."
+                    />
+                  </p>
                 </div>
                 <div className="mt-5">
                   <button
                     onClick={deleteIntegrationHandler}
                     type="button"
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-sm text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
-                    Delete App
+                    <FormattedMessage id="deleteApp" defaultMessage="Delete App" />
                   </button>
                 </div>
               </div>

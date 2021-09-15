@@ -127,7 +127,6 @@ export default function Type(props) {
                       </Button>
                       <Button onClick={() => router.push("/reschedule/" + uid)}>
                         <FormattedMessage id="reschedule" defaultMessage="Reschedule" />
-                      
                       </Button>
                     </div>
                   </>

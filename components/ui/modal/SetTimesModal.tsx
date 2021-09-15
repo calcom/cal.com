@@ -1,4 +1,5 @@
 import { ClockIcon } from "@heroicons/react/outline";
+import { FormattedMessage } from "react-intl";
 import { useRef } from "react";
 
 export default function SetTimesModal(props) {
@@ -59,7 +60,7 @@ export default function SetTimesModal(props) {
             <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
             <div>
               <label htmlFor="startHours" className="sr-only">
-                Hours
+                <FormattedMessage id="hours" defaultMessage="Hours" />
               </label>
               <input
                 ref={startHoursRef}
@@ -77,7 +78,7 @@ export default function SetTimesModal(props) {
             <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="startMinutes" className="sr-only">
-                Minutes
+                <FormattedMessage id="minutes" defaultMessage="Minutes" />
               </label>
               <input
                 ref={startMinsRef}
@@ -98,7 +99,7 @@ export default function SetTimesModal(props) {
             <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
             <div>
               <label htmlFor="endHours" className="sr-only">
-                Hours
+                <FormattedMessage id="hours" defaultMessage="Hours" />
               </label>
               <input
                 ref={endHoursRef}
@@ -116,7 +117,7 @@ export default function SetTimesModal(props) {
             <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="endMinutes" className="sr-only">
-                Minutes
+                <FormattedMessage id="minutes" defaultMessage="Minutes" />
               </label>
               <input
                 ref={endMinsRef}
@@ -135,10 +136,10 @@ export default function SetTimesModal(props) {
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button onClick={updateStartEndTimesHandler} type="submit" className="btn btn-primary">
-              Save
+              <FormattedMessage id="save" defaultMessage="Save" />
             </button>
             <button onClick={props.onExit} type="button" className="btn btn-white mr-2">
-              Cancel
+              <FormattedMessage id="cancel" defaultMessage="Cancel" />
             </button>
           </div>
         </div>

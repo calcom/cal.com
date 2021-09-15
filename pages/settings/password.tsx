@@ -45,7 +45,11 @@ export default function Settings() {
   }
 
   return (
-    <Shell heading="Change Password" subtitle="Change the password that you use to sign in to your account.">
+    <Shell
+      headingId="changePassword"
+      heading="Change Password"
+      subtitleId="changePasswordUseSignIn"
+      subtitle="Change the password that you use to sign in to your account.">
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
           <div className="py-6 lg:pb-8">

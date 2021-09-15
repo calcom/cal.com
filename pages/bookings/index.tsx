@@ -40,7 +40,11 @@ export default function Bookings({ bookings }) {
 
   return (
     <div>
-      <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
+      <Shell
+        headingId="bookings"
+        heading="Bookings"
+        subtitleId="seeUpcomingPastEvents"
+        subtitle="See upcoming and past events booked through your event type links.">
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -103,7 +107,6 @@ export default function Bookings({ bookings }) {
                               </>
                             )}
                             {booking.confirmed && !booking.rejected && (
-
                               <div className="space-x-2">
                                 <Button
                                   data-testid="cancel"

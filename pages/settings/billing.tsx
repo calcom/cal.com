@@ -5,7 +5,11 @@ import { getSession } from "@lib/auth";
 
 export default function Billing() {
   return (
-    <Shell heading="Billing" subtitle="Manage your billing information and cancel your subscription.">
+    <Shell
+      headingId="billing"
+      heading="Billing"
+      subtitleId="manageYourBillingInformation"
+      subtitle="Manage your billing information and cancel your subscription.">
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="my-6">

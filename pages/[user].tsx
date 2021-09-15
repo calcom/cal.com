@@ -2,6 +2,7 @@ import Avatar from "@components/ui/Avatar";
 import { HeadSeo } from "@components/seo/head-seo";
 import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/outline";
+import { FormattedMessage } from "react-intl";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
@@ -53,7 +54,12 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               <div className="shadow overflow-hidden rounded-sm">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
                   <h2 className="font-semibold text-3xl text-gray-600 dark:text-white">Uh oh!</h2>
-                  <p className="max-w-md mx-auto">This user hasn&apos;t set up any event types yet.</p>
+                  <p className="max-w-md mx-auto">
+                    <FormattedMessage
+                      id="thisUserHasNotEventTypes"
+                      defaultMessage="This user hasn't set up any event types yet."
+                    />
+                  </p>
                 </div>
               </div>
             )}
