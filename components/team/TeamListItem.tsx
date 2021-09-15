@@ -5,7 +5,7 @@ import {
   PencilAltIcon,
   ExternalLinkIcon,
 } from "@heroicons/react/outline";
-import Dropdown from "../ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import { useState } from "react";
 import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
@@ -105,16 +105,12 @@ export default function TeamListItem(props: {
                   StartIcon={LinkIcon}
                   type="button"></Button>
               </Tooltip>
-              <Dropdown className="relative flex text-left">
-                <Button
-                  color="minimal"
-                  className="w-full pl-5 ml-2"
-                  StartIcon={DotsHorizontalIcon}
-                  type="button"></Button>
-                <ul
-                  role="menu"
-                  className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+              <Dropdown>
+                <DropdownMenuTrigger>
+                  <DotsHorizontalIcon className="w-5 h-5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
                     <Button
                       type="button"
                       color="minimal"
@@ -124,8 +120,8 @@ export default function TeamListItem(props: {
                       {" "}
                       Edit team
                     </Button>
-                  </li>
-                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="">
                     <Link href={`/team/${props.team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
@@ -134,8 +130,8 @@ export default function TeamListItem(props: {
                         </Button>
                       </a>
                     </Link>
-                  </li>
-                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
@@ -158,8 +154,8 @@ export default function TeamListItem(props: {
                         link with will no longer be able to book using it.
                       </ConfirmationDialogContent>
                     </Dialog>
-                  </li>
-                </ul>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
               </Dropdown>
             </div>
           )}
