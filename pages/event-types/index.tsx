@@ -274,7 +274,6 @@ const EventTypesPage = (props: PageProps) => {
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
         }>
-        {console.log(publicRuntimeConfig.UPGRADE_URL)}
         {props.user.plan === "FREE" && typeof window !== "undefined" && (
           <Alert
             severity="warning"
