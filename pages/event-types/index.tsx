@@ -274,6 +274,7 @@ const EventTypesPage = (props: PageProps) => {
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
         }>
+        {console.log(publicRuntimeConfig.UPGRADE_URL)}
         {props.user.plan === "FREE" && typeof window !== "undefined" && (
           <Alert
             severity="warning"
@@ -281,8 +282,8 @@ const EventTypesPage = (props: PageProps) => {
             message={
               <>
                 To upgrade go to{" "}
-                <a href={`${window.location.origin}/upgrade`} className="underline">
-                  {`${window.location.origin}/upgrade`}
+                <a href={publicRuntimeConfig.UPGRADE_URL} className="underline">
+                  {publicRuntimeConfig.UPGRADE_URL}
                 </a>
               </>
             }
