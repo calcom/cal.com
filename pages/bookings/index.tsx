@@ -12,9 +12,10 @@ import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
 import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { BookingStatus } from "@prisma/client";
 
-export default function Bookings({ bookings }) {
+export default function Bookings({ bookings }: inferSSRProps<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
@@ -24,7 +25,7 @@ export default function Bookings({ bookings }) {
     return <Loader />;
   }
 
-  async function confirmBookingHandler(booking, confirm: boolean) {
+  async function confirmBookingHandler(booking: typeof bookings[number], confirm: boolean) {
     const res = await fetch("/api/book/confirm", {
       method: "PATCH",
       body: JSON.stringify({ id: booking.id, confirmed: confirm }),
