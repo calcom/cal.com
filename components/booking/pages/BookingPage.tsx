@@ -14,6 +14,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { parseZone } from "@lib/parseZone";
 
 const BookingPage = (props: any): JSX.Element => {
   const router = useRouter();
@@ -183,9 +184,7 @@ const BookingPage = (props: any): JSX.Element => {
                 )}
                 <p className="text-green-500 mb-4">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {dayjs(date)
-                    .tz(timeZone())
-                    .format(timeFormat + ", dddd DD MMMM YYYY")}
+                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
                 </p>
                 <p className="dark:text-white text-gray-600 mb-8">{props.eventType.description}</p>
               </div>

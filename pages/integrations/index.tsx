@@ -170,8 +170,7 @@ export default function Home({ integrations }: Props) {
                     <div className="w-2/12 text-right pt-2">
                       <button
                         onClick={() => integrationHandler(integration.type)}
-                        className="font-medium text-neutral-900 hover:text-neutral-500"
-                      >
+                        className="font-medium text-neutral-900 hover:text-neutral-500">
                         Add
                       </button>
                     </div>
@@ -276,8 +275,7 @@ export default function Home({ integrations }: Props) {
     return (
       <Dialog
         open={isAddCalDavIntegrationDialogOpen}
-        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}
-      >
+        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
@@ -299,16 +297,14 @@ export default function Home({ integrations }: Props) {
             <Button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900"
-            >
+              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </Button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
-              asChild
-            >
+              asChild>
               <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
@@ -321,8 +317,7 @@ export default function Home({ integrations }: Props) {
     return (
       <Dialog
         open={isAddAppleIntegrationDialogOpen}
-        onOpenChange={(isOpen) => setIsAddAppleIntegrationDialogOpen(isOpen)}
-      >
+        onOpenChange={(isOpen) => setIsAddAppleIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
             title="Connect to Apple Server"
@@ -333,8 +328,7 @@ export default function Home({ integrations }: Props) {
                   className="text-indigo-400"
                   href="https://appleid.apple.com/account/manage"
                   target="_blank"
-                  rel="noopener noreferrer"
-                >
+                  rel="noopener noreferrer">
                   https://appleid.apple.com/account/manage
                 </a>
                 . Your credentials will be stored and encrypted.
@@ -357,16 +351,14 @@ export default function Home({ integrations }: Props) {
             <button
               type="submit"
               form={ADD_APPLE_INTEGRATION_FORM_TITLE}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900"
-            >
+              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </button>
             <DialogClose
               onClick={() => {
                 setIsAddAppleIntegrationDialogOpen(false);
               }}
-              asChild
-            >
+              asChild>
               <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
