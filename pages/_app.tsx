@@ -3,6 +3,7 @@ import AppProviders from "@lib/app-providers";
 import type { AppProps as NextAppProps } from "next/app";
 import { DefaultSeo } from "next-seo";
 import { seoConfig } from "@lib/config/next-seo.config";
+import { appWithTranslation } from "next-i18next";
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = NextAppProps & {
@@ -19,4 +20,4 @@ function MyApp({ Component, pageProps, err }: AppProps) {
   );
 }
 
-export default MyApp;
+export default appWithTranslation(MyApp);

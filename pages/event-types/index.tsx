@@ -37,13 +37,17 @@ import { HttpError } from "@lib/core/http/error";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useTranslation } from "next-i18next";
 
 const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const { t } = useTranslation("event-types-page");
+
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="text-center block md:max-w-screen-sm mx-auto">
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
+        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("create-event-type")}</h3>
         <p className="mt-1 text-md text-neutral-600 mb-2">
           Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you.
@@ -292,6 +296,8 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
 };
 
 const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
+  const { t } = useTranslation("event-types-page");
+
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
@@ -326,7 +332,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          New event type
+          {t("new-event-type-btn")}
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
@@ -513,6 +519,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
+
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -693,6 +700,7 @@ export async function getServerSideProps(context) {
         ...group.profile,
         ...group.metadata,
       })),
+      ...(await serverSideTranslations("en", ["event-types-page"])),
     },
   };
 }
