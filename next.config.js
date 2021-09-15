@@ -1,4 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+const packageJson = require("./package");
+const webpack = require("webpack");
+
+/* eslint-disable @typescript-eslint/no-var-requires */
 const withTM = require("next-transpile-modules")(["react-timezone-select"]);
 
 // TODO: Revisit this later with getStaticProps in App
@@ -49,12 +53,26 @@ module.exports = withTM({
   typescript: {
     ignoreBuildErrors: true,
   },
-  webpack: (config) => {
+  // Webpack overrides
+  webpack: (config, { isServer, buildId }) => {
+    const APP_VERSION_RELEASE = `${packageJson.version}_${buildId}`;
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        "process.env.APP_RELEASE": JSON.stringify(buildId),
+        "process.env.APP_VERSION_RELEASE": JSON.stringify(APP_VERSION_RELEASE),
+      })
+    );
+
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
     };
+
+    if (!isServer) {
+      console.debug(`[webpack] Building release "${APP_VERSION_RELEASE}"`);
+    }
 
     return config;
   },
@@ -69,5 +87,9 @@ module.exports = withTM({
   },
   publicRuntimeConfig: {
     BASE_URL: process.env.BASE_URL || "http://localhost:3000",
+  },
+  env: {
+    APP_NAME: packageJson.name,
+    APP_VERSION: packageJson.version,
   },
 });
