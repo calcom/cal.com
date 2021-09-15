@@ -214,7 +214,9 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
   return {
     getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-      const filter = "?startdatetime=" + dateFrom + "&enddatetime=" + dateTo;
+      const filter = `?startdatetime=${encodeURIComponent(dateFrom)}&enddatetime=${encodeURIComponent(
+        dateTo
+      )}`;
       return auth
         .getToken()
         .then((accessToken) => {
