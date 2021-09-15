@@ -727,7 +727,7 @@ export async function getServerSideProps(context) {
       canAddEvents,
       user: userObj,
       // don't display event teams without event types,
-      eventTypes: eventTypes.filter((groupBy) => !groupBy.eventTypes?.length),
+      eventTypes: eventTypes.filter((groupBy) => !!groupBy.eventTypes?.length),
       // so we can show a dropdown when the user has teams
       profiles: eventTypes.map((group) => ({
         teamId: group.teamId,
