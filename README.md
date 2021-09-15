@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-   <a href="https://calendso.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Calendso Slack"></a>
+   <a href="https://calendso.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
   <a href="https://github.com/calendso/calendso/stargazers"><img src="https://img.shields.io/github/stars/calendso/calendso" alt="Github Stars"></a>
   <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
@@ -38,13 +38,12 @@
 
 <img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/133429837-69ac8554-4c9c-43f9-90dd-c3337002d8ff.png">
 
-
 # Scheduling infrastructure for absolutely everyone.
 
 The open source Calendly alternative. You are in charge
 of your own data, workflow and appearance.
 
-Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes and even calls with our families. However, most tools are very limited in terms of control and customisations. 
+Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes and even calls with our families. However, most tools are very limited in terms of control and customisations.
 
 That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
 
@@ -90,12 +89,11 @@ You will also need Google API credentials. You can get this from the [Google API
 > - **Requires Docker to be installed**
 > - Will start a local Postgres instance with a few test users - the credentials will be logged in the console
 
-
 ```bash
 git clone git@github.com:calendso/calendso.git
 cd calendso
 yarn
-yarn dx 
+yarn dx
 ```
 
 #### Manual
