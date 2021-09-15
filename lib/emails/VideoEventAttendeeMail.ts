@@ -25,8 +25,10 @@ export default class VideoEventAttendeeMail extends EventAttendeeMail {
    * @protected
    */
   protected getAdditionalBody(): string {
-    const isDaily = this.videoCallData.type === "Calendso Video powered by Daily.co";
-    if (!isDaily) {
+    const meetingPassword = this.videoCallData.password;
+    const meetingId = getFormattedMeetingId(this.videoCallData);
+
+    if (meetingId && meetingPassword) {
       return `
       <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
       <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
@@ -34,11 +36,10 @@ export default class VideoEventAttendeeMail extends EventAttendeeMail {
       <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
     }
-    if (isDaily) {
-      return `
+
+    return `
       <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
       <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
-    }
   }
 }
