@@ -65,8 +65,8 @@ function HideBrandingInput(props: {
             <p>
               {" "}
               To upgrade go to{" "}
-              <a href="https://calendso.com/upgrade" className="underline">
-                calendso.com/upgrade
+              <a href="https://cal.com/upgrade" className="underline">
+                cal.com/upgrade
               </a>
               .
             </p>

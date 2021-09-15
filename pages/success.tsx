@@ -226,7 +226,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   )}
                   {!props.hideBranding && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
-                      <a href="https://checkout.calendso.com">Create your own booking link with Calendso</a>
+                      <a href="https://cal.com/signup">Create your own booking link with Calendso</a>
                     </div>
                   )}
                 </div>

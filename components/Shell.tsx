@@ -276,7 +276,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                 <Menu.Item>
                   {({ active }) => (
                     <a
-                      href="https://calendso.com/slack"
+                      href="https://cal.com/slack"
                       target="_blank"
                       rel="noreferrer"
                       className={classNames(
@@ -312,7 +312,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                 <Menu.Item>
                   {({ active }) => (
                     <a
-                      href="mailto:feedback@calendso.com"
+                      href="mailto:feedback@cal.com"
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
                         "flex px-4 py-2 text-sm font-medium"
