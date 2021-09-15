@@ -57,7 +57,7 @@ export default function Bookings({ bookings }) {
                               </span>
                             )}
                             <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
-                              {booking.eventType.team && <strong>{booking.eventType.team.name}: </strong>}
+                              {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
