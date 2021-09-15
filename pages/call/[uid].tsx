@@ -5,7 +5,7 @@ import prisma from "../../lib/prisma";
 import { getSession } from "next-auth/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export default function joinCall(props, session) {
+export default function JoinCall(props, session) {
   // Get router variables
   const router = useRouter();
   const { uid } = router.query;
@@ -45,7 +45,7 @@ export default function joinCall(props, session) {
     }
   }, []);
 
-  return joinCall;
+  return JoinCall;
 }
 
 export async function getServerSideProps(context) {

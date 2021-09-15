@@ -500,7 +500,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           fillRule="evenodd"></path>
                                       </g>
                                     </svg>
-                                    <span className="ml-2 text-sm">Daily Video</span>
+                                    <span className="ml-2 text-sm">Calendso Video, powered by Daily.co</span>
                                   </div>
                                 )}
                                 {location.type === LocationType.Zoom && (

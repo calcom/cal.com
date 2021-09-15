@@ -445,6 +445,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
+  //for Calendso video calls powered by Daily will grab the meeting token for the call
+  const isDaily = evt.location === "integrations:daily";
+  let dailyEvent;
+  if (!rescheduleUid) {
+    dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent;
+  } else {
+    dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent;
+  }
+
+  let meetingToken;
+  if (isDaily) {
+    const response = await fetch("https://api.daily.co/v1/meeting-tokens", {
+      method: "POST",
+      body: JSON.stringify({ properties: { room_name: dailyEvent.name, is_owner: true } }),
+      headers: {
+        Authorization: "Bearer " + process.env.DAILY_API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
+    meetingToken = await response.json();
+  }
+
+  //for Calendso video calls powered by Daily  will update the dailyEventReference table
+
+  if (isDaily) {
+    await prisma.dailyEventReference.create({
+      data: {
+        dailyurl: dailyEvent.url,
+        dailytoken: meetingToken.token,
+        booking: {
+          connect: {
+            uid: booking.uid,
+          },
+        },
+      },
+    });
+  }
+
   if (eventType.requiresConfirmation && !rescheduleUid) {
     await new EventOrganizerRequestMail(evt, uid).sendEmail();
   }
