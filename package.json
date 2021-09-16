@@ -76,6 +76,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
     "@types/lodash.debounce": "^4.0.6",
