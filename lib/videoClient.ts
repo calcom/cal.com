@@ -68,13 +68,13 @@ const createMeeting = async (
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
 
-    if (!credential) {
-      throw new Error(
-        "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
-      );
-    }
+  if (!credential) {
+    throw new Error(
+      "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
+    );
+  }
 
-    const success = true;
+  let success = true;
 
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
@@ -112,15 +112,18 @@ const createMeeting = async (
     pin: videoCallData.password,
   };
 
-    const additionInformation: AdditionInformation = {
-      entryPoints: [entryPoint],
-    };
+  const additionInformation: AdditionInformation = {
+    entryPoints: [entryPoint],
+  };
 
   const emailEvent = { ...calEvent, uid, additionInformation, videoCallData };
 
   try {
     const organizerMail = new VideoEventOrganizerMail(emailEvent);
     await organizerMail.sendEmail();
+  } catch (e) {
+    console.error("organizerMail.sendEmail failed", e);
+  }
 
   if (!createdMeeting || !createdMeeting.disableConfirmationEmail) {
     try {
