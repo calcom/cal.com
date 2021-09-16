@@ -60,7 +60,7 @@ export default class EventManager {
 
     const hasDailyIntegration = process.env.DAILY_API_KEY != null;
     const dailyCredential: Credential = {
-      id: uuidv5,
+      id: +new Date(),
       type: "daily_video",
       key: { apikey: process.env.DAILY_API_KEY },
       userId: uuidv5,

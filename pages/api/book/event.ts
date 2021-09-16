@@ -353,8 +353,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedCalendars
       );
 
-      const videoBusyTimes = await getBusyVideoTimes(credentials);
+      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter((time) => time);
       calendarBusyTimes.push(...videoBusyTimes);
+      console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
       const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
         start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
