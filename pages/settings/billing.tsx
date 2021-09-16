@@ -10,7 +10,7 @@ export default function Billing() {
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="my-6">
             <iframe
-              src="https://calendso.com/subscription-embed"
+              src="https://cal.com/subscription-embed"
               style={{ minHeight: 800, width: "100%", border: 0 }}
             />
           </div>

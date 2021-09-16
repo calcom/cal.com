@@ -117,7 +117,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventType = user.eventTypes[0];
 
   // check this is the first event
-  if (user.plan === "FREE") {
+
+  // TEMPORARILY disabled because of a bug during event create - during which users were able
+  // to create event types >n1.
+  /*if (user.plan === "FREE") {
     const firstEventType = await prisma.eventType.findFirst({
       where: {
         OR: [
@@ -142,7 +145,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         notFound: true,
       } as const;
     }
-  }
+  }*/
   const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
     providesAvailability.availability && providesAvailability.availability.length
       ? providesAvailability.availability

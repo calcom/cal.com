@@ -48,7 +48,7 @@ const BookingPage = (props: any): JSX.Element => {
 
   // TODO: Move to translations
   const locationLabels = {
-    [LocationType.InPerson]: "In-person meeting",
+    [LocationType.InPerson]: "Link or In-person meeting",
     [LocationType.Phone]: "Phone call",
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
@@ -148,7 +148,7 @@ const BookingPage = (props: any): JSX.Element => {
         <Head>
           <title>
             {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name}{" "}
-            | Calendso
+            | Cal.com
           </title>
           <link rel="icon" href="/favicon.ico" />
         </Head>
