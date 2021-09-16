@@ -1,14 +1,11 @@
 import { useEffect } from "react";
 import DailyIframe from "@daily-co/daily-js";
-import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
 import { getSession } from "next-auth/client";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 
 export default function JoinCall(props, session) {
-  // Get router variables
-  const router = useRouter();
-  const { uid } = router.query;
+  // Identifying the meeting owner
   const owner = session.userid === props.booking.user.id;
 
   const url = props.booking.dailyRef.dailyurl;
@@ -83,7 +80,7 @@ export async function getServerSideProps(context) {
   };
 }
 
-export async function handler(req: NextApiRequest, res: NextApiResponse, props) {
+export async function handler(req: NextApiRequest) {
   const session = await getSession({ req: req });
 
   if (session) {

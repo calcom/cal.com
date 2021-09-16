@@ -57,7 +57,7 @@ const zoomAuth = (credential: Credential) => {
     "Basic " +
     Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
 
-  const refreshAccessToken = (refreshToken: string) =>
+  const refreshAccessToken = (refreshToken) =>
     fetch("https://zoom.us/oauth/token", {
       method: "POST",
       headers: {
@@ -80,17 +80,10 @@ const zoomAuth = (credential: Credential) => {
             key: responseBody,
           },
         });
-        credentialKey.access_token = responseBody.access_token;
-        credentialKey.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
-        return credentialKey.access_token;
+        credential.key.access_token = responseBody.access_token;
+        credential.key.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
+        return credential.key.access_token;
       });
-      credential.key.access_token = responseBody.access_token;
-      credential.key.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in) * 1000;
-      return credential.key.access_token;
-    } catch (err) {
-      Promise.reject(err);
-    }
-  };
 
   return {
     getToken: () =>
@@ -148,7 +141,7 @@ const ZoomVideo = (credential: Credential): VideoApiAdapter => {
         .getToken()
         .then(
           // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
-          (accessToken) => {
+          (accessToken) =>
             fetch("https://api.zoom.us/v2/users/me/meetings?type=scheduled&page_size=300", {
               method: "get",
               headers: {
@@ -163,8 +156,7 @@ const ZoomVideo = (credential: Credential): VideoApiAdapter => {
                     new Date(meeting.start_time).getTime() + meeting.duration * 60000
                   ).toISOString(),
                 }));
-              });
-          }
+              })
         )
         .catch((err) => {
           console.error(err);
@@ -173,21 +165,16 @@ const ZoomVideo = (credential: Credential): VideoApiAdapter => {
         });
     },
     createMeeting: (event: CalendarEvent) =>
-      auth
-        .getToken()
-        .then((accessToken) => {
-          return fetch("https://api.zoom.us/v2/users/me/meetings", {
-            method: "POST",
-            headers: {
-              Authorization: "Bearer " + accessToken,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(translateEvent(event)),
-          }).then(handleErrorsJson);
-        })
-        .catch((err) => {
-          return err;
-        }),
+      auth.getToken().then((accessToken) =>
+        fetch("https://api.zoom.us/v2/users/me/meetings", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        }).then(handleErrorsJson)
+      ),
     deleteMeeting: (uid: string) =>
       auth.getToken().then((accessToken) =>
         fetch("https://api.zoom.us/v2/meetings/" + uid, {
@@ -234,48 +221,55 @@ const createMeeting = async (
   calEvent: CalendarEvent,
   maybeUid?: string
 ): Promise<EventResult> => {
+  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
+  const uid: string = parser.getUid();
+
+  if (!credential) {
+    throw new Error(
+      "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
+    );
+  }
+
+  let success = true;
+
+  const creationResult = await videoIntegrations([credential])[0]
+    .createMeeting(calEvent)
+    .catch((e) => {
+      log.error("createMeeting failed", e, calEvent);
+      success = false;
+    });
+
+  const videoCallData: VideoCallData = {
+    type: credential.type,
+    id: creationResult.id,
+    password: creationResult.password,
+    url: creationResult.join_url,
+  };
+
+  const entryPoint: EntryPoint = {
+    entryPointType: getIntegrationName(videoCallData),
+    uri: videoCallData.url,
+    label: "Enter Meeting",
+    pin: videoCallData.password,
+  };
+
+  const additionInformation: AdditionInformation = {
+    entryPoints: [entryPoint],
+  };
+
+  const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
+  const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
   try {
-    const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
-    const uid: string = parser.getUid();
-
-    if (!credential) {
-      throw new Error(
-        "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
-      );
-    }
-
-    const success = true;
-
-    const creationResult = await videoIntegrations([credential])[0].createMeeting(calEvent);
-
-    const videoCallData: VideoCallData = {
-      type: credential.type,
-      id: creationResult.id,
-      password: creationResult.password,
-      url: creationResult.join_url,
-    };
-
-    const entryPoint: EntryPoint = {
-      entryPointType: getIntegrationName(videoCallData),
-      uri: videoCallData.url,
-      label: "Enter Meeting",
-      pin: videoCallData.password,
-    };
-
-    const additionInformation: AdditionInformation = {
-      entryPoints: [entryPoint],
-    };
-
-    const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
-    const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
     await organizerMail.sendEmail();
+  } catch (e) {
+    console.error("organizerMail.sendEmail failed", e);
+  }
 
-    if (!creationResult || !creationResult.disableConfirmationEmail) {
-      try {
-        await attendeeMail.sendEmail();
-      } catch (e) {
-        console.error("attendeeMail.sendEmail failed", e);
-      }
+  if (!creationResult || !creationResult.disableConfirmationEmail) {
+    try {
+      await attendeeMail.sendEmail();
+    } catch (e) {
+      console.error("attendeeMail.sendEmail failed", e);
     }
 
   return {
