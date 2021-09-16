@@ -71,6 +71,7 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Phone]: "Phone call",
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
+    [LocationType.Daily]: "Cal Video, powered by Daily.co",
   };
 
   const _bookingHandler = (event) => {

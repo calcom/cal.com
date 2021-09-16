@@ -3,15 +3,21 @@ import DailyIframe from "@daily-co/daily-js";
 import prisma from "../../lib/prisma";
 import { getSession } from "next-auth/client";
 import type { NextApiRequest } from "next";
+import { useRouter } from "next/router";
 
 export default function JoinCall(props, session) {
-  // Identifying the meeting owner
-  const owner = session.userid === props.booking.user.id;
+  const router = useRouter();
 
-  const url = props.booking.dailyRef.dailyurl;
-  const token = props.booking.dailyRef.dailytoken;
+  //if no booking redirectis to the 404 page
+  const emptyBooking = props.booking === null;
   useEffect(() => {
-    if (!owner) {
+    if (emptyBooking) {
+      router.push("/call/no-meeting-found");
+    }
+  });
+
+  useEffect(() => {
+    if (!emptyBooking && session.userid !== props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
         showLeaveButton: true,
         iframeStyle: {
@@ -21,11 +27,11 @@ export default function JoinCall(props, session) {
         },
       });
       callFrame.join({
-        url: url,
+        url: props.booking.dailyRef.dailyurl,
         showLeaveButton: true,
       });
     }
-    if (owner) {
+    if (!emptyBooking && session.userid === props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
         showLeaveButton: true,
         iframeStyle: {
@@ -35,9 +41,9 @@ export default function JoinCall(props, session) {
         },
       });
       callFrame.join({
-        url: url,
+        url: props.booking.dailyRef.dailyurl,
         showLeaveButton: true,
-        token: token,
+        token: props.booking.dailyRef.dailytoken,
       });
     }
   }, []);
