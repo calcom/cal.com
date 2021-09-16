@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "analyze": "ANALYZE=true next build",
+    "analyze:server": "BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "dev": "next dev",
     "db-up": "docker-compose up -d",
     "db-migrate": "yarn prisma migrate dev",
@@ -68,6 +71,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "11.1.2",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.6.1",

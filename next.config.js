@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withTM = require("next-transpile-modules")(["react-timezone-select"]);
 
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
+
 // TODO: Revisit this later with getStaticProps in App
 if (process.env.NEXTAUTH_URL) {
   process.env.BASE_URL = process.env.NEXTAUTH_URL.replace("/api/auth", "");
@@ -37,7 +41,10 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
   );
 }
 
-module.exports = withTM({
+const plugins = [withBundleAnalyzer, withTM];
+
+// prettier-ignore
+module.exports = () => plugins.reduce((acc, next) => next(acc), {
   i18n: {
     locales: ["en"],
     defaultLocale: "en",
