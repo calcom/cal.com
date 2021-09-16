@@ -108,12 +108,7 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
 const videoIntegrations = (withCredentials): DailyVideoApiAdapter[] =>
   withCredentials
     .map((cred) => {
-      switch (cred.type) {
-        case "daily_video":
-          return DailyVideo(cred);
-        default:
-          return DailyVideo(cred);
-      }
+      return DailyVideo(cred);
     })
     .filter(Boolean);
 
@@ -148,7 +143,7 @@ const dailyCreateMeeting = async (
   const currentRoute = process.env.BASE_URL;
 
   const videoCallData: DailyVideoCallData = {
-    type: "Calendso Video, powered by Daily.co",
+    type: "Cal Video, powered by Daily.co",
     id: creationResult.name,
     password: creationResult.password,
     url: currentRoute + "/call/" + uid,

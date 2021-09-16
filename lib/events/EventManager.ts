@@ -56,14 +56,14 @@ export default class EventManager {
     this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
 
-    //if there is a daily integration, temporarily pushes a credential for the daily-video-client
+    //for cal video powered by Daily.co, temporarily pushes a credential for the daily-video-client
 
     const hasDailyIntegration = process.env.DAILY_API_KEY != null;
     const dailyCredential: Credential = {
-      id: +new Date(),
+      id: +new Date().getTime(),
       type: "daily_video",
       key: { apikey: process.env.DAILY_API_KEY },
-      userId: uuidv5,
+      userId: +new Date().getTime(),
     };
     if (hasDailyIntegration) {
       this.videoCredentials.push(dailyCredential);
