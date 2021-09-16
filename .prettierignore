@@ -5,16 +5,9 @@ public
 **/**/.next
 **/**/public
 
-package.json
-package-lock.json
-tsconfig.json
-tsconfig.*.json
-
 *.lock
 *.log
-*.md
 
-.github/**/*.yml
 .gitignore
 .npmignore
 .prettierignore
