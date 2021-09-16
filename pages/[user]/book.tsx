@@ -81,7 +81,7 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
           .join("\n\n");
       }
       if (!!notes && !!event.target.notes.value) {
-        notes += "\n\nAdditional notes:\n" + event.target.notes.value;
+        notes += "\n\nMeeting context:\n" + event.target.notes.value;
       } else {
         notes += event.target.notes.value;
       }
@@ -355,7 +355,7 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
                   </div>
                   <div className="mb-4">
                     <label htmlFor="notes" className="block mb-1 text-sm font-medium text-gray-700 ">
-                      Additional notes
+                      Meeting context
                     </label>
                     <textarea
                       name="notes"

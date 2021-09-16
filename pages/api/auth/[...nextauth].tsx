@@ -3,34 +3,6 @@ import prisma from "../../../lib/prisma";
 import { Session } from "../../../lib/auth";
 
 export default NextAuth({
-  events: {
-    async signIn(message) {
-      const eventType = await prisma.eventType.findFirst({
-        where: {
-          title: "Sync Meeting",
-          userId: message.user.id as any,
-        },
-        select: {
-          title: true,
-        },
-      });
-      if (!eventType) {
-        const x = await fetch(process.env.BASE_URL + "/api/availability/eventtype", {
-          method: "POST",
-          body: JSON.stringify({
-            title: "Sync Meeting",
-            slug: "sync-meeting",
-            description: `Sync meeting with ${message.user.name}.`,
-            length: "45",
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        console.log(x);
-      }
-    },
-  },
   session: {
     jwt: true,
   },
@@ -116,24 +88,69 @@ export default NextAuth({
           update: {
             username,
             email,
+            name,
           },
           create: {
             id,
+            name,
             username,
             email,
             emailVerified: new Date(Date.now()),
           },
         });
+        const yacCredential = await prisma.credential.findFirst({
+          where: {
+            type: "yac",
+            userId: id,
+          },
+          select: {
+            id: true,
+          },
+        });
+        if (yacCredential && yacCredential.id) {
+          await prisma.credential.update({
+            where: { id: yacCredential.id },
+            data: {
+              key: {
+                api_token: yacProfileData.token,
+              },
+            },
+          });
+        } else {
+          await prisma.credential.create({
+            data: {
+              userId: id,
+              type: "yac",
+              key: {
+                api_token: yacProfileData.token,
+              },
+            },
+          });
+        }
+
         const eventType = await prisma.eventType.findFirst({
           where: {
             title: "Sync Meeting",
             userId: id,
           },
           select: {
-            title: true,
+            id: true,
           },
         });
-        if (!eventType) {
+        if (eventType && eventType.id) {
+          await prisma.eventType.update({
+            where: { id: eventType.id },
+            data: {
+              title: "Sync Meeting",
+              userId: id,
+              slug: "sync-meeting",
+              description: `Sync meeting with ${name}.`,
+              length: 45,
+              eventName: `${name} <> {USER}`,
+              locations: [{ type: "integrations:zoom" }],
+            },
+          });
+        } else {
           await prisma.eventType.create({
             data: {
               title: "Sync Meeting",
@@ -142,6 +159,7 @@ export default NextAuth({
               description: `Sync meeting with ${name}.`,
               length: 45,
               eventName: `${name} <> {USER}`,
+              locations: [{ type: "integrations:zoom" }],
             },
           });
         }

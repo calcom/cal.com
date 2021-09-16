@@ -41,10 +41,10 @@ export default function Bookings({ bookings }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
-        <div className="-mx-4 sm:mx-auto flex flex-col">
+        <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              <div className="border border-gray-200 overflow-hidden border-b rounded-sm">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <div className="overflow-hidden border border-b border-gray-200 rounded-sm">
                 <table className="min-w-full divide-y divide-gray-200">
                   <tbody className="bg-white divide-y divide-gray-200">
                     {bookings
@@ -58,7 +58,7 @@ export default function Bookings({ bookings }) {
                                 Unconfirmed
                               </span>
                             )}
-                            <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
+                            <div className="text-sm font-medium truncate text-neutral-900 max-w-60 md:max-w-96">
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
@@ -76,7 +76,7 @@ export default function Bookings({ bookings }) {
                               </a>
                             </div>
                           </td>
-                          <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                          <td className="hidden px-6 py-4 sm:table-cell whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {dayjs(booking.startTime).format("D MMMM YYYY")}
                             </div>
@@ -85,108 +85,120 @@ export default function Bookings({ bookings }) {
                               {dayjs(booking.endTime).format("HH:mm")}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <td className="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                             {!booking.confirmed && !booking.rejected && (
                               <>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, true)}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="inline-flex items-center px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                   Confirm
                                 </button>
                                 <button
                                   onClick={() => confirmBookingHandler(booking, false)}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
+                                  className="inline-flex items-center px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                   Reject
                                 </button>
                               </>
                             )}
-                            {booking.confirmed && !booking.rejected && (
+                            {booking.eventTypeId ? (
                               <>
-                                <a
-                                  href={window.location.href + "/../cancel/" + booking.uid}
-                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  <XIcon
-                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  Cancel
-                                </a>
-                                <a
-                                  href={window.location.href + "/../reschedule/" + booking.uid}
-                                  className="hidden text-xs sm:text-sm lg:inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  <ClockIcon
-                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  Reschedule
-                                </a>
-                                <Menu as="div" className="inline-block lg:hidden text-left ">
-                                  {({ open }) => (
-                                    <>
-                                      <div>
-                                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
-                                          <span className="sr-only">Open options</span>
-                                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-                                        </Menu.Button>
-                                      </div>
-
-                                      <Transition
-                                        show={open}
-                                        as={Fragment}
-                                        enter="transition ease-out duration-100"
-                                        enterFrom="transform opacity-0 scale-95"
-                                        enterTo="transform opacity-100 scale-100"
-                                        leave="transition ease-in duration-75"
-                                        leaveFrom="transform opacity-100 scale-100"
-                                        leaveTo="transform opacity-0 scale-95">
-                                        <Menu.Items
-                                          static
-                                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
-                                          <div className="py-1">
-                                            <Menu.Item>
-                                              {({ active }) => (
-                                                <a
-                                                  href={window.location.href + "/../cancel/" + booking.uid}
-                                                  className={classNames(
-                                                    active
-                                                      ? "bg-neutral-100 text-neutral-900"
-                                                      : "text-neutral-700",
-                                                    "group flex items-center px-4 py-2 text-sm font-medium"
-                                                  )}>
-                                                  <XIcon
-                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                                    aria-hidden="true"
-                                                  />
-                                                  Cancel
-                                                </a>
-                                              )}
-                                            </Menu.Item>
-                                            <Menu.Item>
-                                              {({ active }) => (
-                                                <a
-                                                  href={
-                                                    window.location.href + "/../reschedule/" + booking.uid
-                                                  }
-                                                  className={classNames(
-                                                    active
-                                                      ? "bg-neutral-100 text-neutral-900"
-                                                      : "text-neutral-700",
-                                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                                  )}>
-                                                  <ClockIcon
-                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
-                                                    aria-hidden="true"
-                                                  />
-                                                  Reschedule
-                                                </a>
-                                              )}
-                                            </Menu.Item>
+                                {booking.confirmed && !booking.rejected && (
+                                  <>
+                                    <a
+                                      href={window.location.href + "/../cancel/" + booking.uid}
+                                      className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                                      <XIcon
+                                        className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                        aria-hidden="true"
+                                      />
+                                      Cancel
+                                    </a>
+                                    <a
+                                      href={window.location.href + "/../reschedule/" + booking.uid}
+                                      className="items-center hidden px-4 py-2 ml-2 text-xs font-medium bg-white border border-transparent rounded-sm shadow-sm sm:text-sm lg:inline-flex text-neutral-700 hover:bg-neutral-100 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                                      <ClockIcon
+                                        className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                        aria-hidden="true"
+                                      />
+                                      Reschedule
+                                    </a>
+                                    <Menu as="div" className="inline-block text-left lg:hidden ">
+                                      {({ open }) => (
+                                        <>
+                                          <div>
+                                            <Menu.Button className="p-2 mt-1 border border-transparent text-neutral-400 hover:border-gray-200">
+                                              <span className="sr-only">Open options</span>
+                                              <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
+                                            </Menu.Button>
                                           </div>
-                                        </Menu.Items>
-                                      </Transition>
-                                    </>
-                                  )}
-                                </Menu>
+
+                                          <Transition
+                                            show={open}
+                                            as={Fragment}
+                                            enter="transition ease-out duration-100"
+                                            enterFrom="transform opacity-0 scale-95"
+                                            enterTo="transform opacity-100 scale-100"
+                                            leave="transition ease-in duration-75"
+                                            leaveFrom="transform opacity-100 scale-100"
+                                            leaveTo="transform opacity-0 scale-95">
+                                            <Menu.Items
+                                              static
+                                              className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
+                                              <div className="py-1">
+                                                <Menu.Item>
+                                                  {({ active }) => (
+                                                    <a
+                                                      href={
+                                                        window.location.href + "/../cancel/" + booking.uid
+                                                      }
+                                                      className={classNames(
+                                                        active
+                                                          ? "bg-neutral-100 text-neutral-900"
+                                                          : "text-neutral-700",
+                                                        "group flex items-center px-4 py-2 text-sm font-medium"
+                                                      )}>
+                                                      <XIcon
+                                                        className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                                        aria-hidden="true"
+                                                      />
+                                                      Cancel
+                                                    </a>
+                                                  )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                  {({ active }) => (
+                                                    <a
+                                                      href={
+                                                        window.location.href + "/../reschedule/" + booking.uid
+                                                      }
+                                                      className={classNames(
+                                                        active
+                                                          ? "bg-neutral-100 text-neutral-900"
+                                                          : "text-neutral-700",
+                                                        "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                                      )}>
+                                                      <ClockIcon
+                                                        className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                                        aria-hidden="true"
+                                                      />
+                                                      Reschedule
+                                                    </a>
+                                                  )}
+                                                </Menu.Item>
+                                              </div>
+                                            </Menu.Items>
+                                          </Transition>
+                                        </>
+                                      )}
+                                    </Menu>
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <div className="inline-flex px-4 py-2 text-sm font-medium text-white bg-black rounded-md">
+                                  Async
+                                </div>
                               </>
                             )}
                             {!booking.confirmed && booking.rejected && (
@@ -236,6 +248,7 @@ export async function getServerSideProps(context) {
       id: true,
       startTime: true,
       endTime: true,
+      eventTypeId: true,
     },
     orderBy: {
       startTime: "asc",
