@@ -13,7 +13,7 @@ const links = [
     idDescription: "documentationDescription",
     description: "Learn how to integrate our tools with your app",
     icon: DocumentTextIcon,
-    href: "https://docs.calendso.com",
+    href: "https://docs.cal.com",
   },
   {
     idTitle: "apiReference",
@@ -21,7 +21,7 @@ const links = [
     idDescription: "apiReferenceDescription",
     description: "A complete API reference for our libraries",
     icon: CodeIcon,
-    href: "https://api.docs.calendso.com",
+    href: "https://api.docs.cal.com",
   },
   {
     idTitle: "blog",
@@ -29,7 +29,7 @@ const links = [
     idDescription: "blogDescription",
     description: "Read our latest news and articles",
     icon: BookOpenIcon,
-    href: "https://calendso.com/blog",
+    href: "https://cal.com/blog",
   },
 ];
 
@@ -66,14 +66,11 @@ export default function Custom404() {
                 />
               </span>
             ) : (
-              <a href="https://checkout.calendso.com" className="inline-block mt-2 text-lg ">
+              <a href="https://cal.com/signup" className="inline-block mt-2 text-lg ">
                 <FormattedMessage id="theUsername" defaultMessage="The username" />{" "}
-                <strong className="text-blue-500">calendso.com{username}</strong>{" "}
+                <strong className="text-blue-500">cal.com{username}</strong>
                 <FormattedMessage id="isStillAvailable" defaultMessage="is still available" />{" "}
-                <span className="text-blue-500">
-                  <FormattedMessage id="registerNow" defaultMessage="Register now" />
-                </span>
-                .
+                <span className="text-blue-500"><FormattedMessage id="registerNow" defaultMessage="Register now" /></span>.
               </a>
             )}
           </div>
@@ -84,9 +81,7 @@ export default function Custom404() {
             {!isEventType404 && (
               <ul role="list" className="mt-4">
                 <li className="border-2 border-green-500 px-4 py-2">
-                  <a
-                    href="https://checkout.calendso.com"
-                    className="relative py-6 flex items-start space-x-4">
+                  <a href="https://cal.com/signup" className="relative py-6 flex items-start space-x-4">
                     <div className="flex-shrink-0">
                       <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-green-50">
                         <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
@@ -148,7 +143,7 @@ export default function Custom404() {
                 </li>
               ))}
               <li className="px-4 py-2">
-                <a href="https://calendso.com/slack" className="relative py-6 flex items-start space-x-4">
+                <a href="https://cal.com/slack" className="relative py-6 flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-gray-50">
                       <svg viewBox="0 0 2447.6 2452.5" className="h-6 w-6" xmlns="http://www.w3.org/2000/svg">

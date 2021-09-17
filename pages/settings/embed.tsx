@@ -90,7 +90,7 @@ export default function Embed(props) {
               />
             </p>
           </div>
-          <a href="https://developer.calendso.com/api" className="btn btn-primary">
+          <a href="https://developer.cal.com/api" className="btn btn-primary">
             <FormattedMessage id="browseOurDocumentation" defaultMessage="Browse our API documentation" />
           </a>
         </div>

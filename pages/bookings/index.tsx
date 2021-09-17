@@ -8,12 +8,12 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
-import { ClockIcon, XIcon } from "@heroicons/react/outline";
+import { ClockIcon, XIcon, CheckIcon, BanIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
 import { FormattedMessage } from "react-intl";
 import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, User } from "@prisma/client";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,7 +62,7 @@ export default function Bookings({ bookings }) {
                               </span>
                             )}
                             <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
-                              {booking.eventType.team && <strong>{booking.eventType.team.name}: </strong>}
+                              {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
                               {booking.title}
                             </div>
                             <div className="sm:hidden">
@@ -94,33 +94,105 @@ export default function Bookings({ bookings }) {
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {!booking.confirmed && !booking.rejected && (
                               <>
-                                <button
-                                  onClick={() => confirmBookingHandler(booking, true)}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  <FormattedMessage id="confirm" defaultMessage="Confirm" />
-                                </button>
-                                <button
-                                  onClick={() => confirmBookingHandler(booking, false)}
-                                  className="text-xs sm:text-sm inline-flex items-center px-4 py-2 border-transparent font-medium rounded-sm shadow-sm text-neutral-700 bg-white hover:bg-neutral-100 border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ml-2">
-                                  <FormattedMessage id="reject" defaultMessage="Reject" />
-                                </button>
+                                <div className="space-x-2 hidden lg:block">
+                                  <Button
+                                    onClick={() => confirmBookingHandler(booking, true)}
+                                    StartIcon={CheckIcon}
+                                    color="secondary">
+                                    <FormattedMessage id="confirm" defaultMessage="Confirm" />
+                                  </Button>
+                                  <Button
+                                    onClick={() => confirmBookingHandler(booking, false)}
+                                    StartIcon={BanIcon}
+                                    color="secondary">
+                                    <FormattedMessage id="reject" defaultMessage="Reject" />
+                                  </Button>
+                                </div>
+                                <Menu as="div" className="inline-block lg:hidden text-left ">
+                                  {({ open }) => (
+                                    <>
+                                      <div>
+                                        <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+                                          <span className="sr-only">
+                                            <FormattedMessage id="openOptions" defaultMessage="Open options" />
+                                          </span>
+                                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                                        </Menu.Button>
+                                      </div>
+                                      <Transition
+                                        show={open}
+                                        as={Fragment}
+                                        enter="transition ease-out duration-100"
+                                        enterFrom="transform opacity-0 scale-95"
+                                        enterTo="transform opacity-100 scale-100"
+                                        leave="transition ease-in duration-75"
+                                        leaveFrom="transform opacity-100 scale-100"
+                                        leaveTo="transform opacity-0 scale-95">
+                                        <Menu.Items
+                                          static
+                                          className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                                          <div className="py-1">
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <span
+                                                  onClick={() => confirmBookingHandler(booking, true)}
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm font-medium"
+                                                  )}>
+                                                  <CheckIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
+                                                  <FormattedMessage id="confirm" defaultMessage="Confirm" />
+                                                </span>
+                                              )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <span
+                                                  onClick={() => confirmBookingHandler(booking, false)}
+                                                  className={classNames(
+                                                    active
+                                                      ? "bg-neutral-100 text-neutral-900"
+                                                      : "text-neutral-700",
+                                                    "group flex items-center px-4 py-2 text-sm w-full font-medium"
+                                                  )}>
+                                                  <BanIcon
+                                                    className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                                                    aria-hidden="true"
+                                                  />
+                                                  <FormattedMessage id="reject" defaultMessage="Reject" />
+                                                </span>
+                                              )}
+                                            </Menu.Item>
+                                          </div>
+                                        </Menu.Items>
+                                      </Transition>
+                                    </>
+                                  )}
+                                </Menu>
                               </>
                             )}
                             {booking.confirmed && !booking.rejected && (
-                              <div className="space-x-2">
-                                <Button
-                                  data-testid="cancel"
-                                  href={"/cancel/" + booking.uid}
-                                  StartIcon={XIcon}
-                                  color="secondary">
-                                  <FormattedMessage id="cancel" defaultMessage="Cancel" />
-                                </Button>
-                                <Button
-                                  href={"reschedule/" + booking.uid}
-                                  StartIcon={ClockIcon}
-                                  color="secondary">
-                                  <FormattedMessage id="reschedule" defaultMessage="Reschedule" />
-                                </Button>
+                              <>
+                                <div className="space-x-2 hidden lg:block">
+                                  <Button
+                                    data-testid="cancel"
+                                    href={"/cancel/" + booking.uid}
+                                    StartIcon={XIcon}
+                                    color="secondary">
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    href={"reschedule/" + booking.uid}
+                                    StartIcon={ClockIcon}
+                                    color="secondary">
+                                    Reschedule
+                                  </Button>
+                                </div>
                                 <Menu as="div" className="inline-block lg:hidden text-left ">
                                   {({ open }) => (
                                     <>
@@ -196,7 +268,7 @@ export default function Bookings({ bookings }) {
                                     </>
                                   )}
                                 </Menu>
-                              </div>
+                              </>
                             )}
                             {!booking.confirmed && booking.rejected && (
                               <div className="text-sm text-gray-500 capitalize">
@@ -223,6 +295,16 @@ export async function getServerSideProps(context) {
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
+
+  const user: User = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      email: true,
+    },
+  });
+
   const b = await prisma.booking.findMany({
     where: {
       OR: [
@@ -232,7 +314,7 @@ export async function getServerSideProps(context) {
         {
           attendees: {
             some: {
-              id: session.user.id,
+              email: user.email,
             },
           },
         },

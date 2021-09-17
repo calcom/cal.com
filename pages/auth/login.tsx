@@ -80,10 +80,11 @@ export default function Login({ csrfToken }) {
           </form>
         </div>
         <div className="mt-4 text-neutral-600 text-center text-sm">
-          <FormattedMessage id="dontHaveAccount" defaultMessage="Sign in" />{" "}
+          <FormattedMessage id="dontHaveAccount" defaultMessage="Don't have an account?" />{" "}
           {/* replace this with your account creation flow */}
-          <a href="https://checkout.calendso.com" className="font-medium text-neutral-900">
+          <a href="https://cal.com/signup" className="font-medium text-neutral-900">
             <FormattedMessage id="createAccount" defaultMessage="Create an account" />
+
           </a>
         </div>
       </div>

@@ -306,6 +306,7 @@ export default function Home({ integrations }: Props) {
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               <FormattedMessage id="save" defaultMessage="Save" />
+
             </Button>
             <DialogClose
               onClick={() => {
@@ -315,6 +316,7 @@ export default function Home({ integrations }: Props) {
               <Button color="secondary">
                 <FormattedMessage id="cancel" defaultMessage="Cancel" />
               </Button>
+
             </DialogClose>
           </div>
         </DialogContent>
@@ -370,7 +372,7 @@ export default function Home({ integrations }: Props) {
               type="submit"
               form={ADD_APPLE_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              <FormattedMessage id="save" defaultMessage="Save" />
+            <FormattedMessage id="save" defaultMessage="Save" />
             </button>
             <DialogClose
               onClick={() => {
@@ -379,7 +381,7 @@ export default function Home({ integrations }: Props) {
               asChild>
               <Button color="secondary">
                 <FormattedMessage id="cancel" defaultMessage="Cancel" />
-              </Button>
+               </Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -522,7 +524,7 @@ export default function Home({ integrations }: Props) {
               </p>
             </div>
             <div className="mt-5">
-              <a href="mailto:apps@calendso.com" className="btn btn-white">
+              <a href="mailto:apps@cal.com" className="btn btn-white">
                 <FormattedMessage id="contactUs" defaultMessage="Contact us" />
               </a>
             </div>

@@ -73,10 +73,9 @@ function HideBrandingInput(props: {
             <p>
               {" "}
               <FormattedMessage id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
-              <a href="https://calendso.com/upgrade" className="underline">
+              <a href="https://cal.com/upgrade" className="underline">
                 cal.com/upgrade
-              </a>
-              .
+              </a>.
             </p>
           </div>
         }

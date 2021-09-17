@@ -9,7 +9,9 @@ import { getSession } from "@lib/auth";
 
 export default function Integration(props) {
   const router = useRouter();
-  const [, loading] = useSession();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [session, loading] = useSession();
+
 
   if (loading) {
     return <Loader />;
