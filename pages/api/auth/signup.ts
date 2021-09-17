@@ -37,13 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           email: email,
         },
       ],
-      AND: [
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
     },
   });
 

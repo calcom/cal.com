@@ -5,10 +5,10 @@ import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
-
-const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
+
+const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -214,7 +214,9 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
   return {
     getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-      const filter = "?startdatetime=" + dateFrom + "&enddatetime=" + dateTo;
+      const filter = `?startdatetime=${encodeURIComponent(dateFrom)}&enddatetime=${encodeURIComponent(
+        dateTo
+      )}`;
       return auth
         .getToken()
         .then((accessToken) => {
