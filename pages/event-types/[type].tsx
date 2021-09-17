@@ -622,7 +622,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <label
                           htmlFor="schedulingType"
                           className="flex mt-2 text-sm font-medium text-neutral-700">
-                          <UsersIcon className="text-neutral-500 h-5 w-5 mr-2" /> Scheduling Type
+                          <UsersIcon className="text-neutral-500 h-5 w-5 mr-2" />
+                          <FormattedMessage id="schedulingType" defaultMessage="Scheduling Type" />
                         </label>
                       </div>
                       <RadioArea.Select
@@ -635,7 +636,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="block sm:flex">
                       <div className="mb-4 min-w-44 sm:mb-0">
                         <label htmlFor="users" className="flex mt-2 text-sm font-medium text-neutral-700">
-                          <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Attendees
+                          <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" />
+                          <FormattedMessage id="attendees" defaultMessage="Attendees" />
                         </label>
                       </div>
                       <div className="w-full space-y-2">

@@ -59,15 +59,22 @@ function HideBrandingInput(props: {
         description={
           <div className="flex flex-col space-y-3">
             <p>
-              In order to remove the Calendso branding from your booking pages, you need to upgrade to a paid
-              account.
+              <FormattedMessage
+                id="orderRemoveCalendsoBranding"
+                defaultMessage="In order to remove the Calendso branding from your booking pages"
+              />
+              {", "}
+              <FormattedMessage
+                id="needUpgradePaidAccount"
+                defaultMessage="you need to upgrade to a paid account."
+              />
             </p>
 
             <p>
               {" "}
-              To upgrade go to{" "}
+              <FormattedMessage id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
               <a href="https://calendso.com/upgrade" className="underline">
-                calendso.com/upgrade
+                cal.com/upgrade
               </a>
               .
             </p>

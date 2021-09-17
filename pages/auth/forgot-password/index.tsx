@@ -64,8 +64,16 @@ export default function ForgotPassword({ csrfToken }) {
   const Success = () => {
     return (
       <div className="space-y-6">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Done</h2>
-        <p>Check your email. We sent you a link to reset your password.</p>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <FormattedMessage id="done" defaultMessage="Done" />
+        </h2>
+        <p>
+          <FormattedMessage id="checkYourEmail" defaultMessage="Check your email." />{" "}
+          <FormattedMessage
+            id="sentLinkResetPassword"
+            defaultMessage="We sent you a link to reset your password."
+          />
+        </p>
         {error && <p className="text-red-600">{error.message}</p>}
       </div>
     );

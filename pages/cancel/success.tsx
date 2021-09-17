@@ -58,7 +58,7 @@ export default function CancelSuccess() {
                     )}
                     {!loading && session.user && (
                       <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
-                        Back to bookings
+                        <FormattedMessage id="backToBookings" defaultMessage="Back to bookings" />
                       </Button>
                     )}
                   </div>

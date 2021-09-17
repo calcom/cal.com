@@ -1,13 +1,15 @@
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
+import { FormattedMessage } from "react-intl";
+import { useRouter } from "next/router";
 import SettingsShell from "@components/Settings";
 import { useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 
 export default function Embed(props) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
+  const { locale = "en" } = useRouter();
 
   if (loading) {
     return <Loader />;
@@ -22,46 +24,58 @@ export default function Embed(props) {
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">iframe Embed</h2>
-            <p className="mt-1 text-sm text-gray-500">The easiest way to embed Calendso on your website.</p>
+            <h2 className="text-lg leading-6 font-medium text-gray-900">
+              <FormattedMessage id="iframeEmbed" defaultMessage="iframe Embed" />
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              <FormattedMessage
+                id="embedCalendsoOnYourWebsite"
+                defaultMessage="The easiest way to embed Calendso on your website."
+              />
+            </p>
           </div>
           <div className="grid grid-cols-2 space-x-4">
             <div>
               <label htmlFor="iframe" className="block text-sm font-medium text-gray-700">
-                Standard iframe
+                <FormattedMessage id="standardIframe" defaultMessage="Standard iframe" />
               </label>
               <div className="mt-1">
                 <textarea
                   id="iframe"
                   className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder="Loading..."
-                  defaultValue={
-                    '<iframe src="' +
-                    props.BASE_URL +
-                    "/" +
-                    session.user.username +
-                    '" frameborder="0" allowfullscreen></iframe>'
-                  }
+                  defaultValue={`<iframe src="${props.BASE_URL}/${session?.user?.username}" frameborder="0" allowfullscreen></iframe>`}
                   readOnly
                 />
               </div>
             </div>
             <div>
               <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700">
-                Responsive full screen iframe
+                <FormattedMessage
+                  id="responsiveFullScreenIframe"
+                  defaultMessage="Responsive full screen iframe"
+                />
               </label>
               <div className="mt-1">
                 <textarea
                   id="fullscreen"
                   className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder="Loading..."
-                  defaultValue={
-                    '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body><iframe src="' +
-                    props.BASE_URL +
-                    "/" +
-                    session.user.username +
-                    '" frameborder="0" allowfullscreen></iframe></body></html>'
-                  }
+                  defaultValue={[
+                    `<!DOCTYPE html>`,
+                    `<html lang="${locale}">`,
+                    `<head>`,
+                    `<meta charset="UTF-8">`,
+                    `<meta http-equiv="X-UA-Compatible" content="IE=edge">`,
+                    `<meta name="viewport" content="width=device-width, initial-scale=1.0">`,
+                    `<title>Schedule a meeting</title>`, // TODO: translate
+                    `<style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style>`,
+                    `</head>`,
+                    `<body>`,
+                    `<iframe src="${props.BASE_URL}/"frameborder="0" allowfullscreen></iframe>`,
+                    `</body>`,
+                    `</html>`,
+                  ].join("")}
                   readOnly
                 />
               </div>
@@ -70,11 +84,14 @@ export default function Embed(props) {
           <div className="my-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900">Calendso API</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Leverage our API for full control and customizability.
+              <FormattedMessage
+                id="leverageControlAndCustomizability"
+                defaultMessage="Leverage our API for full control and customizability."
+              />
             </p>
           </div>
           <a href="https://developer.calendso.com/api" className="btn btn-primary">
-            Browse our API documentation
+            <FormattedMessage id="browseOurDocumentation" defaultMessage="Browse our API documentation" />
           </a>
         </div>
       </SettingsShell>

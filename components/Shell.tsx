@@ -32,30 +32,35 @@ export default function Shell(props) {
 
   const navigation = [
     {
+      nameId: "eventTypes",
       name: "Event Types",
       href: "/event-types",
       icon: LinkIcon,
       current: router.pathname.startsWith("/event-types"),
     },
     {
+      nameId: "bookings",
       name: "Bookings",
       href: "/bookings",
       icon: ClockIcon,
       current: router.pathname.startsWith("/bookings"),
     },
     {
+      nameId: "availability",
       name: "Availability",
       href: "/availability",
       icon: CalendarIcon,
       current: router.pathname.startsWith("/availability"),
     },
     {
+      nameId: "integrations",
       name: "Integrations",
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.pathname.startsWith("/integrations"),
     },
     {
+      nameId: "settings",
       name: "Settings",
       href: "/settings/profile",
       icon: CogIcon,
@@ -120,7 +125,7 @@ export default function Shell(props) {
                           )}
                           aria-hidden="true"
                         />
-                        {item.name}
+                        <FormattedMessage id={item.nameId} defaultMessage={item.name} />
                       </a>
                     </Link>
                   ))}
@@ -144,7 +149,9 @@ export default function Shell(props) {
               </Link>
               <div className="flex gap-3 items-center self-center">
                 <button className="bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                  <span className="sr-only">View notifications</span>
+                  <span className="sr-only">
+                    <FormattedMessage id="viewNotifications" defaultMessage="View notifications" />
+                  </span>
                   <Link href="/settings/profile">
                     <a>
                       <CogIcon className="h-6 w-6" aria-hidden="true" />
@@ -330,7 +337,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                         )}
                         aria-hidden="true"
                       />
-                      Feedback
+                      <FormattedMessage id="feedback" defaultMessage="Feedback" />
                     </a>
                   )}
                 </Menu.Item>

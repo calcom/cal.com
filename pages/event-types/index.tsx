@@ -44,10 +44,15 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="text-center block md:max-w-screen-sm mx-auto">
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
+        <h3 className="mt-2 text-xl font-bold text-neutral-900">
+          <FormattedMessage id="createYourFirstEventType" defaultMessage="Create your first event type" />
+        </h3>
         <p className="mt-1 text-md text-neutral-600 mb-2">
-          Event types enable you to share links that show available times on your calendar and allow people to
-          make bookings with you.
+          <FormattedMessage
+            id="eventTypesEnableToShareLinks"
+            defaultMessage="Event types enable you to share links that show available times on your calendar and allow people to
+          make bookings with you."
+          />
         </p>
         <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
       </div>
@@ -247,7 +252,11 @@ const EventTypesPage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <div>
       <Head>
-        <title>Event Types | Calendso</title>
+        <title>
+          {/* <FormattedMessage id="eventTypes" defaultMessage="Event Types" /> */}
+          {/* TODO: Hay problemas con intl */}
+          Event Types | Calendso
+        </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
@@ -392,7 +401,11 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
       <DialogContent>
         <div className="mb-8">
           <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-            Add a new {teamId ? "team " : ""}event type
+            {teamId ? (
+              <FormattedMessage id="addNewTeamEvent" defaultMessage="Add a new team event type" />
+            ) : (
+              <FormattedMessage id="addNewEventType" defaultMessage="Add a new event type" />
+            )}
           </h3>
           <div>
             <p className="text-sm text-gray-500">
@@ -509,12 +522,25 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }) => {
                 name="schedulingType"
                 className="flex space-x-6 mt-1 relative rounded-sm shadow-sm">
                 <RadioArea.Item value={SchedulingType.COLLECTIVE} className="text-sm w-1/2">
-                  <strong className="block mb-1">Collective</strong>
-                  <p>Schedule meetings when all selected team members are available.</p>
+                  <strong className="block mb-1">
+                    <FormattedMessage id="collective" defaultMessage="Collective" />
+                  </strong>
+                  <p>
+                    <FormattedMessage
+                      id="scheduleMeetingsMembersAvailable"
+                      defaultMessage="Schedule meetings when all selected team members are
+                    available."
+                    />
+                  </p>
                 </RadioArea.Item>
                 <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="text-sm w-1/2">
                   <strong className="block mb-1">Round Robin</strong>
-                  <p>Cycle meetings between multiple team members.</p>
+                  <p>
+                    <FormattedMessage
+                      id="meetingsBetweenMultipleMembers"
+                      defaultMessage="Cycle meetings between multiple team members."
+                    />
+                  </p>
                 </RadioArea.Item>
               </RadioArea.Group>
             </div>
