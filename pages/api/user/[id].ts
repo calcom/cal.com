@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
 import { getSession } from "@lib/auth";
+import { pick } from "lodash";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -34,13 +35,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const data = req.body.data;
     const updatedUser = await prisma.user.update({
       where: {
         id: authenticatedUser.id,
       },
       data: {
-        ...data,
+        ...pick(req.body, [
+          "username",
+          "name",
+          "avatar",
+          "timeZone",
+          "weekStart",
+          "hideBranding",
+          "theme",
+          "completedOnboarding",
+        ]),
+        bio: req.body.description,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        bio: true,
+        avatar: true,
+        timeZone: true,
+        weekStart: true,
+        startTime: true,
+        endTime: true,
+        bufferTime: true,
+        hideBranding: true,
+        theme: true,
+        createdDate: true,
+        plan: true,
+        completedOnboarding: true,
       },
     });
     return res.status(200).json({ message: "User Updated", data: updatedUser });
