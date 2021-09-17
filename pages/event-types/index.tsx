@@ -26,7 +26,7 @@ import {
   PlusIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
@@ -56,10 +56,10 @@ const EventTypesPage = (props: PageProps) => {
       <UserCalendarIllustration />
       <div className="block mx-auto text-center md:max-w-screen-sm">
         <h3 className="mt-2 text-xl font-bold text-neutral-900">
-          <FormattedMessage id="createYourFirstEventType" defaultMessage="Create your first event type" />
+          <T id="createYourFirstEventType" defaultMessage="Create your first event type" />
         </h3>
         <p className="mt-1 mb-2 text-md text-neutral-600">
-          <FormattedMessage
+          <T
             id="eventTypesEnableToShareLinks"
             defaultMessage="Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you."
@@ -139,12 +139,12 @@ const EventTypesPage = (props: PageProps) => {
                       <span className="font-medium truncate text-neutral-900">{type.title}</span>
                       {type.hidden && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                          <FormattedMessage id="hidden" defaultMessage="Hidden" />
+                          <T id="hidden" defaultMessage="Hidden" />
                         </span>
                       )}
                       {readOnly && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800 capitalize">
-                          <FormattedMessage id="readonly" defaultMessage="Readonly" />
+                          <T id="readonly" defaultMessage="Readonly" />
                         </span>
                       )}
                     </div>
@@ -196,7 +196,7 @@ const EventTypesPage = (props: PageProps) => {
                       <div>
                         <Menu.Button className="p-2 mt-1 border border-transparent text-neutral-400 hover:border-gray-200">
                           <span className="sr-only">
-                            <FormattedMessage id="openOptions" defaultMessage="Open options" />
+                            <T id="openOptions" defaultMessage="Open options" />
                           </span>
                           <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
                         </Menu.Button>
@@ -229,7 +229,7 @@ const EventTypesPage = (props: PageProps) => {
                                     className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  <FormattedMessage id="preview" defaultMessage="Preview" />
+                                  <T id="preview" defaultMessage="Preview" />
                                 </a>
                               )}
                             </Menu.Item>
@@ -250,10 +250,7 @@ const EventTypesPage = (props: PageProps) => {
                                     className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  <FormattedMessage
-                                    id="copyLinkToEvent"
-                                    defaultMessage="Copy link to event"
-                                  />
+                                  <T id="copyLinkToEvent" defaultMessage="Copy link to event" />
                                 </button>
                               )}
                             </Menu.Item>
@@ -275,7 +272,7 @@ const EventTypesPage = (props: PageProps) => {
     <div>
       <Head>
         <title>
-          {/* <FormattedMessage id="eventTypes" defaultMessage="Event Types" /> */}
+          {/* <T id="eventTypes" defaultMessage="Event Types" /> */}
           {/* TODO: Hay problemas con intl */}
           Event Types | Calendso
         </title>
@@ -296,7 +293,7 @@ const EventTypesPage = (props: PageProps) => {
             severity="warning"
             title={
               <>
-                <FormattedMessage
+                <T
                   id="youNeedUpgradeYourPlan"
                   defaultMessage="You need to upgrade your plan to have more than one active event type"
                 />
@@ -304,7 +301,7 @@ const EventTypesPage = (props: PageProps) => {
             }
             message={
               <>
-                <FormattedMessage id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
+                <T id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
                 <a href={process.env.UPGRADE_URL || "https://cal.com/upgrade"} className="underline">
                   {process.env.UPGRADE_URL || "https://cal.com/upgrade"}
                 </a>
@@ -366,27 +363,27 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
           data-testid="new-event-type"
           {...(canAddEvents
             ? {
-                href: modalOpen.hrefOn,
-              }
+              href: modalOpen.hrefOn,
+            }
             : {
-                disabled: true,
-              })}
+              disabled: true,
+            })}
           StartIcon={PlusIcon}>
-          <FormattedMessage id="newEventType" defaultMessage="New event type" />
+          <T id="newEventType" defaultMessage="New event type" />
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button EndIcon={ChevronDownIcon}>
-              <FormattedMessage id="newEventType" defaultMessage="New event type" />
+              <T id="newEventType" defaultMessage="New event type" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
-              <FormattedMessage id="createEventTypeUnder" defaultMessage="Create an event type under" />
+              <T id="createEventTypeUnder" defaultMessage="Create an event type under" />
               <br />
-              <FormattedMessage id="yourNameOrTeam" defaultMessage="your name or a team" />.
+              <T id="yourNameOrTeam" defaultMessage="your name or a team" />.
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {profiles.map((profile) => (
@@ -402,8 +399,8 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                       eventPage: profile.slug,
                       ...(profile.teamId
                         ? {
-                            teamId: profile.teamId,
-                          }
+                          teamId: profile.teamId,
+                        }
                         : {}),
                     },
                   })
@@ -424,14 +421,14 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
         <div className="mb-8">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {teamId ? (
-              <FormattedMessage id="addNewTeamEvent" defaultMessage="Add a new team event type" />
+              <T id="addNewTeamEvent" defaultMessage="Add a new team event type" />
             ) : (
-              <FormattedMessage id="addNewEventType" defaultMessage="Add a new event type" />
+              <T id="addNewEventType" defaultMessage="Add a new event type" />
             )}
           </h3>
           <div>
             <p className="text-sm text-gray-500">
-              <FormattedMessage
+              <T
                 id="createNewEventType"
                 defaultMessage="Create a new event type for people to book times with."
               />
@@ -464,7 +461,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
           <div>
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 capitalize">
-                <FormattedMessage id="title" defaultMessage="Title" />
+                <T id="title" defaultMessage="Title" />
               </label>
               <div className="mt-1">
                 <input
@@ -485,7 +482,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             </div>
             <div className="mb-4">
               <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                <FormattedMessage id="url" defaultMessage="URL" />
+                <T id="url" defaultMessage="URL" />
               </label>
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
@@ -505,7 +502,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             </div>
             <div className="mb-4">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                <FormattedMessage id="description" defaultMessage="description" />
+                <T id="description" defaultMessage="description" />
               </label>
               <div className="mt-1">
                 <textarea
@@ -518,7 +515,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             </div>
             <div className="mb-4">
               <label htmlFor="length" className="block text-sm font-medium text-gray-700 capitalize">
-                <FormattedMessage id="length" defaultMessage="Length" />
+                <T id="length" defaultMessage="Length" />
               </label>
               <div className="relative mt-1 rounded-sm shadow-sm">
                 <input
@@ -530,7 +527,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                   placeholder="15"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-400">
-                  <FormattedMessage id="minutes" defaultMessage="minutes" />
+                  <T id="minutes" defaultMessage="minutes" />
                 </div>
               </div>
             </div>
@@ -538,18 +535,17 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
           {teamId && (
             <div className="mb-4">
               <label htmlFor="schedulingType" className="block text-sm font-medium text-gray-700">
-                <FormattedMessage id="schedulingType" defaultMessage="Scheduling Type" />
+                <T id="schedulingType" defaultMessage="Scheduling Type" />
               </label>
               <RadioArea.Group
                 name="schedulingType"
-
                 className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
                 <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
                   <strong className="block mb-1">
-                    <FormattedMessage id="collective" defaultMessage="Collective" />
+                    <T id="collective" defaultMessage="Collective" />
                   </strong>
                   <p>
-                    <FormattedMessage
+                    <T
                       id="scheduleMeetingsMembersAvailable"
                       defaultMessage="Schedule meetings when all selected team members are
                     available."
@@ -559,7 +555,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                 <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="w-1/2 text-sm">
                   <strong className="block mb-1">Round Robin</strong>
                   <p>
-                    <FormattedMessage
+                    <T
                       id="meetingsBetweenMultipleMembers"
                       defaultMessage="Cycle meetings between multiple team members."
                     />
@@ -570,11 +566,11 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
           )}
           <div className="mt-8 sm:flex sm:flex-row-reverse gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>
-              <FormattedMessage id="continue" defaultMessage="Continue" />
+              <T id="continue" defaultMessage="Continue" />
             </Button>
             <DialogClose asChild>
               <Button color="secondary">
-                <FormattedMessage id="cancel" defaultMessage="Cancel" />
+                <T id="cancel" defaultMessage="Cancel" />
               </Button>
             </DialogClose>
           </div>
@@ -735,13 +731,13 @@ export async function getServerSideProps(context) {
     eventTypes: user.eventTypes.concat(typesRaw).map((type, index) =>
       user.plan === "FREE" && index > 0
         ? {
-            ...type,
-            $disabled: true,
-          }
+          ...type,
+          $disabled: true,
+        }
         : {
-            ...type,
-            $disabled: false,
-          }
+          ...type,
+          $disabled: false,
+        }
     ),
     metadata: {
       membershipCount: 1,

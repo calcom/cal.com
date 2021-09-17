@@ -7,7 +7,7 @@ import { useRef, useState } from "react";
 import { useSession } from "next-auth/client";
 import { ClockIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import { getSession } from "@lib/auth";
 
 export default function Availability(props) {
@@ -125,14 +125,11 @@ export default function Availability(props) {
           <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                <FormattedMessage
-                  id="startEndTimesYourDay"
-                  defaultMessage="Change the start and end times of your day"
-                />
+                <T id="startEndTimesYourDay" defaultMessage="Change the start and end times of your day" />
               </h3>
               <div className="mt-2 max-w-xl text-sm text-gray-500">
                 <p>
-                  <FormattedMessage
+                  <T
                     id="yourDaySetStartAndEnd"
                     defaultMessage="Currently, your day is set to start at {startTime} and end at {endTime}"
                     values={{
@@ -144,7 +141,7 @@ export default function Availability(props) {
               </div>
               <div className="mt-5">
                 <button onClick={toggleChangeTimesModal} type="button" className="btn btn-primary">
-                  <FormattedMessage id="changeAvailableTimes" defaultMessage="Change available times" />
+                  <T id="changeAvailableTimes" defaultMessage="Change available times" />
                 </button>
               </div>
             </div>
@@ -153,14 +150,11 @@ export default function Availability(props) {
           <div className="w-1/2 ml-2 border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                <FormattedMessage
-                  id="somethingDoesNotLookRight"
-                  defaultMessage="Something doesn't look right?"
-                />
+                <T id="somethingDoesNotLookRight" defaultMessage="Something doesn't look right?" />
               </h3>
               <div className="mt-2 max-w-xl text-sm text-gray-500">
                 <p>
-                  <FormattedMessage
+                  <T
                     id="troubleshootYourAvailability"
                     defaultMessage="Troubleshoot your availability to explore why your times are showing as they are."
                   />
@@ -169,7 +163,7 @@ export default function Availability(props) {
               <div className="mt-5">
                 <Link href="/availability/troubleshoot">
                   <a className="btn btn-white">
-                    <FormattedMessage id="launchTroubleshooter" defaultMessage="Launch troubleshooter" />
+                    <T id="launchTroubleshooter" defaultMessage="Launch troubleshooter" />
                   </a>
                 </Link>
               </div>
@@ -198,14 +192,11 @@ export default function Availability(props) {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      <FormattedMessage
-                        id="launchTroubleshooter"
-                        defaultMessage="Change your available times"
-                      />
+                      <T id="launchTroubleshooter" defaultMessage="Change your available times" />
                     </h3>
                     <div>
                       <p className="text-sm text-gray-500">
-                        <FormattedMessage
+                        <T
                           id="setStartAndEndTimeMinimumBuffer"
                           defaultMessage="Set the start and end time of your day and a minimum buffer between your meetings."
                         />
@@ -216,11 +207,11 @@ export default function Availability(props) {
                 <form onSubmit={updateStartEndTimesHandler}>
                   <div className="flex mb-4">
                     <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">
-                      <FormattedMessage id="startTime" defaultMessage="Start time" />
+                      <T id="startTime" defaultMessage="Start time" />
                     </label>
                     <div>
                       <label htmlFor="hours" className="sr-only">
-                        <FormattedMessage id="hours" defaultMessage="Hours" />
+                        <T id="hours" defaultMessage="Hours" />
                       </label>
                       <input
                         ref={startHoursRef}
@@ -235,7 +226,7 @@ export default function Availability(props) {
                     <span className="mx-2 pt-1">:</span>
                     <div>
                       <label htmlFor="minutes" className="sr-only capitalize">
-                        <FormattedMessage id="minutes" defaultMessage="Minutes" />
+                        <T id="minutes" defaultMessage="Minutes" />
                       </label>
                       <input
                         ref={startMinsRef}
@@ -250,11 +241,11 @@ export default function Availability(props) {
                   </div>
                   <div className="flex mb-4">
                     <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">
-                      <FormattedMessage id="endTime" defaultMessage="End time" />
+                      <T id="endTime" defaultMessage="End time" />
                     </label>
                     <div>
                       <label htmlFor="hours" className="sr-only capitalize">
-                        <FormattedMessage id="hours" defaultMessage="Hours" />
+                        <T id="hours" defaultMessage="Hours" />
                       </label>
                       <input
                         ref={endHoursRef}
@@ -269,7 +260,7 @@ export default function Availability(props) {
                     <span className="mx-2 pt-1">:</span>
                     <div>
                       <label htmlFor="minutes" className="sr-only capitalize">
-                        <FormattedMessage id="minutes" defaultMessage="Minutes" />
+                        <T id="minutes" defaultMessage="Minutes" />
                       </label>
                       <input
                         ref={endMinsRef}
@@ -284,11 +275,11 @@ export default function Availability(props) {
                   </div>
                   <div className="flex mb-4">
                     <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700 capitalize">
-                      <FormattedMessage id="buffer" defaultMessage="Buffer" />
+                      <T id="buffer" defaultMessage="Buffer" />
                     </label>
                     <div>
                       <label htmlFor="hours" className="sr-only capitalize">
-                        <FormattedMessage id="hours" defaultMessage="Hours" />
+                        <T id="hours" defaultMessage="Hours" />
                       </label>
                       <input
                         ref={bufferHoursRef}
@@ -303,7 +294,7 @@ export default function Availability(props) {
                     <span className="mx-2 pt-1">:</span>
                     <div>
                       <label htmlFor="minutes" className="sr-only capitalize">
-                        <FormattedMessage id="minutes" defaultMessage="Minutes" />
+                        <T id="minutes" defaultMessage="Minutes" />
                       </label>
                       <input
                         ref={bufferMinsRef}
@@ -318,10 +309,10 @@ export default function Availability(props) {
                   </div>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
-                      <FormattedMessage id="update" defaultMessage="Update" />
+                      <T id="update" defaultMessage="Update" />
                     </button>
                     <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
-                      <FormattedMessage id="cancel" defaultMessage="Cancel" />
+                      <T id="cancel" defaultMessage="Cancel" />
                     </button>
                   </div>
                 </form>

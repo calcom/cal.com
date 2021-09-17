@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCsrfToken } from "next-auth/client";
 import { getSession } from "@lib/auth";
 import { useEffect } from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import { useRouter } from "next/router";
 export default function Login({ csrfToken }) {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function Login({ csrfToken }) {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Calendso Logo" />
         <h2 className="mt-6 text-center text-3xl font-bold text-neutral-900">
-          <FormattedMessage id="signInYourAccount" defaultMessage="Sign in to your account" />
+          <T id="signInYourAccount" defaultMessage="Sign in to your account" />
         </h2>
       </div>
 
@@ -29,7 +29,7 @@ export default function Login({ csrfToken }) {
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
-                <FormattedMessage id="emailAddress" defaultMessage="Email address" />
+                <T id="emailAddress" defaultMessage="Email address" />
               </label>
               <div className="mt-1">
                 <input
@@ -47,13 +47,13 @@ export default function Login({ csrfToken }) {
               <div className="flex">
                 <div className="w-1/2">
                   <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
-                    <FormattedMessage id="password" defaultMessage="Password" />
+                    <T id="password" defaultMessage="Password" />
                   </label>
                 </div>
                 <div className="w-1/2 text-right">
                   <Link href="/auth/forgot-password">
                     <a className="font-medium text-primary-600 text-sm">
-                      <FormattedMessage id="forgot" defaultMessage="Forgot?" />
+                      <T id="forgot" defaultMessage="Forgot?" />
                     </a>
                   </Link>
                 </div>
@@ -74,17 +74,16 @@ export default function Login({ csrfToken }) {
               <button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                <FormattedMessage id="signIn" defaultMessage="Sign in" />
+                <T id="signIn" defaultMessage="Sign in" />
               </button>
             </div>
           </form>
         </div>
         <div className="mt-4 text-neutral-600 text-center text-sm">
-          <FormattedMessage id="dontHaveAccount" defaultMessage="Don't have an account?" />{" "}
+          <T id="dontHaveAccount" defaultMessage="Don't have an account?" />{" "}
           {/* replace this with your account creation flow */}
           <a href="https://cal.com/signup" className="font-medium text-neutral-900">
-            <FormattedMessage id="createAccount" defaultMessage="Create an account" />
-
+            <T id="createAccount" defaultMessage="Create an account" />
           </a>
         </div>
       </div>

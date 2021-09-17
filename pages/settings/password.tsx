@@ -3,7 +3,7 @@ import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import { useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
@@ -56,7 +56,7 @@ export default function Settings() {
             <div className="flex">
               <div className="w-1/2 mr-2">
                 <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
-                  <FormattedMessage id="currentPassword" defaultMessage="Current Password" />
+                  <T id="currentPassword" defaultMessage="Current Password" />
                 </label>
                 <div className="mt-1">
                   <input
@@ -72,7 +72,7 @@ export default function Settings() {
               </div>
               <div className="w-1/2 ml-2">
                 <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">
-                  <FormattedMessage id="newPassword" defaultMessage="New Password" />
+                  <T id="newPassword" defaultMessage="New Password" />
                 </label>
                 <div className="mt-1">
                   <input
@@ -92,7 +92,7 @@ export default function Settings() {
               <button
                 type="submit"
                 className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                <FormattedMessage id="save" defaultMessage="Save" />
+                <T id="save" defaultMessage="Save" />
               </button>
             </div>
           </div>

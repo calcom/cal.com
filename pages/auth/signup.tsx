@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { signIn } from "next-auth/client";
 import ErrorAlert from "@components/ui/alerts/Error";
 import { useState } from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import prisma from "@lib/prisma";
 
@@ -58,7 +58,7 @@ export default function Signup(props) {
       <HeadSeo title="Sign up" description="Sign up" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          <FormattedMessage id="createYourAccount" defaultMessage="Create your account" />
+          <T id="createYourAccount" defaultMessage="Create your account" />
         </h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -71,7 +71,7 @@ export default function Signup(props) {
               </div>
               <div className="mb-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  <FormattedMessage id="email" defaultMessage="Email" />
+                  <T id="email" defaultMessage="Email" />
                 </label>
                 <input
                   type="email"
@@ -86,7 +86,7 @@ export default function Signup(props) {
               </div>
               <div className="mb-2">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  <FormattedMessage id="password" defaultMessage="Password" />
+                  <T id="password" defaultMessage="Password" />
                 </label>
                 <input
                   type="password"
@@ -99,7 +99,7 @@ export default function Signup(props) {
               </div>
               <div>
                 <label htmlFor="passwordcheck" className="block text-sm font-medium text-gray-700">
-                  <FormattedMessage id="confirmPassword" defaultMessage="Confirm password" />
+                  <T id="confirmPassword" defaultMessage="Confirm password" />
                 </label>
                 <input
                   type="password"
@@ -122,7 +122,7 @@ export default function Signup(props) {
                   signIn("Calendso", { callbackUrl: (router.query.callbackUrl || "") as string })
                 }
                 className="w-5/12 inline-flex justify-center text-sm text-gray-500 font-medium  border px-4 py-2 rounded btn cursor-pointer">
-                <FormattedMessage id="loginInstead" defaultMessage="Login instead" />
+                <T id="loginInstead" defaultMessage="Login instead" />
               </a>
             </div>
           </form>

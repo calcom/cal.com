@@ -1,6 +1,6 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import { CheckIcon } from "@heroicons/react/outline";
 import { useSession } from "next-auth/client";
 import Button from "@components/ui/Button";
@@ -32,15 +32,12 @@ export default function CancelSuccess() {
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                      <FormattedMessage
-                        id="cancellationSuccessful"
-                        defaultMessage="Cancellation successful"
-                      />
+                      <T id="cancellationSuccessful" defaultMessage="Cancellation successful" />
                     </h3>
                     {!loading && !session?.user && (
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">
-                          <FormattedMessage
+                          <T
                             id="feelFreePickAnotherEventAnytime"
                             defaultMessage="Feel free to pick another event anytime."
                           />
@@ -53,12 +50,12 @@ export default function CancelSuccess() {
                   <div className="mt-5">
                     {!loading && !session?.user && (
                       <Button href={eventPage}>
-                        <FormattedMessage id="pickAnother" defaultMessage="Pick another" />
+                        <T id="pickAnother" defaultMessage="Pick another" />
                       </Button>
                     )}
                     {!loading && session?.user && (
                       <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
-                        <FormattedMessage id="backToBookings" defaultMessage="Back to bookings" />
+                        <T id="backToBookings" defaultMessage="Back to bookings" />
                       </Button>
                     )}
                   </div>

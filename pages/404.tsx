@@ -2,7 +2,7 @@ import { ChevronRightIcon } from "@heroicons/react/solid";
 import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import React from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import Link from "next/link";
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -53,30 +53,33 @@ export default function Custom404() {
         <main className="max-w-xl mx-auto pb-6 pt-16 sm:pt-24">
           <div className="text-center">
             <p className="text-sm font-semibold text-black uppercase tracking-wide">
-              <FormattedMessage id="error404" defaultMessage="404 error" />
+              <T id="error404" defaultMessage="404 error" />
             </p>
             <h1 className="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
-              <FormattedMessage id="thisPageDoesNotExist" defaultMessage="This page does not exist." />
+              <T id="thisPageDoesNotExist" defaultMessage="This page does not exist." />
             </h1>
             {isEventType404 ? (
               <span className="inline-block mt-2 text-lg">
-                <FormattedMessage
+                <T
                   id="checkForSpellingMistakesGoBackPreviousPage"
                   defaultMessage="Check for spelling mistakes or go back to the previous page."
                 />
               </span>
             ) : (
               <a href="https://cal.com/signup" className="inline-block mt-2 text-lg ">
-                <FormattedMessage id="theUsername" defaultMessage="The username" />{" "}
+                <T id="theUsername" defaultMessage="The username" />{" "}
                 <strong className="text-blue-500">cal.com{username}</strong>
-                <FormattedMessage id="isStillAvailable" defaultMessage="is still available" />{" "}
-                <span className="text-blue-500"><FormattedMessage id="registerNow" defaultMessage="Register now" /></span>.
+                <T id="isStillAvailable" defaultMessage="is still available" />{" "}
+                <span className="text-blue-500">
+                  <T id="registerNow" defaultMessage="Register now" />
+                </span>
+                .
               </a>
             )}
           </div>
           <div className="mt-12">
             <h2 className="text-sm font-semibold text-gray-500 tracking-wide uppercase">
-              <FormattedMessage id="popularPages" defaultMessage="Popular pages" />
+              <T id="popularPages" defaultMessage="Popular pages" />
             </h2>
             {!isEventType404 && (
               <ul role="list" className="mt-4">
@@ -93,17 +96,14 @@ export default function Custom404() {
                           <span className="focus:outline-none">
                             <span className="absolute inset-0" aria-hidden="true" />
 
-                            <FormattedMessage id="register" defaultMessage="Register" />
+                            <T id="register" defaultMessage="Register" />
 
                             <strong className="text-green-500">{username}</strong>
                           </span>
                         </span>
                       </h3>
                       <p className="text-base text-gray-500">
-                        <FormattedMessage
-                          id="claimYourUsername"
-                          defaultMessage="Claim your username and schedule events"
-                        />
+                        <T id="claimYourUsername" defaultMessage="Claim your username and schedule events" />
                       </p>
                     </div>
                     <div className="flex-shrink-0 self-center">
@@ -128,11 +128,11 @@ export default function Custom404() {
                         <h3 className="text-base font-medium text-gray-900">
                           <span className="rounded-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-500">
                             <span className="absolute inset-0" aria-hidden="true" />
-                            <FormattedMessage id={link.idTitle} defaultMessage={link.title} />
+                            <T id={link.idTitle} defaultMessage={link.title} />
                           </span>
                         </h3>
                         <p className="text-base text-gray-500">
-                          <FormattedMessage id={link.idDescription} defaultMessage={link.description} />
+                          <T id={link.idDescription} defaultMessage={link.description} />
                         </p>
                       </div>
                       <div className="flex-shrink-0 self-center">
@@ -172,7 +172,7 @@ export default function Custom404() {
                       </span>
                     </h3>
                     <p className="text-base text-gray-500">
-                      <FormattedMessage id="joinOurCommunity" defaultMessage="Join our community" />
+                      <T id="joinOurCommunity" defaultMessage="Join our community" />
                     </p>
                   </div>
                   <div className="flex-shrink-0 self-center">
@@ -184,7 +184,7 @@ export default function Custom404() {
             <div className="mt-8">
               <Link href="/">
                 <a className="text-base font-medium text-black hover:text-gray-500">
-                  <FormattedMessage id="orGoBackHome" defaultMessage="Or go back home" />
+                  <T id="orGoBackHome" defaultMessage="Or go back home" />
                   <span aria-hidden="true"> &rarr;</span>
                 </a>
               </Link>

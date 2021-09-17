@@ -5,7 +5,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
 import { getSession } from "@lib/auth";
 import { useEffect, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import Shell from "@components/Shell";
 
 dayjs.extend(utc);
@@ -59,14 +59,14 @@ export default function Troubleshoot({ user }) {
         subtitle="Understand why certain times are available and others are blocked.">
         <div className="bg-white max-w-md overflow-hidden shadow rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <FormattedMessage
+            <T
               id="overviewOfYourDay"
               defaultMessage="Here is an overview of your day on {date}"
               values={{ date: selectedDate.format("D MMMM YYYY") }}
             />
 
             <small className="block text-neutral-400">
-              <FormattedMessage
+              <T
                 id="hoverMouseForFullTimestamp"
                 defaultMessage="Tip: Hover over the bold times for a full timestamp"
               />
@@ -74,7 +74,7 @@ export default function Troubleshoot({ user }) {
             <div className="mt-4 space-y-4">
               <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
-                  <FormattedMessage
+                  <T
                     id="yourDayStartsAt"
                     defaultMessage="Your day starts at {date}"
                     values={{ date: convertMinsToHrsMins(user.startTime) }}
@@ -84,25 +84,25 @@ export default function Troubleshoot({ user }) {
               {availability.map((slot) => (
                 <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
                   <div className="px-4 py-5 sm:p-6 text-black">
-                    <FormattedMessage
+                    <T
                       id="yourCalendarShowsBusyBetween"
                       defaultMessage="Your calendar shows you as busy between"
                     />{" "}
                     <span className="font-medium text-neutral-800" title={slot.start}>
                       {dayjs(slot.start).format("HH:mm")}
                     </span>{" "}
-                    <FormattedMessage id="and" defaultMessage="and" />{" "}
+                    <T id="and" defaultMessage="and" />{" "}
                     <span className="font-medium text-neutral-800" title={slot.end}>
                       {dayjs(slot.end).format("HH:mm")}
                     </span>{" "}
-                    <FormattedMessage id="on" defaultMessage="on" /> {dayjs(slot.start).format("D MMMM YYYY")}
+                    <T id="on" defaultMessage="on" /> {dayjs(slot.start).format("D MMMM YYYY")}
                   </div>
                 </div>
               ))}
               {availability.length === 0 && <Loader />}
               <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
-                  <FormattedMessage
+                  <T
                     id="yourDayEndsAt"
                     defaultMessage="Your day ends at {date}"
                     values={{ date: convertMinsToHrsMins(user.endTime) }}

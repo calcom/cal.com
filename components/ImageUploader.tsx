@@ -1,6 +1,6 @@
 import Cropper from "react-easy-crop";
 import { useState, useCallback, useRef } from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import Slider from "./Slider";
 
 export default function ImageUploader({ target, id, buttonMsg, handleAvatarChange, imageRef }) {
@@ -201,10 +201,10 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
               </div>
               <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                 <button type="button" className="btn btn-primary" onClick={showCroppedImage}>
-                  <FormattedMessage id="save" defaultMessage="Save" />
+                  <T id="save" defaultMessage="Save" />
                 </button>
                 <button onClick={closeImageUploadModal} type="button" className="btn btn-white mr-2">
-                  <FormattedMessage id="cancel" defaultMessage="Cancel" />
+                  <T id="cancel" defaultMessage="Cancel" />
                 </button>
               </div>
             </div>

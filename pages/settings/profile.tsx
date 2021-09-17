@@ -4,7 +4,7 @@ import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import Avatar from "@components/ui/Avatar";
 import { getSession } from "@lib/auth";
 import Select from "react-select";
@@ -59,23 +59,21 @@ function HideBrandingInput(props: {
         description={
           <div className="flex flex-col space-y-3">
             <p>
-              <FormattedMessage
+              <T
                 id="orderRemoveCalendsoBranding"
                 defaultMessage="In order to remove the Calendso branding from your booking pages"
               />
               {", "}
-              <FormattedMessage
-                id="needUpgradePaidAccount"
-                defaultMessage="you need to upgrade to a paid account."
-              />
+              <T id="needUpgradePaidAccount" defaultMessage="you need to upgrade to a paid account." />
             </p>
 
             <p>
               {" "}
-              <FormattedMessage id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
+              <T id="toUpgradeGoTo" defaultMessage="To upgrade go to" />{" "}
               <a href="https://cal.com/upgrade" className="underline">
                 cal.com/upgrade
-              </a>.
+              </a>
+              .
             </p>
           </div>
         }
@@ -190,7 +188,7 @@ export default function Settings(props: Props) {
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      <FormattedMessage id="fullName" defaultMessage="Full name" />
+                      <T id="fullName" defaultMessage="Full name" />
                     </label>
                     <input
                       ref={nameRef}
@@ -208,7 +206,7 @@ export default function Settings(props: Props) {
 
                 <div>
                   <label htmlFor="about" className="block text-sm font-medium text-gray-700">
-                    <FormattedMessage id="about" defaultMessage="About" />
+                    <T id="about" defaultMessage="About" />
                   </label>
                   <div className="mt-1">
                     <textarea
@@ -250,7 +248,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                    <FormattedMessage id="timezone" defaultMessage="Timezone" />
+                    <T id="timezone" defaultMessage="Timezone" />
                   </label>
                   <div className="mt-1">
                     <TimezoneSelect
@@ -264,7 +262,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
-                    <FormattedMessage id="firstDayOfWeek" defaultMessage="First Day of Week" />
+                    <T id="firstDayOfWeek" defaultMessage="First Day of Week" />
                   </label>
                   <div className="mt-1">
                     <Select
@@ -282,7 +280,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                    <FormattedMessage id="singleTheme" defaultMessage="Single Theme" />
+                    <T id="singleTheme" defaultMessage="Single Theme" />
                   </label>
                   <div className="my-1">
                     <Select
@@ -308,7 +306,7 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                        <FormattedMessage
+                        <T
                           id="automaticallyAdjustInviteePreferences"
                           defaultMessage="Automatically adjust theme based on invitee preferences"
                         />
@@ -323,14 +321,11 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        <FormattedMessage
-                          id="disableCalendsoBranding"
-                          defaultMessage="Disable Calendso branding"
-                        />{" "}
+                        <T id="disableCalendsoBranding" defaultMessage="Disable Calendso branding" />{" "}
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
                       <p className="text-gray-500">
-                        <FormattedMessage
+                        <T
                           id="disableCalendsoBranding"
                           defaultMessage="Hide all Calendso branding from your public pages."
                         />
@@ -380,7 +375,7 @@ export default function Settings(props: Props) {
             <hr className="mt-8" />
             <div className="py-4 flex justify-end">
               <Button type="submit">
-                <FormattedMessage id="save" defaultMessage="Save" />
+                <T id="save" defaultMessage="Save" />
               </Button>
             </div>
           </div>

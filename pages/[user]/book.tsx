@@ -2,7 +2,6 @@ import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { FormattedMessage } from "react-intl";
 import BookingPage from "@components/booking/pages/BookingPage";
 
 dayjs.extend(utc);

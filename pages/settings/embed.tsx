@@ -1,6 +1,6 @@
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage as T } from "react-intl";
 import { useRouter } from "next/router";
 import SettingsShell from "@components/Settings";
 import { useSession } from "next-auth/client";
@@ -25,10 +25,10 @@ export default function Embed(props) {
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900">
-              <FormattedMessage id="iframeEmbed" defaultMessage="iframe Embed" />
+              <T id="iframeEmbed" defaultMessage="iframe Embed" />
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              <FormattedMessage
+              <T
                 id="embedCalendsoOnYourWebsite"
                 defaultMessage="The easiest way to embed Calendso on your website."
               />
@@ -37,7 +37,7 @@ export default function Embed(props) {
           <div className="grid grid-cols-2 space-x-4">
             <div>
               <label htmlFor="iframe" className="block text-sm font-medium text-gray-700">
-                <FormattedMessage id="standardIframe" defaultMessage="Standard iframe" />
+                <T id="standardIframe" defaultMessage="Standard iframe" />
               </label>
               <div className="mt-1">
                 <textarea
@@ -51,10 +51,7 @@ export default function Embed(props) {
             </div>
             <div>
               <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700">
-                <FormattedMessage
-                  id="responsiveFullScreenIframe"
-                  defaultMessage="Responsive full screen iframe"
-                />
+                <T id="responsiveFullScreenIframe" defaultMessage="Responsive full screen iframe" />
               </label>
               <div className="mt-1">
                 <textarea
@@ -84,14 +81,14 @@ export default function Embed(props) {
           <div className="my-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900">Calendso API</h2>
             <p className="mt-1 text-sm text-gray-500">
-              <FormattedMessage
+              <T
                 id="leverageControlAndCustomizability"
                 defaultMessage="Leverage our API for full control and customizability."
               />
             </p>
           </div>
           <a href="https://developer.cal.com/api" className="btn btn-primary">
-            <FormattedMessage id="browseOurDocumentation" defaultMessage="Browse our API documentation" />
+            <T id="browseOurDocumentation" defaultMessage="Browse our API documentation" />
           </a>
         </div>
       </SettingsShell>
