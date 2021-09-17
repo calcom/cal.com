@@ -1,13 +1,16 @@
-import prisma from "../../../lib/prisma";
-import { hashPassword } from "../../../lib/auth";
+import { hashPassword } from "@lib/auth";
+import prisma from "@lib/prisma";
+import slugify from "@lib/slugify";
+import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return;
   }
 
   const data = req.body;
-  const { username, email, password } = data;
+  const { email, password } = data;
+  const username = slugify(data.username);
 
   if (!username) {
     res.status(422).json({ message: "Invalid username" });
