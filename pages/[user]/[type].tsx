@@ -1,4 +1,3 @@
-import { User } from "@prisma/client";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -14,13 +13,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // (would be even better to assert them instead of typecasting)
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
-  const dateParam = asStringOrNull(context.query.date);
 
   if (!userParam || !typeParam) {
     throw new Error(`File is not named [type]/[user]`);
   }
 
-  const user: User = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       username: userParam.toLowerCase(),
     },
@@ -146,14 +144,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as const;
     }
   }*/
-  const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
-    providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
-      : null;
 
   const workingHours =
-    getWorkingHours(eventType.availability) ||
-    getWorkingHours(user.availability) ||
+    eventType.availability ||
     [
       {
         days: [0, 1, 2, 3, 4, 5, 6],
@@ -176,8 +169,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         image: user.avatar,
         slug: user.username,
         theme: user.theme,
+        weekStart: user.weekStart,
       },
-      date: dateParam,
       eventType: eventTypeObject,
       workingHours,
     },

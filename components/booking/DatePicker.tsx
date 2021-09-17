@@ -71,14 +71,13 @@ const DatePicker = ({
             ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
             : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
           return (
-            date.endOf("day").isBefore(dayjs().utcOffsett(date.utcOffset())) ||
+            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
             !getSlots({
-              inviteeDate: date,
+              date,
               frequency: eventLength,
               minimumBookingNotice,
               workingHours,
-              organizerTimeZone,
             }).length
           );
         }
@@ -91,11 +90,10 @@ const DatePicker = ({
             date.endOf("day").isBefore(periodRangeStartDay) ||
             date.endOf("day").isAfter(periodRangeEndDay) ||
             !getSlots({
-              inviteeDate: date,
+              date,
               frequency: eventLength,
               minimumBookingNotice,
               workingHours,
-              organizerTimeZone,
             }).length
           );
         }
@@ -105,11 +103,10 @@ const DatePicker = ({
           return (
             date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             !getSlots({
-              inviteeDate: date,
+              date,
               frequency: eventLength,
               minimumBookingNotice,
               workingHours,
-              organizerTimeZone,
             }).length
           );
       }

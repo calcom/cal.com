@@ -4,6 +4,7 @@ import { User, SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
+import { subtractWorkingHours, WorkingHours } from "@lib/availability";
 dayjs.extend(isBetween);
 dayjs.extend(utc);
 
@@ -16,7 +17,7 @@ type UseSlotsProps = {
   eventLength: number;
   minimumBookingNotice?: number;
   date: Dayjs;
-  workingHours: [];
+  workingHours: WorkingHours[];
   users: User[];
   schedulingType: SchedulingType;
 };
@@ -79,6 +80,7 @@ export const useSlots = (props: UseSlotsProps) => {
       for (let i = 1; i < results.length; i++) {
         loadedSlots = poolingMethod(loadedSlots, results[i]);
       }
+
       setSlots(loadedSlots);
       setLoading(false);
     });
@@ -91,10 +93,9 @@ export const useSlots = (props: UseSlotsProps) => {
 
     const times = getSlots({
       frequency: eventLength,
-      inviteeDate: date,
-      workingHours: [responseBody.workingHours],
+      date,
+      workingHours: [subtractWorkingHours(props.workingHours.concat(responseBody.workingHours))],
       minimumBookingNotice,
-      organizerTimeZone: responseBody.workingHours.timeZone,
     });
 
     // Check for conflicts
@@ -122,6 +123,7 @@ export const useSlots = (props: UseSlotsProps) => {
 
     // temporary
     const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
+
     return times.map((time) => ({
       time,
       users: [user],
