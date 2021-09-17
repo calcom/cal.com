@@ -102,20 +102,22 @@ export default function Bookings({ bookings }) {
                               </>
                             )}
                             {booking.confirmed && !booking.rejected && (
-                              <div className="space-x-2">
-                                <Button
-                                  data-testid="cancel"
-                                  href={"/cancel/" + booking.uid}
-                                  StartIcon={XIcon}
-                                  color="secondary">
-                                  Cancel
-                                </Button>
-                                <Button
-                                  href={"reschedule/" + booking.uid}
-                                  StartIcon={ClockIcon}
-                                  color="secondary">
-                                  Reschedule
-                                </Button>
+                              <>
+                                <div className="space-x-2 hidden lg:block">
+                                  <Button
+                                    data-testid="cancel"
+                                    href={"/cancel/" + booking.uid}
+                                    StartIcon={XIcon}
+                                    color="secondary">
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    href={"reschedule/" + booking.uid}
+                                    StartIcon={ClockIcon}
+                                    color="secondary">
+                                    Reschedule
+                                  </Button>
+                                </div>
                                 <Menu as="div" className="inline-block lg:hidden text-left ">
                                   {({ open }) => (
                                     <>
@@ -183,7 +185,7 @@ export default function Bookings({ bookings }) {
                                     </>
                                   )}
                                 </Menu>
-                              </div>
+                              </>
                             )}
                             {!booking.confirmed && booking.rejected && (
                               <div className="text-sm text-gray-500">Rejected</div>
