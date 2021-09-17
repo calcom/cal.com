@@ -17,6 +17,7 @@ const es = {
   error: "Error",
   readonly: "Solo lectura",
   registerNow: "Registrarse ahora",
+  register: "Registrar",
   popularPages: "Páginas populares",
   claimYourUsername: "Reclama tu usuario y agenda tus eventos",
   isStillAvailable: "está disponible",

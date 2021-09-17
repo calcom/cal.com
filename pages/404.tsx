@@ -97,7 +97,9 @@ export default function Custom404() {
                         <span className="rounded-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-500">
                           <span className="focus:outline-none">
                             <span className="absolute inset-0" aria-hidden="true" />
-                            register
+
+                            <FormattedMessage id="register" defaultMessage="Register" />
+
                             <strong className="text-green-500">{username}</strong>
                           </span>
                         </span>

@@ -17,6 +17,7 @@ const en = {
   readonly: "Readonly",
   currentTime: "Current time",
   registerNow: "Register now",
+  register: "register",
   popularPages: "Popular pages",
   isStillAvailable: "is still available",
   claimYourUsername: "Claim your username and schedule events",
