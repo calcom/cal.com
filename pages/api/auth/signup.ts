@@ -34,13 +34,6 @@ export default async function handler(req, res) {
           email: email,
         },
       ],
-      AND: [
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
     },
   });
 
