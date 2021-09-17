@@ -1,6 +1,6 @@
 import classNames from "@lib/classNames";
 import Link, { LinkProps } from "next/link";
-import React from "react";
+import React, { forwardRef } from "react";
 
 type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
@@ -18,7 +18,10 @@ export type ButtonProps = {
   | (JSX.IntrinsicElements["button"] & { href?: never })
 );
 
-export const Button = function Button(props: ButtonProps) {
+export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(
+  props: ButtonProps,
+  forwardedRef
+) {
   const {
     loading = false,
     color = "primary",
@@ -41,6 +44,7 @@ export const Button = function Button(props: ButtonProps) {
     {
       ...passThroughProps,
       disabled,
+      ref: forwardedRef,
       className: classNames(
         // base styles independent what type of button it is
         "inline-flex items-center",
@@ -117,6 +121,6 @@ export const Button = function Button(props: ButtonProps) {
   ) : (
     element
   );
-};
+});
 
 export default Button;
