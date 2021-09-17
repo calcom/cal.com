@@ -39,6 +39,7 @@ export default async function handler(req, res) {
         },
       },
       attendees: true,
+      location: true,
       references: {
         select: {
           uid: true,
@@ -113,7 +114,6 @@ export default async function handler(req, res) {
 
   const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
-
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {
         return await deleteEvent(credential, bookingRefUid);
@@ -121,9 +121,9 @@ export default async function handler(req, res) {
         return await deleteMeeting(credential, bookingRefUid);
       }
     }
-
     //deleting a Daily meeting
-    const isDaily = bookingToDelete.references.filter((ref) => ref.type === "daily");
+
+    const isDaily = bookingToDelete.location === "integrations:daily";
     const bookingUID = bookingToDelete.references.filter((ref) => ref.type === "daily")[0]?.uid;
     if (isDaily) {
       return await dailyDeleteMeeting(credential, bookingUID);
@@ -165,6 +165,7 @@ export default async function handler(req, res) {
       bookingId: bookingToDelete.id,
     },
   });
+
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
     where: {
       bookingId: bookingToDelete.id,

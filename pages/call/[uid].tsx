@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import DailyIframe from "@daily-co/daily-js";
 import prisma from "../../lib/prisma";
 import { getSession } from "next-auth/client";
-import type { NextApiRequest } from "next";
 import { useRouter } from "next/router";
 
 export default function JoinCall(props, session) {
@@ -79,17 +78,12 @@ export async function getServerSideProps(context) {
     },
   });
 
+  const session = await getSession();
+
   return {
     props: {
       booking: booking,
+      session: session,
     },
   };
-}
-
-export async function handler(req: NextApiRequest) {
-  const session = await getSession({ req: req });
-
-  if (session) {
-    return session;
-  }
 }

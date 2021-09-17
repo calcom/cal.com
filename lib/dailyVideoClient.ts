@@ -32,14 +32,6 @@ function handleErrorsJson(response) {
   return response.json();
 }
 
-function handleErrorsRaw(response) {
-  if (!response.ok) {
-    response.text().then(console.log);
-    throw Error(response.statusText);
-  }
-  return response.text();
-}
-
 const dailyCredential = process.env.DAILY_API_KEY;
 
 interface DailyVideoApiAdapter {
@@ -91,7 +83,7 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
         headers: {
           Authorization: "Bearer " + dailyCredential,
         },
-      }).then(handleErrorsRaw),
+      }).then(handleErrorsJson),
     dailyUpdateMeeting: (uid: string, event: CalendarEvent) =>
       fetch("https://api.daily.co/v1/rooms/" + uid, {
         method: "POST",
@@ -100,7 +92,7 @@ const DailyVideo = (credential): DailyVideoApiAdapter => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(translateEvent(event)),
-      }).then(handleErrorsRaw),
+      }).then(handleErrorsJson),
   };
 };
 
