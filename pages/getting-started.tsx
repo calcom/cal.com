@@ -2,15 +2,15 @@ import Head from "next/head";
 import prisma from "@lib/prisma";
 import { useSession } from "next-auth/client";
 import {
+  EventType,
   EventTypeCreateInput,
+  Schedule,
   ScheduleCreateInput,
   User,
   UserUpdateInput,
-  EventType,
-  Schedule,
 } from "@prisma/client";
 import { NextPageContext } from "next";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
 import Text from "@components/ui/Text";
@@ -18,8 +18,6 @@ import ErrorAlert from "@components/ui/alerts/Error";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc);
-dayjs.extend(timezone);
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
@@ -32,6 +30,9 @@ import classnames from "classnames";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { getSession } from "@lib/auth";
 import Button from "@components/ui/Button";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const DEFAULT_EVENT_TYPES = [
   {
