@@ -37,6 +37,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           in: memberships.map((membership) => membership.userId),
         },
       },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        bio: true,
+        avatar: true,
+        timeZone: true,
+      },
     });
 
     members = members.map((member) => {
