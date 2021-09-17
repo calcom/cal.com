@@ -9,7 +9,6 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "react-phone-number-input/style.css";
-import { LocationType } from "../../lib/location";
 import Avatar from "../../components/Avatar";
 import Button from "../../components/ui/Button";
 import Theme from "@components/Theme";
@@ -21,7 +20,7 @@ dayjs.extend(timezone);
 
 export default function Book(props: InferGetServerSidePropsType<typeof getServerSideProps>): JSX.Element {
   const router = useRouter();
-  const { date, user, rescheduleUid } = router.query;
+  const { user } = router.query;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -47,62 +46,34 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
       }
 
       const payload = {
-        start: dayjs(date).format(),
-        end: dayjs(date).add(props.eventType.length, "minute").format(),
         name: event.target.name.value,
+        topic: event.target.topic.value,
         email: event.target.email.value,
         notes: notes,
         guests: guestEmails,
-        timeZone: preferredTimeZone,
-        eventTypeId: props.eventType.id,
-        rescheduleUid: rescheduleUid,
       };
-
-      if (selectedLocation) {
-        switch (selectedLocation) {
-          case LocationType.Phone:
-            payload["location"] = event.target.phone.value;
-            break;
-
-          case LocationType.InPerson:
-            payload["location"] = locationInfo(selectedLocation).address;
-            break;
-
-          // Catches all other location types, such as Google Meet, Zoom etc.
-          default:
-            payload["location"] = selectedLocation;
-        }
-      }
 
       telemetry.withJitsu((jitsu) =>
         jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
       );
 
-      /*const res = await */ fetch("/api/book/" + user + "/async", {
+      const res = await fetch("/api/book/" + user + "/async", {
         body: JSON.stringify(payload),
         headers: {
           "Content-Type": "application/json",
         },
         method: "POST",
       });
-      // TODO When the endpoint is fixed, change this to await the result again
-      //if (res.ok) {
-      let successUrl = `/success/sync?date=${date}&type=${props.eventType.id}&user=${
-        props.user.username
-      }&reschedule=${!!rescheduleUid}&name=${payload.name}`;
-      if (payload["location"]) {
-        if (payload["location"].includes("integration")) {
-          successUrl += "&location=" + encodeURIComponent("Web conferencing details to follow.");
-        } else {
-          successUrl += "&location=" + encodeURIComponent(payload["location"]);
-        }
+      const { bookingId } = await res.json();
+
+      if (!res.ok) {
+        setLoading(false);
+        setError(true);
       }
 
+      const successUrl = `/success/async?bookingId=${bookingId}`;
+
       await router.push(successUrl);
-      /*} else {
-                setLoading(false);
-                setError(true);
-            }*/
     };
 
     event.preventDefault();
@@ -134,7 +105,7 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 ">
-                      Meeting Topic
+                      Meeting topic
                     </label>
                     <div className="mt-1">
                       <input

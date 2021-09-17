@@ -63,7 +63,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return g;
     });
     const attendeesList = [...invitee, ...guests];
-
     const yacCredential = await prisma.credential.findFirst({
       where: {
         type: "yac",
@@ -74,81 +73,82 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     if (!(yacCredential && yacCredential.key && (yacCredential.key as any).api_token)) {
-      log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
-      res.status(500).json({ message: "Booking already exists" });
+      log.error(`Booking ${user} failed`, "Error getting yac credential for user", e);
+      res.status(500).json({ message: "Could not get Yac user credentials for " + user });
       return;
     }
     const yacToken = (yacCredential.key as any).api_token;
-    const { id: groupId } = await (
-      await fetch({
+    const { groupDetails = {} } = await (
+      await fetch("https://api-v3.yacchat.com/api/v1/group/create", {
         method: "POST",
-        url: "https://api-v3.yacchat.com/api/v1/group/create",
         headers: {
           Authorization: yacToken,
+          "Content-Type": "application/json",
         },
-        body: {
+        body: JSON.stringify({
           name: req.body.topic,
-          goal: req.body.notes,
-        },
+          bio: req.body.notes,
+        }),
       })
     ).json();
-    await fetch({
+    const { id: groupId } = groupDetails;
+
+    await fetch(`https://api-v3.yacchat.com/api/v2/groups/${groupId}/members`, {
       method: "POST",
-      url: `https://api-v3.yacchat.com/api/v2/groups/${groupId}/members`,
       headers: {
         Authorization: yacToken,
+        "Content-Type": "application/json",
       },
-      body: {
+      body: JSON.stringify({
         emails: attendeesList.map((x) => x.email),
-      },
+        resendInvite: true,
+      }),
     });
     const { inviteLink } = await (
-      await fetch({
-        method: "POST",
-        url: `https://api-v3.yacchat.com/api/v2/groups/${groupId}/invite-link`,
+      await fetch(`https://api-v3.yacchat.com/api/v2/groups/${groupId}/invite-link`, {
+        method: "GET",
         headers: {
           Authorization: yacToken,
+          "Content-Type": "application/json",
         },
       })
     ).json();
-
-    const hashUID =
-      results.length > 0 ? results[0].uid : translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
-
     const evt: CalendarEvent = {
       title: req.body.topic,
       description: req.body.notes,
-      startTime: req.body.start,
-      endTime: req.body.end,
       organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
       attendees: attendeesList,
       location: req.body.location, // Will be processed by the EventManager later.
     };
+    const hashUID = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
 
     try {
-      await prisma.booking.create({
+      const booking = await prisma.booking.create({
         data: {
           uid: hashUID,
           userId: currentUser.id,
           title: evt.title,
           description: evt.description,
-          startTime: evt.startTime,
-          endTime: evt.endTime,
           attendees: {
             create: evt.attendees,
           },
-          confirmed: !eventType.requiresConfirmation,
           location: inviteLink,
         },
+        select: {
+          id: true,
+        },
       });
+      if (booking && booking.id) {
+        log.debug(`Booking ${user} completed`);
+        return res.status(200).json({ message: "Booking completed", bookingId: booking.id });
+      } else {
+        throw new Error("Couldn't get booking id");
+      }
     } catch (e) {
       log.error(`Booking ${user} failed`, "Error when saving booking to db", e);
       res.status(500).json({ message: "Booking already exists" });
       return;
     }
-
-    log.debug(`Booking ${user} completed`);
-    return res.status(204).json({ message: "Booking completed" });
   } catch (reason) {
     log.error(`Booking ${user} failed`, reason);
     return res.status(500).json({ message: "Booking failed for some unknown reason" });

@@ -42,17 +42,6 @@ export default function Availability({
     const enteredDescription = descriptionRef.current.value;
     const enteredLength = lengthRef.current.value;
 
-    console.log({
-      title: enteredTitle,
-      slug: enteredSlug,
-      description: enteredDescription,
-      length: enteredLength,
-    });
-    alert("hello");
-    alert("hello");
-    alert("hello");
-    alert("hello");
-
     // TODO: Add validation
     await fetch("/api/availability/eventtype", {
       method: "POST",
