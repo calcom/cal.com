@@ -3,7 +3,7 @@ import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionTypeBase } from "react-select";
 import prisma from "@lib/prisma";
-import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
+import { Availability, EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "@lib/auth";
@@ -28,7 +28,6 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { Availability } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
 import throttle from "lodash.throttle";
 import "react-dates/initialize";
@@ -1238,7 +1237,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   ];
 
   const locationOptions: OptionTypeBase[] = [
-    { value: LocationType.InPerson, label: "In-person meeting" },
+    { value: LocationType.InPerson, label: "Link or In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
     { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];

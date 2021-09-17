@@ -58,15 +58,15 @@ function HideBrandingInput(props: {
         description={
           <div className="flex flex-col space-y-3">
             <p>
-              In order to remove the Calendso branding from your booking pages, you need to upgrade to a paid
+              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
               account.
             </p>
 
             <p>
               {" "}
               To upgrade go to{" "}
-              <a href="https://calendso.com/upgrade" className="underline">
-                calendso.com/upgrade
+              <a href="https://cal.com/upgrade" className="underline">
+                cal.com/upgrade
               </a>
               .
             </p>
