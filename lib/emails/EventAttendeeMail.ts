@@ -16,8 +16,7 @@ export default class EventAttendeeMail extends EventMail {
    * @protected
    */
   protected getHtmlRepresentation(): string {
-    return (
-      `
+    return `
 <body style="background: #f4f5f7; font-family: Helvetica, sans-serif">
   <div
     style="
@@ -60,8 +59,8 @@ export default class EventAttendeeMail extends EventMail {
       <tr>
         <td>When</td>
         <td>${this.getInviteeStart().format("dddd, LL")}<br>${this.getInviteeStart().format("h:mma")} (${
-        this.calEvent.attendees[0].timeZone
-      })</td>
+      this.calEvent.attendees[0].timeZone
+    })</td>
       </tr>
       <tr>
         <td>Who</td>
@@ -82,20 +81,15 @@ export default class EventAttendeeMail extends EventMail {
         <td>${this.calEvent.description}</td>
       </tr>
     </table>
-    ` +
-      this.getAdditionalBody() +
-      "<br />" +
-      `
+    ${this.getAdditionalBody()}
+    <br />
     <hr />
-    ` +
-      this.getAdditionalFooter() +
-      `
+    ${this.getAdditionalFooter()}
   </div>
   <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 12px;">
     <img style="opacity: 0.25; width: 120px;" src="https://app.calendso.com/calendso-logo-word.svg" alt="Calendso Logo"></div>
 </body>
-  `
-    );
+  `;
   }
 
   /**
