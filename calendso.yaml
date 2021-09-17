@@ -4,12 +4,12 @@ info:
   description: The open source Calendly alternative.
   contact:
     name: Support
-    email: support@calendso.com
+    email: support@cal.com
   license:
     name: MIT License
     url: 'https://opensource.org/licenses/MIT'
   version: 1.0.0
-  termsOfService: 'https://calendso.com/terms'
+  termsOfService: 'https://cal.com/terms'
 server:
   url: 'http://localhost:{port}'
   description: Local Development Server
@@ -205,7 +205,7 @@ paths:
                       integration: google_calendar
                       name: Birthdays
                     - selected: true
-                      externalId: bailey@calendso.com
+                      externalId: bailey@cal.com
                       integration: google_calendar
                       name: Calendso
                       primary: true
@@ -1009,7 +1009,7 @@ paths:
         required: true
         description: The team which you wish to list members of
 servers:
-  - url: 'https://app.calendso.com'
+  - url: 'https://app.cal.com'
     description: Production
 components:
   securitySchemes: {}
