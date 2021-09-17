@@ -1,15 +1,9 @@
 import { HeadSeo } from "@components/seo/head-seo";
-import { useRouter } from "next/router";
 import { XIcon } from "@heroicons/react/outline";
-import { useSession } from "next-auth/client";
 import Button from "@components/ui/Button";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 
 export default function NoMeetingFound() {
-  // Get router variables
-  const router = useRouter();
-  const { title, name, eventPage } = router.query;
-  const [session, loading] = useSession();
   return (
     <div>
       <HeadSeo title={`No meeting Found`} description={`No Meeting Found`} />
@@ -24,8 +18,7 @@ export default function NoMeetingFound() {
                 className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6"
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="modal-headline"
-              >
+                aria-labelledby="modal-headline">
                 <div>
                   <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
                     <XIcon className="w-6 h-6 text-red-600" />

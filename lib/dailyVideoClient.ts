@@ -1,4 +1,3 @@
-import prisma from "./prisma";
 import { CalendarEvent } from "./calendarClient";
 import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
 import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
