@@ -8,20 +8,19 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-describe("Get dates in in the same timeZone",  () => {
-
-  beforeAll( async () => {
+describe("Get dates in in the same timeZone", () => {
+  beforeAll(async () => {
     MockDate.set("2021-06-20T11:59:59Z");
   });
 
-  afterAll( async () => {
+  afterAll(async () => {
     MockDate.reset();
   });
 
   it("can fit 24 hourly slots for an empty day", async () => {
     expect(
       getSlots({
-        date: dayjs().startOf('day').add(1, 'day'),
+        date: dayjs().startOf("day").add(1, "day"),
         frequency: 60,
       })
     ).toHaveLength(24);
@@ -41,53 +40,50 @@ describe("Get dates in in the same timeZone",  () => {
     expect(
       getSlots({
         frequency: 15,
-        date: dayjs().endOf('day').subtract(25, 'minutes'),
+        date: dayjs().endOf("day").subtract(25, "minutes"),
         workingHours: [
           {
-            days: [ 0, 1, 2, 3, 4, 5, 6 ],
+            days: [0, 1, 2, 3, 4, 5, 6],
             startTime: 480,
             endTime: 1380,
-          }
-        ]
+          },
+        ],
       })
     ).toHaveLength(0); // current time is midday (see MockDate)
   });
 
-  it('should not show the first 4 15 minute bookings because that time has already past', () => {
-
+  it("should not show the first 4 15 minute bookings because that time has already past", () => {
     MockDate.set("2021-09-17T03:38:00Z");
     expect(
       getSlots({
         frequency: 15,
-        date: dayjs().utcOffset(60).startOf('day'),
+        date: dayjs().utcOffset(60).startOf("day"),
         minimumBookingNotice: 0,
         workingHours: [
           {
             endTime: 1439,
             startTime: 540,
-            days: [ 1, 2, 3, 4, 5 ]
-          }
-        ]
+            days: [1, 2, 3, 4, 5],
+          },
+        ],
       })
     ).toHaveLength(56); // getting 60 at the time this test was written
   });
-
 });
 
-describe("Get dates for an invitee in a different timeZone",  () => {
-
-  beforeAll( async () => {
+describe("Get dates for an invitee in a different timeZone", () => {
+  beforeAll(async () => {
     MockDate.set("2021-06-20T11:59:59Z");
   });
 
-  afterAll( async () => {
+  afterAll(async () => {
     MockDate.reset();
   });
 
   it("different tz - multiple boundaries", async () => {
     // june 21th is a monday, midday UTC+1 should result in 00:00 & 01:00
     const slots = getSlots({
-      date: dayjs().utcOffset(60).add(1, 'day').startOf('day'),
+      date: dayjs().utcOffset(60).add(1, "day").startOf("day"),
       frequency: 60,
       workingHours: [
         {
@@ -99,8 +95,8 @@ describe("Get dates for an invitee in a different timeZone",  () => {
           days: [0],
           startTime: 1380,
           endTime: 1440,
-        }
-      ]
+        },
+      ],
     });
 
     expect(slots).toHaveLength(2);
@@ -111,25 +107,23 @@ describe("Get dates for an invitee in a different timeZone",  () => {
   it("different tz - can fit 12 hourly slots in local time as well", async () => {
     expect(
       getSlots({
-        date: dayjs().utcOffset(60).startOf('day'),
+        date: dayjs().utcOffset(60).startOf("day"),
         frequency: 60,
       })
     ).toHaveLength(12);
   });
-
 });
 
-describe("Minimum booking notices",  () => {
-
+describe("Minimum booking notices", () => {
   /*
    * Booking notices function
    */
 
-  beforeAll( async () => {
+  beforeAll(async () => {
     MockDate.set("2021-06-20T12:00:00Z");
   });
 
-  afterAll( async () => {
+  afterAll(async () => {
     MockDate.reset();
   });
 
@@ -156,10 +150,9 @@ describe("Minimum booking notices",  () => {
   });
 
   it("should disable hours if the booking notice leapfrogs into the next date", async () => {
-
     expect(
       getSlots({
-        date: dayjs().add(1, 'day').startOf('day'),
+        date: dayjs().add(1, "day").startOf("day"),
         frequency: 60,
         minimumBookingNotice: 1080, // 18h
       })
@@ -167,11 +160,10 @@ describe("Minimum booking notices",  () => {
 
     expect(
       getSlots({
-        date: dayjs().add(2, 'day').startOf('day'),
+        date: dayjs().add(2, "day").startOf("day"),
         frequency: 60,
         minimumBookingNotice: 2760, // 46h
       })
     ).toHaveLength(14);
   });
-
 });
