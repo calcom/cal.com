@@ -9,8 +9,7 @@ import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 
 export default function Settings() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
+  const [, loading] = useSession();
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const oldPasswordRef = useRef<HTMLInputElement>();

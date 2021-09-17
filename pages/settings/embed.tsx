@@ -107,7 +107,7 @@ export async function getServerSideProps(context) {
 
   const user = await prisma.user.findFirst({
     where: {
-      email: session.user.email,
+      email: session?.user?.email,
     },
     select: {
       id: true,
@@ -121,7 +121,7 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const BASE_URL = process.env.BASE_URL;
+  const { BASE_URL } = process.env;
 
   return {
     props: { user, BASE_URL }, // will be passed to the page component as props

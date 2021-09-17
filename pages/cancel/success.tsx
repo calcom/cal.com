@@ -37,7 +37,7 @@ export default function CancelSuccess() {
                         defaultMessage="Cancellation successful"
                       />
                     </h3>
-                    {!loading && !session.user && (
+                    {!loading && !session?.user && (
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">
                           <FormattedMessage
@@ -51,12 +51,12 @@ export default function CancelSuccess() {
                 </div>
                 <div className="mt-5 sm:mt-6 text-center">
                   <div className="mt-5">
-                    {!loading && !session.user && (
+                    {!loading && !session?.user && (
                       <Button href={eventPage}>
                         <FormattedMessage id="pickAnother" defaultMessage="Pick another" />
                       </Button>
                     )}
-                    {!loading && session.user && (
+                    {!loading && session?.user && (
                       <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
                         <FormattedMessage id="backToBookings" defaultMessage="Back to bookings" />
                       </Button>

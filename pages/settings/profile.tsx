@@ -429,7 +429,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       user: {
         ...user,
-        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+        emailMd5: crypto
+          .createHash("md5")
+          .update(user.email || "")
+          .digest("hex"),
       },
     },
   };
