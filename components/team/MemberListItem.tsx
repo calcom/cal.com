@@ -1,5 +1,5 @@
 import { DotsHorizontalIcon, UserRemoveIcon } from "@heroicons/react/outline";
-import Dropdown from "../ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -55,14 +55,12 @@ export default function MemberListItem(props: {
                 Owner
               </span>
             )}
-            <Dropdown className="relative flex text-left">
-              <Button type="button" color="minimal" className="ml-2">
-                <DotsHorizontalIcon className="w-5 h-5 group-hover:text-black" />
-              </Button>
-              <ul
-                role="menu"
-                className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+            <Dropdown>
+              <DropdownMenuTrigger>
+                <DotsHorizontalIcon className="w-5 h-5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
@@ -84,8 +82,8 @@ export default function MemberListItem(props: {
                       Are you sure you want to remove this member from the team?
                     </ConfirmationDialogContent>
                   </Dialog>
-                </li>
-              </ul>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
             </Dropdown>
           </div>
         </div>

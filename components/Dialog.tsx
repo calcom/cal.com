@@ -18,8 +18,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     <DialogPrimitive.Content
       {...props}
       className="min-w-[360px] fixed left-1/2 top-1/2 p-6 text-left bg-white rounded shadow-xl overflow-hidden -translate-x-1/2 -translate-y-1/2 sm:align-middle sm:w-full sm:max-w-lg"
-      ref={forwardedRef}
-    >
+      ref={forwardedRef}>
       {children}
     </DialogPrimitive.Content>
   )
