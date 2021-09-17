@@ -161,7 +161,7 @@ const es = {
   newEventType: "Nuevo tipo de evento",
   addNewEventType: "Agrega un nuevo tipo de evento",
   createNewEventType: "Crea un nuevo tipo de evento para la gente pueda reservar",
-  createYourFistEventType: "Crea tu primer tipo de evento",
+  createYourFirstEventType: "Crea tu primer tipo de evento",
   eventTypesEnableToShareLinks:
     "Los tipos de eventos le permiten compartir enlaces que muestran las horas disponibles en su calendario y permiten que la gente haga reservas con usted.",
   sureYouWantDeleteThisEventType: "Estas seguro que quieres eliminar este tipo de evento?",
@@ -242,6 +242,27 @@ const es = {
   createEventTypeUnder: "Crea un tipo de evento con",
   yourNameOrTeam: "tu nombre o un equipo",
   schedulingType: "Tipo de programación",
+  orderRemoveCalendsoBranding: "Para eliminar la marca Calendso de sus páginas de reserva",
+  needUpgradePaidAccount: "necesitas pasar a una cuenta de pago.",
+  iframeEmbed: "Iframe embebido",
+  embedCalendsoOnYourWebsite: "La forma más fácil de agregar Calendso en su sitio web",
+  standardIframe: "Iframe estandar",
+  responsiveFullScreenIframe: "Iframe responsivo a pantalla completa",
+  leverageControlAndCustomizability: "Aproveche nuestra API para obtener un control total y personalización.",
+  browseOurDocumentation: "Consulta nuestra documentación del API",
+  addNewTeamEvent: "Agrega un nuevo tipo de evento de equipo",
+  collective: "Colectivo",
+  scheduleMeetingsMembersAvailable:
+    "Agenda reuniones cuando todos los miembros del equipo estén disponibles.",
+  meetingsBetweenMultipleMembers: "Reuniones cíclicas entre varios miembros del equipo.", // TODO: Reuniones recurrentes ??
+  backToBookings: "Regresar a las reservas",
+  attendees: "Asistentes",
+  feedback: "Comentarios",
+  settings: "Opciones",
+  verNotificaciones: "Ver notificaciones",
+  done: "Hecho",
+  checkYourEmail: "Revisa tu email.",
+  sentLinkResetPassword: "Te hemos enviado un enlace para restablecer tu contraseña.",
 };
 
 export default es;
