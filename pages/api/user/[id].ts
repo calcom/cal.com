@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: authenticatedUser.id,
       },
       data: {
-        ...pick(req.body, [
+        ...pick(req.body.data, [
           "username",
           "name",
           "avatar",
