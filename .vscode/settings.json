@@ -6,5 +6,5 @@
     "source.fixAll.eslint": true
   },
   "eslint.run": "onSave",
-  "cSpell.words": ["Calendso", "jitsu", "semibold"]
+  "cSpell.words": ["Calendso", "customizability", "jitsu", "semibold"]
 }
