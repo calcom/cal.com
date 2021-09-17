@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/client";
 import { UsersIcon } from "@heroicons/react/outline";

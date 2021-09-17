@@ -1,4 +1,4 @@
-import { XCircleIcon, InformationCircleIcon, CheckCircleIcon } from "@heroicons/react/solid";
+import { CheckCircleIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { ReactNode } from "react";
 
