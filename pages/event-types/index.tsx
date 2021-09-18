@@ -357,11 +357,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             <Button EndIcon={ChevronDownIcon}>New event type</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-              Create an event type under
-              <br />
-              your name or a team.
-            </DropdownMenuLabel>
+            <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {profiles.map((profile) => (
               <DropdownMenuItem
