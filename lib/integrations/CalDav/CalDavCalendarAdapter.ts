@@ -1,17 +1,17 @@
-import { IntegrationCalendar, CalendarApiAdapter, CalendarEvent } from "../../calendarClient";
+import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
 import { symmetricDecrypt } from "@lib/crypto";
 import {
   createAccount,
-  fetchCalendars,
-  fetchCalendarObjects,
-  getBasicAuthHeaders,
   createCalendarObject,
-  updateCalendarObject,
   deleteCalendarObject,
+  fetchCalendarObjects,
+  fetchCalendars,
+  getBasicAuthHeaders,
+  updateCalendarObject,
 } from "tsdav";
 import { Credential } from "@prisma/client";
 import ICAL from "ical.js";
-import { createEvent, DurationObject, Attendee, Person } from "ics";
+import { Attendee, createEvent, DurationObject, Person } from "ics";
 import dayjs from "dayjs";
 import { v4 as uuidv4 } from "uuid";
 import { stripHtml } from "../../emails/helpers";

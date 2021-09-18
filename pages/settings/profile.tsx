@@ -4,7 +4,7 @@ import prisma from "@lib/prisma";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { getSession } from "@lib/auth";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
@@ -58,15 +58,15 @@ function HideBrandingInput(props: {
         description={
           <div className="flex flex-col space-y-3">
             <p>
-              In order to remove the Calendso branding from your booking pages, you need to upgrade to a paid
+              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
               account.
             </p>
 
             <p>
               {" "}
               To upgrade go to{" "}
-              <a href="https://calendso.com/upgrade" className="underline">
-                calendso.com/upgrade
+              <a href="https://cal.com/upgrade" className="underline">
+                cal.com/upgrade
               </a>
               .
             </p>

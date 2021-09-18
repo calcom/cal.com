@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import ErrorAlert from "@components/ui/alerts/Error";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import MemberList from "./MemberList";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import ImageUploader from "@components/ImageUploader";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -242,9 +242,9 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Calendso branding
+                        Disable Cal.com branding
                       </label>
-                      <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
+                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
                     </div>
                   </div>
                   <hr className="mt-6" />

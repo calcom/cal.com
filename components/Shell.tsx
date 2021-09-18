@@ -2,6 +2,7 @@ import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/client";
+// TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { SelectorIcon } from "@heroicons/react/outline";
@@ -18,7 +19,7 @@ import {
 import Logo from "./Logo";
 import classNames from "@lib/classNames";
 import { Toaster } from "react-hot-toast";
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { User } from "@prisma/client";
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -275,7 +276,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                 <Menu.Item>
                   {({ active }) => (
                     <a
-                      href="https://calendso.com/slack"
+                      href="https://cal.com/slack"
                       target="_blank"
                       rel="noreferrer"
                       className={classNames(
@@ -311,7 +312,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                 <Menu.Item>
                   {({ active }) => (
                     <a
-                      href="mailto:feedback@calendso.com"
+                      href="mailto:feedback@cal.com"
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
                         "flex px-4 py-2 text-sm font-medium"

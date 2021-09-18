@@ -1,16 +1,16 @@
-import Avatar from "@components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import { HeadSeo } from "@components/seo/head-seo";
-import Theme from "@components/Theme";
+import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { ClockIcon, InformationCircleIcon, UserIcon } from "@heroicons/react/solid";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
+import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { isReady } = Theme(props.user.theme);
+  const { isReady } = useTheme(props.user.theme);
 
   return (
     <>
@@ -43,29 +43,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <Link href={`/${props.user.username}/${type.slug}`}>
                     <a className="block px-6 py-4">
                       <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                      <div className="mt-2 flex space-x-4">
-                        <div className="flex text-sm text-neutral-500">
-                          <ClockIcon
-                            className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
-                            aria-hidden="true"
-                          />
-                          <p className="dark:text-white">{type.length}m</p>
-                        </div>
-                        <div className="flex text-sm min-w-16 text-neutral-500">
-                          <UserIcon
-                            className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
-                            aria-hidden="true"
-                          />
-                          <p className="dark:text-white">1-on-1</p>
-                        </div>
-                        <div className="flex text-sm text-neutral-500">
-                          <InformationCircleIcon
-                            className="flex-shrink-0 mt-0.5 mr-1.5 h-4 w-4 text-neutral-400 dark:text-white"
-                            aria-hidden="true"
-                          />
-                          <p className="dark:text-white">{type.description}</p>
-                        </div>
-                      </div>
+                      <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
                 </div>
@@ -112,7 +90,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventTypesWithHidden = await prisma.eventType.findMany({
     where: {
-      userId: user.id,
+      OR: [
+        {
+          userId: user.id,
+        },
+        {
+          users: {
+            some: {
+              id: user.id,
+            },
+          },
+        },
+      ],
     },
     select: {
       id: true,
@@ -127,8 +116,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
   return {
     props: {
-      user,
       eventTypes,
+      user,
     },
   };
 };
