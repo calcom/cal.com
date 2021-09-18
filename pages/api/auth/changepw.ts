@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { hashPassword, verifyPassword } from "../../../lib/auth";
+import { ErrorCode, hashPassword, verifyPassword } from "../../../lib/auth";
 import { getSession } from "@lib/auth";
 import prisma from "../../../lib/prisma";
 
@@ -28,17 +28,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const oldPassword = req.body.oldPassword;
   const newPassword = req.body.newPassword;
+
   const currentPassword = user.password;
+  if (!currentPassword) {
+    return res.status(400).json({ error: ErrorCode.UserMissingPassword });
+  }
 
   const passwordsMatch = await verifyPassword(oldPassword, currentPassword);
-
   if (!passwordsMatch) {
-    res.status(403).json({ message: "Incorrect password" });
-    return;
+    return res.status(403).json({ error: ErrorCode.IncorrectPassword });
+  }
+
+  if (oldPassword === newPassword) {
+    return res.status(400).json({ error: ErrorCode.NewPasswordMatchesOld });
   }
 
   const hashedPassword = await hashPassword(newPassword);
-
   await prisma.user.update({
     where: {
       id: user.id,
