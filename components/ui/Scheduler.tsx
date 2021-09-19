@@ -28,15 +28,7 @@ export const Scheduler = ({
   const [openingHours, setOpeningHours] = useState([]);
 
   useEffect(() => {
-    setOpeningHours(
-      availability
-        .filter((item: Availability) => item.days.length !== 0)
-        .map((item) => {
-          item.startDate = dayjs().utc().startOf("day").add(item.startTime, "minutes");
-          item.endDate = dayjs().utc().startOf("day").add(item.endTime, "minutes");
-          return item;
-        })
-    );
+    setOpeningHours(availability.filter((item: Availability) => item.days.length !== 0));
     setDateOverrides(availability.filter((item: Availability) => item.date));
   }, []);
 

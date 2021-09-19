@@ -49,6 +49,7 @@ import classNames from "@lib/classNames";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import Button from "@components/ui/Button";
+import { convertFromUtc } from "@lib/availability";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1259,7 +1260,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const getAvailability = (providesAvailability) =>
     providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
+      ? providesAvailability.availability.map((availability) =>
+          convertFromUtc(availability, providesAvailability.timeZone)
+        )
       : null;
 
   const availability: Availability[] = getAvailability(eventType) || [];

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
+import { convertToUtc } from "@lib/availability";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -111,9 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             prisma.availability.create({
               data: {
                 eventTypeId: +req.body.id,
-                days: schedule.days,
-                startTime: schedule.startTime,
-                endTime: schedule.endTime,
+                ...convertToUtc(schedule, data.timeZone),
               },
             })
           )
