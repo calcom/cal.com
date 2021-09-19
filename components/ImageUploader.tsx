@@ -1,5 +1,5 @@
 import Cropper from "react-easy-crop";
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import T from "@components/T";
 import Slider from "./Slider";
 

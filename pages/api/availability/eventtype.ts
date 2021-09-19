@@ -10,6 +10,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  if (!session.user?.id) {
+    console.error("Session is missing a user id");
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+
+  if (req.method !== "POST") {
+    const event = await prisma.eventType.findUnique({
+      where: { id: req.body.id },
+      include: {
+        users: true,
+      },
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: "No event exists matching that id." });
+    }
+
+    const isAuthorized =
+      event.userId === session.user.id ||
+      event.users.find((user) => {
+        return user.id === session.user?.id;
+      });
+
+    if (!isAuthorized) {
+      console.warn(`User ${session.user.id} attempted to an access an event ${event.id} they do not own.`);
+      return res.status(404).json({ message: "No event exists matching that id." });
+    }
+  }
+
   if (req.method == "PATCH" || req.method == "POST") {
     const data = {
       title: req.body.title,

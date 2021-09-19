@@ -1,9 +1,9 @@
 import {
-  TrashIcon,
   DotsHorizontalIcon,
+  ExternalLinkIcon,
   LinkIcon,
   PencilAltIcon,
-  ExternalLinkIcon,
+  TrashIcon,
 } from "@heroicons/react/outline";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import { useState } from "react";
