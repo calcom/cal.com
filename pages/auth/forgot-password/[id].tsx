@@ -2,7 +2,7 @@ import { getCsrfToken } from "next-auth/client";
 import prisma from "@lib/prisma";
 import { HeadSeo } from "@components/seo/head-seo";
 import React, { useMemo } from "react";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import debounce from "lodash.debounce";
 import dayjs from "dayjs";
 import { ResetPasswordRequest } from "@prisma/client";
@@ -77,21 +77,18 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
         <div className="space-y-6">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              <T id="success" defaultMessage="Success" />
+              <T>Success</T>
             </h2>
           </div>
           <p>
-            <T id="yourPasswordHasBeenReset" defaultMessage="Your password has been reset." />{" "}
-            <T
-              id="youCanLoginWithYourNewlyPassword"
-              defaultMessage="You can now login with your newly created password."
-            />
+            <T id="yourPasswordHasBeenReset">Your password has been reset.</T>{" "}
+            <T id="youCanLoginWithYourNewlyPassword">You can now login with your newly created password.</T>
           </p>
           <Link href="/auth/login">
             <button
               type="button"
               className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              <T id="login" defaultMessage="Login" />
+              <T>Login</T>
             </button>
           </Link>
         </div>
@@ -106,21 +103,21 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Whoops</h2>
             <h2 className="text-center text-3xl font-extrabold text-gray-900">
-              <T id="thatRequestIsExpired" defaultMessage="That Request is Expired." />
+              <T id="thatRequestIsExpired">That Request is Expired.</T>
             </h2>
           </div>
           <p>
-            <T id="thatRequestIsExpired" defaultMessage="That request is expired." />{" "}
-            <T
-              id="enterEmailResetPassword"
-              defaultMessage="You can back and enter the email associated with your account and we will you another link to reset your password."
-            />
+            <T id="thatRequestIsExpired">That request is expired.</T>{" "}
+            <T id="enterEmailResetPassword">
+              You can back and enter the email associated with your account and we will you another link to
+              reset your password.
+            </T>
           </p>
           <Link href="/auth/forgot-password">
             <button
               type="button"
               className="w-full flex justify-center py-2 px-4 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              <T id="tryAgain" defaultMessage="Try Again" />
+              <T>Try Again</T>
             </button>
           </Link>
         </div>
@@ -143,13 +140,10 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
             <>
               <div className="space-y-6">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                  <T id="resetPassword" defaultMessage="Reset Password" />
+                  <T>Reset Password</T>
                 </h2>
                 <p>
-                  <T
-                    id="resetPassword"
-                    defaultMessage="Enter the new password you'd like for your account."
-                  />
+                  <T id="resetPassword">Enter the new password you'd like for your account.</T>
                 </p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
@@ -157,7 +151,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    <T id="newPassword" defaultMessage="New Password" />
+                    <T>New Password</T>
                   </label>
                   <div className="mt-1">
                     <input
@@ -176,8 +170,9 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${loading ? "cursor-not-allowed" : ""
-                      }`}>
+                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
+                      loading ? "cursor-not-allowed" : ""
+                    }`}>
                     {loading && (
                       <svg
                         className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -197,7 +192,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
-                    <T id="submit" defaultMessage="Submit" />
+                    <T>Submit</T>
                   </button>
                 </div>
               </form>

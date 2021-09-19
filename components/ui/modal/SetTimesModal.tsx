@@ -1,5 +1,5 @@
 import { ClockIcon } from "@heroicons/react/outline";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { useRef } from "react";
 
 export default function SetTimesModal(props) {
@@ -60,7 +60,7 @@ export default function SetTimesModal(props) {
             <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
             <div>
               <label htmlFor="startHours" className="sr-only">
-                <T id="hours" defaultMessage="Hours" />
+                <T>Hours</T>
               </label>
               <input
                 ref={startHoursRef}
@@ -78,7 +78,7 @@ export default function SetTimesModal(props) {
             <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="startMinutes" className="sr-only">
-                <T id="minutes" defaultMessage="Minutes" />
+                <T>Minutes</T>
               </label>
               <input
                 ref={startMinsRef}
@@ -99,7 +99,7 @@ export default function SetTimesModal(props) {
             <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
             <div>
               <label htmlFor="endHours" className="sr-only">
-                <T id="hours" defaultMessage="Hours" />
+                <T>Hours</T>
               </label>
               <input
                 ref={endHoursRef}
@@ -117,7 +117,7 @@ export default function SetTimesModal(props) {
             <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="endMinutes" className="sr-only">
-                <T id="minutes" defaultMessage="Minutes" />
+                <T>Minutes</T>
               </label>
               <input
                 ref={endMinsRef}
@@ -136,10 +136,10 @@ export default function SetTimesModal(props) {
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button onClick={updateStartEndTimesHandler} type="submit" className="btn btn-primary">
-              <T id="save" defaultMessage="Save" />
+              <T>Save</T>
             </button>
             <button onClick={props.onExit} type="button" className="btn btn-white mr-2">
-              <T id="cancel" defaultMessage="Cancel" />
+              <T>Cancel</T>
             </button>
           </div>
         </div>

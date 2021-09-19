@@ -4,7 +4,7 @@ import Shell from "@components/Shell";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 import Switch from "@components/ui/Switch";
@@ -149,7 +149,7 @@ export default function Home({ integrations }: Props) {
     <Dialog>
       <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
         <PlusIcon className="w-5 h-5 mr-1 inline" />
-        <T id="connectNewApp" defaultMessage="Connect a new App" />
+        <T>Connect a new App</T>
       </DialogTrigger>
 
       <DialogContent>
@@ -172,7 +172,7 @@ export default function Home({ integrations }: Props) {
                       <button
                         onClick={() => integrationHandler(integration.type)}
                         className="font-medium text-neutral-900 hover:text-neutral-500">
-                        <T id="add" defaultMessage="Add" />
+                        <T>Add</T>
                       </button>
                     </div>
                   </li>
@@ -183,7 +183,7 @@ export default function Home({ integrations }: Props) {
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
           <DialogClose asChild>
             <Button color="secondary">
-              <T id="cancel" defaultMessage="Cancel" />
+              <T>Cancel</T>
             </Button>
           </DialogClose>
         </div>
@@ -194,7 +194,7 @@ export default function Home({ integrations }: Props) {
   const SelectCalendarDialog = () => (
     <Dialog onOpenChange={(open) => !open && onCloseSelectCalendar()}>
       <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-        <T id="selectCalendars" defaultMessage="Select calendars" />
+        <T>Select calendars</T>
       </DialogTrigger>
 
       <DialogContent>
@@ -229,7 +229,7 @@ export default function Home({ integrations }: Props) {
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
           <DialogClose asChild>
             <Button color="secondary">
-              <T id="confirm" defaultMessage="Confirm" />
+              <T>Confirm</T>
             </Button>
           </DialogClose>
         </div>
@@ -290,7 +290,7 @@ export default function Home({ integrations }: Props) {
             {addCalDavError && (
               <p className="text-red-700 text-sm">
                 <span className="font-bold capitalize">
-                  <T id="error" defaultMessage="Error" />:{" "}
+                  <T>Error</T>:{" "}
                 </span>
                 {addCalDavError.message}
               </p>
@@ -305,7 +305,7 @@ export default function Home({ integrations }: Props) {
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              <T id="save" defaultMessage="Save" />
+              <T>Save</T>
             </Button>
             <DialogClose
               onClick={() => {
@@ -313,7 +313,7 @@ export default function Home({ integrations }: Props) {
               }}
               asChild>
               <Button color="secondary">
-                <T id="cancel" defaultMessage="Cancel" />
+                <T>Cancel</T>
               </Button>
             </DialogClose>
           </div>
@@ -332,10 +332,9 @@ export default function Home({ integrations }: Props) {
             title="Connect to Apple Server"
             subtitle={
               <p>
-                <T
-                  id="generateAppSpecificPassword"
-                  defaultMessage="Generate an app specific password to use with Calendso at"
-                />{" "}
+                <T id="generateAppSpecificPassword">
+                  Generate an app specific password to use with Calendso at
+                </T>{" "}
                 <a
                   className="text-indigo-400"
                   href="https://appleid.apple.com/account/manage"
@@ -344,10 +343,7 @@ export default function Home({ integrations }: Props) {
                   https://appleid.apple.com/account/manage
                 </a>
                 .{" "}
-                <T
-                  id="yourCredentialsWillStoredEncrypted"
-                  defaultMessage="Your credentials will be stored and encrypted."
-                />
+                <T id="yourCredentialsWillStoredEncrypted">Your credentials will be stored and encrypted.</T>
               </p>
             }
           />
@@ -355,7 +351,7 @@ export default function Home({ integrations }: Props) {
             {addAppleError && (
               <p className="text-red-700 text-sm">
                 <span className="font-bold capitalize">
-                  <T id="error" defaultMessage="Error" />:
+                  <T>Error</T>:
                 </span>
                 {addAppleError.message}
               </p>
@@ -370,7 +366,7 @@ export default function Home({ integrations }: Props) {
               type="submit"
               form={ADD_APPLE_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              <T id="save" defaultMessage="Save" />
+              <T>Save</T>
             </button>
             <DialogClose
               onClick={() => {
@@ -378,7 +374,7 @@ export default function Home({ integrations }: Props) {
               }}
               asChild>
               <Button color="secondary">
-                <T id="cancel" defaultMessage="Cancel" />
+                <T>Cancel</T>
               </Button>
             </DialogClose>
           </div>
@@ -419,12 +415,12 @@ export default function Home({ integrations }: Props) {
                                 <p className="flex items-center text-sm text-gray-500">
                                   {ig.type.endsWith("_calendar") && (
                                     <span className="truncate">
-                                      <T id="calendarIntegration" defaultMessage="Calendar Integration" />
+                                      <T>Calendar Integration</T>
                                     </span>
                                   )}
                                   {ig.type.endsWith("_video") && (
                                     <span className="truncate">
-                                      <T id="videoConferencing" defaultMessage="Video Conferencing" />
+                                      <T>Video Conferencing</T>
                                     </span>
                                   )}
                                 </p>
@@ -433,13 +429,13 @@ export default function Home({ integrations }: Props) {
                                 {ig.credential.key && (
                                   <p className="mt-2 flex items-center text text-gray-500">
                                     <CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" />
-                                    <T id="connected" defaultMessage="Connected" />
+                                    <T>Connected</T>
                                   </p>
                                 )}
                                 {!ig.credential.key && (
                                   <p className="mt-3 flex items-center text text-gray-500">
                                     <XCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" />
-                                    <T id="notConnected" defaultMessage="Not connected" />
+                                    <T>Not connected</T>
                                   </p>
                                 )}
                               </div>
@@ -462,15 +458,12 @@ export default function Home({ integrations }: Props) {
                 </div>
                 <div className="py-5 sm:p-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    <T id="youDoNotHaveAnyApps" defaultMessage="You don't have any apps connected." />
+                    <T id="youDoNotHaveAnyApps">You don&apos;t have any apps connected.</T>
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
                     <p>
-                      <T
-                        id="youCurrentlyDoNotAppsConnected"
-                        defaultMessage="You currently do not have any apps connected."
-                      />{" "}
-                      <T id="connectYourFistApp" defaultMessage="Connect your first app to get started." />
+                      <T id="youCurrentlyDoNotAppsConnected">You currently do not have any apps connected.</T>{" "}
+                      <T id="connectYourFirstApp">Connect your first app to get started.</T>
                     </p>
                   </div>
                   <ConnectNewAppDialog />
@@ -482,14 +475,13 @@ export default function Home({ integrations }: Props) {
         <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
-              <T id="selectCalendars" defaultMessage="Select calendars" />
+              <T>Select calendars</T>
             </h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>
-                <T
-                  id="selectCalendarsCheckedAvailability"
-                  defaultMessage="Select which calendars are checked for availability to prevent double bookings."
-                />
+                <T id="selectCalendarsCheckedAvailability">
+                  Select which calendars are checked for availability to prevent double bookings.
+                </T>
               </p>
             </div>
             <SelectCalendarDialog />
@@ -498,17 +490,17 @@ export default function Home({ integrations }: Props) {
         <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
-              <T id="launchYourOwnApp" defaultMessage="Launch your own App" />
+              <T>Launch your own App</T>
             </h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>
-                <T id="youWantAddYourOwnApp" defaultMessage="If you want to add your own App here," />{" "}
-                <T id="getTouchWithUs" defaultMessage="get in touch with us." />
+                <T id="youWantAddYourOwnApp">If you want to add your own App here,</T>{" "}
+                <T id="getTouchWithUs">get in touch with us.</T>
               </p>
             </div>
             <div className="mt-5">
               <a href="mailto:apps@cal.com" className="btn btn-white">
-                <T id="contactUs" defaultMessage="Contact us" />
+                <T>Contact us</T>
               </a>
             </div>
           </div>

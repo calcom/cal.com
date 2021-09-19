@@ -1,6 +1,6 @@
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { useRouter } from "next/router";
 import SettingsShell from "@components/Settings";
 import { useSession } from "next-auth/client";
@@ -25,19 +25,16 @@ export default function Embed(props) {
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900">
-              <T id="iframeEmbed" defaultMessage="iframe Embed" />
+              <T>iframe Embed</T>
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              <T
-                id="embedCalendsoOnYourWebsite"
-                defaultMessage="The easiest way to embed Calendso on your website."
-              />
+              <T id="embedCalendsoOnYourWebsite">The easiest way to embed Calendso on your website.</T>
             </p>
           </div>
           <div className="grid grid-cols-2 space-x-4">
             <div>
               <label htmlFor="iframe" className="block text-sm font-medium text-gray-700">
-                <T id="standardIframe" defaultMessage="Standard iframe" />
+                <T>Standard iframe</T>
               </label>
               <div className="mt-1">
                 <textarea
@@ -51,7 +48,7 @@ export default function Embed(props) {
             </div>
             <div>
               <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700">
-                <T id="responsiveFullScreenIframe" defaultMessage="Responsive full screen iframe" />
+                <T>Responsive full screen iframe</T>
               </label>
               <div className="mt-1">
                 <textarea
@@ -81,14 +78,13 @@ export default function Embed(props) {
           <div className="my-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900">Calendso API</h2>
             <p className="mt-1 text-sm text-gray-500">
-              <T
-                id="leverageControlAndCustomizability"
-                defaultMessage="Leverage our API for full control and customizability."
-              />
+              <T id="leverageControlAndCustomizability">
+                Leverage our API for full control and customizability.
+              </T>
             </p>
           </div>
           <a href="https://developer.cal.com/api" className="btn btn-primary">
-            <T id="browseOurDocumentation" defaultMessage="Browse our API documentation" />
+            <T id="browseOurDocumentation">Browse our API documentation</T>
           </a>
         </div>
       </SettingsShell>

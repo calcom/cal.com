@@ -10,7 +10,7 @@ import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import { ClockIcon, XIcon, CheckIcon, BanIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
 import { BookingStatus, User } from "@prisma/client";
@@ -58,7 +58,7 @@ export default function Bookings({ bookings }) {
                           <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
                             {!booking.confirmed && !booking.rejected && (
                               <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <T id="unconfirmed" defaultMessage="Unconfirmed" />
+                                <T>Unconfirmed</T>
                               </span>
                             )}
                             <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
@@ -99,13 +99,13 @@ export default function Bookings({ bookings }) {
                                     onClick={() => confirmBookingHandler(booking, true)}
                                     StartIcon={CheckIcon}
                                     color="secondary">
-                                    <T id="confirm" defaultMessage="Confirm" />
+                                    <T>Confirm</T>
                                   </Button>
                                   <Button
                                     onClick={() => confirmBookingHandler(booking, false)}
                                     StartIcon={BanIcon}
                                     color="secondary">
-                                    <T id="reject" defaultMessage="Reject" />
+                                    <T>Reject</T>
                                   </Button>
                                 </div>
                                 <Menu as="div" className="inline-block lg:hidden text-left ">
@@ -114,7 +114,7 @@ export default function Bookings({ bookings }) {
                                       <div>
                                         <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
                                           <span className="sr-only">
-                                            <T id="openOptions" defaultMessage="Open options" />
+                                            <T>Open options</T>
                                           </span>
                                           <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                                         </Menu.Button>
@@ -146,7 +146,7 @@ export default function Bookings({ bookings }) {
                                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
-                                                  <T id="confirm" defaultMessage="Confirm" />
+                                                  <T>Confirm</T>
                                                 </span>
                                               )}
                                             </Menu.Item>
@@ -164,7 +164,7 @@ export default function Bookings({ bookings }) {
                                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
-                                                  <T id="reject" defaultMessage="Reject" />
+                                                  <T>Reject</T>
                                                 </span>
                                               )}
                                             </Menu.Item>
@@ -184,13 +184,13 @@ export default function Bookings({ bookings }) {
                                     href={"/cancel/" + booking.uid}
                                     StartIcon={XIcon}
                                     color="secondary">
-                                    Cancel
+                                    <T>Cancel</T>
                                   </Button>
                                   <Button
                                     href={"reschedule/" + booking.uid}
                                     StartIcon={ClockIcon}
                                     color="secondary">
-                                    Reschedule
+                                    <T>Reschedule</T>
                                   </Button>
                                 </div>
                                 <Menu as="div" className="inline-block lg:hidden text-left ">
@@ -199,7 +199,7 @@ export default function Bookings({ bookings }) {
                                       <div>
                                         <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
                                           <span className="sr-only">
-                                            <T id="openOptions" defaultMessage="Open options" />
+                                            <T>Open options</T>
                                           </span>
                                           <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                                         </Menu.Button>
@@ -232,7 +232,7 @@ export default function Bookings({ bookings }) {
                                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
-                                                  <T id="cancel" defaultMessage="Cancel" />
+                                                  <T>Cancel</T>
                                                 </a>
                                               )}
                                             </Menu.Item>
@@ -252,7 +252,7 @@ export default function Bookings({ bookings }) {
                                                     className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                                                     aria-hidden="true"
                                                   />
-                                                  <T id="reschedule" defaultMessage="Reschedule" />
+                                                  <T>Reschedule</T>
                                                 </a>
                                               )}
                                             </Menu.Item>
@@ -266,7 +266,7 @@ export default function Bookings({ bookings }) {
                             )}
                             {!booking.confirmed && booking.rejected && (
                               <div className="text-sm text-gray-500 capitalize">
-                                <T id="rejected" defaultMessage="Rejected" />
+                                <T>Rejected</T>
                               </div>
                             )}
                           </td>

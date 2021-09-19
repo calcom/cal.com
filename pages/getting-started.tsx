@@ -11,7 +11,7 @@ import {
 } from "@prisma/client";
 import { NextPageContext } from "next";
 import React, { useState, useEffect, useRef } from "react";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
 import Text from "@components/ui/Text";
@@ -149,7 +149,7 @@ export default function Onboarding(props: OnboardingProps) {
         </div>
         <div className="w-2/12 text-right pt-2">
           <Button color="secondary" onClick={() => integrationHandler(integration.type)}>
-            <T id="connect" defaultMessage="Connect" />
+            <T>Connect</T>
           </Button>
         </div>
       </li>
@@ -227,7 +227,7 @@ export default function Onboarding(props: OnboardingProps) {
             {addCalDavError && (
               <p className="text-red-700 text-sm">
                 <span className="font-bold">
-                  <T id="error" defaultMessage="Error" />:{" "}
+                  <T>Error</T>:{" "}
                 </span>
                 {addCalDavError.message}
               </p>
@@ -242,7 +242,7 @@ export default function Onboarding(props: OnboardingProps) {
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              <T id="save" defaultMessage="Save" />
+              <T>Save</T>
             </button>
             <DialogClose
               onClick={() => {
@@ -250,7 +250,7 @@ export default function Onboarding(props: OnboardingProps) {
               }}
               asChild>
               <Button color="secondary">
-                <T id="cancel" defaultMessage="Cancel" />
+                <T>Cancel</T>
               </Button>
             </DialogClose>
           </div>
@@ -362,7 +362,7 @@ export default function Onboarding(props: OnboardingProps) {
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                <T id="fullName" defaultMessage="Full name" />
+                <T>Full name</T>
               </label>
               <input
                 ref={nameRef}
@@ -380,10 +380,10 @@ export default function Onboarding(props: OnboardingProps) {
             <fieldset>
               <section className="flex justify-between">
                 <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                  <T id="timezone" defaultMessage="Timezone" />
+                  <T>Timezone</T>
                 </label>
                 <Text variant="caption">
-                  <T id="currentTime" defaultMessage="Current time" />
+                  <T>Current time</T>
                   :&nbsp;
                   <span className="text-black">{currentTime}</span>
                 </Text>
@@ -460,7 +460,7 @@ export default function Onboarding(props: OnboardingProps) {
           </section>
           <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
             <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
-              <T id="continue" defaultMessage="Continue" />
+              <T>Continue</T>
             </Button>
           </footer>
         </>
@@ -480,7 +480,7 @@ export default function Onboarding(props: OnboardingProps) {
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                <T id="fullName" defaultMessage="Full name" />
+                <T>Full name</T>
               </label>
               <input
                 ref={nameRef}
@@ -496,7 +496,7 @@ export default function Onboarding(props: OnboardingProps) {
             </fieldset>
             <fieldset>
               <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                <T id="about" defaultMessage="About" />
+                <T>About</T>
               </label>
               <input
                 ref={bioRef}
@@ -508,11 +508,8 @@ export default function Onboarding(props: OnboardingProps) {
                 defaultValue={props.user.bio}
               />
               <Text variant="caption">
-                <T id="fewSentencesAboutYourself" defaultMessage="A few sentences about yourself." />{" "}
-                <T
-                  id="willAppearYourPersonalPage"
-                  defaultMessage="This will appear on your personal url page."
-                />
+                <T id="fewSentencesAboutYourself">A few sentences about yourself.</T>{" "}
+                <T id="willAppearYourPersonalPage">This will appear on your personal url page.</T>
               </Text>
             </fieldset>
           </section>
@@ -549,7 +546,7 @@ export default function Onboarding(props: OnboardingProps) {
     <div className="bg-black min-h-screen">
       <Head>
         <title>
-          Calendso - <T id="gettingStarted" defaultMessage="Getting Started" />
+          Calendso - <T>Getting Started</T>
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -559,10 +556,10 @@ export default function Onboarding(props: OnboardingProps) {
           <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
             <header className="">
               <Text className="text-white" variant="largetitle">
-                <T id={steps[currentStep].titleId} defaultMessage={steps[currentStep].title} />
+                <T id={steps[currentStep].titleId}>{steps[currentStep].title}</T>
               </Text>
               <Text className="text-white" variant="subtitle">
-                <T id={steps[currentStep].descriptionId} defaultMessage={steps[currentStep].description} />
+                <T id={steps[currentStep].descriptionId}>{steps[currentStep].description}</T>
               </Text>
             </header>
             <section className="space-y-2">
@@ -599,7 +596,7 @@ export default function Onboarding(props: OnboardingProps) {
             {!steps[currentStep].hideConfirm && (
               <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
                 <Button className="justify-center" onClick={handleConfirmStep} EndIcon={ArrowRightIcon}>
-                  <T id={steps[currentStep].confirmTextId} defaultMessage={steps[currentStep].confirmText} />
+                  <T id={steps[currentStep].confirmTextId}>{steps[currentStep].confirmText}</T>
                 </Button>
               </footer>
             )}
@@ -608,13 +605,13 @@ export default function Onboarding(props: OnboardingProps) {
             <div className="flex justify-between flex-row-reverse">
               <button onClick={handleSkipStep}>
                 <Text variant="caption">
-                  <T id="skipStep" defaultMessage="Skip Step" />
+                  <T>Skip Step</T>
                 </Text>
               </button>
               {currentStep !== 0 && (
                 <button onClick={decrementStep}>
                   <Text variant="caption">
-                    <T id="prevStep" defaultMessage="Prev Step" />
+                    <T>Prev Step</T>
                   </Text>
                 </button>
               )}

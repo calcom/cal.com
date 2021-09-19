@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { XIcon } from "@heroicons/react/outline";
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 
 export default function Error() {
   const router = useRouter();
@@ -30,11 +30,8 @@ export default function Error() {
               </h3>
               <div className="mt-2">
                 <p className="text-sm text-gray-500">
-                  <T id="errorOccurredWhenLogging" defaultMessage="An error occurred when logging you in." />{" "}
-                  <T
-                    id="goBackLoginScreenAndTryAgain"
-                    defaultMessage="Head back to the login screen and try again."
-                  />
+                  <T id="errorOccurredWhenLogging">An error occurred when logging you in.</T>{" "}
+                  <T id="goBackLoginScreenAndTryAgain">Head back to the login screen and try again.</T>
                 </p>
               </div>
             </div>
@@ -42,7 +39,7 @@ export default function Error() {
           <div className="mt-5 sm:mt-6">
             <Link href="/auth/login">
               <a className="inline-flex justify-center w-full rounded-sm border border-transparent shadow-sm px-4 py-2 bg-neutral-900 text-base font-medium text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 sm:text-sm">
-                <T id="goBackLoginPage" defaultMessage="Go back to the login page" />
+                <T id="goBackLoginPage">Go back to the login page</T>
               </a>
             </Link>
           </div>

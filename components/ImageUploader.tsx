@@ -1,6 +1,6 @@
 import Cropper from "react-easy-crop";
 import { useState, useCallback, useRef } from "react";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import Slider from "./Slider";
 
 export default function ImageUploader({ target, id, buttonMsg, handleAvatarChange, imageRef }) {
@@ -143,7 +143,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
               <div className="sm:flex sm:items-start mb-4">
                 <div className="mt-3 text-center sm:mt-0 sm:text-left">
                   <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                    Upload {target}
+                    {/* TODO: Traslate */} Upload {target}
                   </h3>
                 </div>
               </div>
@@ -186,6 +186,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
                     htmlFor={id}
                     className="mt-8 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;">
                     Choose a file...
+                    {/* TODO: Traslate */}
                   </label>
                   <input
                     onChange={ImageUploadHandler}
@@ -201,10 +202,10 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
               </div>
               <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                 <button type="button" className="btn btn-primary" onClick={showCroppedImage}>
-                  <T id="save" defaultMessage="Save" />
+                  <T>Save</T>
                 </button>
                 <button onClick={closeImageUploadModal} type="button" className="btn btn-white mr-2">
-                  <T id="cancel" defaultMessage="Cancel" />
+                  <T>Cancel</T>
                 </button>
               </div>
             </div>

@@ -5,7 +5,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
 import { getSession } from "@lib/auth";
 import { useEffect, useState } from "react";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import Shell from "@components/Shell";
 
 dayjs.extend(utc);
@@ -66,10 +66,7 @@ export default function Troubleshoot({ user }) {
             />
 
             <small className="block text-neutral-400">
-              <T
-                id="hoverMouseForFullTimestamp"
-                defaultMessage="Tip: Hover over the bold times for a full timestamp"
-              />
+              <T id="hoverMouseForFullTimestamp">Tip: Hover over the bold times for a full timestamp</T>
             </small>
             <div className="mt-4 space-y-4">
               <div className="bg-black overflow-hidden rounded-sm">
@@ -84,18 +81,15 @@ export default function Troubleshoot({ user }) {
               {availability.map((slot) => (
                 <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
                   <div className="px-4 py-5 sm:p-6 text-black">
-                    <T
-                      id="yourCalendarShowsBusyBetween"
-                      defaultMessage="Your calendar shows you as busy between"
-                    />{" "}
+                    <T id="yourCalendarShowsBusyBetween">Your calendar shows you as busy between</T>{" "}
                     <span className="font-medium text-neutral-800" title={slot.start}>
                       {dayjs(slot.start).format("HH:mm")}
                     </span>{" "}
-                    <T id="and" defaultMessage="and" />{" "}
+                    <T>and</T>{" "}
                     <span className="font-medium text-neutral-800" title={slot.end}>
                       {dayjs(slot.end).format("HH:mm")}
                     </span>{" "}
-                    <T id="on" defaultMessage="on" /> {dayjs(slot.start).format("D MMMM YYYY")}
+                    <T>on</T> {dayjs(slot.start).format("D MMMM YYYY")}
                   </div>
                 </div>
               ))}

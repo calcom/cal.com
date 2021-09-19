@@ -1,5 +1,5 @@
 import { UsersIcon } from "@heroicons/react/outline";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { useState } from "react";
 import Button from "@components/ui/Button";
 import { Team } from "@lib/team";
@@ -124,7 +124,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                 Invite
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>
-                <T id="cancel" defaultMessage="Cancel" />
+                <T>Cancel</T>
               </Button>
             </div>
           </form>

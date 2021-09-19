@@ -3,7 +3,7 @@ import Link from "next/link";
 import { HeadSeo } from "@components/seo/head-seo";
 import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import prisma from "@lib/prisma";
 import Avatar from "@components/ui/Avatar";
 import Text from "@components/ui/Text";
@@ -74,7 +74,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
                 </div>
                 <div className="relative flex justify-center">
                   <span className="px-2 bg-gray-100 text-sm text-gray-500 dark:bg-black dark:text-gray-500 uppercase">
-                    <T id="or" defaultMessage="OR" />
+                    <T>OR</T>
                   </span>
                 </div>
               </div>
@@ -85,7 +85,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
                   EndIcon={ArrowRightIcon}
                   href={`/team/${team.slug}?members=1`}
                   shallow={true}>
-                  <T id="bookTeamMemberInstead" defaultMessage="Book a team member instead" />
+                  <T id="bookTeamMemberInstead">Book a team member instead</T>
                 </Button>
               </aside>
             </div>

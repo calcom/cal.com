@@ -1,6 +1,6 @@
 import prisma from "@lib/prisma";
 import { getIntegrationName, getIntegrationType } from "@lib/integrations";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/client";
@@ -40,7 +40,7 @@ export default function Integration(props) {
           <div className="col-span-2 bg-white border border-gray-200 mb-6 overflow-hidden rounded-sm">
             <div className="px-4 py-5 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                <T id="integrationDetails" defaultMessage="Integration Details" />
+                <T>Integration Details</T>
               </h3>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
                 <T
@@ -54,13 +54,13 @@ export default function Integration(props) {
               <dl className="grid gap-y-8">
                 <div>
                   <dt className="text-sm font-medium text-gray-500">
-                    <T id="appName" defaultMessage="App name" />
+                    <T>App name</T>
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">{getIntegrationName(props.integration.type)}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">
-                    <T id="appCategory" defaultMessage="App Category" />
+                    <T>App Category</T>
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">{getIntegrationType(props.integration.type)}</dd>
                 </div>
@@ -71,12 +71,12 @@ export default function Integration(props) {
             <div className="bg-white border border-gray-200 mb-6 rounded-sm">
               <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  <T id="deleteThisApp" defaultMessage="Delete this app" />
+                  <T>Delete this app</T>
                 </h3>
                 <div className="mt-2 max-w-xl text-sm text-gray-500">
                   <p>
-                    <T id="onceYourDeleteThisApp" defaultMessage="Once you delete this app," />{" "}
-                    <T id="willBePermanentlyRemoved" defaultMessage="it will be permanently removed." />
+                    <T id="onceYourDeleteThisApp">Once you delete this app,</T>{" "}
+                    <T id="willBePermanentlyRemoved">it will be permanently removed.</T>
                   </p>
                 </div>
                 <div className="mt-5">
@@ -84,7 +84,7 @@ export default function Integration(props) {
                     onClick={deleteIntegrationHandler}
                     type="button"
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-sm text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
-                    <T id="deleteApp" defaultMessage="Delete App" />
+                    <T>Delete App</T>
                   </button>
                 </div>
               </div>

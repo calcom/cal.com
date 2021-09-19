@@ -4,7 +4,7 @@ import utc from "dayjs/plugin/utc";
 import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { Button } from "@components/ui/Button";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -44,7 +44,8 @@ export default function Type(props) {
 
     if (res.status >= 200 && res.status < 300) {
       await router.push(
-        `/cancel/success?name=${props.profile.name}&title=${props.booking.title}&eventPage=${props.profile.slug
+        `/cancel/success?name=${props.profile.name}&title=${props.booking.title}&eventPage=${
+          props.profile.slug
         }&team=${props.booking.eventType.team ? 1 : 0}`
       );
     } else {
@@ -91,14 +92,11 @@ export default function Type(props) {
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
                         <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                          <T id="reallyCancelYourBooking" defaultMessage="Really cancel your booking?" />
+                          <T id="reallyCancelYourBooking">Really cancel your booking?</T>
                         </h3>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
-                            <T
-                              id="youCouldAlsoReschedule"
-                              defaultMessage="Instead, you could also reschedule it."
-                            />
+                            <T id="youCouldAlsoReschedule">Instead, you could also reschedule it.</T>
                           </p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
@@ -119,10 +117,10 @@ export default function Type(props) {
                         data-testid="cancel"
                         onClick={cancellationHandler}
                         loading={loading}>
-                        <T id="cancel" defaultMessage="Cancel" />
+                        <T>Cancel</T>
                       </Button>
                       <Button onClick={() => router.push("/reschedule/" + uid)}>
-                        <T id="reschedule" defaultMessage="Reschedule" />
+                        <T>Reschedule</T>
                       </Button>
                     </div>
                   </>
@@ -181,9 +179,9 @@ export async function getServerSideProps(context) {
 
   const profile = booking.eventType.team
     ? {
-      name: booking.eventType.team.name,
-      slug: booking.eventType.team.slug,
-    }
+        name: booking.eventType.team.name,
+        slug: booking.eventType.team.slug,
+      }
     : booking.user;
 
   return {

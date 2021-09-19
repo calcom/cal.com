@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 import { TrashIcon } from "@heroicons/react/outline";
+import T from "@components/T";
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";
 import dayjs from "dayjs";
@@ -102,7 +103,7 @@ export const Scheduler = ({
         <div className="w-full">
           <div className="">
             <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-              Timezone
+              <T>Timezone</T>
             </label>
             <div className="mt-1">
               <TimezoneSelect
@@ -119,7 +120,7 @@ export const Scheduler = ({
             ))}
           </ul>
           <button type="button" onClick={addNewSchedule} className="btn-white btn-sm mt-2">
-            Add another
+            <T>Add another</T>
           </button>
         </div>
       </div>

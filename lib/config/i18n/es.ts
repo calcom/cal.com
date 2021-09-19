@@ -70,6 +70,7 @@ const es = {
   addToCalendar: "Add al calendario",
   editLocation: "Editar el lugar",
   addAnotherLocation: "Agrega otra ubicación",
+  addAnother: "Agregar otra",
   phoneNumber: "Número telefónico",
   phoneCall: "Llamada telefónica",
   additionalGuests: "Invitados adicionales",
@@ -93,6 +94,8 @@ const es = {
   copyLinkToEvent: "Copiar enlace del evento",
   save: "Guardar",
   isRequired: "Es requerido",
+  required: "Requerído",
+  optional: "Opcional",
   label: "Etiqueta",
   title: "Título",
   type: "Tipo",
@@ -146,6 +149,7 @@ const es = {
   connected: "Conectado",
   integrations: "Integraciones",
   eventTypes: "Tipo de eventos",
+  hideEventType: "Ocultar tipo de evento",
   createEventsToShare: "Crea eventos para compartir y la gente reserve en tu agenda.",
   bookings: "Reservas",
   seeUpcomingPastEvents:
@@ -235,7 +239,7 @@ const es = {
   videoConferencing: "Videoconferencias",
   youDoNotHaveAnyApps: "No tienes ninguna aplicación conectada.",
   youCurrentlyDoNotAppsConnected: "Actualmente no tiene ninguna aplicación conectada.",
-  connectYourFistApp: "Conecta tu primera aplicación para empezar.",
+  connectYourFirstApp: "Conecta tu primera aplicación para empezar.",
   selectCalendarsCheckedAvailability:
     "Seleccione qué calendarios se comprueban para evitar las reservas dobles.",
   youWantAddYourOwnApp: "Si quieres añadir tu propia App aquí,",

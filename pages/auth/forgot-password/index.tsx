@@ -1,6 +1,6 @@
 import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import React from "react";
 import { getCsrfToken } from "next-auth/client";
 import debounce from "lodash.debounce";
@@ -65,11 +65,11 @@ export default function ForgotPassword({ csrfToken }) {
     return (
       <div className="space-y-6">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          <T id="done" defaultMessage="Done" />
+          <T>Done</T>
         </h2>
         <p>
-          <T id="checkYourEmail" defaultMessage="Check your email." />{" "}
-          <T id="sentLinkResetPassword" defaultMessage="We sent you a link to reset your password." />
+          <T id="checkYourEmail">Check your email.</T>{" "}
+          <T id="sentLinkResetPassword">We sent you a link to reset your password.</T>
         </p>
         {error && <p className="text-red-600">{error.message}</p>}
       </div>
@@ -86,14 +86,13 @@ export default function ForgotPassword({ csrfToken }) {
             <>
               <div className="space-y-6">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                  <T id="forgotPassword" defaultMessage="Forgot Password" />
+                  <T>Forgot Password</T>
                 </h2>
                 <p>
-                  <T
-                    id="forgotPasswordDescription"
-                    defaultMessage="Enter the email address associated with your account and we will send you a link to reset
-                  your password."
-                  />
+                  <T id="forgotPasswordDescription">
+                    Enter the email address associated with your account and we will send you a link to reset
+                    your password.
+                  </T>
                 </p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
@@ -101,7 +100,7 @@ export default function ForgotPassword({ csrfToken }) {
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    <T id="emailAddress" defaultMessage="Email address" />
+                    <T>Email address</T>
                   </label>
                   <div className="mt-1">
                     <input
@@ -121,8 +120,9 @@ export default function ForgotPassword({ csrfToken }) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${loading ? "cursor-not-allowed" : ""
-                      }`}>
+                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
+                      loading ? "cursor-not-allowed" : ""
+                    }`}>
                     {loading && (
                       <svg
                         className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -142,7 +142,7 @@ export default function ForgotPassword({ csrfToken }) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
-                    <T id="requestPasswordReset" defaultMessage="Request Password Reset" />
+                    <T>Request Password Reset</T>
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -150,7 +150,7 @@ export default function ForgotPassword({ csrfToken }) {
                     <button
                       type="button"
                       className="w-full flex justify-center py-2 px-4 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                      <T id="login" defaultMessage="Login" />
+                      <T>Login</T>
                     </button>
                   </Link>
                 </div>

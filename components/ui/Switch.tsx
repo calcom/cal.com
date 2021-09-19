@@ -1,6 +1,7 @@
 import { useState } from "react";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
 import * as Label from "@radix-ui/react-label";
+import T from "@components/T";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -33,7 +34,7 @@ export default function Switch(props) {
       </PrimitiveSwitch.Root>
       {label && (
         <Label.Root className="text-neutral-700 align-text-top ml-3 font-medium cursor-pointer">
-          {label}
+          <T>{label}</T>
         </Label.Root>
       )}
     </div>

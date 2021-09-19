@@ -4,7 +4,7 @@ import SettingsShell from "@components/Settings";
 import { useEffect, useState, useRef } from "react";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/client";
-import { FormattedMessage as T } from "react-intl";
+import T from "@components/T";
 import { UsersIcon } from "@heroicons/react/outline";
 import TeamList from "@components/team/TeamList";
 import TeamListItem from "@components/team/TeamListItem";
@@ -92,14 +92,13 @@ export default function Teams() {
                     <div className="sm:rounded-sm">
                       <div className="pb-5 pr-4 sm:pb-6">
                         <h3 className="text-lg font-medium leading-6 text-gray-900">
-                          <T id="createTeamGetStarted" defaultMessage="Create a team to get started" />
+                          <T id="createTeamGetStarted">Create a team to get started</T>
                         </h3>
                         <div className="max-w-xl mt-2 text-sm text-gray-500">
                           <p>
-                            <T
-                              id="createYourFirstTeam"
-                              defaultMessage="Create your first team and invite other users to work together with you."
-                            />
+                            <T id="createYourFirstTeam">
+                              Create your first team and invite other users to work together with you.
+                            </T>
                           </p>
                         </div>
                       </div>
@@ -112,7 +111,7 @@ export default function Teams() {
                     onClick={() => setShowCreateTeamModal(true)}
                     className="btn btn-white">
                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
-                    <T id="newTeam" defaultMessage="New Team" />
+                    <T>New Team</T>
                   </Button>
                 </div>
               </div>
@@ -162,14 +161,11 @@ export default function Teams() {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                      <T id="createNewTeam" defaultMessage="Create a new team" />
+                      <T id="createNewTeam">Create a new team</T>
                     </h3>
                     <div>
                       <p className="text-sm text-gray-400">
-                        <T
-                          id="createTeamCollaborateUsers"
-                          defaultMessage="Create a new team to collaborate with users."
-                        />
+                        <T id="createTeamCollaborateUsers">Create a new team to collaborate with users.</T>
                       </p>
                     </div>
                   </div>
@@ -177,7 +173,7 @@ export default function Teams() {
                 <form onSubmit={createTeam}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 capitalize">
-                      <T id="name" defaultMessage="Name" />
+                      <T>Name</T>
                     </label>
                     <input
                       ref={nameRef}
@@ -191,13 +187,13 @@ export default function Teams() {
                   </div>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
-                      <T id="createTeam" defaultMessage="Create team" />
+                      <T>Create team</T>
                     </button>
                     <button
                       onClick={() => setShowCreateTeamModal(false)}
                       type="button"
                       className="mr-2 btn btn-white">
-                      <T id="cancel" defaultMessage="Cancel" />
+                      <T>Cancel</T>
                     </button>
                   </div>
                 </form>
