@@ -308,12 +308,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         );
       case LocationType.Phone:
         return (
-          <p className="text-sm">Calendso will ask your invitee to enter a phone number before scheduling.</p>
+          <p className="text-sm">Cal will ask your invitee to enter a phone number before scheduling.</p>
         );
       case LocationType.GoogleMeet:
-        return <p className="text-sm">Calendso will provide a Google Meet location.</p>;
+        return <p className="text-sm">Cal will provide a Google Meet location.</p>;
       case LocationType.Zoom:
-        return <p className="text-sm">Calendso will provide a Zoom meeting URL.</p>;
+        return <p className="text-sm">Cal will provide a Zoom meeting URL.</p>;
     }
     return null;
   };
