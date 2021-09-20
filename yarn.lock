@@ -7489,10 +7489,10 @@ ts-pnp@^1.1.6:
   resolved "https://registry.yarnpkg.com/ts-pnp/-/ts-pnp-1.2.0.tgz#a500ad084b0798f1c3071af391e65912c86bca92"
   integrity sha512-csd+vJOb/gkzvcCHgTGSChYpy5f1/XKNsmvBGO4JXS+z1v2HobugDz4s1IeFXM3wZB44uczs+eazB5Q/ccdhQw==
 
-tsdav@^1.0.6:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/tsdav/-/tsdav-1.1.0.tgz#48fe17df07f852ff8dfddf71fae2396e79ed6735"
-  integrity sha512-Cc/VTFgUC/fOOFkGT/xuwrrIrG0+it7WA5ywNM4QyYWAzXVw+WmbM1pr7/7fzHA/OOVQ0a8RyPi4K1C+mFBGJw==
+tsdav@1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/tsdav/-/tsdav-1.0.6.tgz#65c22fc77d6516db234c1288ff9c9fed6730fef5"
+  integrity sha512-xnKE39wZtyLoyW1UClYAb2Eilx6tHzbqhO2v29P1zrmwLAsKNYUHwHb+lrmJHfZZLsbbzKWRg5dPLYRuEXmMJA==
   dependencies:
     base-64 "^1.0.0"
     cross-fetch "^3.1.4"
