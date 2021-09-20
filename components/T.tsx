@@ -12,10 +12,12 @@ export interface Props {
 export const T = function t(props: Props) {
   const { defaultMessage, values } = props;
   const { children = defaultMessage } = props;
+  if (!children) return <></>;
   let { id } = props;
   if (!id) {
     id = toCamelCase(children);
   }
+  if (typeof children !== "string") return children;
   return (
     <div>
       <FormattedMessage id={id} defaultMessage={children} values={values} />

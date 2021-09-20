@@ -369,7 +369,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       description: "Cycle meetings between multiple team members.",
     },
   ];
-
   return (
     <div>
       <Shell
@@ -842,12 +841,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   defaultValue={
                                                     eventType.periodCountCalendarDays ? "1" : "0"
                                                   }>
-                                                  <option value="1">
-                                                    <T>calendar days</T>
-                                                  </option>
-                                                  <option value="0">
-                                                    <T>business days</T>
-                                                  </option>
+                                                  <option value="1">calendar days</option>
+                                                  <option value="0">business days</option>
                                                 </select>
                                               </div>
                                             )}
