@@ -10,8 +10,9 @@ import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import classNames from "@lib/classNames";
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
+import { InferGetServerSidePropsType } from "next";
 
-export default function Bookings({ bookings }) {
+export default function Bookings({ bookings }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
@@ -63,11 +64,19 @@ export default function Bookings({ bookings }) {
                             </div>
                             <div className="sm:hidden">
                               <div className="text-sm text-gray-900">
-                                {dayjs(booking.startTime).format("D MMMM YYYY")}:{" "}
-                                <small className="text-sm text-gray-500">
-                                  {dayjs(booking.startTime).format("HH:mm")} -{" "}
-                                  {dayjs(booking.endTime).format("HH:mm")}
-                                </small>
+                                {booking.startTime && booking.endTime ? (
+                                  <>
+                                    {dayjs(booking.startTime).format("D MMMM YYYY")}:{" "}
+                                    {
+                                      <small className="text-sm text-gray-500">
+                                        {dayjs(booking.startTime).format("HH:mm")} -{" "}
+                                        {dayjs(booking.endTime).format("HH:mm")}
+                                      </small>
+                                    }
+                                  </>
+                                ) : (
+                                  <></>
+                                )}
                               </div>
                             </div>
                             <div className="text-sm text-blue-500">
@@ -77,13 +86,19 @@ export default function Bookings({ bookings }) {
                             </div>
                           </td>
                           <td className="hidden px-6 py-4 sm:table-cell whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {dayjs(booking.startTime).format("D MMMM YYYY")}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {dayjs(booking.startTime).format("HH:mm")} -{" "}
-                              {dayjs(booking.endTime).format("HH:mm")}
-                            </div>
+                            {booking.startTime && booking.endTime ? (
+                              <>
+                                <div className="text-sm text-gray-900">
+                                  {dayjs(booking.startTime).format("D MMMM YYYY")}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {dayjs(booking.startTime).format("HH:mm")} -{" "}
+                                  {dayjs(booking.endTime).format("HH:mm")}
+                                </div>{" "}
+                              </>
+                            ) : (
+                              <></>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                             {!booking.confirmed && !booking.rejected && (
@@ -256,7 +271,11 @@ export async function getServerSideProps(context) {
   });
 
   const bookings = b.reverse().map((booking) => {
-    return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
+    return {
+      ...booking,
+      startTime: booking.startTime ? booking.startTime.toISOString() : null,
+      endTime: booking.endTime ? booking.endTime.toISOString() : null,
+    };
   });
 
   return { props: { bookings } };
