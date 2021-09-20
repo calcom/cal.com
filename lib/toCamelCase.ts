@@ -1,6 +1,5 @@
 // Convert a CamelCase string to kebab-case
 export const toCamelCase = function toCamelCase(string = ""): string {
-  console.log({ string });
   return String(string)
     .replace(/\s(.)/g, ($1) => $1.toUpperCase())
     .replace(/\s/g, "")
