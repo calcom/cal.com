@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       text: message,
     });
 
-    return res.status(201).json({ message: "Reset Requested", data: passwordRequest });
+    return res.status(201).json({ message: "Reset Requested" });
   } catch (reason) {
     console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });

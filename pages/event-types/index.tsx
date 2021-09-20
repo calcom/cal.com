@@ -274,7 +274,7 @@ const EventTypesPage = (props: PageProps) => {
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
         }>
-        {props.user.plan === "FREE" && typeof window !== "undefined" && (
+        {props.user.plan === "FREE" && !props.canAddEvents && typeof window !== "undefined" && (
           <Alert
             severity="warning"
             title={<>You need to upgrade your plan to have more than one active event type.</>}
@@ -357,11 +357,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             <Button EndIcon={ChevronDownIcon}>New event type</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-              Create an event type under
-              <br />
-              your name or a team.
-            </DropdownMenuLabel>
+            <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {profiles.map((profile) => (
               <DropdownMenuItem
@@ -720,7 +716,7 @@ export async function getServerSideProps(context) {
     createdDate: user.createdDate.toString(),
   });
 
-  const canAddEvents = user.plan !== "FREE" || eventTypes.length < 1;
+  const canAddEvents = user.plan !== "FREE" || eventTypes[0].eventTypes.length < 1;
 
   return {
     props: {

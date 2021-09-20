@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@lib/prisma";
 import { getSession } from "@lib/auth";
+import { pick } from "lodash";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -10,17 +11,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const description = req.body.description;
-  delete req.body.description;
-
   try {
     await prisma.user.update({
       where: {
         id: session.user.id,
       },
       data: {
-        ...req.body,
-        bio: description,
+        ...pick(req.body, [
+          "username",
+          "name",
+          "avatar",
+          "timeZone",
+          "weekStart",
+          "hideBranding",
+          "theme",
+          "completedOnboarding",
+        ]),
+        bio: req.body.description,
       },
     });
   } catch (e) {
