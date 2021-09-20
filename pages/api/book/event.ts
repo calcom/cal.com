@@ -242,13 +242,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }; // used for invitee emails
   }
 
+  // Initialize EventManager with credentials
+  const rescheduleUid = req.body.rescheduleUid;
+
   const bookingCreateInput: Prisma.BookingCreateInput = {
     uid,
     title: evt.title,
     startTime: dayjs(evt.startTime).toDate(),
     endTime: dayjs(evt.endTime).toDate(),
     description: evt.description,
-    confirmed: !eventType.requiresConfirmation,
+    confirmed: !eventType.requiresConfirmation || !!rescheduleUid,
     location: evt.location,
     eventType: {
       connect: {
@@ -375,9 +378,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // Initialize EventManager with credentials
   const eventManager = new EventManager(user.credentials);
-  const rescheduleUid = req.body.rescheduleUid;
+
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateResults: CreateUpdateResult = await eventManager.update(evt, rescheduleUid);
@@ -410,7 +412,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  if (eventType.requiresConfirmation) {
+  if (eventType.requiresConfirmation && !rescheduleUid) {
     await new EventOrganizerRequestMail(evt, uid).sendEmail();
   }
 
@@ -429,6 +431,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  // booking succesfull
+  // booking successful
   return res.status(201).json(booking);
 }
