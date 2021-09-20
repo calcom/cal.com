@@ -1,5 +1,6 @@
 // TODO: replace headlessui with radix-ui
 import { Switch } from "@headlessui/react";
+import T from "@components/T";
 import TimezoneSelect from "react-timezone-select";
 import { useEffect, useState } from "react";
 import { is24h, timeZone } from "../../lib/clock";
@@ -29,7 +30,9 @@ const TimeOptions = (props) => {
     selectedTimeZone !== "" && (
       <div className="absolute z-10 w-full max-w-80 rounded-sm border border-gray-200 dark:bg-gray-700 dark:border-0 bg-white px-4 py-2">
         <div className="flex mb-4">
-          <div className="w-1/2 dark:text-white text-gray-600 font-medium">Time Options</div>
+          <div className="w-1/2 dark:text-white text-gray-600 font-medium">
+            <T>Time Options</T>
+          </div>
           <div className="w-1/2">
             <Switch.Group as="div" className="flex items-center justify-end">
               <Switch.Label as="span" className="mr-3">
@@ -42,7 +45,9 @@ const TimeOptions = (props) => {
                   is24hClock ? "bg-black" : "dark:bg-gray-600 bg-gray-200",
                   "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
                 )}>
-                <span className="sr-only">Use setting</span>
+                <span className="sr-only">
+                  <T>Use setting</T>
+                </span>
                 <span
                   aria-hidden="true"
                   className={classNames(

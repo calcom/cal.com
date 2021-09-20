@@ -63,10 +63,12 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                Invite a new member
+                <T>Invite a new member</T>
               </h3>
               <div>
-                <p className="text-sm text-gray-400">Invite someone to your team.</p>
+                <p className="text-sm text-gray-400">
+                  <T id="inviteSomeoneYourTeam">Invite someone to your team.</T>
+                </p>
               </div>
             </div>
           </div>
@@ -74,7 +76,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
             <div>
               <div className="mb-4">
                 <label htmlFor="inviteUser" className="block text-sm font-medium text-gray-700">
-                  Email or Username
+                  <T>Email or Username</T>
                 </label>
                 <input
                   type="text"
@@ -87,7 +89,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
               </div>
               <div className="mb-4">
                 <label className="block mb-2 text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
-                  Role
+                  <T>Role</T>
                 </label>
                 <select
                   id="role"
@@ -108,20 +110,22 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                 </div>
                 <div className="ml-2 text-sm">
                   <label htmlFor="sendInviteEmail" className="font-medium text-gray-700">
-                    Send an invite email
+                    <T>Send an invite email</T>
                   </label>
                 </div>
               </div>
             </div>
             {errorMessage && (
               <p className="text-sm text-red-700">
-                <span className="font-bold">Error: </span>
+                <span className="font-bold">
+                  <T>Error</T>:{" "}
+                </span>
                 {errorMessage}
               </p>
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
               <Button type="submit" color="primary" className="ml-2">
-                Invite
+                <T>Invite</T>
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>
                 <T>Cancel</T>

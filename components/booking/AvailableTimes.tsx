@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import T from "@components/T";
 import { useSlots } from "@lib/hooks/useSlots";
 import { ExclamationIcon } from "@heroicons/react/solid";
 import React from "react";
@@ -68,7 +69,9 @@ const AvailableTimes = ({
         })}
       {!loading && !error && !slots.length && (
         <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
-          <h1 className="text-xl text-black dark:text-white">All booked today.</h1>
+          <h1 className="text-xl text-black dark:text-white">
+            <T>All booked today</T>.
+          </h1>
         </div>
       )}
 
@@ -81,7 +84,9 @@ const AvailableTimes = ({
               <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-yellow-700">Could not load the available time slots.</p>
+              <p className="text-sm text-yellow-700">
+                <T id="couldNotLoadAvailableSlots">Could not load the available time slots</T> .
+              </p>
             </div>
           </div>
         </div>

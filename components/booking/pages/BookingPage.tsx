@@ -55,7 +55,7 @@ const BookingPage = (props: any): JSX.Element => {
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
   // TODO: Move to translations
-  const locationLabels = {
+  const locationLabels: { [index: string]: string } = {
     [LocationType.InPerson]: "Link or In-person meeting",
     [LocationType.Phone]: "Phone call",
     [LocationType.GoogleMeet]: "Google Meet",
@@ -182,7 +182,7 @@ const BookingPage = (props: any): JSX.Element => {
                 </h1>
                 <p className="text-gray-500 mb-2">
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {props.eventType.length} minutes
+                  {props.eventType.length} <T>minutes</T>
                 </p>
                 {selectedLocation === LocationType.InPerson && (
                   <p className="text-gray-500 mb-2">
@@ -200,7 +200,7 @@ const BookingPage = (props: any): JSX.Element => {
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
-                      Your name
+                      <T>Your name</T>
                     </label>
                     <div className="mt-1">
                       <input
@@ -218,7 +218,7 @@ const BookingPage = (props: any): JSX.Element => {
                     <label
                       htmlFor="email"
                       className="block text-sm font-medium dark:text-white text-gray-700">
-                      Email address
+                      <T>Email address</T>
                     </label>
                     <div className="mt-1">
                       <input
@@ -235,7 +235,7 @@ const BookingPage = (props: any): JSX.Element => {
                   {locations.length > 1 && (
                     <div className="mb-4">
                       <span className="block text-sm font-medium dark:text-white text-gray-700">
-                        Location
+                        <T>Location</T>
                       </span>
                       {locations.map((location) => (
                         <label key={location.type} className="block">
@@ -249,7 +249,7 @@ const BookingPage = (props: any): JSX.Element => {
                             checked={selectedLocation === location.type}
                           />
                           <span className="text-sm ml-2 dark:text-gray-500">
-                            {locationLabels[location.type]}
+                            <T>{locationLabels[location.type]}</T>
                           </span>
                         </label>
                       ))}
@@ -260,7 +260,7 @@ const BookingPage = (props: any): JSX.Element => {
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium dark:text-white text-gray-700">
-                        Phone Number
+                        <T>Phone Number</T>
                       </label>
                       <div className="mt-1">
                         <PhoneInput
@@ -342,7 +342,7 @@ const BookingPage = (props: any): JSX.Element => {
                         onClick={toggleGuestEmailInput}
                         htmlFor="guests"
                         className="block text-sm font-medium dark:text-white text-blue-500 mb-1 hover:cursor-pointer">
-                        + Additional Guests
+                        + <T>Additional Guests</T>
                       </label>
                     )}
                     {guestToggle && (
@@ -350,7 +350,7 @@ const BookingPage = (props: any): JSX.Element => {
                         <label
                           htmlFor="guests"
                           className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
-                          Guests
+                          <T>Guests</T>
                         </label>
                         <ReactMultiEmail
                           placeholder="guest@example.com"
@@ -376,7 +376,7 @@ const BookingPage = (props: any): JSX.Element => {
                     <label
                       htmlFor="notes"
                       className="block text-sm font-medium dark:text-white text-gray-700 mb-1">
-                      Additional notes
+                      <T>Additional notes</T>
                     </label>
                     <textarea
                       name="notes"
@@ -390,7 +390,7 @@ const BookingPage = (props: any): JSX.Element => {
                   <div className="flex items-start space-x-2">
                     {/* TODO: add styling props to <Button variant="" color="" /> and get rid of btn-primary */}
                     <Button type="submit" loading={loading}>
-                      {rescheduleUid ? "Reschedule" : "Confirm"}
+                      {rescheduleUid ? <T>Reschedule</T> : <T>Confirm</T>}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
                       <T>Cancel</T>
@@ -405,7 +405,11 @@ const BookingPage = (props: any): JSX.Element => {
                       </div>
                       <div className="ml-3">
                         <p className="text-sm text-yellow-700">
-                          Could not {rescheduleUid ? "reschedule" : "book"} the meeting.
+                          {rescheduleUid ? (
+                            <T id="couldNotRescheduleMeeting">Could not reschedule the meeting.</T>
+                          ) : (
+                            <T id="couldNotBookMeeting">Could not book the meeting.</T>
+                          )}
                         </p>
                       </div>
                     </div>

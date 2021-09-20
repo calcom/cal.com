@@ -1,4 +1,5 @@
 import React from "react";
+import T from "@components/T";
 
 type Props = {
   onSubmit: () => void;
@@ -18,7 +19,7 @@ const AddAppleIntegration = React.forwardRef<HTMLFormElement, Props>((props, ref
     <form id={ADD_APPLE_INTEGRATION_FORM_TITLE} ref={ref} onSubmit={onSubmit}>
       <div className="mb-2">
         <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-          Username
+          <T>Username</T>
         </label>
         <input
           required
@@ -31,7 +32,7 @@ const AddAppleIntegration = React.forwardRef<HTMLFormElement, Props>((props, ref
       </div>
       <div className="mb-2">
         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
+          <T>Password</T>
         </label>
         <input
           required
