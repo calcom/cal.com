@@ -16,9 +16,15 @@ import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { parseZone } from "@lib/parseZone";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
+
+dayjs.locale(es);
+dayjs.extend(localeData);
 
 const BookingPage = (props: any): JSX.Element => {
   const router = useRouter();
+  const { locale = "en" } = router;
   const { rescheduleUid } = router.query;
   const themeLoaded = useTheme(props.profile.theme);
 
@@ -30,6 +36,7 @@ const BookingPage = (props: any): JSX.Element => {
   const [guestToggle, setGuestToggle] = useState(false);
   const [guestEmails, setGuestEmails] = useState([]);
   const locations = props.eventType.locations || [];
+  dayjs.locale(locale);
 
   const [selectedLocation, setSelectedLocation] = useState<LocationType>(
     locations.length === 1 ? locations[0].type : ""

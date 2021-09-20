@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import TimezoneSelect from "react-timezone-select";
 import { TrashIcon } from "@heroicons/react/outline";
 import T from "@components/T";
@@ -8,7 +9,11 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Availability } from "@prisma/client";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
 
+dayjs.locale(es);
+dayjs.extend(localeData);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -24,6 +29,9 @@ export const Scheduler = ({
   timeZone: selectedTimeZone,
   setTimeZone,
 }: Props) => {
+  const { locale = "en" } = useRouter();
+  dayjs.locale(locale);
+
   const [editSchedule, setEditSchedule] = useState(-1);
   const [dateOverrides, setDateOverrides] = useState([]);
   const [openingHours, setOpeningHours] = useState([]);

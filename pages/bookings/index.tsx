@@ -14,8 +14,14 @@ import T from "@components/T";
 import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
 import { BookingStatus, User } from "@prisma/client";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
+
+dayjs.locale(es);
+dayjs.extend(localeData);
 
 export default function Bookings({ bookings }) {
+  const { locale = "en" } = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
