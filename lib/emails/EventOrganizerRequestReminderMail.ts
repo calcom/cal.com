@@ -13,7 +13,7 @@ dayjs.extend(localizedFormat);
 
 export default class EventOrganizerRequestReminderMail extends EventOrganizerRequestMail {
   protected getBodyHeader(): string {
-    return "An event is still waiting for your approval.";
+    return "Oops! You didn't confirm or reject the booking for an event before its time slot passed.";
   }
 
   protected getSubject(): string {
