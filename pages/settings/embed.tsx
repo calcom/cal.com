@@ -17,7 +17,8 @@ import Loader from "@components/Loader";
 import SettingsShell from "@components/Settings";
 import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
-import Checkbox from "@components/ui/form/checkbox";
+import Switch from "@components/ui/Switch";
+// import Checkbox from "@components/ui/form/checkbox";
 import WebhookList from "@components/webhook/WebhookList";
 
 import { EventTypeCustomInputType } from ".prisma/client";
@@ -253,27 +254,33 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                         {" "}
                         Select Event Triggers{" "}
                       </legend>
-                      <Checkbox
-                        defaultChecked={true}
-                        cid="booking-created"
-                        label="Booking Created"
-                        value={bookingCreated}
-                        onCheckedChange={onCheckedChange}
-                      />
-                      <Checkbox
-                        defaultChecked={true}
-                        cid="booking-rescheduled"
-                        label="Booking Rescheduled"
-                        value={bookingRescheduled}
-                        onCheckedChange={onCheckedChange}
-                      />
-                      <Checkbox
-                        defaultChecked={true}
-                        cid="booking-canceled"
-                        label="Booking Canceled"
-                        value={bookingCanceled}
-                        onCheckedChange={onCheckedChange}
-                      />
+                      <div className="w-2/12 pt-3 text-right">
+                        <Switch
+                          defaultChecked={true}
+                          cid="booking-created"
+                          label="Booking Created"
+                          value={bookingCreated}
+                          onCheckedChange={onCheckedChange}
+                        />
+                      </div>
+                      <div className="w-2/12 pt-3 text-right">
+                        <Switch
+                          defaultChecked={true}
+                          cid="booking-rescheduled"
+                          label="Booking Rescheduled"
+                          value={bookingRescheduled}
+                          onCheckedChange={onCheckedChange}
+                        />
+                      </div>
+                      <div className="w-2/12 pt-3 text-right">
+                        <Switch
+                          defaultChecked={true}
+                          cid="booking-canceled"
+                          label="Booking Canceled"
+                          value={bookingCanceled}
+                          onCheckedChange={onCheckedChange}
+                        />
+                      </div>
                     </div>
                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                       <Button type="submit" color="primary" className="ml-2">
