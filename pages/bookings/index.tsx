@@ -22,6 +22,7 @@ dayjs.extend(localeData);
 
 export default function Bookings({ bookings }) {
   const { locale = "en" } = useRouter();
+  dayjs.locale(locale);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 

@@ -36,6 +36,7 @@ const es = {
   forgot: "¿La olvidaste?",
   signIn: "Entrar",
   signOut: "Salir",
+  dismiss: "Cerrar",
   dontHaveAccount: "No tienes cuenta?",
   createAccount: "Crear una cuenta",
   signInYourAccount: "Ingresa con tu cuenta",
@@ -139,7 +140,7 @@ const es = {
   when: "Cuando",
   where: "Donde",
   other: "Otro",
-  url: "URL",
+  uRL: "URL",
   openOptions: "Abrir opciones",
   timeOptions: "Opciones de horario",
   addAnInput: "Agrega un campo",
@@ -199,7 +200,8 @@ const es = {
   connectCalendarTitle: "Conecta tu calendario",
   connectCalendarDescription:
     "Conecta tu calendario para comprobar automáticamente los horarios de trabajo y nuevos eventos a medida que se agendan",
-  connectNewApp: "Conecta una nueva App",
+  connectANewApp: "Conecta una nueva App",
+  connectNewAppAccount: "Conecte una nueva aplicación a su cuenta.",
   setAvailabilityTitle: "Ingresa tu disponibilidad",
   setAvailabilityTitleDescription:
     "Define el horario cuando te encuentras disponible de manera frecuente. Más adelante podrás crear más y asignarlos a diferentes horarios",
@@ -239,6 +241,7 @@ const es = {
   yourCredentialsWillStoredEncrypted: "Sus credenciales serán almacenadas y encriptadas.",
   calendarIntegration: "Integración del calendario",
   videoConferencing: "Videoconferencias",
+  forPersonalAndBusinessCalendars: "Para calendario personal y negocios",
   youDoNotHaveAnyApps: "No tienes ninguna aplicación conectada.",
   youCurrentlyDoNotAppsConnected: "Actualmente no tiene ninguna aplicación conectada.",
   connectYourFirstApp: "Conecta tu primera aplicación para empezar.",
@@ -282,6 +285,11 @@ const es = {
   couldNotLoadAvailableSlots: "No se han podido cargar las franjas horarias disponibles",
   useSetting: "Utilizar la configuración",
   calendarURL: "URL del calendario",
+  noEntrySelectedAllCalendarsChecked:
+    "Si no se selecciona ninguna entrada, se comprobarán todos los calendarios",
+  connectToCalDavServer: "Conectarse al servidor CalDav",
+  profileUpdatedSuccessfully: "Perfil actualizado correctamente",
+  yourProfileHasBeenUpdated: "Su perfil de usuario ha sido actualizado con éxito.",
 };
 
 export default es;

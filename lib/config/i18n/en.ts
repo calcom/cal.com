@@ -36,6 +36,7 @@ const en = {
   forgot: "Forgot?",
   signIn: "Sign in",
   signOut: "Sign out",
+  dismiss: "Dismiss",
   dontHaveAccount: "Don't have an account?",
   createAccount: "Create an account",
   signInYourAccount: "Sign in to your account",
@@ -139,7 +140,7 @@ const en = {
   when: "When",
   where: "Where",
   other: "Other",
-  url: "URL",
+  uRL: "URL",
   openOptions: "Open options",
   timeOptions: "Time options",
   addAnInput: "Add an input",
@@ -199,7 +200,8 @@ const en = {
   connectCalendarTitle: "Connect your calendar",
   connectCalendarDescription:
     "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
-  connectNewApp: "Connect a new App",
+  connectANewApp: "Connect a new App",
+  connectNewAppAccount: "Connect a new app to your account.",
   setAvailabilityTitle: "Set your availability",
   setAvailabilityTitleDescription:
     "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
@@ -237,6 +239,7 @@ const en = {
   yourCredentialsWillStoredEncrypted: "Your credentials will be stored and encrypted.",
   calendarIntegration: "Calendar Integration",
   videoConferencing: "Video Conferencing",
+  forPersonalAndBusinessCalendars: "For personal and business calendars",
   youDoNotHaveAnyApps: "You don't have any apps connected.",
   youCurrentlyDoNotAppsConnected: "You currently do not have any apps connected.",
   connectYourFirstApp: "Connect your first app to get started.",
@@ -279,6 +282,10 @@ const en = {
   couldNotLoadAvailableSlots: "Could not load the available time slots",
   useSetting: "Use setting",
   calendarURL: "Calendar URL",
+  noEntrySelectedAllCalendarsChecked: "If no entry is selected, all calendars will be checked",
+  connectToCalDavServer: "Connect to CalDav Server",
+  profileUpdatedSuccessfully: "Profile updated successfully",
+  yourProfileHasBeenUpdated: "Your user profile has been updated successfully.",
 };
 
 export default en;

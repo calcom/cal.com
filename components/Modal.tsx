@@ -1,11 +1,13 @@
 /* legacy and soon deprecated, please refactor to use <Dialog> only */
 import { Fragment, ReactNode } from "react";
+import T from "@components/T";
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckIcon, InformationCircleIcon } from "@heroicons/react/outline";
 import classNames from "@lib/classNames";
 
 export default function Modal(props: {
-  heading: ReactNode;
+  heading: string;
+  descriptionId?: string;
   description: ReactNode;
   handleClose: () => void;
   open: boolean;
@@ -61,16 +63,22 @@ export default function Modal(props: {
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
                   <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
-                    {props.heading}
+                    <T>{props.heading}</T>
                   </Dialog.Title>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">{props.description}</p>
+                    <p className="text-sm text-gray-500">
+                      {typeof props.description === "string" ? (
+                        <T id={props.descriptionId}>{props.description as string}</T>
+                      ) : (
+                        props.description
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
               <div className="mt-5 sm:mt-6">
                 <button type="button" className="btn-wide btn-primary" onClick={() => props.handleClose()}>
-                  Dismiss
+                  <T>Dismiss</T>
                 </button>
               </div>
             </div>

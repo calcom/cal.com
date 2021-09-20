@@ -227,6 +227,7 @@ export default function Onboarding(props: OnboardingProps) {
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
+            subtitleId="yourCredentialsWillStoredEncrypted"
             subtitle="Your credentials will be stored and encrypted."
           />
           <div className="my-4">

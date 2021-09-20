@@ -8,9 +8,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default function Book(props: any): JSX.Element {
-
   return <BookingPage {...props} />;
-
 }
 
 export async function getServerSideProps(context) {
