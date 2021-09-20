@@ -9,7 +9,7 @@
 
 # Enterprise Edition
 
-Welcome to the Enterprise Edition ("/ee") of Calendso.com.
+Welcome to the Enterprise Edition ("/ee") of Cal.com.
 
 The [/ee](https://github.com/calendso/calendso/tree/main/ee) subfolder is the place for all the **Pro** features from our [hosted](https://cal.com/pricing) plan and [enterprise-grade](https://cal.com/enterprise) features such as SSO, SAML, ADFS, OIDC, SCIM, SIEM, HRIS and much more.
 
