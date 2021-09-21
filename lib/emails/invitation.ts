@@ -17,7 +17,7 @@ const sendEmail = (invitation: any, { provider }) =>
 
     nodemailer.createTransport(transport).sendMail(
       {
-        from: `Calendso <${from}>`,
+        from: `Cal.com <${from}>`,
         to: invitation.toEmail,
         subject:
           (invitation.from ? invitation.from + " invited you" : "You have been invited") +
@@ -53,7 +53,7 @@ const html = (invitation: any) => {
       Hi,<br />
       <br />` +
     (invitation.from ? invitation.from + " invited you" : "You have been invited") +
-    ` to join the team "${invitation.teamName}" in Calendso.<br />
+    ` to join the team "${invitation.teamName}" in Cal.com.<br />
       <br />
       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
         <tr>
@@ -71,7 +71,7 @@ const html = (invitation: any) => {
           </td>
         </tr>
       </table><br />
-      If you prefer not to use "${invitation.toEmail}" as your Calendso email or already have a Calendso account, please request another invitation to that email.
+      If you prefer not to use "${invitation.toEmail}" as your Cal.com email or already have a Cal.com account, please request another invitation to that email.
       </td>
       </tr>
       </table>

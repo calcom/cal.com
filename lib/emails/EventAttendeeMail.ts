@@ -59,8 +59,7 @@ export default class EventAttendeeMail extends EventMail {
       </tr>
       <tr>
         <td>When</td>
-        <td>${this.getInviteeStart().format("dddd, LL")}<br>${this.getInviteeStart().format("h:mma")} (${
-        this.calEvent.attendees[0].timeZone
+        <td>${this.getInviteeStart().format("dddd, LL")}<br>${this.getInviteeStart().format("h:mma")} (${this.calEvent.attendees[0].timeZone
       })</td>
       </tr>
       <tr>
@@ -92,7 +91,7 @@ export default class EventAttendeeMail extends EventMail {
       `
   </div>
   <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 12px;">
-    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Calendso Logo"></div>
+    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Cal.com Logo"></div>
 </body>
   `
     );
@@ -142,9 +141,8 @@ export default class EventAttendeeMail extends EventMail {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Confirmed: ${this.calEvent.type} with ${
-        this.calEvent.team?.name || this.calEvent.organizer.name
-      } on ${this.getInviteeStart().format("LT dddd, LL")}`,
+      subject: `Confirmed: ${this.calEvent.type} with ${this.calEvent.team?.name || this.calEvent.organizer.name
+        } on ${this.getInviteeStart().format("LT dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
