@@ -26,6 +26,15 @@ import { EventTypeCustomInputType } from ".prisma/client";
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
   const [showCreateWebhookModal, setShowCreateWebhookModal] = useState(false);
+import { useEffect, useState, useRef } from "react";
+import { PlusIcon } from "@heroicons/react/outline";
+import WebhookList from "@components/webhook/WebhookList";
+import Switch from "@components/ui/Switch";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+
+export default function Embed(props: { err: string | undefined; BASE_URL: string; user: Member }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [session, loading] = useSession();
   const [bookingCreated, setBookingCreated] = useState(true);
   const [bookingRescheduled, setBookingRescheduled] = useState(true);
   const [bookingCanceled, setBookingCanceled] = useState(true);
@@ -184,120 +193,91 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                     </div>
                   )}
                 </div>
-                <div className="flex items-start mb-4">
-                  <Button
-                    type="button"
-                    onClick={() => setShowCreateWebhookModal(true)}
-                    color="secondary"
-                    StartIcon={PlusIcon}>
+
+                <Dialog>
+                  <DialogTrigger className="px-4 py-2 my-6 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+                    <PlusIcon className="inline w-5 h-5 mr-1" />
                     New Webhook
-                  </Button>
-                </div>
-              </div>
-              <div>
-                {!!webhooks.length && (
-                  <WebhookList
-                    webhooks={webhooks}
-                    // webhookEventTypes={webhookEventTypes}
-                    onChange={getWebhooks}></WebhookList>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {showCreateWebhookModal && (
-            <div
-              className="fixed inset-0 z-50 overflow-y-auto"
-              aria-labelledby="modal-title"
-              role="dialog"
-              aria-modal="true">
-              <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <div
-                  className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
-                  aria-hidden="true"></div>
-
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                  &#8203;
-                </span>
-
-                <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                  <div className="mb-4 sm:flex sm:items-start">
-                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <ShareIcon className="w-6 h-6 text-neutral-900" />
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+                    <div className="my-4">
+                      <form onSubmit={createWebhook}>
+                        <div className="mb-4">
+                          <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
+                            Subscriber Url
+                          </label>
+                          <input
+                            ref={subUrlRef}
+                            type="text"
+                            name="subUrl"
+                            id="subUrl"
+                            placeholder="https://example.com/sub"
+                            required
+                            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                          />
+                          <legend className="block mt-4 mb-2 text-sm font-medium text-gray-700">
+                            {" "}
+                            Select Event Triggers{" "}
+                          </legend>
+                          <div className="flex py-4">
+                            <div className="w-10/12 pt-3">
+                              <h2 className="font-medium text-gray-800">Booking Created</h2>
+                            </div>
+                            <div className="w-2/12 pt-3 text-right">
+                              <Switch
+                                defaultChecked={true}
+                                cid="booking-created"
+                                value={bookingCreated}
+                                onCheckedChange={onCheckedChange}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex py-1">
+                            <div className="w-10/12 pt-3">
+                              <h2 className="font-medium text-gray-800">Booking Rescheduled</h2>
+                            </div>
+                            <div className="w-2/12 pt-3 text-right">
+                              <Switch
+                                defaultChecked={true}
+                                cid="booking-rescheduled"
+                                value={bookingRescheduled}
+                                onCheckedChange={onCheckedChange}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex py-4">
+                            <div className="w-10/12 pt-3">
+                              <h2 className="font-medium text-gray-800">Booking Canceled</h2>
+                            </div>
+                            <div className="w-2/12 pt-3 text-right">
+                              <Switch
+                                defaultChecked={true}
+                                cid="booking-canceled"
+                                value={bookingCanceled}
+                                onCheckedChange={onCheckedChange}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </form>
                     </div>
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                      <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                        Create a new Webhook
-                      </h3>
-                      <div>
-                        <p className="text-sm text-gray-400">
-                          Create a new webhook to get real-time calendso meeting data
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <form onSubmit={createWebhook}>
-                    <div className="mb-4">
-                      <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
-                        Subscriber Url
-                      </label>
-                      <input
-                        ref={subUrlRef}
-                        type="text"
-                        name="subUrl"
-                        id="subUrl"
-                        placeholder="https://example.com/sub"
-                        required
-                        className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                      />
-                      <legend className="block mt-4 mb-2 text-sm font-medium text-gray-700">
-                        {" "}
-                        Select Event Triggers{" "}
-                      </legend>
-                      <div className="w-2/12 pt-3 text-right">
-                        <Switch
-                          defaultChecked={true}
-                          cid="booking-created"
-                          label="Booking Created"
-                          value={bookingCreated}
-                          onCheckedChange={onCheckedChange}
-                        />
-                      </div>
-                      <div className="w-2/12 pt-3 text-right">
-                        <Switch
-                          defaultChecked={true}
-                          cid="booking-rescheduled"
-                          label="Booking Rescheduled"
-                          value={bookingRescheduled}
-                          onCheckedChange={onCheckedChange}
-                        />
-                      </div>
-                      <div className="w-2/12 pt-3 text-right">
-                        <Switch
-                          defaultChecked={true}
-                          cid="booking-canceled"
-                          label="Booking Canceled"
-                          value={bookingCanceled}
-                          onCheckedChange={onCheckedChange}
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                       <Button type="submit" color="primary" className="ml-2">
                         Create Webhook
                       </Button>
-                      <Button
-                        onClick={() => setShowCreateWebhookModal(false)}
-                        type="button"
-                        color="secondary">
-                        Cancel
-                      </Button>
+                      <DialogClose asChild>
+                        <Button color="secondary">Cancel</Button>
+                      </DialogClose>
                     </div>
-                  </form>
-                </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div>
+                {!!webhooks.length && <WebhookList webhooks={webhooks} onChange={getWebhooks}></WebhookList>}
               </div>
             </div>
-          )}
+          </div>
 
           <hr className="mt-8" />
           <div className="my-6">
