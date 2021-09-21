@@ -28,4 +28,5 @@ jobs:
           path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs
 
+      - run: yarn test
       - run: yarn build
