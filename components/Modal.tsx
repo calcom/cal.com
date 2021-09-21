@@ -3,6 +3,7 @@ import { Fragment, ReactNode } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckIcon, InformationCircleIcon } from "@heroicons/react/outline";
 import classNames from "@lib/classNames";
+import T from "@components/T";
 
 export default function Modal(props: {
   heading: ReactNode;
@@ -70,7 +71,7 @@ export default function Modal(props: {
               </div>
               <div className="mt-5 sm:mt-6">
                 <button type="button" className="btn-wide btn-primary" onClick={() => props.handleClose()}>
-                  Dismiss
+                  <T>Dismiss</T>
                 </button>
               </div>
             </div>

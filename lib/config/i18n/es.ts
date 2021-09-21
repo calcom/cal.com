@@ -266,8 +266,14 @@ const es = {
   settings: "Opciones",
   verNotificaciones: "Ver notificaciones",
   done: "Hecho",
+  dismiss: "Despedir",
   checkYourEmail: "Revisa tu email.",
+  setYourWorkSchedule: "Establece tu horario de trabajo",
+  changeWhenAvailableBookings: "Cambiar cuando esté disponible para reservas",
   sentLinkResetPassword: "Te hemos enviado un enlace para restablecer tu contraseña.",
+  intoTheFuture: "en el futuro",
+  withinADateRange: "Dentro de un rango de fechas",
+  indefinitelyIntoTheFuture: "Indefinidamente en el futuro",
 };
 
 export default es;

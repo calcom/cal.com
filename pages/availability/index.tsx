@@ -150,7 +150,7 @@ export default function Availability(props) {
           <div className="w-1/2 ml-2 border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                <T id="somethingDoesNotLookRight">Something doesn't look right?</T>
+                <T id="somethingDoesNotLookRight">Something doesn&apos;t look right?</T>
               </h3>
               <div className="mt-2 max-w-xl text-sm text-gray-500">
                 <p>

@@ -712,7 +712,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                       <div>
                                         <span className="ml-2 text-sm">
-                                          <T>{customInput.required ? "Required" : "Optional"}</T>
+                                          {customInput.required ? <T>Required</T> : <T>Optional</T>}
                                         </span>
                                       </div>
                                     </div>
@@ -842,12 +842,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   defaultValue={
                                                     eventType.periodCountCalendarDays ? "1" : "0"
                                                   }>
-                                                  <option value="1">
-                                                    <T>calendar days</T>
-                                                  </option>
-                                                  <option value="0">
-                                                    <T>business days</T>
-                                                  </option>
+                                                  <option value="1">calendar days</option>
+                                                  <option value="0">business days</option>
                                                 </select>
                                               </div>
                                             )}
@@ -969,7 +965,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   onConfirm={deleteEventTypeHandler}>
                   <T id="sureYouWantDeleteThisEventType">Are you sure you want to delete this event type?</T>{" "}
                   <T id="anyoneSharedLinkNoLongerBookUsingIt">
-                    Anyone who you've shared this link with will no longer be able to book using it.
+                    Anyone who you&apos;ve shared this link with will no longer be able to book using it.
                   </T>
                 </ConfirmationDialogContent>
               </Dialog>

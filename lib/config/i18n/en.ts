@@ -263,8 +263,14 @@ const en = {
   settings: "Settings",
   viewNotifications: "View notifications",
   done: "Done",
+  dismiss: "Dismiss",
   checkYourEmail: "Check your email.",
+  setYourWorkSchedule: "Set your work schedule",
+  changeWhenAvailableBookings: "Change when you are available for bookings",
   sentLinkResetPassword: "We sent you a link to reset your password.",
+  intoTheFuture: "into the future",
+  withinADateRange: "Within a date range",
+  indefinitelyIntoTheFuture: "Indefinitely into the future",
 };
 
 export default en;

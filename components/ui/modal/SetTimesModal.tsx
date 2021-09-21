@@ -49,15 +49,19 @@ export default function SetTimesModal(props) {
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                Change when you are available for bookings
+                <T id="changeWhenAvailableBookings">Change when you are available for bookings</T>
               </h3>
               <div>
-                <p className="text-sm text-gray-500">Set your work schedule</p>
+                <p className="text-sm text-gray-500">
+                  <T>Set your work schedule</T>
+                </p>
               </div>
             </div>
           </div>
           <div className="flex mb-4">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
+            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">
+              <T>Start time</T>
+            </label>
             <div>
               <label htmlFor="startHours" className="sr-only">
                 <T>Hours</T>
@@ -96,7 +100,9 @@ export default function SetTimesModal(props) {
             </div>
           </div>
           <div className="flex">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
+            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">
+              <T>End time</T>
+            </label>
             <div>
               <label htmlFor="endHours" className="sr-only">
                 <T>Hours</T>
