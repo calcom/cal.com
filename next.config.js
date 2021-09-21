@@ -8,6 +8,9 @@ if (process.env.VERCEL_URL && !process.env.BASE_URL) {
 if (process.env.BASE_URL) {
   process.env.NEXTAUTH_URL = process.env.BASE_URL + "/api/auth";
 }
+if (!process.env.NEXT_PUBLIC_APP_URL) {
+  process.env.NEXT_PUBLIC_APP_URL = process.env.BASE_URL;
+}
 
 if (!process.env.EMAIL_FROM) {
   console.warn(
