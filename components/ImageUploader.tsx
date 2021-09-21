@@ -1,9 +1,11 @@
 import Cropper from "react-easy-crop";
 import { useCallback, useRef, useState } from "react";
 import T from "@components/T";
+import { useIntl } from "react-intl";
 import Slider from "./Slider";
 
 export default function ImageUploader({ target, id, buttonMsg, handleAvatarChange, imageRef }) {
+  const intl = useIntl();
   const imageFileRef = useRef<HTMLInputElement>();
   const [imageDataUrl, setImageDataUrl] = useState<string>();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState();
@@ -143,7 +145,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
               <div className="sm:flex sm:items-start mb-4">
                 <div className="mt-3 text-center sm:mt-0 sm:text-left">
                   <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                    {/* TODO: Traslate */} Upload {target}
+                    <T id="upload" defaultMessage="Upload {target}" values={{ target }}></T>
                   </h3>
                 </div>
               </div>
@@ -152,7 +154,9 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
                   {!imageLoaded && (
                     <div className="flex justify-start items-center bg-gray-500 max-h-20 h-20 w-20 rounded-full">
                       {!isImageShown && (
-                        <p className="sm:text-xs text-sm text-white w-full text-center">No {target}</p>
+                        <p className="sm:text-xs text-sm text-white w-full text-center">
+                          <T id="noTarget" defaultMessage="No {target}" values={{ target }}></T>
+                        </p>
                       )}
                       {isImageShown && (
                         <img className="h-20 w-20 rounded-full" src={shownImage} alt={target} />
@@ -185,8 +189,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
                   <label
                     htmlFor={id}
                     className="mt-8 cursor-pointer inline-flex items-center px-4 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;">
-                    Choose a file...
-                    {/* TODO: Traslate */}
+                    <T id="chooseAFile">Choose a file...</T>
                   </label>
                   <input
                     onChange={ImageUploadHandler}
@@ -194,7 +197,11 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
                     type="file"
                     id={id}
                     name={id}
-                    placeholder="Upload image"
+                    placeholder={intl.formatMessage({
+                      id: "uploadImage",
+                      defaultMessage: "Upload image",
+                      description: "Upload image",
+                    })}
                     className="mt-4 pointer-events-none opacity-0 absolute"
                     accept="image/*"
                   />

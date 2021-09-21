@@ -1,6 +1,7 @@
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
 import T from "@components/T";
+import { useIntl } from "react-intl";
 import { useRouter } from "next/router";
 import SettingsShell from "@components/Settings";
 import { useSession } from "next-auth/client";
@@ -10,7 +11,7 @@ import { getSession } from "@lib/auth";
 export default function Embed(props) {
   const [session, loading] = useSession();
   const { locale = "en" } = useRouter();
-
+  const intl = useIntl();
   if (loading) {
     return <Loader />;
   }
@@ -40,7 +41,11 @@ export default function Embed(props) {
                 <textarea
                   id="iframe"
                   className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
-                  placeholder="Loading..."
+                  placeholder={intl.formatMessage({
+                    id: "loading",
+                    defaultMessage: "Loading...",
+                    description: "Loading...",
+                  })}
                   defaultValue={`<iframe src="${props.BASE_URL}/${session?.user?.username}" frameborder="0" allowfullscreen></iframe>`}
                   readOnly
                 />
@@ -54,7 +59,11 @@ export default function Embed(props) {
                 <textarea
                   id="fullscreen"
                   className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
-                  placeholder="Loading..."
+                  placeholder={intl.formatMessage({
+                    id: "loading",
+                    defaultMessage: "Loading...",
+                    description: "Loading...",
+                  })}
                   defaultValue={[
                     `<!DOCTYPE html>`,
                     `<html lang="${locale}">`,

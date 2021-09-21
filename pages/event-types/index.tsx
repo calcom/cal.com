@@ -1,6 +1,7 @@
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Shell from "@components/Shell";
+import { useIntl } from "react-intl";
 import { Tooltip } from "@components/Tooltip";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
@@ -332,6 +333,8 @@ const EventTypesPage = (props: PageProps) => {
 
 const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[]; canAddEvents: boolean }) => {
   const router = useRouter();
+  const intl = useIntl();
+
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
 
@@ -468,7 +471,11 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                   id="title"
                   required
                   className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder="Quick Chat"
+                  placeholder={intl.formatMessage({
+                    id: "quickChat",
+                    defaultMessage: "Quick Chat",
+                    description: "Quick Chat",
+                  })}
                 />
               </div>
             </div>
@@ -501,7 +508,11 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                   name="description"
                   id="description"
                   className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder="A quick video meeting."
+                  placeholder={intl.formatMessage({
+                    id: "quickVideoMeeting",
+                    defaultMessage: "A quick video meeting.",
+                    description: "A quick video meeting.",
+                  })}
                 />
               </div>
             </div>

@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { useIntl } from "react-intl";
 import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -24,6 +25,7 @@ dayjs.extend(localeData);
 
 const BookingPage = (props: any): JSX.Element => {
   const router = useRouter();
+  const intl = useIntl();
   const { locale = "en" } = router;
   const { rescheduleUid } = router.query;
   const themeLoaded = useTheme(props.profile.theme);
@@ -265,7 +267,11 @@ const BookingPage = (props: any): JSX.Element => {
                       <div className="mt-1">
                         <PhoneInput
                           name="phone"
-                          placeholder="Enter phone number"
+                          placeholder={intl.formatMessage({
+                            id: "enterPhoneNumber",
+                            defaultMessage: "Enter phone number",
+                            description: "Enter phone number",
+                          })}
                           id="phone"
                           required
                           className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
@@ -383,7 +389,11 @@ const BookingPage = (props: any): JSX.Element => {
                       id="notes"
                       rows={3}
                       className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Please share anything that will help prepare for our meeting."
+                      placeholder={intl.formatMessage({
+                        id: "shareAnythingWillHelp",
+                        defaultMessage: "Please share anything that will help prepare for our meeting.",
+                        description: "Please share anything that will help prepare for our meeting.",
+                      })}
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
                   </div>

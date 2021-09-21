@@ -1,6 +1,7 @@
 import Head from "next/head";
 import prisma from "@lib/prisma";
 import { useSession } from "next-auth/client";
+import { useIntl } from "react-intl";
 import {
   EventType,
   EventTypeCreateInput,
@@ -67,6 +68,7 @@ type OnboardingProps = {
 
 export default function Onboarding(props: OnboardingProps) {
   const router = useRouter();
+  const intl = useIntl();
   const { locale = "en" } = router;
   dayjs.locale(locale);
   const [enteredName, setEnteredName] = React.useState();
@@ -377,8 +379,12 @@ export default function Onboarding(props: OnboardingProps) {
                 name="name"
                 id="name"
                 autoComplete="given-name"
-                placeholder="Your name"
-                defaultValue={props.user.name}
+                placeholder={intl.formatMessage({
+                  id: "yourName",
+                  defaultMessage: "Your name",
+                  description: "Your name",
+                })}
+                defaultValue={props.user.name || ""}
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
@@ -495,7 +501,11 @@ export default function Onboarding(props: OnboardingProps) {
                 name="name"
                 id="name"
                 autoComplete="given-name"
-                placeholder="Your name"
+                placeholder={intl.formatMessage({
+                  id: "yourName",
+                  defaultMessage: "Your name",
+                  description: "Your name",
+                })}
                 defaultValue={props.user.name || enteredName}
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"

@@ -2,6 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { RefObject, useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
+import { useIntl } from "react-intl";
 import prisma from "@lib/prisma";
 import capitalize from "lodash.capitalize";
 import Modal from "@components/Modal";
@@ -92,6 +93,7 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
+  const intl = useIntl();
   const { locale = "en" } = useRouter();
   dayjs.locale(locale);
   const [sunday, monday] = dayjs.weekdays();
@@ -206,7 +208,7 @@ export default function Settings(props: Props) {
               <div className="flex-grow space-y-6">
                 <div className="block sm:flex">
                   <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
-                    <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
+                    <UsernameInput ref={usernameRef} defaultValue={props?.user?.username} />
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -218,10 +220,14 @@ export default function Settings(props: Props) {
                       name="name"
                       id="name"
                       autoComplete="given-name"
-                      placeholder="Your name"
+                      placeholder={intl.formatMessage({
+                        id: "yourName",
+                        defaultMessage: "Your name",
+                        description: "Your name",
+                      })}
                       required
                       className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                      defaultValue={props.user.name}
+                      defaultValue={props.user?.name || ""}
                     />
                   </div>
                 </div>
@@ -235,9 +241,13 @@ export default function Settings(props: Props) {
                       ref={descriptionRef}
                       id="about"
                       name="about"
-                      placeholder="A little something about yourself."
+                      placeholder={intl.formatMessage({
+                        id: "littleSomethingYourself",
+                        defaultMessage: "A little something about yourself.",
+                        description: "A little something about yourself.",
+                      })}
                       rows={3}
-                      defaultValue={props.user.bio}
+                      defaultValue={props.user?.bio || ""}
                       className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"></textarea>
                   </div>
                 </div>
@@ -254,7 +264,11 @@ export default function Settings(props: Props) {
                       type="hidden"
                       name="avatar"
                       id="avatar"
-                      placeholder="URL"
+                      placeholder={intl.formatMessage({
+                        id: "uRL",
+                        defaultMessage: "URL",
+                        description: "URL",
+                      })}
                       className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={imageSrc}
                     />
@@ -346,7 +360,7 @@ export default function Settings(props: Props) {
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
                       <p className="text-gray-500">
-                        <T id="disableCalendsoBranding">Hide all Calendso branding from your public pages.</T>
+                        <T id="hideAllCalBranding">Hide all Cal.com branding from your public pages.</T>
                       </p>
                     </div>
                   </div>

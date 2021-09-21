@@ -1,10 +1,11 @@
 import React from "react";
+import T from "@components/T";
 
 const UsernameInput = React.forwardRef((props, ref) => (
   // todo, check if username is already taken here?
   <div>
     <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-      {props.label ? props.label : "Username"}
+      <T>{props.label ? props.label : "Username"}</T>
     </label>
     <div className="flex mt-1 rounded-md shadow-sm">
       <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">

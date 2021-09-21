@@ -3,6 +3,7 @@ import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionTypeBase } from "react-select";
 import T from "@components/T";
+import { useIntl } from "react-intl";
 import prisma from "@lib/prisma";
 import { Availability, EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import { LocationType } from "@lib/location";
@@ -71,7 +72,7 @@ const PERIOD_TYPES = [
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { eventType, locationOptions, availability, team, teamMembers } = props;
-
+  const intl = useIntl();
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -381,7 +382,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             id="title"
             required
             className="pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
-            placeholder="Quick Chat"
+            placeholder={intl.formatMessage({
+              id: "quickChat",
+              defaultMessage: "Quick Chat",
+              description: "Quick Chat",
+            })}
             defaultValue={eventType.title}
           />
         }
@@ -592,8 +597,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         name="description"
                         id="description"
                         className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        placeholder="A quick video meeting."
-                        defaultValue={eventType.description}></textarea>
+                        placeholder={intl.formatMessage({
+                          id: "quickVideoMeeting",
+                          defaultMessage: "A quick video meeting.",
+                          description: "A quick video meeting.",
+                        })}
+                        defaultValue={eventType.description || ""}></textarea>
                     </div>
                   </div>
                 </div>
@@ -637,7 +646,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             avatar: user.avatar,
                           }))}
                           id="users"
-                          placeholder="Add attendees"
+                          placeholder={intl.formatMessage({
+                            id: "addAttendees",
+                            defaultMessage: "Add attendees",
+                            description: "Add attendees",
+                          })}
                         />
                       </div>
                     </div>
@@ -672,8 +685,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 name="title"
                                 id="title"
                                 className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                placeholder="Meeting with {USER}"
-                                defaultValue={eventType.eventName}
+                                placeholder={intl.formatMessage({
+                                  id: "meetingWithUser",
+                                  defaultMessage: "Meeting with {USER}",
+                                  description: "Meeting with {USER}",
+                                })}
+                                defaultValue={eventType.eventName || ""}
                               />
                             </div>
                           </div>

@@ -4,12 +4,14 @@ import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import T from "@components/T";
+import { useIntl } from "react-intl";
 import { useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
 
 export default function Settings() {
   const [, loading] = useSession();
+  const intl = useIntl();
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const oldPasswordRef = useRef<HTMLInputElement>();
@@ -66,7 +68,11 @@ export default function Settings() {
                     id="current_password"
                     required
                     className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
-                    placeholder="Your old password"
+                    placeholder={intl.formatMessage({
+                      id: "yourOldPassword",
+                      defaultMessage: "Your old password",
+                      description: "Your old password",
+                    })}
                   />
                 </div>
               </div>
@@ -82,7 +88,11 @@ export default function Settings() {
                     id="new_password"
                     required
                     className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
-                    placeholder="Your super secure new password"
+                    placeholder={intl.formatMessage({
+                      id: "yourNewPassword",
+                      defaultMessage: "Your super secure new password",
+                      description: "Your super secure new password",
+                    })}
                   />
                 </div>
               </div>

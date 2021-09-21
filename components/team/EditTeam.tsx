@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import ErrorAlert from "@components/ui/alerts/Error";
+import { useIntl } from "react-intl";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import MemberList from "./MemberList";
 import T from "@components/T";
@@ -16,6 +17,7 @@ import { Team } from "@lib/team";
 
 export default function EditTeam(props: { team: Team | undefined | null; onCloseEdit: () => void }) {
   const [members, setMembers] = useState([]);
+  const intl = useIntl();
 
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const teamUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
@@ -154,14 +156,18 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Team name
+                      <T>Team name</T>
                     </label>
                     <input
                       ref={nameRef}
                       type="text"
                       name="name"
                       id="name"
-                      placeholder="Your team name"
+                      placeholder={intl.formatMessage({
+                        id: "yourTeamName",
+                        defaultMessage: "Your team name",
+                        description: "Your team name",
+                      })}
                       required
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={props.team?.name}
@@ -197,7 +203,11 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       type="hidden"
                       name="avatar"
                       id="avatar"
-                      placeholder="URL"
+                      placeholder={intl.formatMessage({
+                        id: "uRL",
+                        defaultMessage: "URL",
+                        description: "URL",
+                      })}
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={imageSrc ? imageSrc : props.team?.logo}
                     />
