@@ -52,7 +52,7 @@ export default class EventRejectionMail extends EventMail {
       `
   </div>
   <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 12px;">
-    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Calendso Logo"></div>
+    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Cal.com Logo"></div>
 </body>
   `
     );
@@ -68,9 +68,8 @@ export default class EventRejectionMail extends EventMail {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Rejected: ${this.calEvent.type} with ${
-        this.calEvent.organizer.name
-      } on ${this.getInviteeStart().format("dddd, LL")}`,
+      subject: `Rejected: ${this.calEvent.type} with ${this.calEvent.organizer.name
+        } on ${this.getInviteeStart().format("dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
