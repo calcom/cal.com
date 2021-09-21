@@ -1,7 +1,7 @@
 import Link from "next/link";
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
@@ -323,7 +323,7 @@ export default function Home({ integrations }: Props) {
             title="Connect to Apple Server"
             subtitle={
               <p>
-                Generate an app specific password to use with Calendso at{" "}
+                Generate an app specific password to use with Cal.com at{" "}
                 <a
                   className="text-indigo-400"
                   href="https://appleid.apple.com/account/manage"

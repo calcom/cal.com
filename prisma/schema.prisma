@@ -81,6 +81,8 @@ model User {
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
+  twoFactorSecret     String?
+  twoFactorEnabled    Boolean            @default(false)
 
 
   plan     UserPlan   @default(PRO)
