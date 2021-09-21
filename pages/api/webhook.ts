@@ -62,12 +62,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: webhookEventTypesData,
       skipDuplicates: true,
     });
-    // await prisma.webhookEventTypes.create({
-    //   data: {
-    //     webhookId: createWebhook.id,
-    //     eventTypeId: req.body.eventTypeId,
-    //   },
-    // });
 
     return res.status(201).json({ message: "Webhook created" });
   }
