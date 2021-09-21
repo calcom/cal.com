@@ -267,11 +267,10 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                 "w-64 z-10 absolute mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
               )}>
               <div className="py-1">
-                {/* note(PeerRich): please don't merge-override the hard coded cal.com */}
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={"https://cal.com/" + user?.username}
+                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${user?.username || ""}`}
                   className="flex px-4 py-2 text-sm text-neutral-500">
                   View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
                 </a>
