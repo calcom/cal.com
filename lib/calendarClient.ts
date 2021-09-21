@@ -5,10 +5,10 @@ import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
-
-const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
+
+const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");

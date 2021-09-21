@@ -53,7 +53,7 @@ async function createBookingForEventType(opts: {
 }
 
 async function createUserAndEventType(opts: {
-  user: { email: string; password: string; username: string; plan: UserPlan };
+  user: { email: string; password: string; username: string; plan: UserPlan; name: string };
   eventTypes: Array<Prisma.EventTypeCreateArgs["data"]>;
 }) {
   const userData: Prisma.UserCreateArgs["data"] = {
@@ -74,6 +74,7 @@ async function createUserAndEventType(opts: {
   for (const rawData of opts.eventTypes) {
     const eventTypeData: Prisma.EventTypeCreateArgs["data"] = { ...rawData };
     eventTypeData.userId = user.id;
+    eventTypeData.users = { connect: { id: user.id } };
 
     const eventType = await prisma.eventType.findFirst({
       where: {
@@ -114,6 +115,7 @@ async function main() {
       email: "free@example.com",
       password: "free",
       username: "free",
+      name: "Free Example",
       plan: "FREE",
     },
     eventTypes: [
@@ -135,6 +137,7 @@ async function main() {
       email: "free-first-hidden@example.com",
       password: "free-first-hidden",
       username: "free-first-hidden",
+      name: "Free First Hidden Example",
       plan: "FREE",
     },
     eventTypes: [
@@ -154,6 +157,7 @@ async function main() {
   await createUserAndEventType({
     user: {
       email: "pro@example.com",
+      name: "Pro Example",
       password: "pro",
       username: "pro",
       plan: "PRO",
@@ -187,6 +191,7 @@ async function main() {
       email: "trial@example.com",
       password: "trial",
       username: "trial",
+      name: "Trial Example",
       plan: "TRIAL",
     },
     eventTypes: [
