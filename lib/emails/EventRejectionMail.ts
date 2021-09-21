@@ -68,8 +68,9 @@ export default class EventRejectionMail extends EventMail {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Rejected: ${this.calEvent.type} with ${this.calEvent.organizer.name
-        } on ${this.getInviteeStart().format("dddd, LL")}`,
+      subject: `Rejected: ${this.calEvent.type} with ${
+        this.calEvent.organizer.name
+      } on ${this.getInviteeStart().format("dddd, LL")}`,
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };

@@ -115,9 +115,7 @@ export default function Signup(props) {
                 className="btn btn-primary w-7/12 mr-2 inline-flex justify-center rounded-md border border-transparent cursor-pointer shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm"
               />
               <a
-                onClick={() =>
-                  signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })
-                }
+                onClick={() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })}
                 className="w-5/12 inline-flex justify-center text-sm text-gray-500 font-medium  border px-4 py-2 rounded btn cursor-pointer">
                 Login instead
               </a>
