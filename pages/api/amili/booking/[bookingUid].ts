@@ -163,7 +163,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const bookingRef = await prisma.bookingReference.findFirst({ where: { bookingId: booking.id } });
       const meetingResult = await getMeeting(credential, bookingRef.uid);
       const meeting = JSON.parse(meetingResult || {});
-      return res.status(200).json({ ...booking, password: meeting?.encrypted_password });
+      return res.status(200).json({ ...booking, joinUrl: meeting?.join_url });
     }
 
     if (method === "PATCH") {
