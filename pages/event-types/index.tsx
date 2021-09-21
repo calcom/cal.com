@@ -263,7 +263,7 @@ const EventTypesPage = (props: PageProps) => {
   return (
     <div>
       <Head>
-        <title>Event Types | Calendso</title>
+        <title>Event Types | Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
