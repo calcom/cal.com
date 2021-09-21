@@ -908,9 +908,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </a>
               <button
                 onClick={() => {
+                  var hostname = if(window.location.hostname.endsWith("/")){
+                    window.location.hostname
+                  }else{
+                    window.location.hostname+"/"
+                  }
                   navigator.clipboard.writeText(
-                    window.location.hostname +
-                      "/" +
+                    hostname +
                       (team ? "team/" + team.slug : eventType.users[0].username) +
                       "/" +
                       eventType.slug
