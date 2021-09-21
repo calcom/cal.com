@@ -1,11 +1,16 @@
 import React, { SyntheticEvent, useState } from "react";
 import Modal from "@components/Modal";
-import { ErrorCode } from "@lib/auth";
+import { IdentityServiceErrorCode } from "@lib/business/identity/IdentityServiceErrorCode";
 
 const errorMessages: { [key: string]: string } = {
-  [ErrorCode.IncorrectPassword]: "Current password is incorrect",
-  [ErrorCode.NewPasswordMatchesOld]:
+  [IdentityServiceErrorCode.IncorrectPassword]: "Current password is incorrect",
+  [IdentityServiceErrorCode.NewPasswordMatchesOld]:
     "New password matches your old password. Please choose a different password.",
+  [IdentityServiceErrorCode.PasswordBlank]: "Password must not be blank.",
+  [IdentityServiceErrorCode.PasswordTooShort]: "Password must be greater than 8 characters.",
+  [IdentityServiceErrorCode.PasswordTooLong]: "Password cannot be more than 72 characters.",
+  [IdentityServiceErrorCode.PasswordMissing]:
+    "Your account doesn't have an existing password. Please log out and click Forgot Password? to reset it.",
 };
 
 const ChangePasswordSection = () => {
