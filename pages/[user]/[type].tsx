@@ -1,4 +1,3 @@
-import { FormattedMessage } from "react-intl";
 import { User } from "@prisma/client";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";

@@ -68,8 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     createInvitationEmail({
       toEmail: req.body.usernameOrEmail,
-      from: session.user.name,
-      teamName: team.name,
+      from: session.user?.name || "",
+      teamName: team?.name || "",
       token,
     });
 

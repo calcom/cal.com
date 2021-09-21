@@ -1,7 +1,14 @@
 import { serverConfig } from "../serverConfig";
 import nodemailer from "nodemailer";
 
-export default function createInvitationEmail(data: any, options: any = {}) {
+export interface Invitation {
+  toEmail: string;
+  from: string;
+  teamName: string;
+  token?: string;
+}
+
+export default function createInvitationEmail(data: Invitation, options: { [index: string]: unknown } = {}) {
   return sendEmail(data, {
     provider: {
       transport: serverConfig.transport,
@@ -11,9 +18,11 @@ export default function createInvitationEmail(data: any, options: any = {}) {
   });
 }
 
-const sendEmail = (invitation: any, { provider }) =>
+const sendEmail = (invitation: Invitation, options: any) =>
   new Promise((resolve, reject) => {
+    const { provider } = options;
     const { transport, from } = provider;
+    console.log("🚀 ~ file: invitation.ts ~ line 93 ~ html ~ html", html);
 
     nodemailer.createTransport(transport).sendMail(
       {
@@ -35,7 +44,7 @@ const sendEmail = (invitation: any, { provider }) =>
     );
   });
 
-const html = (invitation: any) => {
+const html = (invitation: Invitation) => {
   let url: string = process.env.BASE_URL + "/settings/teams";
   if (invitation.token) {
     url = `${process.env.BASE_URL}/auth/signup?token=${invitation.token}&callbackUrl=${url}`;
