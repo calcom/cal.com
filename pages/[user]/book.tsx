@@ -3,6 +3,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import BookingPage from "@components/booking/pages/BookingPage";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -12,6 +14,9 @@ export default function Book(props: any): JSX.Element {
 }
 
 export async function getServerSideProps(context) {
+  const locale = await extractLocaleInfo(context.req);
+  console.log("LOCALE", locale);
+
   const user = await prisma.user.findUnique({
     where: {
       username: context.query.user,
@@ -85,6 +90,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      localeProp: locale,
       profile: {
         slug: user.username,
         name: user.name,
@@ -93,6 +99,7 @@ export async function getServerSideProps(context) {
       },
       eventType: eventTypeObject,
       booking,
+      ...(await serverSideTranslations(locale, ["booking-page"])),
     },
   };
 }

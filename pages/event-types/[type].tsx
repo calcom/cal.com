@@ -49,6 +49,9 @@ import classNames from "@lib/classNames";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import Button from "@components/ui/Button";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -69,7 +72,17 @@ const PERIOD_TYPES = [
 ];
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { eventType, locationOptions, availability, team, teamMembers } = props;
+  const { eventType, locationOptions, availability, team, teamMembers, localeProp } = props;
+  let locale = "en";
+  if (localeProp) {
+    locale = localeProp;
+  }
+
+  const { i18n } = useTranslation("event-type-edit-page");
+
+  useEffect(() => {
+    (async () => await i18n.changeLanguage(locale))();
+  }, [i18n, locale]);
 
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -1102,6 +1115,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
+  const locale = await extractLocaleInfo(context.req);
+  console.log("LOCALE", locale);
+
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
@@ -1280,11 +1296,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      localeProp: locale,
       eventType: eventTypeObject,
       locationOptions,
       availability,
       team: eventTypeObject.team || null,
       teamMembers,
+      ...(await serverSideTranslations(locale, ["event-type-edit-page"])),
     },
   };
 };

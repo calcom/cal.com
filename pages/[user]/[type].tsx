@@ -4,12 +4,16 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 
 export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   return <AvailabilityPage {...props} />;
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const locale = await extractLocaleInfo(context.req);
+  console.log("LOCALE", locale);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const userParam = asStringOrNull(context.query.user);
@@ -171,6 +175,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      localeProp: locale,
       profile: {
         name: user.name,
         image: user.avatar,
@@ -180,6 +185,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
+      ...(await serverSideTranslations(locale, ["availability-page"])),
     },
   };
 };

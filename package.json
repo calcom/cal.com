@@ -34,6 +34,7 @@
     "@radix-ui/react-switch": "^0.1.0",
     "@radix-ui/react-tooltip": "^0.1.0",
     "@tailwindcss/forms": "^0.3.3",
+    "accept-language-parser": "^1.5.0",
     "async": "^3.2.1",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",

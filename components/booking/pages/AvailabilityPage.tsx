@@ -18,6 +18,7 @@ import { HeadSeo } from "@components/seo/head-seo";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import useTheme from "@lib/hooks/useTheme";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { useTranslation } from "next-i18next";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
@@ -29,10 +30,22 @@ type AvailabilityPageProps = {
     image: string;
     theme?: string;
   };
+  localeProp?: string;
   workingHours: [];
 };
 
-const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPageProps) => {
+const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: AvailabilityPageProps) => {
+  let locale = "en";
+  if (localeProp) {
+    locale = localeProp;
+  }
+
+  const { i18n } = useTranslation("availability-page");
+
+  useEffect(() => {
+    (async () => await i18n.changeLanguage(locale))();
+  }, [i18n, locale]);
+
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const themeLoaded = useTheme(profile.theme);

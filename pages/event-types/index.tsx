@@ -41,8 +41,11 @@ import dayjs from "dayjs";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useRef } from "react";
+import React, { Fragment, useRef, useEffect } from "react";
 import { useMutation } from "react-query";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 type EventType = PageProps["eventTypes"][number];
@@ -50,6 +53,17 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
+  let locale = "en";
+  if (props.localeProp) {
+    locale = props.localeProp;
+  }
+
+  const { i18n } = useTranslation("event-types-page");
+
+  useEffect(() => {
+    (async () => await i18n.changeLanguage(locale))();
+  }, [i18n, locale]);
+
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
@@ -59,7 +73,11 @@ const EventTypesPage = (props: PageProps) => {
           Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you.
         </p>
-        <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
+        <CreateNewEventDialog
+          localeProp={locale}
+          canAddEvents={props.canAddEvents}
+          profiles={props.profiles}
+        />
       </div>
     </div>
   );
@@ -313,10 +331,28 @@ const EventTypesPage = (props: PageProps) => {
   );
 };
 
-const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[]; canAddEvents: boolean }) => {
+const CreateNewEventDialog = ({
+  profiles,
+  canAddEvents,
+  localeProp,
+}: {
+  profiles: Profile[];
+  canAddEvents: boolean;
+  localeProp?: string;
+}) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
+  let locale = "en";
+  if (localeProp) {
+    locale = localeProp;
+  }
+
+  const { i18n } = useTranslation("event-types-page");
+
+  useEffect(() => {
+    (async () => await i18n.changeLanguage(locale))();
+  }, [i18n, locale]);
 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
@@ -348,7 +384,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          {t("new-event-type-btn")}
+          New event type
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
@@ -535,6 +571,9 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
+  const locale = await extractLocaleInfo(context.req);
+  console.log("LOCALE", locale);
+
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -724,6 +763,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      localeProp: locale,
       canAddEvents,
       user: userObj,
       // don't display event teams without event types,
@@ -734,7 +774,7 @@ export async function getServerSideProps(context) {
         ...group.profile,
         ...group.metadata,
       })),
-      ...(await serverSideTranslations("en", ["event-types-page"])),
+      ...(await serverSideTranslations(locale, ["event-types-page"])),
     },
   };
 }

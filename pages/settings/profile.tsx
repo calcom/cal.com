@@ -16,6 +16,9 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -80,6 +83,11 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
+  let locale = "en";
+  if (props.localeProp) {
+    locale = props.localeProp;
+  }
+
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -89,16 +97,26 @@ export default function Settings(props: Props) {
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
+  const [selectedLanguage, setSelectedLanguage] = useState<OptionType>({
+    value: locale,
+    label: props.localeLabels[locale],
+  });
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
-
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const { i18n } = useTranslation("settings-profile-page");
+
+  useEffect(() => {
+    (async () => await i18n.changeLanguage(locale))();
+  }, [i18n, locale]);
 
   useEffect(() => {
     setSelectedTheme(
       props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : null
     );
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
+    setSelectedLanguage({ value: locale, label: props.localeLabels[locale] });
   }, []);
 
   const closeSuccessModal = () => {
@@ -135,6 +153,7 @@ export default function Settings(props: Props) {
     const enteredTimeZone = selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
+    const enteredLanguage = selectedLanguage.value;
 
     // TODO: Add validation
 
@@ -149,6 +168,7 @@ export default function Settings(props: Props) {
         weekStart: enteredWeekStartDay,
         hideBranding: enteredHideBranding,
         theme: selectedTheme ? selectedTheme.value : null,
+        locale: enteredLanguage,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -236,6 +256,21 @@ export default function Settings(props: Props) {
                     />
                   </div>
                   <hr className="mt-6" />
+                </div>
+                <div>
+                  <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+                    Language
+                  </label>
+                  <div className="mt-1">
+                    <Select
+                      id="languageSelect"
+                      value={selectedLanguage || locale}
+                      onChange={setSelectedLanguage}
+                      classNamePrefix="react-select"
+                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
+                      options={props.localeOptions}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
@@ -374,6 +409,9 @@ export default function Settings(props: Props) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
+  const locale = await extractLocaleInfo(context.req);
+  console.log("LOCALE", locale);
+
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -400,12 +438,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) {
     throw new Error("User seems logged in but cannot be found in the db");
   }
+
   return {
     props: {
+      localeProp: locale,
+      localeOptions,
+      localeLabels,
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
+      ...(await serverSideTranslations(locale, ["settings-profile-page"])),
     },
   };
 };

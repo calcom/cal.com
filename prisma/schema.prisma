@@ -81,6 +81,7 @@ model User {
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
+  locale String?
 
 
   plan     UserPlan   @default(PRO)
