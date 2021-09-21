@@ -1,9 +1,15 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
+import {
+  CalendarIcon,
+  ClockIcon,
+  CreditCardIcon,
+  ExclamationIcon,
+  LocationMarkerIcon,
+} from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
@@ -15,8 +21,17 @@ import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { parseZone } from "@lib/parseZone";
+import { createPaymentLink } from "@ee/lib/stripe/client";
+import { FormattedNumber, IntlProvider } from "react-intl";
+import { BookPageProps } from "../../../pages/[user]/book";
+import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+import { stringify } from "querystring";
+import createBooking from "@lib/mutations/bookings/create-booking";
+import { BookingCreateBody } from "@lib/types/booking";
 
-const BookingPage = (props: any): JSX.Element => {
+type BookingPageProps = BookPageProps | TeamBookingPageProps;
+
+const BookingPage = (props: BookingPageProps) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const themeLoaded = useTheme(props.profile.theme);
@@ -54,7 +69,7 @@ const BookingPage = (props: any): JSX.Element => {
     [LocationType.Zoom]: "Zoom Video",
   };
 
-  const bookingHandler = (event) => {
+  const _bookingHandler = (event) => {
     const book = async () => {
       setLoading(true);
       setError(false);
@@ -79,7 +94,7 @@ const BookingPage = (props: any): JSX.Element => {
         notes += event.target.notes.value;
       }
 
-      const payload = {
+      const payload: BookingCreateBody = {
         start: dayjs(date).format(),
         end: dayjs(date).add(props.eventType.length, "minute").format(),
         name: event.target.name.value,
@@ -87,13 +102,10 @@ const BookingPage = (props: any): JSX.Element => {
         notes: notes,
         guests: guestEmails,
         eventTypeId: props.eventType.id,
-        rescheduleUid: rescheduleUid,
         timeZone: timeZone(),
       };
-
-      if (router.query.user) {
-        payload.user = router.query.user;
-      }
+      if (typeof rescheduleUid === "string") payload.rescheduleUid = rescheduleUid;
+      if (typeof router.query.user === "string") payload.user = router.query.user;
 
       if (selectedLocation) {
         switch (selectedLocation) {
@@ -115,32 +127,48 @@ const BookingPage = (props: any): JSX.Element => {
         jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
       );
 
-      /*const res = await */ fetch("/api/book/event", {
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+      const content = await createBooking(payload).catch((e) => {
+        console.error(e.message);
+        setLoading(false);
+        setError(true);
       });
-      // TODO When the endpoint is fixed, change this to await the result again
-      //if (res.ok) {
-      let successUrl = `/success?date=${encodeURIComponent(date)}&type=${props.eventType.id}&user=${
-        props.profile.slug
-      }&reschedule=${!!rescheduleUid}&name=${payload.name}`;
-      if (payload["location"]) {
-        if (payload["location"].includes("integration")) {
-          successUrl += "&location=" + encodeURIComponent("Web conferencing details to follow.");
-        } else {
-          successUrl += "&location=" + encodeURIComponent(payload["location"]);
-        }
-      }
 
-      await router.push(successUrl);
+      if (content?.id) {
+        const params: { [k: string]: any } = {
+          date,
+          type: props.eventType.id,
+          user: props.profile.slug,
+          reschedule: !!rescheduleUid,
+          name: payload.name,
+        };
+
+        if (payload["location"]) {
+          if (payload["location"].includes("integration")) {
+            params.location = "Web conferencing details to follow.";
+          } else {
+            params.location = payload["location"];
+          }
+        }
+
+        const query = stringify(params);
+        let successUrl = `/success?${query}`;
+
+        if (content?.paymentUid) {
+          successUrl = createPaymentLink(content?.paymentUid, payload.name, date, false);
+        }
+
+        await router.push(successUrl);
+      } else {
+        setLoading(false);
+        setError(true);
+      }
     };
 
     event.preventDefault();
     book();
   };
+
+  const bookingHandler = useCallback(_bookingHandler, []);
 
   return (
     themeLoaded && (
@@ -176,6 +204,18 @@ const BookingPage = (props: any): JSX.Element => {
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {props.eventType.length} minutes
                 </p>
+                {props.eventType.price > 0 && (
+                  <p className="text-gray-500 mb-1 px-2 py-1 -ml-2">
+                    <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    <IntlProvider locale="en">
+                      <FormattedNumber
+                        value={props.eventType.price / 100.0}
+                        style="currency"
+                        currency={props.eventType.currency.toUpperCase()}
+                      />
+                    </IntlProvider>
+                  </p>
+                )}
                 {selectedLocation === LocationType.InPerson && (
                   <p className="text-gray-500 mb-2">
                     <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
