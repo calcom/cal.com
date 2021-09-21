@@ -1,5 +1,5 @@
 import { TrashIcon, DotsHorizontalIcon, PencilAltIcon, GlobeAltIcon } from "@heroicons/react/outline";
-import Dropdown from "../ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Button from "@components/ui/Button";
@@ -36,16 +36,12 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
               Enabled
             </span>
           )}
-          <Dropdown className="relative flex text-left">
-            <Button
-              color="minimal"
-              className="w-full pl-5 ml-2"
-              StartIcon={DotsHorizontalIcon}
-              type="button"></Button>
-            <ul
-              role="menu"
-              className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
-              <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+          <Dropdown>
+            <DropdownMenuTrigger>
+              <DotsHorizontalIcon className="w-5 h-5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
                 <Button
                   type="button"
                   color="minimal"
@@ -55,33 +51,34 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
                   {" "}
                   Edit Webhook
                 </Button>
-              </li>
-              <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <Dialog>
-                  <DialogTrigger
-                    as={Button}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    color="warn"
-                    StartIcon={TrashIcon}
-                    className="w-full">
-                    Delete Webhook
+                  <DialogTrigger asChild>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      color="warn"
+                      StartIcon={TrashIcon}
+                      className="w-full">
+                      Delete Webhook
+                    </Button>
                   </DialogTrigger>
                   <ConfirmationDialogContent
                     variety="danger"
-                    title="Disband Team"
-                    confirmBtnText="Yes, disband team"
+                    title="Delete Webhook"
+                    confirmBtnText="Yes, delete webhook"
                     cancelBtnText="Cancel"
                     onConfirm={() => {
                       console.log("confirm");
                     }}>
-                    Are you sure you want to disband this team? Anyone who you&apos;ve shared this team link
-                    with will no longer be able to book using it.
+                    Are you sure you want to delete this webhook? You will no longer receive Cal.com meeting
+                    data at a specified URL, in real-time, when an event is scheduled or canceled .
                   </ConfirmationDialogContent>
                 </Dialog>
-              </li>
-            </ul>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
           </Dropdown>
         </div>
       </div>

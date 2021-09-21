@@ -37,12 +37,12 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
   const [session, loading] = useSession();
   const [bookingCreated, setBookingCreated] = useState(true);
   const [bookingRescheduled, setBookingRescheduled] = useState(true);
-  const [bookingCanceled, setBookingCanceled] = useState(true);
+  const [bookingCancelled, setBookingCancelled] = useState(true);
   const [webhooks, setWebhooks] = useState([]);
   const [webhookEventTrigger, setWebhookEventTriggers] = useState([
     "BOOKING_CREATED",
     "BOOKING_RESCHEDULED",
-    "BOOKING_CANCELED",
+    "BOOKING_CANCELLED",
   ]);
   const [webhookEventTypes, setWebhookEventTypes] = useState([]);
 
@@ -70,14 +70,14 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
       case "booking-rescheduled":
         setBookingRescheduled(!bookingRescheduled);
         break;
-      case "booking-canceled":
-        setBookingCanceled(!bookingCanceled);
+      case "booking-cancelled":
+        setBookingCancelled(!bookingCancelled);
         break;
     }
     const arr = [];
     bookingCreated && arr.push("BOOKING_CREATED");
     bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
-    bookingCanceled && arr.push("BOOKING_CANCELED");
+    bookingCancelled && arr.push("BOOKING_CANCELLED");
     setWebhookEventTriggers(arr);
   };
 
@@ -101,7 +101,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
     fetch("/api/eventType")
       .then(handleErrors)
       .then((data) => {
-        setWebhookEventTypes(data.webhook);
+        setWebhookEventTypes(data.eventTypes);
       });
   };
 
@@ -115,12 +115,17 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
   }
 
   const createWebhook = () => {
-    const webhook = {
-      subscriberUrl: subUrlRef,
-      eventTriggers: webhookEventTrigger,
-      eventTypes: webhookEventTypes,
-    };
-    fetch("/api/webhook", { method: "POST", body: JSON.stringify(webhook) })
+    fetch("/api/webhook", {
+      method: "POST",
+      body: JSON.stringify({
+        subscriberUrl: subUrlRef.current.value,
+        eventTriggers: webhookEventTrigger,
+        eventTypeId: webhookEventTypes.map((webhookEventType) => webhookEventType.id),
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
       .then(getWebhooks)
       .catch(console.log);
   };
@@ -169,8 +174,8 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
           <div className="my-6">
             <h2 className="text-lg font-medium leading-6 text-gray-900">Webhooks</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Receive Calendso meeting data at a specified URL, in real-time, when an event is scheduled or
-              canceled.{" "}
+              Receive Cal.com meeting data at a specified URL, in real-time, when an event is scheduled or
+              cancelled.{" "}
             </p>
           </div>
           <div className="divide-y divide-gray-200 lg:col-span-9">
@@ -186,7 +191,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                         <div className="max-w-xl mt-2 text-sm text-gray-500">
                           <p>
                             Create your first webhook and get real-time meeting data when an event is
-                            scheduled or canceled.
+                            scheduled or cancelled.
                           </p>
                         </div>
                       </div>
@@ -202,73 +207,71 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                   <DialogContent>
                     <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
                     <div className="my-4">
-                      <form onSubmit={createWebhook}>
-                        <div className="mb-4">
-                          <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
-                            Subscriber Url
-                          </label>
-                          <input
-                            ref={subUrlRef}
-                            type="text"
-                            name="subUrl"
-                            id="subUrl"
-                            placeholder="https://example.com/sub"
-                            required
-                            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                          />
-                          <legend className="block mt-4 mb-2 text-sm font-medium text-gray-700">
-                            {" "}
-                            Select Event Triggers{" "}
-                          </legend>
-                          <div className="flex py-4">
-                            <div className="w-10/12 pt-3">
-                              <h2 className="font-medium text-gray-800">Booking Created</h2>
-                            </div>
-                            <div className="w-2/12 pt-3 text-right">
-                              <Switch
-                                defaultChecked={true}
-                                cid="booking-created"
-                                value={bookingCreated}
-                                onCheckedChange={onCheckedChange}
-                              />
-                            </div>
+                      <div className="mb-4">
+                        <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
+                          Subscriber Url
+                        </label>
+                        <input
+                          ref={subUrlRef}
+                          type="text"
+                          name="subUrl"
+                          id="subUrl"
+                          placeholder="https://example.com/sub"
+                          required
+                          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                        />
+                        <legend className="block mt-4 mb-2 text-sm font-medium text-gray-700">
+                          {" "}
+                          Select Event Triggers{" "}
+                        </legend>
+                        <div className="flex py-4">
+                          <div className="w-10/12 pt-3">
+                            <h2 className="font-medium text-gray-800">Booking Created</h2>
                           </div>
-                          <div className="flex py-1">
-                            <div className="w-10/12 pt-3">
-                              <h2 className="font-medium text-gray-800">Booking Rescheduled</h2>
-                            </div>
-                            <div className="w-2/12 pt-3 text-right">
-                              <Switch
-                                defaultChecked={true}
-                                cid="booking-rescheduled"
-                                value={bookingRescheduled}
-                                onCheckedChange={onCheckedChange}
-                              />
-                            </div>
-                          </div>
-                          <div className="flex py-4">
-                            <div className="w-10/12 pt-3">
-                              <h2 className="font-medium text-gray-800">Booking Canceled</h2>
-                            </div>
-                            <div className="w-2/12 pt-3 text-right">
-                              <Switch
-                                defaultChecked={true}
-                                cid="booking-canceled"
-                                value={bookingCanceled}
-                                onCheckedChange={onCheckedChange}
-                              />
-                            </div>
+                          <div className="w-2/12 pt-3 text-right">
+                            <Switch
+                              defaultChecked={true}
+                              cid="booking-created"
+                              value={bookingCreated}
+                              onCheckedChange={onCheckedChange}
+                            />
                           </div>
                         </div>
-                      </form>
-                    </div>
-                    <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                      <Button type="submit" color="primary" className="ml-2">
-                        Create Webhook
-                      </Button>
-                      <DialogClose asChild>
-                        <Button color="secondary">Cancel</Button>
-                      </DialogClose>
+                        <div className="flex py-1">
+                          <div className="w-10/12 pt-3">
+                            <h2 className="font-medium text-gray-800">Booking Rescheduled</h2>
+                          </div>
+                          <div className="w-2/12 pt-3 text-right">
+                            <Switch
+                              defaultChecked={true}
+                              cid="booking-rescheduled"
+                              value={bookingRescheduled}
+                              onCheckedChange={onCheckedChange}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex py-4">
+                          <div className="w-10/12 pt-3">
+                            <h2 className="font-medium text-gray-800">Booking Cancelled</h2>
+                          </div>
+                          <div className="w-2/12 pt-3 text-right">
+                            <Switch
+                              defaultChecked={true}
+                              cid="booking-cancelled"
+                              value={bookingCancelled}
+                              onCheckedChange={onCheckedChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                        <Button type="button" onClick={createWebhook} color="primary" className="ml-2">
+                          Create Webhook
+                        </Button>
+                        <DialogClose asChild>
+                          <Button color="secondary">Cancel</Button>
+                        </DialogClose>
+                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>

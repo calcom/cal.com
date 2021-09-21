@@ -69,8 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //   },
     // });
 
-    return res.status(201).json({ message: "Team created" });
+    return res.status(201).json({ message: "Webhook created" });
   }
 
-  res.status(404).json({ message: "Team not found" });
+  res.status(404).json({ message: "Webhook not found" });
 }
