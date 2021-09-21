@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../../lib/prisma";
-import { getSession } from "next-auth/client";
+import { getSession } from "@lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
@@ -36,6 +36,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: {
           in: memberships.map((membership) => membership.userId),
         },
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        bio: true,
+        avatar: true,
+        timeZone: true,
       },
     });
 

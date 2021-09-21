@@ -1,8 +1,8 @@
 import Link from "next/link";
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { getSession, useSession } from "next-auth/client";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
@@ -11,6 +11,11 @@ import Loader from "@components/Loader";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import { getSession } from "@lib/auth";
+import AddAppleIntegration, {
+  ADD_APPLE_INTEGRATION_FORM_TITLE,
+} from "@lib/integrations/Apple/components/AddAppleIntegration";
+import Button from "@components/ui/Button";
 
 export type Integration = {
   installed: boolean;
@@ -33,6 +38,10 @@ export default function Home({ integrations }: Props) {
   const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
   const [addCalDavError, setAddCalDavError] = useState<{ message: string } | null>(null);
 
+  const addAppleIntegrationRef = useRef<HTMLFormElement>(null);
+  const [isAddAppleIntegrationDialogOpen, setIsAddAppleIntegrationDialogOpen] = useState(false);
+  const [addAppleError, setAddAppleError] = useState<{ message: string } | null>(null);
+
   useEffect(loadCalendars, [integrations]);
 
   function loadCalendars() {
@@ -50,6 +59,12 @@ export default function Home({ integrations }: Props) {
       return;
     }
 
+    if (type === "apple_calendar") {
+      setAddAppleError(null);
+      setIsAddAppleIntegrationDialogOpen(true);
+      return;
+    }
+
     fetch("/api/integrations/" + type.replace("_", "") + "/add")
       .then((response) => response.json())
       .then((data) => (window.location.href = data.url));
@@ -63,6 +78,21 @@ export default function Home({ integrations }: Props) {
     });
 
     return await fetch("/api/integrations/caldav/add", {
+      method: "POST",
+      body: requestBody,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  };
+
+  const handleAddAppleIntegration = async ({ username, password }) => {
+    const requestBody = JSON.stringify({
+      username,
+      password,
+    });
+
+    return await fetch("/api/integrations/apple/add", {
       method: "POST",
       body: requestBody,
       headers: {
@@ -103,6 +133,8 @@ export default function Home({ integrations }: Props) {
         return "integrations/outlook.svg";
       case "caldav_calendar":
         return "integrations/caldav.svg";
+      case "apple_calendar":
+        return "integrations/apple-calendar.svg";
       default:
         return "";
     }
@@ -147,9 +179,9 @@ export default function Home({ integrations }: Props) {
               })}
           </ul>
         </div>
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-          <DialogClose as="button" className="btn btn-white mx-2">
-            Cancel
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+          <DialogClose asChild>
+            <Button color="secondary">Cancel</Button>
           </DialogClose>
         </div>
       </DialogContent>
@@ -191,9 +223,9 @@ export default function Home({ integrations }: Props) {
             ))}
           </ul>
         </div>
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-          <DialogClose as="button" className="btn btn-white mx-2">
-            Confirm
+        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+          <DialogClose asChild>
+            <Button color="secondary">Confirm</Button>
           </DialogClose>
         </div>
       </DialogContent>
@@ -214,6 +246,25 @@ export default function Home({ integrations }: Props) {
       } else {
         const j = await addCalDavIntegrationResponse.json();
         setAddCalDavError({ message: j.message });
+      }
+    } catch (reason) {
+      console.error(reason);
+    }
+  };
+
+  const handleAddAppleIntegrationSaveButtonPress = async () => {
+    const form = addAppleIntegrationRef.current.elements;
+    const password = form.password.value;
+    const username = form.username.value;
+
+    try {
+      setAddAppleError(null);
+      const addAppleIntegrationResponse = await handleAddAppleIntegration({ username, password });
+      if (addAppleIntegrationResponse.ok) {
+        setIsAddAppleIntegrationDialogOpen(false);
+      } else {
+        const j = await addAppleIntegrationResponse.json();
+        setAddAppleError({ message: j.message });
       }
     } catch (reason) {
       console.error(reason);
@@ -242,20 +293,19 @@ export default function Home({ integrations }: Props) {
               onSubmit={handleAddCalDavIntegrationSaveButtonPress}
             />
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+            <Button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
-            </button>
+            </Button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
-              as="button"
-              className="btn btn-white mx-2">
-              Cancel
+              asChild>
+              <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -263,13 +313,67 @@ export default function Home({ integrations }: Props) {
     );
   }, [isAddCalDavIntegrationDialogOpen, addCalDavError]);
 
+  const ConnectAppleServerDialog = useCallback(() => {
+    return (
+      <Dialog
+        open={isAddAppleIntegrationDialogOpen}
+        onOpenChange={(isOpen) => setIsAddAppleIntegrationDialogOpen(isOpen)}>
+        <DialogContent>
+          <DialogHeader
+            title="Connect to Apple Server"
+            subtitle={
+              <p>
+                Generate an app specific password to use with Cal.com at{" "}
+                <a
+                  className="text-indigo-400"
+                  href="https://appleid.apple.com/account/manage"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  https://appleid.apple.com/account/manage
+                </a>
+                . Your credentials will be stored and encrypted.
+              </p>
+            }
+          />
+          <div className="my-4">
+            {addAppleError && (
+              <p className="text-red-700 text-sm">
+                <span className="font-bold">Error: </span>
+                {addAppleError.message}
+              </p>
+            )}
+            <AddAppleIntegration
+              ref={addAppleIntegrationRef}
+              onSubmit={handleAddAppleIntegrationSaveButtonPress}
+            />
+          </div>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+            <button
+              type="submit"
+              form={ADD_APPLE_INTEGRATION_FORM_TITLE}
+              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+              Save
+            </button>
+            <DialogClose
+              onClick={() => {
+                setIsAddAppleIntegrationDialogOpen(false);
+              }}
+              asChild>
+              <Button color="secondary">Cancel</Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }, [isAddAppleIntegrationDialogOpen, addAppleError]);
+
   if (loading) {
     return <Loader />;
   }
 
   return (
     <div>
-      <Shell heading="App Store" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
+      <Shell heading="Integrations" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
         <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
@@ -358,13 +462,14 @@ export default function Home({ integrations }: Props) {
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
             <div className="mt-5">
-              <a href="mailto:apps@calendso.com" className="btn btn-white">
+              <a href="mailto:apps@cal.com" className="btn btn-white">
                 Contact us
               </a>
             </div>
           </div>
         </div>
         <ConnectCalDavServerDialog />
+        <ConnectAppleServerDialog />
       </Shell>
     </div>
   );
@@ -438,6 +543,14 @@ export async function getServerSideProps(context) {
       credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
       title: "CalDav Server",
       imageSrc: "integrations/caldav.svg",
+      description: "For personal and business calendars",
+    },
+    {
+      installed: true,
+      type: "apple_calendar",
+      credential: credentials.find((integration) => integration.type === "apple_calendar") || null,
+      title: "Apple Calendar",
+      imageSrc: "integrations/apple-calendar.svg",
       description: "For personal and business calendars",
     },
   ];

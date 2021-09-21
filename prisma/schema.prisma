@@ -10,6 +10,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum SchedulingType {
+  ROUND_ROBIN @map("roundRobin")
+  COLLECTIVE  @map("collective")
+}
+
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
@@ -18,8 +23,10 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
-  user                    User?                  @relation(fields: [userId], references: [id])
+  users                   User[]                 @relation("user_eventtype")
   userId                  Int?
+  team                    Team?                  @relation(fields: [teamId], references: [id])
+  teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
   eventName               String?
@@ -32,6 +39,7 @@ model EventType {
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
+  schedulingType          SchedulingType?
   Schedule                Schedule[]
 }
 
@@ -43,9 +51,15 @@ model Credential {
   userId Int?
 }
 
+enum UserPlan {
+  FREE
+  TRIAL
+  PRO
+}
+
 model User {
   id                  Int                @id @default(autoincrement())
-  username            String?
+  username            String?            @unique
   name                String?
   email               String?            @unique
   emailVerified       DateTime?
@@ -60,23 +74,32 @@ model User {
   hideBranding        Boolean            @default(false)
   theme               String?
   createdDate         DateTime           @default(now()) @map(name: "created")
-  eventTypes          EventType[]
+  eventTypes          EventType[]        @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
+  twoFactorSecret     String?
+  twoFactorEnabled    Boolean            @default(false)
 
+
+  plan     UserPlan   @default(PRO)
   Schedule Schedule[]
+
   @@map(name: "users")
 }
 
 model Team {
-  id      Int          @id @default(autoincrement())
-  name    String?
-  slug    String?
-  members Membership[]
+  id            Int          @id @default(autoincrement())
+  name          String?
+  slug          String?      @unique
+  logo          String?
+  bio           String?
+  hideBranding  Boolean      @default(false)
+  members       Membership[]
+  eventTypes    EventType[]
 }
 
 enum MembershipRole {
@@ -123,6 +146,13 @@ model Attendee {
   bookingId Int?
 }
 
+enum BookingStatus {
+  CANCELLED @map("cancelled")
+  ACCEPTED  @map("accepted")
+  REJECTED  @map("rejected")
+  PENDING   @map("pending")
+}
+
 model Booking {
   id          Int                @id @default(autoincrement())
   uid         String             @unique
@@ -144,6 +174,7 @@ model Booking {
   updatedAt DateTime?
   confirmed Boolean   @default(true)
   rejected  Boolean   @default(false)
+  status    BookingStatus @default(ACCEPTED)
 }
 
 model Schedule {
@@ -192,7 +223,7 @@ model EventTypeCustomInput {
   label       String
   type        EventTypeCustomInputType
   required    Boolean
-  placeholder String @default("")
+  placeholder String                   @default("")
 }
 
 model ResetPasswordRequest {

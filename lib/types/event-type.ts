@@ -1,3 +1,5 @@
+import { SchedulingType } from "@prisma/client";
+
 export type OpeningHours = {
   days: number[];
   startTime: number;
@@ -33,6 +35,7 @@ export type CreateEventType = {
   slug: string;
   description: string;
   length: number;
+  schedulingType?: SchedulingType;
 };
 
 export type EventTypeInput = AdvancedOptions & {

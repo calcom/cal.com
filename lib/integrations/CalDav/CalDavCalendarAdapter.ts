@@ -1,23 +1,23 @@
-import { IntegrationCalendar, CalendarApiAdapter, CalendarEvent } from "../../calendarClient";
+import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
 import { symmetricDecrypt } from "@lib/crypto";
 import {
   createAccount,
-  fetchCalendars,
-  fetchCalendarObjects,
-  getBasicAuthHeaders,
   createCalendarObject,
-  updateCalendarObject,
   deleteCalendarObject,
+  fetchCalendarObjects,
+  fetchCalendars,
+  getBasicAuthHeaders,
+  updateCalendarObject,
 } from "tsdav";
 import { Credential } from "@prisma/client";
 import ICAL from "ical.js";
-import { createEvent, DurationObject, Attendee, Person } from "ics";
+import { Attendee, createEvent, DurationObject, Person } from "ics";
 import dayjs from "dayjs";
 import { v4 as uuidv4 } from "uuid";
 import { stripHtml } from "../../emails/helpers";
 import logger from "@lib/logger";
 
-const log = logger.getChildLogger({ prefix: ["[[lib] caldav"] });
+const log = logger.getChildLogger({ prefix: ["[lib] caldav"] });
 
 type EventBusyDate = Record<"start" | "end", Date>;
 
@@ -111,7 +111,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         id: uid,
       };
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -161,7 +161,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         })
       );
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -193,7 +193,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         })
       );
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -208,17 +208,33 @@ export class CalDavCalendar implements CalendarApiAdapter {
         .filter((e) => e.integration === this.integrationName)
         .map((e) => e.externalId);
 
-      const events = [];
-
-      for (const calId of selectedCalendarIds) {
-        const calEvents = await this.getEvents(calId, dateFrom, dateTo);
-
-        for (const ev of calEvents) {
-          events.push({ start: ev.startDate, end: ev.endDate });
-        }
+      if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0) {
+        // Only calendars of other integrations selected
+        return Promise.resolve([]);
       }
 
-      return events;
+      return (
+        selectedCalendarIds.length === 0
+          ? this.listCalendars().then((calendars) => calendars.map((calendar) => calendar.externalId))
+          : Promise.resolve(selectedCalendarIds)
+      ).then(async (ids: string[]) => {
+        if (ids.length === 0) {
+          return Promise.resolve([]);
+        }
+
+        return (
+          await Promise.all(
+            ids.map(async (calId) => {
+              return (await this.getEvents(calId, dateFrom, dateTo)).map((event) => {
+                return {
+                  start: event.startDate,
+                  end: event.endDate,
+                };
+              });
+            })
+          )
+        ).flatMap((event) => event);
+      });
     } catch (reason) {
       log.error(reason);
       throw reason;
@@ -244,12 +260,12 @@ export class CalDavCalendar implements CalendarApiAdapter {
           integration: this.integrationName,
         }));
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
 
-  async getEvents(calId: string, dateFrom: string | null, dateTo: string | null): Promise<unknown> {
+  async getEvents(calId: string, dateFrom: string | null, dateTo: string | null): Promise<unknown[]> {
     try {
       const objects = await fetchCalendarObjects({
         calendar: {
@@ -265,58 +281,59 @@ export class CalDavCalendar implements CalendarApiAdapter {
         headers: this.headers,
       });
 
-      const events =
-        objects &&
-        objects?.length > 0 &&
-        objects
-          .map((object) => {
-            if (object?.data) {
-              const jcalData = ICAL.parse(object.data);
-              const vcalendar = new ICAL.Component(jcalData);
-              const vevent = vcalendar.getFirstSubcomponent("vevent");
-              const event = new ICAL.Event(vevent);
+      if (!objects || objects?.length === 0) {
+        return [];
+      }
 
-              const calendarTimezone = vcalendar.getFirstSubcomponent("vtimezone")
-                ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
-                : "";
+      const events = objects
+        .map((object) => {
+          if (object?.data) {
+            const jcalData = ICAL.parse(object.data);
+            const vcalendar = new ICAL.Component(jcalData);
+            const vevent = vcalendar.getFirstSubcomponent("vevent");
+            const event = new ICAL.Event(vevent);
 
-              const startDate = calendarTimezone
-                ? dayjs(event.startDate).tz(calendarTimezone)
-                : new Date(event.startDate.toUnixTime() * 1000);
-              const endDate = calendarTimezone
-                ? dayjs(event.endDate).tz(calendarTimezone)
-                : new Date(event.endDate.toUnixTime() * 1000);
+            const calendarTimezone = vcalendar.getFirstSubcomponent("vtimezone")
+              ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
+              : "";
 
-              return {
-                uid: event.uid,
-                etag: object.etag,
-                url: object.url,
-                summary: event.summary,
-                description: event.description,
-                location: event.location,
-                sequence: event.sequence,
-                startDate,
-                endDate,
-                duration: {
-                  weeks: event.duration.weeks,
-                  days: event.duration.days,
-                  hours: event.duration.hours,
-                  minutes: event.duration.minutes,
-                  seconds: event.duration.seconds,
-                  isNegative: event.duration.isNegative,
-                },
-                organizer: event.organizer,
-                attendees: event.attendees.map((a) => a.getValues()),
-                recurrenceId: event.recurrenceId,
-                timezone: calendarTimezone,
-              };
-            }
-          })
-          .filter((e) => e != null);
+            const startDate = calendarTimezone
+              ? dayjs(event.startDate).tz(calendarTimezone)
+              : new Date(event.startDate.toUnixTime() * 1000);
+            const endDate = calendarTimezone
+              ? dayjs(event.endDate).tz(calendarTimezone)
+              : new Date(event.endDate.toUnixTime() * 1000);
+
+            return {
+              uid: event.uid,
+              etag: object.etag,
+              url: object.url,
+              summary: event.summary,
+              description: event.description,
+              location: event.location,
+              sequence: event.sequence,
+              startDate,
+              endDate,
+              duration: {
+                weeks: event.duration.weeks,
+                days: event.duration.days,
+                hours: event.duration.hours,
+                minutes: event.duration.minutes,
+                seconds: event.duration.seconds,
+                isNegative: event.duration.isNegative,
+              },
+              organizer: event.organizer,
+              attendees: event.attendees.map((a) => a.getValues()),
+              recurrenceId: event.recurrenceId,
+              timezone: calendarTimezone,
+            };
+          }
+        })
+        .filter((e) => e != null);
 
       return events;
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }

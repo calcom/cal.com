@@ -29,9 +29,7 @@ const Slots = ({ eventLength, minimumBookingNotice, date, workingHours, organize
     setIsFullyBooked(false);
     setHasErrors(false);
     fetch(
-      `/api/availability/${user}?dateFrom=${date.startOf("day").utc().startOf("day").format()}&dateTo=${date
-        .endOf("day")
-        .utc()
+      `/api/availability/${user}?dateFrom=${date.startOf("day").format()}&dateTo=${date
         .endOf("day")
         .format()}`
     )

@@ -69,7 +69,7 @@ export default abstract class EventMail {
   /**
    * Sends the email to the event attendant and returns a Promise.
    */
-  public sendEmail(): Promise<any> {
+  public sendEmail() {
     new Promise((resolve, reject) =>
       nodemailer
         .createTransport(this.getMailerOptions().transport)
@@ -90,7 +90,7 @@ export default abstract class EventMail {
    *
    * @protected
    */
-  protected getMailerOptions(): any {
+  protected getMailerOptions() {
     return {
       transport: serverConfig.transport,
       from: serverConfig.from,
@@ -134,13 +134,5 @@ export default abstract class EventMail {
    */
   protected getCancelLink(): string {
     return this.parser.getCancelLink();
-  }
-
-  /**
-   * Defines a footer that will be appended to the email.
-   * @protected
-   */
-  protected getAdditionalFooter(): string {
-    return this.parser.getChangeEventFooterHtml();
   }
 }

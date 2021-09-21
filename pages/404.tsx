@@ -10,25 +10,27 @@ const links = [
     title: "Documentation",
     description: "Learn how to integrate our tools with your app",
     icon: DocumentTextIcon,
-    href: "https://docs.calendso.com",
+    href: "https://docs.cal.com",
   },
   {
     title: "API Reference",
     description: "A complete API reference for our libraries",
     icon: CodeIcon,
-    href: "https://api.docs.calendso.com",
+    href: "https://api.docs.cal.com",
   },
   {
     title: "Blog",
     description: "Read our latest news and articles",
     icon: BookOpenIcon,
-    href: "https://calendso.com/blog",
+    href: "https://cal.com/blog",
   },
 ];
 
 export default function Custom404() {
   const router = useRouter();
   const username = router.asPath.replace("%20", "-");
+
+  const isEventType404 = router.asPath.includes("/event-types");
 
   return (
     <>
@@ -47,39 +49,46 @@ export default function Custom404() {
             <h1 className="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
               This page does not exist.
             </h1>
-            <a href="https://checkout.calendso.com" className="inline-block mt-2 text-lg ">
-              The username <strong className="text-blue-500">calendso.com{username}</strong> is still
-              available. <span className="text-blue-500">Register now</span>.
-            </a>
+            {isEventType404 ? (
+              <span className="inline-block mt-2 text-lg ">
+                Check for spelling mistakes or go back to the previous page.
+              </span>
+            ) : (
+              <a href="https://cal.com/signup" className="inline-block mt-2 text-lg ">
+                The username <strong className="text-blue-500">cal.com{username}</strong> is still available.{" "}
+                <span className="text-blue-500">Register now</span>.
+              </a>
+            )}
           </div>
           <div className="mt-12">
             <h2 className="text-sm font-semibold text-gray-500 tracking-wide uppercase">Popular pages</h2>
-
-            <ul role="list" className="mt-4">
-              <li className="border-2 border-green-500 px-4 py-2">
-                <a href="https://checkout.calendso.com" className="relative py-6 flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-green-50">
-                      <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-medium text-gray-900">
-                      <span className="rounded-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-500">
-                        <span className="focus:outline-none">
-                          <span className="absolute inset-0" aria-hidden="true" />
-                          Register <strong className="text-green-500">{username}</strong>
-                        </span>
+            {!isEventType404 && (
+              <ul role="list" className="mt-4">
+                <li className="border-2 border-green-500 px-4 py-2">
+                  <a href="https://cal.com/signup" className="relative py-6 flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-green-50">
+                        <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
                       </span>
-                    </h3>
-                    <p className="text-base text-gray-500">Claim your username and schedule events</p>
-                  </div>
-                  <div className="flex-shrink-0 self-center">
-                    <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </div>
-                </a>
-              </li>
-            </ul>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-medium text-gray-900">
+                        <span className="rounded-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-500">
+                          <span className="focus:outline-none">
+                            <span className="absolute inset-0" aria-hidden="true" />
+                            Register <strong className="text-green-500">{username}</strong>
+                          </span>
+                        </span>
+                      </h3>
+                      <p className="text-base text-gray-500">Claim your username and schedule events</p>
+                    </div>
+                    <div className="flex-shrink-0 self-center">
+                      <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
+                  </a>
+                </li>
+              </ul>
+            )}
 
             <ul role="list" className="mt-4 border-gray-200 divide-y divide-gray-200">
               {links.map((link, linkIdx) => (
@@ -108,7 +117,7 @@ export default function Custom404() {
                 </li>
               ))}
               <li className="px-4 py-2">
-                <a href="https://calendso.com/slack" className="relative py-6 flex items-start space-x-4">
+                <a href="https://cal.com/slack" className="relative py-6 flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-gray-50">
                       <svg viewBox="0 0 2447.6 2452.5" className="h-6 w-6" xmlns="http://www.w3.org/2000/svg">

@@ -1,5 +1,5 @@
 import Cropper from "react-easy-crop";
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import Slider from "./Slider";
 
 export default function ImageUploader({ target, id, buttonMsg, handleAvatarChange, imageRef }) {
@@ -142,7 +142,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
               <div className="sm:flex sm:items-start mb-4">
                 <div className="mt-3 text-center sm:mt-0 sm:text-left">
                   <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                    Upload an avatar
+                    Upload {target}
                   </h3>
                 </div>
               </div>

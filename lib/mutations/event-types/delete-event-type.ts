@@ -1,17 +1,11 @@
+import * as fetch from "@lib/core/http/fetch-wrapper";
+
 const deleteEventType = async (data: { id: number }) => {
-  const response = await fetch("/api/availability/eventtype", {
-    method: "DELETE",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  return response.json();
+  const response = await fetch.remove<{ id: number }, Record<string, never>>(
+    "/api/availability/eventtype",
+    data
+  );
+  return response;
 };
 
 export default deleteEventType;
