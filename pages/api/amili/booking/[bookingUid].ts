@@ -14,6 +14,7 @@ import short from "short-uuid";
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
 import { checkUserExisted, HealthCoachBookingSession } from "./multiple";
 import { CalendarEvent } from "@lib/calendarClient";
+import { getMeeting } from "@lib/videoClient";
 
 const translator = short();
 
@@ -158,7 +159,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (method === "GET") {
-      return res.status(200).json(booking);
+      const credential = await prisma.credential.findFirst({ where: { userId: booking.userId } });
+      const bookingRef = await prisma.bookingReference.findFirst({ where: { bookingId: booking.id } });
+      const meetingResult = await getMeeting(credential, bookingRef.uid);
+      const meeting = JSON.parse(meetingResult || {});
+      return res.status(200).json({ ...booking, password: meeting?.encrypted_password });
     }
 
     if (method === "PATCH") {
