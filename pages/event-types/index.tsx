@@ -342,11 +342,11 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
           data-testid="new-event-type"
           {...(canAddEvents
             ? {
-              href: modalOpen.hrefOn,
-            }
+                href: modalOpen.hrefOn,
+              }
             : {
-              disabled: true,
-            })}
+                disabled: true,
+              })}
           StartIcon={PlusIcon}>
           New event type
         </Button>
@@ -372,8 +372,8 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                       eventPage: profile.slug,
                       ...(profile.teamId
                         ? {
-                          teamId: profile.teamId,
-                        }
+                            teamId: profile.teamId,
+                          }
                         : {}),
                     },
                   })
@@ -681,13 +681,13 @@ export async function getServerSideProps(context) {
     eventTypes: user.eventTypes.concat(typesRaw).map((type, index) =>
       user.plan === "FREE" && index > 0
         ? {
-          ...type,
-          $disabled: true,
-        }
+            ...type,
+            $disabled: true,
+          }
         : {
-          ...type,
-          $disabled: false,
-        }
+            ...type,
+            $disabled: false,
+          }
     ),
     metadata: {
       membershipCount: 1,

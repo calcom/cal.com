@@ -51,8 +51,9 @@ export default class EventOrganizerMail extends EventMail {
   }
 
   protected getAdditionalFooter(): string {
-    return `<p style="color: #4b5563; margin-top: 20px;">Need to make a change? <a href=${process.env.BASE_URL + "/bookings"
-      } style="color: #161e2e;">Manage my bookings</a></p>`;
+    return `<p style="color: #4b5563; margin-top: 20px;">Need to make a change? <a href=${
+      process.env.BASE_URL + "/bookings"
+    } style="color: #161e2e;">Manage my bookings</a></p>`;
   }
 
   protected getImage(): string {
@@ -107,12 +108,14 @@ export default class EventOrganizerMail extends EventMail {
       </tr>
       <tr>
         <td>When</td>
-        <td>${this.getOrganizerStart().format("dddd, LL")}<br>${this.getOrganizerStart().format("h:mma")} (${this.calEvent.organizer.timeZone
+        <td>${this.getOrganizerStart().format("dddd, LL")}<br>${this.getOrganizerStart().format("h:mma")} (${
+        this.calEvent.organizer.timeZone
       })</td>
       </tr>
       <tr>
         <td>Who</td>
-        <td>${this.calEvent.attendees[0].name}<br /><small><a href="mailto:${this.calEvent.attendees[0].email
+        <td>${this.calEvent.attendees[0].name}<br /><small><a href="mailto:${
+        this.calEvent.attendees[0].email
       }">${this.calEvent.attendees[0].email}</a></small></td>
       </tr>
       <tr>
