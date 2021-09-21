@@ -69,7 +69,7 @@ export default function Login({ csrfToken }) {
     <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <HeadSeo title="Login" description="Login" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Calendso Logo" />
+        <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
         <h2 className="mt-6 text-center text-3xl font-bold text-neutral-900">Sign in to your account</h2>
       </div>
 

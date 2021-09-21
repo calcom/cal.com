@@ -528,7 +528,7 @@ export default function Onboarding(props: OnboardingProps) {
   return (
     <div className="bg-black min-h-screen">
       <Head>
-        <title>Calendso - Getting Started</title>
+        <title>Cal.com - Getting Started</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

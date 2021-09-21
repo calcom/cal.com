@@ -41,7 +41,7 @@ export default function Signup(props) {
       method: "POST",
     })
       .then(handleErrors)
-      .then(() => signIn("Calendso", { callbackUrl: (router.query.callbackUrl || "") as string }))
+      .then(() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string }))
       .catch((err) => {
         setHasErrors(true);
         setErrorMessage(err.message);
@@ -116,7 +116,7 @@ export default function Signup(props) {
               />
               <a
                 onClick={() =>
-                  signIn("Calendso", { callbackUrl: (router.query.callbackUrl || "") as string })
+                  signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })
                 }
                 className="w-5/12 inline-flex justify-center text-sm text-gray-500 font-medium  border px-4 py-2 rounded btn cursor-pointer">
                 Login instead

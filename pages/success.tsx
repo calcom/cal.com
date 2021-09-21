@@ -135,10 +135,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             `https://calendar.google.com/calendar/r/eventedit?dates=${date
                               .utc()
                               .format("YYYYMMDDTHHmmss[Z]")}/${date
-                              .add(props.eventType.length, "minute")
-                              .utc()
-                              .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
-                              props.eventType.description
+                                .add(props.eventType.length, "minute")
+                                .utc()
+                                .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${props.eventType.description
                             }` + (location ? "&location=" + encodeURIComponent(location) : "")
                           }>
                           <a className="mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white py-2 px-3">
@@ -156,13 +155,13 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           href={
                             encodeURI(
                               "https://outlook.live.com/calendar/0/deeplink/compose?body=" +
-                                props.eventType.description +
-                                "&enddt=" +
-                                date.add(props.eventType.length, "minute").utc().format() +
-                                "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
-                                date.utc().format() +
-                                "&subject=" +
-                                eventName
+                              props.eventType.description +
+                              "&enddt=" +
+                              date.add(props.eventType.length, "minute").utc().format() +
+                              "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
+                              date.utc().format() +
+                              "&subject=" +
+                              eventName
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
@@ -182,13 +181,13 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           href={
                             encodeURI(
                               "https://outlook.office.com/calendar/0/deeplink/compose?body=" +
-                                props.eventType.description +
-                                "&enddt=" +
-                                date.add(props.eventType.length, "minute").utc().format() +
-                                "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
-                                date.utc().format() +
-                                "&subject=" +
-                                eventName
+                              props.eventType.description +
+                              "&enddt=" +
+                              date.add(props.eventType.length, "minute").utc().format() +
+                              "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
+                              date.utc().format() +
+                              "&subject=" +
+                              eventName
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
@@ -224,7 +223,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   )}
                   {!props.hideBranding && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
-                      <a href="https://cal.com/signup">Create your own booking link with Calendso</a>
+                      <a href="https://cal.com/signup">Create your own booking link with Cal.com</a>
                     </div>
                   )}
                 </div>

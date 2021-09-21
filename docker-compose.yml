@@ -1,4 +1,4 @@
-# this file is a helper to run calendso locally
+# this file is a helper to run Cal.com locally
 # starts a postgres instance on port 5450 to use as a local db
 version: "3.6"
 services:

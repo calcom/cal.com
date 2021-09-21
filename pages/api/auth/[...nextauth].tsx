@@ -16,7 +16,7 @@ export default NextAuth({
   },
   providers: [
     Providers.Credentials({
-      name: "Calendso",
+      name: "Cal.com",
       credentials: {
         email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
         password: { label: "Password", type: "password", placeholder: "Your super secure password" },
