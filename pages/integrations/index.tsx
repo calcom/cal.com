@@ -153,7 +153,11 @@ export default function Home({ integrations }: Props) {
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+        <DialogHeader
+          title="Connect a new App"
+          subtitleId="connectNewAppAccount"
+          subtitle="Connect a new app to your account."
+        />
         <div className="my-4">
           <ul className="divide-y divide-gray-200">
             {integrations
@@ -166,7 +170,9 @@ export default function Home({ integrations }: Props) {
                     </div>
                     <div className="w-10/12">
                       <h2 className="text-gray-800 font-medium">{integration.title}</h2>
-                      <p className="text-gray-400 text-sm">{integration.description}</p>
+                      <p className="text-gray-400 text-sm">
+                        <T>{integration.description}</T>
+                      </p>
                     </div>
                     <div className="w-2/12 text-right pt-2">
                       <button
@@ -200,6 +206,7 @@ export default function Home({ integrations }: Props) {
       <DialogContent>
         <DialogHeader
           title="Select calendars"
+          subtitleId="noEntrySelectedAllCalendarsChecked"
           subtitle="If no entry is selected, all calendars will be checked"
         />
         <div className="my-4">
@@ -284,6 +291,7 @@ export default function Home({ integrations }: Props) {
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
+            subtitleId="yourCredentialsWillStoredEncrypted"
             subtitle="Your credentials will be stored and encrypted."
           />
           <div className="my-4">

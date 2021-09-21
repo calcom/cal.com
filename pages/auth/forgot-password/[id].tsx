@@ -143,7 +143,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                   <T>Reset Password</T>
                 </h2>
                 <p>
-                  <T id="resetPassword">Enter the new password you'd like for your account.</T>
+                  <T id="resetPassword">Enter the new password you&apos;d like for your account.</T>
                 </p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>

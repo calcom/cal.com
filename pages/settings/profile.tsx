@@ -1,6 +1,9 @@
 import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
 import { RefObject, useEffect, useRef, useState } from "react";
+import dayjs from "dayjs";
 import prisma from "@lib/prisma";
+import capitalize from "lodash.capitalize";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
@@ -17,6 +20,11 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
+
+dayjs.locale(es);
+dayjs.extend(localeData);
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -84,6 +92,10 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
+  const { locale = "en" } = useRouter();
+  dayjs.locale(locale);
+  const [sunday, monday] = dayjs.weekdays();
+
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -92,7 +104,13 @@ export default function Settings(props: Props) {
   const hideBrandingRef = useRef<HTMLInputElement>(null);
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
-  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
+  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState<{
+    value: "Sunday" | "Monday";
+    label?: string;
+  }>({
+    value: props.user.weekStart as "Sunday" | "Monday",
+  });
+
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
 
   const [hasErrors, setHasErrors] = useState(false);
@@ -102,7 +120,11 @@ export default function Settings(props: Props) {
     setSelectedTheme(
       props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : null
     );
-    setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
+    if (props.user.weekStart === "Sunday") {
+      setSelectedWeekStartDay({ value: "Sunday", label: capitalize(sunday) });
+    } else {
+      setSelectedWeekStartDay({ value: "Monday", label: capitalize(monday) });
+    }
   }, []);
 
   const closeSuccessModal = () => {
@@ -138,6 +160,7 @@ export default function Settings(props: Props) {
     const enteredAvatar = avatarRef.current.value;
     const enteredTimeZone = selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
+
     const enteredHideBranding = hideBrandingRef.current.checked;
 
     // TODO: Add validation
@@ -271,8 +294,8 @@ export default function Settings(props: Props) {
                       classNamePrefix="react-select"
                       className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
                       options={[
-                        { value: "Sunday", label: "Sunday" },
-                        { value: "Monday", label: "Monday" },
+                        { value: "Sunday", label: capitalize(sunday) },
+                        { value: "Monday", label: capitalize(monday) },
                       ]}
                     />
                   </div>
@@ -377,6 +400,7 @@ export default function Settings(props: Props) {
         </form>
         <Modal
           heading="Profile updated successfully"
+          descriptionId="yourProfileHasBeenUpdated"
           description="Your user profile has been updated successfully."
           open={successModalOpen}
           handleClose={closeSuccessModal}

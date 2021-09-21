@@ -29,7 +29,7 @@ export default function Login({ csrfToken }) {
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
-                <T id="emailAddress">Email address</T>
+                <T>Email address</T>
               </label>
               <div className="mt-1">
                 <input
@@ -92,6 +92,7 @@ export default function Login({ csrfToken }) {
 }
 
 Login.getInitialProps = async (context) => {
+  console.log("🚀 ~ file: login.tsx ~ line 95 ~ Login.getInitialProps= ~ context", context);
   const { req, res } = context;
   const session = await getSession({ req });
 

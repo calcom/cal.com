@@ -17,13 +17,19 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { EventType } from "@prisma/client";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
 
+dayjs.locale(es);
+dayjs.extend(localeData);
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
 
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
+  const { locale = "en" } = router;
+  dayjs.locale(locale);
   const { location, name, reschedule } = router.query;
 
   const [is24h, setIs24h] = useState(false);

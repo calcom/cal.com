@@ -1,4 +1,5 @@
 import Link from "next/link";
+import T from "@components/T";
 import { CodeIcon, CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import classNames from "@lib/classNames";
@@ -55,7 +56,9 @@ export default function SettingsShell(props) {
                   )}
                   aria-hidden="true"
                 />
-                <span>{tab.name}</span>
+                <span>
+                  <T>{tab.name}</T>
+                </span>
               </a>
             </Link>
           ))}

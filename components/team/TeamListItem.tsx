@@ -11,6 +11,7 @@ import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import T from "@components/T";
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import showToast from "@lib/notification";
@@ -62,7 +63,7 @@ export default function TeamListItem(props: {
                   : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
                     encodeURIComponent(props.team.name || "")
               }
-              displayName="Team Logo"
+              title="Team Logo"
               className="rounded-full w-9 h-9"
             />
             <div className="inline-block ml-3">
@@ -75,24 +76,24 @@ export default function TeamListItem(props: {
           {props.team.role === "INVITEE" && (
             <div>
               <Button type="button" color="secondary" onClick={declineInvite}>
-                Reject
+                <T>Reject</T>
               </Button>
               <Button type="button" color="primary" className="ml-1" onClick={acceptInvite}>
-                Accept
+                <T>Accept</T>
               </Button>
             </div>
           )}
           {props.team.role === "MEMBER" && (
             <div>
               <Button type="button" color="primary" onClick={declineInvite}>
-                Leave
+                <T>Leave</T>
               </Button>
             </div>
           )}
           {props.team.role === "OWNER" && (
             <div className="flex">
               <span className="self-center h-6 px-3 py-1 text-xs text-gray-700 capitalize rounded-md bg-gray-50">
-                Owner
+                <T>Owner</T>
               </span>
               <Tooltip content="Copy link">
                 <Button
@@ -118,7 +119,7 @@ export default function TeamListItem(props: {
                       onClick={() => props.onActionSelect("edit")}
                       StartIcon={PencilAltIcon}>
                       {" "}
-                      Edit team
+                      <T>Edit team</T>
                     </Button>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="">
@@ -126,7 +127,7 @@ export default function TeamListItem(props: {
                       <a target="_blank">
                         <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
                           {" "}
-                          Preview team page
+                          <T>Preview team page</T>
                         </Button>
                       </a>
                     </Link>
@@ -141,7 +142,7 @@ export default function TeamListItem(props: {
                           color="warn"
                           StartIcon={TrashIcon}
                           className="w-full">
-                          Disband Team
+                          <T>Disband Team</T>
                         </Button>
                       </DialogTrigger>
                       <ConfirmationDialogContent
@@ -150,8 +151,10 @@ export default function TeamListItem(props: {
                         confirmBtnText="Yes, disband team"
                         cancelBtnText="Cancel"
                         onConfirm={() => props.onActionSelect("disband")}>
-                        Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
-                        link with will no longer be able to book using it.
+                        <T id="areYouSureDisbandTeam">
+                          Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
+                          link with will no longer be able to book using it.
+                        </T>
                       </ConfirmationDialogContent>
                     </Dialog>
                   </DropdownMenuItem>

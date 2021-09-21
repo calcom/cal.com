@@ -1,4 +1,5 @@
 import React from "react";
+import T from "@components/T";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 export function Tooltip({
@@ -11,10 +12,10 @@ export function Tooltip({
 }: {
   [x: string]: any;
   children: React.ReactNode;
-  content: React.ReactNode;
-  open: boolean;
-  defaultOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  content: string;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   return (
     <TooltipPrimitive.Root
@@ -28,7 +29,7 @@ export function Tooltip({
         side="top"
         align="center"
         {...props}>
-        {content}
+        <T>{content}</T>
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Root>
   );

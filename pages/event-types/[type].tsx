@@ -311,20 +311,20 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return (
           <p className="text-sm">
             <T id="calendsoWillProviderPhone">
-              Calendso will ask your invitee to enter a phone number before scheduling.
+              Cal will ask your invitee to enter a phone number before scheduling.
             </T>
           </p>
         );
       case LocationType.GoogleMeet:
         return (
           <p className="text-sm">
-            <T id="calendsoWillProviderGoogleMeet">Calendso will provide a Google Meet location.</T>
+            <T id="calendsoWillProviderGoogleMeet">Cal will provide a Google Meet location.</T>
           </p>
         );
       case LocationType.Zoom:
         return (
           <p className="text-sm">
-            <T id="calendsoWillProviderZoom">Calendso will provide a Zoom meeting URL.</T>
+            <T id="calendsoWillProviderZoom">Cal will provide a Zoom meeting URL.</T>
           </p>
         );
     }
@@ -369,7 +369,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       description: "Cycle meetings between multiple team members.",
     },
   ];
-
   return (
     <div>
       <Shell

@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import Loader from "@components/Loader";
 import prisma from "@lib/prisma";
 import dayjs from "dayjs";
@@ -7,10 +8,17 @@ import { getSession } from "@lib/auth";
 import { useEffect, useState } from "react";
 import T from "@components/T";
 import Shell from "@components/Shell";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
 
+dayjs.locale(es);
 dayjs.extend(utc);
+dayjs.extend(localeData);
 
 export default function Troubleshoot({ user }) {
+  const { locale = "en" } = useRouter();
+  dayjs.locale(locale);
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState([]);

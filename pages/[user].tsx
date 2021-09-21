@@ -55,7 +55,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div className="p-8 text-center text-gray-400 dark:text-white">
                   <h2 className="font-semibold text-3xl text-gray-600 dark:text-white">Uh oh!</h2>
                   <p className="max-w-md mx-auto">
-                    <T id="thisUserHasNotEventTypes">This user hasn't set up any event types yet.</T>
+                    <T id="thisUserHasNotEventTypes">This user hasn&apos;t set up any event types yet.</T>
                   </p>
                 </div>
               </div>

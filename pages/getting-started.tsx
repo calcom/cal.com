@@ -31,7 +31,11 @@ import classnames from "classnames";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { getSession } from "@lib/auth";
 import Button from "@components/ui/Button";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
 
+dayjs.locale(es);
+dayjs.extend(localeData);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -63,7 +67,8 @@ type OnboardingProps = {
 
 export default function Onboarding(props: OnboardingProps) {
   const router = useRouter();
-
+  const { locale = "en" } = router;
+  dayjs.locale(locale);
   const [enteredName, setEnteredName] = React.useState();
   const Sess = useSession();
   const [ready, setReady] = useState(false);
@@ -222,6 +227,7 @@ export default function Onboarding(props: OnboardingProps) {
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
+            subtitleId="yourCredentialsWillStoredEncrypted"
             subtitle="Your credentials will be stored and encrypted."
           />
           <div className="my-4">

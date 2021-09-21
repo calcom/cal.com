@@ -22,7 +22,7 @@ export default function Logout() {
             </div>
             <div className="mt-3 text-center sm:mt-5">
               <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                <T id="youHaveBeenLoggedOut">You've been logged out</T>
+                <T id="youHaveBeenLoggedOut">You&apos;ve been logged out</T>
               </h3>
               <div className="mt-2">
                 <p className="text-sm text-gray-500">

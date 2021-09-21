@@ -1,4 +1,5 @@
 import React from "react";
+import T from "@components/T";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]>;
@@ -26,17 +27,21 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
 
 type DialogHeaderProps = {
   title: React.ReactElement | string;
+  titleId?: string;
   subtitle: React.ReactElement | string;
+  subtitleId?: string;
 };
 
-export function DialogHeader({ title, subtitle }: DialogHeaderProps) {
+export function DialogHeader({ titleId, title, subtitleId, subtitle }: DialogHeaderProps) {
   return (
     <div className="mb-8">
       <h3 className="text-gray-900 text-lg font-bold leading-6" id="modal-title">
-        {title}
+        {typeof title === "string" ? <T id={titleId}>{title as string}</T> : { title }}
       </h3>
       <div>
-        <p className="text-gray-400 text-sm">{subtitle}</p>
+        <p className="text-gray-400 text-sm">
+          {typeof subtitle === "string" ? <T id={subtitleId}>{subtitle as string}</T> : { subtitle }}
+        </p>
       </div>
     </div>
   );

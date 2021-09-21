@@ -1,4 +1,5 @@
 import React from "react";
+import T from "@components/T";
 
 type Props = {
   onSubmit: () => void;
@@ -23,7 +24,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
     <form id={ADD_CALDAV_INTEGRATION_FORM_TITLE} ref={ref} onSubmit={onSubmit}>
       <div className="mb-2">
         <label htmlFor="url" className="block text-sm font-medium text-gray-700">
-          Calendar URL
+          <T>Calendar URL</T>
         </label>
         <div className="mt-1 rounded-md shadow-sm flex">
           <input
@@ -38,7 +39,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
       </div>
       <div className="mb-2">
         <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-          Username
+          <T>Username</T>
         </label>
         <input
           required
@@ -51,7 +52,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
       </div>
       <div className="mb-2">
         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
+          <T>Password</T>
         </label>
         <input
           required

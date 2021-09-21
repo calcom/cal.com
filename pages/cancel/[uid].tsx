@@ -8,12 +8,19 @@ import T from "@components/T";
 import { Button } from "@components/ui/Button";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { es } from "dayjs/locale/es";
+import localeData from "dayjs/plugin/localeData";
 
 dayjs.extend(utc);
+
+dayjs.locale(es);
+dayjs.extend(localeData);
 
 export default function Type(props) {
   // Get router variables
   const router = useRouter();
+  const { locale = "en" } = router;
+  dayjs.locale(locale);
   const { uid } = router.query;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,5 +1,6 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import T from "@components/T";
 import { defaultAvatarSrc } from "@lib/profile";
 import classNames from "@lib/classNames";
 
@@ -34,7 +35,7 @@ export default function Avatar({ imageSrc, gravatarFallbackMd5, size, alt, title
       <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
       <Tooltip.Content className="p-2 rounded-sm text-sm bg-black text-white shadow-sm">
         <Tooltip.Arrow />
-        {title}
+        <T>{title}</T>
       </Tooltip.Content>
     </Tooltip.Tooltip>
   ) : (

@@ -219,7 +219,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       color="secondary"
                       StartIcon={PlusIcon}
                       onClick={() => onInviteMember(props.team)}>
-                      New Member
+                      <T>New Member</T>
                     </Button>
                   </div>
                 </div>
@@ -243,14 +243,18 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Cal.com branding
+                        <T id="disableCalBranding">Disable Cal.com branding</T>
                       </label>
-                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
+                      <p className="text-gray-500">
+                        <T id="hideAllCalBranding">Hide all Cal.com branding from your public pages.</T>
+                      </p>
                     </div>
                   </div>
                   <hr className="mt-6" />
                 </div>
-                <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">Danger Zone</h3>
+                <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">
+                  <T>Danger Zone</T>
+                </h3>
                 <div>
                   <div className="relative flex items-start">
                     <Dialog>
@@ -260,7 +264,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                         }}
                         className="btn-sm btn-white">
                         <TrashIcon className="group-hover:text-red text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
-                        Disband Team
+                        <T>Disband Team</T>
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         variety="danger"
@@ -268,8 +272,10 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                         confirmBtnText="Yes, disband team"
                         cancelBtnText="Cancel"
                         onConfirm={() => deleteTeam()}>
-                        Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
-                        link with will no longer be able to book using it.
+                        <T id="areYouSureDisbandTeam">
+                          Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
+                          link with will no longer be able to book using it.
+                        </T>
                       </ConfirmationDialogContent>
                     </Dialog>
                   </div>
