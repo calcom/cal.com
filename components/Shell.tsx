@@ -16,18 +16,33 @@ import {
 import classNames from "@lib/classNames";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
-import { signOut, useSession } from "next-auth/client";
+import { signOut } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
+import Loader from "./Loader";
 import Logo from "./Logo";
 
-export default function Shell(props) {
+function useMeQuery() {
+  return trpc.useQuery(["user.me"], {
+    // refetch max once per second
+    staleTime: 1000,
+  });
+}
+
+export default function Shell(props: {
+  title?: string;
+  heading: ReactNode;
+  subtitle: string;
+  children: ReactNode;
+  CTA?: ReactNode;
+}) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
+
   const telemetry = useTelemetry();
+  const query = useMeQuery();
 
   const navigation = [
     {
@@ -68,16 +83,19 @@ export default function Shell(props) {
     });
   }, [telemetry]);
 
-  if (!loading && !session) {
+  if (query.status !== "loading" && !query.data) {
     router.replace("/auth/login");
   }
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+  if (query.status === "loading") {
+    return <Loader />;
+  }
 
-  return session ? (
+  return (
     <>
       <HeadSeo
-        title={pageTitle}
+        title={pageTitle ?? "Cal.com"}
         description={props.subtitle}
         nextSeoProps={{
           nofollow: true,
@@ -151,7 +169,7 @@ export default function Shell(props) {
                   </Link>
                 </button>
                 <div className="mt-1">
-                  <UserDropdown small bottom session={session} />
+                  <UserDropdown small bottom />
                 </div>
               </div>
             </nav>
@@ -202,11 +220,11 @@ export default function Shell(props) {
         </div>
       </div>
     </>
-  ) : null;
+  );
 }
 
 function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) {
-  const query = trpc.useQuery(["user.me"]);
+  const query = useMeQuery();
   const user = query.data;
 
   return (
