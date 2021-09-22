@@ -72,13 +72,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const eventManager = new EventManager(currentUser.credentials);
       const scheduleResult = await eventManager.create(evt, booking.uid);
 
-      await handleLegacyConfirmationMail(
-        scheduleResult.results,
-        { requiresConfirmation: false, price: 0 },
-        evt,
-        booking.uid
-      );
-
       await prisma.booking.update({
         where: {
           id: bookingId,
