@@ -77,9 +77,11 @@
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
+    "@types/async": "^3.2.7",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
     "@types/lodash.debounce": "^4.0.6",
+    "@types/lodash.merge": "^4.6.6",
     "@types/node": "^16.6.1",
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",

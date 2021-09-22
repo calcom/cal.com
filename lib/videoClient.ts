@@ -219,7 +219,7 @@ const getBusyVideoTimes: (withCredentials: Credential[]) => Promise<unknown[]> =
 const createMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  maybeUid: string = null
+  maybeUid?: string
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
   const uid: string = parser.getUid();
@@ -279,6 +279,7 @@ const createMeeting = async (
     uid,
     createdEvent: creationResult,
     originalEvent: calEvent,
+    videoCallData: videoCallData,
   };
 };
 
