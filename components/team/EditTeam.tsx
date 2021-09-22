@@ -144,7 +144,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
           </div>
         </div>
         <hr className="mt-2" />
-        <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">Profile</h3>
+        <h3 className="font-cal font-bold leading-6 text-gray-900 mt-7 text-md">Profile</h3>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateTeamHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
           <div className="py-6 lg:pb-8">
@@ -214,7 +214,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                   <hr className="mt-6" />
                 </div>
                 <div className="flex justify-between mt-7">
-                  <h3 className="font-bold leading-6 text-gray-900 text-md">Members</h3>
+                  <h3 className="font-cal font-bold leading-6 text-gray-900 text-md">Members</h3>
                   <div className="relative flex items-center">
                     <Button
                       type="button"

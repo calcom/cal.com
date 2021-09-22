@@ -99,7 +99,9 @@ export default function Type(props) {
                           <p className="text-sm text-gray-500">Instead, you could also reschedule it.</p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
-                          <h2 className="text-lg font-medium text-gray-600 mb-2">{props.booking.title}</h2>
+                          <h2 className="font-cal text-lg font-medium text-gray-600 mb-2">
+                            {props.booking.title}
+                          </h2>
                           <p className="text-gray-500">
                             <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                             {dayjs(props.booking.startTime).format(

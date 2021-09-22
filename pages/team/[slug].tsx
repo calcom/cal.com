@@ -30,7 +30,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="px-6 py-4 flex justify-between">
               <div className="flex-shrink">
-                <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1">
