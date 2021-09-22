@@ -8,7 +8,7 @@ export const extractLocaleInfo = async (req: IncomingMessage) => {
   const session = await getSession({ req: req });
   const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]);
 
-  if (preferredLocale && session?.user?.id) {
+  if (session?.user?.id) {
     const user = await prisma.user.findUnique({
       where: {
         id: session.user.id,
@@ -22,14 +22,25 @@ export const extractLocaleInfo = async (req: IncomingMessage) => {
       return user.locale;
     }
 
-    await prisma.user.update({
-      where: {
-        id: session.user.id,
-      },
-      data: {
-        locale: preferredLocale,
-      },
-    });
+    if (preferredLocale) {
+      await prisma.user.update({
+        where: {
+          id: session.user.id,
+        },
+        data: {
+          locale: preferredLocale,
+        },
+      });
+    } else {
+      await prisma.user.update({
+        where: {
+          id: session.user.id,
+        },
+        data: {
+          locale: i18n.defaultLocale,
+        },
+      });
+    }
   }
 
   if (preferredLocale) {
