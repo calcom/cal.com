@@ -5,6 +5,7 @@ import stripe from "@ee/lib/stripe/server";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
+import { getErrorFromUnknown } from "pages/_error";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -117,11 +118,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (event.type === "payment_intent.succeeded") {
       await handlePaymentSuccess(event);
     } else {
-      console.log(`Unhandled event type ${event.type}`);
+      console.error(`Unhandled event type ${event.type}`);
     }
-  } catch (err) {
-    console.log(`Webhook Error: ${err.message}`);
-    res.status(400).send(`Webhook Error: ${err.message}`);
+  } catch (_err) {
+    const err = getErrorFromUnknown(_err);
+    console.error(`Webhook Error: ${err.message}`);
+    res.status(err.statusCode ?? 500).send({
+      message: err.message,
+      stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+    });
     return;
   }
 

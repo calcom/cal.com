@@ -151,7 +151,7 @@ export async function refund(
       },
     });
   } catch (e) {
-    console.log(e, "Refund failed");
+    console.error(e, "Refund failed");
     await handleRefundError({
       event: calEvent,
       booking: booking,
@@ -167,7 +167,7 @@ async function handleRefundError(opts: {
   reason: string;
   paymentId: string;
 }) {
-  console.log(`refund failed: ${opts.reason} for booking '${opts.booking.id}'`);
+  console.error(`refund failed: ${opts.reason} for booking '${opts.booking.id}'`);
   try {
     await new EventOrganizerRefundFailedMail(
       opts.event,
@@ -176,7 +176,7 @@ async function handleRefundError(opts: {
       opts.paymentId
     ).sendEmail();
   } catch (e) {
-    console.log("Error while sending refund error email", e);
+    console.error("Error while sending refund error email", e);
   }
 }
 
