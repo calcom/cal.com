@@ -404,7 +404,6 @@ export default function Settings(props: Props) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
   const locale = await extractLocaleInfo(context.req);
-  console.log("LOCALE", locale);
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };

@@ -318,6 +318,7 @@ const BookingPage = (props: any): JSX.Element => {
                                 id={"custom_" + input.id}
                                 className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
                                 placeholder=""
+                                required={input.required}
                               />
                               <label
                                 htmlFor={"custom_" + input.id}
