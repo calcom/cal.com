@@ -57,15 +57,15 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
   });
 
-  if (!payment) throw { message: "No payment found" };
+  if (!payment) throw new Error("No payment found");
 
   const { booking } = payment;
 
-  if (!booking) throw { message: "No booking found" };
+  if (!booking) throw new Error("No booking found");
 
   const { user } = booking;
 
-  if (!user) throw { message: "No user found" };
+  if (!user) throw new Error("No user found");
 
   const evt: CalendarEvent = {
     type: booking.title,
