@@ -16,7 +16,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { useTranslation } from "next-i18next";
+import { useLocale } from "@lib/hooks/useLocale";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
 
@@ -83,10 +83,10 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
-  let locale = "en";
-  if (props.localeProp) {
-    locale = props.localeProp;
-  }
+  const { locale } = useLocale({
+    localeProp: props.localeProp,
+    namespaces: "settings-profile-page",
+  });
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -104,12 +104,6 @@ export default function Settings(props: Props) {
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const { i18n } = useTranslation("settings-profile-page");
-
-  useEffect(() => {
-    (async () => await i18n.changeLanguage(locale))();
-  }, [i18n, locale]);
 
   useEffect(() => {
     setSelectedTheme(

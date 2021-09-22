@@ -41,11 +41,11 @@ import dayjs from "dayjs";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useRef, useEffect } from "react";
+import React, { Fragment, useRef } from "react";
 import { useMutation } from "react-query";
-import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 type EventType = PageProps["eventTypes"][number];
@@ -53,16 +53,10 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
-  let locale = "en";
-  if (props.localeProp) {
-    locale = props.localeProp;
-  }
-
-  const { i18n } = useTranslation("event-types-page");
-
-  useEffect(() => {
-    (async () => await i18n.changeLanguage(locale))();
-  }, [i18n, locale]);
+  const { locale } = useLocale({
+    localeProp: props.localeProp,
+    namespaces: "event-types-page",
+  });
 
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
@@ -338,21 +332,12 @@ const CreateNewEventDialog = ({
 }: {
   profiles: Profile[];
   canAddEvents: boolean;
-  localeProp?: string;
+  localeProp: string;
 }) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
-  let locale = "en";
-  if (localeProp) {
-    locale = localeProp;
-  }
-
-  const { i18n } = useTranslation("event-types-page");
-
-  useEffect(() => {
-    (async () => await i18n.changeLanguage(locale))();
-  }, [i18n, locale]);
+  const { t } = useLocale({ localeProp, namespaces: "event-types-page" });
 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
@@ -384,13 +369,13 @@ const CreateNewEventDialog = ({
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          New event type
+          {t("new-event-type-btn")}
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>New event type</Button>
+            <Button EndIcon={ChevronDownIcon}>{t("new-event-type-btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>

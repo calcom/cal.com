@@ -16,7 +16,6 @@ type DefaultSessionUser = NonNullable<DefaultSession["user"]>;
 type CalendsoSessionUser = DefaultSessionUser & {
   id: number;
   username: string;
-  locale?: string;
 };
 export interface Session extends DefaultSession {
   user?: CalendsoSessionUser;

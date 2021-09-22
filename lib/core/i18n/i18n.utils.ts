@@ -5,29 +5,37 @@ import { getSession } from "@lib/auth";
 import parser from "accept-language-parser";
 
 export const extractLocaleInfo = async (req: IncomingMessage) => {
-  const acceptLanguageHeader = req.headers["accept-language"];
   const session = await getSession({ req: req });
+  const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]);
 
-  if (session?.user?.locale) {
-    return session.user.locale;
-  }
+  if (preferredLocale && session?.user?.id) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        locale: true,
+      },
+    });
 
-  if (acceptLanguageHeader) {
-    const preferredLocale = parser.pick(i18n.locales, acceptLanguageHeader);
-    if (preferredLocale) {
-      if (session?.user?.locale === null) {
-        await prisma.user.update({
-          where: {
-            id: session.user.id,
-          },
-          data: {
-            locale: preferredLocale,
-          },
-        });
-      }
-      return preferredLocale;
+    if (user?.locale) {
+      return user.locale;
     }
+
+    await prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        locale: preferredLocale,
+      },
+    });
   }
+
+  if (preferredLocale) {
+    return preferredLocale;
+  }
+
   return i18n.defaultLocale;
 };
 
