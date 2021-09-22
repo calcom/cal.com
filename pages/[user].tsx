@@ -110,6 +110,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       length: true,
       description: true,
       hidden: true,
+      schedulingType: true,
+      price: true,
+      currency: true,
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });

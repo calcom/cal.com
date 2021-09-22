@@ -3,7 +3,7 @@ import Modal from "@components/Modal";
 import React, { useEffect, useRef, useState } from "react";
 import Select, { OptionTypeBase } from "react-select";
 import prisma from "@lib/prisma";
-import { Availability, EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
+import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import { LocationType } from "@lib/location";
 import Shell from "@components/Shell";
 import { getSession } from "@lib/auth";
@@ -28,7 +28,6 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { validJson } from "@lib/jsonUtils";
 import throttle from "lodash.throttle";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
@@ -38,7 +37,7 @@ import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { GetServerSidePropsContext } from "next";
 import { useMutation } from "react-query";
-import { EventTypeInput } from "@lib/types/event-type";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
@@ -47,8 +46,11 @@ import { defaultAvatarSrc } from "@lib/profile";
 import * as RadioArea from "@components/ui/form/radio-area";
 import classNames from "@lib/classNames";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { FormattedNumber, IntlProvider } from "react-intl";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import Button from "@components/ui/Button";
+import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import Stripe from "stripe";
 import CheckboxField from "@components/ui/form/CheckboxField";
 
 dayjs.extend(utc);
@@ -70,7 +72,8 @@ const PERIOD_TYPES = [
 ];
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { eventType, locationOptions, availability, team, teamMembers } = props;
+  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
+    props;
 
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -172,14 +175,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       PERIOD_TYPES.find((s) => s.type === "unlimited")
     );
   });
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
 
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
+
   const titleRef = useRef<HTMLInputElement>(null);
   const slugRef = useRef<HTMLInputElement>(null);
   const requiresConfirmationRef = useRef<HTMLInputElement>(null);
   const eventNameRef = useRef<HTMLInputElement>(null);
   const periodDaysRef = useRef<HTMLInputElement>(null);
   const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone);
@@ -192,6 +198,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
     const enteredTitle: string = titleRef.current.value;
     const enteredSlug: string = slugRef.current.value;
+    const enteredPrice = requirePayment ? Math.round(parseFloat(priceRef.current.value) * 100) : 0;
 
     const advancedOptionsPayload: AdvancedOptions = {};
     if (requiresConfirmationRef.current) {
@@ -223,6 +230,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             users,
           }
         : {}),
+      price: enteredPrice,
+      currency: currency,
     };
 
     updateMutation.mutate(payload);
@@ -861,6 +870,90 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             />
                           </div>
                         </div>
+
+                        {hasPaymentIntegration && (
+                          <>
+                            <hr className="border-neutral-200" />
+                            <div className="block sm:flex">
+                              <div className="min-w-44 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="payment"
+                                  className="text-sm flex font-medium text-neutral-700 mt-2">
+                                  Payment
+                                </label>
+                              </div>
+
+                              <div className="flex flex-col">
+                                <div className="w-full">
+                                  <div className="block sm:flex items-center">
+                                    <div className="w-full">
+                                      <div className="relative flex items-start">
+                                        <div className="flex items-center h-5">
+                                          <input
+                                            onChange={(event) => setRequirePayment(event.target.checked)}
+                                            id="requirePayment"
+                                            name="requirePayment"
+                                            type="checkbox"
+                                            className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
+                                            defaultChecked={requirePayment}
+                                          />
+                                        </div>
+                                        <div className="ml-3 text-sm">
+                                          <p className="text-neutral-900">
+                                            Require Payment (0.5% +{" "}
+                                            <IntlProvider locale="en">
+                                              <FormattedNumber
+                                                value={0.1}
+                                                style="currency"
+                                                currency={currency}
+                                              />
+                                            </IntlProvider>{" "}
+                                            commission per transaction)
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                {requirePayment && (
+                                  <div className="w-full">
+                                    <div className="block sm:flex items-center">
+                                      <div className="w-full">
+                                        <div className="mt-1 relative rounded-sm shadow-sm">
+                                          <input
+                                            ref={priceRef}
+                                            type="number"
+                                            name="price"
+                                            id="price"
+                                            step="0.01"
+                                            required
+                                            className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-2 pr-12 sm:text-sm border-gray-300 rounded-sm"
+                                            placeholder="Price"
+                                            defaultValue={
+                                              eventType.price > 0 ? eventType.price / 100.0 : undefined
+                                            }
+                                          />
+                                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <span className="text-gray-500 sm:text-sm" id="duration">
+                                              {new Intl.NumberFormat("en", {
+                                                style: "currency",
+                                                currency: currency,
+                                                maximumSignificantDigits: 1,
+                                                maximumFractionDigits: 0,
+                                              })
+                                                .format(0)
+                                                .replace("0", "")}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </Disclosure.Panel>
                     </>
                   )}
@@ -899,8 +992,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    window.location.hostname +
-                      "/" +
+                    "https://cal.com/" +
                       (team ? "team/" + team.slug : eventType.users[0].username) +
                       "/" +
                       eventType.slug
@@ -1174,6 +1266,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
       schedulingType: true,
       userId: true,
+      price: true,
+      currency: true,
     },
   });
 
@@ -1208,24 +1302,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      enabled: credentials.find((integration) => integration.type === "google_calendar") != null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business accounts",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      enabled: credentials.find((integration) => integration.type === "office365_calendar") != null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business accounts",
-    },
-  ];
+  const integrations = getIntegrations(credentials);
 
   const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
@@ -1233,27 +1310,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
-  const hasGoogleCalendarIntegration = integrations.find(
-    (i) => i.type === "google_calendar" && i.installed === true && i.enabled
-  );
-  if (hasGoogleCalendarIntegration) {
+  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
   }
+  const currency =
+    (credentials.find((integration) => integration.type === "stripe_payment")?.key as Stripe.OAuthToken)
+      ?.default_currency || "usd";
 
-  const hasOfficeIntegration = integrations.find(
-    (i) => i.type === "office365_calendar" && i.installed === true && i.enabled
-  );
-  if (hasOfficeIntegration) {
+  if (hasIntegration(integrations, "office365_calendar")) {
     // TODO: Add default meeting option of the office integration.
     // Assuming it's Microsoft Teams.
   }
 
-  const getAvailability = (providesAvailability) =>
-    providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
-      : null;
+  type Availability = typeof eventType["availability"];
+  const getAvailability = (availability: Availability) => (availability?.length ? availability : null);
 
-  const availability: Availability[] = getAvailability(eventType) || [];
+  const availability = getAvailability(eventType.availability) || [];
   availability.sort((a, b) => a.startTime - b.startTime);
 
   const eventTypeObject = Object.assign({}, eventType, {
@@ -1276,6 +1349,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       availability,
       team: eventTypeObject.team || null,
       teamMembers,
+      hasPaymentIntegration,
+      currency,
     },
   };
 };

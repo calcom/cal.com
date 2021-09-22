@@ -4,8 +4,19 @@ import { User, SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
+import { FreeBusyTime } from "@components/ui/Schedule/Schedule";
 dayjs.extend(isBetween);
 dayjs.extend(utc);
+
+type AvailabilityUserResponse = {
+  busy: FreeBusyTime;
+  workingHours: {
+    daysOfWeek: number[];
+    timeZone: string;
+    startTime: number;
+    endTime: number;
+  };
+};
 
 type Slot = {
   time: Dayjs;
@@ -85,14 +96,18 @@ export const useSlots = (props: UseSlotsProps) => {
   }, [date]);
 
   const handleAvailableSlots = async (res) => {
-    const responseBody = await res.json();
+    const responseBody: AvailabilityUserResponse = await res.json();
 
-    responseBody.workingHours.days = responseBody.workingHours.daysOfWeek;
+    const workingHours = {
+      days: responseBody.workingHours.daysOfWeek,
+      startTime: responseBody.workingHours.startTime,
+      endTime: responseBody.workingHours.endTime,
+    };
 
     const times = getSlots({
       frequency: eventLength,
       inviteeDate: date,
-      workingHours: [responseBody.workingHours],
+      workingHours: [workingHours],
       minimumBookingNotice,
       organizerTimeZone: responseBody.workingHours.timeZone,
     });

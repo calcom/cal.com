@@ -1,22 +1,25 @@
-import prisma from "@lib/prisma";
-import { EventType } from "@prisma/client";
-import "react-phone-number-input/style.css";
 import BookingPage from "@components/booking/pages/BookingPage";
-import { InferGetServerSidePropsType } from "next";
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { GetServerSidePropsContext } from "next";
+import "react-phone-number-input/style.css";
 
-export default function TeamBookingPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
 
-export async function getServerSideProps(context) {
-  const eventTypeId = parseInt(context.query.type);
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const eventTypeId = parseInt(asStringOrThrow(context.query.type));
   if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
     return {
       notFound: true,
     } as const;
   }
 
-  const eventType: EventType = await prisma.eventType.findUnique({
+  const eventType = await prisma.eventType.findUnique({
     where: {
       id: eventTypeId,
     },
@@ -50,6 +53,8 @@ export async function getServerSideProps(context) {
     },
   });
 
+  if (!eventType) return { notFound: true };
+
   const eventTypeObject = [eventType].map((e) => {
     return {
       ...e,
@@ -63,7 +68,7 @@ export async function getServerSideProps(context) {
   if (context.query.rescheduleUid) {
     booking = await prisma.booking.findFirst({
       where: {
-        uid: context.query.rescheduleUid,
+        uid: asStringOrThrow(context.query.rescheduleUid),
       },
       select: {
         description: true,
@@ -82,7 +87,8 @@ export async function getServerSideProps(context) {
       profile: {
         ...eventTypeObject.team,
         slug: "team/" + eventTypeObject.slug,
-        image: eventTypeObject.team.logo,
+        image: eventTypeObject.team?.logo || null,
+        theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
       },
       eventType: eventTypeObject,
       booking,
