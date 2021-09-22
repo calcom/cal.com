@@ -2,7 +2,7 @@ import { Prisma, PrismaClient, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
-import { hashPassword } from "@lib/auth";
+import { hashPassword } from "../lib/auth";
 
 const prisma = new PrismaClient();
 
