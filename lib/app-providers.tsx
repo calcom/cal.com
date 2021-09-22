@@ -38,8 +38,11 @@ export default withTRPC({
       /**
        * @link https://react-query.tanstack.com/reference/QueryClient
        */
-      queryClientConfig: { defaultOptions: { queries: { staleTime: 6000 } } },
+      // queryClientConfig: { defaultOptions: { queries: { staleTime: 6000 } } },
     };
   },
+  /**
+   * @link https://trpc.io/docs/ssr
+   */
   ssr: false,
 })(AppProviders);
