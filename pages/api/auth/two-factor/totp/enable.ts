@@ -1,8 +1,9 @@
-import prisma from "@lib/prisma";
-import { ErrorCode, getSession } from "@lib/auth";
 import { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
+
+import { ErrorCode, getSession } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

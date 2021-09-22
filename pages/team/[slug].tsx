@@ -1,18 +1,20 @@
+import { ArrowRightIcon } from "@heroicons/react/solid";
 import { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { HeadSeo } from "@components/seo/head-seo";
-import useTheme from "@lib/hooks/useTheme";
-import { ArrowRightIcon } from "@heroicons/react/solid";
-import prisma from "@lib/prisma";
-import Avatar from "@components/ui/Avatar";
-import Text from "@components/ui/Text";
 import React from "react";
-import { defaultAvatarSrc } from "@lib/profile";
-import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-import Team from "@components/team/screens/Team";
+
+import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import prisma from "@lib/prisma";
+import { defaultAvatarSrc } from "@lib/profile";
+
+import EventTypeDescription from "@components/eventtype/EventTypeDescription";
+import { HeadSeo } from "@components/seo/head-seo";
+import Team from "@components/team/screens/Team";
+import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Button from "@components/ui/Button";
+import Text from "@components/ui/Text";
 
 function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { isReady } = useTheme();

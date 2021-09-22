@@ -1,8 +1,10 @@
 import { User } from "@prisma/client";
+import { GetServerSidePropsContext } from "next";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { GetServerSidePropsContext } from "next";
+
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
@@ -56,6 +58,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           availability: true,
           description: true,
           length: true,
+          price: true,
+          currency: true,
           users: {
             select: {
               avatar: true,
@@ -92,6 +96,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         availability: true,
         description: true,
         length: true,
+        price: true,
+        currency: true,
         users: {
           select: {
             avatar: true,

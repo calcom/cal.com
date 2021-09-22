@@ -1,5 +1,5 @@
-import React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import React from "react";
 
 type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]>;
 export function Dialog(props: DialogProps) {

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import Button from "@components/ui/Button";
+
 import Badge from "@components/ui/Badge";
-import EnableTwoFactorModal from "./EnableTwoFactorModal";
+import Button from "@components/ui/Button";
+
 import DisableTwoFactorModal from "./DisableTwoFactorModal";
+import EnableTwoFactorModal from "./EnableTwoFactorModal";
 
 const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean }) => {
   const [enabled, setEnabled] = useState(twoFactorEnabled);

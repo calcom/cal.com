@@ -1,7 +1,8 @@
 /* legacy and soon deprecated, please refactor to use <Dialog> only */
-import { Fragment, ReactNode } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckIcon, InformationCircleIcon } from "@heroicons/react/outline";
+import { Fragment, ReactNode } from "react";
+
 import classNames from "@lib/classNames";
 
 export default function Modal(props: {

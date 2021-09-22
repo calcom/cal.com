@@ -1,17 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import ErrorAlert from "@components/ui/alerts/Error";
-import { UsernameInput } from "@components/ui/UsernameInput";
-import MemberList from "./MemberList";
-import Avatar from "@components/ui/Avatar";
-import ImageUploader from "@components/ImageUploader";
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Modal from "@components/Modal";
-import MemberInvitationModal from "@components/team/MemberInvitationModal";
-import Button from "@components/ui/Button";
+import React, { useEffect, useRef, useState } from "react";
+
 import { Member } from "@lib/member";
 import { Team } from "@lib/team";
+
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ImageUploader from "@components/ImageUploader";
+import Modal from "@components/Modal";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import MemberInvitationModal from "@components/team/MemberInvitationModal";
+import Avatar from "@components/ui/Avatar";
+import Button from "@components/ui/Button";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
+
+import MemberList from "./MemberList";
 
 export default function EditTeam(props: { team: Team | undefined | null; onCloseEdit: () => void }) {
   const [members, setMembers] = useState([]);

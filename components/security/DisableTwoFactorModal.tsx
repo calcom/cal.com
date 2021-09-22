@@ -1,7 +1,10 @@
 import { SyntheticEvent, useState } from "react";
-import Button from "@components/ui/Button";
-import { Dialog, DialogContent } from "@components/Dialog";
+
 import { ErrorCode } from "@lib/auth";
+
+import { Dialog, DialogContent } from "@components/Dialog";
+import Button from "@components/ui/Button";
+
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";
 

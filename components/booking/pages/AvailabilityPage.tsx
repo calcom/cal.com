@@ -1,23 +1,26 @@
 // Get router variables
-import { useRouter } from "next/router";
-import { useEffect, useState, useMemo } from "react";
+import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
+import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { ChevronDownIcon, ChevronUpIcon, ClockIcon, GlobeIcon } from "@heroicons/react/solid";
-import DatePicker from "@components/booking/DatePicker";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
-import PoweredByCalendso from "@components/ui/PoweredByCalendso";
-import { timeZone } from "@lib/clock";
-import AvailableTimes from "@components/booking/AvailableTimes";
-import TimeOptions from "@components/booking/TimeOptions";
-import * as Collapsible from "@radix-ui/react-collapsible";
-import { HeadSeo } from "@components/seo/head-seo";
+import { useRouter } from "next/router";
+import { useEffect, useState, useMemo } from "react";
+import { FormattedNumber, IntlProvider } from "react-intl";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+
+import AvailableTimes from "@components/booking/AvailableTimes";
+import DatePicker from "@components/booking/DatePicker";
+import TimeOptions from "@components/booking/TimeOptions";
+import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import PoweredByCalendso from "@components/ui/PoweredByCalendso";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
@@ -127,6 +130,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                         <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                         {eventType.length} minutes
                       </div>
+                      {eventType.price > 0 && (
+                        <div>
+                          <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                          <IntlProvider locale="en">
+                            <FormattedNumber
+                              value={eventType.price / 100.0}
+                              style="currency"
+                              currency={eventType.currency.toUpperCase()}
+                            />
+                          </IntlProvider>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -159,6 +174,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {eventType.length} minutes
                   </p>
+                  {eventType.price > 0 && (
+                    <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                      <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                      <IntlProvider locale="en">
+                        <FormattedNumber
+                          value={eventType.price / 100.0}
+                          style="currency"
+                          currency={eventType.currency.toUpperCase()}
+                        />
+                      </IntlProvider>
+                    </p>
+                  )}
 
                   <TimezoneDropdown />
 

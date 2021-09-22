@@ -1,5 +1,5 @@
-import React from "react";
 import { ShieldCheckIcon } from "@heroicons/react/solid";
+import React from "react";
 
 const TwoFactorModalHeader = ({ title, description }: { title: string; description: string }) => {
   return (

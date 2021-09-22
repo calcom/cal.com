@@ -1,21 +1,23 @@
+import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { RefObject, useEffect, useRef, useState } from "react";
-import prisma from "@lib/prisma";
-import Modal from "@components/Modal";
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
-import Avatar from "@components/ui/Avatar";
-import { getSession } from "@lib/auth";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
-import { UsernameInput } from "@components/ui/UsernameInput";
-import ErrorAlert from "@components/ui/alerts/Error";
-import ImageUploader from "@components/ImageUploader";
-import crypto from "crypto";
+
+import { getSession } from "@lib/auth";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
+import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import ImageUploader from "@components/ImageUploader";
+import Modal from "@components/Modal";
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
+import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
 
 const themeOptions = [
   { value: "light", label: "Light" },

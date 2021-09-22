@@ -450,7 +450,7 @@ paths:
                 properties: {}
         '500':
           description: Internal Server Error
-  '/api/book/{user}':
+  '/api/book/event':
     post:
       description: Creates a booking in the user's calendar.
       summary: Creates a booking for a user
@@ -480,9 +480,16 @@ paths:
                 guests:
                   type: array
                   items: {}
+                users:
+                  type: array
+                  items: {}
+                user:
+                  type: string
                 notes:
                   type: string
                 location:
+                  type: string
+                paymentUid:
                   type: string
       responses:
         '204':

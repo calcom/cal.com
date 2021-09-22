@@ -1,10 +1,12 @@
-import prisma from "@lib/prisma";
-import { getIntegrationName, getIntegrationType } from "@lib/integrations";
-import Shell from "@components/Shell";
-import { useRouter } from "next/router";
 import { useSession } from "next-auth/client";
-import Loader from "@components/Loader";
+import { useRouter } from "next/router";
+
 import { getSession } from "@lib/auth";
+import { getIntegrationName, getIntegrationType } from "@lib/integrations";
+import prisma from "@lib/prisma";
+
+import Loader from "@components/Loader";
+import Shell from "@components/Shell";
 
 export default function Integration(props) {
   const router = useRouter();

@@ -1,7 +1,8 @@
-import { DialogClose, DialogContent } from "@components/Dialog";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ExclamationIcon } from "@heroicons/react/outline";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren } from "react";
+
+import { DialogClose, DialogContent } from "@components/Dialog";
 import { Button } from "@components/ui/Button";
 
 export type ConfirmationDialogContentProps = {

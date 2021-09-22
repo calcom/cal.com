@@ -1,7 +1,8 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { defaultAvatarSrc } from "@lib/profile";
+
 import classNames from "@lib/classNames";
+import { defaultAvatarSrc } from "@lib/profile";
 
 export type AvatarProps = {
   className?: string;
