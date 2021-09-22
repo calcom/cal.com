@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
+.PhoneInputInput {
+  @apply text-sm border-0 focus:ring-0;
+}
+.dark .PhoneInputInput {
+  @apply bg-black;
+}
+.PhoneInputCountrySelect {
+  @apply text-black;
+}
+
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {
   /* Primary buttons */
@@ -14,7 +25,7 @@
   }
 
   .btn.btn-primary {
-    @apply inline-flex items-center px-4 py-2 text-sm font-medium bg-black border border-transparent rounded-sm shadow-sm text-neutral-50 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+    @apply inline-flex items-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
   }
 
   .btn-lg.btn-primary {

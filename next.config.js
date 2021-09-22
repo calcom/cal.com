@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withTM = require("next-transpile-modules")(["react-timezone-select"]);
 
-// TODO: Revisit this later with getStaticProps in App
-if (process.env.NEXTAUTH_URL) {
-  process.env.BASE_URL = process.env.NEXTAUTH_URL.replace("/api/auth", "");
+// So we can test deploy previews preview
+if (process.env.VERCEL_URL && !process.env.BASE_URL) {
+  process.env.BASE_URL = process.env.VERCEL_URL;
+}
+if (process.env.BASE_URL) {
+  process.env.NEXTAUTH_URL = process.env.BASE_URL + "/api/auth";
 }
 
 if (!process.env.EMAIL_FROM) {
@@ -12,9 +15,6 @@ if (!process.env.EMAIL_FROM) {
     "\x1b[0m",
     "EMAIL_FROM environment variable is not set, this may indicate mailing is currently disabled. Please refer to the .env.example file."
   );
-}
-if (process.env.BASE_URL) {
-  process.env.NEXTAUTH_URL = process.env.BASE_URL + "/api/auth";
 }
 
 const validJson = (jsonString) => {
@@ -38,15 +38,25 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 module.exports = withTM({
-  future: {
-    webpack5: true,
-  },
   i18n: {
     locales: ["en"],
     defaultLocale: "en",
   },
+  eslint: {
+    // This allows production builds to successfully complete even if the project has ESLint errors.
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
+      // by next.js will be dropped. Doesn't make much sense, but how it is
+      fs: false,
+    };
+
+    return config;
   },
   async redirects() {
     return [
@@ -56,5 +66,8 @@ module.exports = withTM({
         permanent: true,
       },
     ];
+  },
+  publicRuntimeConfig: {
+    BASE_URL: process.env.BASE_URL || "http://localhost:3000",
   },
 });

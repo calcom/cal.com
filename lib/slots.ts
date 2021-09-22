@@ -47,16 +47,8 @@ const organizerBoundaries = (
 ): Boundary[] => {
   const boundaries: Boundary[] = [];
 
-  const startDay: number = +inviteeDate
-    .utc()
-    .startOf("day")
-    .add(inviteeBounds.lowerBound, "minutes")
-    .format("d");
-  const endDay: number = +inviteeDate
-    .utc()
-    .startOf("day")
-    .add(inviteeBounds.upperBound, "minutes")
-    .format("d");
+  const startDay: number = +inviteeDate.startOf("d").add(inviteeBounds.lowerBound, "minutes").format("d");
+  const endDay: number = +inviteeDate.startOf("d").add(inviteeBounds.upperBound, "minutes").format("d");
 
   workingHours.forEach((item) => {
     const lowerBound: number = item.startTime - dayjs().tz(organizerTimeZone).utcOffset();
@@ -104,7 +96,7 @@ const getSlotsBetweenBoundary = (frequency: number, { lowerBound, upperBound }: 
     slots.push(
       <Dayjs>dayjs
         .utc()
-        .startOf("day")
+        .startOf("d")
         .add(lowerBound + minutes, "minutes")
     );
   }

@@ -1,31 +1,58 @@
-import prisma from '../../lib/prisma';
+import { GetServerSidePropsContext } from "next";
+import prisma from "@lib/prisma";
+import { asStringOrNull } from "@lib/asStringOrNull";
 
-export default function Type(props) {
-    // Just redirect to the schedule page to reschedule it.
-    return null;
+export default function Type() {
+  // Just redirect to the schedule page to reschedule it.
+  return null;
 }
 
-export async function getServerSideProps(context) {
-    const booking = await prisma.booking.findFirst({
-        where: {
-            uid: context.query.uid,
-        },
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const booking = await prisma.booking.findUnique({
+    where: {
+      uid: asStringOrNull(context.query.uid),
+    },
+    select: {
+      id: true,
+      eventType: {
         select: {
-            id: true,
-            user: {select: {username: true}},
-            eventType: {select: {slug: true}},
-            title: true,
-            description: true,
-            startTime: true,
-            endTime: true,
-            attendees: true
-        }
-    });
-
-    return {
-        redirect: {
-            destination: '/' + booking.user.username + '/' + booking.eventType.slug + '?rescheduleUid=' + context.query.uid,
-            permanent: false,
+          users: {
+            select: {
+              username: true,
+            },
+          },
+          slug: true,
+          team: {
+            select: {
+              slug: true,
+            },
+          },
         },
-    }
+      },
+      user: true,
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
+      attendees: true,
+    },
+  });
+
+  if (!booking.eventType) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const eventType = booking.eventType;
+
+  const eventPage =
+    (eventType.team ? "team/" + eventType.team.slug : booking.user.username) + "/" + booking.eventType.slug;
+
+  return {
+    redirect: {
+      destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,
+      permanent: false,
+    },
+  };
 }

@@ -1,10 +1,10 @@
-import Head from "next/head";
+import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { signIn } from "next-auth/client";
-import ErrorAlert from "../../components/ui/alerts/Error";
+import ErrorAlert from "@components/ui/alerts/Error";
 import { useState } from "react";
-import { UsernameInput } from "../../components/ui/UsernameInput";
-import prisma from "../../lib/prisma";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import prisma from "@lib/prisma";
 import { InferGetServerSidePropsType } from "next";
 
 export default function Signup(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
@@ -42,7 +42,7 @@ export default function Signup(props: InferGetServerSidePropsType<typeof getServ
       method: "POST",
     })
       .then(handleErrors)
-      .then(() => signIn("Calendso", { callbackUrl: (router.query.callbackUrl || "") as string }))
+      .then(() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string }))
       .catch((err) => {
         setHasErrors(true);
         setErrorMessage(err.message);
@@ -54,11 +54,9 @@ export default function Signup(props: InferGetServerSidePropsType<typeof getServ
       className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8"
       aria-labelledby="modal-title"
       role="dialog"
-      aria-modal="true">
-      <Head>
-        <title>Sign up</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      aria-modal="true"
+    >
+      <HeadSeo title="Sign up" description="Sign up" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-3xl font-extrabold text-center text-gray-900">Create your account</h2>
       </div>
@@ -119,10 +117,9 @@ export default function Signup(props: InferGetServerSidePropsType<typeof getServ
                 className="inline-flex justify-center w-7/12 px-4 py-2 mr-2 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm cursor-pointer btn btn-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm"
               />
               <a
-                onClick={() =>
-                  signIn("Calendso", { callbackUrl: (router.query.callbackUrl || "") as string })
-                }
-                className="inline-flex justify-center w-5/12 px-4 py-2 text-sm font-medium text-gray-500 border rounded cursor-pointer btn">
+                onClick={() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })}
+                className="inline-flex justify-center w-5/12 px-4 py-2 text-sm font-medium text-gray-500 border rounded cursor-pointer btn"
+              >
                 Login instead
               </a>
             </div>

@@ -1,15 +1,14 @@
 import EventOrganizerMail from "./emails/EventOrganizerMail";
-import EventAttendeeMail from "./emails/EventAttendeeMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
+import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
-import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -120,6 +119,10 @@ export interface CalendarEvent {
   startTime: string;
   endTime: string;
   description?: string;
+  team?: {
+    name: string;
+    members: string[];
+  };
   location?: string;
   organizer: Person;
   attendees: Person[];
@@ -211,7 +214,9 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
   return {
     getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-      const filter = "?startdatetime=" + dateFrom + "&enddatetime=" + dateTo;
+      const filter = `?startdatetime=${encodeURIComponent(dateFrom)}&enddatetime=${encodeURIComponent(
+        dateTo
+      )}`;
       return auth
         .getToken()
         .then((accessToken) => {
@@ -519,6 +524,8 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
           return MicrosoftOffice365Calendar(cred);
         case "caldav_calendar":
           return new CalDavCalendar(cred);
+        case "apple_calendar":
+          return new AppleCalendar(cred);
         default:
           return; // unknown credential, could be legacy? In any case, ignore
       }
@@ -574,24 +581,10 @@ const createEvent = async (
       entryPoints: maybeEntryPoints,
     });
 
-    const attendeeMail = new EventAttendeeMail(calEvent, uid, {
-      hangoutLink: maybeHangoutLink,
-      conferenceData: maybeConferenceData,
-      entryPoints: maybeEntryPoints,
-    });
-
     try {
       await organizerMail.sendEmail();
     } catch (e) {
       console.error("organizerMail.sendEmail failed", e);
-    }
-
-    if (!creationResult || !creationResult.disableConfirmationEmail) {
-      try {
-        await attendeeMail.sendEmail();
-      } catch (e) {
-        console.error("attendeeMail.sendEmail failed", e);
-      }
     }
   }
 
@@ -627,19 +620,10 @@ const updateEvent = async (
 
   if (!noMail) {
     const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-    const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
     try {
       await organizerMail.sendEmail();
     } catch (e) {
       console.error("organizerMail.sendEmail failed", e);
-    }
-
-    if (!updateResult || !updateResult.disableConfirmationEmail) {
-      try {
-        await attendeeMail.sendEmail();
-      } catch (e) {
-        console.error("attendeeMail.sendEmail failed", e);
-      }
     }
   }
 
