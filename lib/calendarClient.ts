@@ -1,7 +1,7 @@
 import EventOrganizerMail from "./emails/EventOrganizerMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import prisma from "./prisma";
-import { Credential } from "@prisma/client";
+import { Prisma, Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
@@ -107,11 +107,10 @@ const o365Auth = (credential) => {
   };
 };
 
-interface Person {
-  name?: string;
-  email: string;
-  timeZone: string;
-}
+const userData = Prisma.validator<Prisma.UserArgs>()({
+  select: { name: true, email: true, timeZone: true },
+});
+export type Person = Prisma.UserGetPayload<typeof userData>;
 
 export interface CalendarEvent {
   type: string;
@@ -140,6 +139,7 @@ export interface IntegrationCalendar {
   name: string;
 }
 
+type BufferedBusyTime = { start: string; end: string };
 export interface CalendarApiAdapter {
   createEvent(event: CalendarEvent): Promise<unknown>;
 
@@ -147,7 +147,11 @@ export interface CalendarApiAdapter {
 
   deleteEvent(uid: string);
 
-  getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
+  getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<BufferedBusyTime[]>;
 
   listCalendars(): Promise<IntegrationCalendar[]>;
 }

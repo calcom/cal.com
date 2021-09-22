@@ -33,7 +33,7 @@ export default function Troubleshoot({ user }) {
         return res.json();
       })
       .then((availableIntervals) => {
-        setAvailability(availableIntervals);
+        setAvailability(availableIntervals.busy);
         setLoading(false);
       })
       .catch((e) => {

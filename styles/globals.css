@@ -133,67 +133,30 @@
   }
 }
 
+/* hide intercom chat bubble on mobile */
+@media only screen and (max-width: 768px) {
+    .intercom-launcher-frame{
+        display: none !important;
+    }
+}
+
+/* add padding bottom to bottom nav on standalone mode */
+@media all and (display-mode: standalone) {
+  .bottom-nav {
+    padding-bottom: 24px;
+  }
+}
+
+/* hide intercom chat bubble on mobile */
+@media only screen and (max-width: 768px) {
+    .intercom-launcher-frame{
+        display: none !important;
+    }
+}
+
+
 .react-multi-email > [type='text'] {
-  @apply shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md;
-}
-
-.react-multi-email {
-  margin: 0;
-  max-width: 100%;
-  -webkit-box-flex: 1;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  text-align: left;
-  line-height: 1.25rem;
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  align-content: flex-start;
-  padding-top: 0.1rem !important;
-  padding-bottom: 0.1rem !important;
-  /* padding-left: 0.75rem !important; */
-  @apply dark:border-black border-white dark:bg-black bg-white;
-}
-
-.react-multi-email > [type='text']{
-  box-shadow: none !important;
-}
-
-.react-multi-email.focused{
-  @apply dark:bg-black
-}
-
-.react-multi-email.focused > [type='text']{
-  border: 2px solid #000 !important;
-}
-
-.react-multi-email > [type='text']:focus{
-  box-shadow: none !important;
-}
-
-.react-multi-email > span[data-placeholder] {
-  display: none;
-  position: absolute;
-  left: 0.8rem;
-  top: 0.75rem;
-  line-height: 1.25rem;
-  font-size: 0.875rem;
-}
-
-.react-multi-email.empty > span[data-placeholder] {
-  display: inline;
-  color: #000;
-}
-
-.react-multi-email.focused > span[data-placeholder] {
-  display: none;
-}
-
-.react-multi-email > input {
-  width: 100% !important;
-  display: inline-block !important;
-  @apply mt-1;
+    @apply shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md;
 }
 
 .react-multi-email [data-tag] {
@@ -201,17 +164,43 @@
   @apply inline-flex items-center px-2 py-1 my-1 mr-2 border border-transparent text-sm font-medium rounded-md text-gray-900 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
-.react-multi-email [data-tag] [data-tag-item] {
-  max-width: 100%;
-  overflow: hidden;
-}
+  .react-multi-email > span[data-placeholder] {
+    display: none;
+    position: absolute;
+    left: 0.8rem;
+    top: 0.75rem;
+    line-height: 1.25rem;
+    font-size: 0.875rem;
+  }
 
-.react-multi-email [data-tag] [data-tag-handle] {
-  margin-left: 0.833em;
-  cursor: pointer;
-}
+  .react-multi-email.empty > span[data-placeholder] {
+    display: inline;
+    color: #646b7a;
+  }
 
+  .react-multi-email.focused > span[data-placeholder] {
+    display: none;
+  }
 
+  .react-multi-email > input {
+    width: 100% !important;
+    display: inline-block !important;
+    @apply mt-1;
+  }
+
+  .react-multi-email [data-tag] {
+    @apply inline-flex items-center px-2 py-1 my-1 mr-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-900 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  }
+
+  .react-multi-email [data-tag] [data-tag-item] {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .react-multi-email [data-tag] [data-tag-handle] {
+    margin-left: 0.833em;
+    cursor: pointer;
+  }
 
 /* !important to override react-select */
 .react-select__value-container{

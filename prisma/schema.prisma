@@ -8,6 +8,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["selectRelationCount"]
 }
 
 enum SchedulingType {
@@ -42,6 +43,9 @@ model EventType {
   minimumBookingNotice    Int                    @default(120)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
+  price                   Int @default(0)
+  currency                String @default("usd")
+  @@unique([userId, slug])
 }
 
 model Credential {
@@ -176,6 +180,8 @@ model Booking {
   confirmed Boolean   @default(true)
   rejected  Boolean   @default(false)
   status    BookingStatus @default(ACCEPTED)
+  paid      Boolean @default(false)
+  payment   Payment[]
 }
 
 model Schedule {
@@ -245,4 +251,23 @@ model ReminderMail {
   reminderType   ReminderType
   elapsedMinutes Int
   createdAt      DateTime     @default(now())
+}
+
+enum PaymentType {
+  STRIPE
+}
+
+model Payment {
+  id             Int      @id @default(autoincrement())
+  uid            String   @unique
+  type           PaymentType
+  bookingId      Int
+  booking        Booking?  @relation(fields: [bookingId], references: [id])
+  amount         Int
+  fee            Int
+  currency       String
+  success        Boolean
+  refunded       Boolean
+  data           Json
+  externalId     String   @unique
 }

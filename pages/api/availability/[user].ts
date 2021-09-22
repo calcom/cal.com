@@ -1,10 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
+import prisma from "@lib/prisma";
 // import { getBusyVideoTimes } from "@lib/videoClient";
 import dayjs from "dayjs";
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { User } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = asStringOrNull(req.query.user);
@@ -15,9 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "Invalid time range given." });
   }
 
-  const currentUser: User = await prisma.user.findUnique({
+  const rawUser = await prisma.user.findUnique({
     where: {
-      username: user,
+      username: user as string,
     },
     select: {
       credentials: true,
@@ -27,14 +26,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
       startTime: true,
       endTime: true,
+      selectedCalendars: true,
     },
   });
 
-  const selectedCalendars = await prisma.selectedCalendar.findMany({
-    where: {
-      userId: currentUser.id,
-    },
-  });
+  if (!rawUser) throw new Error("No user found");
+
+  const { selectedCalendars, ...currentUser } = rawUser;
 
   const busyTimes = await getBusyCalendarTimes(
     currentUser.credentials,
