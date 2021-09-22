@@ -1,34 +1,95 @@
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
-import prisma, { whereAndSelect } from "@lib/prisma";
-import Modal from "../../components/Modal";
-import Shell from "../../components/Shell";
-import SettingsShell from "../../components/Settings";
-import Avatar from "../../components/Avatar";
-import { getSession } from "next-auth/client";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { RefObject, useEffect, useRef, useState } from "react";
+import prisma from "@lib/prisma";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
+import SettingsShell from "@components/Settings";
+import Avatar from "@components/ui/Avatar";
+import { getSession } from "@lib/auth";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
-import { UsernameInput } from "../../components/ui/UsernameInput";
-import ErrorAlert from "../../components/ui/alerts/Error";
-import ImageUploader from "../../components/ImageUploader";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
+import ImageUploader from "@components/ImageUploader";
+import crypto from "crypto";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import Badge from "@components/ui/Badge";
+import Button from "@components/ui/Button";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 const themeOptions = [
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
 ];
 
+type Props = inferSSRProps<typeof getServerSideProps>;
+function HideBrandingInput(props: {
+  //
+  hideBrandingRef: RefObject<HTMLInputElement>;
+  user: Props["user"];
+}) {
+  const [modelOpen, setModalOpen] = useState(false);
+  return (
+    <>
+      <input
+        id="hide-branding"
+        name="hide-branding"
+        type="checkbox"
+        ref={props.hideBrandingRef}
+        defaultChecked={isBrandingHidden(props.user)}
+        className={
+          "focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50"
+        }
+        onClick={(e) => {
+          if (!e.currentTarget.checked || props.user.plan !== "FREE") {
+            return;
+          }
+
+          // prevent checking the input
+          e.preventDefault();
+
+          setModalOpen(true);
+        }}
+      />
+
+      <Modal
+        heading="This feature is only available in paid plan"
+        variant="warning"
+        description={
+          <div className="flex flex-col space-y-3">
+            <p>
+              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
+              account.
+            </p>
+
+            <p>
+              {" "}
+              To upgrade go to{" "}
+              <a href="https://cal.com/upgrade" className="underline">
+                cal.com/upgrade
+              </a>
+              .
+            </p>
+          </div>
+        }
+        open={modelOpen}
+        handleClose={() => setModalOpen(false)}
+      />
+    </>
+  );
+}
+
 export default function Settings(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const usernameRef = useRef<HTMLInputElement>();
-  const nameRef = useRef<HTMLInputElement>();
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>();
-  const avatarRef = useRef<HTMLInputElement>();
-  const hideBrandingRef = useRef<HTMLInputElement>();
+  const avatarRef = useRef<HTMLInputElement>(null);
+  const hideBrandingRef = useRef<HTMLInputElement>(null);
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
-  const [imageSrc, setImageSrc] = useState<string>("");
+  const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
 
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -106,10 +167,6 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
 
   return (
     <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
-      <Head>
-        <title>Profile | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
@@ -150,15 +207,16 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                       placeholder="A little something about yourself."
                       rows={3}
                       defaultValue={props.user.bio}
-                      className="block w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-600 bg-gray-300 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"></textarea>
+                      className="block w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-600 bg-gray-300 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                    ></textarea>
                   </div>
                 </div>
                 <div>
                   <div className="flex mt-1">
                     <Avatar
-                      user={props.user}
+                      displayName={props.user.name}
                       className="relative w-10 h-10 rounded-full"
-                      fallback={<div className="relative w-10 h-10 rounded-full bg-neutral-900"></div>}
+                      gravatarFallbackMd5={props.user.emailMd5}
                       imageSrc={imageSrc}
                     />
                     <input
@@ -167,15 +225,15 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                       name="avatar"
                       id="avatar"
                       placeholder="URL"
-                      className="block w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-600 bg-gray-300 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
-                      defaultValue={props.user.avatar}
+                      className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                      defaultValue={imageSrc}
                     />
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg="Change avatar"
                       handleAvatarChange={handleAvatarChange}
-                      imageRef={imageSrc ? imageSrc : props.user.avatar}
+                      imageRef={imageSrc}
                     />
                   </div>
                   <hr className="mt-6" />
@@ -248,20 +306,14 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                 <div>
                   <div className="relative flex items-start">
                     <div className="flex items-center h-5">
-                      <input
-                        id="hide-branding"
-                        name="hide-branding"
-                        type="checkbox"
-                        ref={hideBrandingRef}
-                        defaultChecked={props.user.hideBranding}
-                        className="w-4 h-4 border-gray-300 rounded-sm hover:checked:bg-black checked:bg-black focus:ring-neutral-500 text-neutral-900"
-                      />
+                      <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Calendso branding
+                        Disable Cal.com branding{" "}
+                        {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
-                      <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
+                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
                     </div>
                   </div>
                 </div>
@@ -306,11 +358,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
             </div>
             <hr className="mt-8" />
             <div className="flex justify-end py-4">
-              <button
-                type="submit"
-                className="inline-flex justify-center px-4 py-2 ml-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500">
-                Save
-              </button>
+              <Button type="submit">Save</Button>
             </div>
           </div>
         </form>
@@ -325,21 +373,40 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await whereAndSelect(
-    prisma.user.findFirst,
-    {
+  const user = await prisma.user.findUnique({
+    where: {
       id: session.user.id,
     },
-    ["id", "username", "name", "email", "bio", "avatar", "timeZone", "weekStart", "hideBranding", "theme"]
-  );
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      timeZone: true,
+      weekStart: true,
+      hideBranding: true,
+      theme: true,
+      plan: true,
+    },
+  });
 
+  if (!user) {
+    throw new Error("User seems logged in but cannot be found in the db");
+  }
   return {
-    props: { user }, // will be passed to the page component as props
+    props: {
+      user: {
+        ...user,
+        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+      },
+    },
   };
 };

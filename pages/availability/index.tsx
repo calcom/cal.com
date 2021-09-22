@@ -1,13 +1,13 @@
-import Head from "next/head";
 import Link from "next/link";
-import prisma from "../../lib/prisma";
-import Modal from "../../components/Modal";
-import Shell from "../../components/Shell";
+import prisma from "@lib/prisma";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { getSession, useSession } from "next-auth/client";
+import { useSession } from "next-auth/client";
 import { ClockIcon } from "@heroicons/react/outline";
 import Loader from "@components/Loader";
+import { getSession } from "@lib/auth";
 
 export default function Availability(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -115,15 +115,7 @@ export default function Availability(props) {
 
   return (
     <div>
-      <Head>
-        <title>Availability | Calendso</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Shell
-        heading="Availability"
-        subtitle="Configure times when you are available for bookings.
-
-">
+      <Shell heading="Availability" subtitle="Configure times when you are available for bookings.">
         <div className="flex">
           <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
@@ -165,11 +157,13 @@ export default function Availability(props) {
             className="fixed z-50 inset-0 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
-            aria-modal="true">
+            aria-modal="true"
+          >
             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
               <div
                 className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
+                aria-hidden="true"
+              ></div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
