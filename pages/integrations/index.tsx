@@ -1,7 +1,7 @@
 import Link from "next/link";
 import prisma from "@lib/prisma";
 import Shell from "@components/Shell";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/client";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
@@ -321,7 +321,19 @@ export default function Home({ integrations }: Props) {
         <DialogContent>
           <DialogHeader
             title="Connect to Apple Server"
-            subtitle="Your credentials will be stored and encrypted. Generate an app specific password."
+            subtitle={
+              <p>
+                Generate an app specific password to use with Cal.com at{" "}
+                <a
+                  className="text-indigo-400"
+                  href="https://appleid.apple.com/account/manage"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  https://appleid.apple.com/account/manage
+                </a>
+                . Your credentials will be stored and encrypted.
+              </p>
+            }
           />
           <div className="my-4">
             {addAppleError && (
@@ -450,7 +462,7 @@ export default function Home({ integrations }: Props) {
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
             <div className="mt-5">
-              <a href="mailto:apps@calendso.com" className="btn btn-white">
+              <a href="mailto:apps@cal.com" className="btn btn-white">
                 Contact us
               </a>
             </div>

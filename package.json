@@ -1,6 +1,6 @@
 {
   "name": "calendso",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -26,12 +26,12 @@
     "@heroicons/react": "^1.0.4",
     "@jitsu/sdk-js": "^2.2.4",
     "@prisma/client": "^2.30.2",
-    "@radix-ui/react-avatar": "^0.0.15",
-    "@radix-ui/react-collapsible": "^0.0.17",
-    "@radix-ui/react-dialog": "^0.0.20",
-    "@radix-ui/react-dropdown-menu": "^0.0.23",
-    "@radix-ui/react-slider": "^0.0.17",
-    "@radix-ui/react-switch": "^0.0.15",
+    "@radix-ui/react-avatar": "^0.1.0",
+    "@radix-ui/react-collapsible": "^0.1.0",
+    "@radix-ui/react-dialog": "^0.1.0",
+    "@radix-ui/react-dropdown-menu": "^0.1.0",
+    "@radix-ui/react-slider": "^0.1.0",
+    "@radix-ui/react-switch": "^0.1.0",
     "@radix-ui/react-tooltip": "^0.1.0",
     "@tailwindcss/forms": "^0.3.3",
     "@trpc/client": "^9.4.0",
@@ -56,6 +56,8 @@
     "next-transpile-modules": "^8.0.0",
     "nodemailer": "^6.6.3",
     "npm-run-all": "^4.1.5",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.4.4",
     "react": "17.0.2",
     "react-dates": "^21.8.0",
     "react-dom": "17.0.2",
@@ -67,7 +69,7 @@
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
     "short-uuid": "^4.2.0",
-    "tsdav": "^1.0.6",
+    "tsdav": "1.0.6",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2",
     "zod": "^3.8.2"
@@ -75,8 +77,10 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
+    "@types/lodash.debounce": "^4.0.6",
     "@types/node": "^16.6.1",
     "@types/nodemailer": "^6.4.4",
+    "@types/qrcode": "^1.4.1",
     "@types/react": "^17.0.18",
     "@types/react-dates": "^21.8.3",
     "@types/react-select": "^4.0.17",
@@ -118,6 +122,10 @@
     "moduleNameMapper": {
       "^@components(.*)$": "<rootDir>/components$1",
       "^@lib(.*)$": "<rootDir>/lib$1"
-    }
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/cypress/"
+    ]
   }
 }

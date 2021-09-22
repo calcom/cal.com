@@ -1,49 +1,57 @@
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calendso/calendso">
-    <img src="https://calendso.com/calendso-logo.svg" alt="Logo" width="160" height="160">
+    <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
+    
   </a>
 
-  <h3 align="center">Calendso</h3>
+  <h3 align="center">Cal.com (formerly Calendso)</h3>
 
   <p align="center">
     The open-source Calendly alternative.
     <br />
-    <a href="https://calendso.com"><strong>Learn more »</strong></a>
+    <a href="https://cal.com"><strong>Learn more »</strong></a>
     <br />
     <br />
     <a href="https://join.slack.com/t/calendso/shared_invite/zt-mem978vn-RgOEELhA5bcnoGONxDCiHw">Slack</a>
     ·
-    <a href="https://calendso.com">Website</a>
+    <a href="https://cal.com">Website</a>
     ·
     <a href="https://github.com/calendso/calendso/issues">Issues</a>
   </p>
 </p>
 
 <p align="center">
-   <a href="https://calendso.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Calendso Slack"></a>
+   <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
   <a href="https://github.com/calendso/calendso/stargazers"><img src="https://img.shields.io/github/stars/calendso/calendso" alt="Github Stars"></a>
   <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
   <img src="https://img.shields.io/github/license/calendso/calendso" alt="License">
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
   <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
-  <a href="https://calendso.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>  
+  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>  
 </p>
 
 <!-- ABOUT THE PROJECT -->
 
 ## About The Project
 
-<img width="937" alt="calendso-screenshot" src="https://user-images.githubusercontent.com/8019099/117973912-d9405a80-b324-11eb-8b35-4262e472909c.png">
+<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/133429837-69ac8554-4c9c-43f9-90dd-c3337002d8ff.png">
 
-Let's face it: Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes and even calls with our families. However, most tools are very limited in terms of control and customisations. That's where Calendso comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data. Calendso is to Calendly what GitLab is to GitHub.
+# Scheduling infrastructure for absolutely everyone.
+
+The open source Calendly alternative. You are in charge
+of your own data, workflow and appearance.
+
+Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes and even calls with our families. However, most tools are very limited in terms of control and customisations.
+
+That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
 
 ### Product of the Month: April
 
 #### Support us on [Product Hunt](https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso)
 
-<a href="https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=291910&theme=light&period=monthly" alt="Calendso - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/posts/calendso?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=291910&theme=light" alt="Calendso - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/stories/how-this-open-source-calendly-alternative-rocketed-to-product-of-the-day" target="_blank"><img src="https://calendso.com/maker-grant.svg" alt="Calendso - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<a href="https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=291910&theme=light&period=monthly" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/posts/calendso?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=291910&theme=light" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/stories/how-this-open-source-calendly-alternative-rocketed-to-product-of-the-day" target="_blank"><img src="https://cal.com/maker-grant.svg" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 ### Built With
 
@@ -54,9 +62,9 @@ Let's face it: Calendly and other scheduling tools are awesome. It made our live
 
 ## Stay Up-to-Date
 
-Calendso is currently in alpha. Watch **releases** of this repository to be notified for future updates:
+Cal officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
 
-![calendso-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
+![cal-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
 
 <!-- GETTING STARTED -->
 
@@ -66,7 +74,7 @@ To get a local copy up and running, please follow these simple steps.
 
 ### Prerequisites
 
-Here is what you need to be able to run Calendso.
+Here is what you need to be able to run Cal.
 
 - Node.js
 - PostgreSQL
@@ -81,12 +89,11 @@ You will also need Google API credentials. You can get this from the [Google API
 > - **Requires Docker to be installed**
 > - Will start a local Postgres instance with a few test users - the credentials will be logged in the console
 
-
 ```bash
 git clone git@github.com:calendso/calendso.git
 cd calendso
 yarn
-yarn dx 
+yarn dx
 ```
 
 #### Manual
@@ -113,7 +120,7 @@ yarn dx
    1. Create a free account with [Heroku](https://www.heroku.com/).
 
    2. Create a new app.
-      <img width="306" alt="Google Chrome — CleanShotX | 2021-04-20 at 02 01 56" src="https://user-images.githubusercontent.com/16905768/115322780-b3d58c00-a17e-11eb-8a52-b758fb0ea942.png">
+      <img width="306" alt="Create an App" src="https://user-images.githubusercontent.com/16905768/115322780-b3d58c00-a17e-11eb-8a52-b758fb0ea942.png">
 
    3. In your new app, go to `Overview` and next to `Installed add-ons`, click `Configure Add-ons`. We need this to set up our database.
       ![image](https://user-images.githubusercontent.com/16905768/115323232-a53ba480-a17f-11eb-98db-58e2f8c52426.png)
@@ -122,12 +129,12 @@ yarn dx
       ![image](https://user-images.githubusercontent.com/16905768/115323126-5beb5500-a17f-11eb-8030-7380310807a9.png)
 
    5. Once the pop-up appears, click `Submit Order Form` - plan name should be `Hobby Dev - Free`.
-      <img width="512" alt="Google Chrome — CleanShotX | 2021-04-20 at 02 04 29" src="https://user-images.githubusercontent.com/16905768/115323265-b4baed80-a17f-11eb-99f0-d67f019aa6df.png">
+      <img width="512" alt="Submit Order Form" src="https://user-images.githubusercontent.com/16905768/115323265-b4baed80-a17f-11eb-99f0-d67f019aa6df.png">
 
    6. Once you completed the above steps, click on your newly created `Heroku Postgres` and go to its `Settings`.
       ![image](https://user-images.githubusercontent.com/16905768/115323367-e92ea980-a17f-11eb-9ff4-dec95f2ec349.png)
 
-   7. In `Settings`, copy your URI to your Calendso .env file and replace the `postgresql://<user>:<pass>@<db-host>:<db-port>` with it.
+   7. In `Settings`, copy your URI to your Cal.com .env file and replace the `postgresql://<user>:<pass>@<db-host>:<db-port>` with it.
       ![image](https://user-images.githubusercontent.com/16905768/115323556-4591c900-a180-11eb-9808-2f55d2aa3995.png)
       ![image](https://user-images.githubusercontent.com/16905768/115323697-7a9e1b80-a180-11eb-9f08-a742b1037f90.png)
 
@@ -198,7 +205,7 @@ yarn dx
 
 ### Docker
 
-The Docker configuration for Calendso is an effort powered by people within the community. Calendso does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
 The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
 
@@ -206,7 +213,7 @@ The Docker configuration can be found [in our docker repository](https://github.
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fcalendso%2Fcalendso&plugins=postgresql&envs=GOOGLE_API_CREDENTIALS%2CBASE_URL%2CNEXTAUTH_URL%2CPORT&BASE_URLDefault=http%3A%2F%2Flocalhost%3A3000&NEXTAUTH_URLDefault=http%3A%2F%2Flocalhost%3A3000&PORTDefault=3000)
 
-You can deploy Calendso on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Calendso on their platform.
+You can deploy Cal on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal on their platform.
 
 <!-- ROADMAP -->
 
@@ -237,7 +244,7 @@ Contributions are what make the open source community such an amazing place to b
 6. In the third page (Test Users), add the Google account(s) you'll using. Make sure the details are correct on the last page of the wizard and your consent screen will be configured.
 7. Now select [Credentials](https://console.cloud.google.com/apis/credentials) from the side pane and then select Create Credentials. Select the OAuth Client ID option.
 8. Select Web Application as the Application Type.
-9. Under Authorized redirect URI's, select Add URI and then add the URI `<CALENDSO URL>/api/integrations/googlecalendar/callback` replacing CALENDSO URL with the URI at which your application runs.
+9. Under Authorized redirect URI's, select Add URI and then add the URI `<Cal.com URL>/api/integrations/googlecalendar/callback` replacing Cal.com URL with the URI at which your application runs.
 10. The key will be created and you will be redirected back to the Credentials page. Select the newly generated client ID under OAuth 2.0 Client IDs.
 11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key.
 
@@ -246,7 +253,7 @@ Contributions are what make the open source community such an amazing place to b
 1. Open [Azure App Registration](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps) and select New registration
 2. Name your application
 3. Set **Who can use this application or access this API?** to **Accounts in any organizational directory (Any Azure AD directory - Multitenant)**
-4. Set the **Web** redirect URI to `<CALENDSO URL>/api/integrations/office365calendar/callback` replacing CALENDSO URL with the URI at which your application runs.
+4. Set the **Web** redirect URI to `<Cal.com URL>/api/integrations/office365calendar/callback` replacing Cal.com URL with the URI at which your application runs.
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attriubte
 
@@ -260,11 +267,11 @@ Contributions are what make the open source community such an amazing place to b
 6. De-select the option to publish the app on the Zoom App Marketplace.
 7. Click "Create".
 8. Now copy the Client ID and Client Secret to your .env file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
-9. Set the Redirect URL for OAuth `<CALENDSO URL>/api/integrations/zoomvideo/callback` replacing CALENDSO URL with the URI at which your application runs.
+9. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
 10. Also add the redirect URL given above as a whitelist URL and enable "Subdomain check". Make sure, it says "saved" below the form.
 11. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
 12. Click "Done".
-13. You're good to go. Now you can easily add your Zoom integration in the Calendso settings.
+13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
 <!-- LICENSE -->
 
@@ -276,14 +283,12 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Acknowledgements
 
-Special thanks to these amazing projects which help power Calendso:
+Special thanks to these amazing projects which help power Cal.com:
 
-[<img src="https://calendso.com/powered-by-vercel.svg">](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
+[<img src="https://cal.com/powered-by-vercel.svg">](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 
 - [Vercel](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 - [Next.js](https://nextjs.org/)
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
-
-[product-screenshot]: https://i.imgur.com/4yvFj2E.png

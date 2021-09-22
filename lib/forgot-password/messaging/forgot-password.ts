@@ -1,6 +1,6 @@
 import buildMessageTemplate from "../../emails/buildMessageTemplate";
 
-export const forgotPasswordSubjectTemplate = "Forgot your password? - Calendso";
+export const forgotPasswordSubjectTemplate = "Forgot your password? - Cal.com";
 
 export const forgotPasswordMessageTemplate = `Hey there,
 
@@ -9,7 +9,7 @@ Use the link below to reset your password.
 
 p.s. It expires in 6 hours.
 
-- Calendso`;
+- Cal.com`;
 
 export const buildForgotPasswordMessage = (vars) => {
   return buildMessageTemplate({

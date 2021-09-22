@@ -12,6 +12,7 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Team from "@components/team/screens/Team";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import Button from "@components/ui/Button";
 
 function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { isReady } = useTheme();
@@ -25,20 +26,22 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
           className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
           <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
           <Link href={`${team.slug}/${type.slug}`}>
-            <a className="block px-6 py-4 flex space-x-2 items-center">
+            <a className="px-6 py-4 flex justify-between">
               <div className="flex-shrink">
                 <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <AvatarGroup
-                truncateAfter={4}
-                className="flex-shrink-0"
-                size={10}
-                items={type.users.map((user) => ({
-                  alt: user.name,
-                  image: user.avatar,
-                }))}
-              />
+              <div className="mt-1">
+                <AvatarGroup
+                  truncateAfter={4}
+                  className="flex-shrink-0"
+                  size={10}
+                  items={type.users.map((user) => ({
+                    alt: user.name,
+                    image: user.avatar,
+                  }))}
+                />
+              </div>
             </a>
           </Link>
         </li>
@@ -63,12 +66,26 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
           {!showMembers.isOn && team.eventTypes.length && (
             <div className="mx-auto max-w-3xl">
               {eventTypes}
+
+              <div className="relative mt-12">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-gray-200 dark:border-gray-900" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="px-2 bg-gray-100 text-sm text-gray-500 dark:bg-black dark:text-gray-500">
+                    OR
+                  </span>
+                </div>
+              </div>
+
               <aside className="text-center dark:text-white mt-8">
-                <Link href={`/team/${team.slug}?members=1`} shallow={true}>
-                  <a>
-                    Book a team member <ArrowRightIcon className="h-6 w-6 inline text-neutral-500" />
-                  </a>
-                </Link>
+                <Button
+                  color="secondary"
+                  EndIcon={ArrowRightIcon}
+                  href={`/team/${team.slug}?members=1`}
+                  shallow={true}>
+                  Book a team member instead
+                </Button>
               </aside>
             </div>
           )}

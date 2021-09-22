@@ -2,15 +2,15 @@ import Head from "next/head";
 import prisma from "@lib/prisma";
 import { useSession } from "next-auth/client";
 import {
+  EventType,
   EventTypeCreateInput,
+  Schedule,
   ScheduleCreateInput,
   User,
   UserUpdateInput,
-  EventType,
-  Schedule,
 } from "@prisma/client";
 import { NextPageContext } from "next";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
 import Text from "@components/ui/Text";
@@ -18,8 +18,6 @@ import ErrorAlert from "@components/ui/alerts/Error";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc);
-dayjs.extend(timezone);
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
@@ -32,6 +30,12 @@ import classnames from "classnames";
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { getSession } from "@lib/auth";
 import Button from "@components/ui/Button";
+import debounce from "lodash.debounce";
+import Loader from "@components/Loader";
+import getEventTypes from "../lib/queries/event-types/get-event-types";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const DEFAULT_EVENT_TYPES = [
   {
@@ -62,6 +66,7 @@ type OnboardingProps = {
 export default function Onboarding(props: OnboardingProps) {
   const router = useRouter();
 
+  const [isSubmitting, setSubmitting] = React.useState(false);
   const [enteredName, setEnteredName] = React.useState();
   const Sess = useSession();
   const [ready, setReady] = useState(false);
@@ -115,7 +120,7 @@ export default function Onboarding(props: OnboardingProps) {
     return responseData.data;
   };
 
-  const integrationHandler = (type: string) => {
+  const handleAddIntegration = (type: string) => {
     if (type === "caldav_calendar") {
       setAddCalDavError(null);
       setIsAddCalDavIntegrationDialogOpen(true);
@@ -136,7 +141,7 @@ export default function Onboarding(props: OnboardingProps) {
     }
 
     return (
-      <li onClick={() => integrationHandler(integration.type)} key={integration.type} className="flex py-4">
+      <li onClick={() => handleAddIntegration(integration.type)} key={integration.type} className="flex py-4">
         <div className="w-1/12 mr-4 pt-2">
           <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
         </div>
@@ -147,7 +152,7 @@ export default function Onboarding(props: OnboardingProps) {
           </Text>
         </div>
         <div className="w-2/12 text-right pt-2">
-          <Button color="secondary" onClick={() => integrationHandler(integration.type)}>
+          <Button color="secondary" onClick={() => handleAddIntegration(integration.type)}>
             Connect
           </Button>
         </div>
@@ -279,6 +284,7 @@ export default function Onboarding(props: OnboardingProps) {
 
   const handleConfirmStep = async () => {
     try {
+      setSubmitting(true);
       if (
         steps[currentStep] &&
         steps[currentStep]?.onComplete &&
@@ -287,11 +293,15 @@ export default function Onboarding(props: OnboardingProps) {
         await steps[currentStep].onComplete();
       }
       incrementStep();
+      setSubmitting(false);
     } catch (error) {
       console.log("handleConfirmStep", error);
+      setSubmitting(false);
       setError(error);
     }
   };
+
+  const debouncedHandleConfirmStep = debounce(handleConfirmStep, 850);
 
   const handleSkipStep = () => {
     incrementStep();
@@ -330,24 +340,29 @@ export default function Onboarding(props: OnboardingProps) {
    * then the default availability is applied.
    */
   const completeOnboarding = async () => {
+    setSubmitting(true);
     if (!props.eventTypes || props.eventTypes.length === 0) {
-      Promise.all(
-        DEFAULT_EVENT_TYPES.map(async (event) => {
-          return await createEventType(event);
-        })
-      );
+      const eventTypes = await getEventTypes();
+      if (eventTypes.length === 0) {
+        Promise.all(
+          DEFAULT_EVENT_TYPES.map(async (event) => {
+            return await createEventType(event);
+          })
+        );
+      }
     }
     await updateUser({
       completedOnboarding: true,
     });
 
+    setSubmitting(false);
     router.push("/event-types");
   };
 
   const steps = [
     {
       id: "welcome",
-      title: "Welcome to Calendso",
+      title: "Welcome to Cal.com",
       description:
         "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
       Component: (
@@ -364,7 +379,7 @@ export default function Onboarding(props: OnboardingProps) {
                 id="name"
                 autoComplete="given-name"
                 placeholder="Your name"
-                defaultValue={props.user.name}
+                defaultValue={props.user.name ?? enteredName}
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
@@ -396,13 +411,16 @@ export default function Onboarding(props: OnboardingProps) {
       cancelText: "Set up later",
       onComplete: async () => {
         try {
+          setSubmitting(true);
           await updateUser({
             name: nameRef.current.value,
             timeZone: selectedTimeZone.value,
           });
           setEnteredName(nameRef.current.value);
+          setSubmitting(true);
         } catch (error) {
           setError(error);
+          setSubmitting(false);
         }
       },
     },
@@ -434,10 +452,12 @@ export default function Onboarding(props: OnboardingProps) {
             <SchedulerForm
               onSubmit={async (data) => {
                 try {
+                  setSubmitting(true);
                   await createSchedule({
                     freeBusyTimes: data,
                   });
-                  handleConfirmStep();
+                  debouncedHandleConfirmStep();
+                  setSubmitting(false);
                 } catch (error) {
                   setError(error);
                 }
@@ -504,11 +524,15 @@ export default function Onboarding(props: OnboardingProps) {
       cancelText: "Set up later",
       onComplete: async () => {
         try {
+          setSubmitting(true);
+          console.log("updating");
           await updateUser({
-            bio: bioRef.current.value,
+            description: bioRef.current.value,
           });
+          setSubmitting(false);
         } catch (error) {
           setError(error);
+          setSubmitting(false);
         }
       },
     },
@@ -527,12 +551,17 @@ export default function Onboarding(props: OnboardingProps) {
   return (
     <div className="bg-black min-h-screen">
       <Head>
-        <title>Calendso - Getting Started</title>
+        <title>Cal.com - Getting Started</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      {isSubmitting && (
+        <div className="fixed w-full h-full bg-white bg-opacity-25 flex flex-col justify-center items-center content-center z-10">
+          <Loader />
+        </div>
+      )}
       <div className="mx-auto py-24 px-4">
-        <article>
+        <article className="relative">
           <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
             <header className="">
               <Text className="text-white" variant="largetitle">
@@ -571,7 +600,11 @@ export default function Onboarding(props: OnboardingProps) {
 
             {!steps[currentStep].hideConfirm && (
               <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
-                <Button className="justify-center" onClick={handleConfirmStep} EndIcon={ArrowRightIcon}>
+                <Button
+                  className="justify-center"
+                  disabled={isSubmitting}
+                  onClick={debouncedHandleConfirmStep}
+                  EndIcon={ArrowRightIcon}>
                   {steps[currentStep].confirmText}
                 </Button>
               </footer>
@@ -579,11 +612,11 @@ export default function Onboarding(props: OnboardingProps) {
           </section>
           <section className="py-6 mt-8 mx-auto max-w-xl">
             <div className="flex justify-between flex-row-reverse">
-              <button onClick={handleSkipStep}>
+              <button disabled={isSubmitting} onClick={handleSkipStep}>
                 <Text variant="caption">Skip Step</Text>
               </button>
               {currentStep !== 0 && (
-                <button onClick={decrementStep}>
+                <button disabled={isSubmitting} onClick={decrementStep}>
                   <Text variant="caption">Prev Step</Text>
                 </button>
               )}

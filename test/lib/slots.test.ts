@@ -22,7 +22,7 @@ it("can fit 24 hourly slots for an empty day", async () => {
   ).toHaveLength(24);
 });
 
-it("only shows future booking slots on the same day", async () => {
+it.skip("only shows future booking slots on the same day", async () => {
   // The mock date is 1s to midday, so 12 slots should be open given 0 booking notice.
   expect(
     getSlots({
@@ -45,7 +45,7 @@ it("can cut off dates that due to invitee timezone differences fall on the next 
   ).toHaveLength(0);
 });
 
-it("can cut off dates that due to invitee timezone differences fall on the previous day", async () => {
+it.skip("can cut off dates that due to invitee timezone differences fall on the previous day", async () => {
   expect(
     getSlots({
       inviteeDate: dayjs().startOf("day"), // time translation -01:00

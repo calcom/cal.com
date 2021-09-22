@@ -58,15 +58,15 @@ function HideBrandingInput(props: {
         description={
           <div className="flex flex-col space-y-3">
             <p>
-              In order to remove the Calendso branding from your booking pages, you need to upgrade to a paid
+              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
               account.
             </p>
 
             <p>
               {" "}
               To upgrade go to{" "}
-              <a href="https://calendso.com/upgrade" className="underline">
-                calendso.com/upgrade
+              <a href="https://cal.com/upgrade" className="underline">
+                cal.com/upgrade
               </a>
               .
             </p>
@@ -309,10 +309,10 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Calendso branding{" "}
+                        Disable Cal.com branding{" "}
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
-                      <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
+                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
                     </div>
                   </div>
                 </div>

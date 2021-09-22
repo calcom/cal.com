@@ -14,6 +14,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { parseZone } from "@lib/parseZone";
 
 const BookingPage = (props: any): JSX.Element => {
   const router = useRouter();
@@ -47,7 +48,7 @@ const BookingPage = (props: any): JSX.Element => {
 
   // TODO: Move to translations
   const locationLabels = {
-    [LocationType.InPerson]: "In-person meeting",
+    [LocationType.InPerson]: "Link or In-person meeting",
     [LocationType.Phone]: "Phone call",
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
@@ -147,7 +148,7 @@ const BookingPage = (props: any): JSX.Element => {
         <Head>
           <title>
             {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name}{" "}
-            | Calendso
+            | Cal.com
           </title>
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -183,9 +184,7 @@ const BookingPage = (props: any): JSX.Element => {
                 )}
                 <p className="text-green-500 mb-4">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {dayjs(date)
-                    .tz(timeZone())
-                    .format(timeFormat + ", dddd DD MMMM YYYY")}
+                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
                 </p>
                 <p className="dark:text-white text-gray-600 mb-8">{props.eventType.description}</p>
               </div>
@@ -319,6 +318,7 @@ const BookingPage = (props: any): JSX.Element => {
                                 id={"custom_" + input.id}
                                 className="focus:ring-black h-4 w-4 text-black border-gray-300 rounded mr-2"
                                 placeholder=""
+                                required={input.required}
                               />
                               <label
                                 htmlFor={"custom_" + input.id}
