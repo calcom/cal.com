@@ -27,7 +27,7 @@ export const extractLocaleInfo = async (req: IncomingMessage) => {
         id: session.user.id,
       },
       data: {
-        locale: preferredLocale ? preferredLocale : i18n.defaultLocale,
+        locale: preferredLocale,
       },
     });
   }
