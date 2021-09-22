@@ -28,15 +28,6 @@ const stripe = new Stripe(stripePrivateKey, {
 export async function handlePayment(
   evt: CalendarEvent,
   selectedEventType: {
-    eventName: string;
-    title: string;
-    length: number;
-    periodType: string;
-    periodDays: number;
-    periodStartDate: Date;
-    periodEndDate: Date;
-    periodCountCalendarDays: boolean;
-    requiresConfirmation: boolean;
     price: number;
     currency: string;
   },

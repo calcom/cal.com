@@ -246,6 +246,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   function createBooking() {
     return prisma.booking.create({
+      include: {
+        user: {
+          select: { email: true, name: true, timeZone: true },
+        },
+        attendees: true,
+      },
       data: {
         uid,
         title: evt.title,
@@ -408,9 +414,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (typeof eventType.price === "number" && eventType.price > 0) {
     try {
-      const stripeCredential = user.credentials.filter((cred) => cred.type == "stripe_payment")[0];
+      const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      /* @ts-ignore https://github.com/prisma/prisma/issues/9389 */
       if (!booking.user) booking.user = user;
-      const payment = await handlePayment(evt, eventType, stripeCredential, booking);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      /* @ts-ignore https://github.com/prisma/prisma/issues/9389 */
+      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
       res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment.uid });
       return;
