@@ -1,5 +1,3 @@
-import Head from "next/head";
-import { useRouter } from "next/router";
 import {
   CalendarIcon,
   ClockIcon,
@@ -8,26 +6,32 @@ import {
   LocationMarkerIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
-import { LocationType } from "@lib/location";
-import { Button } from "@components/ui/Button";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { stringify } from "querystring";
+import { useCallback, useEffect, useState } from "react";
+import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
+import { createPaymentLink } from "@ee/lib/stripe/client";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
-import AvatarGroup from "@components/ui/AvatarGroup";
+import { LocationType } from "@lib/location";
+import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
-import { createPaymentLink } from "@ee/lib/stripe/client";
-import { FormattedNumber, IntlProvider } from "react-intl";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { BookingCreateBody } from "@lib/types/booking";
+
+import AvatarGroup from "@components/ui/AvatarGroup";
+import { Button } from "@components/ui/Button";
+
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
-import { stringify } from "querystring";
-import createBooking from "@lib/mutations/bookings/create-booking";
-import { BookingCreateBody } from "@lib/types/booking";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 

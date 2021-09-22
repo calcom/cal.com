@@ -1,6 +1,8 @@
 import React, { SyntheticEvent, useState } from "react";
-import Modal from "@components/Modal";
+
 import { ErrorCode } from "@lib/auth";
+
+import Modal from "@components/Modal";
 
 const errorMessages: { [key: string]: string } = {
   [ErrorCode.IncorrectPassword]: "Current password is incorrect",

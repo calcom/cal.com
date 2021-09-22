@@ -1,10 +1,11 @@
 import dayjs, { Dayjs } from "dayjs";
-import EventMail, { AdditionInformation } from "./EventMail";
-
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
 import { CalendarEvent } from "@lib/calendarClient";
+
+import EventMail, { AdditionInformation } from "./EventMail";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -160,6 +161,6 @@ export default class EventPaymentMail extends EventMail {
    * @private
    */
   protected getInviteeStart(): Dayjs {
-    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
+    return dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
   }
 }

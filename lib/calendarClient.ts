@@ -1,12 +1,14 @@
-import EventOrganizerMail from "./emails/EventOrganizerMail";
-import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import prisma from "./prisma";
 import { Prisma, Credential } from "@prisma/client";
-import CalEventParser from "./CalEventParser";
+
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
-import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+
+import CalEventParser from "./CalEventParser";
+import EventOrganizerMail from "./emails/EventOrganizerMail";
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
+import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import prisma from "./prisma";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 

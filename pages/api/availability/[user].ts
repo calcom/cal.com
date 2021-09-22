@@ -1,9 +1,10 @@
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { getBusyCalendarTimes } from "@lib/calendarClient";
-import prisma from "@lib/prisma";
 // import { getBusyVideoTimes } from "@lib/videoClient";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import { asStringOrNull } from "@lib/asStringOrNull";
+import { getBusyCalendarTimes } from "@lib/calendarClient";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = asStringOrNull(req.query.user);

@@ -1,10 +1,12 @@
-import prisma from "@lib/prisma";
-import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
-import { deleteMeeting } from "@lib/videoClient";
-import async from "async";
 import { BookingStatus } from "@prisma/client";
-import { asStringOrNull } from "@lib/asStringOrNull";
+import async from "async";
+
 import { refund } from "@ee/lib/stripe/server";
+
+import { asStringOrNull } from "@lib/asStringOrNull";
+import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
+import prisma from "@lib/prisma";
+import { deleteMeeting } from "@lib/videoClient";
 
 export default async function handler(req, res) {
   // just bail if it not a DELETE

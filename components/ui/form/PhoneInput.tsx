@@ -1,6 +1,7 @@
-import "react-phone-number-input/style.css";
-import { default as BasePhoneInput } from "react-phone-number-input";
 import React from "react";
+import { default as BasePhoneInput } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
 import classNames from "@lib/classNames";
 
 export const PhoneInput = (props) => (

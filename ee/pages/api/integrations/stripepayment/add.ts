@@ -1,7 +1,8 @@
-import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
+
+import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
 
 const client_id = process.env.STRIPE_CLIENT_ID;
 

@@ -1,5 +1,7 @@
-import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
-import { symmetricDecrypt } from "@lib/crypto";
+import { Credential } from "@prisma/client";
+import dayjs from "dayjs";
+import ICAL from "ical.js";
+import { Attendee, createEvent, DurationObject, Person } from "ics";
 import {
   createAccount,
   createCalendarObject,
@@ -9,13 +11,13 @@ import {
   getBasicAuthHeaders,
   updateCalendarObject,
 } from "tsdav";
-import { Credential } from "@prisma/client";
-import ICAL from "ical.js";
-import { Attendee, createEvent, DurationObject, Person } from "ics";
-import dayjs from "dayjs";
 import { v4 as uuidv4 } from "uuid";
-import { stripHtml } from "../../emails/helpers";
+
+import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
+
+import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
+import { stripHtml } from "../../emails/helpers";
 
 const log = logger.getChildLogger({ prefix: ["[lib] caldav"] });
 

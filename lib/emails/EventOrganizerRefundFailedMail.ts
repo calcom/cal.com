@@ -1,11 +1,11 @@
 import dayjs, { Dayjs } from "dayjs";
-
-import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import EventOrganizerMail from "@lib/emails/EventOrganizerMail";
+import utc from "dayjs/plugin/utc";
+
 import { CalendarEvent } from "@lib/calendarClient";
+import EventOrganizerMail from "@lib/emails/EventOrganizerMail";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -27,7 +27,7 @@ export default class EventOrganizerRefundFailedMail extends EventOrganizerMail {
   }
 
   protected getBodyText(): string {
-    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
     return `The refund for the event ${this.calEvent.type} with ${
       this.calEvent.attendees[0].name
     } on ${organizerStart.format("LT dddd, LL")} failed. Please check with your payment provider and ${
@@ -57,7 +57,7 @@ export default class EventOrganizerRefundFailedMail extends EventOrganizerMail {
   }
 
   protected getSubject(): string {
-    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
     return `Refund failed: ${this.calEvent.attendees[0].name} - ${organizerStart.format("LT dddd, LL")} - ${
       this.calEvent.type
     }`;

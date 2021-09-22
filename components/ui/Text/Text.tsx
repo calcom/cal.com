@@ -1,4 +1,5 @@
 import React from "react";
+
 import Body from "./Body";
 import Caption from "./Caption";
 import Caption2 from "./Caption2";

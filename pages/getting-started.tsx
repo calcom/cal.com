@@ -1,6 +1,4 @@
-import Head from "next/head";
-import prisma from "@lib/prisma";
-import { useSession } from "next-auth/client";
+import { ArrowRightIcon } from "@heroicons/react/outline";
 import {
   EventType,
   EventTypeCreateInput,
@@ -9,29 +7,34 @@ import {
   User,
   UserUpdateInput,
 } from "@prisma/client";
-import { NextPageContext } from "next";
-import React, { useEffect, useRef, useState } from "react";
-import { validJson } from "@lib/jsonUtils";
-import TimezoneSelect from "react-timezone-select";
-import Text from "@components/ui/Text";
-import ErrorAlert from "@components/ui/alerts/Error";
+import classnames from "classnames";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import debounce from "lodash.debounce";
+import { NextPageContext } from "next";
+import { useSession } from "next-auth/client";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { Integration } from "pages/integrations";
+import React, { useEffect, useRef, useState } from "react";
+import TimezoneSelect from "react-timezone-select";
+
+import { getSession } from "@lib/auth";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import { validJson } from "@lib/jsonUtils";
+import prisma from "@lib/prisma";
+
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Dialog";
-import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
-import { useRouter } from "next/router";
-import { Integration } from "pages/integrations";
-import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
-import classnames from "classnames";
-import { ArrowRightIcon } from "@heroicons/react/outline";
-import { getSession } from "@lib/auth";
-import Button from "@components/ui/Button";
-import debounce from "lodash.debounce";
 import Loader from "@components/Loader";
+import Button from "@components/ui/Button";
+import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
+import Text from "@components/ui/Text";
+import ErrorAlert from "@components/ui/alerts/Error";
+
+import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);

@@ -76,6 +76,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
     "@types/lodash.debounce": "^4.0.6",
@@ -107,7 +108,7 @@
     "typescript": "^4.4.3"
   },
   "lint-staged": {
-    "./{*,{pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
+    "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint"
     ]

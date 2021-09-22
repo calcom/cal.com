@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { ErrorCode, hashPassword, verifyPassword } from "../../../lib/auth";
+
 import { getSession } from "@lib/auth";
+
+import { ErrorCode, hashPassword, verifyPassword } from "../../../lib/auth";
 import prisma from "../../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

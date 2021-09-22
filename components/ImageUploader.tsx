@@ -1,5 +1,6 @@
-import Cropper from "react-easy-crop";
 import { useCallback, useRef, useState } from "react";
+import Cropper from "react-easy-crop";
+
 import Slider from "./Slider";
 
 export default function ImageUploader({ target, id, buttonMsg, handleAvatarChange, imageRef }) {

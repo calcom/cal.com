@@ -1,8 +1,9 @@
-import { ChevronRightIcon } from "@heroicons/react/solid";
 import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
+import { ChevronRightIcon } from "@heroicons/react/solid";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
-import Link from "next/link";
+
 import { HeadSeo } from "@components/seo/head-seo";
 
 const links = [

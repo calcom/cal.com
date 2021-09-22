@@ -1,10 +1,12 @@
-import Loader from "@components/Loader";
-import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSideProps } from "next";
-import { getSession } from "@lib/auth";
 import { useEffect, useState } from "react";
+
+import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+
+import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 
 dayjs.extend(utc);
