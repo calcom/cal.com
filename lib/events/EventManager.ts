@@ -33,9 +33,7 @@ export interface PartialReference {
   id?: number;
   type: string;
   uid: string;
-  meetingId?: string;
-  meetingPassword?: string;
-  meetingUrl?: string;
+  meta?: string;
 }
 
 interface GetLocationRequestFromIntegrationRequest {
@@ -93,9 +91,7 @@ export default class EventManager {
       return {
         type: result.type,
         uid: result.createdEvent.id.toString(),
-        meetingId: result.videoCallData?.id.toString(),
-        meetingPassword: result.videoCallData?.password,
-        meetingUrl: result.videoCallData?.url,
+        meta: JSON.stringify(result.videoCallData),
       };
     });
 
@@ -127,9 +123,7 @@ export default class EventManager {
             id: true,
             type: true,
             uid: true,
-            meetingId: true,
-            meetingPassword: true,
-            meetingUrl: true,
+            meta: true,
           },
         },
       },
@@ -358,32 +352,18 @@ export default class EventManager {
    * @private
    */
   private static bookingReferenceToVideoCallData(reference: PartialReference): VideoCallData | undefined {
-    let isComplete = true;
+    let videoCallData: VideoCallData;
 
-    switch (reference.type) {
-      case "zoom_video":
-        // Zoom meetings in our system should always have an ID, a password and a join URL. In the
-        // future, it might happen that we consider making passwords for Zoom meetings optional.
-        // Then, this part below (where the password existence is checked) needs to be adapted.
-        isComplete =
-          reference.meetingId != undefined &&
-          reference.meetingPassword != undefined &&
-          reference.meetingUrl != undefined;
-        break;
-      default:
-        isComplete = true;
-    }
-
-    if (isComplete) {
-      return {
-        type: reference.type,
-        // The null coalescing operator should actually never be used here, because we checked if it's defined beforehand.
-        id: reference.meetingId ?? "",
-        password: reference.meetingPassword ?? "",
-        url: reference.meetingUrl ?? "",
-      };
-    } else {
+    if (!reference.meta) {
       return undefined;
+    } else {
+      switch (reference.type) {
+        case "zoom_video":
+          videoCallData = JSON.parse(reference.meta);
+          return videoCallData;
+        default:
+          return undefined;
+      }
     }
   }
 
