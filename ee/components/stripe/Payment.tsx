@@ -5,7 +5,6 @@ import Button from "@components/ui/Button";
 import { useRouter } from "next/router";
 import useDarkMode from "@lib/core/browser/useDarkMode";
 import { PaymentData } from "@ee/lib/stripe/server";
-import { Prisma } from ".prisma/client";
 
 const CARD_OPTIONS = {
   iconStyle: "solid" as const,
@@ -26,26 +25,26 @@ const CARD_OPTIONS = {
   },
 };
 
-const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({ select: { id: true } });
-type EventType = Prisma.EventTypeGetPayload<typeof eventTypeData>;
-
-const userData = Prisma.validator<Prisma.UserArgs>()({ select: { username: true } });
-type User = Prisma.UserGetPayload<typeof userData>;
-
 type Props = {
   payment: {
     data: PaymentData;
   };
-  eventType: EventType;
-  user: User;
+  eventType: { id: number };
+  user: {
+    username: string | null;
+  };
 };
+
+type States =
+  | { status: "idle" }
+  | { status: "processing" }
+  | { status: "error"; error: Error }
+  | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
   const router = useRouter();
   const { name, date } = router.query;
-  const [error, setError] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const [disabled, setDisabled] = useState(true);
+  const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
   const { isDarkMode } = useDarkMode();
@@ -59,26 +58,27 @@ export default function PaymentComponent(props: Props) {
   const handleChange = async (event) => {
     // Listen for changes in the CardElement
     // and display any errors as the customer types their card details
-    setDisabled(event.empty);
-    setError(event.error ? event.error.message : "");
+    setState({ status: "idle" });
+    if (event.emtpy || event.error)
+      setState({ status: "error", error: new Error(event.error?.message || "Missing card fields") });
   };
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     if (!stripe || !elements) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
-    setProcessing(true);
+    setState({ status: "processing" });
     const payload = await stripe.confirmCardPayment(props.payment.data.client_secret!, {
       payment_method: {
         card,
       },
     });
     if (payload.error) {
-      setError(`Payment failed: ${payload.error.message}`);
-      setProcessing(false);
+      setState({
+        status: "error",
+        error: new Error(`Payment failed: ${payload.error.message}`),
+      });
     } else {
-      setError(null);
-
       const params: { [k: string]: any } = {
         date,
         type: props.eventType.id,
@@ -104,13 +104,19 @@ export default function PaymentComponent(props: Props) {
     <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
       <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
       <div className="flex mt-2 justify-center">
-        <Button type="submit" disabled={!!processing || disabled} loading={processing} id="submit">
-          <span id="button-text">{processing ? <div className="spinner" id="spinner" /> : "Pay now"}</span>
+        <Button
+          type="submit"
+          disabled={["processing", "error"].includes(state.status)}
+          loading={state.status === "processing"}
+          id="submit">
+          <span id="button-text">
+            {state.status === "processing" ? <div className="spinner" id="spinner" /> : "Pay now"}
+          </span>
         </Button>
       </div>
-      {error && (
+      {state.status === "error" && (
         <div className="mt-4 text-gray-700 dark:text-gray-300 text-center" role="alert">
-          {error}
+          {state.error}
         </div>
       )}
     </form>

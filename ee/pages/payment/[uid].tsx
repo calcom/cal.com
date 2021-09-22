@@ -105,7 +105,6 @@ export default function Payment(props: inferSSRProps<typeof getServerSideProps>)
                       <Elements stripe={getStripe(props.payment.data.stripe_publishable_key)}>
                         <PaymentComponent
                           payment={props.payment}
-                          booking={props.booking}
                           eventType={props.eventType}
                           user={props.user}
                         />
@@ -166,6 +165,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               users: {
                 select: {
                   name: true,
+                  username: true,
                   hideBranding: true,
                   plan: true,
                   theme: true,
