@@ -3,6 +3,7 @@
  */
 import { createRouter } from "../createRouter";
 import { testRouter } from "./test";
+import { userRouter } from "./user";
 
 /**
  * Create your application's root router
@@ -21,6 +22,7 @@ export const appRouter = createRouter()
    * @link https://trpc.io/docs/error-formatting
    */
   // .formatError(({ shape, error }) => { })
-  .merge("test.", testRouter);
+  .merge("test.", testRouter)
+  .merge("user.", userRouter);
 
 export type AppRouter = typeof appRouter;

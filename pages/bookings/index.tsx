@@ -1,31 +1,34 @@
-import prisma from "@lib/prisma";
-import { useSession } from "next-auth/client";
+import EmptyScreen from "@components/EmptyScreen";
+import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-import { useRouter } from "next/router";
-import dayjs from "dayjs";
-import { Fragment } from "react";
+import { Alert } from "@components/ui/Alert";
+import { Button } from "@components/ui/Button";
 // TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
+import { BanIcon, CalendarIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
-import classNames from "@lib/classNames";
-import { ClockIcon, CalendarIcon, XIcon, CheckIcon, BanIcon } from "@heroicons/react/outline";
-import Loader from "@components/Loader";
-import { Button } from "@components/ui/Button";
 import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
 import { BookingStatus, User } from "@prisma/client";
-import EmptyScreen from "@components/EmptyScreen";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+import { Fragment } from "react";
 
-export default function Bookings({ bookings }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
-
-  const isEmpty = Object.keys(bookings).length === 0;
+export default function Bookings() {
+  const query = trpc.useQuery(["user.bookings"]);
 
   const router = useRouter();
 
-  if (loading) {
+  if (query.status === "error") {
+    return <Alert severity="error" title="Something went wrong" message={query.error.message} />;
+  }
+  if (query.status !== "success") {
     return <Loader />;
   }
+  const bookings = query.data;
+  const isEmpty = bookings.length === 0;
 
   async function confirmBookingHandler(booking, confirm: boolean) {
     const res = await fetch("/api/book/confirm", {
