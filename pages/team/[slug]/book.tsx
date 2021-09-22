@@ -1,9 +1,11 @@
-import BookingPage from "@components/booking/pages/BookingPage";
+import { GetServerSidePropsContext } from "next";
+import "react-phone-number-input/style.css";
+
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { GetServerSidePropsContext } from "next";
-import "react-phone-number-input/style.css";
+
+import BookingPage from "@components/booking/pages/BookingPage";
 
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 

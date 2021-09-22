@@ -1,12 +1,14 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { Button } from "@components/ui/Button";
+
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import { Button } from "@components/ui/Button";
 
 dayjs.extend(utc);
 

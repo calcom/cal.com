@@ -1,7 +1,8 @@
+import { NextApiRequest, NextApiResponse } from "next";
+
 import { hashPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
-import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

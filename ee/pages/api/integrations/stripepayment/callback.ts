@@ -1,8 +1,10 @@
 import { Prisma } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
+
+import stripe, { StripeData } from "@ee/lib/stripe/server";
+
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
-import stripe, { StripeData } from "@ee/lib/stripe/server";
-import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;

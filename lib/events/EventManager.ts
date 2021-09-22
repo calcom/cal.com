@@ -1,13 +1,14 @@
-import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import { Credential } from "@prisma/client";
 import async from "async";
-import { createMeeting, updateMeeting } from "@lib/videoClient";
-import prisma from "@lib/prisma";
-import { LocationType } from "@lib/location";
-import { v5 as uuidv5 } from "uuid";
 import merge from "lodash.merge";
+import { v5 as uuidv5 } from "uuid";
+
+import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
 import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
+import { LocationType } from "@lib/location";
+import prisma from "@lib/prisma";
+import { createMeeting, updateMeeting } from "@lib/videoClient";
 
 export interface EventResult {
   type: string;

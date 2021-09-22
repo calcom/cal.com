@@ -1,8 +1,9 @@
+import nodemailer from "nodemailer";
+
 import CalEventParser from "../CalEventParser";
-import { stripHtml } from "./helpers";
 import { CalendarEvent, ConferenceData } from "../calendarClient";
 import { serverConfig } from "../serverConfig";
-import nodemailer from "nodemailer";
+import { stripHtml } from "./helpers";
 
 export interface EntryPoint {
   entryPointType?: string;

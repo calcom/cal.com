@@ -1,11 +1,13 @@
-import BookingPage from "@components/booking/pages/BookingPage";
-import { asStringOrThrow } from "@lib/asStringOrNull";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
+
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import BookingPage from "@components/booking/pages/BookingPage";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

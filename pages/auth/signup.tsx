@@ -1,10 +1,12 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import { useRouter } from "next/router";
 import { signIn } from "next-auth/client";
-import ErrorAlert from "@components/ui/alerts/Error";
+import { useRouter } from "next/router";
 import { useState } from "react";
-import { UsernameInput } from "@components/ui/UsernameInput";
+
 import prisma from "@lib/prisma";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
 
 export default function Signup(props) {
   const router = useRouter();

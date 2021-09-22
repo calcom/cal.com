@@ -1,12 +1,14 @@
-import { getCsrfToken } from "next-auth/client";
-import prisma from "@lib/prisma";
-import { HeadSeo } from "@components/seo/head-seo";
-import React, { useMemo } from "react";
-import debounce from "lodash.debounce";
-import dayjs from "dayjs";
 import { ResetPasswordRequest } from "@prisma/client";
-import Link from "next/link";
+import dayjs from "dayjs";
+import debounce from "lodash.debounce";
 import { GetServerSidePropsContext } from "next";
+import { getCsrfToken } from "next-auth/client";
+import Link from "next/link";
+import React, { useMemo } from "react";
+
+import prisma from "@lib/prisma";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 type Props = {
   id: string;

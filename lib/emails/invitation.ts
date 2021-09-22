@@ -1,5 +1,6 @@
-import { serverConfig } from "../serverConfig";
 import nodemailer from "nodemailer";
+
+import { serverConfig } from "../serverConfig";
 
 export default function createInvitationEmail(data: any, options: any = {}) {
   return sendEmail(data, {

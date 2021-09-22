@@ -1,13 +1,15 @@
-import Avatar from "@components/ui/Avatar";
-import { HeadSeo } from "@components/seo/head-seo";
-import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
+
+import useTheme from "@lib/hooks/useTheme";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
+import { HeadSeo } from "@components/seo/head-seo";
+import Avatar from "@components/ui/Avatar";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme(props.user.theme);

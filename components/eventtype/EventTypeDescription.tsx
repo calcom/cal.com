@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import {
   ClockIcon,
   CreditCardIcon,
@@ -6,10 +5,12 @@ import {
   UserIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import React from "react";
+import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import classNames from "@lib/classNames";
+import React from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+
+import classNames from "@lib/classNames";
 
 const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
   select: {

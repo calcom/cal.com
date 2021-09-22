@@ -1,7 +1,8 @@
-import { useRouter } from "next/router";
 import { XIcon } from "@heroicons/react/outline";
-import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
+import { useRouter } from "next/router";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Error() {
   const router = useRouter();

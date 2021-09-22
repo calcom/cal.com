@@ -1,7 +1,8 @@
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
-import prisma from "@lib/prisma";
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
 
 export default function Billing() {
   return (

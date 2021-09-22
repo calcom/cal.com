@@ -1,9 +1,10 @@
-import getSlots from "@lib/slots";
 import { expect, it } from "@jest/globals";
-import MockDate from "mockdate";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import MockDate from "mockdate";
+
+import getSlots from "@lib/slots";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

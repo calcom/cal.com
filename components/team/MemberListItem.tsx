@@ -1,11 +1,14 @@
 import { DotsHorizontalIcon, UserRemoveIcon } from "@heroicons/react/outline";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import { useState } from "react";
+
+import { Member } from "@lib/member";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
-import { Member } from "@lib/member";
 import Button from "@components/ui/Button";
+
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 
 export default function MemberListItem(props: {
   member: Member;

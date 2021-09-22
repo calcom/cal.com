@@ -1,10 +1,13 @@
-import React, { useState } from "react";
-import { stringify } from "querystring";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import Button from "@components/ui/Button";
 import { useRouter } from "next/router";
-import useDarkMode from "@lib/core/browser/useDarkMode";
+import { stringify } from "querystring";
+import React, { useState } from "react";
+
 import { PaymentData } from "@ee/lib/stripe/server";
+
+import useDarkMode from "@lib/core/browser/useDarkMode";
+
+import Button from "@components/ui/Button";
 
 const CARD_OPTIONS = {
   iconStyle: "solid" as const,
