@@ -8,7 +8,7 @@ import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
 import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
-import { createMeeting, updateMeeting } from "@lib/videoClient";
+import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
 export interface EventResult {
   type: string;
@@ -17,6 +17,7 @@ export interface EventResult {
   createdEvent?: unknown;
   updatedEvent?: unknown;
   originalEvent: CalendarEvent;
+  videoCallData?: VideoCallData;
 }
 
 export interface CreateUpdateResult {
@@ -33,6 +34,9 @@ export interface PartialReference {
   id?: number;
   type: string;
   uid: string;
+  meetingId?: string;
+  meetingPassword?: string;
+  meetingUrl?: string;
 }
 
 interface GetLocationRequestFromIntegrationRequest {
@@ -62,23 +66,37 @@ export default class EventManager {
    * @param event
    * @param maybeUid
    */
-  public async create(event: CalendarEvent, maybeUid: string = null): Promise<CreateUpdateResult> {
+  public async create(event: CalendarEvent, maybeUid?: string): Promise<CreateUpdateResult> {
     event = EventManager.processLocation(event);
     const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
-    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    const results: Array<EventResult> = await this.createAllCalendarEvents(event, isDedicated, maybeUid);
-    // If and only if event type is a dedicated meeting, create a dedicated video meeting as well.
+    let results: Array<EventResult> = [];
+    let optionalVideoCallData: VideoCallData | undefined = undefined;
+
+    // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
-      results.push(await this.createVideoEvent(event, maybeUid));
+      const result = await this.createVideoEvent(event, maybeUid);
+      if (result.videoCallData) {
+        optionalVideoCallData = result.videoCallData;
+      }
+      results.push(result);
     } else {
-      await this.sendAttendeeMail("new", results, event, maybeUid);
+      await EventManager.sendAttendeeMail("new", results, event, maybeUid);
     }
 
-    const referencesToCreate: Array<PartialReference> = results.map((result) => {
+    // Now create all calendar events. If this is a dedicated integration event,
+    // don't send a mail right here, because it has already been sent.
+    results = results.concat(
+      await this.createAllCalendarEvents(event, isDedicated, maybeUid, optionalVideoCallData)
+    );
+
+    const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
         type: result.type,
         uid: result.createdEvent.id.toString(),
+        meetingId: result.videoCallData?.id.toString(),
+        meetingPassword: result.videoCallData?.password,
+        meetingUrl: result.videoCallData?.url,
       };
     });
 
@@ -110,6 +128,9 @@ export default class EventManager {
             id: true,
             type: true,
             uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
           },
         },
       },
@@ -117,15 +138,25 @@ export default class EventManager {
 
     const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
-    // First, update all calendar events. If this is a dedicated event, don't send a mail right here.
-    const results: Array<EventResult> = await this.updateAllCalendarEvents(event, booking, isDedicated);
+    let results: Array<EventResult> = [];
+    let optionalVideoCallData: VideoCallData | undefined = undefined;
 
-    // If and only if event type is a dedicated meeting, update the dedicated video meeting as well.
+    // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
-      results.push(await this.updateVideoEvent(event, booking));
+      const result = await this.updateVideoEvent(event, booking);
+      if (result.videoCallData) {
+        optionalVideoCallData = result.videoCallData;
+      }
+      results.push(result);
     } else {
-      await this.sendAttendeeMail("reschedule", results, event, rescheduleUid);
+      await EventManager.sendAttendeeMail("reschedule", results, event, rescheduleUid);
     }
+
+    // Now update all calendar events. If this is a dedicated integration event,
+    // don't send a mail right here, because it has already been sent.
+    results = results.concat(
+      await this.updateAllCalendarEvents(event, booking, isDedicated, optionalVideoCallData)
+    );
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -164,15 +195,17 @@ export default class EventManager {
    * @param event
    * @param noMail
    * @param maybeUid
+   * @param optionalVideoCallData
    * @private
    */
   private createAllCalendarEvents(
     event: CalendarEvent,
     noMail: boolean,
-    maybeUid: string = null
+    maybeUid?: string,
+    optionalVideoCallData?: VideoCallData
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      return createEvent(credential, event, noMail, maybeUid);
+      return createEvent(credential, event, noMail, maybeUid, optionalVideoCallData);
     });
   }
 
@@ -196,7 +229,7 @@ export default class EventManager {
    * @param maybeUid
    * @private
    */
-  private createVideoEvent(event: CalendarEvent, maybeUid: string = null): Promise<EventResult> {
+  private createVideoEvent(event: CalendarEvent, maybeUid?: string): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
@@ -220,11 +253,12 @@ export default class EventManager {
   private updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking,
-    noMail: boolean
+    noMail: boolean,
+    optionalVideoCallData?: VideoCallData
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0]?.uid;
-      return updateEvent(credential, bookingRefUid, event, noMail);
+      return updateEvent(credential, bookingRefUid, event, noMail, optionalVideoCallData);
     });
   }
 
@@ -239,8 +273,15 @@ export default class EventManager {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
-      const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return updateMeeting(credential, bookingRefUid, event);
+      const bookingRef = booking.references.filter((ref) => ref.type === credential.type)[0];
+
+      return updateMeeting(credential, bookingRef.uid, event).then((returnVal: EventResult) => {
+        // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
+        if (returnVal.videoCallData == undefined) {
+          returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
+        }
+        return returnVal;
+      });
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
@@ -310,7 +351,58 @@ export default class EventManager {
     return event;
   }
 
-  private async sendAttendeeMail(type: "new" | "reschedule", results, event, maybeUid) {
+  /**
+   * Accepts a PartialReference object and, if all data is complete,
+   * returns a VideoCallData object containing the meeting information.
+   *
+   * @param reference
+   * @private
+   */
+  private static bookingReferenceToVideoCallData(reference: PartialReference): VideoCallData | undefined {
+    let isComplete = true;
+
+    switch (reference.type) {
+      case "zoom_video":
+        // Zoom meetings in our system should always have an ID, a password and a join URL. In the
+        // future, it might happen that we consider making passwords for Zoom meetings optional.
+        // Then, this part below (where the password existence is checked) needs to be adapted.
+        isComplete =
+          reference.meetingId != undefined &&
+          reference.meetingPassword != undefined &&
+          reference.meetingUrl != undefined;
+        break;
+      default:
+        isComplete = true;
+    }
+
+    if (isComplete) {
+      return {
+        type: reference.type,
+        // The null coalescing operator should actually never be used here, because we checked if it's defined beforehand.
+        id: reference.meetingId ?? "",
+        password: reference.meetingPassword ?? "",
+        url: reference.meetingUrl ?? "",
+      };
+    } else {
+      return undefined;
+    }
+  }
+
+  /**
+   * Conditionally sends an email to the attendee.
+   *
+   * @param type
+   * @param results
+   * @param event
+   * @param maybeUid
+   * @private
+   */
+  private static async sendAttendeeMail(
+    type: "new" | "reschedule",
+    results: Array<EventResult>,
+    event: CalendarEvent,
+    maybeUid?: string
+  ) {
     if (
       !results.length ||
       !results.some((eRes) => (eRes.createdEvent || eRes.updatedEvent).disableConfirmationEmail)
