@@ -30,9 +30,7 @@ type Props = {
     data: PaymentData;
   };
   eventType: { id: number };
-  user: {
-    username: string | null;
-  };
+  user: { username: string | null };
 };
 
 type States =
@@ -116,7 +114,7 @@ export default function PaymentComponent(props: Props) {
       </div>
       {state.status === "error" && (
         <div className="mt-4 text-gray-700 dark:text-gray-300 text-center" role="alert">
-          {state.error}
+          {state.error.message}
         </div>
       )}
     </form>
