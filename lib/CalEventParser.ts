@@ -1,6 +1,5 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
 import { CalendarEvent } from "./calendarClient";
 import { stripHtml } from "./emails/helpers";
 import { VideoCallData } from "@lib/videoClient";

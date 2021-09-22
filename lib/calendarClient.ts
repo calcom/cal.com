@@ -1,8 +1,6 @@
 import { Prisma, Credential } from "@prisma/client";
-
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
-
 import CalEventParser from "./CalEventParser";
 import EventOrganizerMail from "./emails/EventOrganizerMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
