@@ -211,7 +211,7 @@ const EventTypesPage = (props: PageProps) => {
                             <Menu.Item>
                               {({ active }) => (
                                 <a
-                                  href={`/${profile.slug}/${type.slug}`}
+                                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={classNames(
@@ -231,7 +231,9 @@ const EventTypesPage = (props: PageProps) => {
                                 <button
                                   onClick={() => {
                                     showToast("Link copied!", "success");
-                                    navigator.clipboard.writeText(`cal.com/${profile.slug}/${type.slug}`);
+                                    navigator.clipboard.writeText(
+                                      `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
+                                    );
                                   }}
                                   className={classNames(
                                     active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
