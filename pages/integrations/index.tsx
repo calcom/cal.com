@@ -16,21 +16,11 @@ import AddAppleIntegration, {
   ADD_APPLE_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import Button from "@components/ui/Button";
+import getIntegrations from "@lib/integrations/getIntegrations";
+import { GetServerSidePropsContext } from "next";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-export type Integration = {
-  installed: boolean;
-  credential: unknown;
-  type: string;
-  title: string;
-  imageSrc: string;
-  description: string;
-};
-
-type Props = {
-  integrations: Integration[];
-};
-
-export default function Home({ integrations }: Props) {
+export default function Home({ integrations }: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
 
   const [selectableCalendars, setSelectableCalendars] = useState([]);
@@ -475,21 +465,9 @@ export default function Home({ integrations }: Props) {
   );
 }
 
-const validJson = (jsonString: string) => {
-  try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return false;
-};
-
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.email) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
   const user = await prisma.user.findFirst({
@@ -498,62 +476,21 @@ export async function getServerSideProps(context) {
     },
     select: {
       id: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+        },
+      },
     },
   });
 
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
+  if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
 
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      credential: credentials.find((integration) => integration.type === "google_calendar") || null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-      type: "zoom_video",
-      credential: credentials.find((integration) => integration.type === "zoom_video") || null,
-      title: "Zoom",
-      imageSrc: "integrations/zoom.svg",
-      description: "Video Conferencing",
-    },
-    {
-      installed: true,
-      type: "caldav_calendar",
-      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
-      title: "CalDav Server",
-      imageSrc: "integrations/caldav.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: true,
-      type: "apple_calendar",
-      credential: credentials.find((integration) => integration.type === "apple_calendar") || null,
-      title: "Apple Calendar",
-      imageSrc: "integrations/apple-calendar.svg",
-      description: "For personal and business calendars",
-    },
-  ];
+  const { credentials } = user;
+
+  const integrations = getIntegrations(credentials);
 
   return {
     props: { integrations },

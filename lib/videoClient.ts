@@ -17,6 +17,14 @@ const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
+export interface ZoomToken {
+  scope: "meeting:write";
+  expires_in: number;
+  token_type: "bearer";
+  access_token: string;
+  refresh_token: string;
+}
+
 export interface VideoCallData {
   type: string;
   id: string;
@@ -40,13 +48,14 @@ function handleErrorsRaw(response) {
   return response.text();
 }
 
-const zoomAuth = (credential) => {
-  const isExpired = (expiryDate) => expiryDate < +new Date();
+const zoomAuth = (credential: Credential) => {
+  const credentialKey = credential.key as unknown as ZoomToken;
+  const isExpired = (expiryDate: number) => expiryDate < +new Date();
   const authHeader =
     "Basic " +
     Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
 
-  const refreshAccessToken = (refreshToken) =>
+  const refreshAccessToken = (refreshToken: string) =>
     fetch("https://zoom.us/oauth/token", {
       method: "POST",
       headers: {
@@ -69,30 +78,30 @@ const zoomAuth = (credential) => {
             key: responseBody,
           },
         });
-        credential.key.access_token = responseBody.access_token;
-        credential.key.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
-        return credential.key.access_token;
+        credentialKey.access_token = responseBody.access_token;
+        credentialKey.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
+        return credentialKey.access_token;
       });
 
   return {
     getToken: () =>
-      !isExpired(credential.key.expires_in)
-        ? Promise.resolve(credential.key.access_token)
-        : refreshAccessToken(credential.key.refresh_token),
+      !isExpired(credentialKey.expires_in)
+        ? Promise.resolve(credentialKey.access_token)
+        : refreshAccessToken(credentialKey.refresh_token),
   };
 };
 
 interface VideoApiAdapter {
   createMeeting(event: CalendarEvent): Promise<any>;
 
-  updateMeeting(uid: string, event: CalendarEvent);
+  updateMeeting(uid: string, event: CalendarEvent): Promise<any>;
 
   deleteMeeting(uid: string): Promise<unknown>;
 
-  getAvailability(dateFrom, dateTo): Promise<any>;
+  getAvailability(dateFrom: string, dateTo: string): Promise<any>;
 }
 
-const ZoomVideo = (credential): VideoApiAdapter => {
+const ZoomVideo = (credential: Credential): VideoApiAdapter => {
   const auth = zoomAuth(credential);
 
   const translateEvent = (event: CalendarEvent) => {
@@ -148,7 +157,9 @@ const ZoomVideo = (credential): VideoApiAdapter => {
               })
         )
         .catch((err) => {
-          console.log(err);
+          console.error(err);
+          /* Prevents booking failure when Zoom Token is expired */
+          return [];
         });
     },
     createMeeting: (event: CalendarEvent) =>
@@ -186,19 +197,19 @@ const ZoomVideo = (credential): VideoApiAdapter => {
 };
 
 // factory
-const videoIntegrations = (withCredentials): VideoApiAdapter[] =>
-  withCredentials
-    .map((cred) => {
-      switch (cred.type) {
-        case "zoom_video":
-          return ZoomVideo(cred);
-        default:
-          return; // unknown credential, could be legacy? In any case, ignore
-      }
-    })
-    .filter(Boolean);
+const videoIntegrations = (withCredentials: Credential[]): VideoApiAdapter[] =>
+  withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
+    switch (cred.type) {
+      case "zoom_video":
+        acc.push(ZoomVideo(cred));
+        break;
+      default:
+        break;
+    }
+    return acc;
+  }, []);
 
-const getBusyVideoTimes: (withCredentials) => Promise<unknown[]> = (withCredentials) =>
+const getBusyVideoTimes: (withCredentials: Credential[]) => Promise<unknown[]> = (withCredentials) =>
   Promise.all(videoIntegrations(withCredentials).map((c) => c.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );

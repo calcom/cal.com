@@ -60,6 +60,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           availability: true,
           description: true,
           length: true,
+          price: true,
+          currency: true,
           users: {
             select: {
               avatar: true,
@@ -96,6 +98,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         availability: true,
         description: true,
         length: true,
+        price: true,
+        currency: true,
         users: {
           select: {
             avatar: true,

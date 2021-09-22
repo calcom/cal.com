@@ -4,10 +4,13 @@ const { i18n } = require("./next-i18next.config");
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.BASE_URL) {
-  process.env.BASE_URL = process.env.VERCEL_URL;
+  process.env.BASE_URL = "https://" + process.env.VERCEL_URL;
 }
 if (process.env.BASE_URL) {
   process.env.NEXTAUTH_URL = process.env.BASE_URL + "/api/auth";
+}
+if (!process.env.NEXT_PUBLIC_APP_URL) {
+  process.env.NEXT_PUBLIC_APP_URL = process.env.BASE_URL;
 }
 
 if (!process.env.EMAIL_FROM) {
@@ -64,8 +67,5 @@ module.exports = withTM({
         permanent: true,
       },
     ];
-  },
-  publicRuntimeConfig: {
-    BASE_URL: process.env.BASE_URL || "http://localhost:3000",
   },
 });
