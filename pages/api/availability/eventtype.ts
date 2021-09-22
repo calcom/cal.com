@@ -47,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       length: parseInt(req.body.length),
       hidden: req.body.hidden,
       requiresConfirmation: req.body.requiresConfirmation,
+      disableGuests: req.body.disableGuests,
       locations: req.body.locations,
       eventName: req.body.eventName,
       customInputs: !req.body.customInputs

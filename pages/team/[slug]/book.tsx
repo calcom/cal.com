@@ -36,6 +36,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      disableGuests: true,
       team: {
         select: {
           slug: true,

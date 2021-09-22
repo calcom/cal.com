@@ -52,6 +52,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodCountCalendarDays: true,
       price: true,
       currency: true,
+      disableGuests: true,
       users: {
         select: {
           username: true,
