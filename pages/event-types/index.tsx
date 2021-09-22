@@ -384,7 +384,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                   size={6}
                   className="inline mr-2"
                 />
-                {profile.name}
+                {profile.name ? profile.name : profile.slug}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
