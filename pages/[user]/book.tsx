@@ -43,6 +43,7 @@ export async function getServerSideProps(context) {
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      disableGuests: true,
       users: {
         select: {
           username: true,
