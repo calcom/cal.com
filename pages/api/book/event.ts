@@ -467,7 +467,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   log.debug(`Booking ${user.username} completed`);
 
   // Send Webhook call if hooked to BOOKING.CREATED
-
   const subscriberUrls = await getSubscriberUrls(user.id, eventTypeId, "BOOKING_CREATED");
   subscriberUrls.forEach((subscriberUrl: string) => {
     sendPayload("BOOKING_CREATED", new Date().toISOString(), subscriberUrl, evt);
