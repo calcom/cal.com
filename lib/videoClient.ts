@@ -1,17 +1,19 @@
-import prisma from "./prisma";
-import { CalendarEvent } from "./calendarClient";
-import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
-import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
-import { v5 as uuidv5 } from "uuid";
+import { Credential } from "@prisma/client";
 import short from "short-uuid";
-import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
-import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import { EventResult } from "@lib/events/EventManager";
-import logger from "@lib/logger";
+import { v5 as uuidv5 } from "uuid";
+
+import CalEventParser from "@lib/CalEventParser";
 import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
 import { getIntegrationName } from "@lib/emails/helpers";
-import CalEventParser from "@lib/CalEventParser";
-import { Credential } from "@prisma/client";
+import { EventResult } from "@lib/events/EventManager";
+import logger from "@lib/logger";
+
+import { CalendarEvent } from "./calendarClient";
+import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
+import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
+import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
+import prisma from "./prisma";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 

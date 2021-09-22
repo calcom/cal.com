@@ -1,5 +1,6 @@
-import Loader from "@components/Loader";
 import { useRouter } from "next/router";
+
+import Loader from "@components/Loader";
 
 function RedirectPage() {
   const router = useRouter();

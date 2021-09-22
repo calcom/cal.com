@@ -1,10 +1,12 @@
+import { ExclamationIcon } from "@heroicons/react/solid";
+import { SchedulingType } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useSlots } from "@lib/hooks/useSlots";
-import { ExclamationIcon } from "@heroicons/react/solid";
 import React from "react";
+
+import { useSlots } from "@lib/hooks/useSlots";
+
 import Loader from "@components/Loader";
-import { SchedulingType } from "@prisma/client";
 
 const AvailableTimes = ({
   date,

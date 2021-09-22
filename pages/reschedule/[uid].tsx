@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext } from "next";
-import prisma from "@lib/prisma";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
+import prisma from "@lib/prisma";
 
 export default function Type() {
   // Just redirect to the schedule page to reschedule it.

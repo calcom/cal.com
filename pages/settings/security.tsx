@@ -1,11 +1,13 @@
-import React from "react";
-import prisma from "@lib/prisma";
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
 import { getSession, useSession } from "next-auth/client";
+import React from "react";
+
+import prisma from "@lib/prisma";
+
 import Loader from "@components/Loader";
-import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
+import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 
 export default function Security({ user }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

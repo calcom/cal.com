@@ -1,7 +1,37 @@
+// TODO: replace headlessui with radix-ui
+import { Menu, Transition } from "@headlessui/react";
+import {
+  ChevronDownIcon,
+  DotsHorizontalIcon,
+  ExternalLinkIcon,
+  LinkIcon,
+  PlusIcon,
+  UsersIcon,
+} from "@heroicons/react/solid";
+import { SchedulingType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import dayjs from "dayjs";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import React, { Fragment, useRef } from "react";
+import { useMutation } from "react-query";
+
+import { asStringOrNull } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
+import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import createEventType from "@lib/mutations/event-types/create-event-type";
+import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
+import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -16,34 +46,6 @@ import Dropdown, {
 } from "@components/ui/Dropdown";
 import * as RadioArea from "@components/ui/form/radio-area";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
-// TODO: replace headlessui with radix-ui
-import { Menu, Transition } from "@headlessui/react";
-import {
-  ChevronDownIcon,
-  DotsHorizontalIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  PlusIcon,
-  UsersIcon,
-} from "@heroicons/react/solid";
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
-import classNames from "@lib/classNames";
-import { HttpError } from "@lib/core/http/error";
-import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
-import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import createEventType from "@lib/mutations/event-types/create-event-type";
-import showToast from "@lib/notification";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { SchedulingType } from "@prisma/client";
-import dayjs from "dayjs";
-import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { Fragment, useRef } from "react";
-import { useMutation } from "react-query";
-import { Prisma } from "@prisma/client";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 type EventType = PageProps["eventTypes"][number];

@@ -1,17 +1,6 @@
-import { useRouter } from "next/router";
-import Modal from "@components/Modal";
-import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionTypeBase } from "react-select";
-import prisma from "@lib/prisma";
-import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
-import { LocationType } from "@lib/location";
-import Shell from "@components/Shell";
-import { getSession } from "@lib/auth";
-import { Scheduler } from "@components/ui/Scheduler";
 // TODO: replace headlessui with radix-ui
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
-import { HttpError } from "@lib/core/http/error";
 import {
   LocationMarkerIcon,
   LinkIcon,
@@ -24,34 +13,46 @@ import {
   UsersIcon,
   UserAddIcon,
 } from "@heroicons/react/solid";
-
+import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import throttle from "lodash.throttle";
+import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
+import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
-import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
-import Switch from "@components/ui/Switch";
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { GetServerSidePropsContext } from "next";
-import { useMutation } from "react-query";
-import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
-import updateEventType from "@lib/mutations/event-types/update-event-type";
-import deleteEventType from "@lib/mutations/event-types/delete-event-type";
-import showToast from "@lib/notification";
-import CheckedSelect from "@components/ui/form/CheckedSelect";
-import { defaultAvatarSrc } from "@lib/profile";
-import * as RadioArea from "@components/ui/form/radio-area";
-import classNames from "@lib/classNames";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { asStringOrThrow } from "@lib/asStringOrNull";
-import Button from "@components/ui/Button";
-import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { useMutation } from "react-query";
+import Select, { OptionTypeBase } from "react-select";
 import Stripe from "stripe";
+
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
+import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { LocationType } from "@lib/location";
+import deleteEventType from "@lib/mutations/event-types/delete-event-type";
+import updateEventType from "@lib/mutations/event-types/update-event-type";
+import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
+import { defaultAvatarSrc } from "@lib/profile";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Button from "@components/ui/Button";
+import { Scheduler } from "@components/ui/Scheduler";
+import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
+import CheckedSelect from "@components/ui/form/CheckedSelect";
+import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

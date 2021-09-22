@@ -1,5 +1,6 @@
 import React, { PropsWithChildren } from "react";
 import Select, { components, NamedProps } from "react-select";
+
 import classNames from "@lib/classNames";
 
 export const SelectComp = (props: PropsWithChildren<NamedProps>) => (

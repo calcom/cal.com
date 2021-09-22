@@ -1,6 +1,7 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import Link from "next/link";
 import { CheckIcon } from "@heroicons/react/outline";
+import Link from "next/link";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Logout() {
   return (
