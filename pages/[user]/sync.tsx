@@ -9,7 +9,7 @@ import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Avatar from "../../components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import AvailableTimes from "../../components/booking/AvailableTimes";
 import DatePicker from "../../components/booking/DatePicker";
 import TimeOptions from "../../components/booking/TimeOptions";
@@ -134,7 +134,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
             className={
               "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
               (selectedDate ? "max-w-5xl" : "max-w-3xl")
-            }>
+            }
+          >
             <div className="bg-white border-gray-200 rounded-sm sm: md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
@@ -158,7 +159,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                 <div
                   className={
                     "hidden md:block pr-8 sm:border-r sm: " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
-                  }>
+                  }
+                >
                   <Avatar user={props.user} className="w-16 h-16 mb-4 rounded-full" />
                   <h2 className="font-medium text-gray-500 ">{props.user.name}</h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{props.eventType.title}</h1>

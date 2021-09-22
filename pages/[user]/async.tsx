@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "react-phone-number-input/style.css";
-import Avatar from "../../components/Avatar";
+import Avatar from "@components/ui/Avatar";
 import Button from "../../components/ui/Button";
 import Theme from "@components/Theme";
 import { ReactMultiEmail } from "react-multi-email";
@@ -157,7 +157,8 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
                       <label
                         onClick={toggleGuestEmailInput}
                         htmlFor="guests"
-                        className="block mb-1 text-sm font-medium text-black hover:cursor-pointer">
+                        className="block mb-1 text-sm font-medium text-black hover:cursor-pointer"
+                      >
                         + Additional Guests
                       </label>
                     )}
@@ -220,7 +221,8 @@ export default function Book(props: InferGetServerSidePropsType<typeof getServer
                           Could not create the meeting. Please try again or{" "}
                           <a
                             href={"mailto:" + props.user.email}
-                            className="font-medium text-yellow-700 underline hover:text-yellow-600">
+                            className="font-medium text-yellow-700 underline hover:text-yellow-600"
+                          >
                             Contact {props.user.name} via e-mail
                           </a>
                         </p>
