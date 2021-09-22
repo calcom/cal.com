@@ -142,7 +142,7 @@ export default function ImageUploader({ target, id, buttonMsg, handleAvatarChang
             <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-6">
               <div className="sm:flex sm:items-start mb-4">
                 <div className="mt-3 text-center sm:mt-0 sm:text-left">
-                  <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                  <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
                     Upload {target}
                   </h3>
                 </div>
