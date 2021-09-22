@@ -134,9 +134,8 @@ export default function Signup(props: InferGetServerSidePropsType<typeof getServ
 }
 
 export async function getServerSideProps(ctx) {
-  return {
-    notFound: true,
-  };
+  return { notFound: process.env.NODE_ENV === "production" };
+
   if (!ctx.query.token) {
     return {
       notFound: true,

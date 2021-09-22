@@ -624,7 +624,7 @@ export default function Availability({
 }
 
 export async function getServerSideProps(context) {
-  // return { notFound: true };
+  return { notFound: process.env.NODE_ENV === "production" };
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
