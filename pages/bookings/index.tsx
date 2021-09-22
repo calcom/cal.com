@@ -41,7 +41,21 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
         <title>Bookings | Calendso</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
+      <Shell
+        heading="Bookings"
+        subtitle={
+          <>
+            See upcoming and past events booked through{" "}
+            <a
+              className="text-black hover:opacity-90"
+              href={
+                window.location.protocol + "//" + window.location.host + "/" + (session?.user as any).username
+              }>
+              {window.location.protocol + "//" + window.location.host + "/" + (session?.user as any).username}
+            </a>
+            .
+          </>
+        }>
         <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

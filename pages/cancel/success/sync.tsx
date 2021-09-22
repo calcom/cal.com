@@ -61,6 +61,11 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                     </button>
                   </div>
                 </div>
+                <div className="mt-5 text-center sm:mt-6">
+                  <a className="text-black hover:opacity-90" href="/">
+                    Go back home
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -87,7 +92,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       user,
-      title: context.query.title,
+      title: context.query.title || null,
     },
   };
 }
