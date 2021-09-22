@@ -138,7 +138,9 @@ model BookingReference {
   id              Int      @id @default(autoincrement())
   type            String
   uid             String
-  meta            String?
+  meetingId       String?
+  meetingPassword String?
+  meetingUrl      String?
   booking         Booking? @relation(fields: [bookingId], references: [id])
   bookingId       Int?
 }
