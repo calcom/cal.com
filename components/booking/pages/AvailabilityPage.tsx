@@ -166,7 +166,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="font-medium text-gray-500 dark:text-gray-300 mt-3">{profile.name}</h2>
+                  <h2 className="font-cal font-medium text-gray-500 dark:text-gray-300 mt-3">
+                    {profile.name}
+                  </h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {eventType.title}
                   </h1>

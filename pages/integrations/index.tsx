@@ -156,7 +156,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                       <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                     </div>
                     <div className="w-10/12">
-                      <h2 className="text-gray-800 font-medium">{integration.title}</h2>
+                      <h2 className="font-cal text-gray-800 font-medium">{integration.title}</h2>
                       <p className="text-gray-400 text-sm">{integration.description}</p>
                     </div>
                     <div className="w-2/12 text-right pt-2">

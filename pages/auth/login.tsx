@@ -72,7 +72,9 @@ export default function Login({ csrfToken }) {
       <HeadSeo title="Login" description="Login" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
-        <h2 className="mt-6 text-center text-3xl font-bold text-neutral-900">Sign in to your account</h2>
+        <h2 className="font-cal mt-6 text-center text-3xl font-bold text-neutral-900">
+          Sign in to your account
+        </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

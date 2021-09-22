@@ -60,7 +60,7 @@ const ChangePasswordSection = () => {
   return (
     <>
       <div className="mt-6">
-        <h2 className="text-lg leading-6 font-medium text-gray-900">Change Password</h2>
+        <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">Change Password</h2>
       </div>
       <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
         <div className="py-6 lg:pb-8">

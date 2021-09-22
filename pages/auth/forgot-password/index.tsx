@@ -81,7 +81,9 @@ export default function ForgotPassword({ csrfToken }) {
           {!success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Forgot Password</h2>
+                <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  Forgot Password
+                </h2>
                 <p>
                   Enter the email address associated with your account and we will send you a link to reset
                   your password.
