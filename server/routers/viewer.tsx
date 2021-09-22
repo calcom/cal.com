@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { createRouter } from "../createRouter";
 
 // routes only available to authenticated users
-export const userRouter = createRouter()
+export const viewerRouter = createRouter()
   // check that user is authenticated
   .middleware(({ ctx, next }) => {
     const { user } = ctx;

@@ -25,7 +25,7 @@ import Loader from "./Loader";
 import Logo from "./Logo";
 
 function useMeQuery() {
-  return trpc.useQuery(["user.me"], {
+  return trpc.useQuery(["viewer.me"], {
     // refetch max once per second
     staleTime: 1000,
   });

@@ -3,7 +3,7 @@
  */
 import { createRouter } from "../createRouter";
 import { testRouter } from "./test";
-import { userRouter } from "./user";
+import { viewerRouter } from "./viewer";
 
 /**
  * Create your application's root router
@@ -23,6 +23,6 @@ export const appRouter = createRouter()
    */
   // .formatError(({ shape, error }) => { })
   .merge("test.", testRouter)
-  .merge("user.", userRouter);
+  .merge("viewer.", viewerRouter);
 
 export type AppRouter = typeof appRouter;

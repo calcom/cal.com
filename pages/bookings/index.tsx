@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { Fragment } from "react";
 
 export default function Bookings() {
-  const query = trpc.useQuery(["user.bookings"]);
+  const query = trpc.useQuery(["viewer.bookings"]);
   const bookings = query.data;
 
   const router = useRouter();
