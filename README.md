@@ -13,7 +13,7 @@
     <a href="https://cal.com"><strong>Learn more »</strong></a>
     <br />
     <br />
-    <a href="https://join.slack.com/t/calendso/shared_invite/zt-mem978vn-RgOEELhA5bcnoGONxDCiHw">Slack</a>
+    <a href="https://cal.com/slack">Slack</a>
     ·
     <a href="https://cal.com">Website</a>
     ·
@@ -36,7 +36,7 @@
 
 ## About The Project
 
-<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/133429837-69ac8554-4c9c-43f9-90dd-c3337002d8ff.png">
+<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/134363898-4b29e18f-3e61-42b7-95bc-10891056249d.gif">
 
 # Scheduling infrastructure for absolutely everyone.
 
