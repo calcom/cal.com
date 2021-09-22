@@ -94,7 +94,9 @@ export const useSlots = (props: UseSlotsProps) => {
     const times = getSlots({
       frequency: eventLength,
       date,
-      workingHours: [subtractWorkingHours(props.workingHours.concat(responseBody.workingHours))],
+      workingHours: props.workingHours.map((workingHour) =>
+        subtractWorkingHours([workingHour, responseBody.workingHours])
+      ),
       minimumBookingNotice,
     });
 

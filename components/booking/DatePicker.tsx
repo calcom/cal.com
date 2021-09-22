@@ -6,6 +6,7 @@ import timezone from "dayjs/plugin/timezone";
 import getSlots from "@lib/slots";
 import dayjsBusinessDays from "dayjs-business-days";
 import classNames from "@lib/classNames";
+import { timeZone } from "@lib/clock";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
@@ -64,7 +65,9 @@ const DatePicker = ({
     const days = Array(weekdayOfFirst).fill(null);
 
     const isDisabled = (day: number) => {
-      const date: Dayjs = inviteeDate().date(day);
+      // startOf("day") does all kinds of weird stuff
+      const date: Dayjs = inviteeDate().tz(timeZone()).date(day).hour(0).minute(0).second(0) as Dayjs;
+
       switch (periodType) {
         case "rolling": {
           const periodRollingEndDay = periodCountCalendarDays
@@ -169,7 +172,7 @@ const DatePicker = ({
               <div key={`e-${idx}`} />
             ) : (
               <button
-                onClick={() => onDatePicked(inviteeDate().date(day.date))}
+                onClick={() => onDatePicked(inviteeDate().tz(timeZone()).date(day.date))}
                 disabled={day.disabled}
                 className={classNames(
                   "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",

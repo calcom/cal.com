@@ -16,37 +16,44 @@ const freqApply = (cb, value: number, frequency: number): number =>
 /*
  * Boundaries simply returns the start and end times for a given day according to the working hours of the user.
  */
-const availableBoundaries = (args: {
+const availableBoundaries = (props: {
   workingHours: WorkingHours[]; // organizer working hours in UTC
-  date: Dayjs;
-  startTime: number;
-  utcDays: number[];
+  date: Dayjs; // invitee date including UTC offset
 }) => {
-  const { workingHours, date, utcDays, startTime } = args;
-  const boundaries: Boundary[] = [];
+  const date = props.date.utc(true);
 
-  workingHours.forEach((workingHour) => {
-    utcDays.forEach((day) => {
-      if (workingHour.days.includes(day)) {
-        let dayjsObj = date.utc();
-        if (day !== utcDays[0]) {
-          dayjsObj =
-            day > utcDays[0] || (utcDays[0] === 6 && day === 0)
-              ? dayjsObj.add(1, "day")
-              : dayjsObj.subtract(1, "day");
-        }
-        // following if prevents the dates to turn in on themselves.
-        if (startTime < workingHour.endTime) {
-          boundaries.push([
-            dayjsObj.startOf("day").add(Math.max(workingHour.startTime, startTime), "minutes"),
-            dayjsObj.startOf("day").add(workingHour.endTime, "minutes"),
-          ] as Boundary);
-        }
+  const workingHours = props.workingHours
+    .filter(
+      (workingHour) => workingHour.days.includes(date.day()) || workingHour.days.includes(props.date.day())
+    )
+    .map((workingHour) => {
+      // If the days do not match in UTC and local, we need to translate the start and endTime in order to get the
+      // correct Dayjs instance.
+      if (!workingHour.days.includes(date.day()) && workingHour.days.includes(props.date.day())) {
+        return {
+          days: workingHour.days,
+          startTime: workingHour.startTime + (date.day < props.date.day() ? -1440 : 1440),
+          endTime: workingHour.endTime + (date.day < props.date.day() ? -1440 : 1440),
+        };
       }
-    });
-  });
 
-  return boundaries;
+      return workingHour;
+    });
+
+  return workingHours.reduce((acc, workingHour) => {
+    const startTime = Math.max(props.date.hour() * 60 + props.date.minute(), workingHour.startTime);
+
+    return acc.concat([
+      [
+        // TODO: This bit can be simplified further when the time type is used. (a bit)
+        date.startOf("day").add(workingHour.startTime, "minute"),
+        // 1440 means midnight next day, but is 0 in hour-minute, so if startTime > endTime, and endTime === 0 - handle
+        date
+          .startOf("day")
+          .add(workingHour.endTime || (startTime > workingHour.endTime ? 1440 : 0), "minute"),
+      ],
+    ]);
+  }, [] as Boundary[]);
 };
 
 /*
@@ -65,20 +72,6 @@ const getSlotsBetweenBoundary = (frequency: number, boundary: Boundary) => {
   return slots;
 };
 
-/*
- * Organizer Availability is stored in UTC - but that means that if an invitee has a different tz than GMT
- * we need to involve the other relevant day - as there are now two days involved in the organizer schedule.
- */
-function getUTCDaysForDate(date: Dayjs) {
-  const applicableDays: number[] = [date.utc().day()];
-  if (date.utcOffset() < 0) {
-    applicableDays.push(date.utc().day() - 1 < 0 ? 6 : date.utc().day() - 1);
-  } else if (date.utcOffset() > 0) {
-    applicableDays.push(date.utc().day() + 1 > 6 ? 0 : date.utc().day() + 1);
-  }
-  return applicableDays;
-}
-
 type GetSlots = {
   frequency: number;
   date?: Dayjs;
@@ -88,7 +81,7 @@ type GetSlots = {
 
 const getSlots = ({
   frequency,
-  date = dayjs(),
+  date,
   minimumBookingNotice = 0,
   workingHours = [DEFAULT_WORKING_HOURS],
 }: GetSlots): Dayjs[] => {
@@ -106,21 +99,20 @@ const getSlots = ({
    */
   let startTime = 0;
   if (dayjs().isSame(date, "day")) {
-    startTime = date.hour() * 60 + date.minute();
+    startTime = dayjs.utc().hour() * 60 + dayjs.utc().minute();
   }
 
   if (mustBePastDate.isAfter(date)) {
     startTime = mustBePastDate.hour() * 60 + mustBePastDate.minute();
   }
 
-  startTime = freqApply(Math.ceil, startTime - date.utcOffset(), frequency); // Fancy math.round(), basically.
+  startTime = freqApply(Math.ceil, startTime, frequency); // Fancy math.round(), basically.
 
   // get all the boundaries in the matched UTC dates
   const boundaries = availableBoundaries({
     workingHours: workingHours,
-    date: date,
-    startTime,
-    utcDays: getUTCDaysForDate(date),
+    // for some reason after .add() it forgets it is Dayjs - assuming a Typescript error in Dayjs.
+    date: (date.startOf("day").utc().add(startTime, "minutes") as Dayjs).utcOffset(date.utcOffset()),
   });
 
   // the many boundary results are concatenated..
@@ -129,13 +121,7 @@ const getSlots = ({
     []
   );
 
-  return times
-    .map((time) => time.utcOffset(date.utcOffset()))
-    .filter(
-      (time) =>
-        time.date() === date.date() &&
-        (!date.isSame(time, "day") || time.hour() * 60 + time.minute() >= startTime)
-    );
+  return times.map((time) => time.utcOffset(date.utcOffset())).filter((time) => time.date() === date.date());
 };
 
 export default getSlots;
