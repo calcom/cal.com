@@ -49,6 +49,7 @@ import classNames from "@lib/classNames";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import Button from "@components/ui/Button";
+import CheckboxField from "@components/ui/form/CheckboxField";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -194,7 +195,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
     const advancedOptionsPayload: AdvancedOptions = {};
     if (requiresConfirmationRef.current) {
-      advancedOptionsPayload.requiresConfirmation = requiresConfirmationRef.current.checked;
       advancedOptionsPayload.eventName = eventNameRef.current.value;
       advancedOptionsPayload.periodType = periodType.type;
       advancedOptionsPayload.periodDays = parseInt(periodDaysRef?.current?.value);
@@ -208,7 +208,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       title: enteredTitle,
       slug: enteredSlug,
       description: formData.description as string,
-      length: formData.length as number,
+      length: formData.length as unknown as number,
+      requiresConfirmation: formData.requiresConfirmation === "on",
+      disableGuests: formData.disableGuests === "on",
       hidden,
       locations,
       customInputs,
@@ -720,35 +722,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </ul>
                           </div>
                         </div>
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="requiresConfirmation"
-                              className="flex text-sm font-medium text-neutral-700">
-                              Opt-in booking
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <div className="relative flex items-start">
-                              <div className="flex items-center h-5">
-                                <input
-                                  ref={requiresConfirmationRef}
-                                  id="requiresConfirmation"
-                                  name="requiresConfirmation"
-                                  type="checkbox"
-                                  className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
-                                  defaultChecked={eventType.requiresConfirmation}
-                                />
-                              </div>
-                              <div className="ml-3 text-sm">
-                                <p className="text-neutral-900">
-                                  The booking needs to be manually confirmed before it is pushed to the
-                                  integrations and a confirmation mail is sent.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+
+                        <CheckboxField
+                          ref={requiresConfirmationRef}
+                          id="requiresConfirmation"
+                          name="requiresConfirmation"
+                          label="Opt-in booking"
+                          description="The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent."
+                          defaultChecked={eventType.requiresConfirmation}
+                        />
+
+                        <CheckboxField
+                          id="disableGuests"
+                          name="disableGuests"
+                          label="Disable guests"
+                          description="Disable adding aditional guests while booking."
+                          defaultChecked={eventType.disableGuests}
+                        />
 
                         <hr className="border-neutral-200" />
 
@@ -1153,6 +1143,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      disableGuests: true,
       team: {
         select: {
           slug: true,
