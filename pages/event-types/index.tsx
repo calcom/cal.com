@@ -161,7 +161,7 @@ const EventTypesPage = (props: PageProps) => {
                     )}
                     <Tooltip content="Preview">
                       <a
-                        href={`${props.baseUrl}/${profile.slug}/${type.slug}`}
+                        href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
                         className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
@@ -173,7 +173,9 @@ const EventTypesPage = (props: PageProps) => {
                       <button
                         onClick={() => {
                           showToast("Link copied!", "success");
-                          navigator.clipboard.writeText(`cal.com/${profile.slug}/${type.slug}`);
+                          navigator.clipboard.writeText(
+                            `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
+                          );
                         }}
                         className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
                         <LinkIcon className="w-5 h-5 group-hover:text-black" />
@@ -704,8 +706,6 @@ export async function getServerSideProps(context) {
         ...group.profile,
         ...group.metadata,
       })),
-      /* We should rename this to NEXT_PUBLIC_BASE_URL, so it's available on the client */
-      baseUrl: process.env.BASE_URL,
     },
   };
 }
