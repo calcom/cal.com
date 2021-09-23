@@ -10,6 +10,9 @@ export default NextAuth({
   session: {
     jwt: true,
   },
+  jwt: {
+    secret: process.env.JWT_SECRET,
+  },
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
