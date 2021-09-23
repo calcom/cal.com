@@ -1,10 +1,11 @@
-import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
 import { loggerLink } from "@trpc/client/links/loggerLink";
 import { withTRPC } from "@trpc/next";
 import { Provider } from "next-auth/client";
 import { AppProps } from "next/dist/shared/lib/router/router";
 import React from "react";
+
+import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 
 const AppProviders = (props: AppProps) => {
   return (

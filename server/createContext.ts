@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as trpc from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
-import prisma from "@lib/prisma";
-import { getSession, Session } from "@lib/auth";
 import { Maybe } from "@trpc/server";
+import * as trpcNext from "@trpc/server/adapters/next";
+
+import { getSession, Session } from "@lib/auth";
+import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 
 async function getUserFromSession(session: Maybe<Session>) {
