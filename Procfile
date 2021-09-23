@@ -1,2 +1,2 @@
 web: next start -p $PORT
-postdeploy: npx prisma db push --preview-feature
+postdeploy: npx prisma db push --accept-data-loss
