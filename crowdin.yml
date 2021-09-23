@@ -28,10 +28,6 @@ files: [
   # e.g. "/resources/%two_letters_code%/%original_file_name%"
   #
   "translation" : "/public/static/locales/%two_letters_code%/%original_file_name%",
-  "export_only_approved": true,
-  "excluded_target_languages": [
-    "en"
-  ]
 
   #
   # Files or directories for ignore
