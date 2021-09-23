@@ -29,7 +29,9 @@ files: [
   #
   "translation" : "/public/static/locales/%two_letters_code%/%original_file_name%",
   "export_only_approved": true,
-  "update_option": "update_without_changes"
+  "excluded_target_languages": [
+    "en"
+  ]
 
   #
   # Files or directories for ignore
