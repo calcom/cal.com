@@ -65,7 +65,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }));
 
   const timeZone = eventType?.timeZone || currentUser.timeZone;
-  const workingHours = eventType?.availability.length ? eventType.availability : currentUser.availability;
+  const defaultAvailability = {
+    startTime: currentUser.startTime,
+    endTime: currentUser.endTime,
+    days: [0, 1, 2, 3, 4, 5, 6],
+  };
+  const workingHours = eventType?.availability.length
+    ? eventType.availability
+    : // currentUser.availability /* note(zomars) There's no UI nor default for this as of today */
+      [defaultAvailability]; /* note(zomars) For now, make every day available as fallback */
 
   res.status(200).json({
     busy: bufferedBusyTimes,
