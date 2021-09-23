@@ -8,7 +8,7 @@
     "db-migrate": "yarn prisma migrate dev",
     "db-seed": "yarn ts-node scripts/seed.ts",
     "db-nuke": "docker-compose down --volumes --remove-orphans",
-    "dx": "BASE_URL='http://localhost:3000' DATABASE_URL=postgresql://postgres:@localhost:5450/calendso eval 'yarn db-up && yarn prisma migrate dev && yarn db-seed && yarn dev'",
+    "dx": "BASE_URL='http://localhost:3000' JWT_SECRET=secret DATABASE_URL=postgresql://postgres:@localhost:5450/calendso eval 'yarn db-up && yarn prisma migrate dev && yarn db-seed && yarn dev'",
     "test": "node node_modules/.bin/jest",
     "build": "next build",
     "start": "next start",
