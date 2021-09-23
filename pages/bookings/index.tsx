@@ -22,7 +22,7 @@ export default function Bookings() {
 
   const router = useRouter();
 
-  async function confirmBookingHandler(booking, confirm: boolean) {
+  async function confirmBookingHandler(booking: { id: number }, confirm: boolean) {
     const res = await fetch("/api/book/confirm", {
       method: "PATCH",
       body: JSON.stringify({ id: booking.id, confirmed: confirm }),
