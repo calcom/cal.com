@@ -28,7 +28,8 @@ files: [
   # e.g. "/resources/%two_letters_code%/%original_file_name%"
   #
   "translation" : "/public/static/locales/%two_letters_code%/%original_file_name%",
-  "export_only_approved": true
+  "export_only_approved": true.
+  "update_option": "update_without_changes"
 
   #
   # Files or directories for ignore
