@@ -1,4 +1,5 @@
-import { SchedulingType, Prisma } from "@prisma/client";
+import { SchedulingType, Prisma, Credential } from "@prisma/client";
+import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessDays from "dayjs-business-days";
 import isBetween from "dayjs/plugin/isBetween";
@@ -28,6 +29,35 @@ const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 type BufferedBusyTimes = { start: string; end: string }[];
+
+/**
+ * Refreshes a Credential with fresh data from the database.
+ *
+ * @param credential
+ */
+async function refreshCredential(credential: Credential): Promise<Credential> {
+  const newCredential = await prisma.credential.findUnique({
+    where: {
+      id: credential.id,
+    },
+  });
+
+  if (!newCredential) {
+    return credential;
+  } else {
+    return newCredential;
+  }
+}
+
+/**
+ * Refreshes the given set of credentials.
+ *
+ * @param credentials
+ */
+async function refreshCredentials(credentials: Array<Credential>): Promise<Array<Credential>> {
+  return await async.mapLimit(credentials, 5, refreshCredential);
+}
+
 function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number): boolean {
   // Check for conflicts
   let t = true;
@@ -153,14 +183,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
-    const evenTypeUser = await prisma.user.findUnique({
+    const eventTypeUser = await prisma.user.findUnique({
       where: {
         id: eventType.userId,
       },
       select: userSelect,
     });
-    if (!evenTypeUser) return res.status(404).json({ message: "eventTypeUser.notFound" });
-    users.push(evenTypeUser);
+    if (!eventTypeUser) return res.status(404).json({ message: "eventTypeUser.notFound" });
+    users.push(eventTypeUser);
   }
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -374,8 +404,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
   }
-
-  const eventManager = new EventManager(user.credentials);
+  // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
+  const eventManager = new EventManager(await refreshCredentials(user.credentials));
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
