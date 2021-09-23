@@ -1,8 +1,8 @@
-import { User, SchedulingType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import getSlots from "@lib/slots";
 
@@ -30,9 +30,13 @@ type UseSlotsProps = {
   eventLength: number;
   minimumBookingNotice?: number;
   date: Dayjs;
-  workingHours: [];
-  users: User[];
-  schedulingType: SchedulingType;
+  workingHours: {
+    days: number[];
+    startTime: number;
+    endTime: number;
+  }[];
+  users: { username: string | null }[];
+  schedulingType: SchedulingType | null;
 };
 
 export const useSlots = (props: UseSlotsProps) => {
@@ -50,7 +54,7 @@ export const useSlots = (props: UseSlotsProps) => {
     const dateTo = encodeURIComponent(date.endOf("day").format());
 
     Promise.all(
-      users.map((user: User) =>
+      users.map((user) =>
         fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
           .then(handleAvailableSlots)
           .catch((e) => {
