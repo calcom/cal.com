@@ -61,6 +61,7 @@ export const useSlots = (props: UseSlotsProps) => {
     ).then((results) => {
       let loadedSlots: Slot[] = results[0];
       if (results.length === 1) {
+        loadedSlots = loadedSlots.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
         setSlots(loadedSlots);
         setLoading(false);
         return;
@@ -93,6 +94,7 @@ export const useSlots = (props: UseSlotsProps) => {
       for (let i = 1; i < results.length; i++) {
         loadedSlots = poolingMethod(loadedSlots, results[i]);
       }
+      loadedSlots = loadedSlots.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
       setSlots(loadedSlots);
       setLoading(false);
     });
