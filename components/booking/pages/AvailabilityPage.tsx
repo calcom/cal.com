@@ -1,12 +1,11 @@
 // Get router variables
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
-import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -22,18 +21,10 @@ import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCalendso from "@components/ui/PoweredByCalendso";
 
+import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
+
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
-
-type AvailabilityPageProps = {
-  eventType: EventType;
-  profile: {
-    name: string;
-    image: string;
-    theme?: string;
-  };
-  workingHours: [];
-};
 
 const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPageProps) => {
   const router = useRouter();

@@ -9,7 +9,9 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
-export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
+export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Type(props: AvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
 }
 
@@ -33,11 +35,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     length: true,
     price: true,
     currency: true,
+    periodType: true,
+    periodStartDate: true,
+    periodEndDate: true,
+    periodDays: true,
+    periodCountCalendarDays: true,
+    schedulingType: true,
+    minimumBookingNotice: true,
     users: {
       select: {
         avatar: true,
         name: true,
         username: true,
+        hideBranding: true,
+        plan: true,
       },
     },
   });
@@ -106,6 +117,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       avatar: user.avatar,
       name: user.name,
       username: user.username,
+      hideBranding: user.hideBranding,
+      plan: user.plan,
     });
     user.eventTypes.push(eventTypeBackwardsCompat);
   }
@@ -142,10 +155,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as const;
     }
   }*/
-  const getWorkingHours = (providesAvailability: { availability: Availability[] }) =>
-    providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
-      : null;
+  const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
+    availability && availability.length ? availability : null;
 
   const workingHours =
     getWorkingHours(eventType.availability) ||
