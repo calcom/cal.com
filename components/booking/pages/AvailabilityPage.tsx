@@ -231,7 +231,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                 )}
               </div>
             </div>
-            {eventType.users.length && isBrandingHidden(eventType.users[0]) && <PoweredByCalendso />}
+            {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCalendso />}
           </main>
         </div>
       </>
