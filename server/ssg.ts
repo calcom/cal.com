@@ -6,5 +6,7 @@ export const ssg = createSSGHelpers({
   router: appRouter,
   ctx: {
     prisma,
+    session: null,
+    user: null,
   },
 });
