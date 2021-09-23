@@ -54,7 +54,8 @@ describe("Get dates in in the same timeZone", () => {
     ).toHaveLength(0); // current time is midday (see MockDate)
   });
 
-  it.skip("it can handle boundary overlaps", async () => { // for now, how about just not doing this? (FIXING SOON)
+  it.skip("it can handle boundary overlaps", async () => {
+    // for now, how about just not doing this? (FIXING SOON)
     // june 21th is a monday, midday UTC+1 should result in 00:00 & 01:00
     const slots = getSlots({
       date: dayjs.utc().add(1, "day").startOf("day"),
@@ -65,11 +66,12 @@ describe("Get dates in in the same timeZone", () => {
           startTime: 0,
           endTime: 1440,
         },
-        { // this should not result in more slots
+        {
+          // this should not result in more slots
           days: [1],
           startTime: 1020,
           endTime: 1080,
-        }
+        },
       ],
     });
 
