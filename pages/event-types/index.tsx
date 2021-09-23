@@ -11,6 +11,7 @@ import {
 import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -21,15 +22,15 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
-import { useLocale } from "@lib/hooks/useLocale";
+
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";

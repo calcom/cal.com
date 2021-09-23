@@ -1,9 +1,11 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
+
+import { getIntegrationName } from "@lib/integrations";
+import { VideoCallData } from "@lib/videoClient";
+
 import { CalendarEvent } from "./calendarClient";
 import { stripHtml } from "./emails/helpers";
-import { VideoCallData } from "@lib/videoClient";
-import { getIntegrationName } from "@lib/integrations";
 
 const translator = short();
 

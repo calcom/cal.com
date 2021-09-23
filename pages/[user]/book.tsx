@@ -1,11 +1,11 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

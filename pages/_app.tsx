@@ -1,9 +1,9 @@
+import { appWithTranslation } from "next-i18next";
 import { DefaultSeo } from "next-seo";
 import type { AppProps as NextAppProps } from "next/app";
 
 import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
-import { appWithTranslation } from "next-i18next";
 
 import "../styles/globals.css";
 

@@ -1,10 +1,13 @@
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { RefObject, useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
+import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -16,9 +19,6 @@ import Shell from "@components/Shell";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
-import { useLocale } from "@lib/hooks/useLocale";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
 import { UsernameInput } from "@components/ui/UsernameInput";
 import ErrorAlert from "@components/ui/alerts/Error";
 

@@ -1,13 +1,13 @@
 import { User } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 
 export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   return <AvailabilityPage {...props} />;

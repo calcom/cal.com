@@ -1,8 +1,10 @@
-import { IncomingMessage } from "http";
-import prisma from "@lib/prisma";
-import { i18n } from "../../../next-i18next.config";
-import { getSession } from "@lib/auth";
 import parser from "accept-language-parser";
+import { IncomingMessage } from "http";
+
+import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+
+import { i18n } from "../../../next-i18next.config";
 
 export const extractLocaleInfo = async (req: IncomingMessage) => {
   const session = await getSession({ req: req });

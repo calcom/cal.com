@@ -7,20 +7,20 @@ info:
     email: support@cal.com
   license:
     name: MIT License
-    url: 'https://opensource.org/licenses/MIT'
+    url: "https://opensource.org/licenses/MIT"
   version: 1.0.0
-  termsOfService: 'https://cal.com/terms'
+  termsOfService: "https://cal.com/terms"
 server:
-  url: 'http://localhost:{port}'
+  url: "http://localhost:{port}"
   description: Local Development Server
   variables:
     port:
-      default: '3000'
+      default: "3000"
 tags:
   - name: Authentication
-    description: 'Auth routes, powered by Next-Auth.js'
+    description: "Auth routes, powered by Next-Auth.js"
     externalDocs:
-      url: 'http://next-auth.js.org/'
+      url: "http://next-auth.js.org/"
   - name: Availability
     description: Checking and setting user availability
   - name: Booking
@@ -38,15 +38,15 @@ paths:
       summary: Displays the sign in page
       tags:
         - Authentication
-  '/api/auth/signin/:provider':
+  "/api/auth/signin/:provider":
     post:
       description: Starts an OAuth signin flow for the specified provider. The POST submission requires CSRF token from /api/auth/csrf.
       summary: Starts an OAuth signin flow for the specified provider
       tags:
         - Authentication
-  '/api/auth/callback/:provider':
+  "/api/auth/callback/:provider":
     get:
-      description: 'Handles returning requests from OAuth services during sign in. For OAuth 2.0 providers that support the state option, the value of the state parameter is checked against the one that was generated when the sign in flow was started - this uses a hash of the CSRF token which MUST match for both the POST and GET calls during sign in.'
+      description: "Handles returning requests from OAuth services during sign in. For OAuth 2.0 providers that support the state option, the value of the state parameter is checked against the one that was generated when the sign in flow was started - this uses a hash of the CSRF token which MUST match for both the POST and GET calls during sign in."
       summary: Handles returning requests from OAuth services
       tags:
         - Authentication
@@ -103,26 +103,26 @@ paths:
       summary: Reset a user's password
       tags:
         - Authentication
-  '/api/availability/{user}?dateFrom={dateFrom}&dateTo={dateTo}':
+  "/api/availability/{user}?dateFrom={dateFrom}&dateTo={dateTo}":
     get:
-      description: 'Gets the busy times for a particular user, by username.'
+      description: "Gets the busy times for a particular user, by username."
       summary: Gets the busy times for a user
       tags:
         - Availability
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
-                description: ''
+                description: ""
                 minItems: 1
                 uniqueItems: true
                 x-examples:
                   example-1:
-                    - start: 'Fri, 03 Sep 2021 17:00:00 GMT'
-                      end: 'Fri, 03 Sep 2021 17:40:00 GMT'
+                    - start: "Fri, 03 Sep 2021 17:00:00 GMT"
+                      end: "Fri, 03 Sep 2021 17:40:00 GMT"
                 items:
                   type: object
                   properties:
@@ -135,7 +135,7 @@ paths:
                   required:
                     - start
                     - end
-        '500':
+        "500":
           description: Internal Server Error
     parameters:
       - schema:
@@ -163,13 +163,13 @@ paths:
       tags:
         - Availability
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
-                description: ''
+                description: ""
                 minItems: 1
                 uniqueItems: true
                 items:
@@ -221,7 +221,7 @@ paths:
                       externalId: c_feunmui1m8el5o1oo885fu48k8@group.calendar.google.com
                       integration: google_calendar
                       name: 1.0 Launch
-        '500':
+        "500":
           description: Internal Server Error
     post:
       description: Adds a selected calendar for the user.
@@ -229,7 +229,7 @@ paths:
       tags:
         - Availability
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -238,7 +238,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
       requestBody:
         content:
@@ -256,7 +256,7 @@ paths:
       tags:
         - Availability
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -265,7 +265,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
       requestBody:
         content:
@@ -284,7 +284,7 @@ paths:
       tags:
         - Availability
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -305,7 +305,7 @@ paths:
                   type: string
                 bufferMins:
                   type: string
-        description: ''
+        description: ""
   /api/availability/eventtype:
     post:
       description: Adds a new event type for the user.
@@ -339,7 +339,7 @@ paths:
                   type: array
                   items: {}
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -369,7 +369,7 @@ paths:
                       customInputs:
                         type: array
                         items: {}
-        '500':
+        "500":
           description: Internal Server Error
     patch:
       description: Updates an event type for the user.
@@ -403,7 +403,7 @@ paths:
                   type: array
                   items: {}
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -433,7 +433,7 @@ paths:
                       customInputs:
                         type: array
                         items: {}
-        '500':
+        "500":
           description: Internal Server Error
     delete:
       description: Deletes an event type for the user.
@@ -441,16 +441,16 @@ paths:
       tags:
         - Availability
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties: {}
-        '500':
+        "500":
           description: Internal Server Error
-  '/api/book/event':
+  "/api/book/event":
     post:
       description: Creates a booking in the user's calendar.
       summary: Creates a booking for a user
@@ -492,7 +492,7 @@ paths:
                 paymentUid:
                   type: string
       responses:
-        '204':
+        "204":
           description: No Content
           content:
             application/json:
@@ -501,7 +501,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -535,7 +535,7 @@ paths:
                 confirmed:
                   type: string
       responses:
-        '204':
+        "204":
           description: No Content
           content:
             application/json:
@@ -544,7 +544,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
   /api/integrations:
     get:
@@ -553,12 +553,12 @@ paths:
       tags:
         - Integrations
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                description: ''
+                description: ""
                 type: object
                 x-examples:
                   example-1:
@@ -569,7 +569,7 @@ paths:
                             id: 83
                             type: google_calendar
                             key:
-                              scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events'
+                              scope: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events"
                               token_type: Bearer
                               expiry_date: 1630838974808
                               access_token: ya29.a0ARrdaM89R686rUyBBluTuD69oQ6WIIjjMa2xjJ0qe_5u-9ShDL09KNN1mCYoks3NP54FUMzYKmqTzb8nzCJX9jlNKP7X7-gukO4--HUyfOUbFHlHbfQ2Ei05F8AQn_xS0E_awhDgyn2anvrvEw72U3_65Zi4v6Y
@@ -667,7 +667,7 @@ paths:
                             - description
                 required:
                   - pageProps
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -690,7 +690,7 @@ paths:
                 id:
                   type: number
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -699,7 +699,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -708,7 +708,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -780,7 +780,7 @@ paths:
                 theme:
                   type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -789,7 +789,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -798,7 +798,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -819,7 +819,7 @@ paths:
             schema:
               type: object
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -828,7 +828,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -837,7 +837,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -872,7 +872,7 @@ paths:
               properties:
                 teamId:
                   type: string
-  '/api/{team}':
+  "/api/{team}":
     delete:
       description: Deletes a team
       summary: Deletes a team
@@ -880,9 +880,9 @@ paths:
         - Teams
       parameters: []
       responses:
-        '204':
+        "204":
           description: No Content
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -891,7 +891,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -907,7 +907,7 @@ paths:
         in: path
         required: true
         description: The team which you wish to modify
-  '/api/{team}/invite':
+  "/api/{team}/invite":
     post:
       description: Invites someone to a team.
       summary: Invites someone to a team
@@ -933,7 +933,7 @@ paths:
         in: path
         required: true
         description: The team which you wish to send the invite for
-  '/api/{team}/membership':
+  "/api/{team}/membership":
     get:
       description: Lists the members of a team.
       summary: Lists members of a team
@@ -941,7 +941,7 @@ paths:
         - Teams
       parameters: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -951,7 +951,7 @@ paths:
                   members:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -960,7 +960,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -983,14 +983,14 @@ paths:
                 userId:
                   type: number
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -999,7 +999,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -1016,7 +1016,7 @@ paths:
         required: true
         description: The team which you wish to list members of
 servers:
-  - url: 'https://app.cal.com'
+  - url: "https://app.cal.com"
     description: Production
 components:
   securitySchemes: {}
