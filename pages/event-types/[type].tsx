@@ -219,7 +219,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       title: enteredTitle,
       slug: enteredSlug,
       description: formData.description as string,
+      // note(zomars) Why does this field doesnt need to be parsed...
       length: formData.length as unknown as number,
+      // note(zomars) ...But this does? (Is being sent as string, despite it's a number field)
+      minimumBookingNotice: parseInt(formData.minimumBookingNotice as unknown as string),
       requiresConfirmation: formData.requiresConfirmation === "on",
       disableGuests: formData.disableGuests === "on",
       hidden,
@@ -236,7 +239,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         : {}),
       price: enteredPrice,
       currency: currency,
-      minimumBookingNotice: formData.minimumBookingNotice as unknown as number,
     };
 
     updateMutation.mutate(payload);
