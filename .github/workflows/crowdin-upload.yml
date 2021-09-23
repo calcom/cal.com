@@ -1,4 +1,4 @@
-name: Crowdin Action
+name: Crowdin Upload
 
 on:
   push:
@@ -20,7 +20,6 @@ jobs:
       uses: crowdin/github-action@1.4.0
       with:
         upload_translations: true
-        download_translations: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
