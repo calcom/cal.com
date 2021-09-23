@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -25,7 +25,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error(`File is not named [type]/[user]`);
   }
 
-  const user: User = await prisma.user.findUnique({
+  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    id: true,
+    title: true,
+    availability: true,
+    description: true,
+    length: true,
+    price: true,
+    currency: true,
+    users: {
+      select: {
+        avatar: true,
+        name: true,
+        username: true,
+      },
+    },
+  });
+
+  const user = await prisma.user.findUnique({
     where: {
       username: userParam.toLowerCase(),
     },
@@ -55,22 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             },
           ],
         },
-        select: {
-          id: true,
-          title: true,
-          availability: true,
-          description: true,
-          length: true,
-          price: true,
-          currency: true,
-          users: {
-            select: {
-              avatar: true,
-              name: true,
-              username: true,
-            },
-          },
-        },
+        select: eventTypeSelect,
       },
     },
   });
@@ -93,22 +95,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
         ],
       },
-      select: {
-        id: true,
-        title: true,
-        availability: true,
-        description: true,
-        length: true,
-        price: true,
-        currency: true,
-        users: {
-          select: {
-            avatar: true,
-            name: true,
-            username: true,
-          },
-        },
-      },
+      select: eventTypeSelect,
     });
     if (!eventTypeBackwardsCompat) {
       return {
@@ -123,7 +110,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     user.eventTypes.push(eventTypeBackwardsCompat);
   }
 
-  const eventType = user.eventTypes[0];
+  const [eventType] = user.eventTypes;
 
   // check this is the first event
 

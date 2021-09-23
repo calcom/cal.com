@@ -236,6 +236,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         : {}),
       price: enteredPrice,
       currency: currency,
+      minimumBookingNotice: formData.minimumBookingNotice as unknown as number,
     };
 
     updateMutation.mutate(payload);
