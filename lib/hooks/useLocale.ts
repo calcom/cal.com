@@ -1,5 +1,4 @@
 import { useTranslation } from "next-i18next";
-import { useEffect } from "react";
 
 type LocaleProps = {
   localeProp: string;
@@ -8,9 +7,9 @@ type LocaleProps = {
 export const useLocale = (props: LocaleProps) => {
   const { i18n, t } = useTranslation("common");
 
-  useEffect(() => {
-    (async () => await i18n.changeLanguage(props.localeProp))();
-  }, [i18n, props.localeProp]);
+  if (i18n.language !== props.localeProp) {
+    i18n.changeLanguage(props.localeProp);
+  }
 
   return {
     i18n,
