@@ -1,24 +1,26 @@
 // Get router variables
-import { useRouter } from "next/router";
-import { useEffect, useState, useMemo } from "react";
+import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
+import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
-import DatePicker from "@components/booking/DatePicker";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
-import PoweredByCalendso from "@components/ui/PoweredByCalendso";
-import { timeZone } from "@lib/clock";
-import AvailableTimes from "@components/booking/AvailableTimes";
-import TimeOptions from "@components/booking/TimeOptions";
-import * as Collapsible from "@radix-ui/react-collapsible";
-import { HeadSeo } from "@components/seo/head-seo";
-import { asStringOrNull } from "@lib/asStringOrNull";
-import useTheme from "@lib/hooks/useTheme";
-import AvatarGroup from "@components/ui/AvatarGroup";
+import { useRouter } from "next/router";
+import { useEffect, useState, useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+
+import { asStringOrNull } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
+import useTheme from "@lib/hooks/useTheme";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+
+import AvailableTimes from "@components/booking/AvailableTimes";
+import DatePicker from "@components/booking/DatePicker";
+import TimeOptions from "@components/booking/TimeOptions";
+import { HeadSeo } from "@components/seo/head-seo";
+import AvatarGroup from "@components/ui/AvatarGroup";
+import PoweredByCalendso from "@components/ui/PoweredByCalendso";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
@@ -164,7 +166,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="font-medium text-gray-500 dark:text-gray-300 mt-3">{profile.name}</h2>
+                  <h2 className="font-cal font-medium text-gray-500 dark:text-gray-300 mt-3">
+                    {profile.name}
+                  </h2>
                   <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {eventType.title}
                   </h1>

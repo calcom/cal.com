@@ -1,10 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import { refund } from "@ee/lib/stripe/server";
+
 import { getSession } from "@lib/auth";
-import prisma from "../../../lib/prisma";
 import { CalendarEvent } from "@lib/calendarClient";
 import EventRejectionMail from "@lib/emails/EventRejectionMail";
 import EventManager from "@lib/events/EventManager";
-import { refund } from "@ee/lib/stripe/server";
+
+import prisma from "../../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const session = await getSession({ req: req });

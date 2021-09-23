@@ -1,9 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
-import dayjs from "dayjs";
 import { ReminderType } from "@prisma/client";
-import EventOrganizerRequestReminderMail from "@lib/emails/EventOrganizerRequestReminderMail";
+import dayjs from "dayjs";
+import type { NextApiRequest, NextApiResponse } from "next";
+
 import { CalendarEvent } from "@lib/calendarClient";
+import EventOrganizerRequestReminderMail from "@lib/emails/EventOrganizerRequestReminderMail";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const apiKey = req.query.apiKey;

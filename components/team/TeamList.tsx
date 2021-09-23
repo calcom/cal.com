@@ -1,5 +1,6 @@
-import TeamListItem from "./TeamListItem";
 import { Team } from "@lib/team";
+
+import TeamListItem from "./TeamListItem";
 
 export default function TeamList(props: {
   teams: Team[];

@@ -1,8 +1,9 @@
-import Select from "@components/ui/form/Select";
 import { XIcon, CheckIcon } from "@heroicons/react/outline";
 import React, { ForwardedRef, useEffect, useState } from "react";
-import Avatar from "@components/ui/Avatar";
 import { OptionsType } from "react-select/lib/types";
+
+import Avatar from "@components/ui/Avatar";
+import Select from "@components/ui/form/Select";
 
 export type CheckedSelectProps = {
   defaultValue?: [];

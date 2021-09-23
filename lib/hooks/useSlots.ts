@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
-import getSlots from "@lib/slots";
 import { User, SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
+import { useState, useEffect } from "react";
+
+import getSlots from "@lib/slots";
+
 import { FreeBusyTime } from "@components/ui/Schedule/Schedule";
+
 dayjs.extend(isBetween);
 dayjs.extend(utc);
 

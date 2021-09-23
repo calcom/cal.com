@@ -1,22 +1,23 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
 import { SchedulingType, Prisma } from "@prisma/client";
-import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
-import { v5 as uuidv5 } from "uuid";
-import short from "short-uuid";
-import { getBusyVideoTimes } from "@lib/videoClient";
-import { getEventName } from "@lib/event";
 import dayjs from "dayjs";
-import logger from "@lib/logger";
-import EventManager, { CreateUpdateResult, EventResult, PartialReference } from "@lib/events/EventManager";
-
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import isBetween from "dayjs/plugin/isBetween";
 import dayjsBusinessDays from "dayjs-business-days";
-import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
+import isBetween from "dayjs/plugin/isBetween";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import type { NextApiRequest, NextApiResponse } from "next";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
+
 import { handlePayment } from "@ee/lib/stripe/server";
+
+import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
+import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
+import { getEventName } from "@lib/event";
+import EventManager, { CreateUpdateResult, EventResult, PartialReference } from "@lib/events/EventManager";
+import logger from "@lib/logger";
+import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
+import { getBusyVideoTimes } from "@lib/videoClient";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);

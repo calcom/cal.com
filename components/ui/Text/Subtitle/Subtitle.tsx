@@ -1,5 +1,6 @@
-import React from "react";
 import classnames from "classnames";
+import React from "react";
+
 import { TextProps } from "../Text";
 
 const Subtitle: React.FunctionComponent<TextProps> = (props: TextProps) => {

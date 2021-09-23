@@ -1,8 +1,9 @@
-import React from "react";
-import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 import { Provider } from "next-auth/client";
+import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Hydrate } from "react-query/hydration";
+
+import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 
 export const queryClient = new QueryClient();
 

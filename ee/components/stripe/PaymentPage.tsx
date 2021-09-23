@@ -1,8 +1,4 @@
-import PaymentComponent from "@ee/components/stripe/Payment";
-import getStripe from "@ee/lib/stripe/client";
-import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 import { CreditCardIcon } from "@heroicons/react/solid";
-import useTheme from "@lib/hooks/useTheme";
 import { Elements } from "@stripe/react-stripe-js";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -11,6 +7,12 @@ import utc from "dayjs/plugin/utc";
 import Head from "next/head";
 import React, { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+
+import PaymentComponent from "@ee/components/stripe/Payment";
+import getStripe from "@ee/lib/stripe/client";
+import { PaymentPageProps } from "@ee/pages/payment/[uid]";
+
+import useTheme from "@lib/hooks/useTheme";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);

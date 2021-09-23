@@ -1,12 +1,13 @@
+import { TrashIcon } from "@heroicons/react/outline";
+import { Availability } from "@prisma/client";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import React, { useEffect, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
-import { TrashIcon } from "@heroicons/react/outline";
+
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import { Availability } from "@prisma/client";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

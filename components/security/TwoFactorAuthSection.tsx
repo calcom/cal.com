@@ -1,8 +1,10 @@
 import { useState } from "react";
-import Button from "@components/ui/Button";
+
 import Badge from "@components/ui/Badge";
-import EnableTwoFactorModal from "./EnableTwoFactorModal";
+import Button from "@components/ui/Button";
+
 import DisableTwoFactorModal from "./DisableTwoFactorModal";
+import EnableTwoFactorModal from "./EnableTwoFactorModal";
 
 const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean }) => {
   const [enabled, setEnabled] = useState(twoFactorEnabled);
@@ -12,7 +14,7 @@ const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean 
   return (
     <>
       <div className="flex flex-row items-center">
-        <h2 className="text-lg leading-6 font-medium text-gray-900">Two-Factor Authentication</h2>
+        <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">Two-Factor Authentication</h2>
         <Badge className="text-xs ml-2" variant={enabled ? "success" : "gray"}>
           {enabled ? "Enabled" : "Disabled"}
         </Badge>

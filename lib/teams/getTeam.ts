@@ -1,4 +1,5 @@
 import { Team } from "@prisma/client";
+
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 

@@ -1,10 +1,12 @@
+import { ExclamationIcon } from "@heroicons/react/solid";
+import { SchedulingType } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useSlots } from "@lib/hooks/useSlots";
-import { ExclamationIcon } from "@heroicons/react/solid";
 import React from "react";
+
+import { useSlots } from "@lib/hooks/useSlots";
+
 import Loader from "@components/Loader";
-import { SchedulingType } from "@prisma/client";
 
 const AvailableTimes = ({
   date,
@@ -69,7 +71,7 @@ const AvailableTimes = ({
           })}
         {!loading && !error && !slots.length && (
           <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
-            <h1 className="text-xl text-black dark:text-white">All booked today.</h1>
+            <h1 className="my-6 text-xl text-black dark:text-white">All booked today.</h1>
           </div>
         )}
 

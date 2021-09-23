@@ -1,5 +1,6 @@
-import { SVGComponent } from "@lib/types/SVGComponent";
 import React from "react";
+
+import { SVGComponent } from "@lib/types/SVGComponent";
 
 export default function EmptyScreen({
   Icon,

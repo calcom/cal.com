@@ -1,9 +1,11 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import Link from "next/link";
 import { getCsrfToken, signIn } from "next-auth/client";
-import { ErrorCode, getSession } from "@lib/auth";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+
+import { ErrorCode, getSession } from "@lib/auth";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 const errorMessages: { [key: string]: string } = {
   [ErrorCode.SecondFactorRequired]:
@@ -70,7 +72,9 @@ export default function Login({ csrfToken }) {
       <HeadSeo title="Login" description="Login" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
-        <h2 className="mt-6 text-center text-3xl font-bold text-neutral-900">Sign in to your account</h2>
+        <h2 className="font-cal mt-6 text-center text-3xl font-bold text-neutral-900">
+          Sign in to your account
+        </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
