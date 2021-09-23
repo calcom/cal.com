@@ -10,6 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = asStringOrNull(req.query.user);
   const dateFrom = dayjs(asStringOrNull(req.query.dateFrom));
   const dateTo = dayjs(asStringOrNull(req.query.dateTo));
+  const eventTypeId = parseInt(asStringOrNull(req.query.eventTypeId) || "");
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     return res.status(400).json({ message: "Invalid time range given." });
@@ -31,6 +32,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  const eventType = await prisma.eventType.findUnique({
+    where: { id: eventTypeId },
+    select: {
+      timeZone: true,
+      availability: {
+        select: {
+          startTime: true,
+          endTime: true,
+          days: true,
+        },
+      },
+    },
+  });
+
   if (!rawUser) throw new Error("No user found");
 
   const { selectedCalendars, ...currentUser } = rawUser;
@@ -49,13 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
   }));
 
+  const timeZone = eventType?.timeZone || currentUser.timeZone;
+  const workingHours = eventType?.availability.length ? eventType.availability : currentUser.availability;
+
   res.status(200).json({
     busy: bufferedBusyTimes,
-    workingHours: {
-      daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-      timeZone: currentUser.timeZone,
-      startTime: currentUser.startTime,
-      endTime: currentUser.endTime,
-    },
+    timeZone,
+    workingHours,
   });
 }
