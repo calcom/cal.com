@@ -1,416 +1,656 @@
-const {google} = require('googleapis');
-import createNewEventEmail from "./emails/new-event";
+import { Prisma, Credential } from "@prisma/client";
 
-const googleAuth = () => {
-    const {client_secret, client_id, redirect_uris} = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
-    return new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+import { EventResult } from "@lib/events/EventManager";
+import logger from "@lib/logger";
+import { VideoCallData } from "@lib/videoClient";
+
+import CalEventParser from "./CalEventParser";
+import EventOrganizerMail from "./emails/EventOrganizerMail";
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
+import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
+import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import prisma from "./prisma";
+
+const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { google } = require("googleapis");
+
+const googleAuth = (credential) => {
+  const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
+  const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  myGoogleAuth.setCredentials(credential.key);
+
+  const isExpired = () => myGoogleAuth.isTokenExpiring();
+
+  const refreshAccessToken = () =>
+    myGoogleAuth
+      .refreshToken(credential.key.refresh_token)
+      .then((res) => {
+        const token = res.res.data;
+        credential.key.access_token = token.access_token;
+        credential.key.expiry_date = token.expiry_date;
+        return prisma.credential
+          .update({
+            where: {
+              id: credential.id,
+            },
+            data: {
+              key: credential.key,
+            },
+          })
+          .then(() => {
+            myGoogleAuth.setCredentials(credential.key);
+            return myGoogleAuth;
+          });
+      })
+      .catch((err) => {
+        console.error("Error refreshing google token", err);
+        return myGoogleAuth;
+      });
+
+  return {
+    getToken: () => (!isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken()),
+  };
 };
 
 function handleErrorsJson(response) {
-    if (!response.ok) {
-        response.json().then(console.log);
-        throw Error(response.statusText);
-    }
-    return response.json();
+  if (!response.ok) {
+    response.json().then((e) => console.error("O365 Error", e));
+    throw Error(response.statusText);
+  }
+  return response.json();
 }
 
 function handleErrorsRaw(response) {
-    if (!response.ok) {
-        response.text().then(console.log);
-        throw Error(response.statusText);
-    }
-    return response.text();
+  if (!response.ok) {
+    response.text().then((e) => console.error("O365 Error", e));
+    throw Error(response.statusText);
+  }
+  return response.text();
 }
 
 const o365Auth = (credential) => {
+  const isExpired = (expiryDate) => expiryDate < Math.round(+new Date() / 1000);
 
-    const isExpired = (expiryDate) => expiryDate < +(new Date());
-
-    const refreshAccessToken = (refreshToken) => fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: new URLSearchParams({
-            'scope': 'User.Read Calendars.Read Calendars.ReadWrite',
-            'client_id': process.env.MS_GRAPH_CLIENT_ID,
-            'refresh_token': refreshToken,
-            'grant_type': 'refresh_token',
-            'client_secret': process.env.MS_GRAPH_CLIENT_SECRET,
-        })
+  const refreshAccessToken = (refreshToken) => {
+    return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        scope: "User.Read Calendars.Read Calendars.ReadWrite",
+        client_id: process.env.MS_GRAPH_CLIENT_ID,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+        client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+      }),
     })
-        .then(handleErrorsJson)
-        .then((responseBody) => {
-            credential.key.access_token = responseBody.access_token;
-            credential.key.expiry_date = Math.round((+(new Date()) / 1000) + responseBody.expires_in);
-            return credential.key.access_token;
-        })
+      .then(handleErrorsJson)
+      .then((responseBody) => {
+        credential.key.access_token = responseBody.access_token;
+        credential.key.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
+        return prisma.credential
+          .update({
+            where: {
+              id: credential.id,
+            },
+            data: {
+              key: credential.key,
+            },
+          })
+          .then(() => credential.key.access_token);
+      });
+  };
 
-    return {
-        getToken: () => !isExpired(credential.key.expiry_date) ? Promise.resolve(credential.key.access_token) : refreshAccessToken(credential.key.refresh_token)
-    };
+  return {
+    getToken: () =>
+      !isExpired(credential.key.expiry_date)
+        ? Promise.resolve(credential.key.access_token)
+        : refreshAccessToken(credential.key.refresh_token),
+  };
 };
 
-interface Person {
-    name?: string,
-    email: string,
-    timeZone: string
-}
+const userData = Prisma.validator<Prisma.UserArgs>()({
+  select: { name: true, email: true, timeZone: true },
+});
+export type Person = Prisma.UserGetPayload<typeof userData>;
 
-interface CalendarEvent {
-    type: string;
-    title: string;
-    startTime: string;
-    endTime: string;
-    description?: string;
-    location?: string;
-    organizer: Person;
-    attendees: Person[];
-};
-
-interface IntegrationCalendar {
-    integration: string;
-    primary: boolean;
-    externalId: string;
+export interface CalendarEvent {
+  type: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  description?: string;
+  team?: {
     name: string;
+    members: string[];
+  };
+  location?: string;
+  organizer: Person;
+  attendees: Person[];
+  conferenceData?: ConferenceData;
 }
 
-interface CalendarApiAdapter {
-    createEvent(event: CalendarEvent): Promise<any>;
+export interface ConferenceData {
+  createRequest: unknown;
+}
 
-    updateEvent(uid: String, event: CalendarEvent);
+export interface IntegrationCalendar {
+  integration: string;
+  primary: boolean;
+  externalId: string;
+  name: string;
+}
 
-    deleteEvent(uid: String);
+type BufferedBusyTime = { start: string; end: string };
+export interface CalendarApiAdapter {
+  createEvent(event: CalendarEvent): Promise<unknown>;
 
-    getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<any>;
+  updateEvent(uid: string, event: CalendarEvent);
 
-    listCalendars(): Promise<IntegrationCalendar[]>;
+  deleteEvent(uid: string);
+
+  getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<BufferedBusyTime[]>;
+
+  listCalendars(): Promise<IntegrationCalendar[]>;
 }
 
 const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
+  const auth = o365Auth(credential);
 
-    const auth = o365Auth(credential);
-
-    const translateEvent = (event: CalendarEvent) => {
-
-        let optional = {};
-        if (event.location) {
-            optional.location = {displayName: event.location};
-        }
-
-        return {
-            subject: event.title,
-            body: {
-                contentType: 'HTML',
-                content: event.description,
-            },
-            start: {
-                dateTime: event.startTime,
-                timeZone: event.organizer.timeZone,
-            },
-            end: {
-                dateTime: event.endTime,
-                timeZone: event.organizer.timeZone,
-            },
-            attendees: event.attendees.map(attendee => ({
-                emailAddress: {
-                    address: attendee.email,
-                    name: attendee.name
-                },
-                type: "required"
-            })),
-            ...optional
-        }
-    };
-
-    const integrationType = "office365_calendar";
-
-    function listCalendars(): Promise<IntegrationCalendar[]> {
-        return auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendars', {
-              method: 'get',
-              headers: {
-                  'Authorization': 'Bearer ' + accessToken,
-                  'Content-Type': 'application/json'
-              },
-          }).then(handleErrorsJson)
-            .then(responseBody => {
-                return responseBody.value.map(cal => {
-                    const calendar: IntegrationCalendar = {
-                        externalId: cal.id, integration: integrationType, name: cal.name, primary: cal.isDefaultCalendar
-                    }
-                    return calendar;
-                });
-            })
-        )
+  const translateEvent = (event: CalendarEvent) => {
+    const optional = {};
+    if (event.location) {
+      optional.location = { displayName: event.location };
     }
 
     return {
-        getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-            const filter = "?$filter=start/dateTime ge '" +  dateFrom + "' and end/dateTime le '" + dateTo + "'"
-            return auth.getToken().then(
-                (accessToken) => {
-                    const selectedCalendarIds = selectedCalendars.filter(e => e.integration === integrationType).map(e => e.externalId);
-                    if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0){
-                        // Only calendars of other integrations selected
-                        return Promise.resolve([]);
-                    }
-
-                    return (selectedCalendarIds.length == 0
-                      ? listCalendars().then(cals => cals.map(e => e.externalId))
-                      : Promise.resolve(selectedCalendarIds).then(x => x)).then((ids: string[]) => {
-                        const urls = ids.map(calendarId => 'https://graph.microsoft.com/v1.0/me/calendars/' + calendarId + '/events' + filter)
-                        return Promise.all(urls.map(url => fetch(url, {
-                            method: 'get',
-                            headers: {
-                                'Authorization': 'Bearer ' + accessToken,
-                                'Prefer': 'outlook.timezone="Etc/GMT"'
-                            }
-                        })
-                          .then(handleErrorsJson)
-                          .then(responseBody => responseBody.value.map((evt) => ({
-                                start: evt.start.dateTime + 'Z',
-                                end: evt.end.dateTime + 'Z'
-                            }))
-                          ))).then(results => results.reduce((acc, events) => acc.concat(events), []))
-                    })
-                }
-            ).catch((err) => {
-                console.log(err);
-            });
+      subject: event.title,
+      body: {
+        contentType: "HTML",
+        content: event.description,
+      },
+      start: {
+        dateTime: event.startTime,
+        timeZone: event.organizer.timeZone,
+      },
+      end: {
+        dateTime: event.endTime,
+        timeZone: event.organizer.timeZone,
+      },
+      attendees: event.attendees.map((attendee) => ({
+        emailAddress: {
+          address: attendee.email,
+          name: attendee.name,
         },
-        createEvent: (event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(translateEvent(event))
-        }).then(handleErrorsJson).then((responseBody) => ({
+        type: "required",
+      })),
+      ...optional,
+    };
+  };
+
+  const integrationType = "office365_calendar";
+
+  function listCalendars(): Promise<IntegrationCalendar[]> {
+    return auth.getToken().then((accessToken) =>
+      fetch("https://graph.microsoft.com/v1.0/me/calendars", {
+        method: "get",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+      })
+        .then(handleErrorsJson)
+        .then((responseBody) => {
+          return responseBody.value.map((cal) => {
+            const calendar: IntegrationCalendar = {
+              externalId: cal.id,
+              integration: integrationType,
+              name: cal.name,
+              primary: cal.isDefaultCalendar,
+            };
+            return calendar;
+          });
+        })
+    );
+  }
+
+  return {
+    getAvailability: (dateFrom, dateTo, selectedCalendars) => {
+      const filter = `?startdatetime=${encodeURIComponent(dateFrom)}&enddatetime=${encodeURIComponent(
+        dateTo
+      )}`;
+      return auth
+        .getToken()
+        .then((accessToken) => {
+          const selectedCalendarIds = selectedCalendars
+            .filter((e) => e.integration === integrationType)
+            .map((e) => e.externalId);
+          if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0) {
+            // Only calendars of other integrations selected
+            return Promise.resolve([]);
+          }
+
+          return (
+            selectedCalendarIds.length == 0
+              ? listCalendars().then((cals) => cals.map((e) => e.externalId))
+              : Promise.resolve(selectedCalendarIds).then((x) => x)
+          ).then((ids: string[]) => {
+            const requests = ids.map((calendarId, id) => ({
+              id,
+              method: "GET",
+              headers: {
+                Prefer: 'outlook.timezone="Etc/GMT"',
+              },
+              url: `/me/calendars/${calendarId}/calendarView${filter}`,
+            }));
+
+            return fetch("https://graph.microsoft.com/v1.0/$batch", {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + accessToken,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ requests }),
+            })
+              .then(handleErrorsJson)
+              .then((responseBody) =>
+                responseBody.responses.reduce(
+                  (acc, subResponse) =>
+                    acc.concat(
+                      subResponse.body.value.map((evt) => {
+                        return {
+                          start: evt.start.dateTime + "Z",
+                          end: evt.end.dateTime + "Z",
+                        };
+                      })
+                    ),
+                  []
+                )
+              );
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    createEvent: (event: CalendarEvent) =>
+      auth.getToken().then((accessToken) =>
+        fetch("https://graph.microsoft.com/v1.0/me/calendar/events", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        })
+          .then(handleErrorsJson)
+          .then((responseBody) => ({
             ...responseBody,
             disableConfirmationEmail: true,
-        }))),
-        deleteEvent: (uid: String) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events/' + uid, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken
-            }
-        }).then(handleErrorsRaw)),
-        updateEvent: (uid: String, event: CalendarEvent) => auth.getToken().then(accessToken => fetch('https://graph.microsoft.com/v1.0/me/calendar/events/' + uid, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(translateEvent(event))
-        }).then(handleErrorsRaw)),
-        listCalendars
-    }
+          }))
+      ),
+    deleteEvent: (uid: string) =>
+      auth.getToken().then((accessToken) =>
+        fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+          },
+        }).then(handleErrorsRaw)
+      ),
+    updateEvent: (uid: string, event: CalendarEvent) =>
+      auth.getToken().then((accessToken) =>
+        fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
+          method: "PATCH",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        }).then(handleErrorsRaw)
+      ),
+    listCalendars,
+  };
 };
 
 const GoogleCalendar = (credential): CalendarApiAdapter => {
-    const myGoogleAuth = googleAuth();
-    myGoogleAuth.setCredentials(credential.key);
-    const integrationType = "google_calendar";
+  const auth = googleAuth(credential);
+  const integrationType = "google_calendar";
 
-    return {
-        getAvailability: (dateFrom, dateTo, selectedCalendars) => new Promise((resolve, reject) => {
-            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.calendarList
-                .list()
-                .then(cals => {
-                    const filteredItems = cals.data.items.filter(i => selectedCalendars.findIndex(e => e.externalId === i.id) > -1)
-                    if (filteredItems.length == 0 && selectedCalendars.length > 0){
-                        // Only calendars of other integrations selected
-                        resolve([]);
-                    }
-                    calendar.freebusy.query({
-                        requestBody: {
-                            timeMin: dateFrom,
-                            timeMax: dateTo,
-                            items: filteredItems.length > 0 ? filteredItems : cals.data.items
-                        }
-                    }, (err, apires) => {
-                        if (err) {
-                            reject(err);
-                        }
+  return {
+    getAvailability: (dateFrom, dateTo, selectedCalendars) =>
+      new Promise((resolve, reject) =>
+        auth.getToken().then((myGoogleAuth) => {
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
+          const selectedCalendarIds = selectedCalendars
+            .filter((e) => e.integration === integrationType)
+            .map((e) => e.externalId);
+          if (selectedCalendarIds.length == 0 && selectedCalendars.length > 0) {
+            // Only calendars of other integrations selected
+            resolve([]);
+            return;
+          }
 
-                        resolve(
-                            Object.values(apires.data.calendars).flatMap(
-                                (item) => item["busy"]
-                            )
-                        )
-                    });
-                })
-                .catch((err) => {
+          (selectedCalendarIds.length == 0
+            ? calendar.calendarList.list().then((cals) => cals.data.items.map((cal) => cal.id))
+            : Promise.resolve(selectedCalendarIds)
+          )
+            .then((calsIds) => {
+              calendar.freebusy.query(
+                {
+                  requestBody: {
+                    timeMin: dateFrom,
+                    timeMax: dateTo,
+                    items: calsIds.map((id) => ({ id: id })),
+                  },
+                },
+                (err, apires) => {
+                  if (err) {
                     reject(err);
-                });
-
-        }),
-        createEvent: (event: CalendarEvent) => new Promise((resolve, reject) => {
-            const payload = {
-                summary: event.title,
-                description: event.description,
-                start: {
-                    dateTime: event.startTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                end: {
-                    dateTime: event.endTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                attendees: event.attendees,
-                reminders: {
-                    useDefault: false,
-                    overrides: [
-                        {'method': 'email', 'minutes': 60}
-                    ],
-                },
-            };
-
-            if (event.location) {
-                payload['location'] = event.location;
-            }
-
-            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.events.insert({
-                auth: myGoogleAuth,
-                calendarId: 'primary',
-                resource: payload,
-            }, function (err, event) {
-                if (err) {
-                    console.log('There was an error contacting the Calendar service: ' + err);
-                    return reject(err);
+                  }
+                  resolve(Object.values(apires.data.calendars).flatMap((item) => item["busy"]));
                 }
-                return resolve(event.data);
+              );
+            })
+            .catch((err) => {
+              console.error("There was an error contacting google calendar service: ", err);
+              reject(err);
             });
-        }),
-        updateEvent: (uid: String, event: CalendarEvent) => new Promise((resolve, reject) => {
-            const payload = {
-                summary: event.title,
-                description: event.description,
-                start: {
-                    dateTime: event.startTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                end: {
-                    dateTime: event.endTime,
-                    timeZone: event.organizer.timeZone,
-                },
-                attendees: event.attendees,
-                reminders: {
-                    useDefault: false,
-                    overrides: [
-                        {'method': 'email', 'minutes': 60}
-                    ],
-                },
-            };
-
-            if (event.location) {
-                payload['location'] = event.location;
-            }
-
-            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.events.update({
-                auth: myGoogleAuth,
-                calendarId: 'primary',
-                eventId: uid,
-                sendNotifications: true,
-                sendUpdates: 'all',
-                resource: payload
-            }, function (err, event) {
-                if (err) {
-                    console.log('There was an error contacting the Calendar service: ' + err);
-                    return reject(err);
-                }
-                return resolve(event.data);
-            });
-        }),
-        deleteEvent: (uid: String) => new Promise( (resolve, reject) => {
-            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.events.delete({
-                auth: myGoogleAuth,
-                calendarId: 'primary',
-                eventId: uid,
-                sendNotifications: true,
-                sendUpdates: 'all',
-            }, function (err, event) {
-                if (err) {
-                    console.log('There was an error contacting the Calendar service: ' + err);
-                    return reject(err);
-                }
-                return resolve(event.data);
-            });
-        }),
-        listCalendars: () => new Promise((resolve, reject) => {
-            const calendar = google.calendar({version: 'v3', auth: myGoogleAuth});
-            calendar.calendarList
-              .list()
-              .then(cals => {
-                  resolve(cals.data.items.map(cal => {
-                      const calendar: IntegrationCalendar = {
-                          externalId: cal.id, integration: integrationType, name: cal.summary, primary: cal.primary
-                      }
-                      return calendar;
-                  }))
-              })
-              .catch((err) => {
-                  reject(err);
-              });
         })
-    };
+      ),
+    createEvent: (event: CalendarEvent) =>
+      new Promise((resolve, reject) =>
+        auth.getToken().then((myGoogleAuth) => {
+          const payload = {
+            summary: event.title,
+            description: event.description,
+            start: {
+              dateTime: event.startTime,
+              timeZone: event.organizer.timeZone,
+            },
+            end: {
+              dateTime: event.endTime,
+              timeZone: event.organizer.timeZone,
+            },
+            attendees: event.attendees,
+            reminders: {
+              useDefault: false,
+              overrides: [{ method: "email", minutes: 10 }],
+            },
+          };
+
+          if (event.location) {
+            payload["location"] = event.location;
+          }
+
+          if (event.conferenceData) {
+            payload["conferenceData"] = event.conferenceData;
+          }
+
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
+          calendar.events.insert(
+            {
+              auth: myGoogleAuth,
+              calendarId: "primary",
+              resource: payload,
+              conferenceDataVersion: 1,
+            },
+            function (err, event) {
+              if (err) {
+                console.error("There was an error contacting google calendar service: ", err);
+                return reject(err);
+              }
+              return resolve(event.data);
+            }
+          );
+        })
+      ),
+    updateEvent: (uid: string, event: CalendarEvent) =>
+      new Promise((resolve, reject) =>
+        auth.getToken().then((myGoogleAuth) => {
+          const payload = {
+            summary: event.title,
+            description: event.description,
+            start: {
+              dateTime: event.startTime,
+              timeZone: event.organizer.timeZone,
+            },
+            end: {
+              dateTime: event.endTime,
+              timeZone: event.organizer.timeZone,
+            },
+            attendees: event.attendees,
+            reminders: {
+              useDefault: false,
+              overrides: [{ method: "email", minutes: 10 }],
+            },
+          };
+
+          if (event.location) {
+            payload["location"] = event.location;
+          }
+
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
+          calendar.events.update(
+            {
+              auth: myGoogleAuth,
+              calendarId: "primary",
+              eventId: uid,
+              sendNotifications: true,
+              sendUpdates: "all",
+              resource: payload,
+            },
+            function (err, event) {
+              if (err) {
+                console.error("There was an error contacting google calendar service: ", err);
+                return reject(err);
+              }
+              return resolve(event.data);
+            }
+          );
+        })
+      ),
+    deleteEvent: (uid: string) =>
+      new Promise((resolve, reject) =>
+        auth.getToken().then((myGoogleAuth) => {
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
+          calendar.events.delete(
+            {
+              auth: myGoogleAuth,
+              calendarId: "primary",
+              eventId: uid,
+              sendNotifications: true,
+              sendUpdates: "all",
+            },
+            function (err, event) {
+              if (err) {
+                console.error("There was an error contacting google calendar service: ", err);
+                return reject(err);
+              }
+              return resolve(event.data);
+            }
+          );
+        })
+      ),
+    listCalendars: () =>
+      new Promise((resolve, reject) =>
+        auth.getToken().then((myGoogleAuth) => {
+          const calendar = google.calendar({
+            version: "v3",
+            auth: myGoogleAuth,
+          });
+          calendar.calendarList
+            .list()
+            .then((cals) => {
+              resolve(
+                cals.data.items.map((cal) => {
+                  const calendar: IntegrationCalendar = {
+                    externalId: cal.id,
+                    integration: integrationType,
+                    name: cal.summary,
+                    primary: cal.primary,
+                  };
+                  return calendar;
+                })
+              );
+            })
+            .catch((err) => {
+              console.error("There was an error contacting google calendar service: ", err);
+              reject(err);
+            });
+        })
+      ),
+  };
 };
 
 // factory
-const calendars = (withCredentials): CalendarApiAdapter[] => withCredentials.map((cred) => {
-    switch (cred.type) {
-        case 'google_calendar':
-            return GoogleCalendar(cred);
-        case 'office365_calendar':
-            return MicrosoftOffice365Calendar(cred);
+const calendars = (withCredentials): CalendarApiAdapter[] =>
+  withCredentials
+    .map((cred) => {
+      switch (cred.type) {
+        case "google_calendar":
+          return GoogleCalendar(cred);
+        case "office365_calendar":
+          return MicrosoftOffice365Calendar(cred);
+        case "caldav_calendar":
+          return new CalDavCalendar(cred);
+        case "apple_calendar":
+          return new AppleCalendar(cred);
         default:
-            return; // unknown credential, could be legacy? In any case, ignore
+          return; // unknown credential, could be legacy? In any case, ignore
+      }
+    })
+    .filter(Boolean);
+
+const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) =>
+  Promise.all(
+    calendars(withCredentials).map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
+  ).then((results) => {
+    return results.reduce((acc, availability) => acc.concat(availability), []);
+  });
+
+const listCalendars = (withCredentials) =>
+  Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then((results) =>
+    results.reduce((acc, calendars) => acc.concat(calendars), []).filter((c) => c != null)
+  );
+
+const createEvent = async (
+  credential: Credential,
+  calEvent: CalendarEvent,
+  noMail = false,
+  maybeUid?: string,
+  optionalVideoCallData?: VideoCallData
+): Promise<EventResult> => {
+  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid, optionalVideoCallData);
+  const uid: string = parser.getUid();
+  /*
+   * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
+   * We need HTML there. Google Calendar understands newlines and Apple Calendar cannot show HTML, so no HTML should
+   * be used for Google and Apple Calendar.
+   */
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
+
+  let success = true;
+
+  const creationResult = credential
+    ? await calendars([credential])[0]
+        .createEvent(richEvent)
+        .catch((e) => {
+          log.error("createEvent failed", e, calEvent);
+          success = false;
+        })
+    : null;
+
+  const maybeHangoutLink = creationResult?.hangoutLink;
+  const maybeEntryPoints = creationResult?.entryPoints;
+  const maybeConferenceData = creationResult?.conferenceData;
+
+  if (!noMail) {
+    const organizerMail = new EventOrganizerMail(calEvent, uid, {
+      hangoutLink: maybeHangoutLink,
+      conferenceData: maybeConferenceData,
+      entryPoints: maybeEntryPoints,
+    });
+
+    try {
+      await organizerMail.sendEmail();
+    } catch (e) {
+      console.error("organizerMail.sendEmail failed", e);
     }
-}).filter(Boolean);
+  }
 
-const getBusyTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) => Promise.all(
-    calendars(withCredentials).map(c => c.getAvailability(dateFrom, dateTo, selectedCalendars))
-).then(
-    (results) => {
-        return results.reduce((acc, availability) => acc.concat(availability), [])
-    }
-);
-
-const listCalendars = (withCredentials) => Promise.all(
-  calendars(withCredentials).map(c => c.listCalendars())
-).then(
-  (results) => results.reduce((acc, calendars) => acc.concat(calendars), [])
-);
-
-const createEvent = (credential, calEvent: CalendarEvent): Promise<any> => {
-
-    createNewEventEmail(
-        calEvent,
-    );
-
-    if (credential) {
-        return calendars([credential])[0].createEvent(calEvent);
-    }
-
-    return Promise.resolve({});
+  return {
+    type: credential.type,
+    success,
+    uid,
+    createdEvent: creationResult,
+    originalEvent: calEvent,
+  };
 };
 
-const updateEvent = (credential, uid: String, calEvent: CalendarEvent): Promise<any> => {
-    if (credential) {
-        return calendars([credential])[0].updateEvent(uid, calEvent);
-    }
+const updateEvent = async (
+  credential: Credential,
+  uidToUpdate: string,
+  calEvent: CalendarEvent,
+  noMail = false,
+  optionalVideoCallData?: VideoCallData
+): Promise<EventResult> => {
+  const parser: CalEventParser = new CalEventParser(calEvent, undefined, optionalVideoCallData);
+  const newUid: string = parser.getUid();
+  const richEvent: CalendarEvent = parser.asRichEventPlain();
 
-    return Promise.resolve({});
+  let success = true;
+
+  const updateResult = credential
+    ? await calendars([credential])[0]
+        .updateEvent(uidToUpdate, richEvent)
+        .catch((e) => {
+          log.error("updateEvent failed", e, calEvent);
+          success = false;
+        })
+    : null;
+
+  if (!noMail) {
+    const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
+    try {
+      await organizerMail.sendEmail();
+    } catch (e) {
+      console.error("organizerMail.sendEmail failed", e);
+    }
+  }
+
+  return {
+    type: credential.type,
+    success,
+    uid: newUid,
+    updatedEvent: updateResult,
+    originalEvent: calEvent,
+  };
 };
 
-const deleteEvent = (credential, uid: String): Promise<any> => {
-    if (credential) {
-        return calendars([credential])[0].deleteEvent(uid);
-    }
+const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
+  if (credential) {
+    return calendars([credential])[0].deleteEvent(uid);
+  }
 
-    return Promise.resolve({});
+  return Promise.resolve({});
 };
 
-export {getBusyTimes, createEvent, updateEvent, deleteEvent, CalendarEvent, listCalendars, IntegrationCalendar};
+export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, listCalendars };

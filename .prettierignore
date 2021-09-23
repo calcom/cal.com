@@ -1,0 +1,6 @@
+node_modules
+.next
+public
+**/**/node_modules
+**/**/.next
+**/**/public
