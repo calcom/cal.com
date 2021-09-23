@@ -11,6 +11,7 @@ import {
 import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -21,7 +22,9 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import showToast from "@lib/notification";
@@ -53,6 +56,11 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
+  const { locale } = useLocale({
+    localeProp: props.localeProp,
+    namespaces: "event-types-page",
+  });
+
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
@@ -62,7 +70,11 @@ const EventTypesPage = (props: PageProps) => {
           Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you.
         </p>
-        <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
+        <CreateNewEventDialog
+          localeProp={locale}
+          canAddEvents={props.canAddEvents}
+          profiles={props.profiles}
+        />
       </div>
     </div>
   );
@@ -316,10 +328,19 @@ const EventTypesPage = (props: PageProps) => {
   );
 };
 
-const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[]; canAddEvents: boolean }) => {
+const CreateNewEventDialog = ({
+  profiles,
+  canAddEvents,
+  localeProp,
+}: {
+  profiles: Profile[];
+  canAddEvents: boolean;
+  localeProp: string;
+}) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
+  const { t } = useLocale({ localeProp });
 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
@@ -351,13 +372,13 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          New event type
+          {t("new-event-type-btn")}
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>New event type</Button>
+            <Button EndIcon={ChevronDownIcon}>{t("new-event-type-btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>
@@ -534,6 +555,8 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
+  const locale = await extractLocaleInfo(context.req);
+
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -700,6 +723,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      localeProp: locale,
       canAddEvents,
       user: userObj,
       // don't display event teams without event types,
@@ -710,6 +734,7 @@ export async function getServerSideProps(context) {
         ...group.profile,
         ...group.metadata,
       })),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }

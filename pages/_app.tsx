@@ -1,3 +1,4 @@
+import { appWithTranslation } from "next-i18next";
 import { DefaultSeo } from "next-seo";
 import type { AppProps as NextAppProps } from "next/app";
 
@@ -21,4 +22,4 @@ function MyApp({ Component, pageProps, err }: AppProps) {
   );
 }
 
-export default MyApp;
+export default appWithTranslation(MyApp);

@@ -1,13 +1,15 @@
 import { Prisma, Credential } from "@prisma/client";
+
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
+import { VideoCallData } from "@lib/videoClient";
+
 import CalEventParser from "./CalEventParser";
 import EventOrganizerMail from "./emails/EventOrganizerMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
 import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 import prisma from "./prisma";
-import { VideoCallData } from "@lib/videoClient";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 

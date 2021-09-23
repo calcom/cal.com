@@ -86,6 +86,7 @@ model User {
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
+  locale String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
 
