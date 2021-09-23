@@ -1,22 +1,16 @@
-import { useRouter } from "next/router";
-
-import Loader from "@components/Loader";
+import { getSession } from "@lib/auth";
 
 function RedirectPage() {
-  const router = useRouter();
-  if (typeof window !== "undefined") {
-    router.push("/event-types");
-    return;
-  }
-  return <Loader />;
+  return;
 }
 
-RedirectPage.getInitialProps = (ctx) => {
-  if (ctx.res) {
-    ctx.res.writeHead(302, { Location: "/event-types" });
-    ctx.res.end();
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+  if (!session?.user?.id) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
   }
-  return {};
-};
+
+  return { redirect: { permanent: false, destination: "/event-types" } };
+}
 
 export default RedirectPage;

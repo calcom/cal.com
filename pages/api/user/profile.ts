@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           "hideBranding",
           "theme",
           "completedOnboarding",
+          "locale",
         ]),
         bio: req.body.description,
       },

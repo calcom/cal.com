@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withTM = require("next-transpile-modules")(["react-timezone-select"]);
+const { i18n } = require("./next-i18next.config");
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.BASE_URL) {
@@ -41,10 +42,7 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 module.exports = withTM({
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
-  },
+  i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
     ignoreDuringBuilds: true,
