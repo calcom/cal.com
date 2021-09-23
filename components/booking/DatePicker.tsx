@@ -72,7 +72,7 @@ const DatePicker = ({
             ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
             : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
           return (
-            date.endOf("day").isBefore(dayjs().utcOffsett(date.utcOffset())) ||
+            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
             !getSlots({
               inviteeDate: date,
