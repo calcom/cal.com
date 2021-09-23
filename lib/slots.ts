@@ -20,20 +20,20 @@ const availableBoundaries = (props: {
   workingHours: WorkingHours[]; // organizer working hours in UTC
   date: Dayjs; // invitee date including UTC offset
 }) => {
-  const date = props.date.utc(true);
-
   const workingHours = props.workingHours
     .filter(
-      (workingHour) => workingHour.days.includes(date.day()) || workingHour.days.includes(props.date.day())
+      (workingHour) =>
+        workingHour.days.includes(props.date.utc().day()) || workingHour.days.includes(props.date.day())
     )
     .map((workingHour) => {
       // If the days do not match in UTC and local, we need to translate the start and endTime in order to get the
       // correct Dayjs instance.
-      if (!workingHour.days.includes(date.day()) && workingHour.days.includes(props.date.day())) {
+      // TODO: This can be done better
+      if (!workingHour.days.includes(props.date.day()) && workingHour.days.includes(props.date.utc().day())) {
         return {
           days: workingHour.days,
-          startTime: workingHour.startTime + (date.day < props.date.day() ? -1440 : 1440),
-          endTime: workingHour.endTime + (date.day < props.date.day() ? -1440 : 1440),
+          startTime: workingHour.startTime + (props.date.day() > props.date.utc().day() ? -1440 : 0),
+          endTime: workingHour.endTime + (props.date.day() > props.date.utc().day() ? -1440 : 0),
         };
       }
 
@@ -41,16 +41,23 @@ const availableBoundaries = (props: {
     });
 
   return workingHours.reduce((acc, workingHour) => {
-    const startTime = Math.max(props.date.hour() * 60 + props.date.minute(), workingHour.startTime);
+    const startTime = Math.max(
+      props.date.hour() * 60 + props.date.minute(),
+      workingHour.startTime + props.date.utcOffset()
+    );
+    const endTime = workingHour.endTime + props.date.utcOffset();
+
+    if (startTime > endTime) {
+      // stop boundary inversion
+      return acc;
+    }
 
     return acc.concat([
       [
         // TODO: This bit can be simplified further when the time type is used. (a bit)
-        date.startOf("day").add(workingHour.startTime, "minute"),
+        props.date.startOf("day").add(startTime, "minute"),
         // 1440 means midnight next day, but is 0 in hour-minute, so if startTime > endTime, and endTime === 0 - handle
-        date
-          .startOf("day")
-          .add(workingHour.endTime || (startTime > workingHour.endTime ? 1440 : 0), "minute"),
+        props.date.startOf("day").add(endTime || (startTime > endTime ? 1440 : 0), "minute"),
       ],
     ]);
   }, [] as Boundary[]);
@@ -81,12 +88,12 @@ type GetSlots = {
 
 const getSlots = ({
   frequency,
-  date,
+  date, // date without time
   minimumBookingNotice = 0,
   workingHours = [DEFAULT_WORKING_HOURS],
 }: GetSlots): Dayjs[] => {
   // we need to get the invitee lower bounds, taking minimum booking notice
-  const mustBePastDate = dayjs.utc().add(minimumBookingNotice, "minutes");
+  const mustBePastDate = dayjs().utcOffset(date.utcOffset()).add(minimumBookingNotice, "minutes");
 
   // no slots, startDate is after today, this happens when booking notice spans multiple days.
   if (mustBePastDate.isAfter(date.endOf("day"))) {
@@ -98,8 +105,9 @@ const getSlots = ({
    * comes from the minimum booking notice.
    */
   let startTime = 0;
-  if (dayjs().isSame(date, "day")) {
-    startTime = dayjs.utc().hour() * 60 + dayjs.utc().minute();
+  if (dayjs().utcOffset(date.utcOffset()).isSame(date, "day")) {
+    startTime =
+      dayjs().utcOffset(date.utcOffset()).hour() * 60 + dayjs().utcOffset(date.utcOffset()).minute();
   }
 
   if (mustBePastDate.isAfter(date)) {
@@ -111,8 +119,7 @@ const getSlots = ({
   // get all the boundaries in the matched UTC dates
   const boundaries = availableBoundaries({
     workingHours: workingHours,
-    // for some reason after .add() it forgets it is Dayjs - assuming a Typescript error in Dayjs.
-    date: (date.startOf("day").utc().add(startTime, "minutes") as Dayjs).utcOffset(date.utcOffset()),
+    date: (date.isUTC() ? date.utc() : date).add(startTime, "minutes"),
   });
 
   // the many boundary results are concatenated..
@@ -121,7 +128,7 @@ const getSlots = ({
     []
   );
 
-  return times.map((time) => time.utcOffset(date.utcOffset())).filter((time) => time.date() === date.date());
+  return times.filter((time) => time.date() === date.date());
 };
 
 export default getSlots;

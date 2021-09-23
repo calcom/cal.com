@@ -30,6 +30,7 @@ describe("Get dates in in the same timeZone", () => {
     // The mock date is 1s to midday, so 12 slots should be open given 0 booking notice.
     expect(
       getSlots({
+        date: dayjs().startOf("day"),
         frequency: 60,
       })
     ).toHaveLength(12); // current time is midday (see MockDate)
@@ -37,10 +38,11 @@ describe("Get dates in in the same timeZone", () => {
 
   it("it does not allow you to book in the final hour (even without booking notice)", async () => {
     // Too late!
+    MockDate.set("2021-06-20T23:35:00Z");
     expect(
       getSlots({
         frequency: 15,
-        date: dayjs().endOf("day").subtract(25, "minutes"),
+        date: dayjs(),
         workingHours: [
           {
             days: [0, 1, 2, 3, 4, 5, 6],
@@ -52,6 +54,30 @@ describe("Get dates in in the same timeZone", () => {
     ).toHaveLength(0); // current time is midday (see MockDate)
   });
 
+  it.skip("it can handle boundary overlaps", async () => { // for now, how about just not doing this? (FIXING SOON)
+    // june 21th is a monday, midday UTC+1 should result in 00:00 & 01:00
+    const slots = getSlots({
+      date: dayjs.utc().add(1, "day").startOf("day"),
+      frequency: 60,
+      workingHours: [
+        {
+          days: [1, 2, 3, 4, 5],
+          startTime: 0,
+          endTime: 1440,
+        },
+        { // this should not result in more slots
+          days: [1],
+          startTime: 1020,
+          endTime: 1080,
+        }
+      ],
+    });
+
+    expect(slots).toHaveLength(2);
+    expect(slots[0].format()).toEqual("2021-06-21T08:00:00Z");
+    expect(slots[1].format()).toEqual("2021-06-21T17:00:00Z");
+  });
+
   it("should not show the first 4 15 minute bookings because that time has already past", () => {
     MockDate.set("2021-09-17T03:38:00Z");
     expect(
@@ -61,7 +87,7 @@ describe("Get dates in in the same timeZone", () => {
         minimumBookingNotice: 0,
         workingHours: [
           {
-            endTime: 1439,
+            endTime: 1440,
             startTime: 540,
             days: [1, 2, 3, 4, 5],
           },
@@ -80,7 +106,7 @@ describe("Get dates for an invitee in a different timeZone", () => {
     MockDate.reset();
   });
 
-  it("different tz - multiple boundaries", async () => {
+  it("different tz - multiple boundaries, start of day", async () => {
     // june 21th is a monday, midday UTC+1 should result in 00:00 & 01:00
     const slots = getSlots({
       date: dayjs().utcOffset(60).add(1, "day").startOf("day"),
@@ -104,13 +130,13 @@ describe("Get dates for an invitee in a different timeZone", () => {
     expect(slots[1].format()).toEqual("2021-06-21T00:00:00+01:00");
   });
 
-  it("different tz - can fit 12 hourly slots in local time as well", async () => {
+  it("different tz - can cut off slots in local time", async () => {
     expect(
       getSlots({
         date: dayjs().utcOffset(60).startOf("day"),
         frequency: 60,
       })
-    ).toHaveLength(12);
+    ).toHaveLength(11);
   });
 });
 
@@ -131,7 +157,7 @@ describe("Minimum booking notices", () => {
     // time is 1m to midday, - but there is a 2h booking notice; tests only slots past and including 2pm are returned
     expect(
       getSlots({
-        date: dayjs(),
+        date: dayjs().startOf("day"),
         frequency: 60,
         minimumBookingNotice: 120,
       })
@@ -142,7 +168,7 @@ describe("Minimum booking notices", () => {
     // time is 1m to midday, - but there is a 2h booking notice; tests only slots past and including 2pm are returned
     expect(
       getSlots({
-        date: dayjs(),
+        date: dayjs().startOf("day"),
         frequency: 60,
         minimumBookingNotice: 721, // 12h + 1m
       })

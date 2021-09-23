@@ -6,7 +6,7 @@ export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 export const DEFAULT_WORKING_HOURS: WorkingHours = {
   days: [0, 1, 2, 3, 4, 5, 6],
   startTime: 0,
-  endTime: 1439,
+  endTime: 1440,
 };
 
 export const subtractWorkingHours = (workingHours) =>
