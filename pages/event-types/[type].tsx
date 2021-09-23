@@ -1188,7 +1188,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, query } = context;
   const session = await getSession({ req });
   const locale = await extractLocaleInfo(context.req);
-  console.log("LOCALE", locale);
 
   const typeParam = parseInt(asStringOrThrow(query.type));
 
@@ -1358,7 +1357,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       currency,
-      ...(await serverSideTranslations(locale, ["event-type-edit-page"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

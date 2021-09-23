@@ -3,11 +3,10 @@ import { useTranslation } from "next-i18next";
 
 type LocaleProps = {
   localeProp: string;
-  namespaces: string[] | string;
 };
 
 export const useLocale = (props: LocaleProps) => {
-  const { i18n, t } = useTranslation(props.namespaces);
+  const { i18n, t } = useTranslation("common");
 
   useEffect(() => {
     (async () => await i18n.changeLanguage(props.localeProp))();

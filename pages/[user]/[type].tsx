@@ -15,7 +15,6 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const locale = await extractLocaleInfo(context.req);
-  console.log("LOCALE", locale);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const userParam = asStringOrNull(context.query.user);
@@ -191,7 +190,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
-      ...(await serverSideTranslations(locale, ["availability-page"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

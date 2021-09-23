@@ -85,10 +85,7 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
-  const { locale } = useLocale({
-    localeProp: props.localeProp,
-    namespaces: "settings-profile-page",
-  });
+  const { locale } = useLocale({ localeProp: props.localeProp });
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -443,7 +440,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      ...(await serverSideTranslations(locale, ["settings-profile-page"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

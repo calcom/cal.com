@@ -339,7 +339,7 @@ const CreateNewEventDialog = ({
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
-  const { t } = useLocale({ localeProp, namespaces: "event-types-page" });
+  const { t } = useLocale({ localeProp });
 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
@@ -555,7 +555,6 @@ const CreateNewEventDialog = ({
 export async function getServerSideProps(context) {
   const session = await getSession(context);
   const locale = await extractLocaleInfo(context.req);
-  console.log("LOCALE", locale);
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
@@ -734,7 +733,7 @@ export async function getServerSideProps(context) {
         ...group.profile,
         ...group.metadata,
       })),
-      ...(await serverSideTranslations(locale, ["event-types-page"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }

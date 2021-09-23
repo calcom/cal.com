@@ -22,7 +22,6 @@ export default function Book(props: BookPageProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const locale = await extractLocaleInfo(context.req);
-  console.log("LOCALE", locale);
 
   const user = await prisma.user.findUnique({
     where: {
@@ -113,7 +112,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       eventType: eventTypeObject,
       booking,
-      ...(await serverSideTranslations(locale, ["booking-page"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }
