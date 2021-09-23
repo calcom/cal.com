@@ -1,17 +1,6 @@
-import { useRouter } from "next/router";
-import Modal from "@components/Modal";
-import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionTypeBase } from "react-select";
-import prisma from "@lib/prisma";
-import { Availability, EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
-import { LocationType } from "@lib/location";
-import Shell from "@components/Shell";
-import { getSession } from "@lib/auth";
-import { Scheduler } from "@components/ui/Scheduler";
 // TODO: replace headlessui with radix-ui
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
-import { HttpError } from "@lib/core/http/error";
 import {
   LocationMarkerIcon,
   LinkIcon,
@@ -24,31 +13,48 @@ import {
   UsersIcon,
   UserAddIcon,
 } from "@heroicons/react/solid";
-
+import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { validJson } from "@lib/jsonUtils";
+import utc from "dayjs/plugin/utc";
 import throttle from "lodash.throttle";
+import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
+import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
-import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
-import Switch from "@components/ui/Switch";
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { GetServerSidePropsContext } from "next";
+import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
-import { EventTypeInput } from "@lib/types/event-type";
-import updateEventType from "@lib/mutations/event-types/update-event-type";
-import deleteEventType from "@lib/mutations/event-types/delete-event-type";
-import showToast from "@lib/notification";
-import CheckedSelect from "@components/ui/form/CheckedSelect";
-import { defaultAvatarSrc } from "@lib/profile";
-import * as RadioArea from "@components/ui/form/radio-area";
-import classNames from "@lib/classNames";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import Select, { OptionTypeBase } from "react-select";
+import Stripe from "stripe";
+
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { LocationType } from "@lib/location";
+import deleteEventType from "@lib/mutations/event-types/delete-event-type";
+import updateEventType from "@lib/mutations/event-types/update-event-type";
+import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
+import { defaultAvatarSrc } from "@lib/profile";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Button from "@components/ui/Button";
+import { Scheduler } from "@components/ui/Scheduler";
+import Switch from "@components/ui/Switch";
+import CheckboxField from "@components/ui/form/CheckboxField";
+import CheckedSelect from "@components/ui/form/CheckedSelect";
+import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -69,7 +75,8 @@ const PERIOD_TYPES = [
 ];
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { eventType, locationOptions, availability, team, teamMembers } = props;
+  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
+    props;
 
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -171,14 +178,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       PERIOD_TYPES.find((s) => s.type === "unlimited")
     );
   });
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
 
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
+
   const titleRef = useRef<HTMLInputElement>(null);
   const slugRef = useRef<HTMLInputElement>(null);
   const requiresConfirmationRef = useRef<HTMLInputElement>(null);
   const eventNameRef = useRef<HTMLInputElement>(null);
   const periodDaysRef = useRef<HTMLInputElement>(null);
   const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone);
@@ -191,10 +201,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
     const enteredTitle: string = titleRef.current.value;
     const enteredSlug: string = slugRef.current.value;
+    const enteredPrice = requirePayment ? Math.round(parseFloat(priceRef.current.value) * 100) : 0;
 
     const advancedOptionsPayload: AdvancedOptions = {};
     if (requiresConfirmationRef.current) {
-      advancedOptionsPayload.requiresConfirmation = requiresConfirmationRef.current.checked;
       advancedOptionsPayload.eventName = eventNameRef.current.value;
       advancedOptionsPayload.periodType = periodType.type;
       advancedOptionsPayload.periodDays = parseInt(periodDaysRef?.current?.value);
@@ -208,7 +218,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       title: enteredTitle,
       slug: enteredSlug,
       description: formData.description as string,
-      length: formData.length as number,
+      length: formData.length as unknown as number,
+      requiresConfirmation: formData.requiresConfirmation === "on",
+      disableGuests: formData.disableGuests === "on",
       hidden,
       locations,
       customInputs,
@@ -221,6 +233,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             users,
           }
         : {}),
+      price: enteredPrice,
+      currency: currency,
     };
 
     updateMutation.mutate(payload);
@@ -720,35 +734,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </ul>
                           </div>
                         </div>
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="requiresConfirmation"
-                              className="flex text-sm font-medium text-neutral-700">
-                              Opt-in booking
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <div className="relative flex items-start">
-                              <div className="flex items-center h-5">
-                                <input
-                                  ref={requiresConfirmationRef}
-                                  id="requiresConfirmation"
-                                  name="requiresConfirmation"
-                                  type="checkbox"
-                                  className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
-                                  defaultChecked={eventType.requiresConfirmation}
-                                />
-                              </div>
-                              <div className="ml-3 text-sm">
-                                <p className="text-neutral-900">
-                                  The booking needs to be manually confirmed before it is pushed to the
-                                  integrations and a confirmation mail is sent.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+
+                        <CheckboxField
+                          ref={requiresConfirmationRef}
+                          id="requiresConfirmation"
+                          name="requiresConfirmation"
+                          label="Opt-in booking"
+                          description="The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent."
+                          defaultChecked={eventType.requiresConfirmation}
+                        />
+
+                        <CheckboxField
+                          id="disableGuests"
+                          name="disableGuests"
+                          label="Disable guests"
+                          description="Disable adding aditional guests while booking."
+                          defaultChecked={eventType.disableGuests}
+                        />
 
                         <hr className="border-neutral-200" />
 
@@ -871,6 +873,90 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             />
                           </div>
                         </div>
+
+                        {hasPaymentIntegration && (
+                          <>
+                            <hr className="border-neutral-200" />
+                            <div className="block sm:flex">
+                              <div className="min-w-44 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="payment"
+                                  className="text-sm flex font-medium text-neutral-700 mt-2">
+                                  Payment
+                                </label>
+                              </div>
+
+                              <div className="flex flex-col">
+                                <div className="w-full">
+                                  <div className="block sm:flex items-center">
+                                    <div className="w-full">
+                                      <div className="relative flex items-start">
+                                        <div className="flex items-center h-5">
+                                          <input
+                                            onChange={(event) => setRequirePayment(event.target.checked)}
+                                            id="requirePayment"
+                                            name="requirePayment"
+                                            type="checkbox"
+                                            className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
+                                            defaultChecked={requirePayment}
+                                          />
+                                        </div>
+                                        <div className="ml-3 text-sm">
+                                          <p className="text-neutral-900">
+                                            Require Payment (0.5% +{" "}
+                                            <IntlProvider locale="en">
+                                              <FormattedNumber
+                                                value={0.1}
+                                                style="currency"
+                                                currency={currency}
+                                              />
+                                            </IntlProvider>{" "}
+                                            commission per transaction)
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                {requirePayment && (
+                                  <div className="w-full">
+                                    <div className="block sm:flex items-center">
+                                      <div className="w-full">
+                                        <div className="mt-1 relative rounded-sm shadow-sm">
+                                          <input
+                                            ref={priceRef}
+                                            type="number"
+                                            name="price"
+                                            id="price"
+                                            step="0.01"
+                                            required
+                                            className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-2 pr-12 sm:text-sm border-gray-300 rounded-sm"
+                                            placeholder="Price"
+                                            defaultValue={
+                                              eventType.price > 0 ? eventType.price / 100.0 : undefined
+                                            }
+                                          />
+                                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <span className="text-gray-500 sm:text-sm" id="duration">
+                                              {new Intl.NumberFormat("en", {
+                                                style: "currency",
+                                                currency: currency,
+                                                maximumSignificantDigits: 1,
+                                                maximumFractionDigits: 0,
+                                              })
+                                                .format(0)
+                                                .replace("0", "")}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </Disclosure.Panel>
                     </>
                   )}
@@ -909,8 +995,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    window.location.hostname +
-                      "/" +
+                    "https://cal.com/" +
                       (team ? "team/" + team.slug : eventType.users[0].username) +
                       "/" +
                       eventType.slug
@@ -1102,6 +1187,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
+  const locale = await extractLocaleInfo(context.req);
+
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
@@ -1153,6 +1240,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      disableGuests: true,
       team: {
         select: {
           slug: true,
@@ -1183,6 +1271,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
       schedulingType: true,
       userId: true,
+      price: true,
+      currency: true,
     },
   });
 
@@ -1217,24 +1307,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      enabled: credentials.find((integration) => integration.type === "google_calendar") != null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business accounts",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      enabled: credentials.find((integration) => integration.type === "office365_calendar") != null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business accounts",
-    },
-  ];
+  const integrations = getIntegrations(credentials);
 
   const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
@@ -1242,27 +1315,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
-  const hasGoogleCalendarIntegration = integrations.find(
-    (i) => i.type === "google_calendar" && i.installed === true && i.enabled
-  );
-  if (hasGoogleCalendarIntegration) {
+  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
   }
+  const currency =
+    (credentials.find((integration) => integration.type === "stripe_payment")?.key as Stripe.OAuthToken)
+      ?.default_currency || "usd";
 
-  const hasOfficeIntegration = integrations.find(
-    (i) => i.type === "office365_calendar" && i.installed === true && i.enabled
-  );
-  if (hasOfficeIntegration) {
+  if (hasIntegration(integrations, "office365_calendar")) {
     // TODO: Add default meeting option of the office integration.
     // Assuming it's Microsoft Teams.
   }
 
-  const getAvailability = (providesAvailability) =>
-    providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
-      : null;
+  type Availability = typeof eventType["availability"];
+  const getAvailability = (availability: Availability) => (availability?.length ? availability : null);
 
-  const availability: Availability[] = getAvailability(eventType) || [];
+  const availability = getAvailability(eventType.availability) || [];
   availability.sort((a, b) => a.startTime - b.startTime);
 
   const eventTypeObject = Object.assign({}, eventType, {
@@ -1280,11 +1349,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      localeProp: locale,
       eventType: eventTypeObject,
       locationOptions,
       availability,
       team: eventTypeObject.team || null,
       teamMembers,
+      hasPaymentIntegration,
+      currency,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

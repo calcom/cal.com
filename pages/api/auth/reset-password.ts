@@ -1,12 +1,14 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
-import dayjs from "dayjs";
 import { User, ResetPasswordRequest } from "@prisma/client";
+import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { NextApiRequest, NextApiResponse } from "next";
+
+import { hashPassword } from "../../../lib/auth";
+import prisma from "../../../lib/prisma";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
-import { hashPassword } from "../../../lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

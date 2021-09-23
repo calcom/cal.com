@@ -1,10 +1,12 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import { useRouter } from "next/router";
 import { signIn } from "next-auth/client";
-import ErrorAlert from "@components/ui/alerts/Error";
+import { useRouter } from "next/router";
 import { useState } from "react";
-import { UsernameInput } from "@components/ui/UsernameInput";
+
 import prisma from "@lib/prisma";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
 
 export default function Signup(props) {
   const router = useRouter();
@@ -56,7 +58,7 @@ export default function Signup(props) {
       aria-modal="true">
       <HeadSeo title="Sign up" description="Sign up" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
+        <h2 className="font-cal text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow mx-2 sm:rounded-lg sm:px-10">

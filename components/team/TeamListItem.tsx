@@ -5,15 +5,18 @@ import {
   PencilAltIcon,
   TrashIcon,
 } from "@heroicons/react/outline";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
-import { useState } from "react";
-import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
+import { useState } from "react";
+
+import showToast from "@lib/notification";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
+import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
-import showToast from "@lib/notification";
+
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 
 interface Team {
   id: number;

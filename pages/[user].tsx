@@ -1,14 +1,16 @@
-import Avatar from "@components/ui/Avatar";
-import { HeadSeo } from "@components/seo/head-seo";
-import useTheme from "@lib/hooks/useTheme";
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import prisma from "@lib/prisma";
-import { trpc } from "@lib/trpc";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
+
+import useTheme from "@lib/hooks/useTheme";
+import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
+import { HeadSeo } from "@components/seo/head-seo";
+import Avatar from "@components/ui/Avatar";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   // FIXME delete me before merge
@@ -57,7 +59,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             {props.eventTypes.length == 0 && (
               <div className="shadow overflow-hidden rounded-sm">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
-                  <h2 className="font-semibold text-3xl text-gray-600 dark:text-white">Uh oh!</h2>
+                  <h2 className="font-cal font-semibold text-3xl text-gray-600 dark:text-white">Uh oh!</h2>
                   <p className="max-w-md mx-auto">This user hasn&apos;t set up any event types yet.</p>
                 </div>
               </div>
@@ -115,6 +117,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       length: true,
       description: true,
       hidden: true,
+      schedulingType: true,
+      price: true,
+      currency: true,
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });

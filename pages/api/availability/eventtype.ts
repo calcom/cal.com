@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
@@ -47,6 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       length: parseInt(req.body.length),
       hidden: req.body.hidden,
       requiresConfirmation: req.body.requiresConfirmation,
+      disableGuests: req.body.disableGuests,
       locations: req.body.locations,
       eventName: req.body.eventName,
       customInputs: !req.body.customInputs
@@ -88,6 +90,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       periodEndDate: req.body.periodEndDate,
       periodCountCalendarDays: req.body.periodCountCalendarDays,
       minimumBookingNotice: req.body.minimumBookingNotice,
+      price: req.body.price,
+      currency: req.body.currency,
     };
 
     if (req.body.schedulingType) {

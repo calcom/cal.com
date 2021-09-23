@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
-import { getSession } from "@lib/auth";
 import { pick } from "lodash";
+import type { NextApiRequest, NextApiResponse } from "next";
+
+import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -26,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           "hideBranding",
           "theme",
           "completedOnboarding",
+          "locale",
         ]),
         bio: req.body.description,
       },

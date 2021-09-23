@@ -1,7 +1,40 @@
+// TODO: replace headlessui with radix-ui
+import { Menu, Transition } from "@headlessui/react";
+import {
+  ChevronDownIcon,
+  DotsHorizontalIcon,
+  ExternalLinkIcon,
+  LinkIcon,
+  PlusIcon,
+  UsersIcon,
+} from "@heroicons/react/solid";
+import { SchedulingType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import dayjs from "dayjs";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import React, { Fragment, useRef } from "react";
+import { useMutation } from "react-query";
+
+import { asStringOrNull } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import createEventType from "@lib/mutations/event-types/create-event-type";
+import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
+import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -16,33 +49,6 @@ import Dropdown, {
 } from "@components/ui/Dropdown";
 import * as RadioArea from "@components/ui/form/radio-area";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
-// TODO: replace headlessui with radix-ui
-import { Menu, Transition } from "@headlessui/react";
-import {
-  ChevronDownIcon,
-  DotsHorizontalIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  PlusIcon,
-  UsersIcon,
-} from "@heroicons/react/solid";
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
-import classNames from "@lib/classNames";
-import { HttpError } from "@lib/core/http/error";
-import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
-import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import createEventType from "@lib/mutations/event-types/create-event-type";
-import showToast from "@lib/notification";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { SchedulingType } from "@prisma/client";
-import dayjs from "dayjs";
-import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { Fragment, useRef } from "react";
-import { useMutation } from "react-query";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 type EventType = PageProps["eventTypes"][number];
@@ -50,6 +56,11 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
+  const { locale } = useLocale({
+    localeProp: props.localeProp,
+    namespaces: "event-types-page",
+  });
+
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
@@ -59,7 +70,11 @@ const EventTypesPage = (props: PageProps) => {
           Event types enable you to share links that show available times on your calendar and allow people to
           make bookings with you.
         </p>
-        <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
+        <CreateNewEventDialog
+          localeProp={locale}
+          canAddEvents={props.canAddEvents}
+          profiles={props.profiles}
+        />
       </div>
     </div>
   );
@@ -68,15 +83,15 @@ const EventTypesPage = (props: PageProps) => {
     profile,
     membershipCount,
   }: {
-    profile: Profile;
+    profile?: Profile;
     membershipCount: MembershipCount;
   }) => (
     <div className="flex mb-4">
       <Link href="/settings/teams">
         <a>
           <Avatar
-            displayName={profile.name}
-            imageSrc={profile.image || undefined}
+            displayName={profile?.name || ""}
+            imageSrc={profile?.image || undefined}
             size={8}
             className="inline mt-1 mr-2"
           />
@@ -84,7 +99,7 @@ const EventTypesPage = (props: PageProps) => {
       </Link>
       <div>
         <Link href="/settings/teams">
-          <a className="font-bold">{profile.name}</a>
+          <a className="font-bold">{profile?.name || ""}</a>
         </Link>
         {membershipCount && (
           <span className="relative ml-2 text-xs text-neutral-500 -top-px">
@@ -98,9 +113,9 @@ const EventTypesPage = (props: PageProps) => {
             </Link>
           </span>
         )}
-        {typeof window !== "undefined" && (
-          <Link href={profile.slug!}>
-            <a className="block text-xs text-neutral-500">{`${window.location.host}/${profile.slug}`}</a>
+        {typeof window !== "undefined" && profile?.slug && (
+          <Link href={profile.slug}>
+            <a className="block text-xs text-neutral-500">{`cal.com/${profile.slug}`}</a>
           </Link>
         )}
       </div>
@@ -114,7 +129,7 @@ const EventTypesPage = (props: PageProps) => {
   }: {
     profile: PageProps["profiles"][number];
     readOnly: boolean;
-    types: EventType[];
+    types: EventType["eventTypes"];
   }) => (
     <div className="mb-16 -mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
@@ -148,19 +163,19 @@ const EventTypesPage = (props: PageProps) => {
 
                 <div className="flex-shrink-0 hidden mt-4 sm:flex sm:mt-0 sm:ml-5">
                   <div className="flex items-center space-x-5 overflow-hidden">
-                    {type.users.length > 1 && (
+                    {type.users?.length > 1 && (
                       <AvatarGroup
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
-                          alt: organizer.name,
-                          image: organizer.avatar,
+                          alt: organizer.name || "",
+                          image: organizer.avatar || "",
                         }))}
                       />
                     )}
                     <Tooltip content="Preview">
                       <a
-                        href={`/${profile.slug}/${type.slug}`}
+                        href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
                         className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
@@ -173,7 +188,7 @@ const EventTypesPage = (props: PageProps) => {
                         onClick={() => {
                           showToast("Link copied!", "success");
                           navigator.clipboard.writeText(
-                            `${window.location.origin}/${profile.slug}/${type.slug}`
+                            `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
                           );
                         }}
                         className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
@@ -210,7 +225,7 @@ const EventTypesPage = (props: PageProps) => {
                             <Menu.Item>
                               {({ active }) => (
                                 <a
-                                  href={`/${profile.slug}/${type.slug}`}
+                                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={classNames(
@@ -231,7 +246,7 @@ const EventTypesPage = (props: PageProps) => {
                                   onClick={() => {
                                     showToast("Link copied!", "success");
                                     navigator.clipboard.writeText(
-                                      `${window.location.origin}/${profile.slug}/${type.slug}`
+                                      `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
                                     );
                                   }}
                                   className={classNames(
@@ -313,10 +328,19 @@ const EventTypesPage = (props: PageProps) => {
   );
 };
 
-const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[]; canAddEvents: boolean }) => {
+const CreateNewEventDialog = ({
+  profiles,
+  canAddEvents,
+  localeProp,
+}: {
+  profiles: Profile[];
+  canAddEvents: boolean;
+  localeProp: string;
+}) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
+  const { t } = useLocale({ localeProp });
 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
@@ -348,13 +372,13 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          New event type
+          {t("new-event-type-btn")}
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>New event type</Button>
+            <Button EndIcon={ChevronDownIcon}>{t("new-event-type-btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>
@@ -384,7 +408,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                   size={6}
                   className="inline mr-2"
                 />
-                {profile.name}
+                {profile.name ? profile.name : profile.slug}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -531,9 +555,34 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
+  const locale = await extractLocaleInfo(context.req);
+
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
+
+  /**
+   * This makes the select reusable and type safe.
+   * @url https://www.prisma.io/docs/concepts/components/prisma-client/advanced-type-safety/prisma-validator#using-the-prismavalidator
+   * */
+  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    id: true,
+    title: true,
+    description: true,
+    length: true,
+    schedulingType: true,
+    slug: true,
+    hidden: true,
+    price: true,
+    currency: true,
+    users: {
+      select: {
+        id: true,
+        avatar: true,
+        name: true,
+      },
+    },
+  });
 
   const user = await prisma.user.findUnique({
     where: {
@@ -568,22 +617,7 @@ export async function getServerSideProps(context) {
                 },
               },
               eventTypes: {
-                select: {
-                  id: true,
-                  title: true,
-                  description: true,
-                  length: true,
-                  schedulingType: true,
-                  slug: true,
-                  hidden: true,
-                  users: {
-                    select: {
-                      id: true,
-                      avatar: true,
-                      name: true,
-                    },
-                  },
-                },
+                select: eventTypeSelect,
               },
             },
           },
@@ -593,22 +627,7 @@ export async function getServerSideProps(context) {
         where: {
           team: null,
         },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          length: true,
-          schedulingType: true,
-          slug: true,
-          hidden: true,
-          users: {
-            select: {
-              id: true,
-              avatar: true,
-              name: true,
-            },
-          },
-        },
+        select: eventTypeSelect,
       },
     },
   });
@@ -637,25 +656,10 @@ export async function getServerSideProps(context) {
     where: {
       userId: session.user.id,
     },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      schedulingType: true,
-      hidden: true,
-      users: {
-        select: {
-          id: true,
-          avatar: true,
-          name: true,
-        },
-      },
-    },
+    select: eventTypeSelect,
   });
 
-  type EventTypes = (Partial<typeof typesRaw[number]> & {
+  type EventTypeGroup = {
     teamId?: number | null;
     profile?: {
       slug: typeof user["username"];
@@ -666,37 +670,36 @@ export async function getServerSideProps(context) {
       membershipCount: number;
       readOnly: boolean;
     };
-    eventTypes?: (Partial<typeof user["eventTypes"][number]> & { $disabled?: boolean })[];
-  })[];
+    eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+  };
 
-  let eventTypes: EventTypes = [];
+  let eventTypeGroups: EventTypeGroup[] = [];
+  const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+    const oldItem = hashMap[newItem.id] || {};
+    hashMap[newItem.id] = { ...oldItem, ...newItem };
+    return hashMap;
+  }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
+  const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
+    ...et,
+    $disabled: user.plan === "FREE" && index > 0,
+  }));
 
-  eventTypes.push({
+  eventTypeGroups.push({
     teamId: null,
     profile: {
       slug: user.username,
       name: user.name,
       image: user.avatar,
     },
-    eventTypes: user.eventTypes.concat(typesRaw).map((type, index) =>
-      user.plan === "FREE" && index > 0
-        ? {
-            ...type,
-            $disabled: true,
-          }
-        : {
-            ...type,
-            $disabled: false,
-          }
-    ),
+    eventTypes: mergedEventTypes,
     metadata: {
       membershipCount: 1,
       readOnly: false,
     },
   });
 
-  eventTypes = ([] as EventTypes).concat(
-    eventTypes,
+  eventTypeGroups = ([] as EventTypeGroup[]).concat(
+    eventTypeGroups,
     user.teams.map((membership) => ({
       teamId: membership.team.id,
       profile: {
@@ -716,20 +719,22 @@ export async function getServerSideProps(context) {
     createdDate: user.createdDate.toString(),
   });
 
-  const canAddEvents = user.plan !== "FREE" || eventTypes[0].eventTypes.length < 1;
+  const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
 
   return {
     props: {
+      localeProp: locale,
       canAddEvents,
       user: userObj,
       // don't display event teams without event types,
-      eventTypes: eventTypes.filter((groupBy) => !!groupBy.eventTypes?.length),
+      eventTypes: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
       // so we can show a dropdown when the user has teams
-      profiles: eventTypes.map((group) => ({
+      profiles: eventTypeGroups.map((group) => ({
         teamId: group.teamId,
         ...group.profile,
         ...group.metadata,
       })),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }

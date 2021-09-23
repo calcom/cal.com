@@ -1,7 +1,8 @@
-import { Button, ButtonProps } from "@components/ui/Button";
 import { PlusIcon } from "@heroicons/react/solid";
 import Head from "next/head";
 import React from "react";
+
+import { Button, ButtonProps } from "@components/ui/Button";
 
 export default function ButtonPage() {
   const list: ButtonProps[] = [

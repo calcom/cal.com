@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { getSession } from "@lib/auth";
+
 import prisma from "../../../../lib/prisma";
 
 const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];

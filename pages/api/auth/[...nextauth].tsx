@@ -1,13 +1,17 @@
 import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
-import prisma from "@lib/prisma";
-import { ErrorCode, Session, verifyPassword } from "@lib/auth";
 import { authenticator } from "otplib";
+
+import { ErrorCode, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
+import prisma from "@lib/prisma";
 
 export default NextAuth({
   session: {
     jwt: true,
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET,
   },
   pages: {
     signIn: "/auth/login",

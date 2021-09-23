@@ -1,18 +1,20 @@
+// TODO: replace headlessui with radix-ui
+import { Menu, Transition } from "@headlessui/react";
+import { BanIcon, CalendarIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
+import { DotsHorizontalIcon } from "@heroicons/react/solid";
+import { BookingStatus } from "@prisma/client";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+import { Fragment } from "react";
+
+import classNames from "@lib/classNames";
+import { trpc } from "@lib/trpc";
+
 import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
 import { Button } from "@components/ui/Button";
-// TODO: replace headlessui with radix-ui
-import { Menu, Transition } from "@headlessui/react";
-import { BanIcon, CalendarIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
-import { DotsHorizontalIcon } from "@heroicons/react/solid";
-import classNames from "@lib/classNames";
-import { trpc } from "@lib/trpc";
-import { BookingStatus } from "@prisma/client";
-import dayjs from "dayjs";
-import { useRouter } from "next/router";
-import { Fragment } from "react";
 
 export default function Bookings() {
   const query = trpc.useQuery(["viewer.bookings"]);

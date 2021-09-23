@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
 import { jitsuClient, JitsuClient } from "@jitsu/sdk-js";
+import React, { useContext } from "react";
 
 /**
  * Enumeration of all event types that are being sent

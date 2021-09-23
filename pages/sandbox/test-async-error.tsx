@@ -1,6 +1,7 @@
 import React from "react";
-import { HttpError } from "@lib/core/http/error";
 import { useQuery } from "react-query";
+
+import { HttpError } from "@lib/core/http/error";
 
 const TestAsyncErrorRoute: React.FC = () => {
   const { error, isLoading } = useQuery(["error-promise"], async () => {

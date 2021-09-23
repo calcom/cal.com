@@ -1,7 +1,9 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
-import Button from "@components/ui/Button";
+
 import { Team } from "@lib/team";
+
+import Button from "@components/ui/Button";
 
 export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");

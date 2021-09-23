@@ -1,12 +1,14 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { HeadSeo } from "@components/seo/head-seo";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { Button } from "@components/ui/Button";
+
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import { Button } from "@components/ui/Button";
 
 dayjs.extend(utc);
 
@@ -97,7 +99,9 @@ export default function Type(props) {
                           <p className="text-sm text-gray-500">Instead, you could also reschedule it.</p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
-                          <h2 className="text-lg font-medium text-gray-600 mb-2">{props.booking.title}</h2>
+                          <h2 className="font-cal text-lg font-medium text-gray-600 mb-2">
+                            {props.booking.title}
+                          </h2>
                           <p className="text-gray-500">
                             <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                             {dayjs(props.booking.startTime).format(

@@ -1,11 +1,7 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import Avatar from "@components/ui/Avatar";
-// TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
-  ChatAltIcon,
   ClockIcon,
   CogIcon,
   ExternalLinkIcon,
@@ -13,14 +9,19 @@ import {
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
-import classNames from "@lib/classNames";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { trpc } from "@lib/trpc";
 import { signOut } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
+
+import classNames from "@lib/classNames";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { trpc } from "@lib/trpc";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import Avatar from "@components/ui/Avatar";
+
 import Loader from "./Loader";
 import Logo from "./Logo";
 
@@ -279,7 +280,11 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                 "w-64 z-10 absolute mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
               )}>
               <div className="py-1">
-                <a href={"/" + user?.username} className="flex px-4 py-2 text-sm text-neutral-500">
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${user?.username || ""}`}
+                  className="flex px-4 py-2 text-sm text-neutral-500">
                   View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
                 </a>
               </div>
@@ -317,25 +322,6 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                         </g>
                       </svg>
                       Join our Slack
-                    </a>
-                  )}
-                </Menu.Item>
-                <Menu.Item>
-                  {({ active }) => (
-                    <a
-                      href="mailto:feedback@cal.com"
-                      className={classNames(
-                        active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
-                        "flex px-4 py-2 text-sm font-medium"
-                      )}>
-                      <ChatAltIcon
-                        className={classNames(
-                          "text-neutral-400 group-hover:text-neutral-500",
-                          "mr-2 flex-shrink-0 h-5 w-5"
-                        )}
-                        aria-hidden="true"
-                      />
-                      Feedback
                     </a>
                   )}
                 </Menu.Item>

@@ -1,20 +1,31 @@
-import prisma from "@lib/prisma";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import BookingPage from "@components/booking/pages/BookingPage";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function Book(props: any): JSX.Element {
+export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Book(props: BookPageProps) {
   return <BookingPage {...props} />;
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const locale = await extractLocaleInfo(context.req);
+
   const user = await prisma.user.findUnique({
     where: {
-      username: context.query.user,
+      username: asStringOrThrow(context.query.user),
     },
     select: {
       username: true,
@@ -26,9 +37,11 @@ export async function getServerSideProps(context) {
     },
   });
 
+  if (!user) return { notFound: true };
+
   const eventType = await prisma.eventType.findUnique({
     where: {
-      id: parseInt(context.query.type),
+      id: parseInt(asStringOrThrow(context.query.type)),
     },
     select: {
       id: true,
@@ -43,6 +56,9 @@ export async function getServerSideProps(context) {
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      price: true,
+      currency: true,
+      disableGuests: true,
       users: {
         select: {
           username: true,
@@ -55,6 +71,8 @@ export async function getServerSideProps(context) {
       },
     },
   });
+
+  if (!eventType) return { notFound: true };
 
   const eventTypeObject = [eventType].map((e) => {
     return {
@@ -69,7 +87,7 @@ export async function getServerSideProps(context) {
   if (context.query.rescheduleUid) {
     booking = await prisma.booking.findFirst({
       where: {
-        uid: context.query.rescheduleUid,
+        uid: asStringOrThrow(context.query.rescheduleUid),
       },
       select: {
         description: true,
@@ -85,6 +103,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      localeProp: locale,
       profile: {
         slug: user.username,
         name: user.name,
@@ -93,6 +112,7 @@ export async function getServerSideProps(context) {
       },
       eventType: eventTypeObject,
       booking,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }

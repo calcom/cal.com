@@ -1,17 +1,23 @@
-import { CalendarEvent } from "./calendarClient";
-import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
+
+import { getIntegrationName } from "@lib/integrations";
+import { VideoCallData } from "@lib/videoClient";
+
+import { CalendarEvent } from "./calendarClient";
 import { stripHtml } from "./emails/helpers";
 
 const translator = short();
 
 export default class CalEventParser {
   protected calEvent: CalendarEvent;
-  protected maybeUid: string;
+  protected maybeUid?: string;
+  protected optionalVideoCallData?: VideoCallData;
 
-  constructor(calEvent: CalendarEvent, maybeUid: string = null) {
+  constructor(calEvent: CalendarEvent, maybeUid?: string, optionalVideoCallData?: VideoCallData) {
     this.calEvent = calEvent;
     this.maybeUid = maybeUid;
+    this.optionalVideoCallData = optionalVideoCallData;
   }
 
   /**
@@ -61,14 +67,44 @@ export default class CalEventParser {
 <strong>Event Type:</strong><br />${this.calEvent.type}<br />
 <strong>Invitee Email:</strong><br /><a href="mailto:${this.calEvent.attendees[0].email}">${this.calEvent.attendees[0].email}</a><br />
 ` +
-      (this.calEvent.location
-        ? `<strong>Location:</strong><br />${this.calEvent.location}<br />
+      (this.getLocation()
+        ? `<strong>Location:</strong><br />${this.getLocation()}<br />
 `
         : "") +
       `<strong>Invitee Time Zone:</strong><br />${this.calEvent.attendees[0].timeZone}<br />
-<strong>Additional notes:</strong><br />${this.calEvent.description}<br />` +
+<strong>Additional notes:</strong><br />${this.getDescriptionText()}<br />` +
       this.getChangeEventFooterHtml()
     );
+  }
+
+  /**
+   * Conditionally returns the event's location. When VideoCallData is set,
+   * it returns the meeting url. Otherwise, the regular location is returned.
+   *
+   * @protected
+   */
+  protected getLocation(): string | undefined {
+    if (this.optionalVideoCallData) {
+      return this.optionalVideoCallData.url;
+    }
+    return this.calEvent.location;
+  }
+
+  /**
+   * Returns the event's description text. If VideoCallData is set, it prepends
+   * some video call information before the text as well.
+   *
+   * @protected
+   */
+  protected getDescriptionText(): string | undefined {
+    if (this.optionalVideoCallData) {
+      return `
+${getIntegrationName(this.optionalVideoCallData.type)} meeting
+ID: ${this.optionalVideoCallData.id}
+Password: ${this.optionalVideoCallData.password}
+${this.calEvent.description}`;
+    }
+    return this.calEvent.description;
   }
 
   /**
@@ -86,6 +122,7 @@ export default class CalEventParser {
   public asRichEvent(): CalendarEvent {
     const eventCopy: CalendarEvent = { ...this.calEvent };
     eventCopy.description = this.getRichDescriptionHtml();
+    eventCopy.location = this.getLocation();
     return eventCopy;
   }
 
@@ -95,6 +132,7 @@ export default class CalEventParser {
   public asRichEventPlain(): CalendarEvent {
     const eventCopy: CalendarEvent = { ...this.calEvent };
     eventCopy.description = this.getRichDescription();
+    eventCopy.location = this.getLocation();
     return eventCopy;
   }
 }
