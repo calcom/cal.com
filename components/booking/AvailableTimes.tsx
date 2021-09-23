@@ -46,6 +46,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     workingHours,
     users,
     minimumBookingNotice,
+    eventTypeId,
   });
 
   return (
