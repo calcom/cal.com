@@ -31,7 +31,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 displayName={props.user.name}
                 className="mx-auto w-24 h-24 rounded-full mb-4"
               />
-              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-1">
+              <h1 className="font-cal text-3xl font-bold text-neutral-900 dark:text-white mb-1">
                 {props.user.name || props.user.username}
               </h1>
               <p className="text-neutral-500 dark:text-white">{props.user.bio}</p>
