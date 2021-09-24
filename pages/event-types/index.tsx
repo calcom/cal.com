@@ -114,8 +114,11 @@ const EventTypesPage = (props: PageProps) => {
           </span>
         )}
         {profile?.slug && (
-          <Link href={`/${profile.slug}`}>
-            <a className="block text-xs text-neutral-500">{`cal.com/${profile.slug}`}</a>
+          <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}`}>
+            <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
+              "https://",
+              ""
+            )}/${profile.slug}`}</a>
           </Link>
         )}
       </div>
