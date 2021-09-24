@@ -29,7 +29,7 @@ dayjs.extend(customParseFormat);
 const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPageProps) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const themeLoaded = useTheme(profile.theme);
+  const { isReady } = useTheme(profile.theme);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -83,20 +83,20 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
   };
 
   return (
-    themeLoaded && (
-      <>
-        <HeadSeo
-          title={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title} | ${profile.name}`}
-          description={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title}`}
-          name={profile.name}
-          avatar={profile.image}
-        />
-        <div>
-          <main
-            className={
-              "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
-              (selectedDate ? "max-w-5xl" : "max-w-3xl")
-            }>
+    <>
+      <HeadSeo
+        title={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title} | ${profile.name}`}
+        description={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title}`}
+        name={profile.name}
+        avatar={profile.image}
+      />
+      <div>
+        <main
+          className={
+            "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
+            (selectedDate ? "max-w-5xl" : "max-w-3xl")
+          }>
+          {isReady && (
             <div className="bg-white border-gray-200 rounded-sm sm:dark:border-gray-600 dark:bg-gray-900 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
@@ -214,11 +214,11 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                 )}
               </div>
             </div>
-            {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCalendso />}
-          </main>
-        </div>
-      </>
-    )
+          )}
+          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCalendso />}
+        </main>
+      </div>
+    </>
   );
 
   function TimezoneDropdown() {
