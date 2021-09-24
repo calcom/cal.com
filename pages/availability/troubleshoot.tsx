@@ -115,6 +115,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   });
 
   return {
-    props: { user },
+    props: { session, user },
   };
 };

@@ -723,6 +723,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      session,
       localeProp: locale,
       canAddEvents,
       user: userObj,
