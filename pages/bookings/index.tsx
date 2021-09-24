@@ -46,7 +46,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
       <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
         <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+            <div className="inline-block min-w-full py-2 text-gray-900 align-middle sm:px-6 lg:px-8">
               {isEmpty ? (
                 <EmptyScreen
                   Icon={CalendarIcon}

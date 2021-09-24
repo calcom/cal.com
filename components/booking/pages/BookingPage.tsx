@@ -169,9 +169,9 @@ const BookingPage = (props): JSX.Element => {
         </Head>
 
         <main className="max-w-3xl mx-auto my-0 sm:my-24">
-          <div className="overflow-hidden bg-white border border-gray-200 dark:bg-neutral-900 dark:border-0 sm:rounded-sm">
+          <div className="overflow-hidden bg-white border border-gray-200   sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
-              <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
+              <div className="sm:w-1/2 sm:border-r sm:">
                 <AvatarGroup
                   size={16}
                   items={[{ image: props.profile.image, alt: props.profile.name }].concat(
@@ -183,10 +183,8 @@ const BookingPage = (props): JSX.Element => {
                       }))
                   )}
                 />
-                <h2 className="font-medium text-gray-500 dark:text-gray-300">{props.profile.name}</h2>
-                <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
-                  {props.eventType.title}
-                </h1>
+                <h2 className="font-medium text-gray-500 ">{props.profile.name}</h2>
+                <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{props.eventType.title}</h1>
                 <p className="mb-2 text-gray-500">
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {props.eventType.length} minutes
@@ -201,14 +199,12 @@ const BookingPage = (props): JSX.Element => {
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
                 </p>
-                <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
+                <p className="mb-8 text-gray-600 ">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
                   <div className={"mb-4 " + (props.eventType.slug !== "async" ? "hidden" : "")}>
-                    <label
-                      htmlFor="topic"
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
+                    <label htmlFor="topic" className="block text-sm font-medium text-gray-700 ">
                       Meeting topic
                     </label>
                     <div className="mt-1">
@@ -218,13 +214,13 @@ const BookingPage = (props): JSX.Element => {
                         name="topic"
                         id="topic"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                         placeholder="Important stuff"
                       />
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 ">
                       Your name
                     </label>
                     <div className="mt-1">
@@ -233,16 +229,14 @@ const BookingPage = (props): JSX.Element => {
                         name="name"
                         id="name"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                         placeholder="John Doe"
                         defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 ">
                       Email address
                     </label>
                     <div className="mt-1">
@@ -251,7 +245,7 @@ const BookingPage = (props): JSX.Element => {
                         name="email"
                         id="email"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                         placeholder="you@example.com"
                         defaultValue={props.booking ? props.booking.attendees[0].email : ""}
                       />
@@ -259,9 +253,7 @@ const BookingPage = (props): JSX.Element => {
                   </div>
                   {locations.length > 1 && (
                     <div className="mb-4">
-                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                        Location
-                      </span>
+                      <span className="block text-sm font-medium text-gray-700 ">Location</span>
                       {locations.map((location) => (
                         <label key={location.type} className="block">
                           <input
@@ -273,18 +265,14 @@ const BookingPage = (props): JSX.Element => {
                             value={location.type}
                             checked={selectedLocation === location.type}
                           />
-                          <span className="ml-2 text-sm dark:text-gray-500">
-                            {locationLabels[location.type]}
-                          </span>
+                          <span className="ml-2 text-sm ">{locationLabels[location.type]}</span>
                         </label>
                       ))}
                     </div>
                   )}
                   {selectedLocation === LocationType.Phone && (
                     <div className="mb-4">
-                      <label
-                        htmlFor="phone"
-                        className="block text-sm font-medium text-gray-700 dark:text-white">
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 ">
                         Phone Number
                       </label>
                       <div className="mt-1">
@@ -293,7 +281,7 @@ const BookingPage = (props): JSX.Element => {
                           placeholder="Enter phone number"
                           id="phone"
                           required
-                          className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                          className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                           onChange={() => {
                             /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
                           }}
@@ -309,7 +297,7 @@ const BookingPage = (props): JSX.Element => {
                           {input.type !== EventTypeCustomInputType.BOOL && (
                             <label
                               htmlFor={"custom_" + input.id}
-                              className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                              className="block mb-1 text-sm font-medium text-gray-700 ">
                               {input.label}
                             </label>
                           )}
@@ -319,7 +307,7 @@ const BookingPage = (props): JSX.Element => {
                               id={"custom_" + input.id}
                               required={input.required}
                               rows={3}
-                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -329,7 +317,7 @@ const BookingPage = (props): JSX.Element => {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -339,7 +327,7 @@ const BookingPage = (props): JSX.Element => {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                               placeholder=""
                             />
                           )}
@@ -355,7 +343,7 @@ const BookingPage = (props): JSX.Element => {
                               />
                               <label
                                 htmlFor={"custom_" + input.id}
-                                className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                                className="block mb-1 text-sm font-medium text-gray-700 ">
                                 {input.label}
                               </label>
                             </div>
@@ -367,15 +355,13 @@ const BookingPage = (props): JSX.Element => {
                       <label
                         onClick={toggleGuestEmailInput}
                         htmlFor="guests"
-                        className="block mb-1 text-sm font-medium text-blue-500 dark:text-white hover:cursor-pointer">
+                        className="block mb-1 text-sm font-medium text-blue-500  hover:cursor-pointer">
                         + Additional Guests
                       </label>
                     )}
                     {guestToggle && (
                       <div>
-                        <label
-                          htmlFor="guests"
-                          className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                        <label htmlFor="guests" className="block mb-1 text-sm font-medium text-gray-700 ">
                           Guests
                         </label>
                         <ReactMultiEmail
@@ -399,16 +385,14 @@ const BookingPage = (props): JSX.Element => {
                     )}
                   </div>
                   <div className="mb-4">
-                    <label
-                      htmlFor="notes"
-                      className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                    <label htmlFor="notes" className="block mb-1 text-sm font-medium text-gray-700 ">
                       Additional notes
                     </label>
                     <textarea
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                      className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
                       placeholder="Please share anything that will help prepare for our meeting."
                       defaultValue={props.booking ? props.booking.description : ""}
                     />

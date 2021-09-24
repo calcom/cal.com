@@ -128,25 +128,19 @@ const DatePicker = ({
     <div
       className={
         "mt-8 sm:mt-0 sm:min-w-[455px] " +
-        (date
-          ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
-          : "w-full sm:pl-4")
-      }
-    >
+        (date ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm: sm:pl-4 sm:pr-6 " : "w-full sm:pl-4")
+      }>
       <div className="flex mb-4 text-xl font-light text-gray-600">
-        <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong className="text-gray-900 dark:text-white">{inviteeDate().format("MMMM")}</strong>
+        <span className="w-1/2 text-gray-600 ">
+          <strong className="text-gray-900 ">{inviteeDate().format("MMMM")}</strong>
           <span className="text-gray-500"> {inviteeDate().format("YYYY")}</span>
         </span>
         <div className="w-1/2 text-right text-gray-600 ">
           <button
             onClick={decrementMonth}
-            className={
-              "group mr-2 p-1" + (selectedMonth <= dayjs().month() && "text-gray-400 dark:text-gray-600")
-            }
-            disabled={selectedMonth <= dayjs().month()}
-          >
-            <ChevronLeftIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />
+            className={"group mr-2 p-1" + (selectedMonth <= dayjs().month() && "text-gray-400 ")}
+            disabled={selectedMonth <= dayjs().month()}>
+            <ChevronLeftIcon className="w-5 h-5 group-hover:text-black :text-white" />
           </button>
           <button className="p-1 group" onClick={incrementMonth}>
             <ChevronRightIcon className="w-5 h-5 group-hover:text-black " />
@@ -169,8 +163,7 @@ const DatePicker = ({
             style={{
               paddingTop: "100%",
             }}
-            className="relative w-full"
-          >
+            className="relative w-full">
             {day === null ? (
               <div key={`e-${idx}`} />
             ) : (
@@ -179,17 +172,16 @@ const DatePicker = ({
                 disabled={day.disabled}
                 className={classNames(
                   "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
-                  "hover:border hover:border-black dark:hover:border-white",
+                  "hover:border hover:border-black :border-white",
                   day.disabled
                     ? "text-gray-400 font-light hover:border-0 cursor-default"
-                    : "dark:text-white text-primary-500 font-medium",
+                    : " text-primary-500 font-medium",
                   date && date.isSame(inviteeDate().date(day.date), "day")
                     ? "bg-black text-white-important"
                     : !day.disabled
-                    ? " bg-gray-100 dark:bg-gray-600"
+                    ? " bg-gray-100 "
                     : ""
-                )}
-              >
+                )}>
                 {day.date}
               </button>
             )}

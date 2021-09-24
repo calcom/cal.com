@@ -38,7 +38,7 @@ function HideBrandingInput(props: {
         ref={props.hideBrandingRef}
         defaultChecked={isBrandingHidden(props.user)}
         className={
-          "focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50"
+          "focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50 hover:checked:bg-black checked:bg-black"
         }
         onClick={(e) => {
           if (!e.currentTarget.checked || props.user.plan !== "FREE") {
@@ -175,13 +175,14 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
               <div className="flex-grow space-y-6">
                 <div className="block sm:flex">
                   <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
-                    <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
+                    <UsernameInput disabled ref={usernameRef} defaultValue={props.user.username} />
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       Full name
                     </label>
                     <input
+                      disabled
                       ref={nameRef}
                       type="text"
                       name="name"
@@ -228,6 +229,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                       defaultValue={imageSrc}
                     />
                     <ImageUploader
+                      noChange
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg="Change avatar"

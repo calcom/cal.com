@@ -181,6 +181,7 @@ export default NextAuth({
               description: `Async meeting with ${name}.`,
               length: 10,
               eventName: `[ASYNC] ${name} <> {USER}`,
+              locations: null,
             },
           });
         } else {
@@ -192,6 +193,7 @@ export default NextAuth({
               description: `Async meeting with ${name}.`,
               length: 10,
               eventName: `[ASYNC] ${name} <> {USER}`,
+              locations: null,
             },
           });
         }

@@ -11,6 +11,7 @@ const UsernameInput = React.forwardRef((props, ref) => (
         {typeof window !== "undefined" && window.location.hostname}/{props.label && "team/"}
       </span>
       <input
+        disabled={props.disabled}
         ref={ref}
         type="text"
         name="username"

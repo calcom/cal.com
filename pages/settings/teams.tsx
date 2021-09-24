@@ -1,4 +1,4 @@
-import { GetServerSideProps } from "next";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import { useEffect, useRef, useState } from "react";
@@ -15,7 +15,10 @@ import { Member } from "@lib/member";
 import { Team } from "@lib/team";
 import { PlusIcon } from "@heroicons/react/solid";
 
-export default function Teams() {
+export default function Teams(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  if (Math.random() > 1) {
+    console.log(props);
+  }
   const noop = () => undefined;
   const [, loading] = useSession();
   const [teams, setTeams] = useState([]);
@@ -100,8 +103,7 @@ export default function Teams() {
                   <Button
                     type="button"
                     onClick={() => setShowCreateTeamModal(true)}
-                    className="btn btn-white"
-                  >
+                    className="btn btn-white">
                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
                     New Team
                   </Button>
@@ -121,8 +123,7 @@ export default function Teams() {
                           onChange={loadData}
                           key={team.id}
                           team={team}
-                          onActionSelect={noop}
-                        ></TeamListItem>
+                          onActionSelect={noop}></TeamListItem>
                       ))}
                     </ul>
                   </div>
@@ -137,13 +138,11 @@ export default function Teams() {
             className="fixed inset-0 z-50 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
-            aria-modal="true"
-          >
+            aria-modal="true">
             <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div
                 className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
-                aria-hidden="true"
-              ></div>
+                aria-hidden="true"></div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
@@ -185,8 +184,7 @@ export default function Teams() {
                     <button
                       onClick={() => setShowCreateTeamModal(false)}
                       type="button"
-                      className="mr-2 btn btn-white"
-                    >
+                      className="mr-2 btn btn-white">
                       Cancel
                     </button>
                   </div>
@@ -202,6 +200,7 @@ export default function Teams() {
 
 // Export the `session` prop to use sessions with Server Side Rendering
 export const getServerSideProps: GetServerSideProps<{ session: Session | null }> = async (context) => {
+  return { notFound: true };
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };

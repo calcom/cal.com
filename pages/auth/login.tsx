@@ -71,7 +71,7 @@ export default function Login({ csrfToken }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Calendso Logo" />
+        <img className="h-6 mx-auto" src="/yac-logo-white-word.svg" alt="Calendso Logo" />
         <h2 className="mt-6 text-3xl font-bold text-center text-neutral-900">Sign in to your account</h2>
       </div>
 
@@ -81,8 +81,7 @@ export default function Login({ csrfToken }) {
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <button
               type="submit"
-              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-            >
+              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
               Sign in with Yac
             </button>
           </form>

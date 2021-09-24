@@ -68,7 +68,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
 
   return (
     isReady && (
-      <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
+      <div className="h-screen bg-neutral-50 ">
         <HeadSeo
           title={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
           description={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
@@ -81,7 +81,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                   &#8203;
                 </span>
                 <div
-                  className="inline-block px-8 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white border rounded-sm dark:bg-gray-800 border-neutral-200 dark:border-neutral-700 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
+                  className="inline-block px-8 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white border rounded-sm  border-neutral-200  sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
@@ -91,13 +91,11 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                       {needsConfirmation && <ClockIcon className="w-8 h-8 text-green-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
-                      <h3
-                        className="text-2xl font-semibold leading-6 dark:text-white text-neutral-900"
-                        id="modal-headline">
+                      <h3 className="text-2xl font-semibold leading-6  text-neutral-900" id="modal-headline">
                         {needsConfirmation ? "Submitted" : "This meeting is scheduled"}
                       </h3>
                       <div className="mt-3">
-                        <p className="text-sm text-neutral-600 dark:text-gray-300">
+                        <p className="text-sm text-neutral-600 ">
                           {needsConfirmation
                             ? props.profile.name !== null
                               ? `${props.profile.name} still needs to confirm or reject the booking.`
@@ -105,7 +103,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                             : `We emailed you and the other attendees a calendar invitation with all the details.`}
                         </p>
                       </div>
-                      <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b dark:text-gray-300 dark:border-gray-900">
+                      <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b  ">
                         <div className="font-medium">What</div>
                         <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">When</div>
@@ -138,7 +136,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                   </div>
                   {!needsConfirmation && (
                     <div className="flex pt-2 mt-5 text-center sm:mt-0 sm:pt-4">
-                      <span className="flex self-center mr-6 font-medium text-gray-700 dark:text-gray-50">
+                      <span className="flex self-center mr-6 font-medium text-gray-700 ">
                         Add to calendar
                       </span>
                       <div className="flex invert">
@@ -153,7 +151,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                               props.eventType.description
                             }` + (location ? "&location=" + encodeURIComponent(location) : "")
                           }>
-                          <a className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white">
+                          <a className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  ">
                             <svg
                               className="inline-block w-4 h-4 -mt-1"
                               fill="currentColor"
@@ -178,7 +176,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  "
                             target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
@@ -204,7 +202,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  "
                             target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
@@ -218,7 +216,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
                           <a
-                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  "
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -235,7 +233,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                     </div>
                   )}
                   {!props.hideBranding && (
-                    <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
+                    <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t  ">
                       <a href="https://cal.com/signup">Create your own booking link with Yac Meet</a>
                     </div>
                   )}

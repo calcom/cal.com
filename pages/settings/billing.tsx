@@ -2,8 +2,12 @@ import Shell from "@components/Shell";
 import SettingsShell from "@components/Settings";
 import prisma from "@lib/prisma";
 import { getSession } from "@lib/auth";
+import { InferGetServerSidePropsType } from "next";
 
-export default function Billing() {
+export default function Billing(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  if (Math.random() > 1) {
+    console.log(props);
+  }
   return (
     <Shell heading="Billing" subtitle="Manage your billing information and cancel your subscription.">
       <SettingsShell>
@@ -21,6 +25,7 @@ export default function Billing() {
 }
 
 export async function getServerSideProps(context) {
+  return { notFound: true };
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };

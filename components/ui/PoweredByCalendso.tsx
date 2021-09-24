@@ -8,13 +8,13 @@ const PoweredByCalendso = () => (
         <img
           style={{ top: -2 }}
           className="relative inline w-auto h-3 "
-          src="/calendso-logo-white-word.svg"
+          src="/yac-logo-white-word.svg"
           alt="Calendso Logo"
         />
         <img
           style={{ top: -2 }}
           className="relative hidden w-auto h-3"
-          src="/calendso-logo-white-word-dark.svg"
+          src="/yac-logo-white-word-dark.svg"
           alt="Calendso Logo"
         />
       </a>

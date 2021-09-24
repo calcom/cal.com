@@ -10,7 +10,7 @@ export type EventTypeDescriptionProps = {
 
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
   return (
-    <ul className={classNames("mt-2 space-x-4 text-neutral-500 dark:text-white flex", className)}>
+    <ul className={classNames("mt-2 space-x-4 text-neutral-500  flex", className)}>
       <li className="flex whitespace-nowrap">
         <ClockIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
         {eventType.length}m

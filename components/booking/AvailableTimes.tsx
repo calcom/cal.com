@@ -59,7 +59,7 @@ const AvailableTimes = ({
           return (
             <div key={slot.time.format()}>
               <Link href={bookingUrl}>
-                <a className="block py-4 mb-4 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-primary-500 dark:border-transparent hover:text-white hover:bg-primary-500 dark:hover:border-black dark:hover:bg-black">
+                <a className="block py-4 mb-4 font-medium bg-white border rounded-sm text-primary-500 border-primary-500 hover:text-white hover:bg-primary-500 :border-black :bg-black">
                   {slot.time.format(timeFormat)}
                 </a>
               </Link>
@@ -68,7 +68,7 @@ const AvailableTimes = ({
         })}
       {!loading && !error && !(slots || []).length && (
         <div className="flex flex-col items-center content-center justify-center w-full h-full -mt-4">
-          <h1 className="text-xl text-black dark:text-white">All booked today.</h1>
+          <h1 className="text-xl text-black ">All booked today.</h1>
         </div>
       )}
 

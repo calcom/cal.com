@@ -23,13 +23,12 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm"
-        >
-          <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
+          className="group relative   :border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-black rounded-sm">
+          <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black  opacity-0 group-hover:opacity-100" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="px-6 py-4 flex justify-between">
               <div className="flex-shrink">
-                <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                <h2 className="font-semibold text-neutral-900 ">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1">
@@ -70,22 +69,19 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
 
               <div className="relative mt-12">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-gray-200 dark:border-gray-900" />
+                  <div className="w-full border-t border-gray-200 " />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-2 bg-gray-100 text-sm text-gray-500 dark:bg-black dark:text-gray-500">
-                    OR
-                  </span>
+                  <span className="px-2 bg-gray-100 text-sm text-gray-500  ">OR</span>
                 </div>
               </div>
 
-              <aside className="text-center dark:text-white mt-8">
+              <aside className="text-center  mt-8">
                 <Button
                   color="secondary"
                   EndIcon={ArrowRightIcon}
                   href={`/team/${team.slug}?members=1`}
-                  shallow={true}
-                >
+                  shallow={true}>
                   Book a team member instead
                 </Button>
               </aside>

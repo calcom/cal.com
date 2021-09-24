@@ -6,8 +6,9 @@ import { getSession, useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
+import { InferGetServerSidePropsType } from "next";
 
-export default function Security({ user }) {
+export default function Security({ user }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
@@ -26,6 +27,7 @@ export default function Security({ user }) {
 }
 
 export async function getServerSideProps(context) {
+  return { notFound: true };
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };

@@ -1,7 +1,6 @@
 // Get router variables
 import { useRouter } from "next/router";
 import { useEffect, useState, useMemo } from "react";
-import { EventType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
@@ -22,17 +21,17 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-type AvailabilityPageProps = {
-  eventType: EventType;
-  profile: {
-    name: string;
-    image: string;
-    theme?: string;
-  };
-  workingHours: [];
-};
+// type AvailabilityPageProps = {
+//   eventType: EventType;
+//   profile: {
+//     name: string;
+//     image: string;
+//     theme?: string;
+//   };
+//   workingHours: [];
+// };
 
-const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPageProps) => {
+const AvailabilityPage = ({ profile, eventType, workingHours }) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const themeLoaded = useTheme(profile.theme);
@@ -102,9 +101,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
             className={
               "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
               (selectedDate ? "max-w-5xl" : "max-w-3xl")
-            }
-          >
-            <div className="bg-white border-gray-200 rounded-sm sm:dark:border-gray-600 dark:bg-gray-900 md:border">
+            }>
+            <div className="bg-white border-gray-200 rounded-sm sm: md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
@@ -121,7 +119,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     truncateAfter={5}
                   />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
+                    <p className="text-sm font-medium text-black ">{profile.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
                       {eventType.title}
                       <div>
@@ -131,16 +129,14 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     </div>
                   </div>
                 </div>
-                <p className="mt-3 text-gray-600 dark:text-gray-200">{eventType.description}</p>
+                <p className="mt-3 text-gray-600 ">{eventType.description}</p>
               </div>
 
               <div className="px-4 sm:flex sm:py-5 sm:p-4">
                 <div
                   className={
-                    "hidden md:block pr-8 sm:border-r sm:dark:border-gray-800 " +
-                    (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
-                  }
-                >
+                    "hidden md:block pr-8 sm:border-r sm: " + (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                  }>
                   <AvatarGroup
                     items={[{ image: profile.image, alt: profile.name }].concat(
                       eventType.users
@@ -153,10 +149,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="font-medium text-gray-500 dark:text-gray-300 mt-3">{profile.name}</h2>
-                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
-                    {eventType.title}
-                  </h1>
+                  <h2 className="mt-3 font-medium text-gray-500">{profile.name}</h2>
+                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{eventType.title}</h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {eventType.length} minutes
@@ -164,7 +158,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
 
                   <TimezoneDropdown />
 
-                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
+                  <p className="mt-3 mb-8 text-gray-600 ">{eventType.description}</p>
                 </div>
                 <DatePicker
                   date={selectedDate}

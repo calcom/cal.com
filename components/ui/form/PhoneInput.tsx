@@ -7,7 +7,7 @@ export const PhoneInput = (props) => (
   <BasePhoneInput
     {...props}
     className={classNames(
-      "shadow-sm rounded-md block w-full py-px px-3 border border-1 border-gray-300 ring-black focus-within:ring-1 focus-within:border-black dark:border-gray-900 dark:text-white dark:bg-black",
+      "shadow-sm rounded-md block w-full py-px px-3 border border-1 border-gray-300 ring-black focus-within:ring-1 focus-within:border-black   ",
       props.className
     )}
     onChange={() => {

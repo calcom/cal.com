@@ -15,10 +15,10 @@ const Team = ({ team }) => {
       "flex flex-col",
       "space-y-4",
       "p-4",
-      "bg-white dark:bg-neutral-900 dark:border-0 dark:bg-opacity-8",
+      "bg-white   ",
       "border border-neutral-200",
       "hover:cursor-pointer",
-      "hover:border-black dark:border-neutral-700 dark:hover:border-neutral-600",
+      "hover:border-black  :border-neutral-600",
       "rounded-sm",
       "hover:shadow-md"
     );
@@ -68,7 +68,7 @@ const Team = ({ team }) => {
     <div>
       <Members members={team.members} />
       {team.eventTypes.length && (
-        <aside className="mt-8 text-center dark:text-white">
+        <aside className="mt-8 text-center ">
           <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
             Go back
           </Button>

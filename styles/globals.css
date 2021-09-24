@@ -134,7 +134,7 @@
 }
 
 .react-multi-email > [type="text"] {
-  @apply block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm;
+  @apply block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm;
 }
 
 .react-multi-email {
@@ -153,15 +153,11 @@
   padding-top: 0.1rem !important;
   padding-bottom: 0.1rem !important;
   /* padding-left: 0.75rem !important; */
-  @apply bg-white border-white dark:border-black dark:bg-black;
+  @apply bg-white border-white;
 }
 
 .react-multi-email > [type="text"] {
   box-shadow: none !important;
-}
-
-.react-multi-email.focused {
-  @apply dark:bg-black;
 }
 
 .react-multi-email.focused > [type="text"] {
@@ -198,7 +194,7 @@
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply inline-flex items-center px-2 py-1 my-1 mr-2 text-sm font-medium text-gray-900 border border-transparent rounded-md dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  @apply inline-flex items-center px-2 py-1 my-1 mr-2 text-sm font-medium text-gray-900 border border-transparent rounded-md bg-neutral-200 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {

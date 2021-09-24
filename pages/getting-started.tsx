@@ -424,7 +424,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
         "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
       Component: (
         <>
-          <section className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white">
+          <section className="max-w-lg mx-auto text-black bg-white  ">
             <SchedulerForm
               onSubmit={async (data) => {
                 try {
