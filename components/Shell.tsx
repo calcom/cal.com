@@ -35,6 +35,7 @@ function useMeQuery() {
   useEffect(() => {
     // refetch if sesion changes
     meQuery.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   return meQuery;
