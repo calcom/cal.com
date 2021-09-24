@@ -114,6 +114,8 @@ interface VideoApiAdapter {
   deleteMeeting(uid: string);
 
   getAvailability(dateFrom, dateTo): Promise<any>;
+
+  getMeetingById(uid: string): Promise<any>;
 }
 
 const ZoomVideo = (credential): VideoApiAdapter => {
@@ -204,6 +206,16 @@ const ZoomVideo = (credential): VideoApiAdapter => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(translateEvent(event)),
+        }).then(handleErrorsRaw)
+      ),
+    getMeetingById: async (uid: string) =>
+      (await auth).getToken().then((accessToken) =>
+        fetch("https://api.zoom.us/v2/meetings/" + uid, {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
         }).then(handleErrorsRaw)
       ),
   };
@@ -310,4 +322,12 @@ const deleteMeeting = (credential, uid: string): Promise<any> => {
   return Promise.resolve({});
 };
 
-export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting };
+const getMeeting = (credential, uid: string): Promise<any> => {
+  if (credential) {
+    return videoIntegrations([credential])[0].getMeetingById(uid);
+  }
+
+  return Promise.resolve({});
+};
+
+export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting, getMeeting };
