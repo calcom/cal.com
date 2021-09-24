@@ -70,6 +70,7 @@
     "react-query": "^3.21.0",
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
+    "react-use-intercom": "1.4.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.168.0",
     "tsdav": "1.0.6",
