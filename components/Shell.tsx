@@ -49,10 +49,9 @@ function useRedirectToLoginIfUnauthenticated() {
     if (!loading && !session) {
       router.replace({
         pathname: "/auth/login",
-        // FIXME as follow-up to make sure we return to same URL
-        // query: {
-        //   returnTo: `${location.pathname}${location.search}`,
-        // },
+        query: {
+          callbackUrl: `${location.pathname}${location.search}`,
+        },
       });
     }
   }, [loading, session, router]);
