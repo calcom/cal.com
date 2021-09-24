@@ -434,138 +434,144 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                     </div>
                   </div>
                 </div>
-                <hr />
-                <div className="space-y-3">
-                  <div className="items-center block sm:flex">
-                    <div className="min-w-44 sm:mb-0">
-                      <label htmlFor="location" className="flex mt-0 text-sm font-medium text-neutral-700">
-                        <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                        Location
-                      </label>
-                    </div>
-                    <div className="w-full">
-                      {locations.length === 0 && (
-                        <div className="flex">
-                          <Select
-                            name="location"
-                            id="location"
-                            options={locationOptions}
-                            isSearchable="false"
-                            classNamePrefix="react-select"
-                            className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                            onChange={(e) => openLocationModal(e.value)}
-                          />
+                {props.eventType.slug !== "async" && (
+                  <>
+                    <hr />
+                    <div className="space-y-3">
+                      <div className="items-center block sm:flex">
+                        <div className="min-w-44 sm:mb-0">
+                          <label
+                            htmlFor="location"
+                            className="flex mt-0 text-sm font-medium text-neutral-700">
+                            <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                            Location
+                          </label>
                         </div>
-                      )}
-                      {locations.length > 0 && (
-                        <ul>
-                          {locations.map((location) => (
-                            <li
-                              key={location.type}
-                              className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
-                              <div className="flex justify-between">
-                                {location.type === LocationType.InPerson && (
-                                  <div className="flex items-center flex-grow">
-                                    <LocationMarkerIcon className="w-6 h-6" />
-                                    <span className="ml-2 text-sm">{location.address}</span>
-                                  </div>
-                                )}
-                                {location.type === LocationType.Phone && (
-                                  <div className="flex items-center flex-grow">
-                                    <PhoneIcon className="w-6 h-6" />
-                                    <span className="ml-2 text-sm">Phone call</span>
-                                  </div>
-                                )}
-                                {location.type === LocationType.GoogleMeet && (
-                                  <div className="flex items-center flex-grow">
-                                    <svg
-                                      className="w-6 h-6"
-                                      viewBox="0 0 64 54"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M16 0V16H0" fill="#EA4335" />
-                                      <path
-                                        d="M16 0V16H37.3333V27.0222L53.3333 14.0444V5.33332C53.3333 1.77777 51.5555 0 47.9999 0"
-                                        fill="#FFBA00"
-                                      />
-                                      <path
-                                        d="M15.6438 53.3341V37.3341H37.3326V26.6675L53.3326 39.2897V48.0008C53.3326 51.5563 51.5548 53.3341 47.9993 53.3341"
-                                        fill="#00AC47"
-                                      />
-                                      <path d="M37.3335 26.6662L53.3335 13.6885V39.644" fill="#00832D" />
-                                      <path
-                                        d="M53.3335 13.6892L60.8001 7.64481C62.4001 6.40037 64.0001 6.40037 64.0001 8.88925V44.4447C64.0001 46.9336 62.4001 46.9336 60.8001 45.6892L53.3335 39.6447"
-                                        fill="#00AC47"
-                                      />
-                                      <path
-                                        d="M0 36.9785V48.0007C0 51.5563 1.77777 53.334 5.33332 53.334H16V36.9785"
-                                        fill="#0066DA"
-                                      />
-                                      <path d="M0 16H16V37.3333H0" fill="#2684FC" />
-                                    </svg>
+                        <div className="w-full">
+                          {locations.length === 0 && (
+                            <div className="flex">
+                              <Select
+                                name="location"
+                                id="location"
+                                options={locationOptions}
+                                isSearchable="false"
+                                classNamePrefix="react-select"
+                                className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                onChange={(e) => openLocationModal(e.value)}
+                              />
+                            </div>
+                          )}
+                          {locations.length > 0 && (
+                            <ul>
+                              {locations.map((location) => (
+                                <li
+                                  key={location.type}
+                                  className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
+                                  <div className="flex justify-between">
+                                    {location.type === LocationType.InPerson && (
+                                      <div className="flex items-center flex-grow">
+                                        <LocationMarkerIcon className="w-6 h-6" />
+                                        <span className="ml-2 text-sm">{location.address}</span>
+                                      </div>
+                                    )}
+                                    {location.type === LocationType.Phone && (
+                                      <div className="flex items-center flex-grow">
+                                        <PhoneIcon className="w-6 h-6" />
+                                        <span className="ml-2 text-sm">Phone call</span>
+                                      </div>
+                                    )}
+                                    {location.type === LocationType.GoogleMeet && (
+                                      <div className="flex items-center flex-grow">
+                                        <svg
+                                          className="w-6 h-6"
+                                          viewBox="0 0 64 54"
+                                          fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M16 0V16H0" fill="#EA4335" />
+                                          <path
+                                            d="M16 0V16H37.3333V27.0222L53.3333 14.0444V5.33332C53.3333 1.77777 51.5555 0 47.9999 0"
+                                            fill="#FFBA00"
+                                          />
+                                          <path
+                                            d="M15.6438 53.3341V37.3341H37.3326V26.6675L53.3326 39.2897V48.0008C53.3326 51.5563 51.5548 53.3341 47.9993 53.3341"
+                                            fill="#00AC47"
+                                          />
+                                          <path d="M37.3335 26.6662L53.3335 13.6885V39.644" fill="#00832D" />
+                                          <path
+                                            d="M53.3335 13.6892L60.8001 7.64481C62.4001 6.40037 64.0001 6.40037 64.0001 8.88925V44.4447C64.0001 46.9336 62.4001 46.9336 60.8001 45.6892L53.3335 39.6447"
+                                            fill="#00AC47"
+                                          />
+                                          <path
+                                            d="M0 36.9785V48.0007C0 51.5563 1.77777 53.334 5.33332 53.334H16V36.9785"
+                                            fill="#0066DA"
+                                          />
+                                          <path d="M0 16H16V37.3333H0" fill="#2684FC" />
+                                        </svg>
 
-                                    <span className="ml-2 text-sm">Google Meet</span>
+                                        <span className="ml-2 text-sm">Google Meet</span>
+                                      </div>
+                                    )}
+                                    {location.type === LocationType.Zoom && (
+                                      <div className="flex items-center flex-grow">
+                                        <svg
+                                          className="w-6 h-6"
+                                          viewBox="0 0 64 64"
+                                          fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <path
+                                            d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
+                                            fill="#E5E5E4"
+                                          />
+                                          <path
+                                            d="M32.0002 0.623047C49.3292 0.623047 63.3771 14.6709 63.3771 31.9999C63.3771 49.329 49.3292 63.3768 32.0002 63.3768C14.6711 63.3768 0.623291 49.329 0.623291 31.9999C0.623291 14.6709 14.6716 0.623047 32.0002 0.623047Z"
+                                            fill="white"
+                                          />
+                                          <path
+                                            d="M31.9998 3.14014C47.9386 3.14014 60.8597 16.0612 60.8597 32C60.8597 47.9389 47.9386 60.8599 31.9998 60.8599C16.0609 60.8599 3.13989 47.9389 3.13989 32C3.13989 16.0612 16.0609 3.14014 31.9998 3.14014Z"
+                                            fill="#4A8CFF"
+                                          />
+                                          <path
+                                            d="M13.1711 22.9581V36.5206C13.1832 39.5875 15.6881 42.0558 18.743 42.0433H38.5125C39.0744 42.0433 39.5266 41.5911 39.5266 41.0412V27.4788C39.5145 24.4119 37.0096 21.9435 33.9552 21.956H14.1857C13.6238 21.956 13.1716 22.4082 13.1716 22.9581H13.1711ZM40.7848 28.2487L48.9469 22.2864C49.6557 21.6998 50.2051 21.8462 50.2051 22.9095V41.0903C50.2051 42.2999 49.5329 42.1536 48.9469 41.7134L40.7848 35.7631V28.2487Z"
+                                            fill="white"
+                                          />
+                                        </svg>
+                                        <span className="ml-2 text-sm">Zoom Video</span>
+                                      </div>
+                                    )}
+                                    <div className="flex">
+                                      <button
+                                        type="button"
+                                        onClick={() => openLocationModal(location.type)}
+                                        className="mr-2 text-sm text-primary-600">
+                                        Edit
+                                      </button>
+                                      <button onClick={() => removeLocation(location)}>
+                                        <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
+                                      </button>
+                                    </div>
                                   </div>
-                                )}
-                                {location.type === LocationType.Zoom && (
-                                  <div className="flex items-center flex-grow">
-                                    <svg
-                                      className="w-6 h-6"
-                                      viewBox="0 0 64 64"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg">
-                                      <path
-                                        d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
-                                        fill="#E5E5E4"
-                                      />
-                                      <path
-                                        d="M32.0002 0.623047C49.3292 0.623047 63.3771 14.6709 63.3771 31.9999C63.3771 49.329 49.3292 63.3768 32.0002 63.3768C14.6711 63.3768 0.623291 49.329 0.623291 31.9999C0.623291 14.6709 14.6716 0.623047 32.0002 0.623047Z"
-                                        fill="white"
-                                      />
-                                      <path
-                                        d="M31.9998 3.14014C47.9386 3.14014 60.8597 16.0612 60.8597 32C60.8597 47.9389 47.9386 60.8599 31.9998 60.8599C16.0609 60.8599 3.13989 47.9389 3.13989 32C3.13989 16.0612 16.0609 3.14014 31.9998 3.14014Z"
-                                        fill="#4A8CFF"
-                                      />
-                                      <path
-                                        d="M13.1711 22.9581V36.5206C13.1832 39.5875 15.6881 42.0558 18.743 42.0433H38.5125C39.0744 42.0433 39.5266 41.5911 39.5266 41.0412V27.4788C39.5145 24.4119 37.0096 21.9435 33.9552 21.956H14.1857C13.6238 21.956 13.1716 22.4082 13.1716 22.9581H13.1711ZM40.7848 28.2487L48.9469 22.2864C49.6557 21.6998 50.2051 21.8462 50.2051 22.9095V41.0903C50.2051 42.2999 49.5329 42.1536 48.9469 41.7134L40.7848 35.7631V28.2487Z"
-                                        fill="white"
-                                      />
-                                    </svg>
-                                    <span className="ml-2 text-sm">Zoom Video</span>
-                                  </div>
-                                )}
-                                <div className="flex">
+                                </li>
+                              ))}
+                              {locations.length > 0 && locations.length !== locationOptions.length && (
+                                <li>
                                   <button
                                     type="button"
-                                    onClick={() => openLocationModal(location.type)}
-                                    className="mr-2 text-sm text-primary-600">
-                                    Edit
+                                    className="flex px-3 py-2 rounded-sm bg-neutral-100"
+                                    onClick={() => setShowLocationModal(true)}>
+                                    <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
+                                    <span className="ml-1 text-sm font-medium text-neutral-700">
+                                      Add another location
+                                    </span>
                                   </button>
-                                  <button onClick={() => removeLocation(location)}>
-                                    <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
-                                  </button>
-                                </div>
-                              </div>
-                            </li>
-                          ))}
-                          {locations.length > 0 && locations.length !== locationOptions.length && (
-                            <li>
-                              <button
-                                type="button"
-                                className="flex px-3 py-2 rounded-sm bg-neutral-100"
-                                onClick={() => setShowLocationModal(true)}>
-                                <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
-                                <span className="ml-1 text-sm font-medium text-neutral-700">
-                                  Add another location
-                                </span>
-                              </button>
-                            </li>
+                                </li>
+                              )}
+                            </ul>
                           )}
-                        </ul>
-                      )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
                 <hr className="border-neutral-200" />
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">

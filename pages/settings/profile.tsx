@@ -86,6 +86,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const avatarRef = useRef<HTMLInputElement>(null);
   const hideBrandingRef = useRef<HTMLInputElement>(null);
+  const [asyncUseCalendar, setAsyncUseCalendar] = useState({ value: props.user.asyncUseCalendar });
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
@@ -135,6 +136,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
     const enteredTimeZone = selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
+    const enteredAsyncUseCalendar = asyncUseCalendar.value;
 
     // TODO: Add validation
 
@@ -149,6 +151,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
         weekStart: enteredWeekStartDay,
         hideBranding: enteredHideBranding,
         theme: selectedTheme ? selectedTheme.value : null,
+        asyncUseCalendar: enteredAsyncUseCalendar,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -289,6 +292,23 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                   <div className="relative flex items-start mt-8">
                     <div className="flex items-center h-5">
                       <input
+                        id="async-use-calendar"
+                        name="async-use-calendar"
+                        type="checkbox"
+                        onChange={(e) => setAsyncUseCalendar({ value: e.target.checked })}
+                        defaultChecked={asyncUseCalendar.value}
+                        className="w-4 h-4 border-gray-300 rounded-sm hover:checked:bg-black checked:bg-black focus:ring-neutral-500 text-neutral-900"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label htmlFor="async-use-calendar" className="font-medium text-gray-700">
+                        Async meetings schedule a space in your calendar
+                      </label>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start mt-8">
+                    <div className="flex items-center h-5">
+                      <input
                         id="theme-adjust-os"
                         name="theme-adjust-os"
                         type="checkbox"
@@ -396,6 +416,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding: true,
       theme: true,
       plan: true,
+      asyncUseCalendar: true,
     },
   });
 

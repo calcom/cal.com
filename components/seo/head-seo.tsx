@@ -65,7 +65,7 @@ const buildSeoMeta = (pageProps: {
   };
 };
 
-//TODO: get this inage correct
+//TODO: @yac get this inage correct
 const constructImage = (name: string, avatar: string, description: string): string => {
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +

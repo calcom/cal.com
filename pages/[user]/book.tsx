@@ -24,6 +24,7 @@ export async function getServerSideProps(context) {
       bio: true,
       avatar: true,
       theme: true,
+      asyncUseCalendar: true,
     },
   });
 
@@ -84,6 +85,12 @@ export async function getServerSideProps(context) {
     });
   }
 
+  if (eventTypeObject.slug === "async" && user.asyncUseCalendar && !context.query.date) {
+    return {
+      redirect: { permanent: false, destination: "/" + user.username + "/async" },
+    };
+  }
+
   return {
     props: {
       profile: {
@@ -91,6 +98,7 @@ export async function getServerSideProps(context) {
         name: user.name,
         image: user.avatar,
         theme: user.theme,
+        asyncUseCalendar: user.asyncUseCalendar,
       },
       eventType: eventTypeObject,
       booking,

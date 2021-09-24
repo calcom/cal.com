@@ -91,19 +91,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const eventTypeId = parseInt(req.body.eventTypeId as string);
 
   log.debug(`Booking eventType ${eventTypeId} started`);
-
-  const isTimeInPast = (time) => {
-    return dayjs(time).isBefore(new Date(), "day");
-  };
-
-  if (isTimeInPast(req.body.start)) {
-    const error = {
-      errorCode: "BookingDateInPast",
-      message: "Attempting to create a meeting in the past.",
+  if (req.body.start) {
+    const isTimeInPast = (time) => {
+      return dayjs(time).isBefore(new Date(), "day");
     };
 
-    log.error(`Booking ${eventTypeId} failed`, error);
-    return res.status(400).json(error);
+    if (isTimeInPast(req.body.start)) {
+      const error = {
+        errorCode: "BookingDateInPast",
+        message: "Attempting to create a meeting in the past.",
+      };
+
+      log.error(`Booking ${eventTypeId} failed`, error);
+      return res.status(400).json(error);
+    }
   }
 
   const eventType: EventType = await prisma.eventType.findUnique({
@@ -218,7 +219,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
+  const seed = `${users[0].username}:${
+    req.body.start ? dayjs(req.body.start).utc().format() : Math.random() * 100
+  }`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const evt: CalendarEvent = {
@@ -308,8 +311,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const bookingCreateInput: Prisma.BookingCreateInput = {
     uid,
     title: evt.title,
-    startTime: dayjs(evt.startTime).toDate(),
-    endTime: dayjs(evt.endTime).toDate(),
+    startTime: evt.startTime ? dayjs(evt.startTime).toDate() : null,
+    endTime: evt.startTime ? dayjs(evt.endTime).toDate() : null,
     description: evt.description,
     confirmed: !eventType.requiresConfirmation || !!rescheduleUid,
     location: evt.location,
@@ -397,7 +400,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const credentials: Credential[] = currentUser.credentials;
-    if (credentials) {
+    if (req.body.start && req.body.end && credentials) {
       const calendarBusyTimes = await getBusyCalendarTimes(
         credentials,
         req.body.start,
@@ -477,7 +480,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.name} failed`, error, results);
     }
-  } else if (!eventType.requiresConfirmation) {
+  } else if (evt.startTime && evt.endTime && !eventType.requiresConfirmation) {
     // Use EventManager to conditionally use all needed integrations.
     const createResults: CreateUpdateResult = await eventManager.create(evt, uid);
 

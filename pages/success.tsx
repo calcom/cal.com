@@ -28,12 +28,14 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
   const { location, name, reschedule } = router.query;
 
   const [is24h, setIs24h] = useState(false);
-  const [date, setDate] = useState(dayjs.utc(asStringOrNull(router.query.date)));
+  const [date, setDate] = useState(router.query.date && dayjs.utc(asStringOrNull(router.query.date)));
   const { isReady } = useTheme(props.profile.theme);
 
   useEffect(() => {
-    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    if (date) {
+      setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
+      setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    }
   }, []);
 
   const eventName = getEventName(name, props.eventType.title, props.eventType.eventName);
@@ -45,11 +47,13 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
     }
 
     const event = createEvent({
-      start: date
-        .utc()
-        .toArray()
-        .slice(0, 6)
-        .map((v, i) => (i === 1 ? v + 1 : v)),
+      start:
+        date &&
+        date
+          .utc()
+          .toArray()
+          .slice(0, 6)
+          .map((v, i) => (i === 1 ? v + 1 : v)),
       startInputType: "utc",
       title: eventName,
       description: props.eventType.description,
@@ -81,7 +85,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                   &#8203;
                 </span>
                 <div
-                  className="inline-block px-8 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white border rounded-sm  border-neutral-200  sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
+                  className="inline-block px-8 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white border rounded-sm border-neutral-200 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
@@ -91,7 +95,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                       {needsConfirmation && <ClockIcon className="w-8 h-8 text-green-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
-                      <h3 className="text-2xl font-semibold leading-6  text-neutral-900" id="modal-headline">
+                      <h3 className="text-2xl font-semibold leading-6 text-neutral-900" id="modal-headline">
                         {needsConfirmation ? "Submitted" : "This meeting is scheduled"}
                       </h3>
                       <div className="mt-3">
@@ -103,18 +107,22 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                             : `We emailed you and the other attendees a calendar invitation with all the details.`}
                         </p>
                       </div>
-                      <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b  ">
+                      <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b ">
                         <div className="font-medium">What</div>
                         <div className="col-span-2 mb-6">{eventName}</div>
-                        <div className="font-medium">When</div>
-                        <div className="col-span-2 mb-6">
-                          {date.format("dddd, DD MMMM YYYY")}
-                          <br />
-                          {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                          <span className="text-gray-500">
-                            ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                          </span>
-                        </div>
+                        {date && (
+                          <>
+                            <div className="font-medium">When</div>
+                            <div className="col-span-2 mb-6">
+                              {date.format("dddd, DD MMMM YYYY")}
+                              <br />
+                              {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
+                              <span className="text-gray-500">
+                                ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                              </span>
+                            </div>
+                          </>
+                        )}
                         {location && (
                           <>
                             <div className="font-medium">Where</div>
@@ -134,7 +142,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                       </div>
                     </div>
                   </div>
-                  {!needsConfirmation && (
+                  {date && !needsConfirmation && (
                     <div className="flex pt-2 mt-5 text-center sm:mt-0 sm:pt-4">
                       <span className="flex self-center mr-6 font-medium text-gray-700 ">
                         Add to calendar
@@ -151,7 +159,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                               props.eventType.description
                             }` + (location ? "&location=" + encodeURIComponent(location) : "")
                           }>
-                          <a className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  ">
+                          <a className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 ">
                             <svg
                               className="inline-block w-4 h-4 -mt-1"
                               fill="currentColor"
@@ -175,9 +183,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                                 eventName
                             ) + (location ? "&location=" + location : "")
                           }>
-                          <a
-                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  "
-                            target="_blank">
+                          <a className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 " target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
                               fill="currentColor"
@@ -201,9 +207,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                                 eventName
                             ) + (location ? "&location=" + location : "")
                           }>
-                          <a
-                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  "
-                            target="_blank">
+                          <a className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 " target="_blank">
                             <svg
                               className="inline-block w-4 h-4 mr-1 -mt-1"
                               fill="currentColor"
@@ -216,7 +220,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
                           <a
-                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200  "
+                            className="px-3 py-2 mx-2 border rounded-sm border-neutral-200 "
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -233,7 +237,8 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                     </div>
                   )}
                   {!props.hideBranding && (
-                    <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t  ">
+                    <div
+                      className={"pt-4 mt-4 text-xs text-center text-gray-400  " + (date ? "border-t" : "")}>
                       <a href="https://cal.com/signup">Create your own booking link with Yac Meet</a>
                     </div>
                   )}

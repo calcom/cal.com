@@ -25,6 +25,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      asyncUseCalendar: true,
       username: true,
       name: true,
       email: true,
@@ -86,6 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ],
       },
       select: {
+        slug: true,
         id: true,
         title: true,
         availability: true,
@@ -167,6 +169,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
+
+  if (eventTypeObject.slug === "async" && !user.asyncUseCalendar) {
+    return {
+      redirect: { permanent: false, destination: "/" + user.username + "/book?type=" + eventTypeObject.id },
+    };
+  }
 
   return {
     props: {

@@ -81,8 +81,12 @@ const BookingPage = (props): JSX.Element => {
 
       const payload = {
         topic: event.target.topic.value,
-        start: dayjs(date).format(),
-        end: dayjs(date).add(props.eventType.length, "minute").format(),
+        start:
+          !props.profile.asyncUseCalendar && props.eventType.slug === "async" ? null : dayjs(date).format(),
+        end:
+          !props.profile.asyncUseCalendar && props.eventType.slug === "async"
+            ? null
+            : dayjs(date).add(props.eventType.length, "minute").format(),
         name: event.target.name.value,
         email: event.target.email.value,
         notes: notes,
@@ -136,9 +140,9 @@ const BookingPage = (props): JSX.Element => {
       }
       // TODO When the endpoint is fixed, change this to await the result again
       //if (res.ok) {
-      let successUrl = `/success?date=${encodeURIComponent(date)}&type=${props.eventType.id}&user=${
-        props.profile.slug
-      }&reschedule=${!!rescheduleUid}&name=${payload.name}`;
+      let successUrl = `/success?${date ? `date=${encodeURIComponent(date)}&` : ""}type=${
+        props.eventType.id
+      }&user=${props.profile.slug}&reschedule=${!!rescheduleUid}&name=${payload.name}`;
       if (payload["location"]) {
         if (payload["location"].includes("integration")) {
           successUrl += "&location=" + encodeURIComponent("Web conferencing details to follow.");
@@ -169,7 +173,7 @@ const BookingPage = (props): JSX.Element => {
         </Head>
 
         <main className="max-w-3xl mx-auto my-0 sm:my-24">
-          <div className="overflow-hidden bg-white border border-gray-200   sm:rounded-sm">
+          <div className="overflow-hidden bg-white border border-gray-200 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:">
                 <AvatarGroup
@@ -185,20 +189,24 @@ const BookingPage = (props): JSX.Element => {
                 />
                 <h2 className="font-medium text-gray-500 ">{props.profile.name}</h2>
                 <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{props.eventType.title}</h1>
-                <p className="mb-2 text-gray-500">
-                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {props.eventType.length} minutes
-                </p>
-                {selectedLocation === LocationType.InPerson && (
-                  <p className="mb-2 text-gray-500">
-                    <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                    {locationInfo(selectedLocation).address}
-                  </p>
+                {!(!props.profile.asyncUseCalendar && props.eventType.slug === "async") && (
+                  <>
+                    <p className="mb-2 text-gray-500">
+                      <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                      {props.eventType.length} minutes
+                    </p>
+                    {selectedLocation === LocationType.InPerson && (
+                      <p className="mb-2 text-gray-500">
+                        <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                        {locationInfo(selectedLocation).address}
+                      </p>
+                    )}
+                    <p className="mb-4 text-green-500">
+                      <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                      {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
+                    </p>
+                  </>
                 )}
-                <p className="mb-4 text-green-500">
-                  <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
-                </p>
                 <p className="mb-8 text-gray-600 ">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
@@ -214,7 +222,7 @@ const BookingPage = (props): JSX.Element => {
                         name="topic"
                         id="topic"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                         placeholder="Important stuff"
                       />
                     </div>
@@ -229,7 +237,7 @@ const BookingPage = (props): JSX.Element => {
                         name="name"
                         id="name"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                         placeholder="John Doe"
                         defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
@@ -245,7 +253,7 @@ const BookingPage = (props): JSX.Element => {
                         name="email"
                         id="email"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                         placeholder="you@example.com"
                         defaultValue={props.booking ? props.booking.attendees[0].email : ""}
                       />
@@ -281,7 +289,7 @@ const BookingPage = (props): JSX.Element => {
                           placeholder="Enter phone number"
                           id="phone"
                           required
-                          className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                          className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                           onChange={() => {
                             /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
                           }}
@@ -307,7 +315,7 @@ const BookingPage = (props): JSX.Element => {
                               id={"custom_" + input.id}
                               required={input.required}
                               rows={3}
-                              className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -317,7 +325,7 @@ const BookingPage = (props): JSX.Element => {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -327,7 +335,7 @@ const BookingPage = (props): JSX.Element => {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                               placeholder=""
                             />
                           )}
@@ -355,7 +363,7 @@ const BookingPage = (props): JSX.Element => {
                       <label
                         onClick={toggleGuestEmailInput}
                         htmlFor="guests"
-                        className="block mb-1 text-sm font-medium text-blue-500  hover:cursor-pointer">
+                        className="block mb-1 text-sm font-medium text-blue-500 hover:cursor-pointer">
                         + Additional Guests
                       </label>
                     )}
@@ -392,7 +400,7 @@ const BookingPage = (props): JSX.Element => {
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="block w-full border-gray-300 rounded-md shadow-sm    focus:ring-black focus:border-black sm:text-sm"
+                      className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                       placeholder="Please share anything that will help prepare for our meeting."
                       defaultValue={props.booking ? props.booking.description : ""}
                     />

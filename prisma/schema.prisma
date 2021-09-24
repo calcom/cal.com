@@ -90,7 +90,8 @@ model User {
   locale String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
-
+  //Dont delete this
+  asyncUseCalendar    Boolean            @default(false)
 
   plan     UserPlan   @default(PRO)
   Schedule Schedule[]
@@ -174,8 +175,9 @@ model Booking {
 
   title       String
   description String?
-  startTime   DateTime
-  endTime     DateTime
+  //MUST BE OPTIONAL
+  startTime   DateTime?
+  endTime     DateTime?
 
   attendees Attendee[]
   location  String?
