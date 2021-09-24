@@ -98,6 +98,6 @@ export async function getServerSideProps(context) {
     },
   });
   return {
-    props: { integration }, // will be passed to the page component as props
+    props: { session, integration },
   };
 }

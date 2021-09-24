@@ -1,19 +1,23 @@
+import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Loader from "@components/Loader";
 import SettingsShell from "@components/Settings";
 import Shell from "@components/Shell";
 
-export default function Embed(props) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
+export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
+  const [, loading] = useSession();
 
   if (loading) {
     return <Loader />;
   }
+
+  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/${props.user?.username}" frameborder="0" allowfullscreen></iframe>`;
+  const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
 
   return (
     <Shell heading="Embed" subtitle="Integrate with your website using our embed options.">
@@ -33,13 +37,7 @@ export default function Embed(props) {
                   id="iframe"
                   className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder="Loading..."
-                  defaultValue={
-                    '<iframe src="' +
-                    props.BASE_URL +
-                    "/" +
-                    session.user.username +
-                    '" frameborder="0" allowfullscreen></iframe>'
-                  }
+                  defaultValue={iframeTemplate}
                   readOnly
                 />
               </div>
@@ -53,13 +51,7 @@ export default function Embed(props) {
                   id="fullscreen"
                   className="h-32 shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder="Loading..."
-                  defaultValue={
-                    '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body><iframe src="' +
-                    props.BASE_URL +
-                    "/" +
-                    session.user.username +
-                    '" frameborder="0" allowfullscreen></iframe></body></html>'
-                  }
+                  defaultValue={htmlTemplate}
                   readOnly
                 />
               </div>
@@ -80,9 +72,9 @@ export default function Embed(props) {
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.email) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
@@ -102,9 +94,7 @@ export async function getServerSideProps(context) {
     },
   });
 
-  const BASE_URL = process.env.BASE_URL;
-
   return {
-    props: { user, BASE_URL }, // will be passed to the page component as props
+    props: { session, user },
   };
 }

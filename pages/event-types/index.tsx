@@ -475,7 +475,7 @@ const CreateNewEventDialog = ({
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
                   <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 sm:text-sm">
-                    {location.hostname}/{router.query.eventPage || profiles[0].slug}/
+                    {process.env.NEXT_PUBLIC_APP_URL}/{router.query.eventPage || profiles[0].slug}/
                   </span>
                   <input
                     ref={slugRef}
@@ -723,6 +723,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      session,
       localeProp: locale,
       canAddEvents,
       user: userObj,
