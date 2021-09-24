@@ -113,9 +113,12 @@ const EventTypesPage = (props: PageProps) => {
             </Link>
           </span>
         )}
-        {typeof window !== "undefined" && profile?.slug && (
-          <Link href={profile.slug}>
-            <a className="block text-xs text-neutral-500">{`cal.com/${profile.slug}`}</a>
+        {profile?.slug && (
+          <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}`}>
+            <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
+              "https://",
+              ""
+            )}/${profile.slug}`}</a>
           </Link>
         )}
       </div>
@@ -293,15 +296,15 @@ const EventTypesPage = (props: PageProps) => {
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
         }>
-        {props.user.plan === "FREE" && !props.canAddEvents && typeof window !== "undefined" && (
+        {props.user.plan === "FREE" && !props.canAddEvents && (
           <Alert
             severity="warning"
             title={<>You need to upgrade your plan to have more than one active event type.</>}
             message={
               <>
                 To upgrade go to{" "}
-                <a href={process.env.UPGRADE_URL || "https://cal.com/upgrade"} className="underline">
-                  {process.env.UPGRADE_URL || "https://cal.com/upgrade"}
+                <a href={"https://cal.com/upgrade"} className="underline">
+                  {"https://cal.com/upgrade"}
                 </a>
               </>
             }

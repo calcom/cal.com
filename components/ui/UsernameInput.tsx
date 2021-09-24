@@ -8,7 +8,7 @@ const UsernameInput = React.forwardRef((props, ref) => (
     </label>
     <div className="flex mt-1 rounded-md shadow-sm">
       <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
-        {typeof window !== "undefined" && window.location.hostname}/{props.label && "team/"}
+        {process.env.NEXT_PUBLIC_APP_URL}/{props.label && "team/"}
       </span>
       <input
         ref={ref}

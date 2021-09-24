@@ -566,7 +566,7 @@ export default function Onboarding(props: OnboardingProps) {
       <div className="mx-auto py-24 px-4">
         <article className="relative">
           <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
-            <header className="">
+            <header>
               <Text className="text-white" variant="largetitle">
                 {steps[currentStep].title}
               </Text>

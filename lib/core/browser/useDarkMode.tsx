@@ -12,7 +12,7 @@ interface UseDarkModeOutput {
 function useDarkMode(defaultValue?: boolean): UseDarkModeOutput {
   const getPrefersScheme = (): boolean => {
     // Prevents SSR issues
-    if (typeof window !== "undefined") {
+    if (process.browser) {
       return window.matchMedia(COLOR_SCHEME_QUERY).matches;
     }
 

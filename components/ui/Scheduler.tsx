@@ -101,7 +101,7 @@ export const Scheduler = ({
     <div>
       <div className="flex">
         <div className="w-full">
-          <div className="">
+          <div>
             <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
               Timezone
             </label>
