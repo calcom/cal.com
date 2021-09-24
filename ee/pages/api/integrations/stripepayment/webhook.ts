@@ -1,4 +1,3 @@
-import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getErrorFromUnknown } from "pages/_error";
 import Stripe from "stripe";
@@ -6,6 +5,7 @@ import Stripe from "stripe";
 import stripe from "@ee/lib/stripe/server";
 
 import { CalendarEvent } from "@lib/calendarClient";
+import { HttpError } from "@lib/core/http/error";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 
@@ -98,10 +98,14 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   }
 }
 
+type WebhookHandler = (event: Stripe.Event) => Promise<void>;
+
+const webhookHandlers: Record<string, WebhookHandler | undefined> = {
+  "payment_intent.succeeded": handlePaymentSuccess,
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const requestBuffer = await buffer(req);
   const sig = req.headers["stripe-signature"];
-  let event;
 
   if (!sig) {
     res.status(400).send(`Webhook Error: missing Stripe signature`);
@@ -114,14 +118,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    event = stripe.webhooks.constructEvent(requestBuffer.toString(), sig, webhookSecret);
+    const rawBody = JSON.stringify(req.body);
+    const event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
 
-    // Handle the event
-    if (event.type === "payment_intent.succeeded") {
-      await handlePaymentSuccess(event);
-    } else {
-      console.error(`Unhandled event type ${event.type}`);
+    const handler = webhookHandlers[event.type];
+    if (!handler) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `Unhandled event type ${event.type}`,
+      });
     }
+    await handler(event);
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);

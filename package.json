@@ -50,7 +50,6 @@
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.2",
     "lodash.throttle": "^4.1.1",
-    "micro": "^9.3.4",
     "next": "^11.1.1",
     "next-auth": "^3.28.0",
     "next-i18next": "^8.8.0",
