@@ -38,13 +38,13 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
         {eventType.length}m
       </li>
       {eventType.schedulingType ? (
-        <li className="flex whitespace-nowrap">
+        <li className="hidden sm:flex whitespace-nowrap">
           <UsersIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
           {eventType.schedulingType === SchedulingType.ROUND_ROBIN && "Round Robin"}
           {eventType.schedulingType === SchedulingType.COLLECTIVE && "Collective"}
         </li>
       ) : (
-        <li className="flex whitespace-nowrap">
+        <li className="hidden sm:flex whitespace-nowrap">
           <UserIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
           1-on-1
         </li>
