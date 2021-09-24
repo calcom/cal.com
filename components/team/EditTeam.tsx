@@ -135,7 +135,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
             Back
           </Button>
         </div>
-        <div className="">
+        <div>
           <div className="pb-5 pr-4 sm:pb-6">
             <h3 className="text-lg font-bold leading-6 text-gray-900">{props.team?.name}</h3>
             <div className="max-w-xl mt-2 text-sm text-gray-500">
