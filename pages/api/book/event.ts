@@ -247,8 +247,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const rescheduleUid = req.body.rescheduleUid;
 
   try {
-    console.log("slug", eventType.slug);
-    console.log("users[0]", users[0]);
     if (eventType.slug === "async") {
       const yacCredential = await prisma.credential.findFirst({
         where: {
@@ -301,7 +299,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
       ).json();
       evt.location = inviteLink;
-      console.log(inviteLink);
     }
   } catch (error) {
     log.error(`Booking ${eventTypeId} failed`, "Error getting yac invite link", error);
@@ -517,6 +514,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // booking successful
-  console.log(booking);
   return res.status(201).json(booking);
 }
