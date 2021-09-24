@@ -9,7 +9,7 @@ import {
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
-import { signOut } from "next-auth/client";
+import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
@@ -26,10 +26,35 @@ import Loader from "./Loader";
 import Logo from "./Logo";
 
 function useMeQuery() {
-  return trpc.useQuery(["viewer.me"], {
-    // refetch max once per second
-    staleTime: 1000,
+  const [session] = useSession();
+  const meQuery = trpc.useQuery(["viewer.me"], {
+    // refetch max once per 5s
+    staleTime: 5000,
   });
+
+  useEffect(() => {
+    // refetch if sesion changes
+    meQuery.refetch();
+  }, [session]);
+
+  return meQuery;
+}
+
+function useRedirectToLoginIfUnauthenticated() {
+  const [session, loading] = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !session) {
+      router.replace({
+        pathname: "/auth/login",
+        // FIXME as follow-up to make sure we return to same URL
+        // query: {
+        //   returnTo: `${location.pathname}${location.search}`,
+        // },
+      });
+    }
+  }, [loading, session, router]);
 }
 
 export default function Shell(props: {
@@ -41,6 +66,7 @@ export default function Shell(props: {
 }) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  useRedirectToLoginIfUnauthenticated();
 
   const telemetry = useTelemetry();
   const query = useMeQuery();
