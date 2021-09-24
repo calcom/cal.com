@@ -224,7 +224,11 @@ export default function Bookings({ bookings }) {
                                               <Menu.Item>
                                                 {({ active }) => (
                                                   <a
-                                                    href={window.location.href + "/../cancel/" + booking.uid}
+                                                    href={
+                                                      process.env.NEXT_PUBLIC_APP_URL +
+                                                      "/../cancel/" +
+                                                      booking.uid
+                                                    }
                                                     className={classNames(
                                                       active
                                                         ? "bg-neutral-100 text-neutral-900"
@@ -243,7 +247,9 @@ export default function Bookings({ bookings }) {
                                                 {({ active }) => (
                                                   <a
                                                     href={
-                                                      window.location.href + "/../reschedule/" + booking.uid
+                                                      process.env.NEXT_PUBLIC_APP_URL +
+                                                      "/../reschedule/" +
+                                                      booking.uid
                                                     }
                                                     className={classNames(
                                                       active
