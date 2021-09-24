@@ -9,12 +9,11 @@ export function Tooltip({
   onOpenChange,
   ...props
 }: {
-  [x: string]: any;
   children: React.ReactNode;
   content: React.ReactNode;
-  open: boolean;
-  defaultOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   return (
     <TooltipPrimitive.Root

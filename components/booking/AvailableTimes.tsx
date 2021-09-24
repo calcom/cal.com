@@ -1,14 +1,32 @@
 import { ExclamationIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
+import { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { FC } from "react";
 
 import { useSlots } from "@lib/hooks/useSlots";
 
 import Loader from "@components/Loader";
 
-const AvailableTimes = ({
+type AvailableTimesProps = {
+  workingHours: {
+    days: number[];
+    startTime: number;
+    endTime: number;
+  }[];
+  timeFormat: string;
+  minimumBookingNotice: number;
+  eventTypeId: number;
+  eventLength: number;
+  date: Dayjs;
+  users: {
+    username: string | null;
+  }[];
+  schedulingType: SchedulingType | null;
+};
+
+const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventLength,
   eventTypeId,
@@ -28,10 +46,11 @@ const AvailableTimes = ({
     workingHours,
     users,
     minimumBookingNotice,
+    eventTypeId,
   });
 
   return (
-    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 -mb-5">
+    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:-mb-5">
       <div className="text-gray-600 font-light text-lg mb-4 text-left">
         <span className="w-1/2 dark:text-white text-gray-600">
           <strong>{date.format("dddd")}</strong>
