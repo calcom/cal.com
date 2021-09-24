@@ -92,16 +92,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventTypesWithHidden = await prisma.eventType.findMany({
     where: {
-      OR: [
+      AND: [
         {
-          userId: user.id,
+          teamId: null,
         },
         {
-          users: {
-            some: {
-              id: user.id,
+          OR: [
+            {
+              userId: user.id,
             },
-          },
+            {
+              users: {
+                some: {
+                  id: user.id,
+                },
+              },
+            },
+          ],
         },
       ],
     },
