@@ -1,5 +1,3 @@
-export const isBrowser = () => typeof window !== "undefined";
-
 type BrowserInfo = {
   url: string;
   path: string;
@@ -9,7 +7,7 @@ type BrowserInfo = {
 };
 
 export const getBrowserInfo = (): Partial<BrowserInfo> => {
-  if (!isBrowser()) {
+  if (!process.browser) {
     return {};
   }
   return {
