@@ -1,5 +1,5 @@
 import prisma from "@lib/prisma";
-import { useSession } from "next-auth/client";
+import { signOut, useSession } from "next-auth/client";
 import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
@@ -104,15 +104,13 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                     <Button
                                       onClick={() => confirmBookingHandler(booking, true)}
                                       StartIcon={CheckIcon}
-                                      color="secondary"
-                                    >
+                                      color="secondary">
                                       Confirm
                                     </Button>
                                     <Button
                                       onClick={() => confirmBookingHandler(booking, false)}
                                       StartIcon={BanIcon}
-                                      color="secondary"
-                                    >
+                                      color="secondary">
                                       Reject
                                     </Button>
                                   </div>
@@ -133,12 +131,10 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                           enterTo="transform opacity-100 scale-100"
                                           leave="transition ease-in duration-75"
                                           leaveFrom="transform opacity-100 scale-100"
-                                          leaveTo="transform opacity-0 scale-95"
-                                        >
+                                          leaveTo="transform opacity-0 scale-95">
                                           <Menu.Items
                                             static
-                                            className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100"
-                                          >
+                                            className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
                                             <div className="py-1">
                                               <Menu.Item>
                                                 {({ active }) => (
@@ -149,8 +145,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                                         ? "bg-neutral-100 text-neutral-900"
                                                         : "text-neutral-700",
                                                       "group flex items-center px-4 py-2 text-sm font-medium"
-                                                    )}
-                                                  >
+                                                    )}>
                                                     <CheckIcon
                                                       className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                                       aria-hidden="true"
@@ -168,8 +163,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                                         ? "bg-neutral-100 text-neutral-900"
                                                         : "text-neutral-700",
                                                       "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                                    )}
-                                                  >
+                                                    )}>
                                                     <BanIcon
                                                       className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                                       aria-hidden="true"
@@ -193,15 +187,13 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                       data-testid="cancel"
                                       href={"/cancel/" + booking.uid}
                                       StartIcon={XIcon}
-                                      color="secondary"
-                                    >
+                                      color="secondary">
                                       Cancel
                                     </Button>
                                     <Button
                                       href={"reschedule/" + booking.uid}
                                       StartIcon={ClockIcon}
-                                      color="secondary"
-                                    >
+                                      color="secondary">
                                       Reschedule
                                     </Button>
                                   </div>
@@ -223,12 +215,10 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                           enterTo="transform opacity-100 scale-100"
                                           leave="transition ease-in duration-75"
                                           leaveFrom="transform opacity-100 scale-100"
-                                          leaveTo="transform opacity-0 scale-95"
-                                        >
+                                          leaveTo="transform opacity-0 scale-95">
                                           <Menu.Items
                                             static
-                                            className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100"
-                                          >
+                                            className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
                                             <div className="py-1">
                                               <Menu.Item>
                                                 {({ active }) => (
@@ -239,8 +229,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                                         ? "bg-neutral-100 text-neutral-900"
                                                         : "text-neutral-700",
                                                       "group flex items-center px-4 py-2 text-sm font-medium"
-                                                    )}
-                                                  >
+                                                    )}>
                                                     <XIcon
                                                       className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                                       aria-hidden="true"
@@ -260,8 +249,7 @@ export default function Bookings({ bookings }: InferGetServerSidePropsType<typeo
                                                         ? "bg-neutral-100 text-neutral-900"
                                                         : "text-neutral-700",
                                                       "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                                    )}
-                                                  >
+                                                    )}>
                                                     <ClockIcon
                                                       className="w-5 h-5 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                                       aria-hidden="true"
@@ -311,6 +299,11 @@ export async function getServerSideProps(context) {
       email: true,
     },
   });
+
+  if (session && !user) {
+    signOut();
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
 
   const b = await prisma.booking.findMany({
     where: {

@@ -125,8 +125,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
             className={classNames(
               type.$disabled && "opacity-30 cursor-not-allowed pointer-events-none select-none"
             )}
-            data-disabled={type.$disabled ? 1 : 0}
-          >
+            data-disabled={type.$disabled ? 1 : 0}>
             <div className={classNames("hover:bg-neutral-50", type.$disabled && "pointer-events-none")}>
               <div className="flex items-center px-4 py-4 sm:px-6 hover:bg-neutral-50">
                 <Link href={"/event-types/" + type.id}>
@@ -165,8 +164,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                         href={`/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200"
-                      >
+                        className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
                         <ExternalLinkIcon className="w-5 h-5 group-hover:text-black" />
                       </a>
                     </Tooltip>
@@ -179,8 +177,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                             `${window.location.origin}/${profile.slug}/${type.slug}`
                           );
                         }}
-                        className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200"
-                      >
+                        className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
                         <LinkIcon className="w-5 h-5 group-hover:text-black" />
                       </button>
                     </Tooltip>
@@ -206,12 +203,10 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                         enterTo="transform opacity-100 scale-100"
                         leave="transition ease-in duration-75"
                         leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                      >
+                        leaveTo="transform opacity-0 scale-95">
                         <Menu.Items
                           static
-                          className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100"
-                        >
+                          className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
                           <div className="py-1">
                             <Menu.Item>
                               {({ active }) => (
@@ -222,8 +217,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                   className={classNames(
                                     active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
                                     "group flex items-center px-4 py-2 text-sm font-medium"
-                                  )}
-                                >
+                                  )}>
                                   <ExternalLinkIcon
                                     className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
@@ -244,8 +238,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                                   className={classNames(
                                     active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
                                     "group flex items-center px-4 py-2 text-sm w-full font-medium"
-                                  )}
-                                >
+                                  )}>
                                   <LinkIcon
                                     className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
@@ -271,7 +264,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
   return (
     <div>
       <Head>
-        <title>Event Types | Cal.com</title>
+        <title>Event Types | Yac Meet</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
@@ -281,8 +274,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
           props.eventTypes.length !== 0 && (
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
-        }
-      >
+        }>
         {props.user.plan === "FREE" && !props.canAddEvents && typeof window !== "undefined" && (
           <Alert
             severity="warning"
@@ -345,8 +337,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
       open={modalOpen.isOn}
       onOpenChange={(isOpen) => {
         router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
-      }}
-    >
+      }}>
       {!profiles.filter((profile) => profile.teamId).length && (
         <Button
           data-testid="new-event-type"
@@ -357,8 +348,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             : {
                 disabled: true,
               })}
-          StartIcon={PlusIcon}
-        >
+          StartIcon={PlusIcon}>
           New event type
         </Button>
       )}
@@ -388,8 +378,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
                         : {}),
                     },
                   })
-                }
-              >
+                }>
                 <Avatar
                   displayName={profile.name}
                   imageSrc={profile.image}
@@ -433,8 +422,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             }
 
             createMutation.mutate(payload);
-          }}
-        >
+          }}>
           <div>
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -516,8 +504,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
               </label>
               <RadioArea.Group
                 name="schedulingType"
-                className="relative flex mt-1 space-x-6 rounded-sm shadow-sm"
-              >
+                className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
                 <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
                   <strong className="block mb-1">Collective</strong>
                   <p>Schedule meetings when all selected team members are available.</p>
@@ -544,7 +531,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
 };
 
 export async function getServerSideProps(context) {
-  return { notFound: process.env.NODE_ENV === "production" };
+  if (process.env.NODE_ENV === "production") return { notFound: true };
   const session = await getSession(context);
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };

@@ -66,7 +66,7 @@ const AvailableTimes = ({
             </div>
           );
         })}
-      {!loading && !error && !slots.length && (
+      {!loading && !error && !(slots || []).length && (
         <div className="flex flex-col items-center content-center justify-center w-full h-full -mt-4">
           <h1 className="text-xl text-black dark:text-white">All booked today.</h1>
         </div>

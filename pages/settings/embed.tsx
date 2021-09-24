@@ -4,8 +4,9 @@ import SettingsShell from "@components/Settings";
 import { useSession } from "next-auth/client";
 import Loader from "@components/Loader";
 import { getSession } from "@lib/auth";
+import { InferGetServerSidePropsType } from "next";
 
-export default function Embed(props) {
+export default function Embed(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
 
@@ -19,7 +20,7 @@ export default function Embed(props) {
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="mb-6">
             <h2 className="text-lg leading-6 font-medium text-gray-900">iframe Embed</h2>
-            <p className="mt-1 text-sm text-gray-500">The easiest way to embed Cal.com on your website.</p>
+            <p className="mt-1 text-sm text-gray-500">The easiest way to embed Yac Meet on your website.</p>
           </div>
           <div className="grid grid-cols-2 space-x-4">
             <div>
@@ -64,7 +65,7 @@ export default function Embed(props) {
             </div>
           </div>
           <div className="my-6">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">Cal.com API</h2>
+            <h2 className="text-lg leading-6 font-medium text-gray-900">Yac Meet API</h2>
             <p className="mt-1 text-sm text-gray-500">
               Leverage our API for full control and customizability.
             </p>

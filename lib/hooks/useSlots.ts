@@ -36,7 +36,7 @@ export const useSlots = (props: UseSlotsProps) => {
     const dateTo = encodeURIComponent(date.endOf("day").format());
 
     Promise.all(
-      users.map((user: User) =>
+      (users || []).map((user: User) =>
         fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
           .then(handleAvailableSlots)
           .catch((e) => {

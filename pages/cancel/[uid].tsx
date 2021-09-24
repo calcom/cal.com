@@ -43,9 +43,9 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
     });
 
     if (res.status >= 200 && res.status < 300) {
-      // router.push("/cancel/success/sync?user=" + props.user.username + "&title=" + props.booking.title);
+      // router.push("/cancel/success?user=" + props.user.username + "&title=" + props.booking.title);
       await router.push(
-        `/cancel/success/sync?name=${props.profile.name}&title=${props.booking.title}&eventPage=${
+        `/cancel/success?name=${props.profile.name}&title=${props.booking.title}&eventPage=${
           props.profile.slug
         }&team=${props.booking.eventType.team ? 1 : 0}`
       );
@@ -72,8 +72,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                 className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6"
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="modal-headline"
-              >
+                aria-labelledby="modal-headline">
                 {error && (
                   <div>
                     <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
@@ -115,8 +114,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                         color="secondary"
                         data-testid="cancel"
                         onClick={cancellationHandler}
-                        loading={loading}
-                      >
+                        loading={loading}>
                         Cancel
                       </Button>
                       <Button onClick={() => router.push("/reschedule/" + uid)}>Reschedule</Button>

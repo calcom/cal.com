@@ -55,7 +55,7 @@ export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Yac Meet <${this.getMailerOptions().from}>`,
       to: this.calEvent.organizer.email,
       subject: `Rescheduled event: ${this.calEvent.attendees[0].name} - ${organizerStart.format(
         "LT dddd, LL"

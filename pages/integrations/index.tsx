@@ -167,8 +167,7 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
                     <div className="w-2/12 pt-2 text-right">
                       <button
                         onClick={() => integrationHandler(integration.type)}
-                        className="font-medium text-neutral-900 hover:text-neutral-500"
-                      >
+                        className="font-medium text-neutral-900 hover:text-neutral-500">
                         Add
                       </button>
                     </div>
@@ -273,8 +272,7 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
     return (
       <Dialog
         open={isAddCalDavIntegrationDialogOpen}
-        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}
-      >
+        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
@@ -296,16 +294,14 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
             <Button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900"
-            >
+              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </Button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
-              asChild
-            >
+              asChild>
               <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
@@ -318,20 +314,18 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
     return (
       <Dialog
         open={isAddAppleIntegrationDialogOpen}
-        onOpenChange={(isOpen) => setIsAddAppleIntegrationDialogOpen(isOpen)}
-      >
+        onOpenChange={(isOpen) => setIsAddAppleIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
             title="Connect to Apple Server"
             subtitle={
               <p>
-                Generate an app specific password to use with Cal.com at{" "}
+                Generate an app specific password to use with Yac Meet at{" "}
                 <a
                   className="text-indigo-400"
                   href="https://appleid.apple.com/account/manage"
                   target="_blank"
-                  rel="noopener noreferrer"
-                >
+                  rel="noopener noreferrer">
                   https://appleid.apple.com/account/manage
                 </a>
                 . Your credentials will be stored and encrypted.
@@ -354,16 +348,14 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
             <button
               type="submit"
               form={ADD_APPLE_INTEGRATION_FORM_TITLE}
-              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900"
-            >
+              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </button>
             <DialogClose
               onClick={() => {
                 setIsAddAppleIntegrationDialogOpen(false);
               }}
-              asChild
-            >
+              asChild>
               <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>

@@ -12,7 +12,7 @@ import {
   ClockIcon,
   CogIcon,
   ExternalLinkIcon,
-  // LinkIcon,
+  LinkIcon,
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
@@ -30,12 +30,12 @@ export default function Shell(props) {
   const telemetry = useTelemetry();
 
   const navigation = [
-    // {
-    //   name: "Event Types",
-    //   href: "/event-types",
-    //   icon: LinkIcon,
-    //   current: router.pathname.startsWith("/event-types"),
-    // },
+    process.env.NODE_ENV === "development" && {
+      name: "Event Types",
+      href: "/event-types",
+      icon: LinkIcon,
+      current: router.pathname.startsWith("/event-types"),
+    },
     {
       name: "Bookings",
       href: "/bookings",
@@ -109,8 +109,7 @@ export default function Shell(props) {
                             ? "bg-neutral-100 text-neutral-900"
                             : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
                           "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
-                        )}
-                      >
+                        )}>
                         <item.icon
                           className={classNames(
                             item.current
@@ -181,8 +180,7 @@ export default function Shell(props) {
                           itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
                           "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
                         )}
-                        aria-current={item.current ? "page" : undefined}
-                      >
+                        aria-current={item.current ? "page" : undefined}>
                         <item.icon
                           className={classNames(
                             item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
@@ -262,15 +260,13 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
             enterTo="transform opacity-100 scale-100"
             leave="transition ease-in duration-75"
             leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
+            leaveTo="transform opacity-0 scale-95">
             <Menu.Items
               static
               className={classNames(
                 bottom ? "origin-top top-1 right-0" : "origin-bottom bottom-14 left-0",
                 "w-64 z-10 absolute mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
-              )}
-            >
+              )}>
               <div className="py-1">
                 <a href={"/" + user?.username} className="flex px-4 py-2 text-sm text-neutral-500">
                   View public page <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
@@ -286,33 +282,27 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
                         "flex px-4 py-2 text-sm font-medium"
-                      )}
-                    >
+                      )}>
                       <svg
                         viewBox="0 0 2447.6 2452.5"
                         className={classNames(
                           "text-neutral-400 group-hover:text-neutral-500",
                           "mt-0.5 mr-3 flex-shrink-0 h-4 w-4"
                         )}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
+                        xmlns="http://www.w3.org/2000/svg">
                         <g clipRule="evenodd" fillRule="evenodd">
                           <path
                             d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                            fill="#9BA6B6"
-                          ></path>
+                            fill="#9BA6B6"></path>
                           <path
                             d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                            fill="#9BA6B6"
-                          ></path>
+                            fill="#9BA6B6"></path>
                           <path
                             d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                            fill="#9BA6B6"
-                          ></path>
+                            fill="#9BA6B6"></path>
                           <path
                             d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                            fill="#9BA6B6"
-                          ></path>
+                            fill="#9BA6B6"></path>
                         </g>
                       </svg>
                       Join our Slack
@@ -326,8 +316,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
                         "flex px-4 py-2 text-sm font-medium"
-                      )}
-                    >
+                      )}>
                       <ChatAltIcon
                         className={classNames(
                           "text-neutral-400 group-hover:text-neutral-500",
@@ -348,8 +337,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                       className={classNames(
                         active ? "bg-gray-100 text-gray-900" : "text-gray-700",
                         "flex px-4 py-2 text-sm font-medium"
-                      )}
-                    >
+                      )}>
                       <LogoutIcon
                         className={classNames(
                           "text-neutral-400 group-hover:text-neutral-500",

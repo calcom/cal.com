@@ -15,12 +15,12 @@ export const seoConfig: {
   defaultNextSeo: DefaultSeoProps;
 } = {
   headSeo: {
-    siteName: "Cal.com",
+    siteName: "meet.yac.com",
   },
   defaultNextSeo: {
     twitter: {
-      handle: "@calendso",
-      site: "@Calendso",
+      handle: "@yac",
+      site: "@yac",
       cardType: "summary_large_image",
     },
   },

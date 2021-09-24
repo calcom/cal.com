@@ -207,8 +207,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                       placeholder="A little something about yourself."
                       rows={3}
                       defaultValue={props.user.bio}
-                      className="block w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-600 bg-gray-300 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
-                    ></textarea>
+                      className="block w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-600 bg-gray-300 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"></textarea>
                   </div>
                 </div>
                 <div>
@@ -310,10 +309,10 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Cal.com branding{" "}
+                        Disable Yac branding{" "}
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
-                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
+                      <p className="text-gray-500">Hide all Yac branding from your public pages.</p>
                     </div>
                   </div>
                 </div>

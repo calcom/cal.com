@@ -128,8 +128,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
             color="secondary"
             size="sm"
             StartIcon={ArrowLeftIcon}
-            onClick={() => props.onCloseEdit()}
-          >
+            onClick={() => props.onCloseEdit()}>
             Back
           </Button>
         </div>
@@ -179,8 +178,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       name="about"
                       rows={3}
                       defaultValue={props.team?.bio}
-                      className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                    ></textarea>
+                      className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"></textarea>
                     <p className="mt-2 text-sm text-gray-500">
                       A few sentences about your team. This will appear on your team&apos;s URL page.
                     </p>
@@ -219,8 +217,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       type="button"
                       color="secondary"
                       StartIcon={PlusIcon}
-                      onClick={() => onInviteMember(props.team)}
-                    >
+                      onClick={() => onInviteMember(props.team)}>
                       New Member
                     </Button>
                   </div>
@@ -245,9 +242,9 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Cal.com branding
+                        Disable Yac branding
                       </label>
-                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
+                      <p className="text-gray-500">Hide all Yac branding from your public pages.</p>
                     </div>
                   </div>
                   <hr className="mt-6" />
@@ -260,8 +257,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                         onClick={(e) => {
                           e.stopPropagation();
                         }}
-                        className="btn-sm btn-white"
-                      >
+                        className="btn-sm btn-white">
                         <TrashIcon className="group-hover:text-red text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
                         Disband Team
                       </DialogTrigger>
@@ -270,8 +266,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                         title="Disband Team"
                         confirmBtnText="Yes, disband team"
                         cancelBtnText="Cancel"
-                        onConfirm={() => deleteTeam()}
-                      >
+                        onConfirm={() => deleteTeam()}>
                         Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
                         link with will no longer be able to book using it.
                       </ConfirmationDialogContent>

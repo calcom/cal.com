@@ -127,6 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       title: true,
+      slug: true,
       length: true,
       eventName: true,
       schedulingType: true,
@@ -245,6 +246,68 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Initialize EventManager with credentials
   const rescheduleUid = req.body.rescheduleUid;
 
+  try {
+    console.log("slug", eventType.slug);
+    console.log("users[0]", users[0]);
+    if (eventType.slug === "async") {
+      const yacCredential = await prisma.credential.findFirst({
+        where: {
+          type: "yac",
+          userId: users[0].id,
+        },
+        select: {
+          key: true,
+        },
+      });
+      if (!(yacCredential && yacCredential.key && (yacCredential.key as any).api_token)) {
+        log.error(`Booking ${eventTypeId} failed`, "Error getting yac credential for user");
+        res.status(500).json({ message: "Could not get Yac user credentials for " + users[0].name });
+        return;
+      }
+      const yacToken = (yacCredential.key as any).api_token;
+      const { groupDetails = {} } = await (
+        await fetch("https://api-v3.yacchat.com/api/v1/group/create", {
+          method: "POST",
+          headers: {
+            Authorization: yacToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: req.body.topic,
+            bio: req.body.notes,
+          }),
+        })
+      ).json();
+      const { id: groupId } = groupDetails;
+
+      await fetch(`https://api-v3.yacchat.com/api/v2/groups/${groupId}/members`, {
+        method: "POST",
+        headers: {
+          Authorization: yacToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          emails: attendeesList.map((x) => x.email),
+          resendInvite: true,
+        }),
+      });
+      const { inviteLink } = await (
+        await fetch(`https://api-v3.yacchat.com/api/v2/groups/${groupId}/invite-link`, {
+          method: "GET",
+          headers: {
+            Authorization: yacToken,
+            "Content-Type": "application/json",
+          },
+        })
+      ).json();
+      evt.location = inviteLink;
+      console.log(inviteLink);
+    }
+  } catch (error) {
+    log.error(`Booking ${eventTypeId} failed`, "Error getting yac invite link", error);
+    res.status(500).json({ message: "Could not get Yac invite link" });
+  }
+
   const bookingCreateInput: Prisma.BookingCreateInput = {
     uid,
     title: evt.title,
@@ -274,6 +337,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     booking = await prisma.booking.create({
       data: bookingCreateInput,
+      select: {
+        id: true,
+        uid: true,
+        userId: true,
+        eventTypeId: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        createdAt: true,
+        updatedAt: true,
+        confirmed: true,
+        rejected: true,
+        status: true,
+        paid: true,
+        eventType: {
+          select: {
+            slug: true,
+          },
+        },
+      },
     });
   } catch (e) {
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", e.message);
@@ -432,5 +517,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // booking successful
+  console.log(booking);
   return res.status(201).json(booking);
 }

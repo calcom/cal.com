@@ -128,22 +128,21 @@ export default NextAuth({
           });
         }
 
-        const eventType = await prisma.eventType.findFirst({
+        const syncEventType = await prisma.eventType.findFirst({
           where: {
-            title: "Sync Meeting",
+            slug: "sync",
             userId: id,
           },
           select: {
             id: true,
           },
         });
-        if (eventType && eventType.id) {
+        if (syncEventType && syncEventType.id) {
           await prisma.eventType.update({
-            where: { id: eventType.id },
+            where: { id: syncEventType.id },
             data: {
               title: "Sync Meeting",
               userId: id,
-              slug: "sync-meeting",
               description: `Sync meeting with ${name}.`,
               length: 45,
               eventName: `${name} <> {USER}`,
@@ -155,11 +154,44 @@ export default NextAuth({
             data: {
               title: "Sync Meeting",
               userId: id,
-              slug: "sync-meeting",
+              slug: "sync",
               description: `Sync meeting with ${name}.`,
               length: 45,
               eventName: `${name} <> {USER}`,
               locations: [{ type: "integrations:zoom" }],
+            },
+          });
+        }
+
+        const asyncEventType = await prisma.eventType.findFirst({
+          where: {
+            slug: "async",
+            userId: id,
+          },
+          select: {
+            id: true,
+          },
+        });
+        if (asyncEventType && asyncEventType.id) {
+          await prisma.eventType.update({
+            where: { id: asyncEventType.id },
+            data: {
+              title: "Async Meeting",
+              userId: id,
+              description: `Async meeting with ${name}.`,
+              length: 10,
+              eventName: `[ASYNC] ${name} <> {USER}`,
+            },
+          });
+        } else {
+          await prisma.eventType.create({
+            data: {
+              title: "Async Meeting",
+              userId: id,
+              slug: "async",
+              description: `Async meeting with ${name}.`,
+              length: 10,
+              eventName: `[ASYNC] ${name} <> {USER}`,
             },
           });
         }

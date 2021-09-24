@@ -17,7 +17,7 @@ const sendEmail = (invitation: any, { provider }) =>
 
     nodemailer.createTransport(transport).sendMail(
       {
-        from: `Cal.com <${from}>`,
+        from: `meet.yac.com <${from}>`,
         to: invitation.toEmail,
         subject:
           (invitation.from ? invitation.from + " invited you" : "You have been invited") +
@@ -53,7 +53,7 @@ const html = (invitation: any) => {
       Hi,<br />
       <br />` +
     (invitation.from ? invitation.from + " invited you" : "You have been invited") +
-    ` to join the team "${invitation.teamName}" in Cal.com.<br />
+    ` to join the team "${invitation.teamName}" in Yac Meet.<br />
       <br />
       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
         <tr>
@@ -71,7 +71,7 @@ const html = (invitation: any) => {
           </td>
         </tr>
       </table><br />
-      If you prefer not to use "${invitation.toEmail}" as your Cal.com email or already have a Cal.com account, please request another invitation to that email.
+      If you prefer not to use "${invitation.toEmail}" as your Yac Meet email or already have a Yac Meet account, please request another invitation to that email.
       </td>
       </tr>
       </table>

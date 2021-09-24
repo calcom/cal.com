@@ -1,15 +1,8 @@
 import Head from "next/head";
 import prisma from "@lib/prisma";
 import { useSession } from "next-auth/client";
-import {
-  EventType,
-  EventTypeCreateInput,
-  Schedule,
-  ScheduleCreateInput,
-  User,
-  UserUpdateInput,
-} from "@prisma/client";
-import { NextPageContext } from "next";
+import { EventTypeCreateInput, ScheduleCreateInput, UserUpdateInput } from "@prisma/client";
+import { NextPageContext, InferGetServerSidePropsType } from "next";
 import React, { useEffect, useRef, useState } from "react";
 import { validJson } from "@lib/jsonUtils";
 import TimezoneSelect from "react-timezone-select";
@@ -53,14 +46,14 @@ const DEFAULT_EVENT_TYPES = [
   },
 ];
 
-type OnboardingProps = {
-  user: User;
-  integrations?: Record<string, string>[];
-  eventTypes?: EventType[];
-  schedules?: Schedule[];
-};
+// type OnboardingProps = {
+//   user: User;
+//   integrations?: Record<string, string>[];
+//   eventTypes?: EventType[];
+//   schedules?: Schedule[];
+// };
 
-export default function Onboarding(props: OnboardingProps) {
+export default function Onboarding(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
 
   const [enteredName, setEnteredName] = React.useState();
@@ -138,16 +131,16 @@ export default function Onboarding(props: OnboardingProps) {
 
     return (
       <li onClick={() => integrationHandler(integration.type)} key={integration.type} className="flex py-4">
-        <div className="w-1/12 mr-4 pt-2">
-          <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
+        <div className="w-1/12 pt-2 mr-4">
+          <img className="w-8 h-8 mr-2" src={integration.imageSrc} alt={integration.title} />
         </div>
         <div className="w-10/12">
-          <Text className="text-gray-800 font-medium">{integration.title}</Text>
+          <Text className="font-medium text-gray-800">{integration.title}</Text>
           <Text className="text-gray-400" variant="subtitle">
             {integration.description}
           </Text>
         </div>
-        <div className="w-2/12 text-right pt-2">
+        <div className="w-2/12 pt-2 text-right">
           <Button color="secondary" onClick={() => integrationHandler(integration.type)}>
             Connect
           </Button>
@@ -217,8 +210,7 @@ export default function Onboarding(props: OnboardingProps) {
     return (
       <Dialog
         open={isAddCalDavIntegrationDialogOpen}
-        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}
-      >
+        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
             title="Connect to CalDav Server"
@@ -226,7 +218,7 @@ export default function Onboarding(props: OnboardingProps) {
           />
           <div className="my-4">
             {addCalDavError && (
-              <p className="text-red-700 text-sm">
+              <p className="text-sm text-red-700">
                 <span className="font-bold">Error: </span>
                 {addCalDavError.message}
               </p>
@@ -240,16 +232,14 @@ export default function Onboarding(props: OnboardingProps) {
             <button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900"
-            >
+              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
-              asChild
-            >
+              asChild>
               <Button color="secondary">Cancel</Button>
             </DialogClose>
           </div>
@@ -351,7 +341,7 @@ export default function Onboarding(props: OnboardingProps) {
   const steps = [
     {
       id: "welcome",
-      title: "Welcome to Cal.com",
+      title: "Welcome to Yac Meet",
       description:
         "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
       Component: (
@@ -370,7 +360,7 @@ export default function Onboarding(props: OnboardingProps) {
                 placeholder="Your name"
                 defaultValue={props.user.name}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
             </fieldset>
 
@@ -388,7 +378,7 @@ export default function Onboarding(props: OnboardingProps) {
                 id="timeZone"
                 value={selectedTimeZone}
                 onChange={setSelectedTimeZone}
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </fieldset>
           </section>
@@ -434,7 +424,7 @@ export default function Onboarding(props: OnboardingProps) {
         "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
       Component: (
         <>
-          <section className="bg-white dark:bg-opacity-5 text-black dark:text-white mx-auto max-w-lg">
+          <section className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white">
             <SchedulerForm
               onSubmit={async (data) => {
                 try {
@@ -448,7 +438,7 @@ export default function Onboarding(props: OnboardingProps) {
               }}
             />
           </section>
-          <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
+          <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full sm:max-w-md">
             <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
               Continue
             </Button>
@@ -479,7 +469,7 @@ export default function Onboarding(props: OnboardingProps) {
                 placeholder="Your name"
                 defaultValue={props.user.name || enteredName}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
             </fieldset>
             <fieldset>
@@ -492,7 +482,7 @@ export default function Onboarding(props: OnboardingProps) {
                 name="bio"
                 id="bio"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                 defaultValue={props.user.bio}
               />
               <Text variant="caption">
@@ -529,15 +519,15 @@ export default function Onboarding(props: OnboardingProps) {
   }
 
   return (
-    <div className="bg-black min-h-screen">
+    <div className="min-h-screen bg-black">
       <Head>
-        <title>Cal.com - Getting Started</title>
+        <title>Yac Meet - Getting Started</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="mx-auto py-24 px-4">
+      <div className="px-4 py-24 mx-auto">
         <article>
-          <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
+          <section className="space-y-4 sm:mx-auto sm:w-full sm:max-w-md">
             <header className="">
               <Text className="text-white" variant="largetitle">
                 {steps[currentStep].title}
@@ -553,7 +543,7 @@ export default function Onboarding(props: OnboardingProps) {
 
               {error && <ErrorAlert {...error} />}
 
-              <section className="w-full space-x-2 flex">
+              <section className="flex w-full space-x-2">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
                     <div
@@ -562,28 +552,27 @@ export default function Onboarding(props: OnboardingProps) {
                       className={classnames(
                         "h-1 bg-white w-1/4",
                         index < currentStep ? "cursor-pointer" : ""
-                      )}
-                    ></div>
+                      )}></div>
                   ) : (
-                    <div key={`step-${index}`} className="h-1 bg-white bg-opacity-25 w-1/4"></div>
+                    <div key={`step-${index}`} className="w-1/4 h-1 bg-white bg-opacity-25"></div>
                   );
                 })}
               </section>
             </section>
           </section>
-          <section className="py-6 mt-10 mx-auto max-w-xl bg-white p-10 rounded-sm">
+          <section className="max-w-xl p-10 py-6 mx-auto mt-10 bg-white rounded-sm">
             {steps[currentStep].Component}
 
             {!steps[currentStep].hideConfirm && (
-              <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
+              <footer className="flex flex-col py-6 mt-8 space-y-6 sm:mx-auto sm:w-full sm:max-w-md">
                 <Button className="justify-center" onClick={handleConfirmStep} EndIcon={ArrowRightIcon}>
                   {steps[currentStep].confirmText}
                 </Button>
               </footer>
             )}
           </section>
-          <section className="py-6 mt-8 mx-auto max-w-xl">
-            <div className="flex justify-between flex-row-reverse">
+          <section className="max-w-xl py-6 mx-auto mt-8">
+            <div className="flex flex-row-reverse justify-between">
               <button onClick={handleSkipStep}>
                 <Text variant="caption">Skip Step</Text>
               </button>
