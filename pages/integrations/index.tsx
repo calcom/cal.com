@@ -144,7 +144,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+        <DialogHeader title="Connect a new App" subtitle="Integrate your account with other services." />
         <div className="my-4">
           <ul className="divide-y divide-gray-200">
             {integrations
@@ -440,7 +440,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         </div>
         <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
+            <h3 className="font-cal text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>Select which calendars are checked for availability to prevent double bookings.</p>
             </div>
@@ -449,7 +449,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         </div>
         <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
+            <h3 className="font-cal text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>

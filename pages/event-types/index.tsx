@@ -140,8 +140,12 @@ const EventTypesPage = (props: PageProps) => {
               type.$disabled && "opacity-30 cursor-not-allowed pointer-events-none select-none"
             )}
             data-disabled={type.$disabled ? 1 : 0}>
-            <div className={classNames("hover:bg-neutral-50", type.$disabled && "pointer-events-none")}>
-              <div className="flex items-center px-4 py-4 sm:px-6 hover:bg-neutral-50">
+            <div
+              className={classNames(
+                "hover:bg-neutral-50 flex justify-between items-center ",
+                type.$disabled && "pointer-events-none"
+              )}>
+              <div className="flex items-center w-full justify-between px-4 py-4 sm:px-6 hover:bg-neutral-50">
                 <Link href={"/event-types/" + type.id}>
                   <a className="flex-grow text-sm truncate">
                     <div>
@@ -198,7 +202,7 @@ const EventTypesPage = (props: PageProps) => {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-shrink-0 ml-5 sm:hidden">
+              <div className="flex flex-shrink-0 mr-5 sm:hidden">
                 <Menu as="div" className="inline-block text-left">
                   {({ open }) => (
                     <>
