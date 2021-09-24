@@ -18,6 +18,7 @@ import React, { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import classNames from "@lib/classNames";
+import HelpMenuItemDynamic from "@lib/intercom/HelpMenuItemDynamic";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import { HeadSeo } from "@components/seo/head-seo";
@@ -315,6 +316,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                     </a>
                   )}
                 </Menu.Item>
+                <HelpMenuItemDynamic />
               </div>
               <div className="py-1">
                 <Menu.Item>
