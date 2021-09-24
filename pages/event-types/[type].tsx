@@ -363,6 +363,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
         title={`${eventType.title} | Event Type`}
         heading={
           <input
+            disabled
             ref={titleRef}
             type="text"
             name="title"
