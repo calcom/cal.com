@@ -67,7 +67,9 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             className="flex-none inline mr-1.5 mt-0.5 h-4 w-4 text-neutral-400"
             aria-hidden="true"
           />
-          <span>{eventType.description.substring(0, 100)}</span>
+          <span className="truncate max-w-[200px] sm:max-w-full">
+            {eventType.description.substring(0, 100)}
+          </span>
         </li>
       )}
     </ul>
