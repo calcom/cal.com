@@ -17,7 +17,6 @@ import {
   LinkIcon,
   PlusIcon,
   DocumentIcon,
-  ChevronRightIcon,
   ClockIcon,
   TrashIcon,
   ExternalLinkIcon,
@@ -36,7 +35,7 @@ import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import Switch from "@components/ui/Switch";
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { GetServerSidePropsContext } from "next";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import { EventTypeInput } from "@lib/types/event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
@@ -46,7 +45,6 @@ import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { defaultAvatarSrc } from "@lib/profile";
 import * as RadioArea from "@components/ui/form/radio-area";
 import classNames from "@lib/classNames";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import Button from "@components/ui/Button";
 
@@ -68,7 +66,7 @@ const PERIOD_TYPES = [
   },
 ];
 
-const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
+const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { eventType, locationOptions, availability, team, teamMembers } = props;
 
   const router = useRouter();
@@ -188,6 +186,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     event.preventDefault();
 
     const formData = Object.fromEntries(new FormData(event.target).entries());
+    console.log({ formData });
 
     const enteredTitle: string = titleRef.current.value;
     const enteredSlug: string = slugRef.current.value;
@@ -208,7 +207,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       title: enteredTitle,
       slug: enteredSlug,
       description: formData.description as string,
-      length: formData.length as number,
+      length: isNaN(Number(formData.length)) ? eventType.length : (Number(formData.length) as number),
       hidden,
       locations,
       customInputs,
@@ -222,6 +221,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           }
         : {}),
     };
+    console.log({ payload });
 
     updateMutation.mutate(payload);
   }
@@ -373,8 +373,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             defaultValue={eventType.title}
           />
         }
-        subtitle={eventType.description}
-      >
+        subtitle={eventType.description}>
         <div className="block sm:flex">
           <div className="w-full mr-2 sm:w-10/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
@@ -394,6 +393,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
+                          disabled
                           ref={slugRef}
                           type="text"
                           name="slug"
@@ -415,6 +415,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="w-full">
                       <div className="relative mt-1 rounded-sm shadow-sm">
                         <input
+                          disabled
                           type="number"
                           name="length"
                           id="length"
@@ -460,8 +461,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {locations.map((location) => (
                             <li
                               key={location.type}
-                              className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300"
-                            >
+                              className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
                               <div className="flex justify-between">
                                 {location.type === LocationType.InPerson && (
                                   <div className="flex items-center flex-grow">
@@ -481,8 +481,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       className="w-6 h-6"
                                       viewBox="0 0 64 54"
                                       fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
+                                      xmlns="http://www.w3.org/2000/svg">
                                       <path d="M16 0V16H0" fill="#EA4335" />
                                       <path
                                         d="M16 0V16H37.3333V27.0222L53.3333 14.0444V5.33332C53.3333 1.77777 51.5555 0 47.9999 0"
@@ -513,8 +512,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       className="w-6 h-6"
                                       viewBox="0 0 64 64"
                                       fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
+                                      xmlns="http://www.w3.org/2000/svg">
                                       <path
                                         d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
                                         fill="#E5E5E4"
@@ -539,8 +537,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <button
                                     type="button"
                                     onClick={() => openLocationModal(location.type)}
-                                    className="mr-2 text-sm text-primary-600"
-                                  >
+                                    className="mr-2 text-sm text-primary-600">
                                     Edit
                                   </button>
                                   <button onClick={() => removeLocation(location)}>
@@ -555,8 +552,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <button
                                 type="button"
                                 className="flex px-3 py-2 rounded-sm bg-neutral-100"
-                                onClick={() => setShowLocationModal(true)}
-                              >
+                                onClick={() => setShowLocationModal(true)}>
                                 <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
                                 <span className="ml-1 text-sm font-medium text-neutral-700">
                                   Add another location
@@ -584,8 +580,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         id="description"
                         className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                         placeholder="A quick video meeting."
-                        defaultValue={eventType.description}
-                      ></textarea>
+                        defaultValue={eventType.description}></textarea>
                     </div>
                   </div>
                 </div>
@@ -596,9 +591,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="mb-4 min-w-44 sm:mb-0">
                         <label
                           htmlFor="schedulingType"
-                          className="flex mt-2 text-sm font-medium text-neutral-700"
-                        >
-                          <UsersIcon className="text-neutral-500 h-5 w-5 mr-2" /> Scheduling Type
+                          className="flex mt-2 text-sm font-medium text-neutral-700">
+                          <UsersIcon className="w-5 h-5 mr-2 text-neutral-500" /> Scheduling Type
                         </label>
                       </div>
                       <RadioArea.Select
@@ -611,7 +605,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="block sm:flex">
                       <div className="mb-4 min-w-44 sm:mb-0">
                         <label htmlFor="users" className="flex mt-2 text-sm font-medium text-neutral-700">
-                          <UserAddIcon className="text-neutral-500 h-5 w-5 mr-2" /> Attendees
+                          <UserAddIcon className="w-5 h-5 mr-2 text-neutral-500" /> Attendees
                         </label>
                       </div>
                       <div className="w-full space-y-2">
@@ -636,261 +630,254 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 )}
 
                 <Disclosure>
-                  {({ open }) => (
-                    <>
-                      <Disclosure.Button className="flex w-full">
+                  {
+                    (/*{ open }*/) => (
+                      <>
+                        {/* <Disclosure.Button className="flex w-full">
                         <ChevronRightIcon
                           className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-neutral-500 ml-auto`}
                         />
                         <span className="text-sm font-medium text-neutral-700">Show advanced settings</span>
-                      </Disclosure.Button>
-                      <Disclosure.Panel className="space-y-4">
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="eventName"
-                              className="flex mt-2 text-sm font-medium text-neutral-700"
-                            >
-                              Event name
-                            </label>
+                      </Disclosure.Button> */}
+                        <Disclosure.Panel className="space-y-4">
+                          <div className="items-center block sm:flex">
+                            <div className="mb-4 min-w-44 sm:mb-0">
+                              <label
+                                htmlFor="eventName"
+                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                Event name
+                              </label>
+                            </div>
+                            <div className="w-full">
+                              <div className="relative mt-1 rounded-sm shadow-sm">
+                                <input
+                                  ref={eventNameRef}
+                                  type="text"
+                                  name="title"
+                                  id="title"
+                                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                  placeholder="Meeting with {USER}"
+                                  defaultValue={eventType.eventName}
+                                />
+                              </div>
+                            </div>
                           </div>
-                          <div className="w-full">
-                            <div className="relative mt-1 rounded-sm shadow-sm">
-                              <input
-                                ref={eventNameRef}
-                                type="text"
-                                name="title"
-                                id="title"
-                                className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                placeholder="Meeting with {USER}"
-                                defaultValue={eventType.eventName}
+                          <div className="items-center block sm:flex">
+                            <div className="mb-4 min-w-44 sm:mb-0">
+                              <label
+                                htmlFor="additionalFields"
+                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                Additional inputs
+                              </label>
+                            </div>
+                            <div className="w-full">
+                              <ul className="mt-1 w-max">
+                                {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+                                  <li key={idx} className="p-2 mb-2 border bg-secondary-50">
+                                    <div className="flex justify-between">
+                                      <div>
+                                        <div>
+                                          <span className="ml-2 text-sm">Label: {customInput.label}</span>
+                                        </div>
+                                        {customInput.placeholder && (
+                                          <div>
+                                            <span className="ml-2 text-sm">
+                                              Placeholder: {customInput.placeholder}
+                                            </span>
+                                          </div>
+                                        )}
+                                        <div>
+                                          <span className="ml-2 text-sm">Type: {customInput.type}</span>
+                                        </div>
+                                        <div>
+                                          <span className="ml-2 text-sm">
+                                            {customInput.required ? "Required" : "Optional"}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="flex">
+                                        <button
+                                          type="button"
+                                          onClick={() => openEditCustomModel(customInput)}
+                                          className="mr-2 text-sm text-primary-600">
+                                          Edit
+                                        </button>
+                                        <button type="button" onClick={() => removeCustom(idx)}>
+                                          <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </li>
+                                ))}
+                                <li>
+                                  <button
+                                    type="button"
+                                    className="flex px-3 py-2 rounded-sm bg-neutral-100"
+                                    onClick={() => setShowAddCustomModal(true)}>
+                                    <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
+                                    <span className="ml-1 text-sm font-medium text-neutral-700">
+                                      Add an input
+                                    </span>
+                                  </button>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          <div className="items-center block sm:flex">
+                            <div className="mb-4 min-w-44 sm:mb-0">
+                              <label
+                                htmlFor="requiresConfirmation"
+                                className="flex text-sm font-medium text-neutral-700">
+                                Opt-in booking
+                              </label>
+                            </div>
+                            <div className="w-full">
+                              <div className="relative flex items-start">
+                                <div className="flex items-center h-5">
+                                  <input
+                                    ref={requiresConfirmationRef}
+                                    id="requiresConfirmation"
+                                    name="requiresConfirmation"
+                                    type="checkbox"
+                                    className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
+                                    defaultChecked={eventType.requiresConfirmation}
+                                  />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                  <p className="text-neutral-900">
+                                    The booking needs to be manually confirmed before it is pushed to the
+                                    integrations and a confirmation mail is sent.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <hr className="border-neutral-200" />
+
+                          <div className="block sm:flex">
+                            <div className="mb-4 min-w-44 sm:mb-0">
+                              <label
+                                htmlFor="inviteesCanSchedule"
+                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                Invitees can schedule
+                              </label>
+                            </div>
+                            <div className="w-full">
+                              <RadioGroup value={periodType} onChange={setPeriodType}>
+                                <RadioGroup.Label className="sr-only">Date Range</RadioGroup.Label>
+                                <div>
+                                  {PERIOD_TYPES.map((period) => (
+                                    <RadioGroup.Option
+                                      key={period.type}
+                                      value={period}
+                                      className={({ checked }) =>
+                                        classNames(
+                                          checked ? "border-secondary-200 z-10" : "border-gray-200",
+                                          "relative min-h-14 flex items-center cursor-pointer focus:outline-none"
+                                        )
+                                      }>
+                                      {({ active, checked }) => (
+                                        <>
+                                          <div
+                                            className={classNames(
+                                              checked
+                                                ? "bg-primary-600 border-transparent"
+                                                : "bg-white border-gray-300",
+                                              active ? "ring-2 ring-offset-2 ring-primary-500" : "",
+                                              "h-4 w-4 mt-0.5 mr-2 cursor-pointer rounded-full border items-center justify-center"
+                                            )}
+                                            aria-hidden="true">
+                                            <span className="rounded-full bg-white w-1.5 h-1.5" />
+                                          </div>
+                                          <div className="flex flex-col lg:ml-3">
+                                            <RadioGroup.Label
+                                              as="span"
+                                              className={classNames(
+                                                checked ? "text-secondary-900" : "text-gray-900",
+                                                "block text-sm space-y-2 lg:space-y-0 lg:space-x-2"
+                                              )}>
+                                              <span>{period.prefix}</span>
+                                              {period.type === "rolling" && (
+                                                <div className="inline-flex">
+                                                  <input
+                                                    ref={periodDaysRef}
+                                                    type="text"
+                                                    name="periodDays"
+                                                    id=""
+                                                    className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                    placeholder="30"
+                                                    defaultValue={eventType.periodDays || 30}
+                                                  />
+                                                  <select
+                                                    ref={periodDaysTypeRef}
+                                                    id=""
+                                                    name="periodDaysType"
+                                                    className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                    defaultValue={
+                                                      eventType.periodCountCalendarDays ? "1" : "0"
+                                                    }>
+                                                    <option value="1">calendar days</option>
+                                                    <option value="0">business days</option>
+                                                  </select>
+                                                </div>
+                                              )}
+
+                                              {checked && period.type === "range" && (
+                                                <div className="inline-flex space-x-2">
+                                                  <DateRangePicker
+                                                    orientation={DATE_PICKER_ORIENTATION}
+                                                    startDate={periodStartDate}
+                                                    startDateId="your_unique_start_date_id"
+                                                    endDate={periodEndDate}
+                                                    endDateId="your_unique_end_date_id"
+                                                    onDatesChange={({ startDate, endDate }) => {
+                                                      setPeriodStartDate(startDate);
+                                                      setPeriodEndDate(endDate);
+                                                    }}
+                                                    focusedInput={focusedInput}
+                                                    onFocusChange={(focusedInput) => {
+                                                      setFocusedInput(focusedInput);
+                                                    }}
+                                                  />
+                                                </div>
+                                              )}
+
+                                              <span>{period.suffix}</span>
+                                            </RadioGroup.Label>
+                                          </div>
+                                        </>
+                                      )}
+                                    </RadioGroup.Option>
+                                  ))}
+                                </div>
+                              </RadioGroup>
+                            </div>
+                          </div>
+
+                          <hr className="border-neutral-200" />
+
+                          <div className="block sm:flex">
+                            <div className="mb-4 min-w-44 sm:mb-0">
+                              <label
+                                htmlFor="availability"
+                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                Availability
+                              </label>
+                            </div>
+                            <div className="w-full">
+                              <Scheduler
+                                setAvailability={setEnteredAvailability}
+                                setTimeZone={setSelectedTimeZone}
+                                timeZone={selectedTimeZone}
+                                availability={availability}
                               />
                             </div>
                           </div>
-                        </div>
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="additionalFields"
-                              className="flex mt-2 text-sm font-medium text-neutral-700"
-                            >
-                              Additional inputs
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <ul className="mt-1 w-max">
-                              {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
-                                <li key={idx} className="p-2 mb-2 border bg-secondary-50">
-                                  <div className="flex justify-between">
-                                    <div>
-                                      <div>
-                                        <span className="ml-2 text-sm">Label: {customInput.label}</span>
-                                      </div>
-                                      {customInput.placeholder && (
-                                        <div>
-                                          <span className="ml-2 text-sm">
-                                            Placeholder: {customInput.placeholder}
-                                          </span>
-                                        </div>
-                                      )}
-                                      <div>
-                                        <span className="ml-2 text-sm">Type: {customInput.type}</span>
-                                      </div>
-                                      <div>
-                                        <span className="ml-2 text-sm">
-                                          {customInput.required ? "Required" : "Optional"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <div className="flex">
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditCustomModel(customInput)}
-                                        className="mr-2 text-sm text-primary-600"
-                                      >
-                                        Edit
-                                      </button>
-                                      <button type="button" onClick={() => removeCustom(idx)}>
-                                        <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </li>
-                              ))}
-                              <li>
-                                <button
-                                  type="button"
-                                  className="flex px-3 py-2 rounded-sm bg-neutral-100"
-                                  onClick={() => setShowAddCustomModal(true)}
-                                >
-                                  <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
-                                  <span className="ml-1 text-sm font-medium text-neutral-700">
-                                    Add an input
-                                  </span>
-                                </button>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="requiresConfirmation"
-                              className="flex text-sm font-medium text-neutral-700"
-                            >
-                              Opt-in booking
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <div className="relative flex items-start">
-                              <div className="flex items-center h-5">
-                                <input
-                                  ref={requiresConfirmationRef}
-                                  id="requiresConfirmation"
-                                  name="requiresConfirmation"
-                                  type="checkbox"
-                                  className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
-                                  defaultChecked={eventType.requiresConfirmation}
-                                />
-                              </div>
-                              <div className="ml-3 text-sm">
-                                <p className="text-neutral-900">
-                                  The booking needs to be manually confirmed before it is pushed to the
-                                  integrations and a confirmation mail is sent.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <hr className="border-neutral-200" />
-
-                        <div className="block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="inviteesCanSchedule"
-                              className="flex mt-2 text-sm font-medium text-neutral-700"
-                            >
-                              Invitees can schedule
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <RadioGroup value={periodType} onChange={setPeriodType}>
-                              <RadioGroup.Label className="sr-only">Date Range</RadioGroup.Label>
-                              <div>
-                                {PERIOD_TYPES.map((period) => (
-                                  <RadioGroup.Option
-                                    key={period.type}
-                                    value={period}
-                                    className={({ checked }) =>
-                                      classNames(
-                                        checked ? "border-secondary-200 z-10" : "border-gray-200",
-                                        "relative min-h-14 flex items-center cursor-pointer focus:outline-none"
-                                      )
-                                    }
-                                  >
-                                    {({ active, checked }) => (
-                                      <>
-                                        <div
-                                          className={classNames(
-                                            checked
-                                              ? "bg-primary-600 border-transparent"
-                                              : "bg-white border-gray-300",
-                                            active ? "ring-2 ring-offset-2 ring-primary-500" : "",
-                                            "h-4 w-4 mt-0.5 mr-2 cursor-pointer rounded-full border items-center justify-center"
-                                          )}
-                                          aria-hidden="true"
-                                        >
-                                          <span className="rounded-full bg-white w-1.5 h-1.5" />
-                                        </div>
-                                        <div className="flex flex-col lg:ml-3">
-                                          <RadioGroup.Label
-                                            as="span"
-                                            className={classNames(
-                                              checked ? "text-secondary-900" : "text-gray-900",
-                                              "block text-sm space-y-2 lg:space-y-0 lg:space-x-2"
-                                            )}
-                                          >
-                                            <span>{period.prefix}</span>
-                                            {period.type === "rolling" && (
-                                              <div className="inline-flex">
-                                                <input
-                                                  ref={periodDaysRef}
-                                                  type="text"
-                                                  name="periodDays"
-                                                  id=""
-                                                  className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                                  placeholder="30"
-                                                  defaultValue={eventType.periodDays || 30}
-                                                />
-                                                <select
-                                                  ref={periodDaysTypeRef}
-                                                  id=""
-                                                  name="periodDaysType"
-                                                  className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm  focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                                  defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}
-                                                >
-                                                  <option value="1">calendar days</option>
-                                                  <option value="0">business days</option>
-                                                </select>
-                                              </div>
-                                            )}
-
-                                            {checked && period.type === "range" && (
-                                              <div className="inline-flex space-x-2">
-                                                <DateRangePicker
-                                                  orientation={DATE_PICKER_ORIENTATION}
-                                                  startDate={periodStartDate}
-                                                  startDateId="your_unique_start_date_id"
-                                                  endDate={periodEndDate}
-                                                  endDateId="your_unique_end_date_id"
-                                                  onDatesChange={({ startDate, endDate }) => {
-                                                    setPeriodStartDate(startDate);
-                                                    setPeriodEndDate(endDate);
-                                                  }}
-                                                  focusedInput={focusedInput}
-                                                  onFocusChange={(focusedInput) => {
-                                                    setFocusedInput(focusedInput);
-                                                  }}
-                                                />
-                                              </div>
-                                            )}
-
-                                            <span>{period.suffix}</span>
-                                          </RadioGroup.Label>
-                                        </div>
-                                      </>
-                                    )}
-                                  </RadioGroup.Option>
-                                ))}
-                              </div>
-                            </RadioGroup>
-                          </div>
-                        </div>
-
-                        <hr className="border-neutral-200" />
-
-                        <div className="block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="availability"
-                              className="flex mt-2 text-sm font-medium text-neutral-700"
-                            >
-                              Availability
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <Scheduler
-                              setAvailability={setEnteredAvailability}
-                              setTimeZone={setSelectedTimeZone}
-                              timeZone={selectedTimeZone}
-                              availability={availability}
-                            />
-                          </div>
-                        </div>
-                      </Disclosure.Panel>
-                    </>
-                  )}
+                        </Disclosure.Panel>
+                      </>
+                    )
+                  }
                 </Disclosure>
                 <div className="flex justify-end mt-4 space-x-2">
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
@@ -919,8 +906,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 href={"/" + (team ? "team/" + team.slug : eventType.users[0].username) + "/" + eventType.slug}
                 target="_blank"
                 rel="noreferrer"
-                className="flex font-medium text-md text-neutral-700"
-              >
+                className="flex font-medium text-md text-neutral-700">
                 <ExternalLinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" aria-hidden="true" />
                 Preview
               </a>
@@ -936,8 +922,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   showToast("Link copied!", "success");
                 }}
                 type="button"
-                className="flex font-medium text-md text-neutral-700"
-              >
+                className="flex font-medium text-md text-neutral-700">
                 <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
                 Copy link
               </button>
@@ -950,8 +935,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   variety="danger"
                   title="Delete Event Type"
                   confirmBtnText="Yes, delete event type"
-                  onConfirm={deleteEventTypeHandler}
-                >
+                  onConfirm={deleteEventTypeHandler}>
                   Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link
                   with will no longer be able to book using it.
                 </ConfirmationDialogContent>
@@ -964,13 +948,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             className="fixed inset-0 z-50 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
-            aria-modal="true"
-          >
+            aria-modal="true">
             <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div
                 className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
-                aria-hidden="true"
-              ></div>
+                aria-hidden="true"></div>
 
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
                 &#8203;
@@ -1016,8 +998,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             className="fixed inset-0 z-50 overflow-y-auto"
             aria-labelledby="modal-title"
             role="dialog"
-            aria-modal="true"
-          >
+            aria-modal="true">
             <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div
                 className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
@@ -1085,7 +1066,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           type="text"
                           name="placeholder"
                           id="placeholder"
-                          className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                          className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                           defaultValue={selectedCustomInput?.placeholder}
                         />
                       </div>
@@ -1260,8 +1241,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   ];
 
   const locationOptions: OptionTypeBase[] = [
-    { value: LocationType.InPerson, label: "Link or In-person meeting" },
-    { value: LocationType.Phone, label: "Phone call" },
+    // { value: LocationType.InPerson, label: "Link or In-person meeting" },
+    // { value: LocationType.Phone, label: "Phone call" },
     { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 

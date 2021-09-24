@@ -23,7 +23,6 @@ import {
   DotsHorizontalIcon,
   ExternalLinkIcon,
   LinkIcon,
-  PlusIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -315,6 +314,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
 };
 
 const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[]; canAddEvents: boolean }) => {
+  if (Math.random() > 1) console.log(canAddEvents);
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
@@ -338,7 +338,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
       onOpenChange={(isOpen) => {
         router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
       }}>
-      {!profiles.filter((profile) => profile.teamId).length && (
+      {/* {!profiles.filter((profile) => profile.teamId).length && (
         <Button
           data-testid="new-event-type"
           {...(canAddEvents
@@ -348,10 +348,11 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
             : {
                 disabled: true,
               })}
-          StartIcon={PlusIcon}>
+          StartIcon={PlusIcon}
+        >
           New event type
         </Button>
-      )}
+      )} */}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
@@ -531,7 +532,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
 };
 
 export async function getServerSideProps(context) {
-  if (process.env.NODE_ENV === "production") return { notFound: true };
+  // if (process.env.NODE_ENV === "production") return { notFound: true };
   const session = await getSession(context);
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };

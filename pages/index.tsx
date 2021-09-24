@@ -8,7 +8,7 @@ function RedirectPage(props) {
   doNothingWith(props);
   const router = useRouter();
   if (typeof window !== "undefined") {
-    router.push("/bookings");
+    router.push("/event-types");
     return;
   }
   return <Loader />;
@@ -16,7 +16,7 @@ function RedirectPage(props) {
 
 RedirectPage.getInitialProps = (ctx) => {
   if (ctx.res) {
-    ctx.res.writeHead(302, { Location: "/bookings" });
+    ctx.res.writeHead(302, { Location: "/event-types" });
     ctx.res.end();
   }
   return {};

@@ -30,7 +30,7 @@ export default function Shell(props) {
   const telemetry = useTelemetry();
 
   const navigation = [
-    process.env.NODE_ENV === "development" && {
+    {
       name: "Event Types",
       href: "/event-types",
       icon: LinkIcon,
