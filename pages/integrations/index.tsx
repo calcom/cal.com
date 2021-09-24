@@ -495,6 +495,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const integrations = getIntegrations(credentials);
 
   return {
-    props: { integrations },
+    props: { session, integrations },
   };
 }
