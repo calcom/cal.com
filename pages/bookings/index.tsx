@@ -346,5 +346,5 @@ export async function getServerSideProps(context) {
     return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
   });
 
-  return { props: { bookings } };
+  return { props: { session, bookings } };
 }

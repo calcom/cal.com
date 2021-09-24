@@ -6,6 +6,8 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
 
+import { Prisma } from ".prisma/client";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = asStringOrNull(req.query.user);
   const dateFrom = dayjs(asStringOrNull(req.query.dateFrom));
@@ -32,19 +34,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const eventType = await prisma.eventType.findUnique({
-    where: { id: eventTypeId },
-    select: {
-      timeZone: true,
-      availability: {
-        select: {
-          startTime: true,
-          endTime: true,
-          days: true,
+  const getEventType = (id: number) =>
+    prisma.eventType.findUnique({
+      where: { id },
+      select: {
+        timeZone: true,
+        availability: {
+          select: {
+            startTime: true,
+            endTime: true,
+            days: true,
+          },
         },
       },
-    },
-  });
+    });
+
+  type EventType = Prisma.PromiseReturnType<typeof getEventType>;
+  let eventType: EventType | null = null;
+  if (eventTypeId) eventType = await getEventType(eventTypeId);
 
   if (!rawUser) throw new Error("No user found");
 

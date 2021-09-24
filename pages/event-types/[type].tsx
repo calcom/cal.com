@@ -1350,6 +1350,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      session,
       localeProp: locale,
       eventType: eventTypeObject,
       locationOptions,
