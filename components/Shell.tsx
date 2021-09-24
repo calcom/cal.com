@@ -17,8 +17,9 @@ import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
+
 import classNames from "@lib/classNames";
-import HelpMenuItemDynamic from "@lib/intercom/HelpMenuItemDynamic";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import { HeadSeo } from "@components/seo/head-seo";

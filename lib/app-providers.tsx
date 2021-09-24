@@ -3,10 +3,10 @@ import React from "react";
 import { HydrateProps, QueryClient, QueryClientProvider } from "react-query";
 import { Hydrate } from "react-query/hydration";
 
+import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
+
 import { Session } from "@lib/auth";
 import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
-
-import DynamicIntercomProvider from "./intercom/providerDynamic";
 
 export const queryClient = new QueryClient();
 
