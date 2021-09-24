@@ -386,7 +386,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             name="title"
             id="title"
             required
-            className="pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
+            className="pl-0 w-full text-xl font-bold focus:text-black text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
             placeholder="Quick Chat"
             defaultValue={eventType.title}
           />
