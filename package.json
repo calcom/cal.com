@@ -8,7 +8,7 @@
     "db-migrate": "yarn prisma migrate dev",
     "db-seed": "yarn ts-node scripts/seed.ts",
     "db-nuke": "docker-compose down --volumes --remove-orphans",
-    "dx": "BASE_URL='http://localhost:3000' DATABASE_URL=postgresql://postgres:@localhost:5450/calendso eval 'yarn db-up && yarn prisma migrate dev && yarn db-seed && yarn dev'",
+    "dx": "BASE_URL='http://localhost:3000' JWT_SECRET=secret DATABASE_URL=postgresql://postgres:@localhost:5450/calendso eval 'yarn db-up && yarn prisma migrate dev && yarn db-seed && yarn dev'",
     "test": "node node_modules/.bin/jest",
     "build": "next build",
     "start": "next start",
@@ -37,6 +37,7 @@
     "@stripe/stripe-js": "^1.16.0",
     "@tailwindcss/forms": "^0.3.3",
     "@types/stripe": "^8.0.417",
+    "accept-language-parser": "^1.5.0",
     "async": "^3.2.1",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
@@ -52,10 +53,10 @@
     "micro": "^9.3.4",
     "next": "^11.1.1",
     "next-auth": "^3.28.0",
+    "next-i18next": "^8.8.0",
     "next-seo": "^4.26.0",
     "next-transpile-modules": "^8.0.0",
     "nodemailer": "^6.6.3",
-    "npm-run-all": "^4.1.5",
     "otplib": "^12.0.1",
     "qrcode": "^1.4.4",
     "react": "17.0.2",
@@ -69,6 +70,7 @@
     "react-query": "^3.21.0",
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
+    "react-use-intercom": "1.4.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.168.0",
     "tsdav": "1.0.6",
@@ -76,9 +78,12 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "2.0.4",
+    "@types/async": "^3.2.7",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
     "@types/lodash.debounce": "^4.0.6",
+    "@types/lodash.merge": "^4.6.6",
     "@types/node": "^16.6.1",
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",
@@ -107,7 +112,7 @@
     "typescript": "^4.4.3"
   },
   "lint-staged": {
-    "./{*,{pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
+    "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint"
     ]

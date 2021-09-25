@@ -1,19 +1,21 @@
-import prisma from "@lib/prisma";
-import { useSession } from "next-auth/client";
-import Shell from "@components/Shell";
-import { useRouter } from "next/router";
-import dayjs from "dayjs";
-import { Fragment } from "react";
 // TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
-import { DotsHorizontalIcon } from "@heroicons/react/solid";
-import classNames from "@lib/classNames";
 import { ClockIcon, CalendarIcon, XIcon, CheckIcon, BanIcon } from "@heroicons/react/outline";
-import Loader from "@components/Loader";
-import { Button } from "@components/ui/Button";
-import { getSession } from "@lib/auth";
+import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import { BookingStatus, User } from "@prisma/client";
+import dayjs from "dayjs";
+import { useSession } from "next-auth/client";
+import { useRouter } from "next/router";
+import { Fragment } from "react";
+
+import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import prisma from "@lib/prisma";
+
 import EmptyScreen from "@components/EmptyScreen";
+import Loader from "@components/Loader";
+import Shell from "@components/Shell";
+import { Button } from "@components/ui/Button";
 
 export default function Bookings({ bookings }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -222,7 +224,11 @@ export default function Bookings({ bookings }) {
                                               <Menu.Item>
                                                 {({ active }) => (
                                                   <a
-                                                    href={window.location.href + "/../cancel/" + booking.uid}
+                                                    href={
+                                                      process.env.NEXT_PUBLIC_APP_URL +
+                                                      "/../cancel/" +
+                                                      booking.uid
+                                                    }
                                                     className={classNames(
                                                       active
                                                         ? "bg-neutral-100 text-neutral-900"
@@ -241,7 +247,9 @@ export default function Bookings({ bookings }) {
                                                 {({ active }) => (
                                                   <a
                                                     href={
-                                                      window.location.href + "/../reschedule/" + booking.uid
+                                                      process.env.NEXT_PUBLIC_APP_URL +
+                                                      "/../reschedule/" +
+                                                      booking.uid
                                                     }
                                                     className={classNames(
                                                       active
@@ -344,5 +352,5 @@ export async function getServerSideProps(context) {
     return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
   });
 
-  return { props: { bookings } };
+  return { props: { session, bookings } };
 }

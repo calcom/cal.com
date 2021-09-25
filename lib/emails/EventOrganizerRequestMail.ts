@@ -1,9 +1,9 @@
 import dayjs, { Dayjs } from "dayjs";
-
-import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
-import localizedFormat from "dayjs/plugin/localizedFormat";
+import utc from "dayjs/plugin/utc";
+
 import EventOrganizerMail from "@lib/emails/EventOrganizerMail";
 
 dayjs.extend(utc);
@@ -42,7 +42,7 @@ export default class EventOrganizerRequestMail extends EventOrganizerMail {
   }
 
   protected getSubject(): string {
-    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
     return `New event request: ${this.calEvent.attendees[0].name} - ${organizerStart.format(
       "LT dddd, LL"
     )} - ${this.calEvent.type}`;

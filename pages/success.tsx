@@ -1,21 +1,23 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import Link from "next/link";
-import prisma from "@lib/prisma";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
 import { ClockIcon } from "@heroicons/react/solid";
+import { EventType } from "@prisma/client";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import toArray from "dayjs/plugin/toArray";
 import timezone from "dayjs/plugin/timezone";
+import toArray from "dayjs/plugin/toArray";
+import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
 import useTheme from "@lib/hooks/useTheme";
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { EventType } from "@prisma/client";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -65,7 +67,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
 
   return (
-    isReady && (
+    (isReady && (
       <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
         <HeadSeo
           title={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
@@ -233,7 +235,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           </div>
         </main>
       </div>
-    )
+    )) ||
+    null
   );
 }
 

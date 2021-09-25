@@ -1,12 +1,32 @@
+import { ExclamationIcon } from "@heroicons/react/solid";
+import { SchedulingType } from "@prisma/client";
+import { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useSlots } from "@lib/hooks/useSlots";
-import { ExclamationIcon } from "@heroicons/react/solid";
-import React from "react";
-import Loader from "@components/Loader";
-import { SchedulingType } from "@prisma/client";
+import React, { FC } from "react";
 
-const AvailableTimes = ({
+import { useSlots } from "@lib/hooks/useSlots";
+
+import Loader from "@components/Loader";
+
+type AvailableTimesProps = {
+  workingHours: {
+    days: number[];
+    startTime: number;
+    endTime: number;
+  }[];
+  timeFormat: string;
+  minimumBookingNotice: number;
+  eventTypeId: number;
+  eventLength: number;
+  date: Dayjs;
+  users: {
+    username: string | null;
+  }[];
+  schedulingType: SchedulingType | null;
+};
+
+const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventLength,
   eventTypeId,
@@ -26,10 +46,11 @@ const AvailableTimes = ({
     workingHours,
     users,
     minimumBookingNotice,
+    eventTypeId,
   });
 
   return (
-    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 -mb-5">
+    <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:-mb-5">
       <div className="text-gray-600 font-light text-lg mb-4 text-left">
         <span className="w-1/2 dark:text-white text-gray-600">
           <strong>{date.format("dddd")}</strong>
@@ -69,7 +90,7 @@ const AvailableTimes = ({
           })}
         {!loading && !error && !slots.length && (
           <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
-            <h1 className="text-xl text-black dark:text-white">All booked today.</h1>
+            <h1 className="my-6 text-xl text-black dark:text-white">All booked today.</h1>
           </div>
         )}
 

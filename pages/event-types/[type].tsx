@@ -1,17 +1,6 @@
-import { useRouter } from "next/router";
-import Modal from "@components/Modal";
-import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionTypeBase } from "react-select";
-import prisma from "@lib/prisma";
-import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
-import { LocationType } from "@lib/location";
-import Shell from "@components/Shell";
-import { getSession } from "@lib/auth";
-import { Scheduler } from "@components/ui/Scheduler";
 // TODO: replace headlessui with radix-ui
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
-import { HttpError } from "@lib/core/http/error";
 import {
   LocationMarkerIcon,
   LinkIcon,
@@ -24,34 +13,49 @@ import {
   UsersIcon,
   UserAddIcon,
 } from "@heroicons/react/solid";
-
+import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import throttle from "lodash.throttle";
+import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
+import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
-import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
-import Switch from "@components/ui/Switch";
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { GetServerSidePropsContext } from "next";
-import { useMutation } from "react-query";
-import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
-import updateEventType from "@lib/mutations/event-types/update-event-type";
-import deleteEventType from "@lib/mutations/event-types/delete-event-type";
-import showToast from "@lib/notification";
-import CheckedSelect from "@components/ui/form/CheckedSelect";
-import { defaultAvatarSrc } from "@lib/profile";
-import * as RadioArea from "@components/ui/form/radio-area";
-import classNames from "@lib/classNames";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { asStringOrThrow } from "@lib/asStringOrNull";
-import Button from "@components/ui/Button";
-import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { useMutation } from "react-query";
+import Select, { OptionTypeBase } from "react-select";
 import Stripe from "stripe";
+
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { LocationType } from "@lib/location";
+import deleteEventType from "@lib/mutations/event-types/delete-event-type";
+import updateEventType from "@lib/mutations/event-types/update-event-type";
+import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
+import { defaultAvatarSrc } from "@lib/profile";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Button from "@components/ui/Button";
+import { Scheduler } from "@components/ui/Scheduler";
+import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
+import CheckedSelect from "@components/ui/form/CheckedSelect";
+import MinutesField from "@components/ui/form/MinutesField";
+import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -215,7 +219,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       title: enteredTitle,
       slug: enteredSlug,
       description: formData.description as string,
+      // note(zomars) Why does this field doesnt need to be parsed...
       length: formData.length as unknown as number,
+      // note(zomars) ...But this does? (Is being sent as string, despite it's a number field)
+      minimumBookingNotice: parseInt(formData.minimumBookingNotice as unknown as string),
       requiresConfirmation: formData.requiresConfirmation === "on",
       disableGuests: formData.disableGuests === "on",
       hidden,
@@ -379,7 +386,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             name="title"
             id="title"
             required
-            className="pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
+            className="pl-0 w-full text-xl font-bold focus:text-black text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
             placeholder="Quick Chat"
             defaultValue={eventType.title}
           />
@@ -415,32 +422,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                   </div>
-                  <div className="items-center block sm:flex">
-                    <div className="mb-4 min-w-44 sm:mb-0">
-                      <label htmlFor="length" className="flex mt-0 text-sm font-medium text-neutral-700">
-                        <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                        Duration
-                      </label>
-                    </div>
-                    <div className="w-full">
-                      <div className="relative mt-1 rounded-sm shadow-sm">
-                        <input
-                          type="number"
-                          name="length"
-                          id="length"
-                          required
-                          className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                          placeholder="15"
-                          defaultValue={eventType.length}
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm" id="duration">
-                            mins
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
+                  <MinutesField
+                    label={
+                      <>
+                        <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> Duration
+                      </>
+                    }
+                    name="length"
+                    id="length"
+                    required
+                    placeholder="15"
+                    defaultValue={eventType.length}
+                  />
                 </div>
                 <hr />
                 <div className="space-y-3">
@@ -751,6 +745,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                         <hr className="border-neutral-200" />
 
+                        <MinutesField
+                          label="Minimum booking notice"
+                          name="minimumBookingNotice"
+                          id="minimumBookingNotice"
+                          required
+                          placeholder="120"
+                          defaultValue={eventType.minimumBookingNotice}
+                        />
+
                         <div className="block sm:flex">
                           <div className="mb-4 min-w-44 sm:mb-0">
                             <label
@@ -992,10 +995,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    "https://cal.com/" +
-                      (team ? "team/" + team.slug : eventType.users[0].username) +
-                      "/" +
-                      eventType.slug
+                    (`${process.env.NEXT_PUBLIC_APP_URL}/` ?? "https://cal.com/") +
+                    (team ? "team/" + team.slug : eventType.users[0].username) +
+                    "/" +
+                    eventType.slug
                   );
                   showToast("Link copied!", "success");
                 }}
@@ -1184,6 +1187,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
+  const locale = await extractLocaleInfo(context.req);
+
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
@@ -1236,6 +1241,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodCountCalendarDays: true,
       requiresConfirmation: true,
       disableGuests: true,
+      minimumBookingNotice: true,
       team: {
         select: {
           slug: true,
@@ -1344,6 +1350,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      session,
+      localeProp: locale,
       eventType: eventTypeObject,
       locationOptions,
       availability,
@@ -1351,6 +1359,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       currency,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

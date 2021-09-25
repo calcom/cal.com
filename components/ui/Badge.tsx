@@ -1,5 +1,6 @@
-import classNames from "@lib/classNames";
 import React from "react";
+
+import classNames from "@lib/classNames";
 
 export type BadgeProps = {
   variant: "default" | "success" | "gray";

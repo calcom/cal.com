@@ -1,5 +1,6 @@
-import { serverConfig } from "../serverConfig";
 import nodemailer, { SentMessageInfo } from "nodemailer";
+
+import { serverConfig } from "../serverConfig";
 
 const sendEmail = ({ to, subject, text, html = null }): Promise<string | SentMessageInfo> =>
   new Promise((resolve, reject) => {

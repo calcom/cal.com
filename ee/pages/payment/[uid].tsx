@@ -1,8 +1,10 @@
+import { GetServerSidePropsContext } from "next";
+
 import { PaymentData } from "@ee/lib/stripe/server";
+
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { GetServerSidePropsContext } from "next";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -63,11 +65,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawPayment) {
-    return {
-      notFound: true,
-    };
-  }
+  if (!rawPayment) throw Error("Payment not found");
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
   const payment = {
@@ -75,7 +73,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     data: data as unknown as PaymentData,
   };
 
-  if (!_booking) return { notFound: true };
+  if (!_booking) throw Error("Booking not found");
 
   const { startTime, eventType, ...restBooking } = _booking;
   const booking = {
@@ -83,7 +81,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     startTime: startTime.toString(),
   };
 
-  if (!eventType) return { notFound: true };
+  if (!eventType) throw Error("Event not found");
 
   const [user] = eventType.users;
   if (!user) return { notFound: true };

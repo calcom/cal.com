@@ -1,5 +1,3 @@
-import Head from "next/head";
-import { useRouter } from "next/router";
 import {
   CalendarIcon,
   ClockIcon,
@@ -8,33 +6,39 @@ import {
   LocationMarkerIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
-import { LocationType } from "@lib/location";
-import { Button } from "@components/ui/Button";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { stringify } from "querystring";
+import { useCallback, useEffect, useState } from "react";
+import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
+import { createPaymentLink } from "@ee/lib/stripe/client";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
-import AvatarGroup from "@components/ui/AvatarGroup";
+import { LocationType } from "@lib/location";
+import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
-import { createPaymentLink } from "@ee/lib/stripe/client";
-import { FormattedNumber, IntlProvider } from "react-intl";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { BookingCreateBody } from "@lib/types/booking";
+
+import AvatarGroup from "@components/ui/AvatarGroup";
+import { Button } from "@components/ui/Button";
+
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
-import { stringify } from "querystring";
-import createBooking from "@lib/mutations/bookings/create-booking";
-import { BookingCreateBody } from "@lib/types/booking";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
 const BookingPage = (props: BookingPageProps) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const themeLoaded = useTheme(props.profile.theme);
+  const { isReady } = useTheme(props.profile.theme);
 
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
@@ -171,17 +175,17 @@ const BookingPage = (props: BookingPageProps) => {
   const bookingHandler = useCallback(_bookingHandler, []);
 
   return (
-    themeLoaded && (
-      <div>
-        <Head>
-          <title>
-            {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name}{" "}
-            | Cal.com
-          </title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+    <div>
+      <Head>
+        <title>
+          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name} |
+          Cal.com
+        </title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-        <main className="max-w-3xl mx-auto my-0 sm:my-24">
+      <main className="max-w-3xl mx-auto my-0 sm:my-24">
+        {isReady && (
           <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">
             <div className="sm:flex px-4 py-5 sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
@@ -196,7 +200,9 @@ const BookingPage = (props: BookingPageProps) => {
                       }))
                   )}
                 />
-                <h2 className="font-medium dark:text-gray-300 text-gray-500">{props.profile.name}</h2>
+                <h2 className="font-cal font-medium dark:text-gray-300 text-gray-500">
+                  {props.profile.name}
+                </h2>
                 <h1 className="text-3xl font-semibold dark:text-white text-gray-800 mb-4">
                   {props.eventType.title}
                 </h1>
@@ -453,9 +459,9 @@ const BookingPage = (props: BookingPageProps) => {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    )
+        )}
+      </main>
+    </div>
   );
 };
 

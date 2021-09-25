@@ -1,9 +1,11 @@
 // TODO: replace headlessui with radix-ui
 import { Switch } from "@headlessui/react";
-import TimezoneSelect from "react-timezone-select";
 import { useEffect, useState } from "react";
-import { is24h, timeZone } from "../../lib/clock";
+import TimezoneSelect from "react-timezone-select";
+
 import classNames from "@lib/classNames";
+
+import { is24h, timeZone } from "../../lib/clock";
 
 const TimeOptions = (props) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");

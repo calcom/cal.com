@@ -1,24 +1,26 @@
-import Link from "next/link";
-import prisma from "@lib/prisma";
-import Shell from "@components/Shell";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useSession } from "next-auth/client";
-import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
-import Switch from "@components/ui/Switch";
-import Loader from "@components/Loader";
-import AddCalDavIntegration, {
-  ADD_CALDAV_INTEGRATION_FORM_TITLE,
-} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
+import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/client";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { getSession } from "@lib/auth";
 import AddAppleIntegration, {
   ADD_APPLE_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/Apple/components/AddAppleIntegration";
-import Button from "@components/ui/Button";
+import AddCalDavIntegration, {
+  ADD_CALDAV_INTEGRATION_FORM_TITLE,
+} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import getIntegrations from "@lib/integrations/getIntegrations";
-import { GetServerSidePropsContext } from "next";
+import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+import Loader from "@components/Loader";
+import Shell from "@components/Shell";
+import Button from "@components/ui/Button";
+import Switch from "@components/ui/Switch";
 
 export default function Home({ integrations }: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
@@ -142,7 +144,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+        <DialogHeader title="Connect a new App" subtitle="Integrate your account with other services." />
         <div className="my-4">
           <ul className="divide-y divide-gray-200">
             {integrations
@@ -154,7 +156,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                       <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                     </div>
                     <div className="w-10/12">
-                      <h2 className="text-gray-800 font-medium">{integration.title}</h2>
+                      <h2 className="font-cal text-gray-800 font-medium">{integration.title}</h2>
                       <p className="text-gray-400 text-sm">{integration.description}</p>
                     </div>
                     <div className="w-2/12 text-right pt-2">
@@ -438,7 +440,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         </div>
         <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
+            <h3 className="font-cal text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>Select which calendars are checked for availability to prevent double bookings.</p>
             </div>
@@ -447,7 +449,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         </div>
         <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
+            <h3 className="font-cal text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
@@ -493,6 +495,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const integrations = getIntegrations(credentials);
 
   return {
-    props: { integrations },
+    props: { session, integrations },
   };
 }
