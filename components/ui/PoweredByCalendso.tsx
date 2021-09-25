@@ -7,12 +7,12 @@ const PoweredByCalendso = () => (
         powered by{" "}
         <img
           className="dark:hidden w-auto inline h-[10px] relative -mt-px"
-          src="/logo.svg"
+          src="https://cal.com/logo.svg"
           alt="Cal.com Logo"
         />
         <img
           className="hidden dark:inline w-auto h-[10px] relativ -mt-px"
-          src="/logo-white.svg"
+          src="https://cal.com/logo-white.svg"
           alt="Cal.com Logo"
         />
       </a>
