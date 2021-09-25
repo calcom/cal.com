@@ -28,7 +28,8 @@ enum SetupStep {
 
 const setupDescriptions = {
   [SetupStep.ConfirmPassword]: "Confirm your current password to get started.",
-  [SetupStep.DisplayQrCode]: "Scan the image below with the authenticator app on your phone.",
+  [SetupStep.DisplayQrCode]:
+    "Scan the image below with the authenticator app on your phone or manually enter the text code instead.",
   [SetupStep.EnterTotpCode]: "Enter the six-digit code from your authenticator app below.",
 };
 
@@ -49,6 +50,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [dataUri, setDataUri] = useState("");
+  const [secret, setSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -68,6 +70,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
 
       if (response.status === 200) {
         setDataUri(body.dataUri);
+        setSecret(body.secret);
         setStep(SetupStep.DisplayQrCode);
         return;
       }
@@ -148,9 +151,12 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
           </form>
         </WithStep>
         <WithStep step={SetupStep.DisplayQrCode} current={step}>
-          <div className="flex justify-center">
-            <img src={dataUri} />
-          </div>
+          <>
+            <div className="flex justify-center">
+              <img src={dataUri} />
+            </div>
+            <p className="text-center text-xs font-mono">{secret}</p>
+          </>
         </WithStep>
         <WithStep step={SetupStep.EnterTotpCode} current={step}>
           <form onSubmit={handleEnable}>
