@@ -1275,7 +1275,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   // backwards compat
-  if (eventType.users.length === 0) {
+  if (eventType.users.length === 0 && !eventType.team) {
     const fallbackUser = await prisma.user.findUnique({
       where: {
         id: session.user.id,
