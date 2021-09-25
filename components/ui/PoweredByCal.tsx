@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const PoweredByCalendso = () => (
+const PoweredByCal = () => (
   <div className="text-xs text-center sm:text-right p-1">
     <Link href={`https://cal.com?utm_source=embed&utm_medium=powered-by-button`}>
       <a target="_blank" className="dark:text-white text-gray-500 opacity-50 hover:opacity-100">
@@ -20,4 +20,4 @@ const PoweredByCalendso = () => (
   </div>
 );
 
-export default PoweredByCalendso;
+export default PoweredByCal;
