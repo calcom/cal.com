@@ -25,6 +25,11 @@ export type AdvancedOptions = {
   price?: number;
   currency?: string;
   schedulingType?: SchedulingType;
+  users?: {
+    value: number;
+    label: string;
+    avatar: string;
+  }[];
 };
 
 export type EventTypeCustomInput = {
