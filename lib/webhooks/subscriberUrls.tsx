@@ -23,7 +23,6 @@ const getSubscriberUrls = async (
       webhook.eventTriggers.includes(triggerEvent) &&
       webhook.active &&
       webhookEventTypes.map((webhookEventType) => webhookEventType.webhookId === webhook.id)
-      //   webhook.id === webhookEventType?.webhookId
     );
   });
 
