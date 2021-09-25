@@ -20,6 +20,11 @@ export type AdvancedOptions = {
   periodEndDate?: Date | string;
   periodCountCalendarDays?: boolean;
   requiresConfirmation?: boolean;
+  disableGuests?: boolean;
+  minimumBookingNotice?: number;
+  price?: number;
+  currency?: string;
+  schedulingType?: SchedulingType;
 };
 
 export type EventTypeCustomInput = {
