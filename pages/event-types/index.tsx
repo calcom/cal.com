@@ -313,7 +313,7 @@ const EventTypesPage = (props: PageProps) => {
         )}
         {props.eventTypes &&
           props.eventTypes.map((input) => (
-            <>
+            <Fragment key={input.profile?.slug}>
               {/* hide list heading when there is only one (current user) */}
               {(props.eventTypes.length !== 1 || input.teamId) && (
                 <EventTypeListHeading
@@ -326,7 +326,7 @@ const EventTypesPage = (props: PageProps) => {
                 profile={input.profile}
                 readOnly={input.metadata?.readOnly}
               />
-            </>
+            </Fragment>
           ))}
 
         {props.eventTypes.length === 0 && <CreateFirstEventTypeView />}

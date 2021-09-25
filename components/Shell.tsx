@@ -17,6 +17,8 @@ import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
+
 import classNames from "@lib/classNames";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
@@ -315,6 +317,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                     </a>
                   )}
                 </Menu.Item>
+                <HelpMenuItemDynamic />
               </div>
               <div className="py-1">
                 <Menu.Item>
