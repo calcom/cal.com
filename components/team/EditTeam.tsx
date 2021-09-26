@@ -1,17 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import ErrorAlert from "@components/ui/alerts/Error";
-import { UsernameInput } from "@components/ui/UsernameInput";
-import MemberList from "./MemberList";
-import Avatar from "@components/ui/Avatar";
-import ImageUploader from "@components/ImageUploader";
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Modal from "@components/Modal";
-import MemberInvitationModal from "@components/team/MemberInvitationModal";
-import Button from "@components/ui/Button";
+import React, { useEffect, useRef, useState } from "react";
+
 import { Member } from "@lib/member";
 import { Team } from "@lib/team";
+
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ImageUploader from "@components/ImageUploader";
+import Modal from "@components/Modal";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import MemberInvitationModal from "@components/team/MemberInvitationModal";
+import Avatar from "@components/ui/Avatar";
+import Button from "@components/ui/Button";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
+
+import MemberList from "./MemberList";
 
 export default function EditTeam(props: { team: Team | undefined | null; onCloseEdit: () => void }) {
   const [members, setMembers] = useState([]);
@@ -132,7 +135,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
             Back
           </Button>
         </div>
-        <div className="">
+        <div>
           <div className="pb-5 pr-4 sm:pb-6">
             <h3 className="text-lg font-bold leading-6 text-gray-900">{props.team?.name}</h3>
             <div className="max-w-xl mt-2 text-sm text-gray-500">
@@ -141,7 +144,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
           </div>
         </div>
         <hr className="mt-2" />
-        <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">Profile</h3>
+        <h3 className="font-cal font-bold leading-6 text-gray-900 mt-7 text-md">Profile</h3>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateTeamHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
           <div className="py-6 lg:pb-8">
@@ -211,7 +214,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                   <hr className="mt-6" />
                 </div>
                 <div className="flex justify-between mt-7">
-                  <h3 className="font-bold leading-6 text-gray-900 text-md">Members</h3>
+                  <h3 className="font-cal font-bold leading-6 text-gray-900 text-md">Members</h3>
                   <div className="relative flex items-center">
                     <Button
                       type="button"

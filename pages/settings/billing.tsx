@@ -1,7 +1,8 @@
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
-import prisma from "@lib/prisma";
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
 
 export default function Billing() {
   return (
@@ -43,6 +44,6 @@ export async function getServerSideProps(context) {
   });
 
   return {
-    props: { user }, // will be passed to the page component as props
+    props: { session, user },
   };
 }

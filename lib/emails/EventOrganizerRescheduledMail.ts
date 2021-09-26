@@ -1,4 +1,5 @@
 import dayjs, { Dayjs } from "dayjs";
+
 import EventOrganizerMail from "./EventOrganizerMail";
 
 export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
@@ -48,14 +49,14 @@ export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
    * @protected
    */
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
 
     return {
       icalEvent: {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Calendso <${this.getMailerOptions().from}>`,
+      from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.calEvent.organizer.email,
       subject: `Rescheduled event: ${this.calEvent.attendees[0].name} - ${organizerStart.format(
         "LT dddd, LL"

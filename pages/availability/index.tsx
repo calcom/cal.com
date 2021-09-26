@@ -1,13 +1,15 @@
+import { ClockIcon } from "@heroicons/react/outline";
+import { useSession } from "next-auth/client";
 import Link from "next/link";
-import prisma from "@lib/prisma";
-import Modal from "@components/Modal";
-import Shell from "@components/Shell";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { useSession } from "next-auth/client";
-import { ClockIcon } from "@heroicons/react/outline";
-import Loader from "@components/Loader";
+
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+
+import Loader from "@components/Loader";
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
 
 export default function Availability(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -337,6 +339,6 @@ export async function getServerSideProps(context) {
     },
   });
   return {
-    props: { user, types }, // will be passed to the page component as props
+    props: { session, user, types },
   };
 }
