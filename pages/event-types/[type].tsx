@@ -2,18 +2,18 @@
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
-  LocationMarkerIcon,
-  LinkIcon,
-  PlusIcon,
-  DocumentIcon,
   ChevronRightIcon,
   ClockIcon,
-  TrashIcon,
+  DocumentIcon,
   ExternalLinkIcon,
-  UsersIcon,
+  LinkIcon,
+  LocationMarkerIcon,
+  PlusIcon,
+  TrashIcon,
   UserAddIcon,
+  UsersIcon,
 } from "@heroicons/react/solid";
-import { EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
+import { EventTypeCustomInput, EventTypeCustomInputType, Prisma, SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -28,9 +28,10 @@ import "react-dates/lib/css/_datepicker.css";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
 import Select, { OptionTypeBase } from "react-select";
-import Stripe from "stripe";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
+import { StripeData } from "@ee/lib/stripe/server";
+
+import { asNumberOrThrow, asNumberOrUndefined, asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
@@ -144,7 +145,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     }
   }, [contentSize]);
 
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<AdvancedOptions["users"]>([]);
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
@@ -184,12 +185,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
 
   const titleRef = useRef<HTMLInputElement>(null);
-  const slugRef = useRef<HTMLInputElement>(null);
-  const requiresConfirmationRef = useRef<HTMLInputElement>(null);
   const eventNameRef = useRef<HTMLInputElement>(null);
-  const periodDaysRef = useRef<HTMLInputElement>(null);
-  const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
-  const priceRef = useRef<HTMLInputElement>(null);
+  const isAdvancedSettingsVisible = !!eventNameRef.current;
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone);
@@ -200,45 +197,47 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
     const formData = Object.fromEntries(new FormData(event.target).entries());
 
-    const enteredTitle: string = titleRef.current.value;
-    const enteredSlug: string = slugRef.current.value;
-    const enteredPrice = requirePayment ? Math.round(parseFloat(priceRef.current.value) * 100) : 0;
+    const enteredTitle: string = titleRef.current!.value;
 
-    const advancedOptionsPayload: AdvancedOptions = {};
-    if (requiresConfirmationRef.current) {
-      advancedOptionsPayload.eventName = eventNameRef.current.value;
-      advancedOptionsPayload.periodType = periodType.type;
-      advancedOptionsPayload.periodDays = parseInt(periodDaysRef?.current?.value);
-      advancedOptionsPayload.periodCountCalendarDays = Boolean(parseInt(periodDaysTypeRef?.current.value));
-      advancedOptionsPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : null;
-      advancedOptionsPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : null;
+    const advancedPayload: AdvancedOptions = {};
+    if (isAdvancedSettingsVisible) {
+      advancedPayload.eventName = eventNameRef.current.value;
+      advancedPayload.periodType = periodType?.type;
+      advancedPayload.periodDays = asNumberOrUndefined(formData.periodDays);
+      advancedPayload.periodCountCalendarDays = Boolean(
+        asNumberOrUndefined(formData.periodCountCalendarDays)
+      );
+      advancedPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : undefined;
+      advancedPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : undefined;
+      advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
+      // prettier-ignore
+      advancedPayload.price = 
+        !requirePayment ? undefined                                                     :
+        formData.price  ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
+        /* otherwise */   0;
+      advancedPayload.currency = currency;
     }
 
     const payload: EventTypeInput = {
       id: eventType.id,
       title: enteredTitle,
-      slug: enteredSlug,
-      description: formData.description as string,
-      // note(zomars) Why does this field doesnt need to be parsed...
-      length: formData.length as unknown as number,
-      // note(zomars) ...But this does? (Is being sent as string, despite it's a number field)
-      minimumBookingNotice: parseInt(formData.minimumBookingNotice as unknown as string),
+      slug: asStringOrThrow(formData.slug),
+      description: asStringOrThrow(formData.description),
+      length: asNumberOrThrow(formData.length),
       requiresConfirmation: formData.requiresConfirmation === "on",
       disableGuests: formData.disableGuests === "on",
       hidden,
       locations,
       customInputs,
       timeZone: selectedTimeZone,
-      availability: enteredAvailability || null,
-      ...advancedOptionsPayload,
+      availability: enteredAvailability || undefined,
+      ...advancedPayload,
       ...(team
         ? {
-            schedulingType: formData.schedulingType as string,
+            schedulingType: formData.schedulingType as SchedulingType,
             users,
           }
         : {}),
-      price: enteredPrice,
-      currency: currency,
     };
 
     updateMutation.mutate(payload);
@@ -411,7 +410,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
-                          ref={slugRef}
                           type="text"
                           name="slug"
                           id="slug"
@@ -727,7 +725,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
 
                         <CheckboxField
-                          ref={requiresConfirmationRef}
                           id="requiresConfirmation"
                           name="requiresConfirmation"
                           label="Opt-in booking"
@@ -800,7 +797,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             {period.type === "rolling" && (
                                               <div className="inline-flex">
                                                 <input
-                                                  ref={periodDaysRef}
                                                   type="text"
                                                   name="periodDays"
                                                   id=""
@@ -809,7 +805,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   defaultValue={eventType.periodDays || 30}
                                                 />
                                                 <select
-                                                  ref={periodDaysTypeRef}
                                                   id=""
                                                   name="periodDaysType"
                                                   className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm  focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -924,7 +919,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       <div className="w-full">
                                         <div className="mt-1 relative rounded-sm shadow-sm">
                                           <input
-                                            ref={priceRef}
                                             type="number"
                                             name="price"
                                             id="price"
@@ -1200,6 +1194,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    name: true,
+    id: true,
+    avatar: true,
+    email: true,
+  });
+
   const eventType = await prisma.eventType.findFirst({
     where: {
       AND: [
@@ -1251,24 +1252,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             },
             select: {
               user: {
-                select: {
-                  name: true,
-                  id: true,
-                  avatar: true,
-                  email: true,
-                },
+                select: userSelect,
               },
             },
           },
         },
       },
       users: {
-        select: {
-          name: true,
-          id: true,
-          avatar: true,
-          username: true,
-        },
+        select: userSelect,
       },
       schedulingType: true,
       userId: true,
@@ -1284,17 +1275,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   // backwards compat
-  if (eventType.users.length === 0) {
-    eventType.users.push(
-      await prisma.user.findUnique({
-        where: {
-          id: session.user.id,
-        },
-        select: {
-          username: true,
-        },
-      })
-    );
+  if (eventType.users.length === 0 && !eventType.team) {
+    const fallbackUser = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: userSelect,
+    });
+    if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
+    eventType.users.push(fallbackUser);
   }
 
   const credentials = await prisma.credential.findMany({
@@ -1321,7 +1310,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
   }
   const currency =
-    (credentials.find((integration) => integration.type === "stripe_payment")?.key as Stripe.OAuthToken)
+    (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
 
   if (hasIntegration(integrations, "office365_calendar")) {
