@@ -19,7 +19,7 @@ import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import PoweredByCale from "@components/ui/PoweredByCal";
+import PoweredByCal from "@components/ui/PoweredByCal";
 
 import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 
@@ -215,7 +215,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
               </div>
             </div>
           )}
-          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCale />}
+          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />}
         </main>
       </div>
     </>

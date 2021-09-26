@@ -996,9 +996,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 onClick={() => {
                   navigator.clipboard.writeText(
                     (`${process.env.NEXT_PUBLIC_APP_URL}/` ?? "https://cal.com/") +
-                    (team ? "team/" + team.slug : eventType.users[0].username) +
-                    "/" +
-                    eventType.slug
+                      (team ? "team/" + team.slug : eventType.users[0].username) +
+                      "/" +
+                      eventType.slug
                   );
                   showToast("Link copied!", "success");
                 }}
