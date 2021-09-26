@@ -1,3 +1,4 @@
+import { IdProvider } from "@radix-ui/react-id";
 import { Provider } from "next-auth/client";
 import React from "react";
 import { HydrateProps, QueryClient, QueryClientProvider } from "react-query";
@@ -21,11 +22,13 @@ const AppProviders: React.FC<AppProviderProps> = ({ pageProps, children }) => {
   return (
     <TelemetryProvider value={createTelemetryClient()}>
       <QueryClientProvider client={queryClient}>
-        <DynamicIntercomProvider>
-          <Hydrate state={pageProps.dehydratedState}>
-            <Provider session={pageProps.session}>{children}</Provider>
-          </Hydrate>
-        </DynamicIntercomProvider>
+        <IdProvider>
+          <DynamicIntercomProvider>
+            <Hydrate state={pageProps.dehydratedState}>
+              <Provider session={pageProps.session}>{children}</Provider>
+            </Hydrate>
+          </DynamicIntercomProvider>
+        </IdProvider>
       </QueryClientProvider>
     </TelemetryProvider>
   );
