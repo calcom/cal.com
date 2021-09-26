@@ -67,7 +67,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
 
   return (
-    isReady && (
+    (isReady && (
       <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
         <HeadSeo
           title={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
@@ -235,7 +235,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           </div>
         </main>
       </div>
-    )
+    )) ||
+    null
   );
 }
 
