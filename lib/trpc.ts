@@ -26,3 +26,6 @@ export type inferQueryInput<TRouteKey extends keyof AppRouter["_def"]["queries"]
 export type inferMutationInput<TRouteKey extends keyof AppRouter["_def"]["mutations"]> = inferProcedureInput<
   AppRouter["_def"]["mutations"][TRouteKey]
 >;
+
+export type inferMutationOutput<TRouteKey extends keyof AppRouter["_def"]["mutations"]> =
+  inferProcedureOutput<AppRouter["_def"]["mutations"][TRouteKey]>;
