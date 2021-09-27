@@ -1,8 +1,9 @@
-import throttle from "lodash.throttle";
-import React, { useEffect, useState } from "react";
-import { DateRangePicker as PrimitiveDateRangePicker, OrientationShape, toMomentObject } from "react-dates";
-import "react-dates/initialize";
-import "react-dates/lib/css/_datepicker.css";
+// @see: https://github.com/wojtekmaj/react-daterange-picker/issues/91
+import { ArrowRightIcon, CalendarIcon } from "@heroicons/react/solid";
+import "@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
+import PrimitiveDateRangePicker from "@wojtekmaj/react-daterange-picker/dist/entry.nostyle";
+import React from "react";
+import "react-calendar/dist/Calendar.css";
 
 type Props = {
   startDate: string;
@@ -11,53 +12,15 @@ type Props = {
 };
 
 export const DateRangePicker = ({ startDate, endDate, onDatesChange }: Props) => {
-  const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
-  const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
-  const [focusedInput, setFocusedInput] = useState(null);
-
-  useEffect(() => {
-    if (contentSize.width < 500) {
-      setDatePickerOrientation("vertical");
-    } else {
-      setDatePickerOrientation("horizontal");
-    }
-  }, [contentSize]);
-
-  const handleResizeEvent = () => {
-    const elementWidth = parseFloat(getComputedStyle(document.body).width);
-    const elementHeight = parseFloat(getComputedStyle(document.body).height);
-
-    setContentSize({
-      width: elementWidth,
-      height: elementHeight,
-    });
-  };
-
-  const throttledHandleResizeEvent = throttle(handleResizeEvent, 100);
-
-  useEffect(() => {
-    handleResizeEvent();
-
-    window.addEventListener("resize", throttledHandleResizeEvent);
-
-    return () => {
-      window.removeEventListener("resize", throttledHandleResizeEvent);
-    };
-  }, []);
-
   return (
     <PrimitiveDateRangePicker
-      orientation={DATE_PICKER_ORIENTATION}
-      startDate={toMomentObject(startDate)}
-      startDateId="your_unique_start_date_id"
-      endDate={toMomentObject(endDate)}
-      endDateId="your_unique_end_date_id"
-      onDatesChange={({ startDate, endDate }) => {
-        onDatesChange({ startDate: startDate.toDate(), endDate: endDate.toDate() });
-      }}
-      focusedInput={focusedInput}
-      onFocusChange={(focusedInput) => {
-        setFocusedInput(focusedInput);
+      className="border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+      clearIcon={null}
+      calendarIcon={<CalendarIcon className="h-5 w-5 text-gray-500" />}
+      rangeDivider={<ArrowRightIcon className="h-4 w-4 text-gray-400 mr-2" />}
+      value={[startDate, endDate]}
+      onChange={([startDate, endDate]) => {
+        onDatesChange({ startDate, endDate });
       }}
     />
   );
