@@ -1,10 +1,7 @@
-import { createRouter } from "../createRouter";
-import userRequired from "../middlewares/userRequired";
+import { createProtectedRouter } from "../createRouter";
 
 // routes only available to authenticated users
-export const viewerRouter = createRouter()
-  // check that user is authenticated
-  .middleware(userRequired)
+export const viewerRouter = createProtectedRouter()
   .query("me", {
     resolve({ ctx }) {
       return ctx.user;
