@@ -18,7 +18,6 @@ import {
   PlusIcon,
   DocumentIcon,
   ClockIcon,
-  TrashIcon,
   ExternalLinkIcon,
   UsersIcon,
   UserAddIcon,
@@ -33,13 +32,10 @@ import "react-dates/initialize";
 import "react-dates/lib/css/_datepicker.css";
 import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
 import Switch from "@components/ui/Switch";
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useMutation } from "react-query";
 import { EventTypeInput } from "@lib/types/event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
-import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import showToast from "@lib/notification";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { defaultAvatarSrc } from "@lib/profile";
@@ -93,16 +89,16 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     },
   });
 
-  const deleteMutation = useMutation(deleteEventType, {
-    onSuccess: async () => {
-      await router.push("/event-types");
-      showToast("Event type deleted successfully", "success");
-    },
-    onError: (err: HttpError) => {
-      const message = `${err.statusCode}: ${err.message}`;
-      showToast(message, "error");
-    },
-  });
+  // const deleteMutation = useMutation(deleteEventType, {
+  //   onSuccess: async () => {
+  //     await router.push("/event-types");
+  //     showToast("Event type deleted successfully", "success");
+  //   },
+  //   onError: (err: HttpError) => {
+  //     const message = `${err.statusCode}: ${err.message}`;
+  //     showToast(message, "error");
+  //   },
+  // });
 
   const handleResizeEvent = () => {
     const elementWidth = parseFloat(getComputedStyle(document.body).width);
@@ -226,12 +222,12 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     updateMutation.mutate(payload);
   }
 
-  async function deleteEventTypeHandler(event) {
-    event.preventDefault();
+  // async function deleteEventTypeHandler(event) {
+  //   event.preventDefault();
 
-    const payload = { id: eventType.id };
-    deleteMutation.mutate(payload);
-  }
+  //   const payload = { id: eventType.id };
+  //   deleteMutation.mutate(payload);
+  // }
 
   const openLocationModal = (type: LocationType) => {
     setSelectedLocation(locationOptions.find((option) => option.value === type));
@@ -933,7 +929,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                 <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
                 Copy link
               </button>
-              <Dialog>
+              {/* <Dialog>
                 <DialogTrigger className="flex font-medium text-md text-neutral-700">
                   <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
                   Delete
@@ -946,7 +942,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                   Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link
                   with will no longer be able to book using it.
                 </ConfirmationDialogContent>
-              </Dialog>
+              </Dialog> */}
             </div>
           </div>
         </div>

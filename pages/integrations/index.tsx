@@ -452,7 +452,7 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
             <SelectCalendarDialog />
           </div>
         </div>
-        <div className="border border-gray-200 rounded-sm">
+        {/* <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium leading-6 text-gray-900">Launch your own App</h3>
             <div className="max-w-xl mt-2 text-sm text-gray-500">
@@ -464,7 +464,7 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
               </a>
             </div>
           </div>
-        </div>
+        </div> */}
         <ConnectCalDavServerDialog />
         <ConnectAppleServerDialog />
       </Shell>

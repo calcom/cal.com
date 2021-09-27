@@ -143,10 +143,8 @@ export default NextAuth({
             data: {
               title: "Sync Meeting",
               userId: id,
-              description: `Sync meeting with ${name}.`,
               length: 45,
               eventName: `${name} <> {USER}`,
-              locations: [{ type: "integrations:zoom" }],
             },
           });
         } else {
@@ -178,7 +176,6 @@ export default NextAuth({
             data: {
               title: "Async Meeting",
               userId: id,
-              description: `Async meeting with ${name}.`,
               length: 10,
               eventName: `[ASYNC] ${name} <> {USER}`,
               locations: null,
