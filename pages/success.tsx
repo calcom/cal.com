@@ -252,18 +252,8 @@ export async function getServerSideProps(context: { query: { type: string } }) {
       notFound: true,
     };
   }
-  interface returnEventType {
-    users: { hideBranding: boolean; plan: UserPlan; name: string | null; theme: string | null }[];
-    id: number;
-    title: string;
-    description: string | null;
-    length: number;
-    userId: number | null;
-    eventName: string | null;
-    requiresConfirmation: boolean;
-    team: {} | null; // todo: make an interface / type for team
-  }
-  const eventType: returnEventType | null = await prisma.eventType.findUnique({
+
+  const eventType = await prisma.eventType.findUnique({
     where: {
       id: typeId,
     },
