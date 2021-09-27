@@ -58,6 +58,12 @@ interface localeType {
 
 export const localeLabels: localeType = {
   en: "English",
+  fr: "French",
+  it: "Italian",
+  ru: "Russian",
+  es: "Spanish",
+  de: "German",
+  pt: "Portuguese",
   ro: "Romanian",
 };
 
