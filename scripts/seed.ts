@@ -13,6 +13,7 @@ async function createBookingForEventType(opts: {
   startTime: Date | string;
   endTime: Date | string;
   userEmail: string;
+  confirmed?: boolean;
 }) {
   const eventType = await prisma.eventType.findFirst({
     where: {
@@ -47,6 +48,7 @@ async function createBookingForEventType(opts: {
         id: eventType.id,
       },
     },
+    confirmed: opts.confirmed,
   };
 
   await prisma.booking.create({
@@ -186,6 +188,16 @@ async function main() {
     endTime: dayjs().add(1, "day").add(60, "minutes").toDate(),
     uid: uuid(),
     userEmail: "pro@example.com",
+  });
+
+  await createBookingForEventType({
+    title: "30min",
+    slug: "30min",
+    startTime: dayjs().add(2, "day").toDate(),
+    endTime: dayjs().add(2, "day").add(60, "minutes").toDate(),
+    uid: uuid(),
+    userEmail: "pro@example.com",
+    confirmed: false,
   });
 
   await createUserAndEventType({
