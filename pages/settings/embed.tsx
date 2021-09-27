@@ -182,7 +182,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
             <div className="py-6 lg:pb-8">
               <div className="flex flex-col justify-between md:flex-row">
                 <div>
-                  {!webhooks.length && (
+                  {/* {!webhooks.length && (
                     <div className="sm:rounded-sm">
                       <div className="pb-5 pr-4 sm:pb-6">
                         <h3 className="text-lg font-medium leading-6 text-gray-900">
@@ -196,7 +196,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                         </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
 
                 <Dialog>
@@ -205,7 +205,10 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                     New Webhook
                   </DialogTrigger>
                   <DialogContent>
-                    <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+                    <DialogHeader
+                      title="Create a new webhook"
+                      subtitle="Create a new webhook to your account"
+                    />
                     <div className="my-4">
                       <div className="mb-4">
                         <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
@@ -225,10 +228,10 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                           Select Event Triggers{" "}
                         </legend>
                         <div className="flex py-4">
-                          <div className="w-10/12 pt-3">
+                          <div className="w-10/12">
                             <h2 className="font-medium text-gray-800">Booking Created</h2>
                           </div>
-                          <div className="w-2/12 pt-3 text-right">
+                          <div className="w-2/12 text-right">
                             <Switch
                               defaultChecked={true}
                               cid="booking-created"
@@ -238,10 +241,10 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                           </div>
                         </div>
                         <div className="flex py-1">
-                          <div className="w-10/12 pt-3">
+                          <div className="w-10/12">
                             <h2 className="font-medium text-gray-800">Booking Rescheduled</h2>
                           </div>
-                          <div className="w-2/12 pt-3 text-right">
+                          <div className="w-2/12 text-right">
                             <Switch
                               defaultChecked={true}
                               cid="booking-rescheduled"
@@ -251,10 +254,10 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                           </div>
                         </div>
                         <div className="flex py-4">
-                          <div className="w-10/12 pt-3">
+                          <div className="w-10/12">
                             <h2 className="font-medium text-gray-800">Booking Cancelled</h2>
                           </div>
-                          <div className="w-2/12 pt-3 text-right">
+                          <div className="w-2/12 text-right">
                             <Switch
                               defaultChecked={true}
                               cid="booking-cancelled"
