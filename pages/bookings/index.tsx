@@ -28,7 +28,7 @@ function BookingListItem(booking: inferQueryOutput<"viewer.bookings">[number]) {
           "Content-Type": "application/json",
         },
       });
-      if (res.ok) {
+      if (!res.ok) {
         throw new HttpError({ statusCode: res.status });
       }
     },
