@@ -25,7 +25,7 @@ dayjs.extend(toArray);
 dayjs.extend(timezone);
 
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
-  const router: NextRouter = useRouter();
+  const router = useRouter();
   const { location, name, reschedule }: ParsedUrlQuery = router.query;
 
   const [is24h, setIs24h] = useState(false);
