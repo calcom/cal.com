@@ -1,24 +1,10 @@
-import { TRPCError } from "@trpc/server";
-
 import { createRouter } from "../createRouter";
+import userRequired from "../middlewares/userRequired";
 
 // routes only available to authenticated users
 export const viewerRouter = createRouter()
   // check that user is authenticated
-  .middleware(({ ctx, next }) => {
-    const { user } = ctx;
-    if (!user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    return next({
-      ctx: {
-        ...ctx,
-        // session value is known to be non-null now
-        user,
-      },
-    });
-  })
+  .middleware(userRequired)
   .query("me", {
     resolve({ ctx }) {
       return ctx.user;
