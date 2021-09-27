@@ -88,7 +88,7 @@ function HideBrandingInput(props: {
 
 export default function Settings(props: Props) {
   const { locale } = useLocale({ localeProp: props.localeProp });
-  const profile = trpc.useMutation("user.profile");
+  const mutation = trpc.useMutation("user.profile");
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -153,7 +153,7 @@ export default function Settings(props: Props) {
 
     // TODO: Add validation
 
-    await profile
+    await mutation
       .mutateAsync({
         username: enteredUsername,
         name: enteredName,
