@@ -80,6 +80,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
     select: {
       username: true,
     },
+    where: {
+      plan: "PRO",
+    },
   });
   const usernames = allUsers.flatMap((u) => (u.username ? [u.username] : []));
   return {
