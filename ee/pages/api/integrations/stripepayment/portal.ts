@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: "Stripe customer id not found",
       });
 
-    const return_url = `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing`;
+    const return_url = `${process.env.BASE_URL}/settings/billing`;
     const stripeSession = await stripe.billingPortal.sessions.create({
       customer: customer.id,
       return_url,
