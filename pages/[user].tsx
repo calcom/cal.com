@@ -15,7 +15,8 @@ import Avatar from "@components/ui/Avatar";
 
 export default function User(props: inferSSRProps<typeof getStaticProps>) {
   const { username } = props;
-  const query = trpc.useQuery(["booking.userEventTypes", { username }]); // this will be set b/c of `getStaticProps`
+  // data of query below will be will be prepopulated b/c of `getStaticProps`
+  const query = trpc.useQuery(["booking.userEventTypes", { username }]);
   const { isReady } = useTheme(query.data?.user.theme);
   if (!query.data) {
     // this shold never happen as we do `blocking: true`
