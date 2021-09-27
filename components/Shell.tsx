@@ -24,7 +24,6 @@ import { trpc } from "@lib/trpc";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
-import Loader from "./Loader";
 import Logo from "./Logo";
 
 function useMeQuery() {
@@ -117,9 +116,6 @@ export default function Shell(props: {
   }
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
-  if (query.status === "loading") {
-    return <Loader />;
-  }
 
   return (
     <>
