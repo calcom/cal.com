@@ -424,7 +424,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
         "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
       Component: (
         <>
-          <section className="max-w-lg mx-auto text-black bg-white  ">
+          <section className="max-w-lg mx-auto text-black bg-white ">
             <SchedulerForm
               onSubmit={async (data) => {
                 try {
@@ -671,14 +671,14 @@ export async function getServerSideProps(context: NextPageContext) {
       imageSrc: "integrations/zoom.svg",
       description: "Video Conferencing",
     },
-    {
-      installed: true,
-      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
-      type: "caldav_calendar",
-      title: "Caldav",
-      imageSrc: "integrations/caldav.svg",
-      description: "CalDav Server",
-    },
+    // {
+    //   installed: true,
+    //   credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
+    //   type: "caldav_calendar",
+    //   title: "Caldav",
+    //   imageSrc: "integrations/caldav.svg",
+    //   description: "CalDav Server",
+    // },
   ];
 
   eventTypes = await prisma.eventType.findMany({

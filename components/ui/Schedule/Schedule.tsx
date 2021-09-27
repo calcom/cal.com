@@ -217,8 +217,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
         TIMES.map((time) => (
           <option
             key={`${day}.${index}.${type}.${time.format(_24_HOUR_TIME_FORMAT)}`}
-            value={time.format(_24_HOUR_TIME_FORMAT)}
-          >
+            value={time.format(_24_HOUR_TIME_FORMAT)}>
             {time.toDate().toLocaleTimeString(undefined, { minute: "numeric", hour: "numeric" })}
           </option>
         ));
@@ -230,8 +229,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
               name={`${day}.${index}.start`}
               defaultValue={range?.start || DEFAULT_START_TIME}
               onChange={handleSelectRangeChange}
-              className="block px-4 pr-8 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-sm"
-            >
+              className="block px-4 py-2 pr-8 text-base text-gray-300 border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
               {timeOptions("start")}
             </select>
             <Text>-</Text>
@@ -240,8 +238,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
               name={`${day}.${index}.end`}
               defaultValue={range?.end || DEFAULT_END_TIME}
               onChange={handleSelectRangeChange}
-              className=" block px-4 pr-8 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-sm"
-            >
+              className="block px-4 py-2 pr-8 text-base text-gray-300 border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
               {timeOptions("end")}
             </select>
           </div>
@@ -256,7 +253,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
       return (
         <div className="flex items-center space-x-2">
           <button type="button" onClick={() => handleAddRange()}>
-            <PlusIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-500" />
+            <PlusIcon className="w-5 h-5 text-neutral-400 hover:text-neutral-500" />
           </button>
         </div>
       );
@@ -265,19 +262,18 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
     const DeleteAction = ({ range }: { range: TimeRange }) => {
       return (
         <button type="button" onClick={() => handleDeleteRange(range)}>
-          <TrashIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-500" />
+          <TrashIcon className="w-5 h-5 text-neutral-400 hover:text-neutral-500" />
         </button>
       );
     };
 
     return (
-      <fieldset className=" py-6">
+      <fieldset className="py-6 ">
         <section
           className={classnames(
             "flex flex-col space-y-6 sm:space-y-0 sm:flex-row  sm:justify-between",
             ranges && ranges?.length > 1 ? "sm:items-start" : "sm:items-center"
-          )}
-        >
+          )}>
           <div style={{ minWidth: "33%" }} className="flex items-center justify-between">
             <div className="flex items-center space-x-2 ">
               <input
@@ -286,16 +282,16 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
                 checked={selected}
                 onChange={handleSelectedChange}
                 type="checkbox"
-                className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
+                className="w-4 h-4 border-gray-300 rounded-sm hover:checked:bg-black checked:bg-black focus:ring-neutral-500 text-neutral-900"
               />
               <Text variant="overline">{day}</Text>
             </div>
-            <div className="sm:hidden justify-self-end self-end">
+            <div className="self-end sm:hidden justify-self-end">
               <Actions />
             </div>
           </div>
 
-          <div className="space-y-2 w-full">
+          <div className="w-full space-y-2">
             {selected && ranges && ranges.length != 0 ? (
               ranges.map((range, index) => (
                 <TimeRangeField key={`${day}-range-${index}`} range={range} index={index} day={day} />
@@ -307,7 +303,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
             )}
           </div>
 
-          <div className="hidden sm:block px-2">
+          <div className="hidden px-2 sm:block">
             <Actions />
           </div>
         </section>
