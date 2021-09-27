@@ -8,7 +8,7 @@ import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
@@ -18,6 +18,7 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
+import Button from "@components/ui/Button";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -65,6 +66,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   }
 
   const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
+
+  // TODO DRAFT PR: get email of the person who is booking the event
+  const email = "cal@example.com";
 
   return (
     (isReady && (
@@ -227,6 +231,23 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   {!props.hideBranding && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">Create your own booking link with Cal.com</a>
+
+                      <div className="flex mt-4">
+                        <input
+                          type="text"
+                          name="username"
+                          id="username"
+                          value={email}
+                          className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300"
+                          placeholder="rick-astely@cal.com"
+                        />
+                        <Button
+                          href={`https://cal.com/signup?email=` + email}
+                          className="min-w-max"
+                          color="primary">
+                          Try it for free
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
