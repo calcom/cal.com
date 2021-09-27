@@ -282,7 +282,7 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.10.5", "@babel/runtime@^7.12.0", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.13.17", "@babel/runtime@^7.14.0", "@babel/runtime@^7.14.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.2", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.7":
+"@babel/runtime@^7.10.5", "@babel/runtime@^7.12.0", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.13.17", "@babel/runtime@^7.14.0", "@babel/runtime@^7.14.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.2", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.0":
   version "7.15.4"
   resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.15.4.tgz"
   dependencies:
@@ -1006,16 +1006,9 @@
     "@radix-ui/react-primitive" "0.1.0"
     "@radix-ui/react-use-callback-ref" "0.1.0"
 
-"@radix-ui/react-id@0.1.0":
+"@radix-ui/react-id@0.1.0", "@radix-ui/react-id@^0.1.0":
   version "0.1.0"
   resolved "https://registry.npmjs.org/@radix-ui/react-id/-/react-id-0.1.0.tgz"
-  dependencies:
-    "@babel/runtime" "^7.13.10"
-
-"@radix-ui/react-id@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-id/-/react-id-0.1.0.tgz#d01067520fb8f4b09da3f914bfe6cb0f88c26721"
-  integrity sha512-SubMSz7rAtl6w8qZ9YBRbDe9GjW36JugBsc6aYqng8tFydvNtkuBMj86zN/x5QiomMo+r8ylBVvuWzRkS0WbBA==
   dependencies:
     "@babel/runtime" "^7.13.10"
 
@@ -1280,6 +1273,41 @@
     "@types/lodash" "4.14.168"
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
+
+"@trpc/client@^9.8.0":
+  version "9.8.0"
+  resolved "https://registry.npmjs.org/@trpc/client/-/client-9.8.0.tgz#e60f4ff1fff7c34b1f36e240441022192c463d6e"
+  integrity sha512-YGUJI8EvAykXKciDe62aLNwk4TNh4bX+qHSWtgbF5d6qRQOwViINpB6vR8YSugPvmC4F+hvKm61wSd01cCWN4g==
+  dependencies:
+    "@babel/runtime" "^7.9.0"
+    "@trpc/server" "^9.8.0"
+
+"@trpc/next@^9.8.0":
+  version "9.8.0"
+  resolved "https://registry.npmjs.org/@trpc/next/-/next-9.8.0.tgz#ab76cf56de604551565f13509f9163fb98dc8b1a"
+  integrity sha512-VfpTPtFt8E2lgHVolFtE90DkP2mV8CqdvLQKQ8gY4OfsOoAlitnJPAVeAxvHPVruUyDUjuggFocc1TZnEWRdxg==
+  dependencies:
+    "@babel/runtime" "^7.9.0"
+    "@trpc/client" "^9.8.0"
+    "@trpc/react" "^9.8.0"
+    "@trpc/server" "^9.8.0"
+    react-ssr-prepass "^1.4.0"
+
+"@trpc/react@^9.8.0":
+  version "9.8.0"
+  resolved "https://registry.npmjs.org/@trpc/react/-/react-9.8.0.tgz#1ae46b84da9fb4e257335e6bdb2a489d70a1a9b2"
+  integrity sha512-vErvC98QBQh0XzfPm9LA/dmGHBm6N9/m+B3XdIkimGOD055bsxgKMLW25BeeDV3gLWlzQJ7nwOrsxKRd6fLi3w==
+  dependencies:
+    "@babel/runtime" "^7.9.0"
+    "@trpc/client" "^9.8.0"
+    "@trpc/server" "^9.8.0"
+
+"@trpc/server@^9.8.0":
+  version "9.8.0"
+  resolved "https://registry.npmjs.org/@trpc/server/-/server-9.8.0.tgz#f7e8a0ab46cc41179dc06722cb3dbe33901eddb6"
+  integrity sha512-YFmS+5SwDQ9NRO9JvNyl1oLprWE2AwS2huXYcGo9e3Fl5ju2Q2MN0JYvVh7XYNyp1rI2EKqVVRzXEuCNk+3vVQ==
+  dependencies:
+    tslib "^2.1.0"
 
 "@tsconfig/node10@^1.0.7":
   version "1.0.8"
@@ -6004,10 +6032,10 @@ react-portal@^4.2.0:
   dependencies:
     prop-types "^15.5.8"
 
-react-query@^3.21.0:
-  version "3.24.4"
-  resolved "https://registry.npmjs.org/react-query/-/react-query-3.24.4.tgz"
-  integrity sha512-p/t18+FN5P//bk/xR39r4JRWEigYzia2+J3lmKWSZHYbcivQlygJixY+81NiTNxT1P+/P6cl173b1lEbh1R8yQ==
+react-query@^3.23.1:
+  version "3.23.1"
+  resolved "https://registry.npmjs.org/react-query/-/react-query-3.23.1.tgz#cde2d268958716d34a23e62aabba668752ba8f95"
+  integrity sha512-pq0vEwB5PNGvkWJNUk0qPpsxcDmhzY80ZLNPLIVQJ3k2UyXoGccPTrgOIj4Kz2TrMfgvRBTNwiSxHdaW7Sl0WQ==
   dependencies:
     "@babel/runtime" "^7.5.5"
     broadcast-channel "^3.4.1"
@@ -6045,6 +6073,11 @@ react-select@^4.3.1:
     prop-types "^15.6.0"
     react-input-autosize "^3.0.0"
     react-transition-group "^4.3.0"
+
+react-ssr-prepass@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.npmjs.org/react-ssr-prepass/-/react-ssr-prepass-1.4.0.tgz#33a3db19414f0f8f9f3f781c88f760ae366b4f51"
+  integrity sha512-0SzdmiQUtHvhxCabHg9BI/pkJfijGkQ0jQL6fC4YFy7idaDOuaiQLsajIkkNxffFXtJFHIWFITlve2WB88e0Jw==
 
 react-style-singleton@^2.1.0:
   version "2.1.1"
@@ -7421,3 +7454,8 @@ zen-observable-ts@^1.0.0:
 zen-observable@0.8.15:
   version "0.8.15"
   resolved "https://registry.npmjs.org/zen-observable/-/zen-observable-0.8.15.tgz"
+
+zod@^3.8.2:
+  version "3.8.2"
+  resolved "https://registry.npmjs.org/zod/-/zod-3.8.2.tgz#f25b78bc76e64f31318d242e301c23d3d610b7a1"
+  integrity sha512-kpwVRACazsOhELVt5h4R2pC2OndrqaBK4+z134TWOsnzn7n2uOYnSyvx0QAn410pl28CgVtkSi5ew7e/AgO0oA==
