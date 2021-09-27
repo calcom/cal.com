@@ -1,7 +1,7 @@
 import { getCsrfToken, signIn } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ErrorCode, getSession } from "@lib/auth";
 
@@ -26,11 +26,7 @@ export default function Login({ csrfToken }) {
   const [secondFactorRequired, setSecondFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!router.query?.callbackUrl) {
-      window.history.replaceState(null, document.title, "?callbackUrl=/");
-    }
-  }, [router.query]);
+  const callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -43,14 +39,20 @@ export default function Login({ csrfToken }) {
     setErrorMessage(null);
 
     try {
-      const response = await signIn("credentials", { redirect: false, email, password, totpCode: code });
+      const response = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        totpCode: code,
+        callbackUrl,
+      });
       if (!response) {
         console.error("Received empty response from next auth");
         return;
       }
 
       if (!response.error) {
-        window.location.reload();
+        router.replace(callbackUrl);
         return;
       }
 

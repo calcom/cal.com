@@ -1,35 +1,28 @@
 // TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
-import { ClockIcon, CalendarIcon, XIcon, CheckIcon, BanIcon } from "@heroicons/react/outline";
+import { BanIcon, CalendarIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
-import { BookingStatus, User } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
-import { useSession } from "next-auth/client";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
-import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
-import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
 
 import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
+import { Alert } from "@components/ui/Alert";
 import { Button } from "@components/ui/Button";
 
-export default function Bookings({ bookings }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
-
-  const isEmpty = Object.keys(bookings).length === 0;
+export default function Bookings() {
+  const query = trpc.useQuery(["viewer.bookings"]);
+  const bookings = query.data;
 
   const router = useRouter();
 
-  if (loading) {
-    return <Loader />;
-  }
-
-  async function confirmBookingHandler(booking, confirm: boolean) {
+  async function confirmBookingHandler(booking: { id: number }, confirm: boolean) {
     const res = await fetch("/api/book/confirm", {
       method: "PATCH",
       body: JSON.stringify({ id: booking.id, confirmed: confirm }),
@@ -43,12 +36,16 @@ export default function Bookings({ bookings }) {
   }
 
   return (
-    <div>
-      <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
-        <div className="-mx-4 sm:mx-auto flex flex-col">
-          <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              {isEmpty ? (
+    <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
+      <div className="-mx-4 sm:mx-auto flex flex-col">
+        <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+            {query.status === "error" && (
+              <Alert severity="error" title="Something went wrong" message={query.error.message} />
+            )}
+            {query.status === "loading" && <Loader />}
+            {bookings &&
+              (bookings.length === 0 ? (
                 <EmptyScreen
                   Icon={CalendarIcon}
                   headline="No upcoming bookings, yet"
@@ -282,75 +279,10 @@ export default function Bookings({ bookings }) {
                     </tbody>
                   </table>
                 </div>
-              )}
-            </div>
+              ))}
           </div>
         </div>
-      </Shell>
-    </div>
+      </div>
+    </Shell>
   );
-}
-
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
-
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user: User = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      email: true,
-    },
-  });
-
-  const b = await prisma.booking.findMany({
-    where: {
-      OR: [
-        {
-          userId: session.user.id,
-        },
-        {
-          attendees: {
-            some: {
-              email: user.email,
-            },
-          },
-        },
-      ],
-    },
-    select: {
-      uid: true,
-      title: true,
-      description: true,
-      attendees: true,
-      confirmed: true,
-      rejected: true,
-      id: true,
-      startTime: true,
-      endTime: true,
-      eventType: {
-        select: {
-          team: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      status: true,
-    },
-    orderBy: {
-      startTime: "asc",
-    },
-  });
-
-  const bookings = b.reverse().map((booking) => {
-    return { ...booking, startTime: booking.startTime.toISOString(), endTime: booking.endTime.toISOString() };
-  });
-
-  return { props: { session, bookings } };
 }
