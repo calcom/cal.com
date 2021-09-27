@@ -35,7 +35,7 @@ export class IdentityService {
    * Change the password for a given user.
    *
    * @param {Subject} subject - Resolved subject
-   * @param {numer} id - User id
+   * @param {number} id - User id
    * @param {string} current - Current password
    * @param {string} updated - New password
    */
