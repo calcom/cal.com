@@ -323,8 +323,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   ];
 
   const [periodDates, setPeriodDates] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: new Date(eventType.periodStartDate),
-    endDate: new Date(eventType.periodEndDate),
+    startDate: new Date(eventType.periodStartDate || Date.now()),
+    endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
   return (
@@ -744,9 +744,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             as="span"
                                             className={classNames(
                                               checked ? "text-secondary-900" : "text-gray-900",
-                                              "block text-sm space-y-2 lg:space-y-0 lg:space-x-2"
+                                              "block text-sm space-y-2 lg:space-y-0"
                                             )}>
-                                            <span>{period.prefix}</span>
+                                            {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                                             {period.type === "rolling" && (
                                               <div className="inline-flex">
                                                 <input
@@ -779,8 +779,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 />
                                               </div>
                                             )}
-
-                                            <span>{period.suffix}</span>
+                                            {period.suffix ? <span>&nbsp;{period.suffix}</span> : null}
                                           </RadioGroup.Label>
                                         </div>
                                       </>
