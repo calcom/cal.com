@@ -1,14 +1,12 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { ClockIcon } from "@heroicons/react/solid";
-import { UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import Link from "next/link";
-import { NextRouter, useRouter } from "next/router";
-import { ParsedUrlQuery } from "querystring";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -143,10 +141,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               .utc()
                               .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
                               props.eventType.description
-                            }` +
-                            (location
-                                typeof location === "string" ? encodeURIComponent(location) : ''
-                              : "")
+                            }` + (typeof location === "string" ? encodeURIComponent(location) : "")
                           }>
                           <a className="px-3 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white">
                             <svg
@@ -289,20 +284,19 @@ export async function getServerSideProps(context: { query: { type: string } }) {
   }
 
   if (!eventType.users.length && eventType.userId) {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: eventType.userId,
-      },
-      select: {
-        theme: true,
-        hideBranding: true,
-        name: true,
-        plan: true,
-      },
-    });
-    if (user) {
-      eventType.users.push(user);
-    }
+    eventType.users.push(
+      await prisma.user.findUnique({
+        where: {
+          id: eventType.userId,
+        },
+        select: {
+          theme: true,
+          hideBranding: true,
+          name: true,
+          plan: true,
+        },
+      })
+    );
   }
 
   if (!eventType.users.length) {
