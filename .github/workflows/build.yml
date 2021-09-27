@@ -2,6 +2,19 @@ name: Build
 on: [push]
 jobs:
   build:
+    env:
+      DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      NODE_ENV: test
+      BASE_URL: http://localhost:3000
+      JWT_SECRET: secret
+    services:
+      postgres:
+        image: postgres:12.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: calendso
+        ports:
+          - 5432:5432
     name: Build on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}

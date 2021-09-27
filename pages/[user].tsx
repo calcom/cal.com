@@ -81,6 +81,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
       username: true,
     },
     where: {
+      // will statically render everyone on the PRO plan
+      // the rest will be statically rendered on first visit
       plan: "PRO",
     },
   });
