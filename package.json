@@ -37,6 +37,10 @@
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.16.0",
     "@tailwindcss/forms": "^0.3.3",
+    "@trpc/client": "^9.8.0",
+    "@trpc/next": "^9.8.0",
+    "@trpc/react": "^9.8.0",
+    "@trpc/server": "^9.8.0",
     "@types/stripe": "^8.0.417",
     "accept-language-parser": "^1.5.0",
     "async": "^3.2.1",
@@ -68,7 +72,7 @@
     "react-intl": "^5.20.7",
     "react-multi-email": "^0.5.3",
     "react-phone-number-input": "^3.1.25",
-    "react-query": "^3.21.0",
+    "react-query": "^3.23.1",
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
     "react-use-intercom": "1.4.0",
@@ -76,7 +80,8 @@
     "stripe": "^8.168.0",
     "tsdav": "1.0.6",
     "tslog": "^3.2.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "zod": "^3.8.2"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
