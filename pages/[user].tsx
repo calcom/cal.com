@@ -22,7 +22,6 @@ export default function User(props: inferSSRProps<typeof getStaticProps>) {
     return <>...</>;
   }
   const { user, eventTypes } = query.data;
-  console.log({ user, eventTypes });
 
   return (
     <>
