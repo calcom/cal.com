@@ -13,7 +13,9 @@ export default function Billing() {
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="my-6">
-            <form method="POST" action="/api/integrations/stripepayment/portal">
+            <form
+              method="POST"
+              action={`${process.env.NEXT_PUBLIC_BASE_URL}/api/integrations/stripepayment/portal`}>
               <Button type="submit">Manage billing</Button>
             </form>
           </div>
