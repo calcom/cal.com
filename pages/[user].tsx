@@ -60,7 +60,7 @@ export default function User(props: inferSSRProps<typeof getStaticProps>) {
                 </div>
               ))}
             </div>
-            {eventTypes.length == 0 && (
+            {eventTypes.length === 0 && (
               <div className="shadow overflow-hidden rounded-sm">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
                   <h2 className="font-cal font-semibold text-3xl text-gray-600 dark:text-white">Uh oh!</h2>

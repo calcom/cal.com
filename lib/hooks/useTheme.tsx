@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function useTheme(theme?: Maybe<string>) {
   const [isReady, setIsReady] = useState(false);
   useEffect(() => {
+    setIsReady(true);
     if (!theme) {
       return;
     }
@@ -13,7 +14,6 @@ export default function useTheme(theme?: Maybe<string>) {
     } else {
       document.documentElement.classList.add(theme);
     }
-    setIsReady(true);
   }, []);
 
   return {
