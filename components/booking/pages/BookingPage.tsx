@@ -38,7 +38,7 @@ type BookingPageProps = BookPageProps | TeamBookingPageProps;
 const BookingPage = (props: BookingPageProps) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const themeLoaded = useTheme(props.profile.theme);
+  const { isReady } = useTheme(props.profile.theme);
 
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
@@ -175,17 +175,17 @@ const BookingPage = (props: BookingPageProps) => {
   const bookingHandler = useCallback(_bookingHandler, []);
 
   return (
-    themeLoaded && (
-      <div>
-        <Head>
-          <title>
-            {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name}{" "}
-            | Cal.com
-          </title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+    <div>
+      <Head>
+        <title>
+          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name} |
+          Cal.com
+        </title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-        <main className="max-w-3xl mx-auto my-0 sm:my-24">
+      <main className="max-w-3xl mx-auto my-0 sm:my-24">
+        {isReady && (
           <div className="dark:bg-neutral-900 bg-white overflow-hidden border border-gray-200 dark:border-0 sm:rounded-sm">
             <div className="sm:flex px-4 py-5 sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
@@ -459,9 +459,9 @@ const BookingPage = (props: BookingPageProps) => {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    )
+        )}
+      </main>
+    </div>
   );
 };
 
