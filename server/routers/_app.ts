@@ -3,6 +3,7 @@
  */
 import { createRouter } from "../createRouter";
 import { bookingRouter } from "./booking";
+import { userRouter } from "./user";
 import { viewerRouter } from "./viewer";
 
 /**
@@ -23,6 +24,7 @@ export const appRouter = createRouter()
    */
   // .formatError(({ shape, error }) => { })
   .merge("viewer.", viewerRouter)
-  .merge("booking.", bookingRouter);
+  .merge("booking.", bookingRouter)
+  .merge("user.", userRouter);
 
 export type AppRouter = typeof appRouter;
