@@ -13,9 +13,10 @@ export type AppProps = NextAppProps & {
   err?: Error;
 };
 
-function MyApp({ Component, pageProps, err }: AppProps) {
+function MyApp(props: AppProps) {
+  const { Component, pageProps, err } = props;
   return (
-    <AppProviders pageProps={pageProps}>
+    <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
       <Component {...pageProps} err={err} />
     </AppProviders>

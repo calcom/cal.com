@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 
-import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
+import { Alert } from "@components/ui/Alert";
 
-export default function Availability(props) {
+export default function Availability() {
+  const queryMe = trpc.useQuery(["viewer.me"]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
   const router = useRouter();
@@ -31,9 +32,13 @@ export default function Availability(props) {
   const bufferHoursRef = useRef<HTMLInputElement>();
   const bufferMinsRef = useRef<HTMLInputElement>();
 
-  if (loading) {
+  if (queryMe.status === "loading") {
     return <Loader />;
   }
+  if (queryMe.status !== "success") {
+    return <Alert severity="error" title="Something went wrong" />;
+  }
+  const user = queryMe.data;
 
   function toggleAddModal() {
     setShowAddModal(!showAddModal);
@@ -126,8 +131,8 @@ export default function Availability(props) {
               </h3>
               <div className="mt-2 max-w-xl text-sm text-gray-500">
                 <p>
-                  Currently, your day is set to start at {convertMinsToHrsMins(props.user.startTime)} and end
-                  at {convertMinsToHrsMins(props.user.endTime)}.
+                  Currently, your day is set to start at {convertMinsToHrsMins(user.startTime)} and end at{" "}
+                  {convertMinsToHrsMins(user.endTime)}.
                 </p>
               </div>
               <div className="mt-5">
@@ -199,7 +204,7 @@ export default function Availability(props) {
                         id="hours"
                         className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="9"
-                        defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[0]}
+                        defaultValue={convertMinsToHrsMins(user.startTime).split(":")[0]}
                       />
                     </div>
                     <span className="mx-2 pt-1">:</span>
@@ -214,7 +219,7 @@ export default function Availability(props) {
                         id="minutes"
                         className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="30"
-                        defaultValue={convertMinsToHrsMins(props.user.startTime).split(":")[1]}
+                        defaultValue={convertMinsToHrsMins(user.startTime).split(":")[1]}
                       />
                     </div>
                   </div>
@@ -231,7 +236,7 @@ export default function Availability(props) {
                         id="hours"
                         className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="17"
-                        defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[0]}
+                        defaultValue={convertMinsToHrsMins(user.endTime).split(":")[0]}
                       />
                     </div>
                     <span className="mx-2 pt-1">:</span>
@@ -246,7 +251,7 @@ export default function Availability(props) {
                         id="minutes"
                         className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="30"
-                        defaultValue={convertMinsToHrsMins(props.user.endTime).split(":")[1]}
+                        defaultValue={convertMinsToHrsMins(user.endTime).split(":")[1]}
                       />
                     </div>
                   </div>
@@ -263,7 +268,7 @@ export default function Availability(props) {
                         id="hours"
                         className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="0"
-                        defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[0]}
+                        defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[0]}
                       />
                     </div>
                     <span className="mx-2 pt-1">:</span>
@@ -278,7 +283,7 @@ export default function Availability(props) {
                         id="minutes"
                         className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                         placeholder="10"
-                        defaultValue={convertMinsToHrsMins(props.user.bufferTime).split(":")[1]}
+                        defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[1]}
                       />
                     </div>
                   </div>
@@ -304,41 +309,4 @@ export default function Availability(props) {
       </Shell>
     </div>
   );
-}
-
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-      username: true,
-      startTime: true,
-      endTime: true,
-      bufferTime: true,
-    },
-  });
-
-  const types = await prisma.eventType.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      hidden: true,
-    },
-  });
-  return {
-    props: { session, user, types },
-  };
 }
