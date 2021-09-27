@@ -5,7 +5,6 @@ import React from "react";
 
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
-import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
@@ -13,10 +12,6 @@ import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  // FIXME delete me before merge
-  const query1 = trpc.useQuery(["test.hello"]);
-  const query2 = trpc.useQuery(["test.hello", "alex"]);
-  console.log("result", { query1, query2 });
   const { isReady } = useTheme(props.user.theme);
 
   return (
