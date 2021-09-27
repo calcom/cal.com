@@ -35,7 +35,7 @@ function getIntegrations(credentials: CredentialData[]) {
       description: "Video Conferencing",
     },
     {
-      installed: true,
+      installed: !!process.env.CALENDSO_ENCRYPTION_KEY,
       type: "caldav_calendar",
       credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
       title: "CalDav Server",
@@ -43,7 +43,7 @@ function getIntegrations(credentials: CredentialData[]) {
       description: "For personal and business calendars",
     },
     {
-      installed: true,
+      installed: !!process.env.CALENDSO_ENCRYPTION_KEY,
       type: "apple_calendar",
       credential: credentials.find((integration) => integration.type === "apple_calendar") || null,
       title: "Apple Calendar",

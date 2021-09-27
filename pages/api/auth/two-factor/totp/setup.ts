@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     data: {
       twoFactorEnabled: false,
-      twoFactorSecret: symmetricEncrypt(secret, process.env.CALENDSO_ENCRYPTION_KEY),
+      twoFactorSecret: symmetricEncrypt(secret),
     },
   });
 
