@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -89,16 +90,26 @@ export const viewerRouter = createProtectedRouter()
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
       const { name, avatar, timeZone, weekStart, hideBranding, theme, completedOnboarding, locale } = input;
-      let username: string | undefined = undefined;
 
+      const data: Prisma.UserUpdateInput = {
+        name,
+        avatar,
+        timeZone,
+        weekStart,
+        hideBranding,
+        theme,
+        completedOnboarding,
+        locale,
+        bio: input.description,
+      };
       if (input.username) {
-        username = slugify(input.username);
+        const username = slugify(input.username);
         // Only validate if we're changing usernames
         if (username !== user.username) {
+          data.username = username;
           const response = await checkUsername(username);
-          if (response.status !== 200) {
-            const { message } = await response.json();
-            throw new TRPCError({ code: "BAD_REQUEST", message });
+          if (!response.available) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }
       }
@@ -107,18 +118,7 @@ export const viewerRouter = createProtectedRouter()
         where: {
           id: user.id,
         },
-        data: {
-          username,
-          name,
-          avatar,
-          timeZone,
-          weekStart,
-          hideBranding,
-          theme,
-          completedOnboarding,
-          locale,
-          bio: input.description,
-        },
+        data,
       });
     },
   });

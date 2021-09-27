@@ -12,5 +12,14 @@ export default async function checkUsername(_username: string) {
     mode: "cors",
   });
 
-  return response;
+  if (response.ok) {
+    return {
+      available: true as const,
+    };
+  }
+  const json = await response.json();
+  return {
+    available: false as const,
+    message: json.message as string,
+  };
 }
