@@ -10,6 +10,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
+import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -26,7 +27,8 @@ import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPageProps) => {
+const AvailabilityPage = ({ profile, localeProp, eventType, workingHours }: AvailabilityPageProps) => {
+  const { t } = useLocale({ localeProp: localeProp });
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
@@ -85,8 +87,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
   return (
     <>
       <HeadSeo
-        title={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title} | ${profile.name}`}
-        description={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title}`}
+        title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
+        description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name}
         avatar={profile.image}
       />
@@ -119,7 +121,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                       {eventType.title}
                       <div>
                         <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                        {eventType.length} minutes
+                        {eventType.length} {t("minutes")}
                       </div>
                       {eventType.price > 0 && (
                         <div>
@@ -163,7 +165,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                   </h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                    {eventType.length} minutes
+                    {eventType.length} {t("minutes")}
                   </p>
                   {eventType.price > 0 && (
                     <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">

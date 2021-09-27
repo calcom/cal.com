@@ -1,7 +1,9 @@
 import { Availability, EventType } from "@prisma/client";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
@@ -11,6 +13,7 @@ export default function TeamType(props: InferGetServerSidePropsType<typeof getSe
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const locale = await extractLocaleInfo(context.req);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const slugParam = asStringOrNull(context.query.slug);
@@ -83,10 +86,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      localeProp: locale,
       profile,
       team,
       eventType: eventTypeObject,
       workingHours,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

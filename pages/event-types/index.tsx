@@ -56,10 +56,7 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
-  const { locale } = useLocale({
-    localeProp: props.localeProp,
-    namespaces: "event-types-page",
-  });
+  const { locale } = useLocale({ localeProp: props.localeProp });
 
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">

@@ -1,8 +1,11 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import { InferGetServerSidePropsType } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import prisma from "@lib/prisma";
@@ -16,9 +19,10 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
-function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+function TeamPage({ team, localeProp }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { isReady } = useTheme();
   const showMembers = useToggleQuery("members");
+  const { t, locale } = useLocale({ localeProp: localeProp });
 
   const eventTypes = (
     <ul className="space-y-3">
@@ -64,7 +68,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
             />
             <Text variant="headline">{team.name}</Text>
           </div>
-          {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+          {(showMembers.isOn || !team.eventTypes.length) && <Team localeProp={locale} team={team} />}
           {!showMembers.isOn && team.eventTypes.length && (
             <div className="mx-auto max-w-3xl">
               {eventTypes}
@@ -75,7 +79,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
                 </div>
                 <div className="relative flex justify-center">
                   <span className="px-2 bg-gray-100 text-sm text-gray-500 dark:bg-black dark:text-gray-500">
-                    OR
+                    {t("or")}
                   </span>
                 </div>
               </div>
@@ -86,7 +90,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
                   EndIcon={ArrowRightIcon}
                   href={`/team/${team.slug}?members=1`}
                   shallow={true}>
-                  Book a team member instead
+                  {t("book_a_team_member")}
                 </Button>
               </aside>
             </div>
@@ -98,6 +102,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
 }
 
 export const getServerSideProps = async (context) => {
+  const locale = await extractLocaleInfo(context.req);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const teamSelectInput = {
@@ -164,7 +169,9 @@ export const getServerSideProps = async (context) => {
 
   return {
     props: {
+      localeProp: locale,
       team,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };
