@@ -17,6 +17,8 @@ import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
+
 import classNames from "@lib/classNames";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
@@ -160,7 +162,7 @@ export default function Shell(props) {
             <div className="py-8">
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
                 <div className="mb-8">
-                  <h1 className="text-xl font-bold text-gray-900">{props.heading}</h1>
+                  <h1 className="font-cal text-xl font-bold text-gray-900">{props.heading}</h1>
                   <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
                 </div>
                 <div className="mb-4 flex-shrink-0">{props.CTA}</div>
@@ -315,6 +317,7 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                     </a>
                   )}
                 </Menu.Item>
+                <HelpMenuItemDynamic />
               </div>
               <div className="py-1">
                 <Menu.Item>

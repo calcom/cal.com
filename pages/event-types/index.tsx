@@ -113,9 +113,12 @@ const EventTypesPage = (props: PageProps) => {
             </Link>
           </span>
         )}
-        {typeof window !== "undefined" && profile?.slug && (
-          <Link href={profile.slug}>
-            <a className="block text-xs text-neutral-500">{`cal.com/${profile.slug}`}</a>
+        {profile?.slug && (
+          <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}`}>
+            <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
+              "https://",
+              ""
+            )}/${profile.slug}`}</a>
           </Link>
         )}
       </div>
@@ -140,8 +143,12 @@ const EventTypesPage = (props: PageProps) => {
               type.$disabled && "opacity-30 cursor-not-allowed pointer-events-none select-none"
             )}
             data-disabled={type.$disabled ? 1 : 0}>
-            <div className={classNames("hover:bg-neutral-50", type.$disabled && "pointer-events-none")}>
-              <div className="flex items-center px-4 py-4 sm:px-6 hover:bg-neutral-50">
+            <div
+              className={classNames(
+                "hover:bg-neutral-50 flex justify-between items-center ",
+                type.$disabled && "pointer-events-none"
+              )}>
+              <div className="flex items-center w-full justify-between px-4 py-4 sm:px-6 hover:bg-neutral-50">
                 <Link href={"/event-types/" + type.id}>
                   <a className="flex-grow text-sm truncate">
                     <div>
@@ -198,7 +205,7 @@ const EventTypesPage = (props: PageProps) => {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-shrink-0 ml-5 sm:hidden">
+              <div className="flex flex-shrink-0 mr-5 sm:hidden">
                 <Menu as="div" className="inline-block text-left">
                   {({ open }) => (
                     <>
@@ -289,15 +296,15 @@ const EventTypesPage = (props: PageProps) => {
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
           )
         }>
-        {props.user.plan === "FREE" && !props.canAddEvents && typeof window !== "undefined" && (
+        {props.user.plan === "FREE" && !props.canAddEvents && (
           <Alert
             severity="warning"
             title={<>You need to upgrade your plan to have more than one active event type.</>}
             message={
               <>
                 To upgrade go to{" "}
-                <a href={process.env.UPGRADE_URL || "https://cal.com/upgrade"} className="underline">
-                  {process.env.UPGRADE_URL || "https://cal.com/upgrade"}
+                <a href={"https://cal.com/upgrade"} className="underline">
+                  {"https://cal.com/upgrade"}
                 </a>
               </>
             }
@@ -306,7 +313,7 @@ const EventTypesPage = (props: PageProps) => {
         )}
         {props.eventTypes &&
           props.eventTypes.map((input) => (
-            <>
+            <Fragment key={input.profile?.slug}>
               {/* hide list heading when there is only one (current user) */}
               {(props.eventTypes.length !== 1 || input.teamId) && (
                 <EventTypeListHeading
@@ -319,7 +326,7 @@ const EventTypesPage = (props: PageProps) => {
                 profile={input.profile}
                 readOnly={input.metadata?.readOnly}
               />
-            </>
+            </Fragment>
           ))}
 
         {props.eventTypes.length === 0 && <CreateFirstEventTypeView />}
@@ -475,7 +482,7 @@ const CreateNewEventDialog = ({
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
                   <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 sm:text-sm">
-                    {location.hostname}/{router.query.eventPage || profiles[0].slug}/
+                    {process.env.NEXT_PUBLIC_APP_URL}/{router.query.eventPage || profiles[0].slug}/
                   </span>
                   <input
                     ref={slugRef}
@@ -723,6 +730,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      session,
       localeProp: locale,
       canAddEvents,
       user: userObj,

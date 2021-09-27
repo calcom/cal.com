@@ -19,7 +19,7 @@ import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import PoweredByCalendso from "@components/ui/PoweredByCalendso";
+import PoweredByCal from "@components/ui/PoweredByCal";
 
 import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 
@@ -29,7 +29,7 @@ dayjs.extend(customParseFormat);
 const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPageProps) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const themeLoaded = useTheme(profile.theme);
+  const { isReady } = useTheme(profile.theme);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -83,20 +83,20 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
   };
 
   return (
-    themeLoaded && (
-      <>
-        <HeadSeo
-          title={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title} | ${profile.name}`}
-          description={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title}`}
-          name={profile.name}
-          avatar={profile.image}
-        />
-        <div>
-          <main
-            className={
-              "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
-              (selectedDate ? "max-w-5xl" : "max-w-3xl")
-            }>
+    <>
+      <HeadSeo
+        title={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title} | ${profile.name}`}
+        description={`${rescheduleUid ? "Reschedule" : ""} ${eventType.title}`}
+        name={profile.name}
+        avatar={profile.image}
+      />
+      <div>
+        <main
+          className={
+            "mx-auto my-0 md:my-24 transition-max-width ease-in-out duration-500 " +
+            (selectedDate ? "max-w-5xl" : "max-w-3xl")
+          }>
+          {isReady && (
             <div className="bg-white border-gray-200 rounded-sm sm:dark:border-gray-600 dark:bg-gray-900 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
@@ -157,10 +157,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="font-cal font-medium text-gray-500 dark:text-gray-300 mt-3">
-                    {profile.name}
-                  </h2>
-                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h2 className="font-medium text-gray-500 dark:text-gray-300 mt-3">{profile.name}</h2>
+                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {eventType.title}
                   </h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
@@ -216,11 +214,11 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: AvailabilityPage
                 )}
               </div>
             </div>
-            {eventType.users.length && isBrandingHidden(eventType.users[0]) && <PoweredByCalendso />}
-          </main>
-        </div>
-      </>
-    )
+          )}
+          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />}
+        </main>
+      </div>
+    </>
   );
 
   function TimezoneDropdown() {

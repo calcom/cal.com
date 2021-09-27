@@ -243,7 +243,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
               {timeOptions("end")}
             </select>
           </div>
-          <div className="">
+          <div>
             <DeleteAction range={range} />
           </div>
         </div>

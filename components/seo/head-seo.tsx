@@ -69,7 +69,7 @@ const buildSeoMeta = (pageProps: {
 const constructImage = (name: string, avatar: string, description: string): string => {
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +
-    ".png?md=1&images=https%3A%2F%2Fcal.com%2Fcalendso-logo-white.svg&images=" +
+    ".png?md=1&images=https%3A%2F%2Fcal.com%2Flogo-white.svg&images=" +
     encodeURIComponent(avatar)
   );
 };
