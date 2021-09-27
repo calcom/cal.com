@@ -145,8 +145,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               props.eventType.description
                             }` +
                             (location
-                              ? "&location=" +
-                                encodeURIComponent(typeof location === "string" ? location : false)
+                                typeof location === "string" ? encodeURIComponent(location) : ''
                               : "")
                           }>
                           <a className="px-3 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white">
