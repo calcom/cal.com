@@ -17,14 +17,10 @@ import { EventTypeCustomInput, EventTypeCustomInputType, Prisma, SchedulingType 
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import throttle from "lodash.throttle";
 import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
-import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
-import "react-dates/initialize";
-import "react-dates/lib/css/_datepicker.css";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
 import Select, { OptionTypeBase } from "react-select";
@@ -55,6 +51,7 @@ import { Scheduler } from "@components/ui/Scheduler";
 import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
+import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 
@@ -90,9 +87,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     { value: EventTypeCustomInputType.BOOL, label: "Checkbox" },
   ];
 
-  const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
-  const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
-
   const updateMutation = useMutation(updateEventType, {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types");
@@ -115,36 +109,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  const handleResizeEvent = () => {
-    const elementWidth = parseFloat(getComputedStyle(document.body).width);
-    const elementHeight = parseFloat(getComputedStyle(document.body).height);
-
-    setContentSize({
-      width: elementWidth,
-      height: elementHeight,
-    });
-  };
-
-  const throttledHandleResizeEvent = throttle(handleResizeEvent, 100);
-
-  useEffect(() => {
-    handleResizeEvent();
-
-    window.addEventListener("resize", throttledHandleResizeEvent);
-
-    return () => {
-      window.removeEventListener("resize", throttledHandleResizeEvent);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (contentSize.width < 500) {
-      setDatePickerOrientation("vertical");
-    } else {
-      setDatePickerOrientation("horizontal");
-    }
-  }, [contentSize]);
-
   const [users, setUsers] = useState<AdvancedOptions["users"]>([]);
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -158,22 +122,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
 
-  const [periodStartDate, setPeriodStartDate] = useState(() => {
-    if (eventType.periodType === "range" && eventType?.periodStartDate) {
-      return toMomentObject(new Date(eventType.periodStartDate));
-    }
-
-    return null;
-  });
-
-  const [periodEndDate, setPeriodEndDate] = useState(() => {
-    if (eventType.periodType === "range" && eventType.periodEndDate) {
-      return toMomentObject(new Date(eventType?.periodEndDate));
-    }
-
-    return null;
-  });
-  const [focusedInput, setFocusedInput] = useState(null);
   const [periodType, setPeriodType] = useState(() => {
     return (
       PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -207,11 +155,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       advancedPayload.periodCountCalendarDays = Boolean(
         asNumberOrUndefined(formData.periodCountCalendarDays)
       );
-      advancedPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : undefined;
-      advancedPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : undefined;
+      advancedPayload.periodStartDate = periodDates.startDate || undefined;
+      advancedPayload.periodEndDate = periodDates.endDate || undefined;
       advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
       // prettier-ignore
-      advancedPayload.price = 
+      advancedPayload.price =
         !requirePayment ? undefined                                                     :
         formData.price  ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
         /* otherwise */   0;
@@ -373,6 +321,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       description: "Cycle meetings between multiple team members.",
     },
   ];
+
+  const [periodDates, setPeriodDates] = useState<{ startDate: Date; endDate: Date }>({
+    startDate: new Date(eventType.periodStartDate || Date.now()),
+    endDate: new Date(eventType.periodEndDate || Date.now()),
+  });
 
   return (
     <div>
@@ -791,9 +744,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             as="span"
                                             className={classNames(
                                               checked ? "text-secondary-900" : "text-gray-900",
-                                              "block text-sm space-y-2 lg:space-y-0 lg:space-x-2"
+                                              "block text-sm space-y-2 lg:space-y-0"
                                             )}>
-                                            <span>{period.prefix}</span>
+                                            {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                                             {period.type === "rolling" && (
                                               <div className="inline-flex">
                                                 <input
@@ -820,24 +773,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             {checked && period.type === "range" && (
                                               <div className="inline-flex space-x-2">
                                                 <DateRangePicker
-                                                  orientation={DATE_PICKER_ORIENTATION}
-                                                  startDate={periodStartDate}
-                                                  startDateId="your_unique_start_date_id"
-                                                  endDate={periodEndDate}
-                                                  endDateId="your_unique_end_date_id"
-                                                  onDatesChange={({ startDate, endDate }) => {
-                                                    setPeriodStartDate(startDate);
-                                                    setPeriodEndDate(endDate);
-                                                  }}
-                                                  focusedInput={focusedInput}
-                                                  onFocusChange={(focusedInput) => {
-                                                    setFocusedInput(focusedInput);
-                                                  }}
+                                                  startDate={periodDates.startDate}
+                                                  endDate={periodDates.endDate}
+                                                  onDatesChange={setPeriodDates}
                                                 />
                                               </div>
                                             )}
-
-                                            <span>{period.suffix}</span>
+                                            {period.suffix ? <span>&nbsp;{period.suffix}</span> : null}
                                           </RadioGroup.Label>
                                         </div>
                                       </>
