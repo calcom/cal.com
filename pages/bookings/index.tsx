@@ -4,6 +4,7 @@ import { BanIcon, CalendarIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/r
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
+import { Fragment } from "react";
 import { useMutation } from "react-query";
 
 import classNames from "@lib/classNames";
@@ -129,7 +130,7 @@ function BookingListItem(booking: inferQueryOutput<"viewer.bookings">[number]) {
                         <Menu.Item>
                           {({ active }) => (
                             <span
-                              onClick={() => confirmBookingHandler(booking, false)}
+                              onClick={() => mutation.mutate(false)}
                               className={classNames(
                                 active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
                                 "group flex items-center px-4 py-2 text-sm w-full font-medium"
