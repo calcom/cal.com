@@ -1,9 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { getSession } from "@lib/auth";
-import prisma from "../../../../lib/prisma";
 import { symmetricEncrypt } from "@lib/crypto";
-import logger from "@lib/logger";
 import { CalDavCalendar } from "@lib/integrations/CalDav/CalDavCalendarAdapter";
+import logger from "@lib/logger";
+
+import prisma from "../../../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {

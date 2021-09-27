@@ -1,8 +1,10 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { ChevronDownIcon } from "@heroicons/react/solid";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React from "react";
-import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
+
 import classNames from "@lib/classNames";
+
+import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
 
 type OptionProps = React.OptionHTMLAttributes<HTMLOptionElement> & {
   description?: string;

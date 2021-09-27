@@ -1,19 +1,22 @@
 import {
-  TrashIcon,
   DotsHorizontalIcon,
+  ExternalLinkIcon,
   LinkIcon,
   PencilAltIcon,
-  ExternalLinkIcon,
+  TrashIcon,
 } from "@heroicons/react/outline";
-import Dropdown from "../ui/Dropdown";
-import { useState } from "react";
-import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
+import { useState } from "react";
+
+import showToast from "@lib/notification";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
+import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
-import showToast from "@lib/notification";
+
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 
 interface Team {
   id: number;
@@ -56,19 +59,20 @@ export default function TeamListItem(props: {
         <div className="flex justify-between my-4">
           <div className="flex">
             <Avatar
+              size={9}
               imageSrc={
                 props.team.logo
                   ? props.team.logo
                   : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
                     encodeURIComponent(props.team.name || "")
               }
-              displayName="Team Logo"
+              alt="Team Logo"
               className="rounded-full w-9 h-9"
             />
             <div className="inline-block ml-3">
               <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>
               <span className="block -mt-1 text-xs text-gray-400">
-                {window.location.hostname}/{props.team.slug}
+                {process.env.NEXT_PUBLIC_APP_URL}/{props.team.slug}
               </span>
             </div>
           </div>
@@ -97,7 +101,9 @@ export default function TeamListItem(props: {
               <Tooltip content="Copy link">
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.hostname + "/team/" + props.team.slug);
+                    navigator.clipboard.writeText(
+                      process.env.NEXT_PUBLIC_APP_URL + "/team/" + props.team.slug
+                    );
                     showToast("Link copied!", "success");
                   }}
                   color="minimal"
@@ -105,16 +111,12 @@ export default function TeamListItem(props: {
                   StartIcon={LinkIcon}
                   type="button"></Button>
               </Tooltip>
-              <Dropdown className="relative flex text-left">
-                <Button
-                  color="minimal"
-                  className="w-full pl-5 ml-2"
-                  StartIcon={DotsHorizontalIcon}
-                  type="button"></Button>
-                <ul
-                  role="menu"
-                  className="absolute right-0 z-10 origin-top-right bg-white rounded-sm shadow-lg top-10 w-44 ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+              <Dropdown>
+                <DropdownMenuTrigger>
+                  <DotsHorizontalIcon className="w-5 h-5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
                     <Button
                       type="button"
                       color="minimal"
@@ -124,9 +126,9 @@ export default function TeamListItem(props: {
                       {" "}
                       Edit team
                     </Button>
-                  </li>
-                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
-                    <Link href={`/team/${props.team.slug}`} passHref={true}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
                           {" "}
@@ -134,8 +136,8 @@ export default function TeamListItem(props: {
                         </Button>
                       </a>
                     </Link>
-                  </li>
-                  <li className="text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
@@ -158,8 +160,8 @@ export default function TeamListItem(props: {
                         link with will no longer be able to book using it.
                       </ConfirmationDialogContent>
                     </Dialog>
-                  </li>
-                </ul>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
               </Dropdown>
             </div>
           )}

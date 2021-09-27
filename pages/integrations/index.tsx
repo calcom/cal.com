@@ -1,36 +1,28 @@
-import Link from "next/link";
-import prisma from "@lib/prisma";
-import Shell from "@components/Shell";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useSession } from "next-auth/client";
-import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
-import Switch from "@components/ui/Switch";
-import Loader from "@components/Loader";
-import AddCalDavIntegration, {
-  ADD_CALDAV_INTEGRATION_FORM_TITLE,
-} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
+import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/client";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { getSession } from "@lib/auth";
 import AddAppleIntegration, {
   ADD_APPLE_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/Apple/components/AddAppleIntegration";
+import AddCalDavIntegration, {
+  ADD_CALDAV_INTEGRATION_FORM_TITLE,
+} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import getIntegrations from "@lib/integrations/getIntegrations";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+import Loader from "@components/Loader";
+import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
+import Switch from "@components/ui/Switch";
 
-export type Integration = {
-  installed: boolean;
-  credential: unknown;
-  type: string;
-  title: string;
-  imageSrc: string;
-  description: string;
-};
-
-type Props = {
-  integrations: Integration[];
-};
-
-export default function Home({ integrations }: Props) {
+export default function Home({ integrations }: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
 
   const [selectableCalendars, setSelectableCalendars] = useState([]);
@@ -146,13 +138,13 @@ export default function Home({ integrations }: Props) {
 
   const ConnectNewAppDialog = () => (
     <Dialog>
-      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-        <PlusIcon className="w-5 h-5 mr-1 inline" />
+      <DialogTrigger className="px-4 py-2 mt-6 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+        <PlusIcon className="inline w-5 h-5 mr-1" />
         Connect a new App
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+        <DialogHeader title="Connect a new App" subtitle="Integrate your account with other services." />
         <div className="my-4">
           <ul className="divide-y divide-gray-200">
             {integrations
@@ -160,14 +152,14 @@ export default function Home({ integrations }: Props) {
               .map((integration) => {
                 return (
                   <li key={integration.type} className="flex py-4">
-                    <div className="w-1/12 mr-4 pt-2">
-                      <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
+                    <div className="w-1/12 pt-2 mr-4">
+                      <img className="w-8 h-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                     </div>
                     <div className="w-10/12">
-                      <h2 className="text-gray-800 font-medium">{integration.title}</h2>
-                      <p className="text-gray-400 text-sm">{integration.description}</p>
+                      <h2 className="font-medium text-gray-800 font-cal">{integration.title}</h2>
+                      <p className="text-sm text-gray-400">{integration.description}</p>
                     </div>
-                    <div className="w-2/12 text-right pt-2">
+                    <div className="w-2/12 pt-2 text-right">
                       <button
                         onClick={() => integrationHandler(integration.type)}
                         className="font-medium text-neutral-900 hover:text-neutral-500">
@@ -179,7 +171,7 @@ export default function Home({ integrations }: Props) {
               })}
           </ul>
         </div>
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+        <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose asChild>
             <Button color="secondary">Cancel</Button>
           </DialogClose>
@@ -190,7 +182,7 @@ export default function Home({ integrations }: Props) {
 
   const SelectCalendarDialog = () => (
     <Dialog onOpenChange={(open) => !open && onCloseSelectCalendar()}>
-      <DialogTrigger className="py-2 px-4 mt-6 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+      <DialogTrigger className="px-4 py-2 mt-6 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
         Select calendars
       </DialogTrigger>
 
@@ -200,20 +192,20 @@ export default function Home({ integrations }: Props) {
           subtitle="If no entry is selected, all calendars will be checked"
         />
         <div className="my-4">
-          <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+          <ul className="overflow-y-auto divide-y divide-gray-200 max-h-96">
             {selectableCalendars.map((calendar) => (
               <li key={calendar.name} className="flex py-4">
-                <div className="w-1/12 mr-4 pt-2">
+                <div className="w-1/12 pt-2 mr-4">
                   <img
-                    className="h-8 w-8 mr-2"
+                    className="w-8 h-8 mr-2"
                     src={getCalendarIntegrationImage(calendar.integration)}
                     alt={calendar.integration}
                   />
                 </div>
                 <div className="w-10/12 pt-3">
-                  <h2 className="text-gray-800 font-medium">{calendar.name}</h2>
+                  <h2 className="font-medium text-gray-800">{calendar.name}</h2>
                 </div>
-                <div className="w-2/12 text-right pt-3">
+                <div className="w-2/12 pt-3 text-right">
                   <Switch
                     defaultChecked={calendar.selected}
                     onCheckedChange={calendarSelectionHandler(calendar)}
@@ -223,7 +215,7 @@ export default function Home({ integrations }: Props) {
             ))}
           </ul>
         </div>
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+        <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose asChild>
             <Button color="secondary">Confirm</Button>
           </DialogClose>
@@ -283,7 +275,7 @@ export default function Home({ integrations }: Props) {
           />
           <div className="my-4">
             {addCalDavError && (
-              <p className="text-red-700 text-sm">
+              <p className="text-sm text-red-700">
                 <span className="font-bold">Error: </span>
                 {addCalDavError.message}
               </p>
@@ -293,11 +285,11 @@ export default function Home({ integrations }: Props) {
               onSubmit={handleAddCalDavIntegrationSaveButtonPress}
             />
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+          <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <Button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </Button>
             <DialogClose
@@ -323,7 +315,7 @@ export default function Home({ integrations }: Props) {
             title="Connect to Apple Server"
             subtitle={
               <p>
-                Generate an app specific password to use with Calendso at{" "}
+                Generate an app specific password to use with Cal.com at{" "}
                 <a
                   className="text-indigo-400"
                   href="https://appleid.apple.com/account/manage"
@@ -337,7 +329,7 @@ export default function Home({ integrations }: Props) {
           />
           <div className="my-4">
             {addAppleError && (
-              <p className="text-red-700 text-sm">
+              <p className="text-sm text-red-700">
                 <span className="font-bold">Error: </span>
                 {addAppleError.message}
               </p>
@@ -347,11 +339,11 @@ export default function Home({ integrations }: Props) {
               onSubmit={handleAddAppleIntegrationSaveButtonPress}
             />
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
+          <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button
               type="submit"
               form={ADD_APPLE_INTEGRATION_FORM_TITLE}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               Save
             </button>
             <DialogClose
@@ -374,7 +366,7 @@ export default function Home({ integrations }: Props) {
   return (
     <div>
       <Shell heading="Integrations" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
-        <div className="bg-white border border-gray-200 overflow-hidden rounded-sm mb-8">
+        <div className="mb-8 overflow-hidden bg-white border border-gray-200 rounded-sm">
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
               {integrations
@@ -384,13 +376,13 @@ export default function Home({ integrations }: Props) {
                     <Link href={"/integrations/" + ig.credential.id}>
                       <a className="block hover:bg-gray-50">
                         <div className="flex items-center px-4 py-4 sm:px-6">
-                          <div className="min-w-0 flex-1 flex items-center">
+                          <div className="flex items-center flex-1 min-w-0">
                             <div className="flex-shrink-0">
-                              <img className="h-10 w-10 mr-2" src={ig.imageSrc} alt={ig.title} />
+                              <img className="w-10 h-10 mr-2" src={ig.imageSrc} alt={ig.title} />
                             </div>
-                            <div className="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
+                            <div className="flex-1 min-w-0 px-4 md:grid md:grid-cols-2 md:gap-4">
                               <div>
-                                <p className="text-sm font-medium text-neutral-900 truncate">{ig.title}</p>
+                                <p className="text-sm font-medium truncate text-neutral-900">{ig.title}</p>
                                 <p className="flex items-center text-sm text-gray-500">
                                   {ig.type.endsWith("_calendar") && (
                                     <span className="truncate">Calendar Integration</span>
@@ -402,13 +394,13 @@ export default function Home({ integrations }: Props) {
                               </div>
                               <div className="hidden md:block">
                                 {ig.credential.key && (
-                                  <p className="mt-2 flex items-center text text-gray-500">
+                                  <p className="flex items-center mt-2 text-gray-500 text">
                                     <CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" />
                                     Connected
                                   </p>
                                 )}
                                 {!ig.credential.key && (
-                                  <p className="mt-3 flex items-center text text-gray-500">
+                                  <p className="flex items-center mt-3 text-gray-500 text">
                                     <XCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" />
                                     Not connected
                                   </p>
@@ -416,7 +408,7 @@ export default function Home({ integrations }: Props) {
                               </div>
                             </div>
                             <div>
-                              <ChevronRightIcon className="h-5 w-5 text-gray-400" />
+                              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
                             </div>
                           </div>
                         </div>
@@ -426,13 +418,13 @@ export default function Home({ integrations }: Props) {
                 ))}
             </ul>
           ) : (
-            <div className="bg-white shadow rounded-sm">
+            <div className="bg-white rounded-sm shadow">
               <div className="flex">
-                <div className="py-9 pl-8">
-                  <InformationCircleIcon className="text-neutral-900 w-16" />
+                <div className="pl-8 py-9">
+                  <InformationCircleIcon className="w-16 text-neutral-900" />
                 </div>
                 <div className="py-5 sm:p-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  <h3 className="text-lg font-medium leading-6 text-gray-900">
                     You don&apos;t have any apps connected.
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
@@ -446,10 +438,10 @@ export default function Home({ integrations }: Props) {
             </div>
           )}
         </div>
-        <div className="bg-white border border-gray-200 rounded-sm mb-8">
+        <div className="mb-8 bg-white border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
+            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">Select calendars</h3>
+            <div className="max-w-xl mt-2 text-sm text-gray-500">
               <p>Select which calendars are checked for availability to prevent double bookings.</p>
             </div>
             <SelectCalendarDialog />
@@ -457,12 +449,12 @@ export default function Home({ integrations }: Props) {
         </div>
         <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
+            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">Launch your own App</h3>
+            <div className="max-w-xl mt-2 text-sm text-gray-500">
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
             <div className="mt-5">
-              <a href="mailto:apps@calendso.com" className="btn btn-white">
+              <a href="mailto:apps@cal.com" className="btn btn-white">
                 Contact us
               </a>
             </div>
@@ -475,21 +467,9 @@ export default function Home({ integrations }: Props) {
   );
 }
 
-const validJson = (jsonString: string) => {
-  try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return false;
-};
-
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.email) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
   const user = await prisma.user.findFirst({
@@ -498,64 +478,23 @@ export async function getServerSideProps(context) {
     },
     select: {
       id: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+        },
+      },
     },
   });
 
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
+  if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
 
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      credential: credentials.find((integration) => integration.type === "google_calendar") || null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-      type: "zoom_video",
-      credential: credentials.find((integration) => integration.type === "zoom_video") || null,
-      title: "Zoom",
-      imageSrc: "integrations/zoom.svg",
-      description: "Video Conferencing",
-    },
-    {
-      installed: !!process.env.CALENDSO_ENCRYPTION_KEY,
-      type: "caldav_calendar",
-      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
-      title: "CalDav Server",
-      imageSrc: "integrations/caldav.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!process.env.CALENDSO_ENCRYPTION_KEY,
-      type: "apple_calendar",
-      credential: credentials.find((integration) => integration.type === "apple_calendar") || null,
-      title: "Apple Calendar",
-      imageSrc: "integrations/apple-calendar.svg",
-      description: "For personal and business calendars",
-    },
-  ];
+  const { credentials } = user;
+
+  const integrations = getIntegrations(credentials);
 
   return {
-    props: { integrations },
+    props: { session, integrations },
   };
 }

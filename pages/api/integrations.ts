@@ -1,5 +1,6 @@
-import prisma from "../../lib/prisma";
 import { getSession } from "@lib/auth";
+
+import prisma from "../../lib/prisma";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
@@ -17,7 +18,6 @@ export default async function handler(req, res) {
       },
       select: {
         type: true,
-        key: true,
       },
     });
 

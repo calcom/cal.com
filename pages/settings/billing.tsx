@@ -1,7 +1,8 @@
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
-import prisma from "@lib/prisma";
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
 
 export default function Billing() {
   return (
@@ -10,7 +11,7 @@ export default function Billing() {
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="my-6">
             <iframe
-              src="https://calendso.com/subscription-embed"
+              src="https://cal.com/subscription-embed"
               style={{ minHeight: 800, width: "100%", border: 0 }}
             />
           </div>
@@ -43,6 +44,6 @@ export async function getServerSideProps(context) {
   });
 
   return {
-    props: { user }, // will be passed to the page component as props
+    props: { session, user },
   };
 }

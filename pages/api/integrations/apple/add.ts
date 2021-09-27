@@ -1,9 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
-import prisma from "../../../../lib/prisma";
+
 import { symmetricEncrypt } from "@lib/crypto";
-import logger from "@lib/logger";
 import { AppleCalendar } from "@lib/integrations/Apple/AppleCalendarAdapter";
+import logger from "@lib/logger";
+
+import prisma from "../../../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
