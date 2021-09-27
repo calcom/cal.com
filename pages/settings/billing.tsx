@@ -1,8 +1,11 @@
+import { GetServerSidePropsContext } from "next";
+
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 import SettingsShell from "@components/Settings";
 import Shell from "@components/Shell";
+import Button from "@components/ui/Button";
 
 export default function Billing() {
   return (
@@ -10,10 +13,9 @@ export default function Billing() {
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="my-6">
-            <iframe
-              src="https://cal.com/subscription-embed"
-              style={{ minHeight: 800, width: "100%", border: 0 }}
-            />
+            <form method="POST" action="/api/integrations/stripepayment/portal">
+              <Button type="submit">Manage billing</Button>
+            </form>
           </div>
         </div>
       </SettingsShell>
@@ -21,7 +23,7 @@ export default function Billing() {
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
