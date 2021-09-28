@@ -1,12 +1,12 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { getSession } from "next-auth/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { getSession } from "next-auth/client";
 
 import { HeadSeo } from "@components/seo/head-seo";
 import { Button } from "@components/ui/Button";
