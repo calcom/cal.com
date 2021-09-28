@@ -132,13 +132,6 @@ export default function Settings(props: Props) {
     setImageSrc(newAvatar);
   };
 
-  const handleError = async (resp) => {
-    if (!resp.ok) {
-      const error = await resp.json();
-      throw new Error(error.message);
-    }
-  };
-
   async function updateProfileHandler(event) {
     event.preventDefault();
 
@@ -165,7 +158,6 @@ export default function Settings(props: Props) {
         theme: asStringOrUndefined(selectedTheme?.value),
         locale: enteredLanguage,
       })
-      .then(handleError)
       .then(() => {
         setSuccessModalOpen(true);
         setHasErrors(false); // dismiss any open errors
@@ -173,6 +165,7 @@ export default function Settings(props: Props) {
       .catch((err) => {
         setHasErrors(true);
         setErrorMessage(err.message);
+        document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
       });
   }
 
