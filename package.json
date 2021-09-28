@@ -90,6 +90,7 @@
     "@types/jest": "^27.0.1",
     "@types/lodash.debounce": "^4.0.6",
     "@types/lodash.merge": "^4.6.6",
+    "@types/micro": "^7.3.6",
     "@types/node": "^16.6.1",
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",
