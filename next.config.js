@@ -12,6 +12,7 @@ if (process.env.BASE_URL) {
 if (!process.env.NEXT_PUBLIC_APP_URL) {
   process.env.NEXT_PUBLIC_APP_URL = process.env.BASE_URL;
 }
+process.env.NEXT_PUBLIC_BASE_URL = process.env.BASE_URL;
 
 if (!process.env.EMAIL_FROM) {
   console.warn(
