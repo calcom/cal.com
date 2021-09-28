@@ -165,7 +165,7 @@ async function main() {
             title: "30min",
             startTime: dayjs().add(2, "day").toDate(),
             endTime: dayjs().add(2, "day").add(30, "minutes").toDate(),
-            confirmed: true,
+            confirmed: false,
           },
         ],
       },
