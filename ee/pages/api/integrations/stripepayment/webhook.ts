@@ -138,7 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
-    console.log("payload", payload);
+    // console.log("payload", payload);
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
