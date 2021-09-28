@@ -1,8 +1,9 @@
-import { ChevronRightIcon } from "@heroicons/react/solid";
 import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
+import { ChevronRightIcon } from "@heroicons/react/solid";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
-import Link from "next/link";
+
 import { HeadSeo } from "@components/seo/head-seo";
 
 const links = [
@@ -46,7 +47,7 @@ export default function Custom404() {
         <main className="max-w-xl mx-auto pb-6 pt-16 sm:pt-24">
           <div className="text-center">
             <p className="text-sm font-semibold text-black uppercase tracking-wide">404 error</p>
-            <h1 className="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
+            <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
               This page does not exist.
             </h1>
             {isEventType404 ? (

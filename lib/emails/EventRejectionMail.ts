@@ -1,9 +1,9 @@
 import dayjs, { Dayjs } from "dayjs";
-import EventMail from "./EventMail";
-
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
+import EventMail from "./EventMail";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -52,7 +52,7 @@ export default class EventRejectionMail extends EventMail {
       `
   </div>
   <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 12px;">
-    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Calendso Logo"></div>
+    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Cal.com Logo"></div>
 </body>
   `
     );
@@ -86,6 +86,6 @@ export default class EventRejectionMail extends EventMail {
    * @private
    */
   protected getInviteeStart(): Dayjs {
-    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
+    return dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
   }
 }

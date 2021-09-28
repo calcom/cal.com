@@ -1,11 +1,12 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
-import { useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import getSlots from "@lib/slots";
 import dayjsBusinessDays from "dayjs-business-days";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { useEffect, useState } from "react";
+
 import classNames from "@lib/classNames";
+import getSlots from "@lib/slots";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
@@ -71,7 +72,7 @@ const DatePicker = ({
             ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
             : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
           return (
-            date.endOf("day").isBefore(dayjs().utcOffsett(date.utcOffset())) ||
+            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
             !getSlots({
               inviteeDate: date,

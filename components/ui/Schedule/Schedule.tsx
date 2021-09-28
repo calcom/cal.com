@@ -1,8 +1,10 @@
-import React from "react";
-import Text from "@components/ui/Text";
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import dayjs, { Dayjs } from "dayjs";
 import classnames from "classnames";
+import dayjs, { Dayjs } from "dayjs";
+import React from "react";
+
+import Text from "@components/ui/Text";
+
 export const SCHEDULE_FORM_ID = "SCHEDULE_FORM_ID";
 export const toCalendsoAvailabilityFormat = (schedule: Schedule) => {
   return schedule;
@@ -241,7 +243,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
               {timeOptions("end")}
             </select>
           </div>
-          <div className="">
+          <div>
             <DeleteAction range={range} />
           </div>
         </div>

@@ -1,6 +1,7 @@
-import * as RadioArea from "@components/ui/form/radio-area";
 import Head from "next/head";
 import React, { useState } from "react";
+
+import * as RadioArea from "@components/ui/form/radio-area";
 
 const selectOptions = [
   {

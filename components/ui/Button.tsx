@@ -1,8 +1,8 @@
-import classNames from "@lib/classNames";
 import Link, { LinkProps } from "next/link";
 import React, { forwardRef } from "react";
 
-type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+import classNames from "@lib/classNames";
+import { SVGComponent } from "@lib/types/SVGComponent";
 
 export type ButtonProps = {
   color?: "primary" | "secondary" | "minimal" | "warn";

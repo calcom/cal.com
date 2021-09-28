@@ -1,4 +1,4 @@
-import { XCircleIcon, InformationCircleIcon, CheckCircleIcon } from "@heroicons/react/solid";
+import { CheckCircleIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { ReactNode } from "react";
 
@@ -32,7 +32,7 @@ export function Alert(props: AlertProps) {
             <CheckCircleIcon className={classNames("h-5 w-5 text-gray-400")} aria-hidden="true" />
           )}
         </div>
-        <div className="ml-3">
+        <div className="ml-3 flex-grow">
           <h3 className="text-sm font-medium">{props.title}</h3>
           <div className="text-sm">{props.message}</div>
         </div>

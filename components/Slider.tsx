@@ -1,5 +1,5 @@
-import React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
+import React from "react";
 
 const Slider = ({ value, min, max, step, label, changeHandler }) => (
   <SliderPrimitive.Root
