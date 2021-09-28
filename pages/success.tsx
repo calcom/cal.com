@@ -240,7 +240,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   );
 }
 
-export async function getServerSideProps(context: { query: { type: string } }) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
   if (isNaN(typeId)) {
     return {
