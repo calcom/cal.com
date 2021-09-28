@@ -10,8 +10,6 @@ import { HttpError } from "@lib/core/http/error";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
 export const config = {
   api: {
     bodyParser: false,
@@ -109,31 +107,31 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const sig = req.headers["stripe-signature"];
-
-  if (!sig) {
-    res.status(400).send(`Webhook Error: missing Stripe signature`);
-    return;
-  }
-
-  if (!webhookSecret) {
-    res.status(400).send(`Webhook Error: missing Stripe webhookSecret`);
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    res.status(405).end("Method Not Allowed");
     return;
   }
   try {
+    const sig = req.headers["stripe-signature"];
+    if (!sig) {
+      throw new HttpError({ statusCode: 400, message: "Missing stripe-signature" });
+    }
+
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      throw new HttpError({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET" });
+    }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
 
-    const event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
-    console.log("event", event);
+    const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+
     const handler = webhookHandlers[event.type];
-    if (!handler) {
-      throw new HttpError({
-        statusCode: 400,
-        message: `Unhandled event type ${event.type}`,
-      });
+    if (handler) {
+      await handler(event);
+    } else {
+      console.warn(`Unhandled Stripe Webhook event type ${event.type}`);
     }
-    await handler(event);
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
