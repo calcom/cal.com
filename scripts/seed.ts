@@ -57,6 +57,10 @@ async function createUserAndEventType(opts: {
     const { id } = await prisma.eventType.create({
       data: eventTypeData,
     });
+
+    console.log(
+      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - http://localhost:3000/${user.username}/${eventTypeData.slug}`
+    );
     for (const bookingInput of bookingInputs) {
       await prisma.booking.create({
         data: {
@@ -87,10 +91,6 @@ async function createUserAndEventType(opts: {
         ).toLocaleDateString()}`
       );
     }
-
-    console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - http://localhost:3000/${user.username}/${eventTypeData.slug}`
-    );
   }
 }
 
