@@ -1,7 +1,7 @@
 {
     "AWSEBDockerrunVersion": "1",
     "Image": {
-        "Name": "705030229210.dkr.ecr.ap-southeast-1.amazonaws.com/amili-ass-v2:0.0.1",
+        "Name": "705030229210.dkr.ecr.ap-southeast-1.amazonaws.com/amili-ass-v2:0.0.2",
         "Update": "true"
     },
     "Ports": [
