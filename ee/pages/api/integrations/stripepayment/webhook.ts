@@ -1,3 +1,4 @@
+import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getErrorFromUnknown } from "pages/_error";
 import Stripe from "stripe";
@@ -110,7 +111,6 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const sig = req.headers["stripe-signature"];
 
-  console.log({ sig, webhookSecret });
   if (!sig) {
     res.status(400).send(`Webhook Error: missing Stripe signature`);
     return;
@@ -121,10 +121,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
   try {
-    const rawBody = JSON.stringify(req.body);
-    console.log({ rawBody, "req.body": req.body });
-    const event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+    const requestBuffer = await buffer(req);
+    const payload = requestBuffer.toString();
 
+    const event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
+    console.log("event", event);
     const handler = webhookHandlers[event.type];
     if (!handler) {
       throw new HttpError({
