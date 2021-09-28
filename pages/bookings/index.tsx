@@ -17,7 +17,9 @@ import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
 import { Button } from "@components/ui/Button";
 
-function BookingListItem(booking: inferQueryOutput<"viewer.bookings">[number]) {
+type BookingItem = inferQueryOutput<"viewer.bookings">[number];
+
+function BookingListItem(booking: BookingItem) {
   const utils = trpc.useContext();
   const mutation = useMutation(
     async (confirm: boolean) => {
