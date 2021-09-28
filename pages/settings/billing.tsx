@@ -13,7 +13,7 @@ export default function Billing() {
     <Shell heading="Billing" subtitle="Manage your billing information and cancel your subscription.">
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
-          <div className="bg-white shadow sm:rounded-sm">
+          <div className="bg-white border sm:rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 View and manage your billing details
@@ -39,11 +39,9 @@ export default function Billing() {
                 <p>If you need any further help with billing, our support team are here to help.</p>
               </div>
               <div className="mt-5">
-                <a
-                  href="mailto:help@cal.com"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 sm:text-sm">
+                <Button href="mailto:help@cal.com" color="secondary" type="submit">
                   Contact our support team
-                </a>
+                </Button>
               </div>
             </div>
           </div>

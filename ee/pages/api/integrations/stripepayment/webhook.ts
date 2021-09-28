@@ -6,10 +6,9 @@ import Stripe from "stripe";
 import stripe from "@ee/lib/stripe/server";
 
 import { CalendarEvent } from "@lib/calendarClient";
+import { HttpError } from "@lib/core/http/error";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const config = {
   api: {
@@ -98,29 +97,55 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   }
 }
 
+type WebhookHandler = (event: Stripe.Event) => Promise<void>;
+
+const webhookHandlers: Record<string, WebhookHandler | undefined> = {
+  "payment_intent.succeeded": handlePaymentSuccess,
+  "customer.subscription.deleted": async (event) => {
+    const data = event.data as Stripe.Subscription;
+
+    const customerId = typeof data.customer === "string" ? data.customer : data.customer.id;
+
+    const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
+    if (typeof customer.email !== "string") {
+      throw new Error(`Couldn't find customer email for ${data.customer}`);
+    }
+
+    await prisma.user.update({
+      where: {
+        email: customer.email,
+      },
+      data: {
+        plan: "FREE",
+      },
+    });
+  },
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const requestBuffer = await buffer(req);
-  const sig = req.headers["stripe-signature"];
-  let event;
-
-  if (!sig) {
-    res.status(400).send(`Webhook Error: missing Stripe signature`);
-    return;
-  }
-
-  if (!webhookSecret) {
-    res.status(400).send(`Webhook Error: missing Stripe webhookSecret`);
-    return;
-  }
-
   try {
-    event = stripe.webhooks.constructEvent(requestBuffer.toString(), sig, webhookSecret);
+    if (req.method !== "POST") {
+      throw new HttpError({ statusCode: 405, message: "Method Not Allowed" });
+    }
+    const sig = req.headers["stripe-signature"];
+    if (!sig) {
+      throw new HttpError({ statusCode: 400, message: "Missing stripe-signature" });
+    }
 
-    // Handle the event
-    if (event.type === "payment_intent.succeeded") {
-      await handlePaymentSuccess(event);
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      throw new HttpError({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET" });
+    }
+    const requestBuffer = await buffer(req);
+    const payload = requestBuffer.toString();
+    // console.log("payload", payload);
+
+    const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+
+    const handler = webhookHandlers[event.type];
+    if (handler) {
+      await handler(event);
     } else {
-      console.error(`Unhandled event type ${event.type}`);
+      console.warn(`Unhandled Stripe Webhook event type ${event.type}`);
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
