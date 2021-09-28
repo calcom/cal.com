@@ -4,10 +4,10 @@ import async from "async";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
 import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
-import { getSession } from "@lib/auth";
 
 export default async function handler(req, res) {
   // just bail if it not a DELETE
