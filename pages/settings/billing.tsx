@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from "@heroicons/react/solid";
 import { GetServerSidePropsContext } from "next";
 
 import { getSession } from "@lib/auth";
@@ -12,12 +13,39 @@ export default function Billing() {
     <Shell heading="Billing" subtitle="Manage your billing information and cancel your subscription.">
       <SettingsShell>
         <div className="py-6 lg:pb-8 lg:col-span-9">
-          <div className="my-6">
-            <form
-              method="POST"
-              action={`${process.env.NEXT_PUBLIC_BASE_URL}/api/integrations/stripepayment/portal`}>
-              <Button type="submit">Manage billing</Button>
-            </form>
+          <div className="bg-white shadow sm:rounded-sm">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                View and manage your billing details
+              </h3>
+              <div className="mt-2 max-w-xl text-sm text-gray-500">
+                <p>View and edit your billing details, as well as cancel your subscription.</p>
+              </div>
+              <div className="mt-5">
+                <form
+                  method="POST"
+                  action={`${process.env.NEXT_PUBLIC_BASE_URL}/api/integrations/stripepayment/portal`}>
+                  <Button type="submit">
+                    Go to the billing portal <ExternalLinkIcon className="ml-1 w-4 h-4" />
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 bg-gray-50 sm:rounded-sm border">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Need anything else?</h3>
+              <div className="mt-2 max-w-xl text-sm text-gray-500">
+                <p>If you need any further help with billing, our support team are here to help.</p>
+              </div>
+              <div className="mt-5">
+                <a
+                  href="mailto:help@cal.com"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 sm:text-sm">
+                  Contact our support team
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </SettingsShell>
