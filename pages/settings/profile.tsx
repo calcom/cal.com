@@ -5,22 +5,24 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
+import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
 import Modal from "@components/Modal";
 import SettingsShell from "@components/Settings";
 import Shell from "@components/Shell";
+import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import { UsernameInput } from "@components/ui/UsernameInput";
-import ErrorAlert from "@components/ui/alerts/Error";
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -86,6 +88,7 @@ function HideBrandingInput(props: {
 
 export default function Settings(props: Props) {
   const { locale } = useLocale({ localeProp: props.localeProp });
+  const mutation = trpc.useMutation("viewer.updateProfile");
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -129,13 +132,6 @@ export default function Settings(props: Props) {
     setImageSrc(newAvatar);
   };
 
-  const handleError = async (resp) => {
-    if (!resp.ok) {
-      const error = await resp.json();
-      throw new Error(error.message);
-    }
-  };
-
   async function updateProfileHandler(event) {
     event.preventDefault();
 
@@ -150,24 +146,18 @@ export default function Settings(props: Props) {
 
     // TODO: Add validation
 
-    await fetch("/api/user/profile", {
-      method: "PATCH",
-      body: JSON.stringify({
+    await mutation
+      .mutateAsync({
         username: enteredUsername,
         name: enteredName,
-        description: enteredDescription,
+        bio: enteredDescription,
         avatar: enteredAvatar,
         timeZone: enteredTimeZone,
-        weekStart: enteredWeekStartDay,
+        weekStart: asStringOrUndefined(enteredWeekStartDay),
         hideBranding: enteredHideBranding,
-        theme: selectedTheme ? selectedTheme.value : null,
+        theme: asStringOrUndefined(selectedTheme?.value),
         locale: enteredLanguage,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(handleError)
+      })
       .then(() => {
         setSuccessModalOpen(true);
         setHasErrors(false); // dismiss any open errors
@@ -175,6 +165,7 @@ export default function Settings(props: Props) {
       .catch((err) => {
         setHasErrors(true);
         setErrorMessage(err.message);
+        document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
       });
   }
 
@@ -182,7 +173,7 @@ export default function Settings(props: Props) {
     <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
-          {hasErrors && <ErrorAlert message={errorMessage} />}
+          {hasErrors && <Alert severity="error" title={errorMessage} />}
           <div className="py-6 lg:pb-8">
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
