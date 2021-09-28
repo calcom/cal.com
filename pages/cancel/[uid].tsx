@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { getSession } from "next-auth/client";
 
 import { HeadSeo } from "@components/seo/head-seo";
 import { Button } from "@components/ui/Button";
@@ -93,10 +94,16 @@ export default function Type(props) {
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
                         <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                          Really cancel your booking?
+                          {props.cancellationAllowed
+                            ? "Really cancel your booking?"
+                            : "You cannot cancel this booking"}
                         </h3>
                         <div className="mt-2">
-                          <p className="text-sm text-gray-500">Instead, you could also reschedule it.</p>
+                          <p className="text-sm text-gray-500">
+                            {props.cancellationAllowed
+                              ? "Instead, you could also reschedule it."
+                              : "The event is in the past"}
+                          </p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
                           <h2 className="font-cal text-lg font-medium text-gray-600 mb-2">
@@ -111,16 +118,18 @@ export default function Type(props) {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-5 sm:mt-6 text-center space-x-2">
-                      <Button
-                        color="secondary"
-                        data-testid="cancel"
-                        onClick={cancellationHandler}
-                        loading={loading}>
-                        Cancel
-                      </Button>
-                      <Button onClick={() => router.push("/reschedule/" + uid)}>Reschedule</Button>
-                    </div>
+                    {props.cancellationAllowed && (
+                      <div className="mt-5 sm:mt-6 text-centerspace-x-2">
+                        <Button
+                          color="secondary"
+                          data-testid="cancel"
+                          onClick={cancellationHandler}
+                          loading={loading}>
+                          Cancel
+                        </Button>
+                        <Button onClick={() => router.push("/reschedule/" + uid)}>Reschedule</Button>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -133,6 +142,7 @@ export default function Type(props) {
 }
 
 export async function getServerSideProps(context) {
+  const session = await getSession(context);
   const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid,
@@ -186,6 +196,8 @@ export async function getServerSideProps(context) {
     props: {
       profile,
       booking: bookingObj,
+      cancellationAllowed:
+        (!!session?.user && session.user.id == booking.user?.id) || booking.startTime >= new Date(),
     },
   };
 }
