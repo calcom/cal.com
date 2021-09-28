@@ -1,8 +1,9 @@
+import { AdditionInformation } from "@lib/emails/EventMail";
+
 import { CalendarEvent } from "../calendarClient";
+import { VideoCallData } from "../videoClient";
 import EventAttendeeMail from "./EventAttendeeMail";
 import { getFormattedMeetingId, getIntegrationName } from "./helpers";
-import { VideoCallData } from "../videoClient";
-import { AdditionInformation } from "@lib/emails/EventMail";
 
 export default class VideoEventAttendeeMail extends EventAttendeeMail {
   videoCallData: VideoCallData;

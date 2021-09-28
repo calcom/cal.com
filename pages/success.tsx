@@ -1,21 +1,23 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import Link from "next/link";
-import prisma from "@lib/prisma";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
 import { ClockIcon } from "@heroicons/react/solid";
+import { EventType } from "@prisma/client";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import toArray from "dayjs/plugin/toArray";
 import timezone from "dayjs/plugin/timezone";
+import toArray from "dayjs/plugin/toArray";
+import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
 import useTheme from "@lib/hooks/useTheme";
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { EventType } from "@prisma/client";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -23,7 +25,7 @@ dayjs.extend(timezone);
 
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
-  const { location, name } = router.query;
+  const { location, name, reschedule } = router.query;
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(asStringOrNull(router.query.date)));
@@ -62,12 +64,14 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     return encodeURIComponent(event.value);
   }
 
+  const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
+
   return (
-    isReady && (
+    (isReady && (
       <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
         <HeadSeo
-          title={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
-          description={`Booking ${props.eventType.requiresConfirmation ? "Submitted" : "Confirmed"}`}
+          title={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
+          description={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
         />
         <main className="max-w-3xl mx-auto py-24">
           <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -83,22 +87,18 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   aria-labelledby="modal-headline">
                   <div>
                     <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                      {!props.eventType.requiresConfirmation && (
-                        <CheckIcon className="h-8 w-8 text-green-600" />
-                      )}
-                      {props.eventType.requiresConfirmation && (
-                        <ClockIcon className="h-8 w-8 text-green-600" />
-                      )}
+                      {!needsConfirmation && <CheckIcon className="h-8 w-8 text-green-600" />}
+                      {needsConfirmation && <ClockIcon className="h-8 w-8 text-green-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3
                         className="text-2xl leading-6 font-semibold dark:text-white text-neutral-900"
                         id="modal-headline">
-                        {props.eventType.requiresConfirmation ? "Submitted" : "This meeting is scheduled"}
+                        {needsConfirmation ? "Submitted" : "This meeting is scheduled"}
                       </h3>
                       <div className="mt-3">
                         <p className="text-sm text-neutral-600 dark:text-gray-300">
-                          {props.eventType.requiresConfirmation
+                          {needsConfirmation
                             ? props.profile.name !== null
                               ? `${props.profile.name} still needs to confirm or reject the booking.`
                               : "Your booking still needs to be confirmed or rejected."
@@ -126,7 +126,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </div>
                     </div>
                   </div>
-                  {!props.eventType.requiresConfirmation && (
+                  {!needsConfirmation && (
                     <div className="mt-5 sm:mt-0 sm:pt-4 pt-2 text-center flex">
                       <span className="font-medium text-gray-700 dark:text-gray-50 flex self-center mr-6">
                         Add to calendar
@@ -226,7 +226,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   )}
                   {!props.hideBranding && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
-                      <a href="https://cal.com/signup">Create your own booking link with Calendso</a>
+                      <a href="https://cal.com/signup">Create your own booking link with Cal.com</a>
                     </div>
                   )}
                 </div>
@@ -235,7 +235,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           </div>
         </main>
       </div>
-    )
+    )) ||
+    null
   );
 }
 

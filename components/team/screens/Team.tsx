@@ -1,11 +1,12 @@
-import React from "react";
-import Text from "@components/ui/Text";
-import Link from "next/link";
-import Avatar from "@components/ui/Avatar";
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import classnames from "classnames";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
+import classnames from "classnames";
+import Link from "next/link";
+import React from "react";
+
+import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
+import Text from "@components/ui/Text";
 
 const Team = ({ team }) => {
   const Member = ({ member }) => {

@@ -1,19 +1,21 @@
+import { UsersIcon } from "@heroicons/react/outline";
+import { PlusIcon } from "@heroicons/react/solid";
 import { GetServerSideProps } from "next";
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
-import { useEffect, useState, useRef } from "react";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/client";
-import { UsersIcon } from "@heroicons/react/outline";
-import TeamList from "@components/team/TeamList";
-import TeamListItem from "@components/team/TeamListItem";
-import Loader from "@components/Loader";
+import { useEffect, useRef, useState } from "react";
+
 import { getSession } from "@lib/auth";
-import EditTeam from "@components/team/EditTeam";
-import Button from "@components/ui/Button";
 import { Member } from "@lib/member";
 import { Team } from "@lib/team";
-import { PlusIcon } from "@heroicons/react/solid";
+
+import Loader from "@components/Loader";
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
+import EditTeam from "@components/team/EditTeam";
+import TeamList from "@components/team/TeamList";
+import TeamListItem from "@components/team/TeamListItem";
+import Button from "@components/ui/Button";
 
 export default function Teams() {
   const noop = () => undefined;
@@ -113,7 +115,7 @@ export default function Teams() {
 
                 {!!invites.length && (
                   <div>
-                    <h2 className="text-lg font-medium leading-6 text-gray-900">Open Invitations</h2>
+                    <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">Open Invitations</h2>
                     <ul className="px-4 mt-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
                       {invites.map((team: Team) => (
                         <TeamListItem

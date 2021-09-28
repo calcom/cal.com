@@ -1,4 +1,5 @@
 import { GiftIcon } from "@heroicons/react/outline";
+
 export default function DonateBanner() {
   if (location.hostname.endsWith(".cal.com")) {
     return null;

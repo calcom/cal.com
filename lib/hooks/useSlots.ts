@@ -1,11 +1,22 @@
-import { useState, useEffect } from "react";
-import getSlots from "@lib/slots";
-import { User, SchedulingType } from "@prisma/client";
+import { Availability, SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
+import { stringify } from "querystring";
+import { useEffect, useState } from "react";
+
+import getSlots from "@lib/slots";
+
+import { FreeBusyTime } from "@components/ui/Schedule/Schedule";
+
 dayjs.extend(isBetween);
 dayjs.extend(utc);
+
+type AvailabilityUserResponse = {
+  busy: FreeBusyTime;
+  timeZone: string;
+  workingHours: Availability[];
+};
 
 type Slot = {
   time: Dayjs;
@@ -14,15 +25,20 @@ type Slot = {
 
 type UseSlotsProps = {
   eventLength: number;
+  eventTypeId: number;
   minimumBookingNotice?: number;
   date: Dayjs;
-  workingHours: [];
-  users: User[];
-  schedulingType: SchedulingType;
+  workingHours: {
+    days: number[];
+    startTime: number;
+    endTime: number;
+  }[];
+  users: { username: string | null }[];
+  schedulingType: SchedulingType | null;
 };
 
 export const useSlots = (props: UseSlotsProps) => {
-  const { eventLength, minimumBookingNotice = 0, date, users } = props;
+  const { eventLength, minimumBookingNotice = 0, date, users, eventTypeId } = props;
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -32,12 +48,13 @@ export const useSlots = (props: UseSlotsProps) => {
     setLoading(true);
     setError(null);
 
-    const dateFrom = encodeURIComponent(date.startOf("day").format());
-    const dateTo = encodeURIComponent(date.endOf("day").format());
+    const dateFrom = date.startOf("day").format();
+    const dateTo = date.endOf("day").format();
+    const query = stringify({ dateFrom, dateTo, eventTypeId });
 
     Promise.all(
-      users.map((user: User) =>
-        fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
+      users.map((user) =>
+        fetch(`/api/availability/${user.username}?${query}`)
           .then(handleAvailableSlots)
           .catch((e) => {
             console.error(e);
@@ -47,6 +64,7 @@ export const useSlots = (props: UseSlotsProps) => {
     ).then((results) => {
       let loadedSlots: Slot[] = results[0];
       if (results.length === 1) {
+        loadedSlots = loadedSlots?.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
         setSlots(loadedSlots);
         setLoading(false);
         return;
@@ -79,22 +97,20 @@ export const useSlots = (props: UseSlotsProps) => {
       for (let i = 1; i < results.length; i++) {
         loadedSlots = poolingMethod(loadedSlots, results[i]);
       }
+      loadedSlots = loadedSlots.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
       setSlots(loadedSlots);
       setLoading(false);
     });
   }, [date]);
 
   const handleAvailableSlots = async (res) => {
-    const responseBody = await res.json();
-
-    responseBody.workingHours.days = responseBody.workingHours.daysOfWeek;
-
+    const responseBody: AvailabilityUserResponse = await res.json();
     const times = getSlots({
       frequency: eventLength,
       inviteeDate: date,
-      workingHours: [responseBody.workingHours],
+      workingHours: responseBody.workingHours,
       minimumBookingNotice,
-      organizerTimeZone: responseBody.workingHours.timeZone,
+      organizerTimeZone: responseBody.timeZone,
     });
 
     // Check for conflicts

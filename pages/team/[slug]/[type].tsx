@@ -1,7 +1,9 @@
 import { Availability, EventType } from "@prisma/client";
-import prisma from "@lib/prisma";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
+import prisma from "@lib/prisma";
+
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 export default function TeamType(props: InferGetServerSidePropsType<typeof getServerSideProps>) {

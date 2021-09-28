@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { CodeIcon, CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
+import Link from "next/link";
 import { useRouter } from "next/router";
+
 import classNames from "@lib/classNames";
 
 export default function SettingsShell(props) {
@@ -14,10 +15,10 @@ export default function SettingsShell(props) {
       current: router.pathname == "/settings/profile",
     },
     {
-      name: "Password",
-      href: "/settings/password",
+      name: "Security",
+      href: "/settings/security",
       icon: KeyIcon,
-      current: router.pathname == "/settings/password",
+      current: router.pathname == "/settings/security",
     },
     { name: "Embed", href: "/settings/embed", icon: CodeIcon, current: router.pathname == "/settings/embed" },
     {

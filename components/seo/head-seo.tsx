@@ -1,8 +1,9 @@
+import merge from "lodash.merge";
 import { NextSeo, NextSeoProps } from "next-seo";
 import React from "react";
-import { getBrowserInfo } from "@lib/core/browser/browser.utils";
+
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
-import merge from "lodash.merge";
+import { getBrowserInfo } from "@lib/core/browser/browser.utils";
 
 export type HeadSeoProps = {
   title: string;
@@ -68,7 +69,7 @@ const buildSeoMeta = (pageProps: {
 const constructImage = (name: string, avatar: string, description: string): string => {
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +
-    ".png?md=1&images=https%3A%2F%2Fcal.com%2Fcalendso-logo-white.svg&images=" +
+    ".png?md=1&images=https%3A%2F%2Fcal.com%2Flogo-white.svg&images=" +
     encodeURIComponent(avatar)
   );
 };

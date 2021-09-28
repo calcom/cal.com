@@ -1,5 +1,6 @@
-import MemberListItem from "./MemberListItem";
 import { Member } from "@lib/member";
+
+import MemberListItem from "./MemberListItem";
 
 export default function MemberList(props: {
   members: Member[];

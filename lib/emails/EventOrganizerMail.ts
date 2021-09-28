@@ -1,11 +1,11 @@
-import { createEvent } from "ics";
 import dayjs, { Dayjs } from "dayjs";
-import EventMail from "./EventMail";
-
-import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
-import localizedFormat from "dayjs/plugin/localizedFormat";
+import utc from "dayjs/plugin/utc";
+import { createEvent } from "ics";
+
+import EventMail from "./EventMail";
 import { stripHtml } from "./helpers";
 
 dayjs.extend(utc);
@@ -137,7 +137,7 @@ export default class EventOrganizerMail extends EventMail {
       `
   </div>
   <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 12px;">
-    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Calendso Logo"></div>
+    <img style="opacity: 0.25; width: 120px;" src="https://app.cal.com/cal-logo-word.svg" alt="Cal.com Logo"></div>
 </body>
     `
     );
@@ -193,7 +193,7 @@ export default class EventOrganizerMail extends EventMail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Calendso <${this.getMailerOptions().from}>`,
+      from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: this.getSubject(),
       html: this.getHtmlRepresentation(),
@@ -217,6 +217,6 @@ export default class EventOrganizerMail extends EventMail {
    * @private
    */
   protected getOrganizerStart(): Dayjs {
-    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    return dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
   }
 }
