@@ -6,59 +6,13 @@ import { hashPassword } from "../lib/auth";
 
 const prisma = new PrismaClient();
 
-async function createBookingForEventType(opts: {
-  uid: string;
-  title: string;
-  slug: string;
-  startTime: Date | string;
-  endTime: Date | string;
-  userEmail: string;
-  confirmed?: boolean;
-}) {
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      slug: opts.slug,
-    },
-  });
-
-  if (!eventType) {
-    // should not happen
-    throw new Error("Eventtype missing");
-  }
-
-  const bookingData: Prisma.BookingCreateArgs["data"] = {
-    uid: opts.uid,
-    title: opts.title,
-    startTime: opts.startTime,
-    endTime: opts.endTime,
-    user: {
-      connect: {
-        email: opts.userEmail,
-      },
-    },
-    attendees: {
-      create: {
-        email: opts.userEmail,
-        name: "Some name",
-        timeZone: "Europe/London",
-      },
-    },
-    eventType: {
-      connect: {
-        id: eventType.id,
-      },
-    },
-    confirmed: opts.confirmed,
-  };
-
-  await prisma.booking.create({
-    data: bookingData,
-  });
-}
-
 async function createUserAndEventType(opts: {
   user: { email: string; password: string; username: string; plan: UserPlan; name: string };
-  eventTypes: Array<Prisma.EventTypeCreateArgs["data"]>;
+  eventTypes: Array<
+    Prisma.EventTypeCreateInput & {
+      _bookings?: Prisma.BookingCreateInput[];
+    }
+  >;
 }) {
   const userData: Prisma.UserCreateArgs["data"] = {
     ...opts.user,
@@ -75,8 +29,8 @@ async function createUserAndEventType(opts: {
   console.log(
     `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
   );
-  for (const rawData of opts.eventTypes) {
-    const eventTypeData: Prisma.EventTypeCreateArgs["data"] = { ...rawData };
+  for (const eventTypeInput of opts.eventTypes) {
+    const { _bookings: bookingInputs = [], ...eventTypeData } = eventTypeInput;
     eventTypeData.userId = user.id;
     eventTypeData.users = { connect: { id: user.id } };
 
@@ -95,20 +49,47 @@ async function createUserAndEventType(opts: {
     });
 
     if (eventType) {
-      await prisma.eventType.update({
-        where: {
-          id: eventType.id,
+      console.log(
+        `\t📆 Event type ${eventTypeData.slug} already seems seeded - http://localhost:3000/${user.username}/${eventTypeData.slug}`
+      );
+      continue;
+    }
+    const { id } = await prisma.eventType.create({
+      data: eventTypeData,
+    });
+    for (const bookingInput of bookingInputs) {
+      await prisma.booking.create({
+        data: {
+          ...bookingInput,
+          user: {
+            connect: {
+              email: opts.user.email,
+            },
+          },
+          attendees: {
+            create: {
+              email: opts.user.email,
+              name: opts.user.name,
+              timeZone: "Europe/London",
+            },
+          },
+          eventType: {
+            connect: {
+              id,
+            },
+          },
+          confirmed: bookingInput.confirmed,
         },
-        data: eventTypeData,
       });
-    } else {
-      await prisma.eventType.create({
-        data: eventTypeData,
-      });
+      console.log(
+        `\t\t☎️ Created booking ${bookingInput.title} at ${new Date(
+          bookingInput.startTime
+        ).toLocaleDateString()}`
+      );
     }
 
     console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}: http://localhost:3000/${user.username}/${eventTypeData.slug}`
+      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - http://localhost:3000/${user.username}/${eventTypeData.slug}`
     );
   }
 }
@@ -172,6 +153,21 @@ async function main() {
         title: "30min",
         slug: "30min",
         length: 30,
+        _bookings: [
+          {
+            uid: uuid(),
+            title: "30min",
+            startTime: dayjs().add(1, "day").toDate(),
+            endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+          },
+          {
+            uid: uuid(),
+            title: "30min",
+            startTime: dayjs().add(2, "day").toDate(),
+            endTime: dayjs().add(2, "day").add(30, "minutes").toDate(),
+            confirmed: true,
+          },
+        ],
       },
       {
         title: "60min",
@@ -179,25 +175,6 @@ async function main() {
         length: 60,
       },
     ],
-  });
-
-  await createBookingForEventType({
-    title: "30min",
-    slug: "30min",
-    startTime: dayjs().add(1, "day").toDate(),
-    endTime: dayjs().add(1, "day").add(60, "minutes").toDate(),
-    uid: uuid(),
-    userEmail: "pro@example.com",
-  });
-
-  await createBookingForEventType({
-    title: "30min",
-    slug: "30min",
-    startTime: dayjs().add(2, "day").toDate(),
-    endTime: dayjs().add(2, "day").add(60, "minutes").toDate(),
-    uid: uuid(),
-    userEmail: "pro@example.com",
-    confirmed: false,
   });
 
   await createUserAndEventType({
