@@ -2,9 +2,9 @@ import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import checkPremiumUsername from "@ee/lib/core/checkUsername";
+import { checkPremiumUsername } from "@ee/lib/core/checkUsername";
 
-import checkRegularUsername from "@lib/core/checkUsername";
+import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import slugify from "@lib/slugify";
 
 import { createProtectedRouter } from "../createRouter";

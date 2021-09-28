@@ -1,7 +1,7 @@
 import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
 
-export default async function checkUsername(_username: string) {
+export async function checkRegularUsername(_username: string) {
   const username = slugify(_username);
 
   const user = await prisma.user.findUnique({
