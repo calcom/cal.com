@@ -1,7 +1,8 @@
-import { DialogClose, DialogContent } from "@components/Dialog";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ExclamationIcon } from "@heroicons/react/outline";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren } from "react";
+
+import { DialogClose, DialogContent } from "@components/Dialog";
 import { Button } from "@components/ui/Button";
 
 export type ConfirmationDialogContentProps = {
@@ -28,16 +29,18 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
           </div>
         )}
         <div>
-          <DialogPrimitive.Title className="text-xl font-bold text-gray-900">{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Title className="font-cal text-xl font-bold text-gray-900">
+            {title}
+          </DialogPrimitive.Title>
           <DialogPrimitive.Description className="text-neutral-500">{children}</DialogPrimitive.Description>
         </div>
       </div>
       <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
-        <DialogClose as={Button} color="primary" onClick={onConfirm}>
-          {confirmBtnText}
+        <DialogClose onClick={onConfirm} asChild>
+          <Button color="primary">{confirmBtnText}</Button>
         </DialogClose>
-        <DialogClose as={Button} color="secondary">
-          {cancelBtnText}
+        <DialogClose asChild>
+          <Button color="secondary">{cancelBtnText}</Button>
         </DialogClose>
       </div>
     </DialogContent>

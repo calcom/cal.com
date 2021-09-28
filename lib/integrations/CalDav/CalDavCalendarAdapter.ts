@@ -1,23 +1,25 @@
-import { IntegrationCalendar, CalendarApiAdapter, CalendarEvent } from "../../calendarClient";
-import { symmetricDecrypt } from "@lib/crypto";
+import { Credential } from "@prisma/client";
+import dayjs from "dayjs";
+import ICAL from "ical.js";
+import { Attendee, createEvent, DurationObject, Person } from "ics";
 import {
   createAccount,
-  fetchCalendars,
-  fetchCalendarObjects,
-  getBasicAuthHeaders,
   createCalendarObject,
-  updateCalendarObject,
   deleteCalendarObject,
+  fetchCalendarObjects,
+  fetchCalendars,
+  getBasicAuthHeaders,
+  updateCalendarObject,
 } from "tsdav";
-import { Credential } from "@prisma/client";
-import ICAL from "ical.js";
-import { createEvent, DurationObject, Attendee, Person } from "ics";
-import dayjs from "dayjs";
 import { v4 as uuidv4 } from "uuid";
-import { stripHtml } from "../../emails/helpers";
+
+import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
-const log = logger.getChildLogger({ prefix: ["[[lib] caldav"] });
+import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
+import { stripHtml } from "../../emails/helpers";
+
+const log = logger.getChildLogger({ prefix: ["[lib] caldav"] });
 
 type EventBusyDate = Record<"start" | "end", Date>;
 
@@ -111,7 +113,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         id: uid,
       };
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -161,7 +163,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         })
       );
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -193,7 +195,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
         })
       );
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -260,7 +262,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
           integration: this.integrationName,
         }));
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }
@@ -281,58 +283,59 @@ export class CalDavCalendar implements CalendarApiAdapter {
         headers: this.headers,
       });
 
-      const events =
-        objects &&
-        objects?.length > 0 &&
-        objects
-          .map((object) => {
-            if (object?.data) {
-              const jcalData = ICAL.parse(object.data);
-              const vcalendar = new ICAL.Component(jcalData);
-              const vevent = vcalendar.getFirstSubcomponent("vevent");
-              const event = new ICAL.Event(vevent);
+      if (!objects || objects?.length === 0) {
+        return [];
+      }
 
-              const calendarTimezone = vcalendar.getFirstSubcomponent("vtimezone")
-                ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
-                : "";
+      const events = objects
+        .map((object) => {
+          if (object?.data) {
+            const jcalData = ICAL.parse(object.data);
+            const vcalendar = new ICAL.Component(jcalData);
+            const vevent = vcalendar.getFirstSubcomponent("vevent");
+            const event = new ICAL.Event(vevent);
 
-              const startDate = calendarTimezone
-                ? dayjs(event.startDate).tz(calendarTimezone)
-                : new Date(event.startDate.toUnixTime() * 1000);
-              const endDate = calendarTimezone
-                ? dayjs(event.endDate).tz(calendarTimezone)
-                : new Date(event.endDate.toUnixTime() * 1000);
+            const calendarTimezone = vcalendar.getFirstSubcomponent("vtimezone")
+              ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
+              : "";
 
-              return {
-                uid: event.uid,
-                etag: object.etag,
-                url: object.url,
-                summary: event.summary,
-                description: event.description,
-                location: event.location,
-                sequence: event.sequence,
-                startDate,
-                endDate,
-                duration: {
-                  weeks: event.duration.weeks,
-                  days: event.duration.days,
-                  hours: event.duration.hours,
-                  minutes: event.duration.minutes,
-                  seconds: event.duration.seconds,
-                  isNegative: event.duration.isNegative,
-                },
-                organizer: event.organizer,
-                attendees: event.attendees.map((a) => a.getValues()),
-                recurrenceId: event.recurrenceId,
-                timezone: calendarTimezone,
-              };
-            }
-          })
-          .filter((e) => e != null);
+            const startDate = calendarTimezone
+              ? dayjs(event.startDate).tz(calendarTimezone)
+              : new Date(event.startDate.toUnixTime() * 1000);
+            const endDate = calendarTimezone
+              ? dayjs(event.endDate).tz(calendarTimezone)
+              : new Date(event.endDate.toUnixTime() * 1000);
+
+            return {
+              uid: event.uid,
+              etag: object.etag,
+              url: object.url,
+              summary: event.summary,
+              description: event.description,
+              location: event.location,
+              sequence: event.sequence,
+              startDate,
+              endDate,
+              duration: {
+                weeks: event.duration.weeks,
+                days: event.duration.days,
+                hours: event.duration.hours,
+                minutes: event.duration.minutes,
+                seconds: event.duration.seconds,
+                isNegative: event.duration.isNegative,
+              },
+              organizer: event.organizer,
+              attendees: event.attendees.map((a) => a.getValues()),
+              recurrenceId: event.recurrenceId,
+              timezone: calendarTimezone,
+            };
+          }
+        })
+        .filter((e) => e != null);
 
       return events;
     } catch (reason) {
-      console.error(reason);
+      log.error(reason);
       throw reason;
     }
   }

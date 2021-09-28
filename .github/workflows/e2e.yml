@@ -9,6 +9,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NODE_ENV: test
       BASE_URL: http://localhost:3000
+      JWT_SECRET: secret
       # GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       # CRON_API_KEY: xxx
       # CALENDSO_ENCRYPTION_KEY: xxx
@@ -52,9 +53,10 @@ jobs:
           path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs
 
-      - run: yarn build
+      - run: yarn test
       - run: yarn prisma migrate deploy
       - run: yarn db-seed
+      - run: yarn build
       - run: yarn start &
       - run: npx wait-port 3000 --timeout 10000
       - run: yarn cypress run

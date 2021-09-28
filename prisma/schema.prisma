@@ -8,6 +8,12 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["selectRelationCount"]
+}
+
+enum SchedulingType {
+  ROUND_ROBIN @map("roundRobin")
+  COLLECTIVE  @map("collective")
 }
 
 model EventType {
@@ -18,8 +24,10 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
-  user                    User?                  @relation(fields: [userId], references: [id])
+  users                   User[]                 @relation("user_eventtype")
   userId                  Int?
+  team                    Team?                  @relation(fields: [teamId], references: [id])
+  teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
   eventName               String?
@@ -31,9 +39,12 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
+  disableGuests           Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
+  schedulingType          SchedulingType?
   Schedule                Schedule[]
-
+  price                   Int @default(0)
+  currency                String @default("usd")
   @@unique([userId, slug])
 }
 
@@ -68,28 +79,33 @@ model User {
   hideBranding        Boolean            @default(false)
   theme               String?
   createdDate         DateTime           @default(now()) @map(name: "created")
-  eventTypes          EventType[]
+  eventTypes          EventType[]        @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
+  locale String?
+  twoFactorSecret     String?
+  twoFactorEnabled    Boolean            @default(false)
 
 
   plan     UserPlan   @default(PRO)
   Schedule Schedule[]
+
   @@map(name: "users")
 }
 
 model Team {
-  id            Int       @default(autoincrement()) @id
+  id            Int          @id @default(autoincrement())
   name          String?
-  slug          String?   @unique
+  slug          String?      @unique
   logo          String?
   bio           String?
-  hideBranding  Boolean @default(false)    
+  hideBranding  Boolean      @default(false)
   members       Membership[]
+  eventTypes    EventType[]
 }
 
 enum MembershipRole {
@@ -120,11 +136,14 @@ model VerificationRequest {
 }
 
 model BookingReference {
-  id        Int      @id @default(autoincrement())
-  type      String
-  uid       String
-  booking   Booking? @relation(fields: [bookingId], references: [id])
-  bookingId Int?
+  id              Int      @id @default(autoincrement())
+  type            String
+  uid             String
+  meetingId       String?
+  meetingPassword String?
+  meetingUrl      String?
+  booking         Booking? @relation(fields: [bookingId], references: [id])
+  bookingId       Int?
 }
 
 model Attendee {
@@ -134,6 +153,13 @@ model Attendee {
   timeZone  String
   booking   Booking? @relation(fields: [bookingId], references: [id])
   bookingId Int?
+}
+
+enum BookingStatus {
+  CANCELLED @map("cancelled")
+  ACCEPTED  @map("accepted")
+  REJECTED  @map("rejected")
+  PENDING   @map("pending")
 }
 
 model Booking {
@@ -157,6 +183,9 @@ model Booking {
   updatedAt DateTime?
   confirmed Boolean   @default(true)
   rejected  Boolean   @default(false)
+  status    BookingStatus @default(ACCEPTED)
+  paid      Boolean @default(false)
+  payment   Payment[]
 }
 
 model Schedule {
@@ -226,4 +255,23 @@ model ReminderMail {
   reminderType   ReminderType
   elapsedMinutes Int
   createdAt      DateTime     @default(now())
+}
+
+enum PaymentType {
+  STRIPE
+}
+
+model Payment {
+  id             Int      @id @default(autoincrement())
+  uid            String   @unique
+  type           PaymentType
+  bookingId      Int
+  booking        Booking?  @relation(fields: [bookingId], references: [id])
+  amount         Int
+  fee            Int
+  currency       String
+  success        Boolean
+  refunded       Boolean
+  data           Json
+  externalId     String   @unique
 }

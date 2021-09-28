@@ -1,12 +1,14 @@
-import { getCsrfToken } from "next-auth/client";
-import prisma from "@lib/prisma";
-import { HeadSeo } from "@components/seo/head-seo";
-import React, { useMemo } from "react";
-import debounce from "lodash.debounce";
-import dayjs from "dayjs";
 import { ResetPasswordRequest } from "@prisma/client";
-import Link from "next/link";
+import dayjs from "dayjs";
+import debounce from "lodash.debounce";
 import { GetServerSidePropsContext } from "next";
+import { getCsrfToken } from "next-auth/client";
+import Link from "next/link";
+import React, { useMemo } from "react";
+
+import prisma from "@lib/prisma";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 type Props = {
   id: string;
@@ -75,7 +77,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Success</h2>
+            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">Success</h2>
           </div>
           <p>Your password has been reset. You can now login with your newly created password.</p>
           <Link href="/auth/login">
@@ -95,7 +97,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Whoops</h2>
+            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">Whoops</h2>
             <h2 className="text-center text-3xl font-extrabold text-gray-900">That Request is Expired.</h2>
           </div>
           <p>
@@ -128,7 +130,9 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
           {!isRequestExpired && !success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Reset Password</h2>
+                <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  Reset Password
+                </h2>
                 <p>Enter the new password you&apos;d like for your account.</p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>

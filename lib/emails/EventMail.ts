@@ -1,8 +1,9 @@
+import nodemailer from "nodemailer";
+
 import CalEventParser from "../CalEventParser";
-import { stripHtml } from "./helpers";
 import { CalendarEvent, ConferenceData } from "../calendarClient";
 import { serverConfig } from "../serverConfig";
-import nodemailer from "nodemailer";
+import { stripHtml } from "./helpers";
 
 export interface EntryPoint {
   entryPointType?: string;
@@ -36,7 +37,7 @@ export default abstract class EventMail {
    * @param uid
    * @param additionInformation
    */
-  constructor(calEvent: CalendarEvent, uid: string, additionInformation: AdditionInformation = null) {
+  constructor(calEvent: CalendarEvent, uid: string, additionInformation?: AdditionInformation) {
     this.calEvent = calEvent;
     this.uid = uid;
     this.parser = new CalEventParser(calEvent, uid);

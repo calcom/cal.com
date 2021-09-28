@@ -1,10 +1,18 @@
+import { Prisma, PrismaClient, UserPlan } from "@prisma/client";
+import dayjs from "dayjs";
+import { uuid } from "short-uuid";
+
 import { hashPassword } from "../lib/auth";
-import { Prisma, PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 async function createUserAndEventType(opts: {
-  user: Omit<Prisma.UserCreateArgs["data"], "password" | "email"> & { password: string; email: string };
-  eventTypes: Array<Prisma.EventTypeCreateArgs["data"]>;
+  user: { email: string; password: string; username: string; plan: UserPlan; name: string };
+  eventTypes: Array<
+    Prisma.EventTypeCreateInput & {
+      _bookings?: Prisma.BookingCreateInput[];
+    }
+  >;
 }) {
   const userData: Prisma.UserCreateArgs["data"] = {
     ...opts.user,
@@ -21,22 +29,68 @@ async function createUserAndEventType(opts: {
   console.log(
     `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
   );
-  for (const rawData of opts.eventTypes) {
-    const eventTypeData: Prisma.EventTypeCreateArgs["data"] = { ...rawData };
+  for (const eventTypeInput of opts.eventTypes) {
+    const { _bookings: bookingInputs = [], ...eventTypeData } = eventTypeInput;
     eventTypeData.userId = user.id;
-    await prisma.eventType.upsert({
+    eventTypeData.users = { connect: { id: user.id } };
+
+    const eventType = await prisma.eventType.findFirst({
       where: {
-        userId_slug: {
-          slug: eventTypeData.slug,
-          userId: user.id,
+        slug: eventTypeData.slug,
+        users: {
+          some: {
+            id: eventTypeData.userId,
+          },
         },
       },
-      update: eventTypeData,
-      create: eventTypeData,
+      select: {
+        id: true,
+      },
     });
+
+    if (eventType) {
+      console.log(
+        `\t📆 Event type ${eventTypeData.slug} already seems seeded - http://localhost:3000/${user.username}/${eventTypeData.slug}`
+      );
+      continue;
+    }
+    const { id } = await prisma.eventType.create({
+      data: eventTypeData,
+    });
+
     console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}: http://localhost:3000/${user.username}/${eventTypeData.slug}`
+      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - http://localhost:3000/${user.username}/${eventTypeData.slug}`
     );
+    for (const bookingInput of bookingInputs) {
+      await prisma.booking.create({
+        data: {
+          ...bookingInput,
+          user: {
+            connect: {
+              email: opts.user.email,
+            },
+          },
+          attendees: {
+            create: {
+              email: opts.user.email,
+              name: opts.user.name,
+              timeZone: "Europe/London",
+            },
+          },
+          eventType: {
+            connect: {
+              id,
+            },
+          },
+          confirmed: bookingInput.confirmed,
+        },
+      });
+      console.log(
+        `\t\t☎️ Created booking ${bookingInput.title} at ${new Date(
+          bookingInput.startTime
+        ).toLocaleDateString()}`
+      );
+    }
   }
 }
 
@@ -46,6 +100,7 @@ async function main() {
       email: "free@example.com",
       password: "free",
       username: "free",
+      name: "Free Example",
       plan: "FREE",
     },
     eventTypes: [
@@ -67,6 +122,7 @@ async function main() {
       email: "free-first-hidden@example.com",
       password: "free-first-hidden",
       username: "free-first-hidden",
+      name: "Free First Hidden Example",
       plan: "FREE",
     },
     eventTypes: [
@@ -86,6 +142,7 @@ async function main() {
   await createUserAndEventType({
     user: {
       email: "pro@example.com",
+      name: "Pro Example",
       password: "pro",
       username: "pro",
       plan: "PRO",
@@ -96,6 +153,21 @@ async function main() {
         title: "30min",
         slug: "30min",
         length: 30,
+        _bookings: [
+          {
+            uid: uuid(),
+            title: "30min",
+            startTime: dayjs().add(1, "day").toDate(),
+            endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+          },
+          {
+            uid: uuid(),
+            title: "30min",
+            startTime: dayjs().add(2, "day").toDate(),
+            endTime: dayjs().add(2, "day").add(30, "minutes").toDate(),
+            confirmed: false,
+          },
+        ],
       },
       {
         title: "60min",
@@ -104,11 +176,13 @@ async function main() {
       },
     ],
   });
+
   await createUserAndEventType({
     user: {
       email: "trial@example.com",
       password: "trial",
       username: "trial",
+      name: "Trial Example",
       plan: "TRIAL",
     },
     eventTypes: [

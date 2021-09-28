@@ -1,14 +1,14 @@
-import React from "react";
-import Text from "@components/ui/Text";
-import Link from "next/link";
-import Avatar from "@components/Avatar";
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import useTheme from "@components/Theme";
+import { ArrowLeftIcon } from "@heroicons/react/solid";
 import classnames from "classnames";
+import Link from "next/link";
+import React from "react";
+
+import Avatar from "@components/ui/Avatar";
+import Button from "@components/ui/Button";
+import Text from "@components/ui/Text";
 
 const Team = ({ team }) => {
-  useTheme();
-
   const Member = ({ member }) => {
     const classes = classnames(
       "group",
@@ -37,18 +37,15 @@ const Team = ({ team }) => {
             )}
           />
 
-          <Avatar
-            displayName={member.user.name}
-            imageSrc={member.user.avatar}
-            className="w-12 h-12 rounded-full"
-          />
-
-          <section className="space-y-2">
-            <Text variant="title">{member.user.name}</Text>
-            <Text variant="subtitle" className="w-6/8">
-              {member.user.bio}
-            </Text>
-          </section>
+          <div>
+            <Avatar displayName={member.user.name} imageSrc={member.user.avatar} className="w-12 h-12" />
+            <section className="space-y-2">
+              <Text variant="title">{member.user.name}</Text>
+              <Text variant="subtitle" className="w-6/8">
+                {member.user.bio}
+              </Text>
+            </section>
+          </div>
         </div>
       </Link>
     );
@@ -69,17 +66,16 @@ const Team = ({ team }) => {
   };
 
   return (
-    <article className="flex flex-col space-y-8 lg:space-y-12">
-      <div className="mb-8 text-center">
-        <Avatar
-          displayName={team.name}
-          imageSrc={team.logo}
-          className="mx-auto w-20 h-20 rounded-full mb-4"
-        />
-        <Text variant="headline">{team.name}</Text>
-      </div>
+    <div>
       <Members members={team.members} />
-    </article>
+      {team.eventTypes.length && (
+        <aside className="text-center dark:text-white mt-8">
+          <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
+            Go back
+          </Button>
+        </aside>
+      )}
+    </div>
   );
 };
 
