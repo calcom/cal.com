@@ -1,10 +1,12 @@
-import prisma from "@lib/prisma";
-import { getIntegrationName, getIntegrationType } from "@lib/integrations";
-import Shell from "@components/Shell";
-import { useRouter } from "next/router";
 import { useSession } from "next-auth/client";
-import Loader from "@components/Loader";
+import { useRouter } from "next/router";
+
 import { getSession } from "@lib/auth";
+import { getIntegrationName, getIntegrationType } from "@lib/integrations";
+import prisma from "@lib/prisma";
+
+import Loader from "@components/Loader";
+import Shell from "@components/Shell";
 
 export default function Integration(props) {
   const router = useRouter();
@@ -35,8 +37,7 @@ export default function Integration(props) {
     <div>
       <Shell
         heading={`${getIntegrationName(props.integration.type)} App`}
-        subtitle="Manage and delete this app."
-      >
+        subtitle="Manage and delete this app.">
         <div className="block sm:grid grid-cols-3 gap-4">
           <div className="col-span-2 bg-white border border-gray-200 mb-6 overflow-hidden rounded-sm">
             <div className="px-4 py-5 sm:px-6">
@@ -69,8 +70,7 @@ export default function Integration(props) {
                   <button
                     onClick={deleteIntegrationHandler}
                     type="button"
-                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-sm text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
-                  >
+                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-sm text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
                     Delete App
                   </button>
                 </div>
@@ -98,6 +98,6 @@ export async function getServerSideProps(context) {
     },
   });
   return {
-    props: { integration }, // will be passed to the page component as props
+    props: { session, integration },
   };
 }

@@ -1,4 +1,5 @@
 import { DefaultSeoProps } from "next-seo";
+
 import { HeadSeoProps } from "@components/seo/head-seo";
 
 const seoImages = {

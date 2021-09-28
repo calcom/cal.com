@@ -1,7 +1,9 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
-import Button from "@components/ui/Button";
+
 import { Team } from "@lib/team";
+
+import Button from "@components/ui/Button";
 
 export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");
@@ -45,13 +47,11 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
       className="fixed inset-0 z-50 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
-      aria-modal="true"
-    >
+      aria-modal="true">
       <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div
           className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
-          aria-hidden="true"
-        ></div>
+          aria-hidden="true"></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
@@ -92,8 +92,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                 </label>
                 <select
                   id="role"
-                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                >
+                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm">
                   <option value="MEMBER">Member</option>
                   <option value="OWNER">Owner</option>
                 </select>

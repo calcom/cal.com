@@ -1,28 +1,34 @@
-import Head from "next/head";
-import prisma from "@lib/prisma";
-import { useSession } from "next-auth/client";
+import { ArrowRightIcon } from "@heroicons/react/outline";
 import { EventTypeCreateInput, ScheduleCreateInput, UserUpdateInput } from "@prisma/client";
-import { NextPageContext, InferGetServerSidePropsType } from "next";
-import React, { useEffect, useRef, useState } from "react";
-import { validJson } from "@lib/jsonUtils";
-import TimezoneSelect from "react-timezone-select";
-import Text from "@components/ui/Text";
-import ErrorAlert from "@components/ui/alerts/Error";
+import classnames from "classnames";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import debounce from "lodash.debounce";
+import { NextPageContext, InferGetServerSidePropsType } from "next";
+import { useSession } from "next-auth/client";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { Integration } from "pages/integrations";
+import React, { useEffect, useRef, useState } from "react";
+import TimezoneSelect from "react-timezone-select";
+
+import { getSession } from "@lib/auth";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import getIntegrations from "@lib/integrations/getIntegrations";
+import prisma from "@lib/prisma";
+
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Dialog";
-import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
-import { useRouter } from "next/router";
-import { Integration } from "pages/integrations";
-import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
-import classnames from "classnames";
-import { ArrowRightIcon } from "@heroicons/react/outline";
-import { getSession } from "@lib/auth";
+import Loader from "@components/Loader";
 import Button from "@components/ui/Button";
+import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
+import Text from "@components/ui/Text";
+import ErrorAlert from "@components/ui/alerts/Error";
+
+import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
+import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -56,6 +62,7 @@ const DEFAULT_EVENT_TYPES = [
 export default function Onboarding(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
 
+  const [isSubmitting, setSubmitting] = React.useState(false);
   const [enteredName, setEnteredName] = React.useState();
   const Sess = useSession();
   const [ready, setReady] = useState(false);
@@ -109,7 +116,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
     return responseData.data;
   };
 
-  const integrationHandler = (type: string) => {
+  const handleAddIntegration = (type: string) => {
     if (type === "caldav_calendar") {
       setAddCalDavError(null);
       setIsAddCalDavIntegrationDialogOpen(true);
@@ -130,7 +137,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
     }
 
     return (
-      <li onClick={() => integrationHandler(integration.type)} key={integration.type} className="flex py-4">
+      <li onClick={() => handleAddIntegration(integration.type)} key={integration.type} className="flex py-4">
         <div className="w-1/12 pt-2 mr-4">
           <img className="w-8 h-8 mr-2" src={integration.imageSrc} alt={integration.title} />
         </div>
@@ -141,7 +148,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
           </Text>
         </div>
         <div className="w-2/12 pt-2 text-right">
-          <Button color="secondary" onClick={() => integrationHandler(integration.type)}>
+          <Button color="secondary" onClick={() => handleAddIntegration(integration.type)}>
             Connect
           </Button>
         </div>
@@ -273,6 +280,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
 
   const handleConfirmStep = async () => {
     try {
+      setSubmitting(true);
       if (
         steps[currentStep] &&
         steps[currentStep]?.onComplete &&
@@ -281,11 +289,15 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
         await steps[currentStep].onComplete();
       }
       incrementStep();
+      setSubmitting(false);
     } catch (error) {
       console.log("handleConfirmStep", error);
+      setSubmitting(false);
       setError(error);
     }
   };
+
+  const debouncedHandleConfirmStep = debounce(handleConfirmStep, 850);
 
   const handleSkipStep = () => {
     incrementStep();
@@ -324,17 +336,22 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
    * then the default availability is applied.
    */
   const completeOnboarding = async () => {
+    setSubmitting(true);
     if (!props.eventTypes || props.eventTypes.length === 0) {
-      Promise.all(
-        DEFAULT_EVENT_TYPES.map(async (event) => {
-          return await createEventType(event);
-        })
-      );
+      const eventTypes = await getEventTypes();
+      if (eventTypes.length === 0) {
+        Promise.all(
+          DEFAULT_EVENT_TYPES.map(async (event) => {
+            return await createEventType(event);
+          })
+        );
+      }
     }
     await updateUser({
       completedOnboarding: true,
     });
 
+    setSubmitting(false);
     router.push("/event-types");
   };
 
@@ -358,7 +375,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
                 id="name"
                 autoComplete="given-name"
                 placeholder="Your name"
-                defaultValue={props.user.name}
+                defaultValue={props.user.name ?? enteredName}
                 required
                 className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
@@ -390,13 +407,16 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
       cancelText: "Set up later",
       onComplete: async () => {
         try {
+          setSubmitting(true);
           await updateUser({
             name: nameRef.current.value,
             timeZone: selectedTimeZone.value,
           });
           setEnteredName(nameRef.current.value);
+          setSubmitting(true);
         } catch (error) {
           setError(error);
+          setSubmitting(false);
         }
       },
     },
@@ -428,10 +448,12 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
             <SchedulerForm
               onSubmit={async (data) => {
                 try {
+                  setSubmitting(true);
                   await createSchedule({
                     freeBusyTimes: data,
                   });
-                  handleConfirmStep();
+                  debouncedHandleConfirmStep();
+                  setSubmitting(false);
                 } catch (error) {
                   setError(error);
                 }
@@ -498,11 +520,15 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
       cancelText: "Set up later",
       onComplete: async () => {
         try {
+          setSubmitting(true);
+          console.log("updating");
           await updateUser({
-            bio: bioRef.current.value,
+            description: bioRef.current.value,
           });
+          setSubmitting(false);
         } catch (error) {
           setError(error);
+          setSubmitting(false);
         }
       },
     },
@@ -525,10 +551,15 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      {isSubmitting && (
+        <div className="fixed z-10 flex flex-col items-center content-center justify-center w-full h-full bg-white bg-opacity-25">
+          <Loader />
+        </div>
+      )}
       <div className="px-4 py-24 mx-auto">
-        <article>
+        <article className="relative">
           <section className="space-y-4 sm:mx-auto sm:w-full sm:max-w-md">
-            <header className="">
+            <header>
               <Text className="text-white" variant="largetitle">
                 {steps[currentStep].title}
               </Text>
@@ -565,7 +596,11 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
 
             {!steps[currentStep].hideConfirm && (
               <footer className="flex flex-col py-6 mt-8 space-y-6 sm:mx-auto sm:w-full sm:max-w-md">
-                <Button className="justify-center" onClick={handleConfirmStep} EndIcon={ArrowRightIcon}>
+                <Button
+                  className="justify-center"
+                  disabled={isSubmitting}
+                  onClick={debouncedHandleConfirmStep}
+                  EndIcon={ArrowRightIcon}>
                   {steps[currentStep].confirmText}
                 </Button>
               </footer>
@@ -573,11 +608,11 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
           </section>
           <section className="max-w-xl py-6 mx-auto mt-8">
             <div className="flex flex-row-reverse justify-between">
-              <button onClick={handleSkipStep}>
+              <button disabled={isSubmitting} onClick={handleSkipStep}>
                 <Text variant="caption">Skip Step</Text>
               </button>
               {currentStep !== 0 && (
-                <button onClick={decrementStep}>
+                <button disabled={isSubmitting} onClick={decrementStep}>
                   <Text variant="caption">Prev Step</Text>
                 </button>
               )}
@@ -646,40 +681,7 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      credential: credentials.find((integration) => integration.type === "google_calendar") || null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "Gmail, G Suite",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
-      type: "office365_calendar",
-      title: "Office 365 Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "Office 365, Outlook.com, live.com, or hotmail calendar",
-    },
-    {
-      installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-      credential: credentials.find((integration) => integration.type === "zoom_video") || null,
-      type: "zoom_video",
-      title: "Zoom",
-      imageSrc: "integrations/zoom.svg",
-      description: "Video Conferencing",
-    },
-    // {
-    //   installed: true,
-    //   credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
-    //   type: "caldav_calendar",
-    //   title: "Caldav",
-    //   imageSrc: "integrations/caldav.svg",
-    //   description: "CalDav Server",
-    // },
-  ];
+  integrations = getIntegrations(credentials);
 
   eventTypes = await prisma.eventType.findMany({
     where: {
@@ -706,6 +708,7 @@ export async function getServerSideProps(context: NextPageContext) {
 
   return {
     props: {
+      session,
       user,
       integrations,
       eventTypes,

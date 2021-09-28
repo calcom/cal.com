@@ -1,48 +1,53 @@
-import { useRouter } from "next/router";
-import Modal from "@components/Modal";
-import React, { useEffect, useRef, useState } from "react";
-import Select, { OptionTypeBase } from "react-select";
-import prisma from "@lib/prisma";
-import { Availability, EventTypeCustomInput, EventTypeCustomInputType, SchedulingType } from "@prisma/client";
-import { LocationType } from "@lib/location";
-import Shell from "@components/Shell";
-import { getSession } from "@lib/auth";
-import { Scheduler } from "@components/ui/Scheduler";
 // TODO: replace headlessui with radix-ui
 import { Disclosure, RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
-import { HttpError } from "@lib/core/http/error";
 import {
-  LocationMarkerIcon,
-  LinkIcon,
-  PlusIcon,
-  DocumentIcon,
   ClockIcon,
+  DocumentIcon,
   ExternalLinkIcon,
-  UsersIcon,
+  LinkIcon,
+  LocationMarkerIcon,
+  PlusIcon,
   UserAddIcon,
+  UsersIcon,
 } from "@heroicons/react/solid";
-
+import { EventTypeCustomInput, EventTypeCustomInputType, Prisma, SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { validJson } from "@lib/jsonUtils";
-import throttle from "lodash.throttle";
-import "react-dates/initialize";
-import "react-dates/lib/css/_datepicker.css";
-import { DateRangePicker, OrientationShape, toMomentObject } from "react-dates";
-import Switch from "@components/ui/Switch";
+import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
+import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
-import { EventTypeInput } from "@lib/types/event-type";
+import Select, { OptionTypeBase } from "react-select";
+
+import { StripeData } from "@ee/lib/stripe/server";
+
+import { asNumberOrThrow, asNumberOrUndefined, asStringOrThrow } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
+import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { LocationType } from "@lib/location";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
 import showToast from "@lib/notification";
-import CheckedSelect from "@components/ui/form/CheckedSelect";
+import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
-import * as RadioArea from "@components/ui/form/radio-area";
-import classNames from "@lib/classNames";
-import { asStringOrThrow } from "@lib/asStringOrNull";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
+
+import Modal from "@components/Modal";
+import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
+import { Scheduler } from "@components/ui/Scheduler";
+import Switch from "@components/ui/Switch";
+import CheckboxField from "@components/ui/form/CheckboxField";
+import CheckedSelect from "@components/ui/form/CheckedSelect";
+import { DateRangePicker } from "@components/ui/form/DateRangePicker";
+import MinutesField from "@components/ui/form/MinutesField";
+import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -63,7 +68,8 @@ const PERIOD_TYPES = [
 ];
 
 const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { eventType, locationOptions, availability, team, teamMembers } = props;
+  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
+    props;
 
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -74,9 +80,6 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     { value: EventTypeCustomInputType.NUMBER, label: "Number" },
     { value: EventTypeCustomInputType.BOOL, label: "Checkbox" },
   ];
-
-  const [DATE_PICKER_ORIENTATION, setDatePickerOrientation] = useState<OrientationShape>("horizontal");
-  const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
 
   const updateMutation = useMutation(updateEventType, {
     onSuccess: async ({ eventType }) => {
@@ -100,37 +103,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   //   },
   // });
 
-  const handleResizeEvent = () => {
-    const elementWidth = parseFloat(getComputedStyle(document.body).width);
-    const elementHeight = parseFloat(getComputedStyle(document.body).height);
-
-    setContentSize({
-      width: elementWidth,
-      height: elementHeight,
-    });
-  };
-
-  const throttledHandleResizeEvent = throttle(handleResizeEvent, 100);
-
-  useEffect(() => {
-    handleResizeEvent();
-
-    window.addEventListener("resize", throttledHandleResizeEvent);
-
-    return () => {
-      window.removeEventListener("resize", throttledHandleResizeEvent);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (contentSize.width < 500) {
-      setDatePickerOrientation("vertical");
-    } else {
-      setDatePickerOrientation("horizontal");
-    }
-  }, [contentSize]);
-
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<AdvancedOptions["users"]>([]);
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
@@ -143,36 +116,19 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
 
-  const [periodStartDate, setPeriodStartDate] = useState(() => {
-    if (eventType.periodType === "range" && eventType?.periodStartDate) {
-      return toMomentObject(new Date(eventType.periodStartDate));
-    }
-
-    return null;
-  });
-
-  const [periodEndDate, setPeriodEndDate] = useState(() => {
-    if (eventType.periodType === "range" && eventType.periodEndDate) {
-      return toMomentObject(new Date(eventType?.periodEndDate));
-    }
-
-    return null;
-  });
-  const [focusedInput, setFocusedInput] = useState(null);
   const [periodType, setPeriodType] = useState(() => {
     return (
       PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
       PERIOD_TYPES.find((s) => s.type === "unlimited")
     );
   });
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
 
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
+
   const titleRef = useRef<HTMLInputElement>(null);
-  const slugRef = useRef<HTMLInputElement>(null);
-  const requiresConfirmationRef = useRef<HTMLInputElement>(null);
   const eventNameRef = useRef<HTMLInputElement>(null);
-  const periodDaysRef = useRef<HTMLInputElement>(null);
-  const periodDaysTypeRef = useRef<HTMLSelectElement>(null);
+  const isAdvancedSettingsVisible = !!eventNameRef.current;
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone);
@@ -184,35 +140,44 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     const formData = Object.fromEntries(new FormData(event.target).entries());
     console.log({ formData });
 
-    const enteredTitle: string = titleRef.current.value;
-    const enteredSlug: string = slugRef.current.value;
+    const enteredTitle: string = titleRef.current!.value;
 
-    const advancedOptionsPayload: AdvancedOptions = {};
-    if (requiresConfirmationRef.current) {
-      advancedOptionsPayload.requiresConfirmation = requiresConfirmationRef.current.checked;
-      advancedOptionsPayload.eventName = eventNameRef.current.value;
-      advancedOptionsPayload.periodType = periodType.type;
-      advancedOptionsPayload.periodDays = parseInt(periodDaysRef?.current?.value);
-      advancedOptionsPayload.periodCountCalendarDays = Boolean(parseInt(periodDaysTypeRef?.current.value));
-      advancedOptionsPayload.periodStartDate = periodStartDate ? periodStartDate.toDate() : null;
-      advancedOptionsPayload.periodEndDate = periodEndDate ? periodEndDate.toDate() : null;
+    const advancedPayload: AdvancedOptions = {};
+    if (isAdvancedSettingsVisible) {
+      advancedPayload.eventName = eventNameRef.current.value;
+      advancedPayload.periodType = periodType?.type;
+      advancedPayload.periodDays = asNumberOrUndefined(formData.periodDays);
+      advancedPayload.periodCountCalendarDays = Boolean(
+        asNumberOrUndefined(formData.periodCountCalendarDays)
+      );
+      advancedPayload.periodStartDate = periodDates.startDate || undefined;
+      advancedPayload.periodEndDate = periodDates.endDate || undefined;
+      advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
+      // prettier-ignore
+      advancedPayload.price =
+        !requirePayment ? undefined                                                     :
+        formData.price  ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
+        /* otherwise */   0;
+      advancedPayload.currency = currency;
     }
 
     const payload: EventTypeInput = {
       id: eventType.id,
       title: enteredTitle,
-      slug: enteredSlug,
-      description: formData.description as string,
-      length: isNaN(Number(formData.length)) ? eventType.length : (Number(formData.length) as number),
+      slug: asStringOrThrow(formData.slug),
+      description: asStringOrThrow(formData.description),
+      length: asNumberOrThrow(formData.length),
+      requiresConfirmation: formData.requiresConfirmation === "on",
+      disableGuests: formData.disableGuests === "on",
       hidden,
       locations,
       customInputs,
       timeZone: selectedTimeZone,
-      availability: enteredAvailability || null,
-      ...advancedOptionsPayload,
+      availability: enteredAvailability || undefined,
+      ...advancedPayload,
       ...(team
         ? {
-            schedulingType: formData.schedulingType as string,
+            schedulingType: formData.schedulingType as SchedulingType,
             users,
           }
         : {}),
@@ -304,12 +269,14 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
         );
       case LocationType.Phone:
         return (
-          <p className="text-sm">Cal will ask your invitee to enter a phone number before scheduling.</p>
+          <p className="text-sm text-gray-900">
+            Yac Meet will ask your invitee to enter a phone number before scheduling.
+          </p>
         );
       case LocationType.GoogleMeet:
-        return <p className="text-sm">Cal will provide a Google Meet location.</p>;
+        return <p className="text-sm text-gray-900">Yac Meet will provide a Google Meet location.</p>;
       case LocationType.Zoom:
-        return <p className="text-sm">Cal will provide a Zoom meeting URL.</p>;
+        return <p className="text-sm text-gray-900">Yac Meet will provide a Zoom meeting URL.</p>;
     }
     return null;
   };
@@ -353,6 +320,11 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     },
   ];
 
+  const [periodDates, setPeriodDates] = useState<{ startDate: Date; endDate: Date }>({
+    startDate: new Date(eventType.periodStartDate || Date.now()),
+    endDate: new Date(eventType.periodEndDate || Date.now()),
+  });
+
   return (
     <div>
       <Shell
@@ -365,7 +337,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
             name="title"
             id="title"
             required
-            className="pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
+            className="w-full pl-0 text-xl font-bold text-gray-500 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
             placeholder="Quick Chat"
             defaultValue={eventType.title}
           />
@@ -390,8 +362,6 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
-                          disabled
-                          ref={slugRef}
                           type="text"
                           name="slug"
                           id="slug"
@@ -402,33 +372,19 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                       </div>
                     </div>
                   </div>
-                  <div className="items-center block sm:flex">
-                    <div className="mb-4 min-w-44 sm:mb-0">
-                      <label htmlFor="length" className="flex mt-0 text-sm font-medium text-neutral-700">
-                        <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                        Duration
-                      </label>
-                    </div>
-                    <div className="w-full">
-                      <div className="relative mt-1 rounded-sm shadow-sm">
-                        <input
-                          disabled
-                          type="number"
-                          name="length"
-                          id="length"
-                          required
-                          className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                          placeholder="15"
-                          defaultValue={eventType.length}
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm" id="duration">
-                            mins
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
+                  <MinutesField
+                    label={
+                      <>
+                        <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> Duration
+                      </>
+                    }
+                    name="length"
+                    id="length"
+                    required
+                    placeholder="15"
+                    defaultValue={eventType.length}
+                  />
                 </div>
                 {props.eventType.slug !== "async" && (
                   <>
@@ -459,95 +415,100 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                           )}
                           {locations.length > 0 && (
                             <ul>
-                              {locations.map((location) => (
-                                <li
-                                  key={location.type}
-                                  className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
-                                  <div className="flex justify-between">
-                                    {location.type === LocationType.InPerson && (
-                                      <div className="flex items-center flex-grow">
-                                        <LocationMarkerIcon className="w-6 h-6" />
-                                        <span className="ml-2 text-sm">{location.address}</span>
-                                      </div>
-                                    )}
-                                    {location.type === LocationType.Phone && (
-                                      <div className="flex items-center flex-grow">
-                                        <PhoneIcon className="w-6 h-6" />
-                                        <span className="ml-2 text-sm">Phone call</span>
-                                      </div>
-                                    )}
-                                    {location.type === LocationType.GoogleMeet && (
-                                      <div className="flex items-center flex-grow">
-                                        <svg
-                                          className="w-6 h-6"
-                                          viewBox="0 0 64 54"
-                                          fill="none"
-                                          xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M16 0V16H0" fill="#EA4335" />
-                                          <path
-                                            d="M16 0V16H37.3333V27.0222L53.3333 14.0444V5.33332C53.3333 1.77777 51.5555 0 47.9999 0"
-                                            fill="#FFBA00"
-                                          />
-                                          <path
-                                            d="M15.6438 53.3341V37.3341H37.3326V26.6675L53.3326 39.2897V48.0008C53.3326 51.5563 51.5548 53.3341 47.9993 53.3341"
-                                            fill="#00AC47"
-                                          />
-                                          <path d="M37.3335 26.6662L53.3335 13.6885V39.644" fill="#00832D" />
-                                          <path
-                                            d="M53.3335 13.6892L60.8001 7.64481C62.4001 6.40037 64.0001 6.40037 64.0001 8.88925V44.4447C64.0001 46.9336 62.4001 46.9336 60.8001 45.6892L53.3335 39.6447"
-                                            fill="#00AC47"
-                                          />
-                                          <path
-                                            d="M0 36.9785V48.0007C0 51.5563 1.77777 53.334 5.33332 53.334H16V36.9785"
-                                            fill="#0066DA"
-                                          />
-                                          <path d="M0 16H16V37.3333H0" fill="#2684FC" />
-                                        </svg>
+                              <>
+                                {locations.map((location) => (
+                                  <li
+                                    key={location.type}
+                                    className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
+                                    <div className="flex justify-between">
+                                      {location.type === LocationType.InPerson && (
+                                        <div className="flex items-center flex-grow">
+                                          <LocationMarkerIcon className="w-6 h-6" />
+                                          <span className="ml-2 text-sm">{location.address}</span>
+                                        </div>
+                                      )}
+                                      {location.type === LocationType.Phone && (
+                                        <div className="flex items-center flex-grow">
+                                          <PhoneIcon className="w-6 h-6" />
+                                          <span className="ml-2 text-sm">Phone call</span>
+                                        </div>
+                                      )}
+                                      {location.type === LocationType.GoogleMeet && (
+                                        <div className="flex items-center flex-grow">
+                                          <svg
+                                            className="w-6 h-6"
+                                            viewBox="0 0 64 54"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M16 0V16H0" fill="#EA4335" />
+                                            <path
+                                              d="M16 0V16H37.3333V27.0222L53.3333 14.0444V5.33332C53.3333 1.77777 51.5555 0 47.9999 0"
+                                              fill="#FFBA00"
+                                            />
+                                            <path
+                                              d="M15.6438 53.3341V37.3341H37.3326V26.6675L53.3326 39.2897V48.0008C53.3326 51.5563 51.5548 53.3341 47.9993 53.3341"
+                                              fill="#00AC47"
+                                            />
+                                            <path
+                                              d="M37.3335 26.6662L53.3335 13.6885V39.644"
+                                              fill="#00832D"
+                                            />
+                                            <path
+                                              d="M53.3335 13.6892L60.8001 7.64481C62.4001 6.40037 64.0001 6.40037 64.0001 8.88925V44.4447C64.0001 46.9336 62.4001 46.9336 60.8001 45.6892L53.3335 39.6447"
+                                              fill="#00AC47"
+                                            />
+                                            <path
+                                              d="M0 36.9785V48.0007C0 51.5563 1.77777 53.334 5.33332 53.334H16V36.9785"
+                                              fill="#0066DA"
+                                            />
+                                            <path d="M0 16H16V37.3333H0" fill="#2684FC" />
+                                          </svg>
 
-                                        <span className="ml-2 text-sm">Google Meet</span>
+                                          <span className="ml-2 text-sm">Google Meet</span>
+                                        </div>
+                                      )}
+                                      {location.type === LocationType.Zoom && (
+                                        <div className="flex items-center flex-grow">
+                                          <svg
+                                            className="w-6 h-6"
+                                            viewBox="0 0 64 64"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                              d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
+                                              fill="#E5E5E4"
+                                            />
+                                            <path
+                                              d="M32.0002 0.623047C49.3292 0.623047 63.3771 14.6709 63.3771 31.9999C63.3771 49.329 49.3292 63.3768 32.0002 63.3768C14.6711 63.3768 0.623291 49.329 0.623291 31.9999C0.623291 14.6709 14.6716 0.623047 32.0002 0.623047Z"
+                                              fill="white"
+                                            />
+                                            <path
+                                              d="M31.9998 3.14014C47.9386 3.14014 60.8597 16.0612 60.8597 32C60.8597 47.9389 47.9386 60.8599 31.9998 60.8599C16.0609 60.8599 3.13989 47.9389 3.13989 32C3.13989 16.0612 16.0609 3.14014 31.9998 3.14014Z"
+                                              fill="#4A8CFF"
+                                            />
+                                            <path
+                                              d="M13.1711 22.9581V36.5206C13.1832 39.5875 15.6881 42.0558 18.743 42.0433H38.5125C39.0744 42.0433 39.5266 41.5911 39.5266 41.0412V27.4788C39.5145 24.4119 37.0096 21.9435 33.9552 21.956H14.1857C13.6238 21.956 13.1716 22.4082 13.1716 22.9581H13.1711ZM40.7848 28.2487L48.9469 22.2864C49.6557 21.6998 50.2051 21.8462 50.2051 22.9095V41.0903C50.2051 42.2999 49.5329 42.1536 48.9469 41.7134L40.7848 35.7631V28.2487Z"
+                                              fill="white"
+                                            />
+                                          </svg>
+                                          <span className="ml-2 text-sm">Zoom Video</span>
+                                        </div>
+                                      )}
+                                      <div className="flex">
+                                        <button
+                                          type="button"
+                                          onClick={() => openLocationModal(location.type)}
+                                          className="mr-2 text-sm text-primary-600">
+                                          Edit
+                                        </button>
+                                        <button onClick={() => removeLocation(location)}>
+                                          <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
+                                        </button>
                                       </div>
-                                    )}
-                                    {location.type === LocationType.Zoom && (
-                                      <div className="flex items-center flex-grow">
-                                        <svg
-                                          className="w-6 h-6"
-                                          viewBox="0 0 64 64"
-                                          fill="none"
-                                          xmlns="http://www.w3.org/2000/svg">
-                                          <path
-                                            d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
-                                            fill="#E5E5E4"
-                                          />
-                                          <path
-                                            d="M32.0002 0.623047C49.3292 0.623047 63.3771 14.6709 63.3771 31.9999C63.3771 49.329 49.3292 63.3768 32.0002 63.3768C14.6711 63.3768 0.623291 49.329 0.623291 31.9999C0.623291 14.6709 14.6716 0.623047 32.0002 0.623047Z"
-                                            fill="white"
-                                          />
-                                          <path
-                                            d="M31.9998 3.14014C47.9386 3.14014 60.8597 16.0612 60.8597 32C60.8597 47.9389 47.9386 60.8599 31.9998 60.8599C16.0609 60.8599 3.13989 47.9389 3.13989 32C3.13989 16.0612 16.0609 3.14014 31.9998 3.14014Z"
-                                            fill="#4A8CFF"
-                                          />
-                                          <path
-                                            d="M13.1711 22.9581V36.5206C13.1832 39.5875 15.6881 42.0558 18.743 42.0433H38.5125C39.0744 42.0433 39.5266 41.5911 39.5266 41.0412V27.4788C39.5145 24.4119 37.0096 21.9435 33.9552 21.956H14.1857C13.6238 21.956 13.1716 22.4082 13.1716 22.9581H13.1711ZM40.7848 28.2487L48.9469 22.2864C49.6557 21.6998 50.2051 21.8462 50.2051 22.9095V41.0903C50.2051 42.2999 49.5329 42.1536 48.9469 41.7134L40.7848 35.7631V28.2487Z"
-                                            fill="white"
-                                          />
-                                        </svg>
-                                        <span className="ml-2 text-sm">Zoom Video</span>
-                                      </div>
-                                    )}
-                                    <div className="flex">
-                                      <button
-                                        type="button"
-                                        onClick={() => openLocationModal(location.type)}
-                                        className="mr-2 text-sm text-primary-600">
-                                        Edit
-                                      </button>
-                                      <button onClick={() => removeLocation(location)}>
-                                        <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
-                                      </button>
                                     </div>
-                                  </div>
-                                </li>
-                              ))}
+                                  </li>
+                                ))}
+                              </>
                               {locations.length > 0 && locations.length !== locationOptions.length && (
                                 <li>
                                   <button
@@ -723,40 +684,47 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                                     </span>
                                   </button>
                                 </li>
+                                <li>
+                                  <button
+                                    type="button"
+                                    className="flex px-3 py-2 rounded-sm bg-neutral-100"
+                                    onClick={() => setShowAddCustomModal(true)}>
+                                    <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
+                                    <span className="ml-1 text-sm font-medium text-neutral-700">
+                                      Add an input
+                                    </span>
+                                  </button>
+                                </li>
                               </ul>
                             </div>
                           </div>
-                          <div className="items-center block sm:flex">
-                            <div className="mb-4 min-w-44 sm:mb-0">
-                              <label
-                                htmlFor="requiresConfirmation"
-                                className="flex text-sm font-medium text-neutral-700">
-                                Opt-in booking
-                              </label>
-                            </div>
-                            <div className="w-full">
-                              <div className="relative flex items-start">
-                                <div className="flex items-center h-5">
-                                  <input
-                                    ref={requiresConfirmationRef}
-                                    id="requiresConfirmation"
-                                    name="requiresConfirmation"
-                                    type="checkbox"
-                                    className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
-                                    defaultChecked={eventType.requiresConfirmation}
-                                  />
-                                </div>
-                                <div className="ml-3 text-sm">
-                                  <p className="text-neutral-900">
-                                    The booking needs to be manually confirmed before it is pushed to the
-                                    integrations and a confirmation mail is sent.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+
+                          <CheckboxField
+                            id="requiresConfirmation"
+                            name="requiresConfirmation"
+                            label="Opt-in booking"
+                            description="The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent."
+                            defaultChecked={eventType.requiresConfirmation}
+                          />
+
+                          <CheckboxField
+                            id="disableGuests"
+                            name="disableGuests"
+                            label="Disable guests"
+                            description="Disable adding aditional guests while booking."
+                            defaultChecked={eventType.disableGuests}
+                          />
 
                           <hr className="border-neutral-200" />
+
+                          <MinutesField
+                            label="Minimum booking notice"
+                            name="minimumBookingNotice"
+                            id="minimumBookingNotice"
+                            required
+                            placeholder="120"
+                            defaultValue={eventType.minimumBookingNotice}
+                          />
 
                           <div className="block sm:flex">
                             <div className="mb-4 min-w-44 sm:mb-0">
@@ -798,13 +766,12 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                                               as="span"
                                               className={classNames(
                                                 checked ? "text-secondary-900" : "text-gray-900",
-                                                "block text-sm space-y-2 lg:space-y-0 lg:space-x-2"
+                                                "block text-sm space-y-2 lg:space-y-0"
                                               )}>
-                                              <span>{period.prefix}</span>
+                                              {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                                               {period.type === "rolling" && (
                                                 <div className="inline-flex">
                                                   <input
-                                                    ref={periodDaysRef}
                                                     type="text"
                                                     name="periodDays"
                                                     id=""
@@ -813,7 +780,6 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                                                     defaultValue={eventType.periodDays || 30}
                                                   />
                                                   <select
-                                                    ref={periodDaysTypeRef}
                                                     id=""
                                                     name="periodDaysType"
                                                     className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -829,24 +795,13 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                                               {checked && period.type === "range" && (
                                                 <div className="inline-flex space-x-2">
                                                   <DateRangePicker
-                                                    orientation={DATE_PICKER_ORIENTATION}
-                                                    startDate={periodStartDate}
-                                                    startDateId="your_unique_start_date_id"
-                                                    endDate={periodEndDate}
-                                                    endDateId="your_unique_end_date_id"
-                                                    onDatesChange={({ startDate, endDate }) => {
-                                                      setPeriodStartDate(startDate);
-                                                      setPeriodEndDate(endDate);
-                                                    }}
-                                                    focusedInput={focusedInput}
-                                                    onFocusChange={(focusedInput) => {
-                                                      setFocusedInput(focusedInput);
-                                                    }}
+                                                    startDate={periodDates.startDate}
+                                                    endDate={periodDates.endDate}
+                                                    onDatesChange={setPeriodDates}
                                                   />
                                                 </div>
                                               )}
-
-                                              <span>{period.suffix}</span>
+                                              {period.suffix ? <span>&nbsp;{period.suffix}</span> : null}
                                             </RadioGroup.Label>
                                           </div>
                                         </>
@@ -856,27 +811,110 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                                 </div>
                               </RadioGroup>
                             </div>
+
+                            <hr className="border-neutral-200" />
+
+                            <div className="block sm:flex">
+                              <div className="mb-4 min-w-44 sm:mb-0">
+                                <label
+                                  htmlFor="availability"
+                                  className="flex mt-2 text-sm font-medium text-neutral-700">
+                                  Availability
+                                </label>
+                              </div>
+                              <div className="w-full">
+                                <Scheduler
+                                  setAvailability={setEnteredAvailability}
+                                  setTimeZone={setSelectedTimeZone}
+                                  timeZone={selectedTimeZone}
+                                  availability={availability}
+                                />
+                              </div>
+                            </div>
                           </div>
 
-                          <hr className="border-neutral-200" />
+                          {hasPaymentIntegration && (
+                            <>
+                              <hr className="border-neutral-200" />
+                              <div className="block sm:flex">
+                                <div className="mb-4 min-w-44 sm:mb-0">
+                                  <label
+                                    htmlFor="payment"
+                                    className="flex mt-2 text-sm font-medium text-neutral-700">
+                                    Payment
+                                  </label>
+                                </div>
 
-                          <div className="block sm:flex">
-                            <div className="mb-4 min-w-44 sm:mb-0">
-                              <label
-                                htmlFor="availability"
-                                className="flex mt-2 text-sm font-medium text-neutral-700">
-                                Availability
-                              </label>
-                            </div>
-                            <div className="w-full">
-                              <Scheduler
-                                setAvailability={setEnteredAvailability}
-                                setTimeZone={setSelectedTimeZone}
-                                timeZone={selectedTimeZone}
-                                availability={availability}
-                              />
-                            </div>
-                          </div>
+                                <div className="flex flex-col">
+                                  <div className="w-full">
+                                    <div className="items-center block sm:flex">
+                                      <div className="w-full">
+                                        <div className="relative flex items-start">
+                                          <div className="flex items-center h-5">
+                                            <input
+                                              onChange={(event) => setRequirePayment(event.target.checked)}
+                                              id="requirePayment"
+                                              name="requirePayment"
+                                              type="checkbox"
+                                              className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
+                                              defaultChecked={requirePayment}
+                                            />
+                                          </div>
+                                          <div className="ml-3 text-sm">
+                                            <p className="text-neutral-900">
+                                              Require Payment (0.5% +{" "}
+                                              <IntlProvider locale="en">
+                                                <FormattedNumber
+                                                  value={0.1}
+                                                  style="currency"
+                                                  currency={currency}
+                                                />
+                                              </IntlProvider>{" "}
+                                              commission per transaction)
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {requirePayment && (
+                                    <div className="w-full">
+                                      <div className="items-center block sm:flex">
+                                        <div className="w-full">
+                                          <div className="relative mt-1 rounded-sm shadow-sm">
+                                            <input
+                                              type="number"
+                                              name="price"
+                                              id="price"
+                                              step="0.01"
+                                              required
+                                              className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                              placeholder="Price"
+                                              defaultValue={
+                                                eventType.price > 0 ? eventType.price / 100.0 : undefined
+                                              }
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                              <span className="text-gray-500 sm:text-sm" id="duration">
+                                                {new Intl.NumberFormat("en", {
+                                                  style: "currency",
+                                                  currency: currency,
+                                                  maximumSignificantDigits: 1,
+                                                  maximumFractionDigits: 0,
+                                                })
+                                                  .format(0)
+                                                  .replace("0", "")}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </>
+                          )}
                         </Disclosure.Panel>
                       </>
                     )
@@ -916,8 +954,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    window.location.hostname +
-                      "/" +
+                    (`${process.env.NEXT_PUBLIC_APP_URL}/` ?? "https://cal.com/") +
                       (team ? "team/" + team.slug : eventType.users[0].username) +
                       "/" +
                       eventType.slug
@@ -1109,6 +1146,8 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
+  const locale = await extractLocaleInfo(context.req);
+
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
@@ -1119,6 +1158,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   }
+
+  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    name: true,
+    id: true,
+    avatar: true,
+    email: true,
+  });
 
   const eventType = await prisma.eventType.findFirst({
     where: {
@@ -1160,6 +1206,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      disableGuests: true,
+      minimumBookingNotice: true,
       team: {
         select: {
           slug: true,
@@ -1169,27 +1217,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             },
             select: {
               user: {
-                select: {
-                  name: true,
-                  id: true,
-                  avatar: true,
-                  email: true,
-                },
+                select: userSelect,
               },
             },
           },
         },
       },
       users: {
-        select: {
-          name: true,
-          id: true,
-          avatar: true,
-          username: true,
-        },
+        select: userSelect,
       },
       schedulingType: true,
       userId: true,
+      price: true,
+      currency: true,
     },
   });
 
@@ -1200,17 +1240,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   // backwards compat
-  if (eventType.users.length === 0) {
-    eventType.users.push(
-      await prisma.user.findUnique({
-        where: {
-          id: session.user.id,
-        },
-        select: {
-          username: true,
-        },
-      })
-    );
+  if (eventType.users.length === 0 && !eventType.team) {
+    const fallbackUser = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: userSelect,
+    });
+    if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
+    eventType.users.push(fallbackUser);
   }
 
   const credentials = await prisma.credential.findMany({
@@ -1224,24 +1262,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      enabled: credentials.find((integration) => integration.type === "google_calendar") != null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business accounts",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      enabled: credentials.find((integration) => integration.type === "office365_calendar") != null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business accounts",
-    },
-  ];
+  const integrations = getIntegrations(credentials);
 
   const locationOptions: OptionTypeBase[] = [
     // { value: LocationType.InPerson, label: "Link or In-person meeting" },
@@ -1249,27 +1270,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
-  const hasGoogleCalendarIntegration = integrations.find(
-    (i) => i.type === "google_calendar" && i.installed === true && i.enabled
-  );
-  if (hasGoogleCalendarIntegration) {
+  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
   }
+  const currency =
+    (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
+      ?.default_currency || "usd";
 
-  const hasOfficeIntegration = integrations.find(
-    (i) => i.type === "office365_calendar" && i.installed === true && i.enabled
-  );
-  if (hasOfficeIntegration) {
+  if (hasIntegration(integrations, "office365_calendar")) {
     // TODO: Add default meeting option of the office integration.
     // Assuming it's Microsoft Teams.
   }
 
-  const getAvailability = (providesAvailability) =>
-    providesAvailability.availability && providesAvailability.availability.length
-      ? providesAvailability.availability
-      : null;
+  type Availability = typeof eventType["availability"];
+  const getAvailability = (availability: Availability) => (availability?.length ? availability : null);
 
-  const availability: Availability[] = getAvailability(eventType) || [];
+  const availability = getAvailability(eventType.availability) || [];
   availability.sort((a, b) => a.startTime - b.startTime);
 
   const eventTypeObject = Object.assign({}, eventType, {
@@ -1287,11 +1304,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      session,
+      localeProp: locale,
       eventType: eventTypeObject,
       locationOptions,
       availability,
       team: eventTypeObject.team || null,
       teamMembers,
+      hasPaymentIntegration,
+      currency,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

@@ -1,8 +1,10 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { ChevronDownIcon } from "@heroicons/react/solid";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React from "react";
-import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
+
 import classNames from "@lib/classNames";
+
+import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
 
 type OptionProps = React.OptionHTMLAttributes<HTMLOptionElement> & {
   description?: string;
@@ -30,8 +32,7 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
         className={classNames(
           "mb-1 cursor-pointer focus:ring-primary-500 text-left border border-1 bg-white p-2 shadow-sm block w-full sm:text-sm border-gray-300 rounded-sm",
           disabled && "focus:ring-0 cursor-default bg-gray-200 "
-        )}
-      >
+        )}>
         {getLabel(props.value) ?? placeholder}
         <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
       </CollapsibleTrigger>

@@ -104,7 +104,7 @@ module.exports = {
       },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
-        kollektif: ["Kollektif", "sans-serif"],
+        cal: ["Cal Sans", "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",

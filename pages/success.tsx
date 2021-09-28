@@ -6,6 +6,7 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
+import { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -17,7 +18,6 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 
 import { HeadSeo } from "@components/seo/head-seo";
-import { InferGetServerSidePropsType } from "next";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -71,7 +71,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
   const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
 
   return (
-    isReady && (
+    (isReady && (
       <div className="h-screen bg-neutral-50 ">
         <HeadSeo
           title={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
@@ -248,7 +248,8 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
           </div>
         </main>
       </div>
-    )
+    )) ||
+    null
   );
 }
 

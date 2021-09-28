@@ -1,6 +1,7 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import Link from "next/link";
 import { CheckIcon } from "@heroicons/react/outline";
+import Link from "next/link";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Logout() {
   return (
@@ -8,8 +9,7 @@ export default function Logout() {
       className="fixed z-50 inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
-      aria-modal="true"
-    >
+      aria-modal="true">
       <HeadSeo title="Logged out" description="Logged out" />
       <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">

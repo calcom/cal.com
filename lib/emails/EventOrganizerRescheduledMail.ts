@@ -1,4 +1,5 @@
 import dayjs, { Dayjs } from "dayjs";
+
 import EventOrganizerMail from "./EventOrganizerMail";
 
 export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
@@ -48,7 +49,7 @@ export default class EventOrganizerRescheduledMail extends EventOrganizerMail {
    * @protected
    */
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const organizerStart: Dayjs = <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
 
     return {
       icalEvent: {

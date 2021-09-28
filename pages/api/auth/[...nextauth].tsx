@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
-import prisma from "../../../lib/prisma";
-import { Session } from "../../../lib/auth";
+
+import { Session } from "@lib/auth";
+import prisma from "@lib/prisma";
 
 export default NextAuth({
   session: {

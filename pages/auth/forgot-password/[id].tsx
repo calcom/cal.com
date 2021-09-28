@@ -1,11 +1,13 @@
-import { getCsrfToken } from "next-auth/client";
-import prisma from "@lib/prisma";
-import { HeadSeo } from "@components/seo/head-seo";
-import React, { useMemo } from "react";
-import debounce from "lodash.debounce";
 import dayjs from "dayjs";
-import Link from "next/link";
+import debounce from "lodash.debounce";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { getCsrfToken } from "next-auth/client";
+import Link from "next/link";
+import React, { useMemo } from "react";
+
+import prisma from "@lib/prisma";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Page({
   resetPasswordRequest,
@@ -71,14 +73,13 @@ export default function Page({
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">Success</h2>
+            <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900 font-cal">Success</h2>
           </div>
           <p>Your password has been reset. You can now login with your newly created password.</p>
           <Link href="/auth/login">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-            >
+              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
               Login
             </button>
           </Link>
@@ -92,7 +93,7 @@ export default function Page({
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">Whoops</h2>
+            <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900 font-cal">Whoops</h2>
             <h2 className="text-3xl font-extrabold text-center text-gray-900">That Request is Expired.</h2>
           </div>
           <p>
@@ -102,8 +103,7 @@ export default function Page({
           <Link href="/auth/forgot-password">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-            >
+              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
               Try Again
             </button>
           </Link>
@@ -126,7 +126,9 @@ export default function Page({
           {!isRequestExpired && !success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">Reset Password</h2>
+                <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900 font-cal">
+                  Reset Password
+                </h2>
                 <p>Enter the new password you&apos;d like for your account.</p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
@@ -155,28 +157,24 @@ export default function Page({
                     disabled={loading}
                     className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
                       loading ? "cursor-not-allowed" : ""
-                    }`}
-                  >
+                    }`}>
                     {loading && (
                       <svg
                         className="w-5 h-5 mr-3 -ml-1 text-white animate-spin"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
-                        viewBox="0 0 24 24"
-                      >
+                        viewBox="0 0 24 24">
                         <circle
                           className="opacity-25"
                           cx="12"
                           cy="12"
                           r="10"
                           stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
+                          strokeWidth="4"></circle>
                         <path
                           className="opacity-75"
                           fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
                     Submit

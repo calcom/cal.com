@@ -1,25 +1,41 @@
+import {
+  CalendarIcon,
+  ClockIcon,
+  CreditCardIcon,
+  ExclamationIcon,
+  LocationMarkerIcon,
+} from "@heroicons/react/solid";
+import { EventTypeCustomInputType } from "@prisma/client";
+import dayjs from "dayjs";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { CalendarIcon, ClockIcon, ExclamationIcon, LocationMarkerIcon } from "@heroicons/react/solid";
-import { EventTypeCustomInputType } from "@prisma/client";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { useEffect, useState } from "react";
-import dayjs from "dayjs";
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
-import { LocationType } from "@lib/location";
-import { Button } from "@components/ui/Button";
+import { stringify } from "querystring";
+import { useCallback, useEffect, useState } from "react";
+import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
+import { createPaymentLink } from "@ee/lib/stripe/client";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import useTheme from "@lib/hooks/useTheme";
-import AvatarGroup from "@components/ui/AvatarGroup";
+import { LocationType } from "@lib/location";
+import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
-const BookingPage = (props): JSX.Element => {
+import AvatarGroup from "@components/ui/AvatarGroup";
+import { Button } from "@components/ui/Button";
+
+// import { BookPageProps } from "../../../pages/[user]/book";
+// import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+
+const BookingPage = (props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const themeLoaded = useTheme(props.profile.theme);
+  const { isReady } = useTheme(props.profile.theme);
 
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
@@ -54,7 +70,7 @@ const BookingPage = (props): JSX.Element => {
     [LocationType.Zoom]: "Zoom Video",
   };
 
-  const bookingHandler = (event) => {
+  const _bookingHandler = (event) => {
     const book = async () => {
       setLoading(true);
       setError(false);
@@ -92,13 +108,10 @@ const BookingPage = (props): JSX.Element => {
         notes: notes,
         guests: guestEmails,
         eventTypeId: props.eventType.id,
-        rescheduleUid: rescheduleUid,
         timeZone: timeZone(),
       };
-
-      if (router.query.user) {
-        payload.user = router.query.user;
-      }
+      if (typeof rescheduleUid === "string") payload.rescheduleUid = rescheduleUid;
+      if (typeof router.query.user === "string") payload.user = router.query.user;
 
       if (selectedLocation) {
         switch (selectedLocation) {
@@ -120,59 +133,65 @@ const BookingPage = (props): JSX.Element => {
         jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
       );
 
-      const res = await fetch("/api/book/event", {
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const json = await res.json();
-      if (json.message) {
-        setError(true);
+      const content = await createBooking(payload).catch((e) => {
+        console.error(e.message);
         setLoading(false);
-        return;
-      }
-      console.log(json);
-      let yaclocation = "";
-      if (json.eventType.slug === "async") {
-        yaclocation = json.location;
-      }
-      // TODO When the endpoint is fixed, change this to await the result again
-      //if (res.ok) {
-      let successUrl = `/success?${date ? `date=${encodeURIComponent(date)}&` : ""}type=${
-        props.eventType.id
-      }&user=${props.profile.slug}&reschedule=${!!rescheduleUid}&name=${payload.name}`;
-      if (payload["location"]) {
-        if (payload["location"].includes("integration")) {
-          successUrl += "&location=" + encodeURIComponent("Web conferencing details to follow.");
-        } else {
-          successUrl += "&location=" + encodeURIComponent(payload["location"]);
-        }
-      }
-      if (yaclocation) {
-        successUrl += "&location=" + encodeURIComponent(yaclocation);
-      }
+        setError(true);
+      });
 
-      await router.push(successUrl);
+      if (content?.id) {
+        const params: { [k: string]: any } = {
+          date,
+          type: props.eventType.id,
+          user: props.profile.slug,
+          reschedule: !!rescheduleUid,
+          name: payload.name,
+        };
+
+        if (payload["location"]) {
+          if (payload["location"].includes("integration")) {
+            params.location = "Web conferencing details to follow.";
+          } else {
+            params.location = payload["location"];
+          }
+        }
+
+        if (content.location?.includes("yac.com")) {
+          params.location = content.location;
+        }
+
+        const query = stringify(params);
+        let successUrl = `/success?${query}`;
+
+        if (content?.paymentUid) {
+          successUrl = createPaymentLink(content?.paymentUid, payload.name, date, false);
+        }
+
+        await router.push(successUrl);
+      } else {
+        setLoading(false);
+        setError(true);
+      }
     };
 
     event.preventDefault();
     book();
   };
 
-  return (
-    themeLoaded && (
-      <div>
-        <Head>
-          <title>
-            {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name}{" "}
-            | Yac Meet
-          </title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+  const bookingHandler = useCallback(_bookingHandler, []);
 
-        <main className="max-w-3xl mx-auto my-0 sm:my-24">
+  return (
+    <div>
+      <Head>
+        <title>
+          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name} |
+          Yac Meet
+        </title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main className="max-w-3xl mx-auto my-0 sm:my-24">
+        {isReady && (
           <div className="overflow-hidden bg-white border border-gray-200 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:">
@@ -187,26 +206,34 @@ const BookingPage = (props): JSX.Element => {
                       }))
                   )}
                 />
-                <h2 className="font-medium text-gray-500 ">{props.profile.name}</h2>
+                <h2 className="font-medium text-gray-500 font-cal ">{props.profile.name}</h2>
                 <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{props.eventType.title}</h1>
-                {!(!props.profile.asyncUseCalendar && props.eventType.slug === "async") && (
-                  <>
-                    <p className="mb-2 text-gray-500">
-                      <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                      {props.eventType.length} minutes
-                    </p>
-                    {selectedLocation === LocationType.InPerson && (
-                      <p className="mb-2 text-gray-500">
-                        <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                        {locationInfo(selectedLocation).address}
-                      </p>
-                    )}
-                    <p className="mb-4 text-green-500">
-                      <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                      {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
-                    </p>
-                  </>
+                <p className="mb-2 text-gray-500">
+                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {props.eventType.length} minutes
+                </p>
+                {props.eventType.price > 0 && (
+                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                    <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    <IntlProvider locale="en">
+                      <FormattedNumber
+                        value={props.eventType.price / 100.0}
+                        style="currency"
+                        currency={props.eventType.currency.toUpperCase()}
+                      />
+                    </IntlProvider>
+                  </p>
                 )}
+                {selectedLocation === LocationType.InPerson && (
+                  <p className="mb-2 text-gray-500">
+                    <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {locationInfo(selectedLocation).address}
+                  </p>
+                )}
+                <p className="mb-4 text-green-500">
+                  <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
+                </p>
                 <p className="mb-8 text-gray-600 ">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
@@ -358,40 +385,47 @@ const BookingPage = (props): JSX.Element => {
                           )}
                         </div>
                       ))}
-                  <div className="mb-4">
-                    {!guestToggle && (
-                      <label
-                        onClick={toggleGuestEmailInput}
-                        htmlFor="guests"
-                        className="block mb-1 text-sm font-medium text-blue-500 hover:cursor-pointer">
-                        + Additional Guests
-                      </label>
-                    )}
-                    {guestToggle && (
-                      <div>
-                        <label htmlFor="guests" className="block mb-1 text-sm font-medium text-gray-700 ">
-                          Guests
+                  {!props.eventType.disableGuests && (
+                    <div className="mb-4">
+                      {!guestToggle && (
+                        <label
+                          onClick={toggleGuestEmailInput}
+                          htmlFor="guests"
+                          className="block mb-1 text-sm font-medium text-blue-500 hover:cursor-pointer">
+                          + Additional Guests
                         </label>
-                        <ReactMultiEmail
-                          placeholder="guest@example.com"
-                          emails={guestEmails}
-                          onChange={(_emails: string[]) => {
-                            setGuestEmails(_emails);
-                          }}
-                          getLabel={(email: string, index: number, removeEmail: (index: number) => void) => {
-                            return (
-                              <div data-tag key={index}>
-                                {email}
-                                <span data-tag-handle onClick={() => removeEmail(index)}>
-                                  ×
-                                </span>
-                              </div>
-                            );
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
+                      )}
+                      {guestToggle && (
+                        <div>
+                          <label htmlFor="guests" className="block mb-1 text-sm font-medium text-gray-700 ">
+                            Guests
+                          </label>
+                          <ReactMultiEmail
+                            className="relative"
+                            placeholder="guest@example.com"
+                            emails={guestEmails}
+                            onChange={(_emails: string[]) => {
+                              setGuestEmails(_emails);
+                            }}
+                            getLabel={(
+                              email: string,
+                              index: number,
+                              removeEmail: (index: number) => void
+                            ) => {
+                              return (
+                                <div data-tag key={index}>
+                                  {email}
+                                  <span data-tag-handle onClick={() => removeEmail(index)}>
+                                    ×
+                                  </span>
+                                </div>
+                              );
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="mb-4">
                     <label htmlFor="notes" className="block mb-1 text-sm font-medium text-gray-700 ">
                       Additional notes
@@ -432,9 +466,9 @@ const BookingPage = (props): JSX.Element => {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    )
+        )}
+      </main>
+    </div>
   );
 };
 

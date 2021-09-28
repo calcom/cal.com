@@ -1,8 +1,7 @@
 import { getCsrfToken } from "next-auth/client";
-import { getSession } from "@lib/auth";
-import { useEffect } from "react";
-import { useRouter } from "next/router";
 import Head from "next/head";
+
+import { getSession } from "@lib/auth";
 
 // const errorMessages: { [key: string]: string } = {
 //   [ErrorCode.SecondFactorRequired]:
@@ -15,7 +14,7 @@ import Head from "next/head";
 // };
 
 export default function Login({ csrfToken }) {
-  const router = useRouter();
+  // const router = useRouter();
   // const [email] = useState("");
   // const [password] = useState("");
   // const [code] = useState("");
@@ -23,11 +22,7 @@ export default function Login({ csrfToken }) {
   // const [, setSecondFactorRequired] = useState(false);
   // const [, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!router.query?.callbackUrl) {
-      window.history.replaceState(null, document.title, "?callbackUrl=/");
-    }
-  }, [router.query]);
+  // const callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
 
   // async function handleSubmit(e: React.SyntheticEvent) {
   //   e.preventDefault();

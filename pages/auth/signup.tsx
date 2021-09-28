@@ -1,11 +1,13 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import { useRouter } from "next/router";
-import { signIn } from "next-auth/client";
-import ErrorAlert from "@components/ui/alerts/Error";
-import { useState } from "react";
-import { UsernameInput } from "@components/ui/UsernameInput";
-import prisma from "@lib/prisma";
 import { InferGetServerSidePropsType } from "next";
+import { signIn } from "next-auth/client";
+import { useRouter } from "next/router";
+import { useState } from "react";
+
+import prisma from "@lib/prisma";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import { UsernameInput } from "@components/ui/UsernameInput";
+import ErrorAlert from "@components/ui/alerts/Error";
 
 export default function Signup(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
@@ -54,11 +56,10 @@ export default function Signup(props: InferGetServerSidePropsType<typeof getServ
       className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8"
       aria-labelledby="modal-title"
       role="dialog"
-      aria-modal="true"
-    >
+      aria-modal="true">
       <HeadSeo title="Sign up" description="Sign up" />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-3xl font-extrabold text-center text-gray-900">Create your account</h2>
+        <h2 className="text-3xl font-extrabold text-center text-gray-900 font-cal">Create your account</h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="px-4 py-8 mx-2 bg-white shadow sm:rounded-lg sm:px-10">
@@ -118,8 +119,7 @@ export default function Signup(props: InferGetServerSidePropsType<typeof getServ
               />
               <a
                 onClick={() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })}
-                className="inline-flex justify-center w-5/12 px-4 py-2 text-sm font-medium text-gray-500 border rounded cursor-pointer btn"
-              >
+                className="inline-flex justify-center w-5/12 px-4 py-2 text-sm font-medium text-gray-500 border rounded cursor-pointer btn">
                 Login instead
               </a>
             </div>

@@ -1,4 +1,5 @@
 import React, { PropsWithChildren, useState } from "react";
+
 import classNames from "@lib/classNames";
 
 type RadioAreaProps = React.InputHTMLAttributes<HTMLInputElement> & {
@@ -13,8 +14,7 @@ const RadioArea = (props: RadioAreaProps) => {
         "block border border-1 p-4 focus:outline-none focus:ring focus:ring-neutral-500",
         props.checked && "border-black",
         props.className
-      )}
-    >
+      )}>
       <input
         onChange={(e) => props.onChange(e.target.value)}
         checked={props.checked}
@@ -61,8 +61,7 @@ const RadioAreaGroup = ({
               key={idx}
               name={name}
               checked={idx === checkedIdx}
-              onChange={(value: string) => changeHandler(value, idx)}
-            >
+              onChange={(value: string) => changeHandler(value, idx)}>
               {child.props.children}
             </Item>
           );

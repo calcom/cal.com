@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { CodeIcon, UserIcon } from "@heroicons/react/solid";
+import Link from "next/link";
 import { useRouter } from "next/router";
+
 import classNames from "@lib/classNames";
 
 export default function SettingsShell(props) {

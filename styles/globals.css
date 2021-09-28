@@ -13,6 +13,23 @@
   @apply text-black;
 }
 
+/* DateRangePicker */
+.react-daterange-picker > .react-daterange-picker__wrapper {
+  /* border consistent with other inputs */
+  @apply px-2 py-1.5 lg:py-1 border-gray-300 rounded-sm sm:text-sm;
+}
+
+.react-daterange-picker > .react-daterange-picker__wrapper input {
+  /* Makes sure the on-focus behaviour is like Cal.com's */
+  @apply rounded-sm focus:ring-primary-500 focus:border-primary-500 h-auto py-0.5 my-0.5;
+}
+
+/* Cal Sans */
+@font-face {
+  font-family: "Cal Sans";
+  src: url("https://cal.com/cal.ttf");
+}
+
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {
   /* Primary buttons */
@@ -133,39 +150,34 @@
   }
 }
 
+/* hide intercom chat bubble on mobile */
+@media only screen and (max-width: 768px) {
+  .intercom-launcher-frame {
+    display: none !important;
+  }
+}
+
+/* add padding bottom to bottom nav on standalone mode */
+@media all and (display-mode: standalone) {
+  .bottom-nav {
+    padding-bottom: 24px;
+  }
+}
+
+/* hide intercom chat bubble on mobile */
+@media only screen and (max-width: 768px) {
+  .intercom-launcher-frame {
+    display: none !important;
+  }
+}
+
 .react-multi-email > [type="text"] {
   @apply block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm;
 }
 
-.react-multi-email {
-  margin: 0;
-  max-width: 100%;
-  -webkit-box-flex: 1;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  text-align: left;
-  line-height: 1.25rem;
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  align-content: flex-start;
-  padding-top: 0.1rem !important;
-  padding-bottom: 0.1rem !important;
-  /* padding-left: 0.75rem !important; */
-  @apply bg-white border-white;
-}
-
-.react-multi-email > [type="text"] {
+.react-multi-email [data-tag] {
   box-shadow: none !important;
-}
-
-.react-multi-email.focused > [type="text"] {
-  border: 2px solid #000 !important;
-}
-
-.react-multi-email > [type="text"]:focus {
-  box-shadow: none !important;
+  @apply inline-flex items-center px-2 py-1 my-1 mr-2 text-sm font-medium text-gray-900 border border-transparent rounded-md bg-neutral-200 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email > span[data-placeholder] {
@@ -179,7 +191,7 @@
 
 .react-multi-email.empty > span[data-placeholder] {
   display: inline;
-  color: #000;
+  color: #646b7a;
 }
 
 .react-multi-email.focused > span[data-placeholder] {
@@ -193,8 +205,7 @@
 }
 
 .react-multi-email [data-tag] {
-  box-shadow: none !important;
-  @apply inline-flex items-center px-2 py-1 my-1 mr-2 text-sm font-medium text-gray-900 border border-transparent rounded-md bg-neutral-200 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  @apply inline-flex items-center px-2 py-1 my-1 mr-2 text-sm font-medium text-gray-900 border border-transparent rounded-md shadow-sm bg-neutral-200 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {

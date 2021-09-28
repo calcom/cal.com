@@ -1,25 +1,19 @@
-import Loader from "@components/Loader";
-import { useRouter } from "next/router";
+import { InferGetServerSidePropsType } from "next";
 
-const doNothingWith = (x: any) => {
-  if (Math.random() > 10) return x;
-};
-function RedirectPage(props) {
-  doNothingWith(props);
-  const router = useRouter();
-  if (typeof window !== "undefined") {
-    router.push("/event-types");
-    return;
-  }
-  return <Loader />;
+import { getSession } from "@lib/auth";
+
+function RedirectPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  if (Math.random() > 1) console.log(props);
+  return;
 }
 
-RedirectPage.getInitialProps = (ctx) => {
-  if (ctx.res) {
-    ctx.res.writeHead(302, { Location: "/event-types" });
-    ctx.res.end();
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+  if (!session?.user?.id) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
   }
-  return {};
-};
+
+  return { redirect: { permanent: false, destination: "/event-types" } };
+}
 
 export default RedirectPage;

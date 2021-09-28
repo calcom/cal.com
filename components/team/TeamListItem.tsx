@@ -5,15 +5,18 @@ import {
   PencilAltIcon,
   TrashIcon,
 } from "@heroicons/react/outline";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
-import { useState } from "react";
-import { Tooltip } from "@components/Tooltip";
 import Link from "next/link";
+import { useState } from "react";
+
+import showToast from "@lib/notification";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
+import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
-import showToast from "@lib/notification";
+
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 
 interface Team {
   id: number;
@@ -56,19 +59,20 @@ export default function TeamListItem(props: {
         <div className="flex justify-between my-4">
           <div className="flex">
             <Avatar
+              size={9}
               imageSrc={
                 props.team.logo
                   ? props.team.logo
                   : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
                     encodeURIComponent(props.team.name || "")
               }
-              displayName="Team Logo"
+              alt="Team Logo"
               className="rounded-full w-9 h-9"
             />
             <div className="inline-block ml-3">
               <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>
               <span className="block -mt-1 text-xs text-gray-400">
-                {window.location.hostname}/{props.team.slug}
+                {process.env.NEXT_PUBLIC_APP_URL}/{props.team.slug}
               </span>
             </div>
           </div>
@@ -97,14 +101,15 @@ export default function TeamListItem(props: {
               <Tooltip content="Copy link">
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.hostname + "/team/" + props.team.slug);
+                    navigator.clipboard.writeText(
+                      process.env.NEXT_PUBLIC_APP_URL + "/team/" + props.team.slug
+                    );
                     showToast("Link copied!", "success");
                   }}
                   color="minimal"
                   className="w-full pl-5 ml-8"
                   StartIcon={LinkIcon}
-                  type="button"
-                ></Button>
+                  type="button"></Button>
               </Tooltip>
               <Dropdown>
                 <DropdownMenuTrigger>
@@ -117,14 +122,13 @@ export default function TeamListItem(props: {
                       color="minimal"
                       className="w-full"
                       onClick={() => props.onActionSelect("edit")}
-                      StartIcon={PencilAltIcon}
-                    >
+                      StartIcon={PencilAltIcon}>
                       {" "}
                       Edit team
                     </Button>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="">
-                    <Link href={`/team/${props.team.slug}`} passHref={true}>
+                  <DropdownMenuItem>
+                    <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
                           {" "}
@@ -142,8 +146,7 @@ export default function TeamListItem(props: {
                           }}
                           color="warn"
                           StartIcon={TrashIcon}
-                          className="w-full"
-                        >
+                          className="w-full">
                           Disband Team
                         </Button>
                       </DialogTrigger>
@@ -152,8 +155,7 @@ export default function TeamListItem(props: {
                         title="Disband Team"
                         confirmBtnText="Yes, disband team"
                         cancelBtnText="Cancel"
-                        onConfirm={() => props.onActionSelect("disband")}
-                      >
+                        onConfirm={() => props.onActionSelect("disband")}>
                         Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
                         link with will no longer be able to book using it.
                       </ConfirmationDialogContent>

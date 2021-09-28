@@ -1,12 +1,15 @@
-import EventOrganizerMail from "./emails/EventOrganizerMail";
-import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import prisma from "./prisma";
-import { Credential } from "@prisma/client";
-import CalEventParser from "./CalEventParser";
+import { Prisma, Credential } from "@prisma/client";
+
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
-import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import { VideoCallData } from "@lib/videoClient";
+
+import CalEventParser from "./CalEventParser";
+import EventOrganizerMail from "./emails/EventOrganizerMail";
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
+import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
+import prisma from "./prisma";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
@@ -107,11 +110,10 @@ const o365Auth = (credential) => {
   };
 };
 
-interface Person {
-  name?: string;
-  email: string;
-  timeZone: string;
-}
+const userData = Prisma.validator<Prisma.UserArgs>()({
+  select: { name: true, email: true, timeZone: true },
+});
+export type Person = Prisma.UserGetPayload<typeof userData>;
 
 export interface CalendarEvent {
   type: string;
@@ -140,6 +142,7 @@ export interface IntegrationCalendar {
   name: string;
 }
 
+type BufferedBusyTime = { start: string; end: string };
 export interface CalendarApiAdapter {
   createEvent(event: CalendarEvent): Promise<unknown>;
 
@@ -147,7 +150,11 @@ export interface CalendarApiAdapter {
 
   deleteEvent(uid: string);
 
-  getAvailability(dateFrom, dateTo, selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
+  getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<BufferedBusyTime[]>;
 
   listCalendars(): Promise<IntegrationCalendar[]>;
 }
@@ -548,9 +555,10 @@ const createEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
   noMail = false,
-  maybeUid: string = null
+  maybeUid?: string,
+  optionalVideoCallData?: VideoCallData
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
+  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid, optionalVideoCallData);
   const uid: string = parser.getUid();
   /*
    * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
@@ -601,9 +609,10 @@ const updateEvent = async (
   credential: Credential,
   uidToUpdate: string,
   calEvent: CalendarEvent,
-  noMail = false
+  noMail = false,
+  optionalVideoCallData?: VideoCallData
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
+  const parser: CalEventParser = new CalEventParser(calEvent, undefined, optionalVideoCallData);
   const newUid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 

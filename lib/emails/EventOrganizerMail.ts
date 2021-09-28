@@ -1,11 +1,11 @@
-import { createEvent } from "ics";
 import dayjs, { Dayjs } from "dayjs";
-import EventMail from "./EventMail";
-
-import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
-import localizedFormat from "dayjs/plugin/localizedFormat";
+import utc from "dayjs/plugin/utc";
+import { createEvent } from "ics";
+
+import EventMail from "./EventMail";
 import { stripHtml } from "./helpers";
 
 dayjs.extend(utc);
@@ -217,6 +217,6 @@ export default class EventOrganizerMail extends EventMail {
    * @private
    */
   protected getOrganizerStart(): Dayjs {
-    return <Dayjs>dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
+    return dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
   }
 }

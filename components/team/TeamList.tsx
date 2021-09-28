@@ -1,5 +1,6 @@
-import TeamListItem from "./TeamListItem";
 import { Team } from "@lib/team";
+
+import TeamListItem from "./TeamListItem";
 
 export default function TeamList(props: {
   teams: Team[];
@@ -31,8 +32,7 @@ export default function TeamList(props: {
             onChange={props.onChange}
             key={team.id}
             team={team}
-            onActionSelect={(action: string) => selectAction(action, team)}
-          ></TeamListItem>
+            onActionSelect={(action: string) => selectAction(action, team)}></TeamListItem>
         ))}
       </ul>
     </div>

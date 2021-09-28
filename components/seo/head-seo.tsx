@@ -1,8 +1,9 @@
+import merge from "lodash.merge";
 import { NextSeo, NextSeoProps } from "next-seo";
 import React from "react";
-import { getBrowserInfo } from "@lib/core/browser/browser.utils";
+
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
-import merge from "lodash.merge";
+import { getBrowserInfo } from "@lib/core/browser/browser.utils";
 
 export type HeadSeoProps = {
   title: string;

@@ -1,12 +1,14 @@
-import React from "react";
-import prisma from "@lib/prisma";
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
-import { getSession, useSession } from "next-auth/client";
-import Loader from "@components/Loader";
-import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
-import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import { InferGetServerSidePropsType } from "next";
+import { getSession, useSession } from "next-auth/client";
+import React from "react";
+
+import prisma from "@lib/prisma";
+
+import Loader from "@components/Loader";
+import SettingsShell from "@components/Settings";
+import Shell from "@components/Shell";
+import ChangePasswordSection from "@components/security/ChangePasswordSection";
+import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 
 export default function Security({ user }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -46,6 +48,6 @@ export async function getServerSideProps(context) {
   });
 
   return {
-    props: { user }, // will be passed to the page component as props
+    props: { session, user },
   };
 }

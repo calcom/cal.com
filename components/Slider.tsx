@@ -1,5 +1,5 @@
-import React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
+import React from "react";
 
 const Slider = ({ value, min, max, step, label, changeHandler }) => (
   <SliderPrimitive.Root
@@ -9,8 +9,7 @@ const Slider = ({ value, min, max, step, label, changeHandler }) => (
     max={max}
     value={[value]}
     aria-label={label}
-    onValueChange={changeHandler}
-  >
+    onValueChange={changeHandler}>
     <SliderPrimitive.Track className="slider-track">
       <SliderPrimitive.Range className="slider-range" />
     </SliderPrimitive.Track>

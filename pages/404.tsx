@@ -1,8 +1,9 @@
-import { ChevronRightIcon } from "@heroicons/react/solid";
 import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
+import { ChevronRightIcon } from "@heroicons/react/solid";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
-import Link from "next/link";
+
 import { HeadSeo } from "@components/seo/head-seo";
 
 const links = [
@@ -49,7 +50,7 @@ export default function Custom404(props) {
         <main className="max-w-xl pt-16 pb-6 mx-auto sm:pt-24">
           <div className="text-center">
             <p className="text-sm font-semibold tracking-wide text-black uppercase">404 error</p>
-            <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-gray-900 font-cal sm:text-5xl">
               This page does not exist.
             </h1>
             {isEventType404 ? (
@@ -127,20 +128,16 @@ export default function Custom404(props) {
                         <g clipRule="evenodd" fillRule="evenodd">
                           <path
                             d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                            fill="rgba(55, 65, 81)"
-                          ></path>
+                            fill="rgba(55, 65, 81)"></path>
                           <path
                             d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                            fill="rgba(55, 65, 81)"
-                          ></path>
+                            fill="rgba(55, 65, 81)"></path>
                           <path
                             d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                            fill="rgba(55, 65, 81)"
-                          ></path>
+                            fill="rgba(55, 65, 81)"></path>
                           <path
                             d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                            fill="rgba(55, 65, 81)"
-                          ></path>
+                            fill="rgba(55, 65, 81)"></path>
                         </g>
                       </svg>
                     </span>

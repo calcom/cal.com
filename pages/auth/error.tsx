@@ -1,7 +1,8 @@
-import { useRouter } from "next/router";
 import { XIcon } from "@heroicons/react/outline";
-import { HeadSeo } from "@components/seo/head-seo";
 import Link from "next/link";
+import { useRouter } from "next/router";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Error(props) {
   const router = useRouter();
@@ -12,8 +13,7 @@ export default function Error(props) {
       className="fixed inset-0 z-50 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
-      aria-modal="true"
-    >
+      aria-modal="true">
       <HeadSeo title="Error" description="Error" />
       <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">

@@ -1,7 +1,10 @@
 import { SyntheticEvent, useState } from "react";
-import Button from "@components/ui/Button";
-import { Dialog, DialogContent } from "@components/Dialog";
+
 import { ErrorCode } from "@lib/auth";
+
+import { Dialog, DialogContent } from "@components/Dialog";
+import Button from "@components/ui/Button";
+
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";
 
@@ -86,8 +89,7 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
             type="submit"
             className="ml-2"
             onClick={handleDisable}
-            disabled={password.length === 0 || isDisabling}
-          >
+            disabled={password.length === 0 || isDisabling}>
             Disable
           </Button>
           <Button color="secondary" onClick={onCancel}>

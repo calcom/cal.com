@@ -19,8 +19,7 @@ export function Alert(props: AlertProps) {
         severity === "error" && "bg-red-50 text-red-800",
         severity === "warning" && "bg-yellow-50 text-yellow-800",
         severity === "success" && "bg-gray-900 text-white"
-      )}
-    >
+      )}>
       <div className="flex">
         <div className="flex-shrink-0">
           {severity === "error" && (
@@ -33,7 +32,7 @@ export function Alert(props: AlertProps) {
             <CheckCircleIcon className={classNames("h-5 w-5 text-gray-400")} aria-hidden="true" />
           )}
         </div>
-        <div className="ml-3">
+        <div className="ml-3 flex-grow">
           <h3 className="text-sm font-medium">{props.title}</h3>
           <div className="text-sm">{props.message}</div>
         </div>

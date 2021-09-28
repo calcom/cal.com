@@ -1,5 +1,6 @@
-import Cropper from "react-easy-crop";
 import { useCallback, useRef, useState } from "react";
+import Cropper from "react-easy-crop";
+
 import Slider from "./Slider";
 
 export default function ImageUploader({ noChange, target, id, buttonMsg, handleAvatarChange, imageRef }) {
@@ -143,7 +144,7 @@ export default function ImageUploader({ noChange, target, id, buttonMsg, handleA
             <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-6">
               <div className="mb-4 sm:flex sm:items-start">
                 <div className="mt-3 text-center sm:mt-0 sm:text-left">
-                  <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+                  <h3 className="text-lg font-bold leading-6 text-gray-900 font-cal" id="modal-title">
                     Upload {target}
                   </h3>
                 </div>
