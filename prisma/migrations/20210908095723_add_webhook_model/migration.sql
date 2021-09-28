@@ -27,3 +27,7 @@ ALTER TABLE "WebhookEventTypes" ADD FOREIGN KEY ("webhookId") REFERENCES "Webhoo
 
 -- AddForeignKey
 ALTER TABLE "WebhookEventTypes" ADD FOREIGN KEY ("eventTypeId") REFERENCES "EventType"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AlterTable
+ALTER TABLE "EventType" ADD COLUMN "webhooks" WebhookEventTypes[] NOT NULL;
+
