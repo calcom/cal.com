@@ -5,17 +5,23 @@ import { OptionsType } from "react-select/lib/types";
 import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";
 
+type CheckedSelectValue = {
+  avatar: string;
+  label: string;
+  value: string;
+}[];
+
 export type CheckedSelectProps = {
-  defaultValue?: [];
+  defaultValue?: CheckedSelectValue;
   placeholder?: string;
   name?: string;
-  options: [];
+  options: CheckedSelectValue;
   onChange: (options: OptionsType) => void;
-  disabled: [];
+  disabled: boolean;
 };
 
 export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: ForwardedRef<unknown>) => {
-  const [selectedOptions, setSelectedOptions] = useState<[]>(props.defaultValue || []);
+  const [selectedOptions, setSelectedOptions] = useState<CheckedSelectValue>(props.defaultValue || []);
 
   useEffect(() => {
     props.onChange(selectedOptions);
@@ -38,7 +44,7 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
     disabled: !!selectedOptions.find((selectedOption) => selectedOption.value === option.value),
   }));
 
-  const removeOption = (value) =>
+  const removeOption = (value: string) =>
     setSelectedOptions(selectedOptions.filter((option) => option.value !== value));
 
   const changeHandler = (selections) =>
