@@ -7,6 +7,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
+import { getSession } from "@lib/auth";
 
 export default async function handler(req, res) {
   // just bail if it not a DELETE
@@ -15,6 +16,7 @@ export default async function handler(req, res) {
   }
 
   const uid = asStringOrNull(req.body.uid) || "";
+  const session = await getSession({ req: req });
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
@@ -24,6 +26,7 @@ export default async function handler(req, res) {
       id: true,
       user: {
         select: {
+          id: true,
           credentials: true,
           email: true,
           timeZone: true,
@@ -48,8 +51,12 @@ export default async function handler(req, res) {
     },
   });
 
-  if (!bookingToDelete) {
+  if (!bookingToDelete || !bookingToDelete.user) {
     return res.status(404).end();
+  }
+
+  if ((!session || session.user?.id != bookingToDelete.user?.id) && bookingToDelete.startTime < new Date()) {
+    return res.status(403).json({ message: "Cannot cancel past events" });
   }
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
