@@ -4,7 +4,6 @@ import { BanIcon, CalendarIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/r
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
-import { useRouter } from "next/router";
 import { Fragment } from "react";
 
 import classNames from "@lib/classNames";
@@ -20,8 +19,6 @@ export default function Bookings() {
   const query = trpc.useQuery(["viewer.bookings"]);
   const bookings = query.data;
 
-  const router = useRouter();
-
   async function confirmBookingHandler(booking: { id: number }, confirm: boolean) {
     const res = await fetch("/api/book/confirm", {
       method: "PATCH",
@@ -31,7 +28,7 @@ export default function Bookings() {
       },
     });
     if (res.ok) {
-      await router.replace(router.asPath);
+      await query.refetch();
     }
   }
 

@@ -1469,23 +1469,16 @@
   dependencies:
     "@types/node" "*"
 
-"@types/react-dates@^21.8.3":
-  version "21.8.3"
-  resolved "https://registry.npmjs.org/@types/react-dates/-/react-dates-21.8.3.tgz"
+"@types/react-calendar@^3.0.0":
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/@types/react-calendar/-/react-calendar-3.4.3.tgz#f2475519b44a1495562c526556074df947ce5bc6"
+  integrity sha512-k56OS9d62/g3OCTepULEpNoClVUKuWxHBBuKS4hX8/qNiNup+Gf1Qn0SXHakbqBGWEfdLK93RlIRy5XOA4+Iaw==
   dependencies:
     "@types/react" "*"
-    "@types/react-outside-click-handler" "*"
-    moment "^2.26.0"
 
 "@types/react-dom@*":
   version "17.0.9"
   resolved "https://registry.npmjs.org/@types/react-dom/-/react-dom-17.0.9.tgz"
-  dependencies:
-    "@types/react" "*"
-
-"@types/react-outside-click-handler@*":
-  version "1.3.0"
-  resolved "https://registry.npmjs.org/@types/react-outside-click-handler/-/react-outside-click-handler-1.3.0.tgz"
   dependencies:
     "@types/react" "*"
 
@@ -1620,6 +1613,23 @@
     "@typescript-eslint/types" "4.31.2"
     eslint-visitor-keys "^2.0.0"
 
+"@wojtekmaj/date-utils@^1.0.2", "@wojtekmaj/date-utils@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@wojtekmaj/date-utils/-/date-utils-1.0.3.tgz#2dcfd92881425c5923e429c2aec86fb3609032a1"
+  integrity sha512-1VPkkTBk07gMR1fjpBtse4G+oJqpmE+0gUFB0dg3VIL7qJmUVaBoD/vlzMm/jNeOPfvlmerl1lpnsZyBUFIRuw==
+
+"@wojtekmaj/react-daterange-picker@^3.3.1":
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@wojtekmaj/react-daterange-picker/-/react-daterange-picker-3.3.1.tgz#50882581480913eca1ec0cc21f2973a121225fe7"
+  integrity sha512-G06itFb+NETeMV8W0EY2wolCbufEM4/8RCsS0EEsXTOYRhnXGjVufJeIxcQwbkw7zshfBkZJpbTcTkCQ+PuRbQ==
+  dependencies:
+    make-event-props "^1.1.0"
+    merge-class-names "^1.1.1"
+    prop-types "^15.6.0"
+    react-calendar "^3.3.1"
+    react-date-picker "^8.3.3"
+    react-fit "^1.0.3"
+
 abab@^2.0.3, abab@^2.0.5:
   version "2.0.5"
   resolved "https://registry.npmjs.org/abab/-/abab-2.0.5.tgz"
@@ -1681,20 +1691,6 @@ aggregate-error@^3.0.0:
   dependencies:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
-
-airbnb-prop-types@^2.10.0, airbnb-prop-types@^2.14.0, airbnb-prop-types@^2.15.0:
-  version "2.16.0"
-  resolved "https://registry.npmjs.org/airbnb-prop-types/-/airbnb-prop-types-2.16.0.tgz"
-  dependencies:
-    array.prototype.find "^2.1.1"
-    function.prototype.name "^1.1.2"
-    is-regex "^1.1.0"
-    object-is "^1.1.2"
-    object.assign "^4.1.0"
-    object.entries "^1.1.2"
-    prop-types "^15.7.2"
-    prop-types-exact "^1.2.0"
-    react-is "^16.13.1"
 
 ajv@^6.10.0, ajv@^6.12.3, ajv@^6.12.4:
   version "6.12.6"
@@ -1824,21 +1820,6 @@ array-includes@^3.1.3:
 array-union@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/array-union/-/array-union-2.1.0.tgz"
-
-array.prototype.find@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.npmjs.org/array.prototype.find/-/array.prototype.find-2.1.1.tgz"
-  dependencies:
-    define-properties "^1.1.3"
-    es-abstract "^1.17.4"
-
-array.prototype.flat@^1.2.1:
-  version "1.2.4"
-  resolved "https://registry.npmjs.org/array.prototype.flat/-/array.prototype.flat-1.2.4.tgz"
-  dependencies:
-    call-bind "^1.0.0"
-    define-properties "^1.1.3"
-    es-abstract "^1.18.0-next.1"
 
 array.prototype.flatmap@^1.2.4:
   version "1.2.4"
@@ -2054,10 +2035,6 @@ braces@^3.0.1, braces@~3.0.2:
   resolved "https://registry.npmjs.org/braces/-/braces-3.0.2.tgz"
   dependencies:
     fill-range "^7.0.1"
-
-brcast@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.npmjs.org/brcast/-/brcast-2.0.2.tgz"
 
 broadcast-channel@^3.4.1:
   version "3.7.0"
@@ -2498,10 +2475,6 @@ console-browserify@^1.1.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/console-browserify/-/console-browserify-1.2.0.tgz"
 
-"consolidated-events@^1.1.1 || ^2.0.0":
-  version "2.0.2"
-  resolved "https://registry.npmjs.org/consolidated-events/-/consolidated-events-2.0.2.tgz"
-
 constants-browserify@1.0.0, constants-browserify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/constants-browserify/-/constants-browserify-1.0.0.tgz"
@@ -2762,15 +2735,11 @@ deep-is@^0.1.3, deep-is@~0.1.3:
   version "0.1.4"
   resolved "https://registry.npmjs.org/deep-is/-/deep-is-0.1.4.tgz"
 
-deepmerge@^1.5.2:
-  version "1.5.2"
-  resolved "https://registry.npmjs.org/deepmerge/-/deepmerge-1.5.2.tgz"
-
 deepmerge@^4.2.2:
   version "4.2.2"
   resolved "https://registry.npmjs.org/deepmerge/-/deepmerge-4.2.2.tgz"
 
-define-properties@^1.1.2, define-properties@^1.1.3:
+define-properties@^1.1.3:
   version "1.1.3"
   resolved "https://registry.npmjs.org/define-properties/-/define-properties-1.1.3.tgz"
   dependencies:
@@ -2798,6 +2767,11 @@ des.js@^1.0.0:
   dependencies:
     inherits "^2.0.1"
     minimalistic-assert "^1.0.0"
+
+detect-element-overflow@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/detect-element-overflow/-/detect-element-overflow-1.2.0.tgz#86e504292ffedc3aef813395fbdf0261aaf6afa9"
+  integrity sha512-Jtr9ivYPhpd9OJux+hjL0QjUKiS1Ghgy8tvIufUjFslQgIWvgGr4mn57H190APbKkiOmXnmtMI6ytaKzMusecg==
 
 detect-newline@^3.0.0:
   version "3.1.0"
@@ -2849,10 +2823,6 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
-direction@^1.0.2:
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/direction/-/direction-1.0.4.tgz"
-
 dlv@^1.1.3:
   version "1.1.3"
   resolved "https://registry.npmjs.org/dlv/-/dlv-1.1.3.tgz"
@@ -2868,12 +2838,6 @@ doctrine@^3.0.0:
   resolved "https://registry.npmjs.org/doctrine/-/doctrine-3.0.0.tgz"
   dependencies:
     esutils "^2.0.2"
-
-document.contains@^1.0.1:
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/document.contains/-/document.contains-1.0.2.tgz"
-  dependencies:
-    define-properties "^1.1.3"
 
 dom-helpers@^5.0.1:
   version "5.2.1"
@@ -2974,20 +2938,13 @@ enquirer@^2.3.5, enquirer@^2.3.6:
   dependencies:
     ansi-colors "^4.1.1"
 
-enzyme-shallow-equal@^1.0.0:
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/enzyme-shallow-equal/-/enzyme-shallow-equal-1.0.4.tgz"
-  dependencies:
-    has "^1.0.3"
-    object-is "^1.1.2"
-
 error-ex@^1.3.1:
   version "1.3.2"
   resolved "https://registry.npmjs.org/error-ex/-/error-ex-1.3.2.tgz"
   dependencies:
     is-arrayish "^0.2.1"
 
-es-abstract@^1.17.4, es-abstract@^1.18.0-next.1, es-abstract@^1.18.0-next.2, es-abstract@^1.18.1, es-abstract@^1.18.2, es-abstract@^1.18.5:
+es-abstract@^1.18.0-next.1, es-abstract@^1.18.0-next.2, es-abstract@^1.18.1, es-abstract@^1.18.2, es-abstract@^1.18.5:
   version "1.18.6"
   resolved "https://registry.npmjs.org/es-abstract/-/es-abstract-1.18.6.tgz"
   dependencies:
@@ -3445,22 +3402,9 @@ function-bind@^1.1.1:
   version "1.1.1"
   resolved "https://registry.npmjs.org/function-bind/-/function-bind-1.1.1.tgz"
 
-function.prototype.name@^1.1.2:
-  version "1.1.4"
-  resolved "https://registry.npmjs.org/function.prototype.name/-/function.prototype.name-1.1.4.tgz"
-  dependencies:
-    call-bind "^1.0.2"
-    define-properties "^1.1.3"
-    es-abstract "^1.18.0-next.2"
-    functions-have-names "^1.2.2"
-
 functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz"
-
-functions-have-names@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.npmjs.org/functions-have-names/-/functions-have-names-1.2.2.tgz"
 
 futoin-hkdf@^1.3.2:
   version "1.4.2"
@@ -3534,6 +3478,13 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
+get-user-locale@^1.2.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/get-user-locale/-/get-user-locale-1.4.0.tgz#a2c4b5da46feec9f03c9b07d197b1620490a5370"
+  integrity sha512-gQo03lP1OArHLKlnoglqrGGl7b04u2EP9Xutmp72cMdtrrSD7ZgIsCsUKZynYWLDkVJW33Cj3pliP7uP0UonHQ==
+  dependencies:
+    lodash.once "^4.1.1"
+
 getos@^3.2.1:
   version "3.2.1"
   resolved "https://registry.npmjs.org/getos/-/getos-3.2.1.tgz"
@@ -3572,13 +3523,6 @@ glob@^7.0.0, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6:
     minimatch "^3.0.4"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
-
-global-cache@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.npmjs.org/global-cache/-/global-cache-1.2.1.tgz"
-  dependencies:
-    define-properties "^1.1.2"
-    is-symbol "^1.0.1"
 
 global-dirs@^3.0.0:
   version "3.0.0"
@@ -3752,7 +3696,7 @@ hmac-drbg@^1.0.1:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
 
-hoist-non-react-statics@^3.2.0, hoist-non-react-statics@^3.2.1, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.1, hoist-non-react-statics@^3.3.2:
+hoist-non-react-statics@^3.2.0, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.1, hoist-non-react-statics@^3.3.2:
   version "3.3.2"
   resolved "https://registry.npmjs.org/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz"
   dependencies:
@@ -4125,7 +4069,7 @@ is-potential-custom-element-name@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/is-potential-custom-element-name/-/is-potential-custom-element-name-1.0.1.tgz"
 
-is-regex@^1.1.0, is-regex@^1.1.4:
+is-regex@^1.1.4:
   version "1.1.4"
   resolved "https://registry.npmjs.org/is-regex/-/is-regex-1.1.4.tgz"
   dependencies:
@@ -4150,15 +4094,11 @@ is-string@^1.0.5, is-string@^1.0.7:
   dependencies:
     has-tostringtag "^1.0.0"
 
-is-symbol@^1.0.1, is-symbol@^1.0.2, is-symbol@^1.0.3:
+is-symbol@^1.0.2, is-symbol@^1.0.3:
   version "1.0.4"
   resolved "https://registry.npmjs.org/is-symbol/-/is-symbol-1.0.4.tgz"
   dependencies:
     has-symbols "^1.0.2"
-
-is-touch-device@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/is-touch-device/-/is-touch-device-1.0.1.tgz"
 
 is-typed-array@^1.1.3, is-typed-array@^1.1.7:
   version "1.1.8"
@@ -4982,7 +4922,7 @@ lodash.truncate@^4.4.2:
   version "4.4.2"
   resolved "https://registry.npmjs.org/lodash.truncate/-/lodash.truncate-4.4.2.tgz"
 
-lodash@4.17.21, lodash@^4.1.1, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.7.0:
+lodash@4.17.21, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
 
@@ -5024,6 +4964,11 @@ make-error@^1.1.1:
   version "1.3.6"
   resolved "https://registry.npmjs.org/make-error/-/make-error-1.3.6.tgz"
 
+make-event-props@^1.1.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/make-event-props/-/make-event-props-1.3.0.tgz#2434cb390d58bcf40898d009ef5b1f936de9671b"
+  integrity sha512-oWiDZMcVB1/A487251hEWza1xzgCzl6MXxe9aF24l5Bt9N9UEbqTqKumEfuuLhmlhRZYnc+suVvW4vUs8bwO7Q==
+
 makeerror@1.0.x:
   version "1.0.11"
   resolved "https://registry.npmjs.org/makeerror/-/makeerror-1.0.11.tgz"
@@ -5048,6 +4993,16 @@ md5.js@^1.3.4:
 memoize-one@^5.0.0:
   version "5.2.1"
   resolved "https://registry.npmjs.org/memoize-one/-/memoize-one-5.2.1.tgz"
+
+merge-class-names@^1.1.1:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/merge-class-names/-/merge-class-names-1.4.2.tgz#78d6d95ab259e7e647252a7988fd25a27d5a8835"
+  integrity sha512-bOl98VzwCGi25Gcn3xKxnR5p/WrhWFQB59MS/aGENcmUc6iSm96yrFDF0XSNurX9qN4LbJm0R9kfvsQ17i8zCw==
+
+merge-refs@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/merge-refs/-/merge-refs-1.0.0.tgz#388348bce22e623782c6df9d3c4fc55888276120"
+  integrity sha512-WZ4S5wqD9FCR9hxkLgvcHJCBxzXzy3VVE6p8W2OzxRzB+hLRlcadGE2bW9xp2KSzk10rvp4y+pwwKO6JQVguMg==
 
 merge-stream@^2.0.0:
   version "2.0.0"
@@ -5131,10 +5086,6 @@ mockdate@^3.0.5:
 modern-normalize@^1.1.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/modern-normalize/-/modern-normalize-1.1.0.tgz"
-
-moment@>=1.6.0, moment@^2.26.0:
-  version "2.29.1"
-  resolved "https://registry.npmjs.org/moment/-/moment-2.29.1.tgz"
 
 ms@2.0.0:
   version "2.0.0"
@@ -5397,7 +5348,7 @@ object-inspect@^1.11.0, object-inspect@^1.9.0:
   version "1.11.0"
   resolved "https://registry.npmjs.org/object-inspect/-/object-inspect-1.11.0.tgz"
 
-object-is@^1.0.1, object-is@^1.1.2:
+object-is@^1.0.1:
   version "1.1.5"
   resolved "https://registry.npmjs.org/object-is/-/object-is-1.1.5.tgz"
   dependencies:
@@ -5408,7 +5359,7 @@ object-keys@^1.0.12, object-keys@^1.1.1:
   version "1.1.1"
   resolved "https://registry.npmjs.org/object-keys/-/object-keys-1.1.1.tgz"
 
-object.assign@^4.1.0, object.assign@^4.1.2:
+object.assign@^4.1.2:
   version "4.1.2"
   resolved "https://registry.npmjs.org/object.assign/-/object.assign-4.1.2.tgz"
   dependencies:
@@ -5417,7 +5368,7 @@ object.assign@^4.1.0, object.assign@^4.1.2:
     has-symbols "^1.0.1"
     object-keys "^1.1.1"
 
-object.entries@^1.1.2, object.entries@^1.1.4:
+object.entries@^1.1.4:
   version "1.1.4"
   resolved "https://registry.npmjs.org/object.entries/-/object.entries-1.1.4.tgz"
   dependencies:
@@ -5441,7 +5392,7 @@ object.hasown@^1.0.0:
     define-properties "^1.1.3"
     es-abstract "^1.18.1"
 
-object.values@^1.0.4, object.values@^1.1.0, object.values@^1.1.4:
+object.values@^1.1.4:
   version "1.1.4"
   resolved "https://registry.npmjs.org/object.values/-/object.values-1.1.4.tgz"
   dependencies:
@@ -5818,14 +5769,6 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types-exact@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.npmjs.org/prop-types-exact/-/prop-types-exact-1.2.0.tgz"
-  dependencies:
-    has "^1.0.3"
-    object.assign "^4.1.0"
-    reflect.ownkeys "^0.2.0"
-
 prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.npmjs.org/prop-types/-/prop-types-15.7.2.tgz"
@@ -5929,12 +5872,6 @@ quick-lru@^5.1.1:
   version "5.1.1"
   resolved "https://registry.npmjs.org/quick-lru/-/quick-lru-5.1.1.tgz"
 
-raf@^3.4.1:
-  version "3.4.1"
-  resolved "https://registry.npmjs.org/raf/-/raf-3.4.1.tgz"
-  dependencies:
-    performance-now "^2.1.0"
-
 ramda@~0.27.1:
   version "0.27.1"
   resolved "https://registry.npmjs.org/ramda/-/ramda-0.27.1.tgz"
@@ -5970,25 +5907,31 @@ raw-body@2.4.1:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
-react-dates@^21.8.0:
-  version "21.8.0"
-  resolved "https://registry.npmjs.org/react-dates/-/react-dates-21.8.0.tgz"
+react-calendar@^3.3.1:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/react-calendar/-/react-calendar-3.4.0.tgz#25396ca0992b3b2042abca334515f6ff4d9878bc"
+  integrity sha512-ykbvXASArQQ8KZlCEXEdE+w+KFGSj7kDpdTRzbLVJeN26oUIu+EFavFDAqg4G//zTO0tSq5SMfqAa6fjrdGQjQ==
   dependencies:
-    airbnb-prop-types "^2.15.0"
-    consolidated-events "^1.1.1 || ^2.0.0"
-    enzyme-shallow-equal "^1.0.0"
-    is-touch-device "^1.0.1"
-    lodash "^4.1.1"
-    object.assign "^4.1.0"
-    object.values "^1.1.0"
-    prop-types "^15.7.2"
-    raf "^3.4.1"
-    react-moment-proptypes "^1.6.0"
-    react-outside-click-handler "^1.2.4"
-    react-portal "^4.2.0"
-    react-with-direction "^1.3.1"
-    react-with-styles "^4.1.0"
-    react-with-styles-interface-css "^6.0.0"
+    "@wojtekmaj/date-utils" "^1.0.2"
+    get-user-locale "^1.2.0"
+    merge-class-names "^1.1.1"
+    prop-types "^15.6.0"
+
+react-date-picker@^8.3.3:
+  version "8.3.3"
+  resolved "https://registry.yarnpkg.com/react-date-picker/-/react-date-picker-8.3.3.tgz#87e4df8be5a033fb22b6df7cb5d3f6ae31030477"
+  integrity sha512-33A9TBtE8RuIg6qzAiwB7+zxJ0SKIkdGwhP0eiEuSmQbiMAGZ59E9RoftsLkoFnF+eWR1XyhInvLPLzyGtIvcQ==
+  dependencies:
+    "@types/react-calendar" "^3.0.0"
+    "@wojtekmaj/date-utils" "^1.0.3"
+    get-user-locale "^1.2.0"
+    make-event-props "^1.1.0"
+    merge-class-names "^1.1.1"
+    merge-refs "^1.0.0"
+    prop-types "^15.6.0"
+    react-calendar "^3.3.1"
+    react-fit "^1.0.3"
+    update-input-width "^1.2.2"
 
 react-dom@17.0.2:
   version "17.0.2"
@@ -6004,6 +5947,14 @@ react-easy-crop@^3.5.2:
   dependencies:
     normalize-wheel "^1.0.1"
     tslib "2.0.1"
+
+react-fit@^1.0.3:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/react-fit/-/react-fit-1.3.2.tgz#dea734d1dbe4d540037a766c316ae7a4141cf421"
+  integrity sha512-Ih/ee8/I/N6EcGZjOqfo/yFq6Q/xuZ62uai21rMyud208ixx8V5xJxuRLIxedLcwNAEtyyEPEJ2Y47qeKljQHA==
+  dependencies:
+    detect-element-overflow "^1.2.0"
+    prop-types "^15.6.0"
 
 react-hot-toast@^2.1.0:
   version "2.1.1"
@@ -6043,29 +5994,13 @@ react-is@17.0.2, react-is@^17.0.1:
   version "17.0.2"
   resolved "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz"
 
-react-is@^16.13.1, react-is@^16.7.0, react-is@^16.8.1:
+react-is@^16.7.0, react-is@^16.8.1:
   version "16.13.1"
   resolved "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz"
-
-react-moment-proptypes@^1.6.0:
-  version "1.8.1"
-  resolved "https://registry.npmjs.org/react-moment-proptypes/-/react-moment-proptypes-1.8.1.tgz"
-  dependencies:
-    moment ">=1.6.0"
 
 react-multi-email@^0.5.3:
   version "0.5.3"
   resolved "https://registry.npmjs.org/react-multi-email/-/react-multi-email-0.5.3.tgz"
-
-react-outside-click-handler@^1.2.4:
-  version "1.3.0"
-  resolved "https://registry.npmjs.org/react-outside-click-handler/-/react-outside-click-handler-1.3.0.tgz"
-  dependencies:
-    airbnb-prop-types "^2.15.0"
-    consolidated-events "^1.1.1 || ^2.0.0"
-    document.contains "^1.0.1"
-    object.values "^1.1.0"
-    prop-types "^15.7.2"
 
 react-phone-number-input@^3.1.25:
   version "3.1.27"
@@ -6076,12 +6011,6 @@ react-phone-number-input@^3.1.25:
     input-format "^0.3.6"
     libphonenumber-js "^1.9.26"
     prop-types "^15.7.2"
-
-react-portal@^4.2.0:
-  version "4.2.1"
-  resolved "https://registry.npmjs.org/react-portal/-/react-portal-4.2.1.tgz"
-  dependencies:
-    prop-types "^15.5.8"
 
 react-query@^3.23.1:
   version "3.23.1"
@@ -6160,36 +6089,6 @@ react-use-intercom@1.4.0:
   resolved "https://registry.npmjs.org/react-use-intercom/-/react-use-intercom-1.4.0.tgz"
   integrity sha512-HqPp7nRnftREE01i88w2kYWOV45zvJt0Of6jtHflIBa3eKl1bAs/izZUINGCJ0DOdgAdlbLweAvJlP4VTzsJjQ==
 
-react-with-direction@^1.3.1:
-  version "1.3.1"
-  resolved "https://registry.npmjs.org/react-with-direction/-/react-with-direction-1.3.1.tgz"
-  dependencies:
-    airbnb-prop-types "^2.10.0"
-    brcast "^2.0.2"
-    deepmerge "^1.5.2"
-    direction "^1.0.2"
-    hoist-non-react-statics "^3.3.0"
-    object.assign "^4.1.0"
-    object.values "^1.0.4"
-    prop-types "^15.6.2"
-
-react-with-styles-interface-css@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.npmjs.org/react-with-styles-interface-css/-/react-with-styles-interface-css-6.0.0.tgz"
-  dependencies:
-    array.prototype.flat "^1.2.1"
-    global-cache "^1.2.1"
-
-react-with-styles@^4.1.0:
-  version "4.2.0"
-  resolved "https://registry.npmjs.org/react-with-styles/-/react-with-styles-4.2.0.tgz"
-  dependencies:
-    airbnb-prop-types "^2.14.0"
-    hoist-non-react-statics "^3.2.1"
-    object.assign "^4.1.0"
-    prop-types "^15.7.2"
-    react-with-direction "^1.3.1"
-
 react@17.0.2:
   version "17.0.2"
   resolved "https://registry.npmjs.org/react/-/react-17.0.2.tgz"
@@ -6239,10 +6138,6 @@ reduce-css-calc@^2.1.8:
 reflect-metadata@^0.1.13:
   version "0.1.13"
   resolved "https://registry.npmjs.org/reflect-metadata/-/reflect-metadata-0.1.13.tgz"
-
-reflect.ownkeys@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/reflect.ownkeys/-/reflect.ownkeys-0.2.0.tgz"
 
 regenerator-runtime@^0.13.4:
   version "0.13.9"
@@ -7117,6 +7012,11 @@ unpipe@1.0.0:
 untildify@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/untildify/-/untildify-4.0.0.tgz"
+
+update-input-width@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/update-input-width/-/update-input-width-1.2.2.tgz#9a6a35858ae8e66fbfe0304437b23a4934fc7d37"
+  integrity sha512-6QwD9ZVSXb96PxOZ01DU0DJTPwQGY7qBYgdniZKJN02Xzom2m+9J6EPxMbefskqtj4x78qbe5psDSALq9iNEYg==
 
 uri-js@^4.2.2:
   version "4.4.1"
