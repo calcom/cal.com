@@ -28,7 +28,7 @@ dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
 const AvailabilityPage = ({ profile, localeProp, eventType, workingHours }: AvailabilityPageProps) => {
-  const { t } = useLocale({ localeProp: localeProp });
+  const { t, locale } = useLocale({ localeProp: localeProp });
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
@@ -185,6 +185,7 @@ const AvailabilityPage = ({ profile, localeProp, eventType, workingHours }: Avai
                   <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
                 </div>
                 <DatePicker
+                  localeProp={locale}
                   date={selectedDate}
                   periodType={eventType?.periodType}
                   periodStartDate={eventType?.periodStartDate}
@@ -204,6 +205,7 @@ const AvailabilityPage = ({ profile, localeProp, eventType, workingHours }: Avai
 
                 {selectedDate && (
                   <AvailableTimes
+                    localeProp={locale}
                     workingHours={workingHours}
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
@@ -236,7 +238,11 @@ const AvailabilityPage = ({ profile, localeProp, eventType, workingHours }: Avai
           )}
         </Collapsible.Trigger>
         <Collapsible.Content>
-          <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
+          <TimeOptions
+            localeProp={locale}
+            onSelectTimeZone={handleSelectTimeZone}
+            onToggle24hClock={handleToggle24hClock}
+          />
         </Collapsible.Content>
       </Collapsible.Root>
     );
