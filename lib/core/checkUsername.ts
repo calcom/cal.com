@@ -11,12 +11,13 @@ export default async function checkUsername(_username: string) {
     },
   });
 
-  return Promise.resolve({
-    status: !user ? 200 : 418,
-    json: () =>
-      Promise.resolve({
-        available: !user,
-        message: user ? "Username is not available" : "",
-      }),
-  });
+  if (user) {
+    return {
+      available: false as const,
+      message: "A user exists with that username",
+    };
+  }
+  return {
+    available: true as const,
+  };
 }

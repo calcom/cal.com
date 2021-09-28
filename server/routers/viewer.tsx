@@ -1,10 +1,19 @@
-import { createRouter } from "../createRouter";
-import userRequired from "../middlewares/userRequired";
+import { Prisma } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+
+import checkPremiumUsername from "@ee/lib/core/checkUsername";
+
+import checkRegularUsername from "@lib/core/checkUsername";
+import slugify from "@lib/slugify";
+
+import { createProtectedRouter } from "../createRouter";
+
+const checkUsername =
+  process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
 // routes only available to authenticated users
-export const viewerRouter = createRouter()
-  // check that user is authenticated
-  .middleware(userRequired)
+export const viewerRouter = createProtectedRouter()
   .query("me", {
     resolve({ ctx }) {
       return ctx.user;
@@ -63,5 +72,53 @@ export const viewerRouter = createRouter()
       });
 
       return bookings;
+    },
+  })
+  .mutation("updateProfile", {
+    input: z.object({
+      username: z.string().optional(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      avatar: z.string().optional(),
+      timeZone: z.string().optional(),
+      weekStart: z.string().optional(),
+      hideBranding: z.boolean().optional(),
+      theme: z.string().optional(),
+      completedOnboarding: z.boolean().optional(),
+      locale: z.string().optional(),
+    }),
+    async resolve({ input, ctx }) {
+      const { user, prisma } = ctx;
+      const { name, avatar, timeZone, weekStart, hideBranding, theme, completedOnboarding, locale } = input;
+
+      const data: Prisma.UserUpdateInput = {
+        name,
+        avatar,
+        timeZone,
+        weekStart,
+        hideBranding,
+        theme,
+        completedOnboarding,
+        locale,
+        bio: input.description,
+      };
+      if (input.username) {
+        const username = slugify(input.username);
+        // Only validate if we're changing usernames
+        if (username !== user.username) {
+          data.username = username;
+          const response = await checkUsername(username);
+          if (!response.available) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
+          }
+        }
+      }
+
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data,
+      });
     },
   });
