@@ -102,17 +102,32 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
   "subscription_schedule.canceled": async (event) => {
-    console.log("evt", event);
+    const data = event.data as Stripe.Subscription;
+
+    const customerId = data.customer;
+    if (typeof customerId !== "string") {
+      throw new Error(`Expected customer to be a string - got ${typeof customerId}`);
+    }
+    const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
+    if (!customer.email) {
+      throw new Error(`Couldn't find customer email for ${data.customer}`);
+    }
+    await prisma.user.update({
+      where: {
+        email: customer.email,
+      },
+      data: {
+        plan: "FREE",
+      },
+    });
   },
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    res.status(405).end("Method Not Allowed");
-    return;
-  }
   try {
+    if (req.method !== "POST") {
+      throw new HttpError({ statusCode: 405, message: "Method Not Allowed" });
+    }
     const sig = req.headers["stripe-signature"];
     if (!sig) {
       throw new HttpError({ statusCode: 400, message: "Missing stripe-signature" });
@@ -123,6 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
+    console.log("payload", payload);
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
