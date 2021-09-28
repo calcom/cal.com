@@ -102,11 +102,15 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
+  "subscription_schedule.canceled": async (event) => {
+    console.log("evt", event);
+  },
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const sig = req.headers["stripe-signature"];
 
+  console.log({ sig, webhookSecret });
   if (!sig) {
     res.status(400).send(`Webhook Error: missing Stripe signature`);
     return;
@@ -116,9 +120,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).send(`Webhook Error: missing Stripe webhookSecret`);
     return;
   }
-
   try {
     const rawBody = JSON.stringify(req.body);
+    console.log({ rawBody, "req.body": req.body });
     const event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
 
     const handler = webhookHandlers[event.type];
