@@ -6,11 +6,13 @@
     "paths": {
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
+      "@server/*": ["server/*"],
       "@ee/*": ["ee/*"]
     },
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
