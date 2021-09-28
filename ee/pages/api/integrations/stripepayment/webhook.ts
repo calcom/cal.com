@@ -101,7 +101,7 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
-  "subscription_schedule.canceled": async (event) => {
+  "customer.subscription.deleted": async (event) => {
     const data = event.data as Stripe.Subscription;
 
     const customerId = data.customer;
