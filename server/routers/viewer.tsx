@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { checkPremiumUsername } from "@ee/lib/core/checkUsername";
+import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import slugify from "@lib/slugify";
@@ -78,7 +78,7 @@ export const viewerRouter = createProtectedRouter()
     input: z.object({
       username: z.string().optional(),
       name: z.string().optional(),
-      description: z.string().optional(),
+      bio: z.string().optional(),
       avatar: z.string().optional(),
       timeZone: z.string().optional(),
       weekStart: z.string().optional(),
@@ -89,18 +89,8 @@ export const viewerRouter = createProtectedRouter()
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
-      const { name, avatar, timeZone, weekStart, hideBranding, theme, completedOnboarding, locale } = input;
-
       const data: Prisma.UserUpdateInput = {
-        name,
-        avatar,
-        timeZone,
-        weekStart,
-        hideBranding,
-        theme,
-        completedOnboarding,
-        locale,
-        bio: input.description,
+        ...input,
       };
       if (input.username) {
         const username = slugify(input.username);

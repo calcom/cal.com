@@ -150,7 +150,7 @@ export default function Settings(props: Props) {
       .mutateAsync({
         username: enteredUsername,
         name: enteredName,
-        description: enteredDescription,
+        bio: enteredDescription,
         avatar: enteredAvatar,
         timeZone: enteredTimeZone,
         weekStart: asStringOrUndefined(enteredWeekStartDay),
