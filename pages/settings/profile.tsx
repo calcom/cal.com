@@ -93,7 +93,13 @@ function HideBrandingInput(props: {
 
 export default function Settings(props: Props) {
   const { locale } = useLocale({ localeProp: props.localeProp });
-  const mutation = trpc.useMutation("viewer.updateProfile");
+
+  const utils = trpc.useContext();
+  const mutation = trpc.useMutation("viewer.updateProfile", {
+    async onSettled() {
+      await utils.invalidateQuery(["viewer.me"]);
+    },
+  });
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
