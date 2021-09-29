@@ -28,10 +28,10 @@ function useViewerLocale() {
   const meQuery = useMeQuery();
   const viewerPreferredLanguage = meQuery.data?.locale ?? navigatorLanguage();
 
-  // switch locale to `navigator.language` on first mount
+  // switch locale to viewer language on first mount
   useEffect(() => {
     const currentLocale = router.locale;
-    console.log("locale witch check", { currentLocale, viewerPreferredLanguage });
+    // console.debug("locale check", { currentLocale, viewerPreferredLanguage });
 
     if (currentLocale === viewerPreferredLanguage) {
       return;
@@ -49,9 +49,9 @@ function useViewerLocale() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewerPreferredLanguage]);
 
-  useEffect(() => {
-    console.log("locale switch:", router.locale);
-  }, [router.locale]);
+  // useEffect(() => {
+  //   console.debug("locale switch:", router.locale);
+  // }, [router.locale]);
 }
 
 function MyApp(props: AppProps) {
