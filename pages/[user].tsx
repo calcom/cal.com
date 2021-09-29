@@ -99,7 +99,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       const paths = [
         {
           params: {
-            username: user.username,
+            user: user.username,
           },
           locale: defaultLocale,
         },
@@ -108,7 +108,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       if (user.locale && user.locale !== defaultLocale) {
         paths.push({
           params: {
-            username: user.username,
+            user: user.username,
           },
           locale: user.locale,
         });
