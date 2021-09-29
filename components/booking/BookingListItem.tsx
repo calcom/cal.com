@@ -36,18 +36,19 @@ function BookingListItem(booking: BookingItem) {
 
   const pendingActions = [
     {
-      id: "confirm",
-      label: "Confirm",
-      onClick: () => mutation.mutate(true),
-      icon: CheckIcon,
-      disabled: mutation.isLoading,
-    },
-    {
       id: "reject",
       label: "Reject",
       onClick: () => mutation.mutate(false),
       icon: BanIcon,
       disabled: mutation.isLoading,
+    },
+    {
+      id: "confirm",
+      label: "Confirm",
+      onClick: () => mutation.mutate(true),
+      icon: CheckIcon,
+      disabled: mutation.isLoading,
+      color: "primary",
     },
   ];
 
@@ -66,25 +67,40 @@ function BookingListItem(booking: BookingItem) {
     },
   ];
 
+  const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+
   return (
     <tr>
-      <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
+      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{startTime}</div>
         {!booking.confirmed && !booking.rejected && (
           <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
             Unconfirmed
           </span>
         )}
-        <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
-          {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
-          {booking.title}
+      </td>
+      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-500">
+          {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
+      </td>
+      <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
         <div className="sm:hidden">
-          <div className="text-sm text-gray-900">
-            {dayjs(booking.startTime).format("D MMMM YYYY")}:{" "}
+          {!booking.confirmed && !booking.rejected && (
+            <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+              Unconfirmed
+            </span>
+          )}
+          <div className="text-sm text-gray-900 font-medium">
+            {startTime}:{" "}
             <small className="text-sm text-gray-500">
               {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
             </small>
           </div>
+        </div>
+        <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
+          {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
+          {booking.title}
         </div>
         {booking.description && (
           <div className="text-sm text-neutral-600 truncate max-w-60 md:max-w-96">
@@ -97,12 +113,7 @@ function BookingListItem(booking: BookingItem) {
           </div>
         )}
       </td>
-      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900">{dayjs(booking.startTime).format("D MMMM YYYY")}</div>
-        <div className="text-sm text-gray-500">
-          {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
-        </div>
-      </td>
+
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         {isUpcoming && !isCancelled ? (
           <>
