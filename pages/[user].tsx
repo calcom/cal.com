@@ -1,9 +1,11 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { ssg } from "@server/ssg";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
+import { defaultLocale } from "@lib/core/i18n/i18n.utils";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
@@ -80,6 +82,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const allUsers = await prisma.user.findMany({
     select: {
       username: true,
+      locale: true,
     },
     where: {
       // will statically render everyone on the PRO plan
@@ -101,9 +104,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export async function getStaticProps(context: GetStaticPropsContext<{ user: string }>) {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const username = context.params!.user;
-  const data = await ssg.fetchQuery("booking.userEventTypes", { username });
 
-  if (!data) {
+  const [data, user] = await Promise.all([
+    ssg.fetchQuery("booking.userEventTypes", { username }),
+    prisma.user.findUnique({
+      where: { username },
+      select: {
+        locale: true,
+      },
+    }),
+  ]);
+
+  if (!data || !user) {
     return {
       notFound: true,
     };
@@ -112,6 +124,7 @@ export async function getStaticProps(context: GetStaticPropsContext<{ user: stri
     props: {
       trpcState: ssg.dehydrate(),
       username,
+      ...(await serverSideTranslations(user?.locale ?? defaultLocale, ["common"])),
     },
     revalidate: 1,
   };

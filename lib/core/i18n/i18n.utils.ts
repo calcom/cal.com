@@ -75,3 +75,5 @@ export type OptionType = {
 export const localeOptions: OptionType[] = i18n.locales.map((locale) => {
   return { value: locale, label: localeLabels[locale] };
 });
+
+export const defaultLocale = i18n.defaultLocale;
