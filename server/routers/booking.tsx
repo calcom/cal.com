@@ -4,7 +4,7 @@ import { createRouter } from "../createRouter";
 
 export const bookingRouter = createRouter().query("userEventTypes", {
   input: z.object({
-    username: z.string().min(1),
+    username: z.string().min(1).toLowerCase(),
   }),
   async resolve({ input, ctx }) {
     const { prisma } = ctx;
