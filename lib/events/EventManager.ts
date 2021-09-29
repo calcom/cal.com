@@ -307,7 +307,7 @@ export default class EventManager {
     const credential = this.getVideoCredential(event);
     const isDaily = event.location === "integrations:daily";
 
-    if (credential) {
+    if (credential && !isDaily) {
       const bookingRef = booking.references.filter((ref) => ref.type === credential.type)[0];
 
       return updateMeeting(credential, bookingRef.uid, event).then((returnVal: EventResult) => {
