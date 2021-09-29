@@ -36,6 +36,9 @@ export default function Availability() {
   const router = useRouter();
 
   useEffect(() => {
+    /**
+     * This hook populates the form with new values as soon as the user is loaded or changes
+     */
     const user = queryMe.data;
     if (formMethods.formState.isDirty || !user) {
       return;
