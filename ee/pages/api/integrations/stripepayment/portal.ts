@@ -54,6 +54,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return_url,
     });
 
-    res.redirect(stripeSession.url);
+    res.redirect(302, stripeSession.url);
   }
 }
