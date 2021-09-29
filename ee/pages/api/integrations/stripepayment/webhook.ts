@@ -102,13 +102,13 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
   "customer.subscription.deleted": async (event) => {
-    const data = event.data as Stripe.Subscription;
+    const object = event.data.object as Stripe.Subscription;
 
-    const customerId = typeof data.customer === "string" ? data.customer : data.customer.id;
+    const customerId = typeof object.customer === "string" ? object.customer : object.customer.id;
 
     const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
     if (typeof customer.email !== "string") {
-      throw new Error(`Couldn't find customer email for ${data.customer}`);
+      throw new Error(`Couldn't find customer email for ${customerId}`);
     }
 
     await prisma.user.update({
