@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { ReactNode } from "react";
 
 export interface AlertProps {
-  title: ReactNode;
+  title?: ReactNode;
   message?: ReactNode;
   className?: string;
   severity: "success" | "warning" | "error";
