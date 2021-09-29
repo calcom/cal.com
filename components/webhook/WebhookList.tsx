@@ -1,13 +1,8 @@
-import WebhookListItem from "./WebhookListItem";
 import { Webhook } from "@lib/webhook";
 
-export default function WebhookList(props: { webhooks: Webhook[]; onChange: () => void }) {
-  const deleteWebhook = (webhook: Webhook) => {
-    return fetch("/api/webhook/" + webhook.id, {
-      method: "DELETE",
-    }).then(props.onChange());
-  };
+import WebhookListItem from "./WebhookListItem";
 
+export default function WebhookList(props: { webhooks: Webhook[]; onChange: () => void }) {
   return (
     <div>
       <ul className="px-4 mb-2 bg-white border divide-y divide-gray-200 rounded">

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
 import { getSession } from "next-auth/client";
+
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -38,6 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: Number(req.query.hook),
       },
     });
-    return res.status(204).send(null);
+    return res.status(200).json({});
   }
 }

@@ -74,6 +74,7 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
       .then(handleErrors)
       .then((data) => {
         console.log("Delete", data);
+        props.onChange();
       });
   };
 
