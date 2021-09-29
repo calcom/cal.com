@@ -60,7 +60,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         color === "primary" &&
           (disabled
             ? "border border-transparent bg-gray-400 text-white"
-            : "border border-transparent text-white bg-neutral-900 hover:bg-neutral-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            : "border border-transparent dark:text-black text-white bg-neutral-900 dark:bg-white hover:bg-neutral-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
         color === "secondary" &&
           (disabled
             ? "border border-gray-200 text-gray-400 bg-white"
@@ -92,7 +92,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <svg
             className={classNames(
               "w-5 h-5 mx-4 animate-spin",
-              color === "primary" ? "text-white" : "text-black"
+              color === "primary" ? "dark:text-black text-white" : "text-black"
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"

@@ -18,10 +18,11 @@ export default function TeamList(props: {
     }
   };
 
-  const deleteTeam = (team: Team) => {
-    return fetch("/api/teams/" + team.id, {
+  const deleteTeam = async (team: Team) => {
+    await fetch("/api/teams/" + team.id, {
       method: "DELETE",
-    }).then(props.onChange());
+    });
+    return props.onChange();
   };
 
   return (
