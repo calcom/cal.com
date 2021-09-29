@@ -114,7 +114,7 @@
     "postcss": "^8.3.6",
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
-    "tailwindcss": "^2.2.7",
+    "tailwindcss": "^2.2.16",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   },
