@@ -1,9 +1,12 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import Link from "next/link";
 import { getCsrfToken, signIn } from "next-auth/client";
-import { ErrorCode, getSession } from "@lib/auth";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
+
+import { ErrorCode, getSession } from "@lib/auth";
+
+import Loader from "@components/Loader";
+import { HeadSeo } from "@components/seo/head-seo";
 
 const errorMessages: { [key: string]: string } = {
   [ErrorCode.SecondFactorRequired]:
@@ -24,11 +27,7 @@ export default function Login({ csrfToken }) {
   const [secondFactorRequired, setSecondFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!router.query?.callbackUrl) {
-      window.history.replaceState(null, document.title, "?callbackUrl=/");
-    }
-  }, [router.query]);
+  const callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -41,14 +40,20 @@ export default function Login({ csrfToken }) {
     setErrorMessage(null);
 
     try {
-      const response = await signIn("credentials", { redirect: false, email, password, totpCode: code });
+      const response = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        totpCode: code,
+        callbackUrl,
+      });
       if (!response) {
         console.error("Received empty response from next auth");
         return;
       }
 
       if (!response.error) {
-        window.location.reload();
+        router.replace(callbackUrl);
         return;
       }
 
@@ -68,9 +73,18 @@ export default function Login({ csrfToken }) {
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <HeadSeo title="Login" description="Login" />
+
+      {isSubmitting && (
+        <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+          <Loader />
+        </div>
+      )}
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
-        <h2 className="mt-6 text-center text-3xl font-bold text-neutral-900">Sign in to your account</h2>
+        <h2 className="font-cal mt-6 text-center text-3xl font-bold text-neutral-900">
+          Sign in to your account
+        </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -104,7 +118,9 @@ export default function Login({ csrfToken }) {
                 </div>
                 <div className="w-1/2 text-right">
                   <Link href="/auth/forgot-password">
-                    <a className="font-medium text-primary-600 text-sm">Forgot?</a>
+                    <a tabIndex={-1} className="font-medium text-primary-600 text-sm">
+                      Forgot?
+                    </a>
                   </Link>
                 </div>
               </div>

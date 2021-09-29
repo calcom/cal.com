@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
+
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

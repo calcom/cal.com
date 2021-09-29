@@ -1,7 +1,8 @@
 /* legacy and soon deprecated, please refactor to use <Dialog> only */
-import { Fragment, ReactNode } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckIcon, InformationCircleIcon } from "@heroicons/react/outline";
+import { Fragment, ReactNode } from "react";
+
 import classNames from "@lib/classNames";
 
 export default function Modal(props: {
@@ -60,7 +61,7 @@ export default function Modal(props: {
                   )}
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
-                  <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
+                  <Dialog.Title as="h3" className="font-cal text-lg leading-6 font-medium text-gray-900">
                     {props.heading}
                   </Dialog.Title>
                   <div className="mt-2">

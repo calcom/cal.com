@@ -8,6 +8,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["selectRelationCount"]
 }
 
 enum SchedulingType {
@@ -38,9 +39,13 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
+  disableGuests           Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
+  price                   Int @default(0)
+  currency                String @default("usd")
+  @@unique([userId, slug])
 }
 
 model Credential {
@@ -81,6 +86,7 @@ model User {
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
+  locale String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
 
@@ -130,11 +136,14 @@ model VerificationRequest {
 }
 
 model BookingReference {
-  id        Int      @id @default(autoincrement())
-  type      String
-  uid       String
-  booking   Booking? @relation(fields: [bookingId], references: [id])
-  bookingId Int?
+  id              Int      @id @default(autoincrement())
+  type            String
+  uid             String
+  meetingId       String?
+  meetingPassword String?
+  meetingUrl      String?
+  booking         Booking? @relation(fields: [bookingId], references: [id])
+  bookingId       Int?
 }
 
 model Attendee {
@@ -175,6 +184,8 @@ model Booking {
   confirmed Boolean   @default(true)
   rejected  Boolean   @default(false)
   status    BookingStatus @default(ACCEPTED)
+  paid      Boolean @default(false)
+  payment   Payment[]
 }
 
 model Schedule {
@@ -244,4 +255,23 @@ model ReminderMail {
   reminderType   ReminderType
   elapsedMinutes Int
   createdAt      DateTime     @default(now())
+}
+
+enum PaymentType {
+  STRIPE
+}
+
+model Payment {
+  id             Int      @id @default(autoincrement())
+  uid            String   @unique
+  type           PaymentType
+  bookingId      Int
+  booking        Booking?  @relation(fields: [bookingId], references: [id])
+  amount         Int
+  fee            Int
+  currency       String
+  success        Boolean
+  refunded       Boolean
+  data           Json
+  externalId     String   @unique
 }

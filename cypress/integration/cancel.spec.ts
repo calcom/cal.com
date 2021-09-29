@@ -1,10 +1,10 @@
-describe("cancel", () => {
+describe.skip("cancel", () => {
   describe("Admin user can cancel events", () => {
     before(() => {
       cy.visit("/bookings");
       cy.login("pro@example.com", "pro");
     });
-    it.skip("can cancel bookings", () => {
+    it("can cancel bookings", () => {
       cy.visit("/bookings");
       cy.get("[data-testid=bookings]").children().should("have.length.at.least", 1);
       cy.get("[data-testid=cancel]").click();

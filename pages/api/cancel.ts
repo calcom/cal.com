@@ -1,9 +1,13 @@
-import prisma from "@lib/prisma";
-import { deleteEvent } from "@lib/calendarClient";
-import { deleteMeeting } from "@lib/videoClient";
-import async from "async";
 import { BookingStatus } from "@prisma/client";
+import async from "async";
+
+import { refund } from "@ee/lib/stripe/server";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
+import prisma from "@lib/prisma";
+import { deleteMeeting } from "@lib/videoClient";
 
 export default async function handler(req, res) {
   // just bail if it not a DELETE
@@ -12,6 +16,7 @@ export default async function handler(req, res) {
   }
 
   const uid = asStringOrNull(req.body.uid) || "";
+  const session = await getSession({ req: req });
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
@@ -21,7 +26,11 @@ export default async function handler(req, res) {
       id: true,
       user: {
         select: {
+          id: true,
           credentials: true,
+          email: true,
+          timeZone: true,
+          name: true,
         },
       },
       attendees: true,
@@ -31,11 +40,23 @@ export default async function handler(req, res) {
           type: true,
         },
       },
+      payment: true,
+      paid: true,
+      location: true,
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
+      uid: true,
     },
   });
 
-  if (!bookingToDelete) {
+  if (!bookingToDelete || !bookingToDelete.user) {
     return res.status(404).end();
+  }
+
+  if ((!session || session.user?.id != bookingToDelete.user?.id) && bookingToDelete.startTime < new Date()) {
+    return res.status(403).json({ message: "Cannot cancel past events" });
   }
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
@@ -59,6 +80,36 @@ export default async function handler(req, res) {
       }
     }
   });
+
+  if (bookingToDelete && bookingToDelete.paid) {
+    const evt: CalendarEvent = {
+      type: bookingToDelete.title,
+      title: bookingToDelete.title,
+      description: bookingToDelete.description ?? "",
+      startTime: bookingToDelete.startTime.toISOString(),
+      endTime: bookingToDelete.endTime.toISOString(),
+      organizer: {
+        email: bookingToDelete.user?.email ?? "dev@calendso.com",
+        name: bookingToDelete.user?.name ?? "no user",
+        timeZone: bookingToDelete.user?.timeZone ?? "",
+      },
+      attendees: bookingToDelete.attendees,
+      location: bookingToDelete.location ?? "",
+    };
+    await refund(bookingToDelete, evt);
+    await prisma.booking.update({
+      where: {
+        id: bookingToDelete.id,
+      },
+      data: {
+        rejected: true,
+      },
+    });
+
+    // We skip the deletion of the event, because that would also delete the payment reference, which we should keep
+    await apiDeletes;
+    return res.status(200).json({ message: "Booking successfully deleted." });
+  }
 
   const attendeeDeletes = prisma.attendee.deleteMany({
     where: {

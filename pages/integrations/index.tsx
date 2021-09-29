@@ -1,36 +1,28 @@
-import Link from "next/link";
-import prisma from "@lib/prisma";
-import Shell from "@components/Shell";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useSession } from "next-auth/client";
-import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { InformationCircleIcon } from "@heroicons/react/outline";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
-import Switch from "@components/ui/Switch";
-import Loader from "@components/Loader";
-import AddCalDavIntegration, {
-  ADD_CALDAV_INTEGRATION_FORM_TITLE,
-} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
+import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/client";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { getSession } from "@lib/auth";
 import AddAppleIntegration, {
   ADD_APPLE_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/Apple/components/AddAppleIntegration";
+import AddCalDavIntegration, {
+  ADD_CALDAV_INTEGRATION_FORM_TITLE,
+} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
+import getIntegrations from "@lib/integrations/getIntegrations";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+import Loader from "@components/Loader";
+import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
+import Switch from "@components/ui/Switch";
 
-export type Integration = {
-  installed: boolean;
-  credential: unknown;
-  type: string;
-  title: string;
-  imageSrc: string;
-  description: string;
-};
-
-type Props = {
-  integrations: Integration[];
-};
-
-export default function Home({ integrations }: Props) {
+export default function Home({ integrations }: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
 
   const [selectableCalendars, setSelectableCalendars] = useState([]);
@@ -152,7 +144,7 @@ export default function Home({ integrations }: Props) {
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader title="Connect a new App" subtitle="Connect a new app to your account." />
+        <DialogHeader title="Connect a new App" subtitle="Integrate your account with other services." />
         <div className="my-4">
           <ul className="divide-y divide-gray-200">
             {integrations
@@ -164,7 +156,7 @@ export default function Home({ integrations }: Props) {
                       <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                     </div>
                     <div className="w-10/12">
-                      <h2 className="text-gray-800 font-medium">{integration.title}</h2>
+                      <h2 className="font-cal text-gray-800 font-medium">{integration.title}</h2>
                       <p className="text-gray-400 text-sm">{integration.description}</p>
                     </div>
                     <div className="w-2/12 text-right pt-2">
@@ -448,7 +440,7 @@ export default function Home({ integrations }: Props) {
         </div>
         <div className="bg-white border border-gray-200 rounded-sm mb-8">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
+            <h3 className="font-cal text-lg leading-6 font-medium text-gray-900">Select calendars</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>Select which calendars are checked for availability to prevent double bookings.</p>
             </div>
@@ -457,7 +449,7 @@ export default function Home({ integrations }: Props) {
         </div>
         <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
+            <h3 className="font-cal text-lg leading-6 font-medium text-gray-900">Launch your own App</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>If you want to add your own App here, get in touch with us.</p>
             </div>
@@ -475,21 +467,9 @@ export default function Home({ integrations }: Props) {
   );
 }
 
-const validJson = (jsonString: string) => {
-  try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return false;
-};
-
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.email) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
   const user = await prisma.user.findFirst({
@@ -498,64 +478,23 @@ export async function getServerSideProps(context) {
     },
     select: {
       id: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+        },
+      },
     },
   });
 
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
+  if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
 
-  const integrations = [
-    {
-      installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
-      credential: credentials.find((integration) => integration.type === "google_calendar") || null,
-      type: "google_calendar",
-      title: "Google Calendar",
-      imageSrc: "integrations/google-calendar.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
-      credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
-      title: "Office 365 / Outlook.com Calendar",
-      imageSrc: "integrations/outlook.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-      type: "zoom_video",
-      credential: credentials.find((integration) => integration.type === "zoom_video") || null,
-      title: "Zoom",
-      imageSrc: "integrations/zoom.svg",
-      description: "Video Conferencing",
-    },
-    {
-      installed: true,
-      type: "caldav_calendar",
-      credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
-      title: "CalDav Server",
-      imageSrc: "integrations/caldav.svg",
-      description: "For personal and business calendars",
-    },
-    {
-      installed: true,
-      type: "apple_calendar",
-      credential: credentials.find((integration) => integration.type === "apple_calendar") || null,
-      title: "Apple Calendar",
-      imageSrc: "integrations/apple-calendar.svg",
-      description: "For personal and business calendars",
-    },
-  ];
+  const { credentials } = user;
+
+  const integrations = getIntegrations(credentials);
 
   return {
-    props: { integrations },
+    props: { session, integrations },
   };
 }

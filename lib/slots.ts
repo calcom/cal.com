@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -94,7 +95,7 @@ const getSlotsBetweenBoundary = (frequency: number, { lowerBound, upperBound }: 
   const slots: Dayjs[] = [];
   for (let minutes = 0; lowerBound + minutes <= upperBound - frequency; minutes += frequency) {
     slots.push(
-      <Dayjs>dayjs
+      dayjs
         .utc()
         .startOf("d")
         .add(lowerBound + minutes, "minutes")

@@ -1,6 +1,7 @@
-import { Alert, AlertProps } from "@components/ui/Alert";
 import Head from "next/head";
 import React from "react";
+
+import { Alert, AlertProps } from "@components/ui/Alert";
 
 export default function AlertPage() {
   const list: AlertProps[] = [
