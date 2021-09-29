@@ -232,7 +232,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                             <Menu.Item>
                               {({ active }) => (
                                 <a
-                                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
+                                  href={`https://${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={classNames(

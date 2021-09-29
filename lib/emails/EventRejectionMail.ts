@@ -18,7 +18,9 @@ export default class EventRejectionMail extends EventMail {
   protected getHtmlRepresentation(): string {
     return (
       `
-<body style="background: #f4f5f7; font-family: Helvetica, sans-serif">
+<body style="background: #141414; font-family: Helvetica, sans-serif">
+  <div style="text-align: center; margin-top: 40px; color: #ccc; font-size: 12px;">
+    <img style="width: 170px;" src="https://meet.yac.com/yac-logo-white-word.svg" alt="Yac Logo"></div>
   <div
     style="
       margin: 0 auto;
@@ -51,8 +53,6 @@ export default class EventRejectionMail extends EventMail {
     ` +
       `
   </div>
-  <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 12px;">
-    <img style="opacity: 0.25; width: 120px;" src="https://meet.yac.com/yac-logo-word.svg" alt="Yac Logo"></div>
 </body>
   `
     );

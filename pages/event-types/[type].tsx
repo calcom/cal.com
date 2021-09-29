@@ -138,7 +138,6 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     event.preventDefault();
 
     const formData = Object.fromEntries(new FormData(event.target).entries());
-    console.log({ formData });
 
     const enteredTitle: string = titleRef.current!.value;
 
@@ -182,7 +181,6 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
           }
         : {}),
     };
-    console.log({ payload });
 
     updateMutation.mutate(payload);
   }
@@ -324,7 +322,6 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
-
   return (
     <div>
       <Shell
@@ -1164,6 +1161,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
+    username: true,
   });
 
   const eventType = await prisma.eventType.findFirst({

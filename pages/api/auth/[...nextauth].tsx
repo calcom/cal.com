@@ -90,6 +90,7 @@ export default NextAuth({
             username,
             email,
             name,
+            avatar: image,
           },
           create: {
             id,
@@ -97,6 +98,7 @@ export default NextAuth({
             username,
             email,
             emailVerified: new Date(Date.now()),
+            avatar: image,
           },
         });
         const yacCredential = await prisma.credential.findFirst({
@@ -146,6 +148,11 @@ export default NextAuth({
               userId: id,
               length: 45,
               eventName: `${name} <> {USER}`,
+              users: {
+                connect: {
+                  id,
+                },
+              },
             },
           });
         } else {
@@ -158,6 +165,11 @@ export default NextAuth({
               length: 45,
               eventName: `${name} <> {USER}`,
               locations: [{ type: "integrations:zoom" }],
+              users: {
+                connect: {
+                  id,
+                },
+              },
             },
           });
         }
@@ -180,6 +192,11 @@ export default NextAuth({
               length: 10,
               eventName: `[ASYNC] ${name} <> {USER}`,
               locations: null,
+              users: {
+                connect: {
+                  id,
+                },
+              },
             },
           });
         } else {
@@ -192,6 +209,11 @@ export default NextAuth({
               length: 10,
               eventName: `[ASYNC] ${name} <> {USER}`,
               locations: null,
+              users: {
+                connect: {
+                  id,
+                },
+              },
             },
           });
         }

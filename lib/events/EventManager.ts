@@ -95,9 +95,10 @@ export default class EventManager {
     );
 
     const referencesToCreate: Array<PartialReference> = results.filter(Boolean).map((result: EventResult) => {
+      console.log({ result });
       return {
         type: result.type,
-        uid: result.createdEvent.id.toString(),
+        uid: result.createdEvent?.id.toString() || result.uid,
         meetingId: result.videoCallData?.id.toString(),
         meetingPassword: result.videoCallData?.password,
         meetingUrl: result.videoCallData?.url,
