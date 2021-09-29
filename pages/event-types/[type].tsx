@@ -1231,6 +1231,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
+    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
+    { value: LocationType.Daily, label: "Daily.co Video" },
   ];
 
   if (hasIntegration(integrations, "zoom_video")) {
