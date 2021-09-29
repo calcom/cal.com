@@ -93,6 +93,11 @@ function BookingListItem(booking: BookingItem) {
             </small>
           </div>
         </div>
+        {booking.description && (
+          <div className="text-sm text-neutral-600 truncate max-w-60 md:max-w-96">
+            &quot;{booking.description}&quot;
+          </div>
+        )}
         {booking.attendees.length !== 0 && (
           <div className="text-sm text-blue-500">
             <a href={"mailto:" + booking.attendees[0].email}>{booking.attendees[0].email}</a>
