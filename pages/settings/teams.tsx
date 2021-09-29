@@ -7,7 +7,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useEffect, useRef, useState } from "react";
 
 import { getSession } from "@lib/auth";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
 import { Team } from "@lib/team";
@@ -209,7 +209,7 @@ export default function Teams(props: { localeProp: string }) {
 // Export the `session` prop to use sessions with Server Side Rendering
 export const getServerSideProps: GetServerSideProps<{ session: Session | null }> = async (context) => {
   const session = await getSession(context);
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   if (!session) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }

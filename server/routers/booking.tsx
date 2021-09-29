@@ -9,6 +9,7 @@ export const bookingRouter = createRouter().query("userEventTypes", {
   async resolve({ input, ctx }) {
     const { prisma } = ctx;
     const { username } = input;
+    const { localeProp } = ctx;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -66,6 +67,7 @@ export const bookingRouter = createRouter().query("userEventTypes", {
     });
     const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
     return {
+      localeProp,
       user,
       eventTypes,
     };

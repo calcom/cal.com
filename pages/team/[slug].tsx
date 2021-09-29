@@ -4,7 +4,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -35,7 +35,7 @@ function TeamPage({ team, localeProp }: InferGetServerSidePropsType<typeof getSe
             <a className="px-6 py-4 flex justify-between">
               <div className="flex-shrink">
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                <EventTypeDescription className="text-sm" eventType={type} />
+                <EventTypeDescription localeProp={locale} className="text-sm" eventType={type} />
               </div>
               <div className="mt-1">
                 <AvatarGroup
@@ -102,7 +102,7 @@ function TeamPage({ team, localeProp }: InferGetServerSidePropsType<typeof getSe
 }
 
 export const getServerSideProps = async (context) => {
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const teamSelectInput = {

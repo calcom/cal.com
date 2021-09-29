@@ -141,7 +141,7 @@ const DatePicker = ({
           <strong className="text-gray-900 dark:text-white">
             {t(inviteeDate().format("MMMM").toLowerCase())}
           </strong>
-          <span className="text-gray-500"> {inviteeDate().format("YYYY")}</span>
+          <span className="text-gray-500">{inviteeDate().format("YYYY")}</span>
         </span>
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button

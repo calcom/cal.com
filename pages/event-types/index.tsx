@@ -22,7 +22,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -161,7 +161,7 @@ const EventTypesPage = (props: PageProps) => {
                         </span>
                       )}
                     </div>
-                    <EventTypeDescription eventType={type} />
+                    <EventTypeDescription localeProp={locale} eventType={type} />
                   </a>
                 </Link>
 
@@ -559,7 +559,7 @@ const CreateNewEventDialog = ({
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
