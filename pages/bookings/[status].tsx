@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useMutation } from "react-query";
 
 import { HttpError } from "@lib/core/http/error";
-import { inferQueryOutput, trpc } from "@lib/trpc";
+import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
 import EmptyScreen from "@components/EmptyScreen";
@@ -123,18 +123,13 @@ function BookingListItem(booking: BookingItem) {
   );
 }
 
+type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+
 export default function Bookings() {
   const router = useRouter();
-  const query = trpc.useQuery(["viewer.bookings"]);
-  const filtersByStatus = {
-    upcoming: (booking: BookingItem) =>
-      new Date(booking.endTime) >= new Date() && booking.status !== BookingStatus.CANCELLED,
-    past: (booking: BookingItem) => new Date(booking.endTime) < new Date(),
-    cancelled: (booking: BookingItem) => booking.status === BookingStatus.CANCELLED,
-  } as const;
-  const filterKey = (router.query?.status as string as keyof typeof filtersByStatus) || "upcoming";
-  const appliedFilter = filtersByStatus[filterKey];
-  const bookings = query.data?.filter(appliedFilter);
+  const status = router.query?.status as BookingListingStatus;
+  const query = trpc.useQuery(["viewer.bookings", { status }]);
+  const bookings = query.data;
 
   return (
     <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
