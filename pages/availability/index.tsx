@@ -1,24 +1,25 @@
 import { ClockIcon } from "@heroicons/react/outline";
-import { useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
+import { Dialog, DialogContent } from "@components/Dialog";
 import Loader from "@components/Loader";
-import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
+import Button from "@components/ui/Button";
 
 export default function Availability() {
   const queryMe = trpc.useQuery(["viewer.me"]);
+  const formModal = useToggleQuery("edit");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
+
   const router = useRouter();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
   const titleRef = useRef<HTMLInputElement>();
   const slugRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -43,15 +44,6 @@ export default function Availability() {
   function toggleAddModal() {
     setShowAddModal(!showAddModal);
   }
-
-  function toggleChangeTimesModal() {
-    setShowChangeTimesModal(!showChangeTimesModal);
-  }
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
-    router.replace(router.asPath);
-  };
 
   function convertMinsToHrsMins(mins) {
     let h = Math.floor(mins / 60);
@@ -116,8 +108,8 @@ export default function Availability() {
       },
     });
 
-    setShowChangeTimesModal(false);
-    setSuccessModalOpen(true);
+    router.push(formModal.hrefOff);
+    showToast("The start and end times for your day have been changed successfully.", "success");
   }
 
   return (
@@ -136,9 +128,7 @@ export default function Availability() {
                 </p>
               </div>
               <div className="mt-5">
-                <button onClick={toggleChangeTimesModal} type="button" className="btn btn-primary">
-                  Change available times
-                </button>
+                <Button href={formModal.hrefOn}>Change available times</Button>
               </div>
             </div>
           </div>
@@ -159,153 +149,136 @@ export default function Availability() {
             </div>
           </div>
         </div>
-        {showChangeTimesModal && (
-          <div
-            className="fixed z-50 inset-0 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
 
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-
-              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start mb-4">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <ClockIcon className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Change your available times
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-500">
-                        Set the start and end time of your day and a minimum buffer between your meetings.
-                      </p>
-                    </div>
-                  </div>
+        <Dialog
+          open={formModal.isOn}
+          onOpenChange={(isOpen) => {
+            router.push(isOpen ? formModal.hrefOn : formModal.hrefOff);
+          }}>
+          <DialogContent>
+            <div className="sm:flex sm:items-start mb-4">
+              <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                <ClockIcon className="h-6 w-6 text-neutral-600" />
+              </div>
+              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                  Change your available times
+                </h3>
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Set the start and end time of your day and a minimum buffer between your meetings.
+                  </p>
                 </div>
-                <form onSubmit={updateStartEndTimesHandler}>
-                  <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
-                    <div>
-                      <label htmlFor="hours" className="sr-only">
-                        Hours
-                      </label>
-                      <input
-                        ref={startHoursRef}
-                        type="number"
-                        name="hours"
-                        id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="9"
-                        defaultValue={convertMinsToHrsMins(user.startTime).split(":")[0]}
-                      />
-                    </div>
-                    <span className="mx-2 pt-1">:</span>
-                    <div>
-                      <label htmlFor="minutes" className="sr-only">
-                        Minutes
-                      </label>
-                      <input
-                        ref={startMinsRef}
-                        type="number"
-                        name="minutes"
-                        id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="30"
-                        defaultValue={convertMinsToHrsMins(user.startTime).split(":")[1]}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
-                    <div>
-                      <label htmlFor="hours" className="sr-only">
-                        Hours
-                      </label>
-                      <input
-                        ref={endHoursRef}
-                        type="number"
-                        name="hours"
-                        id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="17"
-                        defaultValue={convertMinsToHrsMins(user.endTime).split(":")[0]}
-                      />
-                    </div>
-                    <span className="mx-2 pt-1">:</span>
-                    <div>
-                      <label htmlFor="minutes" className="sr-only">
-                        Minutes
-                      </label>
-                      <input
-                        ref={endMinsRef}
-                        type="number"
-                        name="minutes"
-                        id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="30"
-                        defaultValue={convertMinsToHrsMins(user.endTime).split(":")[1]}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
-                    <div>
-                      <label htmlFor="hours" className="sr-only">
-                        Hours
-                      </label>
-                      <input
-                        ref={bufferHoursRef}
-                        type="number"
-                        name="hours"
-                        id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="0"
-                        defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[0]}
-                      />
-                    </div>
-                    <span className="mx-2 pt-1">:</span>
-                    <div>
-                      <label htmlFor="minutes" className="sr-only">
-                        Minutes
-                      </label>
-                      <input
-                        ref={bufferMinsRef}
-                        type="number"
-                        name="minutes"
-                        id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="10"
-                        defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[1]}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      Update
-                    </button>
-                    <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
               </div>
             </div>
-          </div>
-        )}
-        <Modal
-          heading="Start and end times changed"
-          description="The start and end times for your day have been changed successfully."
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
+            <form onSubmit={updateStartEndTimesHandler}>
+              <div className="flex mb-4">
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
+                <div>
+                  <label htmlFor="hours" className="sr-only">
+                    Hours
+                  </label>
+                  <input
+                    ref={startHoursRef}
+                    type="number"
+                    name="hours"
+                    id="hours"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="9"
+                    defaultValue={convertMinsToHrsMins(user.startTime).split(":")[0]}
+                  />
+                </div>
+                <span className="mx-2 pt-1">:</span>
+                <div>
+                  <label htmlFor="minutes" className="sr-only">
+                    Minutes
+                  </label>
+                  <input
+                    ref={startMinsRef}
+                    type="number"
+                    name="minutes"
+                    id="minutes"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="30"
+                    defaultValue={convertMinsToHrsMins(user.startTime).split(":")[1]}
+                  />
+                </div>
+              </div>
+              <div className="flex mb-4">
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
+                <div>
+                  <label htmlFor="hours" className="sr-only">
+                    Hours
+                  </label>
+                  <input
+                    ref={endHoursRef}
+                    type="number"
+                    name="hours"
+                    id="hours"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="17"
+                    defaultValue={convertMinsToHrsMins(user.endTime).split(":")[0]}
+                  />
+                </div>
+                <span className="mx-2 pt-1">:</span>
+                <div>
+                  <label htmlFor="minutes" className="sr-only">
+                    Minutes
+                  </label>
+                  <input
+                    ref={endMinsRef}
+                    type="number"
+                    name="minutes"
+                    id="minutes"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="30"
+                    defaultValue={convertMinsToHrsMins(user.endTime).split(":")[1]}
+                  />
+                </div>
+              </div>
+              <div className="flex mb-4">
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
+                <div>
+                  <label htmlFor="hours" className="sr-only">
+                    Hours
+                  </label>
+                  <input
+                    ref={bufferHoursRef}
+                    type="number"
+                    name="hours"
+                    id="hours"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="0"
+                    defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[0]}
+                  />
+                </div>
+                <span className="mx-2 pt-1">:</span>
+                <div>
+                  <label htmlFor="minutes" className="sr-only">
+                    Minutes
+                  </label>
+                  <input
+                    ref={bufferMinsRef}
+                    type="number"
+                    name="minutes"
+                    id="minutes"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="10"
+                    defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[1]}
+                  />
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="submit" className="btn btn-primary">
+                  Update
+                </button>
+                <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </Shell>
     </div>
   );
