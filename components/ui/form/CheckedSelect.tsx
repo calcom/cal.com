@@ -1,6 +1,5 @@
-import { XIcon, CheckIcon } from "@heroicons/react/outline";
+import { CheckIcon, XIcon } from "@heroicons/react/outline";
 import React, { ForwardedRef, useEffect, useState } from "react";
-import { OptionsType } from "react-select/lib/types";
 
 import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";
@@ -16,7 +15,7 @@ export type CheckedSelectProps = {
   placeholder?: string;
   name?: string;
   options: CheckedSelectValue;
-  onChange: (options: OptionsType) => void;
+  onChange: (options: CheckedSelectValue) => void;
   disabled: boolean;
 };
 
