@@ -57,7 +57,7 @@ const zoomAuth = (credential: Credential) => {
     "Basic " +
     Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
 
-  const refreshAccessToken = (refreshToken) =>
+  const refreshAccessToken = (refreshToken: string) =>
     fetch("https://zoom.us/oauth/token", {
       method: "POST",
       headers: {
@@ -80,9 +80,9 @@ const zoomAuth = (credential: Credential) => {
             key: responseBody,
           },
         });
-        credential.key.access_token = responseBody.access_token;
-        credential.key.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
-        return credential.key.access_token;
+        credentialKey.access_token = responseBody.access_token;
+        credentialKey.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
+        return credentialKey.access_token;
       });
 
   return {
@@ -271,6 +271,7 @@ const createMeeting = async (
     } catch (e) {
       console.error("attendeeMail.sendEmail failed", e);
     }
+  }
 
   return {
     type: credential.type,

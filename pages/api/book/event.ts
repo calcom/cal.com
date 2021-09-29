@@ -249,7 +249,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  const seed = `${users[0].username}:${dayjs(reqBody.start).utc().format()}`;
+  const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const evt: CalendarEvent = {

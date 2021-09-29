@@ -105,13 +105,25 @@ export default class EventManager {
     );
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
-      return {
-        type: result.type,
-        uid: result.createdEvent.id.toString(),
-        meetingId: result.videoCallData?.id.toString(),
-        meetingPassword: result.videoCallData?.password,
-        meetingUrl: result.videoCallData?.url,
-      };
+      const isDailyResult = result.type === "daily";
+      if (isDailyResult) {
+        return {
+          type: result.type,
+          uid: result.createdEvent.name.toString(),
+          meetingId: result.videoCallData?.id.toString(),
+          meetingPassword: result.videoCallData?.password,
+          meetingUrl: result.videoCallData?.url,
+        };
+      }
+      if (!isDailyResult) {
+        return {
+          type: result.type,
+          uid: result.createdEvent.id.toString(),
+          meetingId: result.videoCallData?.id.toString(),
+          meetingPassword: result.videoCallData?.password,
+          meetingUrl: result.videoCallData?.url,
+        };
+      }
     });
 
     return {
