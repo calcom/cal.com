@@ -13,6 +13,13 @@ import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
+function convertMinsToHrsMins(mins: number) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const hours = h < 10 ? "0" + h : h;
+  const minutes = m < 10 ? "0" + m : m;
+  return `${hours}:${minutes}`;
+}
 export default function Availability() {
   const queryMe = trpc.useQuery(["viewer.me"]);
   const formModal = useToggleQuery("edit");
@@ -45,13 +52,6 @@ export default function Availability() {
     setShowAddModal(!showAddModal);
   }
 
-  function convertMinsToHrsMins(mins) {
-    let h = Math.floor(mins / 60);
-    let m = mins % 60;
-    h = h < 10 ? "0" + h : h;
-    m = m < 10 ? "0" + m : m;
-    return `${h}:${m}`;
-  }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function createEventTypeHandler(event) {
     event.preventDefault();
