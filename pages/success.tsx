@@ -18,6 +18,7 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
+import Button from "@components/ui/Button";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -227,6 +228,25 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   {!props.hideBranding && (
                     <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">Create your own booking link with Cal.com</a>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
+                        }}
+                        className="flex mt-4">
+                        <input
+                          type="email"
+                          name="email"
+                          id="email"
+                          defaultValue={router.query.email}
+                          className="shadow-sm text-gray-600 dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300"
+                          placeholder="rick.astley@cal.com"
+                        />
+                        <Button type="submit" className="min-w-max" color="primary">
+                          Try it for free
+                        </Button>
+                      </form>
                     </div>
                   )}
                 </div>

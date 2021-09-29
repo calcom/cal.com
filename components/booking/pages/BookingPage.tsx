@@ -144,6 +144,7 @@ const BookingPage = (props: BookingPageProps) => {
           user: props.profile.slug,
           reschedule: !!rescheduleUid,
           name: payload.name,
+          email: payload.email,
         };
 
         if (payload["location"]) {
