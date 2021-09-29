@@ -1,3 +1,4 @@
+import { request } from "http";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 
@@ -40,5 +41,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     return res.status(200).json({});
+  }
+
+  if (req.method === "PATCH") {
+    const webhook = await prisma.webhook.findUnique({
+      where: {
+        id: parseInt(req.query.webhookId as string),
+      },
+    });
+
+    if (!webhook) {
+      return res.status(404).json({ message: "Invalid Webhook" });
+    }
+
+    await prisma.webhook.update({
+      where: {
+        id: parseInt(req.query.webhookId as string),
+      },
+      data: {
+        subscriberUrl: req.body.subscriberUrl,
+        eventTriggers: req.body.eventTriggers,
+        active: req.body.enabled,
+      },
+    });
+
+    // For the rest
+    const webhookEventTypesData: { webhookId: number; eventTypeId: number }[] = [];
+    await req.body.eventTypeId.forEach((ev: number) =>
+      webhookEventTypesData.push({ webhookId: parseInt(req.query.webhookId as string), eventTypeId: ev })
+    );
+
+    await prisma.webhookEventTypes.createMany({
+      data: webhookEventTypesData,
+      skipDuplicates: true,
+    });
+
+    return res.status(200).json({ message: "Webhook updated successfully" });
   }
 }

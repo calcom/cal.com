@@ -42,6 +42,20 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
 
   const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
+  useEffect(() => {
+    const arr = [];
+    bookingCreated && arr.push("BOOKING_CREATED");
+    bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
+    bookingCancelled && arr.push("BOOKING_CANCELLED");
+    setWebhookEventTriggers(arr);
+    console.log("Selected: ", selectedWebhookEventTypes);
+  }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
+
+  useEffect(() => {
+    getWebhooks();
+    getEventTypes();
+  }, []);
+
   if (loading) {
     return <Loader />;
   }
@@ -82,24 +96,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
         setSelectedWebhookEventTypes(data.eventTypes.map((eventType) => eventType.id));
       });
   };
-
-  useEffect(() => {
-    const arr = [];
-    bookingCreated && arr.push("BOOKING_CREATED");
-    bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
-    bookingCancelled && arr.push("BOOKING_CANCELLED");
-    setWebhookEventTriggers(arr);
-    console.log("Selected: ", selectedWebhookEventTypes);
-  }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
-
-  useEffect(() => {
-    getWebhooks();
-    getEventTypes();
-  }, []);
-
-  if (loading) {
-    return <Loader />;
-  }
 
   function eventTypeSelectionHandler(eventType) {
     return (selected) => {
@@ -314,7 +310,12 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                 <div></div>
               </div>
               <div>
-                {!!webhooks.length && <WebhookList webhooks={webhooks} onChange={getWebhooks}></WebhookList>}
+                {!!webhooks.length && (
+                  <WebhookList
+                    webhooks={webhooks}
+                    eventTypes={webhookEventTypes}
+                    onChange={getWebhooks}></WebhookList>
+                )}
               </div>
             </div>
           </div>
