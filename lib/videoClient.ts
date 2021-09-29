@@ -132,6 +132,7 @@ const createMeeting = async (
     } catch (e) {
       console.error("attendeeMail.sendEmail failed", e);
     }
+  }
 
   return {
     type: credential.type,
