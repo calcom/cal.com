@@ -1,7 +1,8 @@
 import { ClockIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import showToast from "@lib/notification";
@@ -23,22 +24,31 @@ function convertMinsToHrsMins(mins: number) {
 export default function Availability() {
   const queryMe = trpc.useQuery(["viewer.me"]);
   const formModal = useToggleQuery("edit");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
+  const formMethods = useForm<{
+    startHours: string;
+    startMins: string;
+    endHours: string;
+    endMins: string;
+    bufferHours: string;
+    bufferMins: string;
+  }>({});
   const router = useRouter();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-  const isHiddenRef = useRef<HTMLInputElement>();
 
-  const startHoursRef = useRef<HTMLInputElement>();
-  const startMinsRef = useRef<HTMLInputElement>();
-  const endHoursRef = useRef<HTMLInputElement>();
-  const endMinsRef = useRef<HTMLInputElement>();
-  const bufferHoursRef = useRef<HTMLInputElement>();
-  const bufferMinsRef = useRef<HTMLInputElement>();
+  useEffect(() => {
+    const user = queryMe.data;
+    if (formMethods.formState.isDirty || !user) {
+      return;
+    }
+    formMethods.reset({
+      startHours: convertMinsToHrsMins(user.startTime).split(":")[0],
+      startMins: convertMinsToHrsMins(user.startTime).split(":")[1],
+      endHours: convertMinsToHrsMins(user.endTime).split(":")[0],
+      endMins: convertMinsToHrsMins(user.endTime).split(":")[1],
+      bufferHours: convertMinsToHrsMins(user.bufferTime).split(":")[0],
+      bufferMins: convertMinsToHrsMins(user.bufferTime).split(":")[1],
+    });
+  }, [formMethods, queryMe.data]);
 
   if (queryMe.status === "loading") {
     return <Loader />;
@@ -47,70 +57,6 @@ export default function Availability() {
     return <Alert severity="error" title="Something went wrong" />;
   }
   const user = queryMe.data;
-
-  function toggleAddModal() {
-    setShowAddModal(!showAddModal);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async function createEventTypeHandler(event) {
-    event.preventDefault();
-
-    const enteredTitle = titleRef.current.value;
-    const enteredSlug = slugRef.current.value;
-    const enteredDescription = descriptionRef.current.value;
-    const enteredLength = lengthRef.current.value;
-    const enteredIsHidden = isHiddenRef.current.checked;
-
-    // TODO: Add validation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const response = await fetch("/api/availability/eventtype", {
-      method: "POST",
-      body: JSON.stringify({
-        title: enteredTitle,
-        slug: enteredSlug,
-        description: enteredDescription,
-        length: enteredLength,
-        hidden: enteredIsHidden,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (enteredTitle && enteredLength) {
-      router.replace(router.asPath);
-      toggleAddModal();
-    }
-  }
-
-  async function updateStartEndTimesHandler(event) {
-    event.preventDefault();
-
-    const enteredStartHours = parseInt(startHoursRef.current.value);
-    const enteredStartMins = parseInt(startMinsRef.current.value);
-    const enteredEndHours = parseInt(endHoursRef.current.value);
-    const enteredEndMins = parseInt(endMinsRef.current.value);
-    const enteredBufferHours = parseInt(bufferHoursRef.current.value);
-    const enteredBufferMins = parseInt(bufferMinsRef.current.value);
-
-    const startMins = enteredStartHours * 60 + enteredStartMins;
-    const endMins = enteredEndHours * 60 + enteredEndMins;
-    const bufferMins = enteredBufferHours * 60 + enteredBufferMins;
-
-    // TODO: Add validation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const response = await fetch("/api/availability/day", {
-      method: "PATCH",
-      body: JSON.stringify({ start: startMins, end: endMins, buffer: bufferMins }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    router.push(formModal.hrefOff);
-    showToast("The start and end times for your day have been changed successfully.", "success");
-  }
 
   return (
     <div>
@@ -171,18 +117,40 @@ export default function Availability() {
                 </div>
               </div>
             </div>
-            <form onSubmit={updateStartEndTimesHandler}>
+            <form
+              onSubmit={formMethods.handleSubmit(async (values) => {
+                const startMins = parseInt(values.startHours) * 60 + parseInt(values.startMins);
+                const endMins = parseInt(values.endHours) * 60 + parseInt(values.endMins);
+                const bufferMins = parseInt(values.bufferHours) * 60 + parseInt(values.bufferMins);
+
+                // TODO: Add validation
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const response = await fetch("/api/availability/day", {
+                  method: "PATCH",
+                  body: JSON.stringify({ start: startMins, end: endMins, buffer: bufferMins }),
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                });
+                if (!response.ok) {
+                  showToast("Something went wrong", "error");
+                  return;
+                }
+                await queryMe.refetch();
+                router.push(formModal.hrefOff);
+
+                showToast("The start and end times for your day have been changed successfully.", "success");
+              })}>
               <div className="flex mb-4">
                 <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
                 <div>
-                  <label htmlFor="hours" className="sr-only">
+                  <label htmlFor="startHours" className="sr-only">
                     Hours
                   </label>
                   <input
-                    ref={startHoursRef}
+                    {...formMethods.register("startHours")}
+                    id="startHours"
                     type="number"
-                    name="hours"
-                    id="hours"
                     className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="9"
                     defaultValue={convertMinsToHrsMins(user.startTime).split(":")[0]}
@@ -190,81 +158,71 @@ export default function Availability() {
                 </div>
                 <span className="mx-2 pt-1">:</span>
                 <div>
-                  <label htmlFor="minutes" className="sr-only">
+                  <label htmlFor="startMins" className="sr-only">
                     Minutes
                   </label>
                   <input
-                    ref={startMinsRef}
+                    {...formMethods.register("startMins")}
+                    id="startMins"
                     type="number"
-                    name="minutes"
-                    id="minutes"
                     className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="30"
-                    defaultValue={convertMinsToHrsMins(user.startTime).split(":")[1]}
                   />
                 </div>
               </div>
               <div className="flex mb-4">
                 <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
                 <div>
-                  <label htmlFor="hours" className="sr-only">
+                  <label htmlFor="endHours" className="sr-only">
                     Hours
                   </label>
                   <input
-                    ref={endHoursRef}
+                    {...formMethods.register("endHours")}
                     type="number"
-                    name="hours"
-                    id="hours"
+                    id="endHours"
                     className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="17"
-                    defaultValue={convertMinsToHrsMins(user.endTime).split(":")[0]}
                   />
                 </div>
                 <span className="mx-2 pt-1">:</span>
                 <div>
-                  <label htmlFor="minutes" className="sr-only">
+                  <label htmlFor="endMins" className="sr-only">
                     Minutes
                   </label>
                   <input
-                    ref={endMinsRef}
+                    {...formMethods.register("endMins")}
                     type="number"
-                    name="minutes"
-                    id="minutes"
+                    id="endMins"
                     className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="30"
-                    defaultValue={convertMinsToHrsMins(user.endTime).split(":")[1]}
                   />
                 </div>
               </div>
               <div className="flex mb-4">
                 <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
                 <div>
-                  <label htmlFor="hours" className="sr-only">
+                  <label htmlFor="bufferHours" className="sr-only">
                     Hours
                   </label>
                   <input
-                    ref={bufferHoursRef}
+                    {...formMethods.register("bufferHours")}
                     type="number"
-                    name="hours"
-                    id="hours"
+                    id="bufferHours"
                     className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="0"
-                    defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[0]}
                   />
                 </div>
                 <span className="mx-2 pt-1">:</span>
                 <div>
-                  <label htmlFor="minutes" className="sr-only">
+                  <label htmlFor="bufferMins" className="sr-only">
                     Minutes
                   </label>
                   <input
-                    ref={bufferMinsRef}
+                    {...formMethods.register("bufferMins")}
                     type="number"
-                    name="minutes"
-                    id="minutes"
+                    id="bufferMins"
                     className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="10"
-                    defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[1]}
                   />
                 </div>
               </div>
@@ -272,7 +230,9 @@ export default function Availability() {
                 <Button href={formModal.hrefOff} color="secondary" tabIndex={-1}>
                   Cancel
                 </Button>
-                <Button type="submit">Update</Button>
+                <Button type="submit" loading={formMethods.formState.isSubmitting}>
+                  Update
+                </Button>
               </div>
             </form>
           </DialogContent>
