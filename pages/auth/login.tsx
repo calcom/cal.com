@@ -100,6 +100,7 @@ export default function Login({ csrfToken }) {
                   id="email"
                   name="email"
                   type="email"
+                  inputMode="email"
                   autoComplete="email"
                   required
                   value={email}
