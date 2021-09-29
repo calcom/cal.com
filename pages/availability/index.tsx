@@ -268,13 +268,11 @@ export default function Availability() {
                   />
                 </div>
               </div>
-              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <button type="submit" className="btn btn-primary">
-                  Update
-                </button>
-                <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
+              <div className="mt-5 sm:mt-4 sm:flex space-x-2">
+                <Button href={formModal.hrefOff} color="secondary" tabIndex={-1}>
                   Cancel
-                </button>
+                </Button>
+                <Button type="submit">Update</Button>
               </div>
             </form>
           </DialogContent>
