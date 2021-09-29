@@ -20,7 +20,7 @@ export type AppProps = NextAppProps & {
 };
 
 function navigatorLanguage() {
-  return process.browser ? navigator.language : "en";
+  return process.browser ? navigator.language.split("-")[0] : "en";
 }
 function useViewerLocale() {
   const router = useRouter();
