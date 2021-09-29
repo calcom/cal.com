@@ -79,7 +79,7 @@ export default function User(props: inferSSRProps<typeof getStaticProps>) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const allUsers = await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     select: {
       username: true,
       locale: true,
@@ -90,11 +90,31 @@ export const getStaticPaths: GetStaticPaths = async () => {
       plan: "PRO",
     },
   });
-  const usernames = allUsers.flatMap((u) => (u.username ? [u.username] : []));
   return {
-    paths: usernames.map((user) => ({
-      params: { user },
-    })),
+    paths: users.flatMap((user) => {
+      if (!user.username) {
+        return [];
+      }
+      // statically render english
+      const paths = [
+        {
+          params: {
+            username: user.username,
+          },
+          locale: defaultLocale,
+        },
+      ];
+      // statically render user's preferred language
+      if (user.locale && user.locale !== defaultLocale) {
+        paths.push({
+          params: {
+            username: user.username,
+          },
+          locale: user.locale,
+        });
+      }
+      return paths;
+    }),
 
     // https://nextjs.org/docs/basic-features/data-fetching#fallback-blocking
     fallback: "blocking",
@@ -105,17 +125,9 @@ export async function getStaticProps(context: GetStaticPropsContext<{ user: stri
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const username = context.params!.user;
 
-  const [data, user] = await Promise.all([
-    ssg.fetchQuery("booking.userEventTypes", { username }),
-    prisma.user.findUnique({
-      where: { username },
-      select: {
-        locale: true,
-      },
-    }),
-  ]);
+  const data = await ssg.fetchQuery("booking.userEventTypes", { username });
 
-  if (!data || !user) {
+  if (!data) {
     return {
       notFound: true,
     };
@@ -124,7 +136,7 @@ export async function getStaticProps(context: GetStaticPropsContext<{ user: stri
     props: {
       trpcState: ssg.dehydrate(),
       username,
-      ...(await serverSideTranslations(user.locale ?? defaultLocale, ["common"])),
+      ...(await serverSideTranslations(context.locale ?? defaultLocale, ["common"])),
     },
     revalidate: 1,
   };
