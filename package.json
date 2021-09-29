@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "analyze": "ANALYZE=true next build",
+    "analyze:server": "BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "dev": "next dev",
     "db-up": "docker-compose up -d",
     "db-migrate": "yarn prisma migrate dev",
@@ -85,6 +88,7 @@
     "zod": "^3.8.2"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "11.1.2",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/async": "^3.2.7",
     "@types/bcryptjs": "^2.4.2",

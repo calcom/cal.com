@@ -4,7 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
 
