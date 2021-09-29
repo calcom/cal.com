@@ -7,7 +7,7 @@ export const SelectComp = (props: PropsWithChildren<NamedProps>) => (
   <Select
     theme={(theme) => ({
       ...theme,
-      borderRadius: "2px",
+      borderRadius: 2,
       colors: {
         ...theme.colors,
         primary: "rgba(17, 17, 17, var(--tw-bg-opacity))",

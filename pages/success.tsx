@@ -239,6 +239,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           type="email"
                           name="email"
                           id="email"
+                          inputMode="email"
                           defaultValue={router.query.email}
                           className="shadow-sm text-gray-600 dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300"
                           placeholder="rick.astley@cal.com"

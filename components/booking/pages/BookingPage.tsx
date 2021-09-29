@@ -264,6 +264,7 @@ const BookingPage = (props: BookingPageProps) => {
                         type="email"
                         name="email"
                         id="email"
+                        inputMode="email"
                         required
                         className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                         placeholder="you@example.com"
