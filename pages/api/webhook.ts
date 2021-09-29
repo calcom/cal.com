@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
 import { getSession } from "next-auth/client";
+
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -34,10 +35,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    const filteredWebhookEvents = webhookEvents.map((webhookEvent) => {
+      return {
+        ...webhookEvent,
+        webhookId: webhookEventTypes
+          .filter((eventType) => {
+            return webhookEvent.id === eventType.eventTypeId;
+          })
+          .map((webhook) => {
+            return webhook.webhookId;
+          })[0],
+      };
+    });
+
     const webhookList = webhooks.map((webhook) => {
       return {
         ...webhook,
-        webhookEvents: webhookEvents,
+        webhookEvents: filteredWebhookEvents.filter((webhookEvent) => webhookEvent.webhookId === webhook.id),
       };
     });
 

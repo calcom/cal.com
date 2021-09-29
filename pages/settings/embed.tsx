@@ -13,6 +13,7 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 import Loader from "@components/Loader";
 import SettingsShell from "@components/Settings";
 import Shell from "@components/Shell";
@@ -21,20 +22,11 @@ import Switch from "@components/ui/Switch";
 // import Checkbox from "@components/ui/form/checkbox";
 import WebhookList from "@components/webhook/WebhookList";
 
-import { EventTypeCustomInputType } from ".prisma/client";
+// import { EventTypeCustomInputType } from ".prisma/client";
 
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
-  const [showCreateWebhookModal, setShowCreateWebhookModal] = useState(false);
-import { useEffect, useState, useRef } from "react";
-import { PlusIcon } from "@heroicons/react/outline";
-import WebhookList from "@components/webhook/WebhookList";
-import Switch from "@components/ui/Switch";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 
-export default function Embed(props: { err: string | undefined; BASE_URL: string; user: Member }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
   const [isLoading, setLoading] = useState(false);
   const [bookingCreated, setBookingCreated] = useState(true);
   const [bookingRescheduled, setBookingRescheduled] = useState(true);
@@ -64,14 +56,6 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
     return resp.json();
   };
 
-  // const onCheckedChange = () => {
-  //   const arr = [];
-  //   bookingCreated && arr.push("BOOKING_CREATED");
-  //   bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
-  //   bookingCancelled && arr.push("BOOKING_CANCELLED");
-  //   setWebhookEventTriggers(arr);
-  // };
-
   const getWebhooks = () => {
     fetch("/api/webhook")
       .then(handleErrors)
@@ -84,6 +68,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
             };
           })
         );
+        console.log(data.webhooks);
       })
       .catch(console.log);
     setLoading(false);
@@ -94,6 +79,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
       .then(handleErrors)
       .then((data) => {
         setWebhookEventTypes(data.eventTypes);
+        setSelectedWebhookEventTypes(data.eventTypes.map((eventType) => eventType.id));
       });
   };
 
@@ -103,7 +89,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
     bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
     bookingCancelled && arr.push("BOOKING_CANCELLED");
     setWebhookEventTriggers(arr);
-    console.log(selectedWebhookEventTypes);
+    console.log("Selected: ", selectedWebhookEventTypes);
   }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
 
   useEffect(() => {
@@ -117,16 +103,16 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
 
   function eventTypeSelectionHandler(eventType) {
     return (selected) => {
-      const i = webhookEventTypes.findIndex((c) => c.slug === eventType.slug);
+      const i = webhookEventTypes.findIndex((c) => c.id === eventType.id);
       webhookEventTypes[i].selected = selected;
       if (selected) {
         // push
-        if (!selectedWebhookEventTypes.includes(eventType.slug)) {
-          setSelectedWebhookEventTypes([...selectedWebhookEventTypes, eventType.slug]);
+        if (!selectedWebhookEventTypes.includes(eventType.id)) {
+          setSelectedWebhookEventTypes([...selectedWebhookEventTypes, eventType.id]);
         }
       } else {
         //pop
-        const index = selectedWebhookEventTypes.indexOf(eventType.slug);
+        const index = selectedWebhookEventTypes.indexOf(eventType.id);
         if (index > -1) {
           const arr = selectedWebhookEventTypes;
           arr.splice(index, 1);
@@ -144,7 +130,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
       body: JSON.stringify({
         subscriberUrl: subUrlRef.current.value,
         eventTriggers: webhookEventTrigger,
-        eventTypeId: webhookEventTypes.map((webhookEventType) => webhookEventType.id),
+        eventTypeId: selectedWebhookEventTypes,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -197,7 +183,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
           <hr className="mt-8" />
           <div className="flex justify-between my-6">
             <div>
-              <h2 className="text-lg font-medium leading-6 text-gray-900">Webhooks</h2>
+              <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">Webhooks</h2>
               <p className="mt-1 text-sm text-gray-500">
                 Receive Cal meeting data at a specified URL, in real-time, when an event is scheduled or
                 cancelled.{" "}
@@ -233,7 +219,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
                         Event Types{" "}
                       </legend>
                       <div className="p-2 border border-gray-300 rounded-sm">
-                        <ul className="overflow-y-auto divide-y divide-gray-200 max-h-96">
+                        <ul className="overflow-y-auto max-h-96">
                           {webhookEventTypes.map((eventType) => (
                             <li key={eventType.slug} className="flex py-2">
                               <div className="w-10/12">
@@ -325,23 +311,7 @@ export default function Embed(props: { err: string | undefined; BASE_URL: string
           <div className="divide-y divide-gray-200 lg:col-span-9">
             <div className="py-6 lg:pb-8">
               <div className="flex flex-col justify-between md:flex-row">
-                <div>
-                  {/* {!webhooks.length && (
-                    <div className="sm:rounded-sm">
-                      <div className="pb-5 pr-4 sm:pb-6">
-                        <h3 className="text-lg font-medium leading-6 text-gray-900">
-                          Create a webhook to get started
-                        </h3>
-                        <div className="max-w-xl mt-2 text-sm text-gray-500">
-                          <p>
-                            Create your first webhook and get real-time meeting data when an event is
-                            scheduled or cancelled.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )} */}
-                </div>
+                <div></div>
               </div>
               <div>
                 {!!webhooks.length && <WebhookList webhooks={webhooks} onChange={getWebhooks}></WebhookList>}

@@ -1,4 +1,5 @@
 import { Webhook, WebhookTriggerEvents } from "@prisma/client";
+
 import prisma from "@lib/prisma";
 
 const getSubscriberUrls = async (
@@ -22,7 +23,11 @@ const getSubscriberUrls = async (
     return (
       webhook.eventTriggers.includes(triggerEvent) &&
       webhook.active &&
-      webhookEventTypes.map((webhookEventType) => webhookEventType.webhookId === webhook.id)
+      webhookEventTypes
+        .map((webhookEventType) => {
+          return webhookEventType.webhookId;
+        })
+        .includes(webhook.id)
     );
   });
 

@@ -1,23 +1,27 @@
 import { TrashIcon, PencilAltIcon } from "@heroicons/react/outline";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Button from "@components/ui/Button";
+import { useEffect, useRef, useState } from "react";
+
 // import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
+
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+import { Tooltip } from "@components/Tooltip";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-import { useRef, useState } from "react";
 
 export default function WebhookListItem(props: { onChange: () => void; key: number; webhook: Webhook }) {
   const [bookingCreated, setBookingCreated] = useState(true);
   const [bookingRescheduled, setBookingRescheduled] = useState(true);
   const [bookingCancelled, setBookingCancelled] = useState(true);
-  const [webhooks, setWebhooks] = useState([]);
   const [webhookEventTrigger, setWebhookEventTriggers] = useState([
     "BOOKING_CREATED",
     "BOOKING_RESCHEDULED",
     "BOOKING_CANCELLED",
   ]);
   const [webhookEventTypes, setWebhookEventTypes] = useState([]);
+  const [selectedWebhookEventTypes, setSelectedWebhookEventTypes] = useState([]);
+
   const [webhookEnabled, setWebhookEnabled] = useState(true);
   const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
@@ -28,26 +32,49 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
     }
     return resp.json();
   };
-  const onCheckedChange = (val: boolean | string, ref: string) => {
-    switch (ref) {
-      case "booking-created":
-        setBookingCreated(!bookingCreated);
-        break;
-      case "booking-rescheduled":
-        setBookingRescheduled(!bookingRescheduled);
-        break;
-      case "booking-cancelled":
-        setBookingCancelled(!bookingCancelled);
-        break;
-      case "webhook-enabled":
-        setWebhookEnabled(!webhookEnabled);
-        break;
-    }
+
+  useEffect(() => {
     const arr = [];
     bookingCreated && arr.push("BOOKING_CREATED");
     bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
     bookingCancelled && arr.push("BOOKING_CANCELLED");
     setWebhookEventTriggers(arr);
+    console.log(selectedWebhookEventTypes);
+  }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
+
+  function eventTypeSelectionHandler(eventType) {
+    return (selected) => {
+      const i = webhookEventTypes.findIndex((c) => c.slug === eventType.slug);
+      webhookEventTypes[i].selected = selected;
+      if (selected) {
+        // push
+        if (!selectedWebhookEventTypes.includes(eventType.slug)) {
+          setSelectedWebhookEventTypes([...selectedWebhookEventTypes, eventType.slug]);
+        }
+      } else {
+        //pop
+        const index = selectedWebhookEventTypes.indexOf(eventType.slug);
+        if (index > -1) {
+          const arr = selectedWebhookEventTypes;
+          arr.splice(index, 1);
+          console.log(arr);
+          setSelectedWebhookEventTypes(arr);
+        }
+      }
+    };
+  }
+
+  const deleteWebhook = (webhookId: number) => {
+    fetch("/api/webhooks/" + webhookId, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then(handleErrors)
+      .then((data) => {
+        console.log("Delete", data);
+      });
   };
 
   return (
@@ -55,9 +82,9 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
       <div className="flex justify-between my-4">
         <div className="flex pr-2 border-r border-gray-100">
           <span className="flex flex-col space-y-2 text-xs">
-            {props.webhook.eventTriggers.map((webhookEventTrigger, ind) => (
+            {props.webhook.eventTriggers.map((eventTrigger, ind) => (
               <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
-                {webhookEventTrigger}
+                {eventTrigger}
               </span>
             ))}
           </span>
@@ -66,7 +93,7 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
           <div className="self-center inline-block ml-3 space-y-1">
             <span className="flex text-sm text-neutral-700">{props.webhook.subscriberUrl}</span>
 
-            <div className="inline-block space-y-1">
+            <div className="inline-block space-x-1 space-y-1">
               {props.webhook.webhookEvents.map((webhookEvent, ind: number) => (
                 <span key={ind} className="px-2 py-1 text-xs text-gray-700 rounded-md w-max bg-gray-50">
                   {"/"}
@@ -89,15 +116,17 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
           )}
 
           <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                color="minimal"
-                StartIcon={PencilAltIcon}
-                className="self-center w-full py-2 pr-0 ml-2"></Button>
-            </DialogTrigger>
+            <Tooltip content="Edit Webhook">
+              <DialogTrigger asChild>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  color="minimal"
+                  StartIcon={PencilAltIcon}
+                  className="self-center w-full p-2 pr-0 ml-4 border border-transparent group text-neutral-400 hover:border-gray-200 hover:text-neutral-700"></Button>
+              </DialogTrigger>
+            </Tooltip>
             <DialogContent>
               <DialogHeader title="Edit Webhook" subtitle="Edit your webhook details" />
               <div className="my-4">
@@ -115,6 +144,24 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
                     required
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                   />
+                  <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700"> Event Types </legend>
+                  <div className="p-2 border border-gray-300 rounded-sm">
+                    <ul className="overflow-y-auto max-h-96">
+                      {props.webhook.webhookEvents.map((eventType) => (
+                        <li key={eventType.slug} className="flex py-2">
+                          <div className="w-10/12">
+                            <h2 className="font-medium text-gray-800 align-middle">{eventType.slug}</h2>
+                          </div>
+                          <div className="flex items-center justify-center w-2/12 text-right">
+                            <Switch
+                              defaultChecked={true}
+                              onCheckedChange={eventTypeSelectionHandler(eventType)}
+                            />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                   <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
                     {" "}
                     Select Event Triggers{" "}
@@ -127,9 +174,11 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
                       <div className="flex items-center justify-center w-2/12 text-right">
                         <Switch
                           defaultChecked={true}
-                          cid="booking-created"
+                          id="booking-created"
                           value={bookingCreated}
-                          onCheckedChange={onCheckedChange}
+                          onCheckedChange={() => {
+                            setBookingCreated(!bookingCreated);
+                          }}
                         />
                       </div>
                     </div>
@@ -140,9 +189,11 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
                       <div className="flex items-center justify-center w-2/12 text-right">
                         <Switch
                           defaultChecked={true}
-                          cid="booking-rescheduled"
+                          id="booking-rescheduled"
                           value={bookingRescheduled}
-                          onCheckedChange={onCheckedChange}
+                          onCheckedChange={() => {
+                            setBookingRescheduled(!bookingRescheduled);
+                          }}
                         />
                       </div>
                     </div>
@@ -153,34 +204,15 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
                       <div className="flex items-center justify-center w-2/12 text-right">
                         <Switch
                           defaultChecked={true}
-                          cid="booking-cancelled"
+                          id="booking-cancelled"
                           value={bookingCancelled}
-                          onCheckedChange={onCheckedChange}
+                          onCheckedChange={() => {
+                            setBookingCancelled(!bookingCancelled);
+                          }}
                         />
                       </div>
                     </div>
                   </div>
-                  {/* <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700"> Event Types </legend>
-                  <div className="p-2 border border-gray-300 rounded-sm">
-                    {props.webhook.webhookEvents.map((webhookEvent, ind: number) => (
-                      <div key={webhookEvent.slug} className="flex">
-                        <div className="w-10/12">
-                          <h2 className="font-medium text-gray-800">
-                            {"/"}
-                            {webhookEvent.slug}
-                          </h2>
-                        </div>
-                        <div className="flex items-center justify-center w-2/12 text-right">
-                          <Switch
-                            defaultChecked={true}
-                            cid={webhookEvent.slug}
-                            value={webhookEvent.slug}
-                            onCheckedChange={onCheckedChange}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div> */}
                   <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
                     {" "}
                     Webhook Status{" "}
@@ -193,9 +225,11 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
                       <div className="flex items-center justify-center w-2/12 text-right">
                         <Switch
                           defaultChecked={true}
-                          cid="webhook-enabled"
+                          id="webhook-enabled"
                           value={webhookEnabled}
-                          onCheckedChange={onCheckedChange}
+                          onCheckedChange={() => {
+                            setWebhookEnabled(!webhookEnabled);
+                          }}
                         />
                       </div>
                     </div>
@@ -213,15 +247,17 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
             </DialogContent>
           </Dialog>
           <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                color="warn"
-                StartIcon={TrashIcon}
-                className="self-center w-full py-2 pr-0 ml-2"></Button>
-            </DialogTrigger>
+            <Tooltip content="Delete Webhook">
+              <DialogTrigger asChild>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  color="minimal"
+                  StartIcon={TrashIcon}
+                  className="self-center w-full p-2 pr-0 ml-2 border border-transparent group text-neutral-400 hover:border-gray-200 hover:text-neutral-700"></Button>
+              </DialogTrigger>
+            </Tooltip>
             <ConfirmationDialogContent
               variety="danger"
               title="Delete Webhook"
@@ -230,7 +266,7 @@ export default function WebhookListItem(props: { onChange: () => void; key: numb
               onConfirm={() => {
                 console.log("confirm");
                 //delete webhook
-                deleteWebhook();
+                deleteWebhook(props.webhook.id);
               }}>
               Are you sure you want to delete this webhook? You will no longer receive Cal.com meeting data at
               a specified URL, in real-time, when an event is scheduled or canceled .
