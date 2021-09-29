@@ -500,7 +500,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           fillRule="evenodd"></path>
                                       </g>
                                     </svg>
-                                    <span className="ml-2 text-sm"> Cal Video, powered by Daily.co</span>
+                                    <span className="ml-2 text-sm"> Daily.co Video</span>
                                   </div>
                                 )}
                                 {location.type === LocationType.Zoom && (
@@ -1227,7 +1227,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
     { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
-    { value: LocationType.Daily, label: "Daily video" },
+    { value: LocationType.Daily, label: "Daily.co Video" },
   ];
 
   if (hasIntegration(integrations, "zoom_video")) {
@@ -1239,7 +1239,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   const hasDailyIntegration = integrations.find((i) => i.type === "daily_video" && i.installed === true);
   if (hasDailyIntegration) {
-    locationOptions.push({ value: LocationType.Daily, label: "Cal Video, powered by Daily.co" });
+    locationOptions.push({ value: LocationType.Daily, label: "Daily.co Video" });
   }
 
   const currency =

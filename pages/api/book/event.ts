@@ -446,7 +446,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  //for Cal video calls powered by Daily will grab the meeting token for the call
+  //for Daily.co video calls will grab the meeting token for the call
   const isDaily = evt.location === "integrations:daily";
   let dailyEvent;
   if (!rescheduleUid) {
@@ -468,7 +468,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     meetingToken = await response.json();
   }
 
-  //for Cal video calls powered by Daily  will update the dailyEventReference table
+  //for Daily.co video calls will update the dailyEventReference table
 
   if (isDaily) {
     await prisma.dailyEventReference.create({

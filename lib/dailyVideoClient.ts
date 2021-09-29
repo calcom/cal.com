@@ -1,16 +1,18 @@
-import { CalendarEvent } from "./calendarClient";
-import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
-import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
-import { v5 as uuidv5 } from "uuid";
+import { Credential } from "@prisma/client";
 import short from "short-uuid";
-import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
-import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import { EventResult } from "@lib/events/EventManager";
-import logger from "@lib/logger";
+import { v5 as uuidv5 } from "uuid";
+
+import CalEventParser from "@lib/CalEventParser";
 import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
 import { getIntegrationName } from "@lib/emails/helpers";
-import CalEventParser from "@lib/CalEventParser";
-import { Credential } from "@prisma/client";
+import { EventResult } from "@lib/events/EventManager";
+import logger from "@lib/logger";
+
+import { CalendarEvent } from "./calendarClient";
+import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
+import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
+import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
+import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
 
 const log = logger.getChildLogger({ prefix: ["[lib] dailyVideoClient"] });
 
@@ -134,7 +136,7 @@ const dailyCreateMeeting = async (
   const currentRoute = process.env.BASE_URL;
 
   const videoCallData: DailyVideoCallData = {
-    type: "Cal Video, powered by Daily.co",
+    type: "Daily.co Video",
     id: creationResult.name,
     password: creationResult.password,
     url: currentRoute + "/call/" + uid,
@@ -153,6 +155,7 @@ const dailyCreateMeeting = async (
 
   const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
   const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
+
   try {
     await organizerMail.sendEmail();
   } catch (e) {

@@ -1,13 +1,14 @@
 import { Credential } from "@prisma/client";
 import async from "async";
-import { dailyCreateMeeting, dailyUpdateMeeting } from "@lib/dailyVideoClient";
-import prisma from "@lib/prisma";
-import { LocationType } from "@lib/location";
-import { v5 as uuidv5 } from "uuid";
 import merge from "lodash.merge";
+import { v5 as uuidv5 } from "uuid";
+
 import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
+import { dailyCreateMeeting, dailyUpdateMeeting } from "@lib/dailyVideoClient";
 import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
 import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
+import { LocationType } from "@lib/location";
+import prisma from "@lib/prisma";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
 export interface EventResult {
@@ -56,7 +57,7 @@ export default class EventManager {
     this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
 
-    //for cal video powered by Daily.co, temporarily pushes a credential for the daily-video-client
+    //for  Daily.co video, temporarily pushes a credential for the daily-video-client
 
     const hasDailyIntegration = process.env.DAILY_API_KEY != null;
     const dailyCredential: Credential = {
@@ -112,6 +113,12 @@ export default class EventManager {
         meetingUrl: result.videoCallData?.url,
       };
     });
+
+    return {
+      results,
+      referencesToCreate,
+    };
+  }
 
   /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the

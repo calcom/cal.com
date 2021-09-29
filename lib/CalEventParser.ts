@@ -84,8 +84,12 @@ export default class CalEventParser {
    * @protected
    */
   protected getLocation(): string | undefined {
+    const isDaily = this.calEvent.location === "integrations:daily";
     if (this.optionalVideoCallData) {
       return this.optionalVideoCallData.url;
+    }
+    if (isDaily) {
+      return process.env.BASE_URL + "/call/" + this.getUid();
     }
     return this.calEvent.location;
   }
