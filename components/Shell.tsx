@@ -19,28 +19,12 @@ import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { trpc } from "@lib/trpc";
 
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
+import { useMeQuery } from "../lib/hooks/useMeQuery";
 import Logo from "./Logo";
-
-function useMeQuery() {
-  const [session] = useSession();
-  const meQuery = trpc.useQuery(["viewer.me"], {
-    // refetch max once per 5s
-    staleTime: 5000,
-  });
-
-  useEffect(() => {
-    // refetch if sesion changes
-    meQuery.refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
-
-  return meQuery;
-}
 
 function useRedirectToLoginIfUnauthenticated() {
   const [session, loading] = useSession();
