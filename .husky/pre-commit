@@ -2,6 +2,3 @@
 . "$(dirname "$0")/_/husky.sh"
 
 yarn lint-staged
-npm test
-npm test
-initial test

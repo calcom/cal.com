@@ -115,6 +115,12 @@ export default class EventManager {
       };
     });
 
+    return {
+      results,
+      referencesToCreate,
+    };
+  }
+
   /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the
    * given uid using the data delivered in the given CalendarEvent.
