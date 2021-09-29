@@ -124,7 +124,7 @@ export async function getStaticProps(context: GetStaticPropsContext<{ user: stri
     props: {
       trpcState: ssg.dehydrate(),
       username,
-      ...(await serverSideTranslations(user?.locale ?? defaultLocale, ["common"])),
+      ...(await serverSideTranslations(user.locale ?? defaultLocale, ["common"])),
     },
     revalidate: 1,
   };
