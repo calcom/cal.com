@@ -214,7 +214,7 @@ export default function EditTeam(props: {
                     <ImageUploader
                       target="logo"
                       id="logo-upload"
-                      buttonMsg={imageSrc !== "" ? "Edit logo" : "Upload a logo"}
+                      buttonMsg={imageSrc !== "" ? t("edit_logo") : t("upload_a_logo")}
                       handleAvatarChange={handleLogoChange}
                       imageRef={imageSrc ? imageSrc : props.team?.logo}
                     />
@@ -275,7 +275,7 @@ export default function EditTeam(props: {
                         }}
                         className="btn-sm btn-white">
                         <TrashIcon className="group-hover:text-red text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
-                        Disband Team
+                        {t("disband_team")}
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         localeProp={locale}
@@ -299,8 +299,8 @@ export default function EditTeam(props: {
           </div>
         </form>
         <Modal
-          heading="Team updated successfully"
-          description="Your team has been updated successfully."
+          heading={t("team_updated_successfully")}
+          description={t("your_team_updated_successfully")}
           open={successModalOpen}
           handleClose={closeSuccessModal}
         />
