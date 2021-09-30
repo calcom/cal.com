@@ -8,6 +8,7 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import slugify from "@lib/slugify";
 
 import { createProtectedRouter } from "../createRouter";
+import { resizeBase64Image } from "../lib/resizeBase64Image";
 
 const checkUsername =
   process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
@@ -118,6 +119,9 @@ export const viewerRouter = createProtectedRouter()
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }
+      }
+      if (input.avatar) {
+        data.avatar = await resizeBase64Image(input.avatar);
       }
 
       await prisma.user.update({
