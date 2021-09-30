@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import LicenseBanner from "@ee/components/LicenseBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
@@ -241,6 +242,7 @@ export default function Shell(props: {
               {/* add padding to content for mobile navigation*/}
               <div className="block md:hidden pt-12" />
             </div>
+            <LicenseBanner />
           </main>
         </div>
       </div>
