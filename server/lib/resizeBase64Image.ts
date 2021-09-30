@@ -15,15 +15,13 @@ export async function resizeBase64Image(
 
   const { maxSize = 96 * 4 } = opts ?? {};
   const image = await jimp.read(buffer);
+  if (image.getHeight() !== image.getHeight()) {
+    // this could be handled later
+    throw new Error("Image is not a square");
+  }
   const currentSize = Math.max(image.getWidth(), image.getHeight());
-
   if (currentSize > maxSize) {
-    const biggest = image.getWidth() > image.getHeight() ? "width" : "height";
-    if (biggest === "width") {
-      image.resize(jimp.AUTO, maxSize);
-    } else {
-      image.resize(maxSize, jimp.AUTO);
-    }
+    image.resize(jimp.AUTO, maxSize);
   }
   console.log({ mimetype });
   const newBuffer = await image.getBufferAsync(mimetype);
