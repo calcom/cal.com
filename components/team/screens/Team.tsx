@@ -68,7 +68,7 @@ const Team = ({ team }) => {
   return (
     <div>
       <Members members={team.members} />
-      {team.eventTypes.length && (
+      {team.eventTypes.length > 0 && (
         <aside className="text-center dark:text-white mt-8">
           <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
             Go back
