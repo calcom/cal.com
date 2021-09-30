@@ -1,12 +1,12 @@
 import parser from "accept-language-parser";
-import { NextApiRequest } from "next";
+import { IncomingMessage } from "http";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 import { i18n } from "../../../next-i18next.config";
 
-export const getOrSetUserLocaleFromHeaders = async (req: NextApiRequest) => {
+export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage) => {
   const session = await getSession({ req });
   const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]);
 

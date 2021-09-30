@@ -967,6 +967,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   localeProp={locale}
                   variety="danger"
                   title="Delete Event Type"
+                  confirmBtnText="Yes, delete event type"
                   onConfirm={deleteEventTypeHandler}>
                   Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link
                   with will no longer be able to book using it.
