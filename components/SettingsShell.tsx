@@ -1,8 +1,9 @@
 import { CodeIcon, CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
+import React from "react";
 
 import NavTabs from "./NavTabs";
 
-export default function SettingsShell(props) {
+export default function SettingsShell({ children }: { children: React.ReactNode }) {
   const tabs = [
     {
       name: "Profile",
@@ -28,12 +29,11 @@ export default function SettingsShell(props) {
   ];
 
   return (
-    <div>
+    <>
       <div className="sm:mx-auto">
         <NavTabs tabs={tabs} />
-        <hr />
       </div>
-      <main className="max-w-4xl">{props.children}</main>
-    </div>
+      <main className="max-w-4xl">{children}</main>
+    </>
   );
 }
