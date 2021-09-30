@@ -9,7 +9,7 @@ export async function resizeBase64Image(
   const mimeMatch = base64Str.match(/^data:(\w+\/\w+);/);
   const mimetype = mimeMatch?.[1];
   if (!mimetype) {
-    throw new Error(`Could not distinguish mimetype ${mimetype}`);
+    throw new Error(`Could not distinguish mimetype`);
   }
   const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
 
