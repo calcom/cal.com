@@ -6,13 +6,15 @@ export async function resizeBase64Image(
     maxSize?: number;
   }
 ) {
+  const mimeMatch = base64Str.match(/^data:(\w+\/\w+);/);
+  const mimetype = mimeMatch?.[1];
+  if (!mimetype) {
+    throw new Error(`Could not distinguish mimetype ${mimetype}`);
+  }
   const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
 
   const { maxSize = 96 * 4 } = opts ?? {};
   const image = await jimp.read(buffer);
-
-  const mime = image.getMIME();
-
   const currentSize = Math.max(image.getWidth(), image.getHeight());
 
   if (currentSize > maxSize) {
@@ -23,7 +25,8 @@ export async function resizeBase64Image(
       image.resize(maxSize, jimp.AUTO);
     }
   }
-  const newBuffer = await image.getBufferAsync(image.getMIME());
+  console.log({ mimetype });
+  const newBuffer = await image.getBufferAsync(mimetype);
 
-  return `data:${mime};base64,${newBuffer.toString("base64")}`;
+  return `data:${mimetype};base64,${newBuffer.toString("base64")}`;
 }
