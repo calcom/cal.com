@@ -13,7 +13,10 @@ export async function resizeBase64Image(
   }
   const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
 
-  const { maxSize = 96 * 4 } = opts ?? {};
+  const {
+    // 96px is the height of the image on https://cal.com/peer
+    maxSize = 96 * 4,
+  } = opts ?? {};
   const image = await jimp.read(buffer);
   if (image.getHeight() !== image.getHeight()) {
     // this could be handled later
