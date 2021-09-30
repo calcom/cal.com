@@ -28,6 +28,7 @@
   "dependencies": {
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
+    "@hookform/resolvers": "^2.8.1",
     "@jitsu/sdk-js": "^2.2.4",
     "@prisma/client": "^2.30.2",
     "@radix-ui/react-avatar": "^0.1.0",
@@ -73,6 +74,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-easy-crop": "^3.5.2",
+    "react-hook-form": "^7.16.1",
     "react-hot-toast": "^2.1.0",
     "react-intl": "^5.20.7",
     "react-multi-email": "^0.5.3",
