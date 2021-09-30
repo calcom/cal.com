@@ -286,6 +286,7 @@ enum WebhookTriggerEvents {
 
 model Webhook {
   id            Int       @id @default(autoincrement())
+  uid           String    @unique
   userId        Int       
   subscriberUrl String
   eventType     WebhookEventTypes[]

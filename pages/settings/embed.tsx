@@ -21,12 +21,9 @@ import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 import EditWebhook from "@components/webhook/EditWebhook";
-// import Checkbox from "@components/ui/form/checkbox";
 import WebhookList from "@components/webhook/WebhookList";
 
 import { EventType } from ".prisma/client";
-
-// import { EventTypeCustomInputType } from ".prisma/client";
 
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
@@ -37,7 +34,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [bookingCancelled, setBookingCancelled] = useState(true);
   const [editWebhookEnabled, setEditWebhookEnabled] = useState(false);
   const [webhooks, setWebhooks] = useState([]);
-  const [webhookToEdit, setWebhookToEdit] = useState<Webhook | null>();
+  const [webhookToEdit, setWebhookToEdit] = useState<(Webhook & { webhookEvents: EventType }) | null>();
   const [webhookEventTrigger, setWebhookEventTriggers] = useState([
     "BOOKING_CREATED",
     "BOOKING_RESCHEDULED",
@@ -105,7 +102,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
 
   function eventTypeSelectionHandler(eventType: EventType) {
     return (selected: number[]) => {
-      console.log("selected", selected);
       const i = webhookEventTypes.findIndex((c) => c.id === eventType.id);
       webhookEventTypes[i].selected = selected;
       if (selected) {

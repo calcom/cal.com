@@ -1,8 +1,7 @@
 import { TrashIcon, PencilAltIcon } from "@heroicons/react/outline";
 import { EventType } from "@prisma/client";
 
-// import { useEffect, useRef, useState } from "react";
-// import showToast from "@lib/notification";
+import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -10,28 +9,13 @@ import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Button from "@components/ui/Button";
 
-// import Switch from "@components/ui/Switch";
-
 export default function WebhookListItem(props: {
   onChange: () => void;
   key: number;
-  webhook: Webhook;
+  webhook: Webhook & { webhookEvents: EventType[] };
   eventTypes: EventType[];
   onEditWebhook: () => void;
 }) {
-  // const [bookingCreated, setBookingCreated] = useState(true);
-  // const [bookingRescheduled, setBookingRescheduled] = useState(true);
-  // const [bookingCancelled, setBookingCancelled] = useState(true);
-  // const [webhookEventTrigger, setWebhookEventTriggers] = useState([
-  //   "BOOKING_CREATED",
-  //   "BOOKING_RESCHEDULED",
-  //   "BOOKING_CANCELLED",
-  // ]);
-  // const [webhookEventTypes, setWebhookEventTypes] = useState(props.eventTypes);
-  // const [selectedWebhookEventTypes, setSelectedWebhookEventTypes] = useState([]);
-  // const [webhookEnabled, setWebhookEnabled] = useState(true);
-  // const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
-
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
@@ -39,14 +23,6 @@ export default function WebhookListItem(props: {
     }
     return resp.json();
   };
-
-  // useEffect(() => {
-  //   const arr = [];
-  //   bookingCreated && arr.push("BOOKING_CREATED");
-  //   bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
-  //   bookingCancelled && arr.push("BOOKING_CANCELLED");
-  //   setWebhookEventTriggers(arr);
-  // }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
 
   const deleteWebhook = (webhookId: number) => {
     fetch("/api/webhooks/" + webhookId, {
@@ -56,8 +32,8 @@ export default function WebhookListItem(props: {
       },
     })
       .then(handleErrors)
-      .then((data) => {
-        console.log("Delete", data);
+      .then(() => {
+        showToast("Webhook removed successfully!", "success");
         props.onChange();
       });
   };

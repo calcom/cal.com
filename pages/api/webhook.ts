@@ -1,5 +1,8 @@
+import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
 import prisma from "@lib/prisma";
 
@@ -59,8 +62,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
+    const translator = short();
+    const seed = `${req.body.subscriberUrl}:${dayjs(new Date()).utc().format()}`;
+    const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+
     const createWebhook = await prisma.webhook.create({
       data: {
+        uid: uid,
         userId: session.user.id,
         subscriberUrl: req.body.subscriberUrl,
         eventTriggers: req.body.eventTriggers,

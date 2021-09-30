@@ -2,13 +2,14 @@ import { ArrowLeftIcon } from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
 import { useEffect, useRef, useState } from "react";
 
+import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
 
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
 export default function EditTeam(props: {
-  webhook: Webhook;
+  webhook: Webhook & { webhookEvents: EventType[] };
   eventTypes: EventType[];
   onCloseEdit: () => void;
 }) {
@@ -38,10 +39,7 @@ export default function EditTeam(props: {
   }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
 
   function eventTypeSelectionHandler(eventType: EventType) {
-    return (selected) => {
-      console.log("selected", selected);
-      const i = props.eventTypes.findIndex((c) => c.id === eventType.id);
-      props.eventTypes[i].selected = selected;
+    return (selected: number[]) => {
       if (selected) {
         if (!selectedWebhookEventTypes.includes(eventType.id)) {
           setSelectedWebhookEventTypes([...selectedWebhookEventTypes, eventType.id]);
@@ -69,13 +67,6 @@ export default function EditTeam(props: {
   const updateWebhookHandler = (event) => {
     event.preventDefault();
     setBtnLoading(true);
-    // console.log(
-    //   props.webhook.id,
-    //   subUrlRef.current.value,
-    //   webhookEventTrigger,
-    //   selectedWebhookEventTypes,
-    //   webhookEnabled
-    // );
     return fetch("/api/webhooks/" + props.webhook.id, {
       method: "PATCH",
       body: JSON.stringify({
@@ -90,6 +81,7 @@ export default function EditTeam(props: {
     })
       .then(handleErrors)
       .then(() => {
+        showToast("Webhook updated successfully!", "success");
         setBtnLoading(false);
       });
   };
@@ -102,6 +94,7 @@ export default function EditTeam(props: {
             type="button"
             color="secondary"
             size="sm"
+            loading={btnLoading}
             StartIcon={ArrowLeftIcon}
             onClick={() => props.onCloseEdit()}>
             Back
