@@ -237,7 +237,9 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                             {webhookEventTypes.map((eventType) => (
                               <li key={eventType.slug} className="flex py-2">
                                 <div className="w-10/12">
-                                  <h2 className="font-medium text-gray-800 align-middle">{eventType.slug}</h2>
+                                  <h2 className="font-medium text-gray-800 align-middle">
+                                    /{eventType.slug}
+                                  </h2>
                                 </div>
                                 <div className="flex items-center justify-center w-2/12 text-right">
                                   <Switch

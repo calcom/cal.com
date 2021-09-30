@@ -90,7 +90,7 @@ export default function WebhookListItem(props: {
         </div>
         <div className="flex">
           {!props.webhook.active && (
-            <span className="self-center h-6 px-3 py-1 text-xs text-gray-700 capitalize rounded-md bg-gray-50">
+            <span className="self-center h-6 px-3 py-1 text-xs text-red-700 capitalize rounded-md bg-red-50">
               Disabled
             </span>
           )}
