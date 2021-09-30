@@ -176,7 +176,7 @@ export default function Shell(props: {
         </div>
 
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
+          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]">
             {/* show top navigation for md and smaller (tablet and phones) */}
             <nav className="md:hidden bg-white shadow p-4 flex justify-between items-center">
               <Link href="/event-types">
@@ -199,7 +199,7 @@ export default function Shell(props: {
               </div>
             </nav>
             <div className="py-8">
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
+              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
                 <div className="mb-8">
                   <h1 className="font-cal text-xl font-bold text-gray-900">{props.heading}</h1>
                   <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
