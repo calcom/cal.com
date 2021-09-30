@@ -26,7 +26,6 @@ export async function resizeBase64Image(
   if (currentSize > maxSize) {
     image.resize(jimp.AUTO, maxSize);
   }
-  console.log({ mimetype });
   const newBuffer = await image.getBufferAsync(mimetype);
 
   return `data:${mimetype};base64,${newBuffer.toString("base64")}`;
