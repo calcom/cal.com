@@ -1,3 +1,4 @@
+import { resizeBase64Image } from "@server/lib/resizeBase64Image";
 import { pick } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -13,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    const avatar = req.body.avatar ? await resizeBase64Image(req.body.avatar) : undefined;
     await prisma.user.update({
       where: {
         id: session.user.id,
@@ -21,7 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...pick(req.body, [
           "username",
           "name",
-          "avatar",
           "timeZone",
           "weekStart",
           "hideBranding",
@@ -29,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           "completedOnboarding",
           "locale",
         ]),
+        avatar,
         bio: req.body.description,
       },
     });
