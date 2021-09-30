@@ -74,6 +74,11 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         destination: "/settings/profile",
         permanent: true,
       },
+      {
+        source: "/bookings",
+        destination: "/bookings/upcoming",
+        permanent: true,
+      },
     ];
   },
 });

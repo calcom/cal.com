@@ -1,6 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrUndefined } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 
 export default function Type() {
@@ -11,7 +11,7 @@ export default function Type() {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: asStringOrNull(context.query.uid),
+      uid: asStringOrUndefined(context.query.uid),
     },
     select: {
       id: true,
@@ -39,11 +39,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!booking.eventType) {
-    return {
-      notFound: true,
-    };
-  }
+  if (!booking?.eventType) throw Error("This booking doesn't exists");
 
   const eventType = booking.eventType;
 

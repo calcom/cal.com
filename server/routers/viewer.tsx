@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, BookingStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -21,8 +21,25 @@ export const viewerRouter = createProtectedRouter()
     },
   })
   .query("bookings", {
-    async resolve({ ctx }) {
+    input: z.object({
+      status: z.enum(["upcoming", "past", "cancelled"]).optional(),
+    }),
+    async resolve({ ctx, input }) {
       const { prisma, user } = ctx;
+      const bookingListingByStatus = input.status || "upcoming";
+      const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
+        upcoming: [{ endTime: { gte: new Date() } }],
+        past: [{ endTime: { lte: new Date() } }],
+        cancelled: [{ status: { equals: BookingStatus.CANCELLED } }],
+      };
+      const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
+        upcoming: { startTime: "desc" },
+        past: { startTime: "asc" },
+        cancelled: { startTime: "asc" },
+      };
+      const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
+      const orderBy = bookingListingOrderby[bookingListingByStatus];
+
       const bookingsQuery = await prisma.booking.findMany({
         where: {
           OR: [
@@ -37,6 +54,7 @@ export const viewerRouter = createProtectedRouter()
               },
             },
           ],
+          AND: passedBookingsFilter,
         },
         select: {
           uid: true,
@@ -59,9 +77,7 @@ export const viewerRouter = createProtectedRouter()
           },
           status: true,
         },
-        orderBy: {
-          startTime: "asc",
-        },
+        orderBy,
       });
 
       const bookings = bookingsQuery.reverse().map((booking) => {

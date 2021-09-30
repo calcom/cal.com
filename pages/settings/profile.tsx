@@ -16,7 +16,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
 import Modal from "@components/Modal";
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
