@@ -1,8 +1,9 @@
-import { useEffect } from "react";
 import DailyIframe from "@daily-co/daily-js";
-import prisma from "../../lib/prisma";
 import { getSession } from "next-auth/client";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
+
+import prisma from "../../lib/prisma";
 
 export default function JoinCall(props, session) {
   const router = useRouter();

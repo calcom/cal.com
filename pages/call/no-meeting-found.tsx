@@ -1,7 +1,8 @@
-import { HeadSeo } from "@components/seo/head-seo";
 import { XIcon } from "@heroicons/react/outline";
-import Button from "@components/ui/Button";
 import { ArrowRightIcon } from "@heroicons/react/solid";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import Button from "@components/ui/Button";
 
 export default function NoMeetingFound() {
   return (
