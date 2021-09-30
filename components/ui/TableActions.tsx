@@ -12,6 +12,7 @@ type ActionType = {
   icon: SVGComponent;
   label: string;
   disabled?: boolean;
+  color?: "primary" | "secondary";
 } & ({ href?: never; onClick: () => any } | { href: string; onClick?: never });
 
 interface Props {
@@ -30,7 +31,7 @@ const TableActions: FC<Props> = ({ actions }) => {
             onClick={action.onClick}
             StartIcon={action.icon}
             disabled={action.disabled}
-            color="secondary">
+            color={action.color || "secondary"}>
             {action.label}
           </Button>
         ))}
