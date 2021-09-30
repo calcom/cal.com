@@ -11,7 +11,7 @@ export type ConfirmationDialogContentProps = {
   cancelBtnText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
-  variety?: "danger" | "warning" | "success" /* no others yet */;
+  variety?: "danger" | "warning" | "success";
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
