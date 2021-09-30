@@ -23,15 +23,18 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
 import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
+import { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-const AvailabilityPage = ({ profile, localeProp, eventType, workingHours }: AvailabilityPageProps) => {
-  const { t, locale } = useLocale({ localeProp: localeProp });
+type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
+
+const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
+  const { t, locale } = useLocale({ localeProp })
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);

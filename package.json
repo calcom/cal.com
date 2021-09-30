@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "analyze": "ANALYZE=true next build",
+    "analyze:server": "BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "dev": "next dev",
     "db-up": "docker-compose up -d",
     "db-migrate": "yarn prisma migrate dev",
@@ -19,7 +22,8 @@
     "prepare": "husky install"
   },
   "engines": {
-    "node": "^14.0.0"
+    "node": "14.x",
+    "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
     "@headlessui/react": "^1.4.1",
@@ -84,6 +88,7 @@
     "zod": "^3.8.2"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "11.1.2",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/async": "^3.2.7",
     "@types/bcryptjs": "^2.4.2",
@@ -113,7 +118,7 @@
     "postcss": "^8.3.6",
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
-    "tailwindcss": "^2.2.7",
+    "tailwindcss": "^2.2.16",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   },

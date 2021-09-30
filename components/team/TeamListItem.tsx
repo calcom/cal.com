@@ -75,7 +75,7 @@ export default function TeamListItem(props: {
             <div className="inline-block ml-3">
               <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>
               <span className="block -mt-1 text-xs text-gray-400">
-                {process.env.NEXT_PUBLIC_APP_URL}/{props.team.slug}
+                {process.env.NEXT_PUBLIC_APP_URL}/team/{props.team.slug}
               </span>
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function TeamListItem(props: {
             </div>
           )}
           {props.team.role === "OWNER" && (
-            <div className="flex">
+            <div className="flex space-x-4">
               <span className="self-center h-6 px-3 py-1 text-xs text-gray-700 capitalize rounded-md bg-gray-50">
                 {t("owner")}
               </span>
@@ -109,13 +109,14 @@ export default function TeamListItem(props: {
                     );
                     showToast(t("link_copied"), "success");
                   }}
+                  size="icon"
                   color="minimal"
-                  className="w-full pl-5 ml-8"
                   StartIcon={LinkIcon}
-                  type="button"></Button>
+                  type="button"
+                />
               </Tooltip>
               <Dropdown>
-                <DropdownMenuTrigger>
+                <DropdownMenuTrigger className="group w-10 h-10 p-0 border border-transparent text-neutral-400 hover:border-gray-200">
                   <DotsHorizontalIcon className="w-5 h-5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>

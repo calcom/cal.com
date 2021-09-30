@@ -77,37 +77,37 @@ export default function Shell(props: {
       name: "Event Types",
       href: "/event-types",
       icon: LinkIcon,
-      current: router.pathname.startsWith("/event-types"),
+      current: router.asPath.startsWith("/event-types"),
     },
     {
       name: "Bookings",
-      href: "/bookings",
+      href: "/bookings/upcoming",
       icon: ClockIcon,
-      current: router.pathname.startsWith("/bookings"),
+      current: router.asPath.startsWith("/bookings"),
     },
     {
       name: "Availability",
       href: "/availability",
       icon: CalendarIcon,
-      current: router.pathname.startsWith("/availability"),
+      current: router.asPath.startsWith("/availability"),
     },
     {
       name: "Integrations",
       href: "/integrations",
       icon: PuzzleIcon,
-      current: router.pathname.startsWith("/integrations"),
+      current: router.asPath.startsWith("/integrations"),
     },
     {
       name: "Settings",
       href: "/settings/profile",
       icon: CogIcon,
-      current: router.pathname.startsWith("/settings"),
+      current: router.asPath.startsWith("/settings"),
     },
   ];
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) => {
-      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.pathname));
+      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
   }, [telemetry]);
 

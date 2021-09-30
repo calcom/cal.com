@@ -7,7 +7,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 
 import Loader from "@components/Loader";
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";

@@ -6,8 +6,8 @@ import React from "react";
 import "react-calendar/dist/Calendar.css";
 
 type Props = {
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
   onDatesChange?: ((arg: { startDate: Date; endDate: Date }) => void) | undefined;
 };
 

@@ -6,7 +6,7 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Loader from "@components/Loader";
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {

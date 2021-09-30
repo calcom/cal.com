@@ -13,7 +13,7 @@ export const bookingRouter = createRouter().query("userEventTypes", {
 
     const user = await prisma.user.findUnique({
       where: {
-        username,
+        username: username.toLowerCase(),
       },
       select: {
         id: true,
