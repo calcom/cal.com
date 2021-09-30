@@ -20,8 +20,8 @@ export default function LicenseBanner() {
   }
 
   return (
-    <div className="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+    <div className="fixed left-0 md:left-56 bottom-0 inset-x-0 pb-2 sm:pb-5">
+      <div className="max-w-7xl mx-auto px-2 sm:px-8">
         <div className="p-2 rounded-sm bg-green-600 shadow-lg sm:p-3">
           <div className="flex items-center justify-between flex-wrap">
             <div className="w-0 flex-1 flex items-center">
