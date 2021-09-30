@@ -73,16 +73,14 @@ function BookingListItem(booking: BookingItem) {
     <tr>
       <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-900">{startTime}</div>
+        <div className="text-sm text-gray-500">
+          {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
+        </div>
         {!booking.confirmed && !booking.rejected && (
           <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
             Unconfirmed
           </span>
         )}
-      </td>
-      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-500">
-          {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
-        </div>
       </td>
       <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
         <div className="sm:hidden">

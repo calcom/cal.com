@@ -1,36 +1,57 @@
 import { ClockIcon } from "@heroicons/react/outline";
-import { useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
+import { Dialog, DialogContent } from "@components/Dialog";
 import Loader from "@components/Loader";
-import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
+import Button from "@components/ui/Button";
 
+function convertMinsToHrsMins(mins: number) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const hours = h < 10 ? "0" + h : h;
+  const minutes = m < 10 ? "0" + m : m;
+  return `${hours}:${minutes}`;
+}
 export default function Availability() {
   const queryMe = trpc.useQuery(["viewer.me"]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
-  const router = useRouter();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [showChangeTimesModal, setShowChangeTimesModal] = useState(false);
-  const titleRef = useRef<HTMLInputElement>();
-  const slugRef = useRef<HTMLInputElement>();
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const lengthRef = useRef<HTMLInputElement>();
-  const isHiddenRef = useRef<HTMLInputElement>();
+  const formModal = useToggleQuery("edit");
 
-  const startHoursRef = useRef<HTMLInputElement>();
-  const startMinsRef = useRef<HTMLInputElement>();
-  const endHoursRef = useRef<HTMLInputElement>();
-  const endMinsRef = useRef<HTMLInputElement>();
-  const bufferHoursRef = useRef<HTMLInputElement>();
-  const bufferMinsRef = useRef<HTMLInputElement>();
+  const formMethods = useForm<{
+    startHours: string;
+    startMins: string;
+    endHours: string;
+    endMins: string;
+    bufferHours: string;
+    bufferMins: string;
+  }>({});
+  const router = useRouter();
+
+  useEffect(() => {
+    /**
+     * This hook populates the form with new values as soon as the user is loaded or changes
+     */
+    const user = queryMe.data;
+    if (formMethods.formState.isDirty || !user) {
+      return;
+    }
+    formMethods.reset({
+      startHours: convertMinsToHrsMins(user.startTime).split(":")[0],
+      startMins: convertMinsToHrsMins(user.startTime).split(":")[1],
+      endHours: convertMinsToHrsMins(user.endTime).split(":")[0],
+      endMins: convertMinsToHrsMins(user.endTime).split(":")[1],
+      bufferHours: convertMinsToHrsMins(user.bufferTime).split(":")[0],
+      bufferMins: convertMinsToHrsMins(user.bufferTime).split(":")[1],
+    });
+  }, [formMethods, queryMe.data]);
 
   if (queryMe.status === "loading") {
     return <Loader />;
@@ -39,86 +60,6 @@ export default function Availability() {
     return <Alert severity="error" title="Something went wrong" />;
   }
   const user = queryMe.data;
-
-  function toggleAddModal() {
-    setShowAddModal(!showAddModal);
-  }
-
-  function toggleChangeTimesModal() {
-    setShowChangeTimesModal(!showChangeTimesModal);
-  }
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
-    router.replace(router.asPath);
-  };
-
-  function convertMinsToHrsMins(mins) {
-    let h = Math.floor(mins / 60);
-    let m = mins % 60;
-    h = h < 10 ? "0" + h : h;
-    m = m < 10 ? "0" + m : m;
-    return `${h}:${m}`;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async function createEventTypeHandler(event) {
-    event.preventDefault();
-
-    const enteredTitle = titleRef.current.value;
-    const enteredSlug = slugRef.current.value;
-    const enteredDescription = descriptionRef.current.value;
-    const enteredLength = lengthRef.current.value;
-    const enteredIsHidden = isHiddenRef.current.checked;
-
-    // TODO: Add validation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const response = await fetch("/api/availability/eventtype", {
-      method: "POST",
-      body: JSON.stringify({
-        title: enteredTitle,
-        slug: enteredSlug,
-        description: enteredDescription,
-        length: enteredLength,
-        hidden: enteredIsHidden,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (enteredTitle && enteredLength) {
-      router.replace(router.asPath);
-      toggleAddModal();
-    }
-  }
-
-  async function updateStartEndTimesHandler(event) {
-    event.preventDefault();
-
-    const enteredStartHours = parseInt(startHoursRef.current.value);
-    const enteredStartMins = parseInt(startMinsRef.current.value);
-    const enteredEndHours = parseInt(endHoursRef.current.value);
-    const enteredEndMins = parseInt(endMinsRef.current.value);
-    const enteredBufferHours = parseInt(bufferHoursRef.current.value);
-    const enteredBufferMins = parseInt(bufferMinsRef.current.value);
-
-    const startMins = enteredStartHours * 60 + enteredStartMins;
-    const endMins = enteredEndHours * 60 + enteredEndMins;
-    const bufferMins = enteredBufferHours * 60 + enteredBufferMins;
-
-    // TODO: Add validation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const response = await fetch("/api/availability/day", {
-      method: "PATCH",
-      body: JSON.stringify({ start: startMins, end: endMins, buffer: bufferMins }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    setShowChangeTimesModal(false);
-    setSuccessModalOpen(true);
-  }
 
   return (
     <div>
@@ -136,9 +77,7 @@ export default function Availability() {
                 </p>
               </div>
               <div className="mt-5">
-                <button onClick={toggleChangeTimesModal} type="button" className="btn btn-primary">
-                  Change available times
-                </button>
+                <Button href={formModal.hrefOn}>Change available times</Button>
               </div>
             </div>
           </div>
@@ -159,153 +98,148 @@ export default function Availability() {
             </div>
           </div>
         </div>
-        {showChangeTimesModal && (
-          <div
-            className="fixed z-50 inset-0 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
-                aria-hidden="true"></div>
 
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-
-              <div className="inline-block align-bottom bg-white rounded-sm px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start mb-4">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <ClockIcon className="h-6 w-6 text-neutral-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Change your available times
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-500">
-                        Set the start and end time of your day and a minimum buffer between your meetings.
-                      </p>
-                    </div>
-                  </div>
+        <Dialog
+          open={formModal.isOn}
+          onOpenChange={(isOpen) => {
+            router.push(isOpen ? formModal.hrefOn : formModal.hrefOff);
+          }}>
+          <DialogContent>
+            <div className="sm:flex sm:items-start mb-4">
+              <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                <ClockIcon className="h-6 w-6 text-neutral-600" />
+              </div>
+              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                  Change your available times
+                </h3>
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Set the start and end time of your day and a minimum buffer between your meetings.
+                  </p>
                 </div>
-                <form onSubmit={updateStartEndTimesHandler}>
-                  <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
-                    <div>
-                      <label htmlFor="hours" className="sr-only">
-                        Hours
-                      </label>
-                      <input
-                        ref={startHoursRef}
-                        type="number"
-                        name="hours"
-                        id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="9"
-                        defaultValue={convertMinsToHrsMins(user.startTime).split(":")[0]}
-                      />
-                    </div>
-                    <span className="mx-2 pt-1">:</span>
-                    <div>
-                      <label htmlFor="minutes" className="sr-only">
-                        Minutes
-                      </label>
-                      <input
-                        ref={startMinsRef}
-                        type="number"
-                        name="minutes"
-                        id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="30"
-                        defaultValue={convertMinsToHrsMins(user.startTime).split(":")[1]}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
-                    <div>
-                      <label htmlFor="hours" className="sr-only">
-                        Hours
-                      </label>
-                      <input
-                        ref={endHoursRef}
-                        type="number"
-                        name="hours"
-                        id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="17"
-                        defaultValue={convertMinsToHrsMins(user.endTime).split(":")[0]}
-                      />
-                    </div>
-                    <span className="mx-2 pt-1">:</span>
-                    <div>
-                      <label htmlFor="minutes" className="sr-only">
-                        Minutes
-                      </label>
-                      <input
-                        ref={endMinsRef}
-                        type="number"
-                        name="minutes"
-                        id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="30"
-                        defaultValue={convertMinsToHrsMins(user.endTime).split(":")[1]}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex mb-4">
-                    <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
-                    <div>
-                      <label htmlFor="hours" className="sr-only">
-                        Hours
-                      </label>
-                      <input
-                        ref={bufferHoursRef}
-                        type="number"
-                        name="hours"
-                        id="hours"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="0"
-                        defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[0]}
-                      />
-                    </div>
-                    <span className="mx-2 pt-1">:</span>
-                    <div>
-                      <label htmlFor="minutes" className="sr-only">
-                        Minutes
-                      </label>
-                      <input
-                        ref={bufferMinsRef}
-                        type="number"
-                        name="minutes"
-                        id="minutes"
-                        className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                        placeholder="10"
-                        defaultValue={convertMinsToHrsMins(user.bufferTime).split(":")[1]}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      Update
-                    </button>
-                    <button onClick={toggleChangeTimesModal} type="button" className="btn btn-white mr-2">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
               </div>
             </div>
-          </div>
-        )}
-        <Modal
-          heading="Start and end times changed"
-          description="The start and end times for your day have been changed successfully."
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
+            <form
+              onSubmit={formMethods.handleSubmit(async (values) => {
+                const startMins = parseInt(values.startHours) * 60 + parseInt(values.startMins);
+                const endMins = parseInt(values.endHours) * 60 + parseInt(values.endMins);
+                const bufferMins = parseInt(values.bufferHours) * 60 + parseInt(values.bufferMins);
+
+                // TODO: Add validation
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const response = await fetch("/api/availability/day", {
+                  method: "PATCH",
+                  body: JSON.stringify({ start: startMins, end: endMins, buffer: bufferMins }),
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                });
+                if (!response.ok) {
+                  showToast("Something went wrong", "error");
+                  return;
+                }
+                await queryMe.refetch();
+                router.push(formModal.hrefOff);
+
+                showToast("The start and end times for your day have been changed successfully.", "success");
+              })}>
+              <div className="flex mb-4">
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
+                <div>
+                  <label htmlFor="startHours" className="sr-only">
+                    Hours
+                  </label>
+                  <input
+                    {...formMethods.register("startHours")}
+                    id="startHours"
+                    type="number"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="9"
+                    defaultValue={convertMinsToHrsMins(user.startTime).split(":")[0]}
+                  />
+                </div>
+                <span className="mx-2 pt-1">:</span>
+                <div>
+                  <label htmlFor="startMins" className="sr-only">
+                    Minutes
+                  </label>
+                  <input
+                    {...formMethods.register("startMins")}
+                    id="startMins"
+                    type="number"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="30"
+                  />
+                </div>
+              </div>
+              <div className="flex mb-4">
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
+                <div>
+                  <label htmlFor="endHours" className="sr-only">
+                    Hours
+                  </label>
+                  <input
+                    {...formMethods.register("endHours")}
+                    type="number"
+                    id="endHours"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="17"
+                  />
+                </div>
+                <span className="mx-2 pt-1">:</span>
+                <div>
+                  <label htmlFor="endMins" className="sr-only">
+                    Minutes
+                  </label>
+                  <input
+                    {...formMethods.register("endMins")}
+                    type="number"
+                    id="endMins"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="30"
+                  />
+                </div>
+              </div>
+              <div className="flex mb-4">
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
+                <div>
+                  <label htmlFor="bufferHours" className="sr-only">
+                    Hours
+                  </label>
+                  <input
+                    {...formMethods.register("bufferHours")}
+                    type="number"
+                    id="bufferHours"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="0"
+                  />
+                </div>
+                <span className="mx-2 pt-1">:</span>
+                <div>
+                  <label htmlFor="bufferMins" className="sr-only">
+                    Minutes
+                  </label>
+                  <input
+                    {...formMethods.register("bufferMins")}
+                    type="number"
+                    id="bufferMins"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    placeholder="10"
+                  />
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex space-x-2">
+                <Button href={formModal.hrefOff} color="secondary" tabIndex={-1}>
+                  Cancel
+                </Button>
+                <Button type="submit" loading={formMethods.formState.isSubmitting}>
+                  Update
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </Shell>
     </div>
   );
