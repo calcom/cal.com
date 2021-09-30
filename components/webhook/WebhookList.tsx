@@ -8,6 +8,7 @@ export default function WebhookList(props: {
   webhooks: Webhook[];
   eventTypes: EventType[];
   onChange: () => void;
+  onEditWebhook: (webhook: Webhook) => void;
 }) {
   return (
     <div>
@@ -17,7 +18,8 @@ export default function WebhookList(props: {
             onChange={props.onChange}
             eventTypes={props.eventTypes}
             key={webhook.id}
-            webhook={webhook}></WebhookListItem>
+            webhook={webhook}
+            onEditWebhook={() => props.onEditWebhook(webhook)}></WebhookListItem>
         ))}
       </ul>
     </div>

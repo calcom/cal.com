@@ -44,9 +44,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
+    // console.log(req.query.webhookId);
     const webhook = await prisma.webhook.findUnique({
       where: {
-        id: parseInt(req.query.webhookId as string),
+        id: parseInt(req.query.hook as string),
       },
     });
 
@@ -56,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await prisma.webhook.update({
       where: {
-        id: parseInt(req.query.webhookId as string),
+        id: parseInt(req.query.hook as string),
       },
       data: {
         subscriberUrl: req.body.subscriberUrl,
@@ -68,8 +69,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // For the rest
     const webhookEventTypesData: { webhookId: number; eventTypeId: number }[] = [];
     await req.body.eventTypeId.forEach((ev: number) =>
-      webhookEventTypesData.push({ webhookId: parseInt(req.query.webhookId as string), eventTypeId: ev })
+      webhookEventTypesData.push({ webhookId: parseInt(req.query.hook as string), eventTypeId: ev })
     );
+
+    await prisma.webhookEventTypes.deleteMany({
+      where: {
+        webhookId: parseInt(req.query.hook as string),
+      },
+    });
 
     await prisma.webhookEventTypes.createMany({
       data: webhookEventTypesData,

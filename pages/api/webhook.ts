@@ -35,23 +35,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const filteredWebhookEvents = webhookEvents.map((webhookEvent) => {
+    const filteredWebhookEvents = webhookEventTypes.map((eventType) => {
       return {
-        ...webhookEvent,
-        webhookId: webhookEventTypes
-          .filter((eventType) => {
-            return webhookEvent.id === eventType.eventTypeId;
-          })
-          .map((webhook) => {
-            return webhook.webhookId;
-          })[0],
+        webhookEvents: webhookEvents.filter((webhookEvent) => {
+          return webhookEvent.id === eventType.eventTypeId;
+        })[0],
+        webhookId: eventType.webhookId,
       };
     });
 
     const webhookList = webhooks.map((webhook) => {
       return {
         ...webhook,
-        webhookEvents: filteredWebhookEvents.filter((webhookEvent) => webhookEvent.webhookId === webhook.id),
+        webhookEvents: filteredWebhookEvents
+          .filter((webhookEvent) => webhookEvent.webhookId === webhook.id)
+          .map((event) => {
+            return event.webhookEvents;
+          }),
       };
     });
 
