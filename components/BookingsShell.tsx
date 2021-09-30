@@ -1,6 +1,8 @@
+import React from "react";
+
 import NavTabs from "./NavTabs";
 
-export default function BookingsShell(props) {
+export default function BookingsShell({ children }: { children: React.ReactNode }) {
   const tabs = [
     {
       name: "Upcoming",
@@ -17,12 +19,9 @@ export default function BookingsShell(props) {
   ];
 
   return (
-    <div>
-      <div className="sm:mx-auto">
-        <NavTabs tabs={tabs} linkProps={{ shallow: true }} />
-        <hr />
-      </div>
-      <main className="max-w-4xl">{props.children}</main>
-    </div>
+    <>
+      <NavTabs tabs={tabs} linkProps={{ shallow: true }} />
+      <main>{children}</main>
+    </>
   );
 }
