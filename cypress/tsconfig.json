@@ -2,9 +2,9 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": "../node_modules",
-    "target": "es5",
+    "target": "ES2020",
     "lib": ["es5", "dom"],
-    "types": ["cypress"]
+    "types": ["cypress", "node"]
   },
   "include": ["**/*.ts"]
 }
