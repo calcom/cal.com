@@ -385,6 +385,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
+                          disabled
                           type="text"
                           name="slug"
                           id="slug"
@@ -396,18 +397,23 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                     </div>
                   </div>
 
-                  <MinutesField
-                    label={
-                      <>
-                        <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> Duration
-                      </>
-                    }
-                    name="length"
-                    id="length"
-                    required
-                    placeholder="15"
-                    defaultValue={eventType.length}
-                  />
+                  {eventType.slug === "async" && !eventType.users[0].asyncUseCalendar ? (
+                    <></>
+                  ) : (
+                    <MinutesField
+                      label={
+                        <>
+                          <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> Duration
+                        </>
+                      }
+                      name="length"
+                      id="length"
+                      disabled
+                      required
+                      placeholder="15"
+                      defaultValue={eventType.length}
+                    />
+                  )}
                 </div>
                 {props.eventType.slug !== "async" && (
                   <>
@@ -1175,7 +1181,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
-    username: true,
+    asyncUseCalendar: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
