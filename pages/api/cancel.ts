@@ -96,8 +96,8 @@ export default async function handler(req, res) {
     eventTrigger
   );
 
-  subscriberUrls.forEach((subscriberUrl: string) => {
-    sendPayload(eventTrigger, new Date().toISOString(), subscriberUrl, evt);
+  subscriberUrls.forEach(async (subscriberUrl: string) => {
+    await sendPayload(eventTrigger, new Date().toISOString(), subscriberUrl, evt);
   });
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
