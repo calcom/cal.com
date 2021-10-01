@@ -57,9 +57,9 @@ const Team = ({ team }) => {
     }
 
     return (
-      <section className="grid max-w-5xl min-w-full grid-cols-1 mx-auto lg:min-w-lg sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6">
+      <section className="flex flex-wrap justify-center max-w-5xl min-w-full mx-auto lg:min-w-lg gap-x-12 gap-y-6">
         {members.map((member) => {
-          return <Member key={member.id} member={member} />;
+          return member.user.username !== null && <Member key={member.id} member={member} />;
         })}
       </section>
     );
@@ -68,7 +68,7 @@ const Team = ({ team }) => {
   return (
     <div>
       <Members members={team.members} />
-      {team.eventTypes.length && (
+      {team.eventTypes.length > 0 && (
         <aside className="mt-8 text-center ">
           <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
             Go back

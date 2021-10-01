@@ -76,6 +76,7 @@ export default function Signup(props: InferGetServerSidePropsType<typeof getServ
                 <input
                   type="email"
                   name="email"
+                  inputMode="email"
                   id="email"
                   placeholder="jdoe@example.com"
                   disabled={!!props.email}

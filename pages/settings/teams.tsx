@@ -10,7 +10,7 @@ import { Member } from "@lib/member";
 import { Team } from "@lib/team";
 
 import Loader from "@components/Loader";
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import EditTeam from "@components/team/EditTeam";
 import TeamList from "@components/team/TeamList";

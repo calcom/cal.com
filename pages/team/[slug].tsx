@@ -1,5 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { InferGetServerSidePropsType } from "next";
+import { Prisma } from "@prisma/client";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import React from "react";
 
@@ -39,8 +40,8 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
                   className="flex-shrink-0"
                   size={10}
                   items={type.users.map((user) => ({
-                    alt: user.name,
-                    image: user.avatar,
+                    alt: user.name || "",
+                    image: user.avatar || "",
                   }))}
                 />
               </div>
@@ -51,21 +52,19 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
     </ul>
   );
 
+  const teamName = team.name || "Nameless Team";
+
   return (
     isReady && (
       <div>
-        <HeadSeo title={team.name} description={team.name} />
+        <HeadSeo title={teamName} description={teamName} />
         <div className="px-4 pt-24 pb-12">
           <div className="mb-8 text-center">
-            <Avatar
-              displayName={team.name}
-              imageSrc={team.logo}
-              className="w-20 h-20 mx-auto mb-4 rounded-full"
-            />
-            <Text variant="headline">{team.name}</Text>
+            <Avatar alt={teamName} imageSrc={team.logo} className="w-20 h-20 mx-auto mb-4 rounded-full" />
+            <Text variant="headline">{teamName}</Text>
           </div>
           {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
-          {!showMembers.isOn && team.eventTypes.length && (
+          {!showMembers.isOn && team.eventTypes.length > 0 && (
             <div className="max-w-3xl mx-auto">
               {eventTypes}
 
@@ -95,10 +94,19 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
   );
 }
 
-export const getServerSideProps = async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
-  const teamSelectInput = {
+  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    username: true,
+    avatar: true,
+    email: true,
+    name: true,
+    id: true,
+    bio: true,
+  });
+
+  const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
     id: true,
     name: true,
     slug: true,
@@ -106,13 +114,7 @@ export const getServerSideProps = async (context) => {
     members: {
       select: {
         user: {
-          select: {
-            username: true,
-            avatar: true,
-            name: true,
-            id: true,
-            bio: true,
-          },
+          select: userSelect,
         },
       },
     },
@@ -127,36 +129,29 @@ export const getServerSideProps = async (context) => {
         length: true,
         slug: true,
         schedulingType: true,
+        price: true,
+        currency: true,
         users: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-            email: true,
-          },
+          select: userSelect,
         },
       },
     },
-  };
+  });
 
   const team = await prisma.team.findUnique({
     where: {
       slug,
     },
-    select: teamSelectInput,
+    select: teamSelect,
   });
 
-  if (!team) {
-    return {
-      notFound: true,
-    };
-  }
+  if (!team) return { notFound: true };
 
   team.eventTypes = team.eventTypes.map((type) => ({
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: user.avatar || defaultAvatarSrc({ email: user.email }),
+      avatar: user.avatar || defaultAvatarSrc({ email: user.email || "" }),
     })),
   }));
 

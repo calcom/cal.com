@@ -146,6 +146,7 @@ const BookingPage = (props) => {
           user: props.profile.slug,
           reschedule: !!rescheduleUid,
           name: payload.name,
+          email: payload.email,
         };
 
         if (payload["location"]) {
@@ -279,6 +280,7 @@ const BookingPage = (props) => {
                         type="email"
                         name="email"
                         id="email"
+                        inputMode="email"
                         required
                         className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
                         placeholder="you@example.com"

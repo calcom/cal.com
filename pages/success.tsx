@@ -239,7 +239,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                   {!props.hideBranding && (
                     <div
                       className={"pt-4 mt-4 text-xs text-center text-gray-400  " + (date ? "border-t" : "")}>
-                      <a href="https://cal.com/signup">Create your own booking link with Yac Meet</a>
+                      <a href="https://meet.yac.com/login">Create your own booking link with Yac Meet</a>
                     </div>
                   )}
                 </div>

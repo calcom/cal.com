@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import LicenseBanner from "@ee/components/LicenseBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
@@ -77,37 +78,37 @@ export default function Shell(props: {
       name: "Event Types",
       href: "/event-types",
       icon: LinkIcon,
-      current: router.pathname.startsWith("/event-types"),
+      current: router.asPath.startsWith("/event-types"),
     },
     {
       name: "Bookings",
-      href: "/bookings",
+      href: "/bookings/upcoming",
       icon: ClockIcon,
-      current: router.pathname.startsWith("/bookings"),
+      current: router.asPath.startsWith("/bookings"),
     },
     {
       name: "Availability",
       href: "/availability",
       icon: CalendarIcon,
-      current: router.pathname.startsWith("/availability"),
+      current: router.asPath.startsWith("/availability"),
     },
     {
       name: "Integrations",
       href: "/integrations",
       icon: PuzzleIcon,
-      current: router.pathname.startsWith("/integrations"),
+      current: router.asPath.startsWith("/integrations"),
     },
     {
       name: "Settings",
       href: "/settings/profile",
       icon: CogIcon,
-      current: router.pathname.startsWith("/settings"),
+      current: router.asPath.startsWith("/settings"),
     },
   ];
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) => {
-      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.pathname));
+      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
   }, [telemetry]);
 
@@ -176,7 +177,7 @@ export default function Shell(props: {
         </div>
 
         <div className="flex flex-col flex-1 w-0 overflow-hidden">
-          <main className="relative z-0 flex-1 overflow-y-auto focus:outline-none">
+          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]">
             {/* show top navigation for md and smaller (tablet and phones) */}
             <nav className="flex items-center justify-between p-4 bg-white shadow md:hidden">
               <Link href="/event-types">
@@ -199,7 +200,7 @@ export default function Shell(props: {
               </div>
             </nav>
             <div className="py-8">
-              <div className="justify-between block px-4 sm:flex sm:px-6 md:px-8">
+              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
                 <div className="mb-8">
                   <h1 className="text-xl font-bold text-gray-900 font-cal">{props.heading}</h1>
                   <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
@@ -241,6 +242,7 @@ export default function Shell(props: {
               {/* add padding to content for mobile navigation*/}
               <div className="block pt-12 md:hidden" />
             </div>
+            <LicenseBanner />
           </main>
         </div>
       </div>

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "analyze": "ANALYZE=true next build",
+    "analyze:server": "BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "dev": "next dev",
     "studio": "npx prisma studio",
     "db-up": "docker-compose up -d",
@@ -20,11 +23,13 @@
     "prepare": "husky install"
   },
   "engines": {
-    "node": "^14.0.0"
+    "node": "14.x",
+    "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
+    "@hookform/resolvers": "^2.8.1",
     "@jitsu/sdk-js": "^2.2.4",
     "@prisma/client": "^2.30.2",
     "@radix-ui/react-avatar": "^0.1.0",
@@ -54,6 +59,7 @@
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
+    "jimp": "^0.16.1",
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.2",
     "lodash.throttle": "^4.1.1",
@@ -69,6 +75,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-easy-crop": "^3.5.2",
+    "react-hook-form": "^7.16.1",
     "react-hot-toast": "^2.1.0",
     "react-intl": "^5.20.7",
     "react-multi-email": "^0.5.3",
@@ -85,6 +92,7 @@
     "zod": "^3.8.2"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "11.1.2",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/async": "^3.2.7",
     "@types/bcryptjs": "^2.4.2",
@@ -114,7 +122,7 @@
     "postcss": "^8.3.6",
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
-    "tailwindcss": "^2.2.7",
+    "tailwindcss": "^2.2.16",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   },

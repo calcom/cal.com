@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { stringify } from "querystring";
 
 import stripe, { StripeData } from "@ee/lib/stripe/server";
 
@@ -7,12 +8,18 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { code } = req.query;
+  const { code, error, error_description } = req.query;
   // Check that user is authenticated
   const session = await getSession({ req: req });
 
   if (!session?.user) {
     res.status(401).json({ message: "You must be logged in to do this" });
+    return;
+  }
+
+  if (error) {
+    const query = stringify({ error, error_description });
+    res.redirect("/integrations?" + query);
     return;
   }
 

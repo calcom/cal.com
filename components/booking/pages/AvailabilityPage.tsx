@@ -95,7 +95,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }) => {
             (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           {isReady && (
-            <div className="bg-white border-gray-200 rounded-sm sm:  md:border">
+            <div className="bg-white border-gray-200 rounded-sm sm: md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">

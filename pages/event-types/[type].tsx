@@ -25,7 +25,12 @@ import Select, { OptionTypeBase } from "react-select";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
-import { asNumberOrThrow, asNumberOrUndefined, asStringOrThrow } from "@lib/asStringOrNull";
+import {
+  asNumberOrThrow,
+  asNumberOrUndefined,
+  asStringOrThrow,
+  asStringOrUndefined,
+} from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
@@ -131,13 +136,13 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   const isAdvancedSettingsVisible = !!eventNameRef.current;
 
   useEffect(() => {
-    setSelectedTimeZone(eventType.timeZone);
+    setSelectedTimeZone(eventType.timeZone || "");
   }, []);
 
-  async function updateEventTypeHandler(event) {
+  async function updateEventTypeHandler(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const formData = Object.fromEntries(new FormData(event.target).entries());
+    const formData = Object.fromEntries(new FormData(event.currentTarget).entries());
 
     const enteredTitle: string = titleRef.current!.value;
 
@@ -187,7 +192,6 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
 
   // async function deleteEventTypeHandler(event) {
   //   event.preventDefault();
-
   //   const payload = { id: eventType.id };
   //   deleteMutation.mutate(payload);
   // }
@@ -212,33 +216,34 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     setSuccessModalOpen(false);
   };
 
-  const updateLocations = (e) => {
+  const updateLocations = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const newLocation = e.currentTarget.location.value;
 
     let details = {};
-    if (e.target.location.value === LocationType.InPerson) {
-      details = { address: e.target.address.value };
+    if (newLocation === LocationType.InPerson) {
+      details = { address: e.currentTarget.address.value };
     }
 
-    const existingIdx = locations.findIndex((loc) => e.target.location.value === loc.type);
+    const existingIdx = locations.findIndex((loc) => newLocation === loc.type);
     if (existingIdx !== -1) {
       const copy = locations;
       copy[existingIdx] = { ...locations[existingIdx], ...details };
       setLocations(copy);
     } else {
-      setLocations(locations.concat({ type: e.target.location.value, ...details }));
+      setLocations(locations.concat({ type: newLocation, ...details }));
     }
 
     setShowLocationModal(false);
   };
 
-  const removeLocation = (selectedLocation) => {
+  const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     setLocations(locations.filter((location) => location.type !== selectedLocation.type));
   };
 
   const openEditCustomModel = (customInput: EventTypeCustomInput) => {
     setSelectedCustomInput(customInput);
-    setSelectedInputOption(inputOptions.find((e) => e.value === customInput.type));
+    setSelectedInputOption(inputOptions.find((e) => e.value === customInput.type)!);
     setShowAddCustomModal(true);
   };
 
@@ -279,14 +284,16 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     return null;
   };
 
-  const updateCustom = (e) => {
+  const updateCustom = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const customInput: EventTypeCustomInput = {
-      label: e.target.label.value,
-      placeholder: e.target.placeholder?.value,
-      required: e.target.required.checked,
-      type: e.target.type.value,
+      id: -1,
+      eventTypeId: -1,
+      label: e.currentTarget.label.value,
+      placeholder: e.currentTarget.placeholder?.value,
+      required: e.currentTarget.required.checked,
+      type: e.currentTarget.type.value,
     };
 
     if (selectedCustomInput) {
@@ -305,7 +312,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     setCustomInputs([...customInputs]);
   };
 
-  const schedulingTypeOptions: { value: string; label: string }[] = [
+  const schedulingTypeOptions: { value: SchedulingType; label: string; description: string }[] = [
     {
       value: SchedulingType.COLLECTIVE,
       label: "Collective",
@@ -322,6 +329,25 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
+
+  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/${
+    team ? `team/${team.slug}` : eventType.users[0].username
+  }/${eventType.slug}`;
+
+  const mapUserToValue = ({
+    id,
+    name,
+    avatar,
+  }: {
+    id: number | null;
+    name: string | null;
+    avatar: string | null;
+  }) => ({
+    value: `${id || ""}`,
+    label: `${name || ""}`,
+    avatar: `${avatar || ""}`,
+  });
+
   return (
     <div>
       <Shell
@@ -339,7 +365,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
             defaultValue={eventType.title}
           />
         }
-        subtitle={eventType.description}>
+        subtitle={eventType.description || ""}>
         <div className="block sm:flex">
           <div className="w-full mr-2 sm:w-10/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
@@ -355,7 +381,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                     <div className="w-full">
                       <div className="flex rounded-sm shadow-sm">
                         <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
-                          {typeof location !== "undefined" ? location.hostname : ""}/
+                          {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
@@ -541,7 +567,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                         id="description"
                         className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                         placeholder="A quick video meeting."
-                        defaultValue={eventType.description}></textarea>
+                        defaultValue={asStringOrUndefined(eventType.description)}></textarea>
                     </div>
                   </div>
                 </div>
@@ -558,7 +584,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                       </div>
                       <RadioArea.Select
                         name="schedulingType"
-                        value={eventType.schedulingType}
+                        value={asStringOrUndefined(eventType.schedulingType)}
                         options={schedulingTypeOptions}
                       />
                     </div>
@@ -571,17 +597,9 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                       </div>
                       <div className="w-full space-y-2">
                         <CheckedSelect
-                          onChange={(options: unknown) => setUsers(options.map((option) => option.value))}
-                          defaultValue={eventType.users.map((user: User) => ({
-                            value: user.id,
-                            label: user.name,
-                            avatar: user.avatar,
-                          }))}
-                          options={teamMembers.map((user: User) => ({
-                            value: user.id,
-                            label: user.name,
-                            avatar: user.avatar,
-                          }))}
+                          onChange={(options) => setUsers(options.map((option) => option.value))}
+                          defaultValue={eventType.users.map(mapUserToValue)}
+                          options={teamMembers.map(mapUserToValue)}
                           id="users"
                           placeholder="Add attendees"
                         />
@@ -941,7 +959,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                 label="Hide event type"
               />
               <a
-                href={"/" + (team ? "team/" + team.slug : eventType.users[0].username) + "/" + eventType.slug}
+                href={permalink}
                 target="_blank"
                 rel="noreferrer"
                 className="flex font-medium text-md text-neutral-700">
@@ -950,12 +968,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
               </a>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(
-                    (`${process.env.NEXT_PUBLIC_APP_URL}/` ?? "https://cal.com/") +
-                      (team ? "team/" + team.slug : eventType.users[0].username) +
-                      "/" +
-                      eventType.slug
-                  );
+                  navigator.clipboard.writeText(permalink);
                   showToast("Link copied!", "success");
                 }}
                 type="button"
@@ -1011,7 +1024,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                     name="location"
                     defaultValue={selectedLocation}
                     options={locationOptions}
-                    isSearchable="false"
+                    isSearchable={false}
                     classNamePrefix="react-select"
                     className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     onChange={setSelectedLocation}
@@ -1071,7 +1084,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                       name="type"
                       defaultValue={selectedInputOption}
                       options={inputOptions}
-                      isSearchable="false"
+                      isSearchable={false}
                       required
                       className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
                       onChange={setSelectedInputOption}
@@ -1158,13 +1171,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     name: true,
+    username: true,
     id: true,
     avatar: true,
     email: true,
     username: true,
   });
 
-  const eventType = await prisma.eventType.findFirst({
+  const rawEventType = await prisma.eventType.findFirst({
     where: {
       AND: [
         {
@@ -1231,11 +1245,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!eventType) {
-    return {
-      notFound: true,
-    };
-  }
+  if (!rawEventType) throw Error("Event type not found");
+
+  type Location = {
+    type: LocationType;
+    address?: string;
+  };
+
+  const { locations, ...restEventType } = rawEventType;
+  const eventType = {
+    ...restEventType,
+    locations: locations as unknown as Location[],
+  };
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -1295,7 +1316,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
-        user.avatar = user.avatar || defaultAvatarSrc({ email: user.email });
+        user.avatar = user.avatar || defaultAvatarSrc({ email: asStringOrUndefined(user.email) });
         return user;
       })
     : [];

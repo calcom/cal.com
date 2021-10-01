@@ -5,7 +5,7 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 import Loader from "@components/Loader";
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 
 export default function Embed(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
