@@ -49,7 +49,6 @@ export default function EditTeam(props: {
         if (index > -1) {
           const arr = selectedWebhookEventTypes;
           arr.splice(index, 1);
-          console.log(arr);
           setSelectedWebhookEventTypes(arr);
         }
       }

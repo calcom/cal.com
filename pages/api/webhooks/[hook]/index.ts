@@ -8,8 +8,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!session) {
     return res.status(401).json({ message: "Not authenticated" });
   }
-  // GET /api/webhook/{hook}
 
+  // GET /api/webhook/{hook}
   const webhooks = await prisma.webhook.findFirst({
     where: {
       id: Number(req.query.hook),
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ webhooks: webhooks });
   }
 
-  //   // DELETE /api/webhook/{hook}
+  // DELETE /api/webhook/{hook}
   if (req.method === "DELETE") {
     await prisma.webhookEventTypes.deleteMany({
       where: {
@@ -43,7 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    // console.log(req.query.webhookId);
     const webhook = await prisma.webhook.findUnique({
       where: {
         id: parseInt(req.query.hook as string),
@@ -65,7 +64,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // For the rest
     const webhookEventTypesData: { webhookId: number; eventTypeId: number }[] = [];
     await req.body.eventTypeId.forEach((ev: number) =>
       webhookEventTypesData.push({ webhookId: parseInt(req.query.hook as string), eventTypeId: ev })

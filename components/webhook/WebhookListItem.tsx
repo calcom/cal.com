@@ -103,8 +103,6 @@ export default function WebhookListItem(props: {
               confirmBtnText="Yes, delete webhook"
               cancelBtnText="Cancel"
               onConfirm={() => {
-                console.log("confirm");
-                //delete webhook
                 deleteWebhook(props.webhook.id);
               }}>
               Are you sure you want to delete this webhook? You will no longer receive Cal.com meeting data at

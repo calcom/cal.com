@@ -63,7 +63,6 @@ export default async function handler(req, res) {
     return res.status(403).json({ message: "Cannot cancel past events" });
   }
 
-  // update organizer with proper organizer data like name, emailID, timeZone
   const organizer = await prisma.user.findFirst({
     where: {
       id: bookingToDelete.userId as number,
@@ -74,8 +73,6 @@ export default async function handler(req, res) {
       timeZone: true,
     },
   });
-
-  // update type with proper event Type (event title fetched from eventType model)
 
   const evt: CalendarEvent = {
     type: bookingToDelete?.title,
