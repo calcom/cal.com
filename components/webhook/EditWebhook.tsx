@@ -13,9 +13,16 @@ export default function EditTeam(props: {
   eventTypes: EventType[];
   onCloseEdit: () => void;
 }) {
-  const [bookingCreated, setBookingCreated] = useState(true);
-  const [bookingRescheduled, setBookingRescheduled] = useState(true);
-  const [bookingCancelled, setBookingCancelled] = useState(true);
+  const [bookingCreated, setBookingCreated] = useState(
+    props.webhook.eventTriggers.includes("booking_created")
+  );
+  const [bookingRescheduled, setBookingRescheduled] = useState(
+    props.webhook.eventTriggers.includes("booking_rescheduled")
+  );
+  const [bookingCancelled, setBookingCancelled] = useState(
+    props.webhook.eventTriggers.includes("booking_cancelled")
+  );
+  const [webhookEnabled, setWebhookEnabled] = useState(props.webhook.active);
   const [webhookEventTrigger, setWebhookEventTriggers] = useState([
     "BOOKING_CREATED",
     "BOOKING_RESCHEDULED",
@@ -27,7 +34,6 @@ export default function EditTeam(props: {
       return event.id;
     })
   );
-  const [webhookEnabled, setWebhookEnabled] = useState(true);
   const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
   useEffect(() => {
@@ -36,7 +42,7 @@ export default function EditTeam(props: {
     bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
     bookingCancelled && arr.push("BOOKING_CANCELLED");
     setWebhookEventTriggers(arr);
-  }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
+  }, [bookingCreated, bookingRescheduled, bookingCancelled, webhookEnabled, selectedWebhookEventTypes]);
 
   function eventTypeSelectionHandler(eventType: EventType) {
     return (selected: number[]) => {
@@ -163,26 +169,12 @@ export default function EditTeam(props: {
                     <h2 className="text-sm text-gray-800">Booking Created</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
-                    {props.webhook.eventTriggers.includes("booking_created") && (
-                      <Switch
-                        defaultChecked={true}
-                        id="booking-created"
-                        value={bookingCreated}
-                        onCheckedChange={() => {
-                          setBookingCreated(!bookingCreated);
-                        }}
-                      />
-                    )}
-                    {!props.webhook.eventTriggers.includes("booking_created") && (
-                      <Switch
-                        defaultChecked={false}
-                        id="booking-created"
-                        value={bookingCreated}
-                        onCheckedChange={() => {
-                          setBookingCreated(!bookingCreated);
-                        }}
-                      />
-                    )}
+                    <Switch
+                      defaultChecked={bookingCreated}
+                      onCheckedChange={() => {
+                        setBookingCreated(!bookingCreated);
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="flex px-2 py-1">
@@ -190,26 +182,12 @@ export default function EditTeam(props: {
                     <h2 className="text-sm text-gray-800">Booking Rescheduled</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
-                    {props.webhook.eventTriggers.includes("booking_rescheduled") && (
-                      <Switch
-                        defaultChecked={true}
-                        id="booking-rescheduled"
-                        value={bookingRescheduled}
-                        onCheckedChange={() => {
-                          setBookingRescheduled(!bookingRescheduled);
-                        }}
-                      />
-                    )}
-                    {!props.webhook.eventTriggers.includes("booking_rescheduled") && (
-                      <Switch
-                        defaultChecked={false}
-                        id="booking-rescheduled"
-                        value={bookingRescheduled}
-                        onCheckedChange={() => {
-                          setBookingRescheduled(!bookingRescheduled);
-                        }}
-                      />
-                    )}
+                    <Switch
+                      defaultChecked={bookingRescheduled}
+                      onCheckedChange={() => {
+                        setBookingRescheduled(!bookingRescheduled);
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="flex p-2">
@@ -217,26 +195,12 @@ export default function EditTeam(props: {
                     <h2 className="text-sm text-gray-800">Booking Cancelled</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
-                    {props.webhook.eventTriggers.includes("booking_cancelled") && (
-                      <Switch
-                        defaultChecked={true}
-                        id="booking-cancelled"
-                        value={bookingCancelled}
-                        onCheckedChange={() => {
-                          setBookingCancelled(!bookingCancelled);
-                        }}
-                      />
-                    )}
-                    {!props.webhook.eventTriggers.includes("booking_cancelled") && (
-                      <Switch
-                        defaultChecked={false}
-                        id="booking-cancelled"
-                        value={bookingCancelled}
-                        onCheckedChange={() => {
-                          setBookingCancelled(!bookingCancelled);
-                        }}
-                      />
-                    )}
+                    <Switch
+                      defaultChecked={bookingCancelled}
+                      onCheckedChange={() => {
+                        setBookingCancelled(!bookingCancelled);
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -247,26 +211,12 @@ export default function EditTeam(props: {
                     <h2 className="text-sm text-gray-800">Webhook Enabled</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
-                    {props.webhook.active && (
-                      <Switch
-                        defaultChecked={true}
-                        id="webhook-enabled"
-                        value={webhookEnabled}
-                        onCheckedChange={() => {
-                          setWebhookEnabled(!webhookEnabled);
-                        }}
-                      />
-                    )}
-                    {!props.webhook.active && (
-                      <Switch
-                        defaultChecked={false}
-                        id="webhook-enabled"
-                        value={webhookEnabled}
-                        onCheckedChange={() => {
-                          setWebhookEnabled(!webhookEnabled);
-                        }}
-                      />
-                    )}
+                    <Switch
+                      defaultChecked={webhookEnabled}
+                      onCheckedChange={() => {
+                        setWebhookEnabled(!webhookEnabled);
+                      }}
+                    />
                   </div>
                 </div>
               </div>
