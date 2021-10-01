@@ -385,7 +385,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="w-full">
                       <div className="flex rounded-sm shadow-sm">
                         <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
-                          {typeof location !== "undefined" ? location.hostname : ""}/
+                          {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
