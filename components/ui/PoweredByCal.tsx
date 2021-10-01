@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const PoweredByCal = () => (
   <div className="p-1 text-xs text-center sm:text-right">
-    <Link href={`https://cal.com?utm_source=embed&utm_medium=powered-by-button`}>
+    <Link href={`cal.com?utm_source=embed&utm_medium=powered-by-button`}>
       <a target="_blank" className="text-gray-500 opacity-50 hover:opacity-100">
         powered by{" "}
         <img
