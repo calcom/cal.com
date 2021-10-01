@@ -469,9 +469,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscriberUrls = await getSubscriberUrls(user.id, eventTypeId, eventTrigger);
-  subscriberUrls.forEach(async (subscriberUrl: string) => {
-    await sendPayload(eventTrigger, new Date().toISOString(), subscriberUrl, evt);
-  });
+  await Promise.all(
+    subscriberUrls.map((url) => sendPayload(eventTrigger, new Date().toISOString(), url, evt))
+  );
 
   await prisma.booking.update({
     where: {

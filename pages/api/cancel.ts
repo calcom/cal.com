@@ -96,10 +96,9 @@ export default async function handler(req, res) {
     eventTrigger
   );
 
-  subscriberUrls.forEach(async (subscriberUrl: string) => {
-    await sendPayload(eventTrigger, new Date().toISOString(), subscriberUrl, evt);
-  });
-
+  await Promise.all(
+    subscriberUrls.map((url) => sendPayload(eventTrigger, new Date().toISOString(), url, evt))
+  );
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
   await prisma.booking.update({
