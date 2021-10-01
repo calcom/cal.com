@@ -250,20 +250,20 @@ export default function EditTeam(props: {
                     {props.webhook.active && (
                       <Switch
                         defaultChecked={true}
-                        id="booking-cancelled"
-                        value={bookingCancelled}
+                        id="webhook-enabled"
+                        value={webhookEnabled}
                         onCheckedChange={() => {
-                          setBookingCancelled(!bookingCancelled);
+                          setWebhookEnabled(!webhookEnabled);
                         }}
                       />
                     )}
                     {!props.webhook.active && (
                       <Switch
                         defaultChecked={false}
-                        id="booking-cancelled"
-                        value={bookingCancelled}
+                        id="webhook-enabled"
+                        value={webhookEnabled}
                         onCheckedChange={() => {
-                          setBookingCancelled(!bookingCancelled);
+                          setWebhookEnabled(!webhookEnabled);
                         }}
                       />
                     )}
