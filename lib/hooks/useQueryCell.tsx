@@ -13,7 +13,7 @@ import { Alert } from "@components/ui/Alert";
 type ErrorLike = {
   message: string;
 };
-interface QueryCellBaseOptions<TData, TError extends ErrorLike> {
+interface QueryCellOptions<TData, TError extends ErrorLike> {
   query: UseQueryResult<TData, TError>;
   success: (result: QueryObserverSuccessResult<TData>) => JSX.Element;
   error?: (
@@ -21,22 +21,18 @@ interface QueryCellBaseOptions<TData, TError extends ErrorLike> {
   ) => JSX.Element;
   loading?: (query: QueryObserverLoadingResult<TData, TError>) => JSX.Element;
   idle?: (query: QueryObserverIdleResult<TData, TError>) => JSX.Element;
-}
-interface QueryCellArrayOptionsOptions<TData, TError extends ErrorLike>
-  extends QueryCellBaseOptions<TData, TError> {
+  /**
+   * If there's no data (`null`, `undefined`, or `[]`), render this component
+   */
   empty?: (result: QueryObserverSuccessResult<TData>) => JSX.Element;
 }
-type QueryCellOptions<TData, TError extends ErrorLike> = TData extends Array<unknown>
-  ? QueryCellArrayOptionsOptions<TData, TError>
-  : QueryCellBaseOptions<TData, TError>;
 
 export function useQueryCell<TData, TError extends ErrorLike>(opts: QueryCellOptions<TData, TError>) {
   const { query } = opts;
 
   if (query.status === "success") {
-    const _opts = opts as QueryCellArrayOptionsOptions<TData, TError>;
-    if (Array.isArray(query.data) && query.data.length === 0 && _opts.empty) {
-      return _opts.empty(query);
+    if (opts.empty && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
+      return opts.empty(query);
     }
     return opts.success(query);
   }
