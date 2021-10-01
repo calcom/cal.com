@@ -15,16 +15,16 @@ type ErrorLike = {
 };
 interface QueryCellOptions<TData, TError extends ErrorLike> {
   query: UseQueryResult<TData, TError>;
-  success: (result: QueryObserverSuccessResult<TData>) => JSX.Element;
+  success: (query: QueryObserverSuccessResult<TData>) => JSX.Element;
   error?: (
-    result: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
+    query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
   ) => JSX.Element;
   loading?: (query: QueryObserverLoadingResult<TData, TError>) => JSX.Element;
   idle?: (query: QueryObserverIdleResult<TData, TError>) => JSX.Element;
   /**
    * If there's no data (`null`, `undefined`, or `[]`), render this component
    */
-  empty?: (result: QueryObserverSuccessResult<TData>) => JSX.Element;
+  empty?: (query: QueryObserverSuccessResult<TData>) => JSX.Element;
 }
 
 export function useQueryCell<TData, TError extends ErrorLike>(opts: QueryCellOptions<TData, TError>) {
