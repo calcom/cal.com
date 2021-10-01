@@ -119,7 +119,7 @@ export default function Type(props) {
                       </div>
                     </div>
                     {props.cancellationAllowed && (
-                      <div className="mt-5 sm:mt-6 text-centerspace-x-2">
+                      <div className="mt-5 space-x-2 text-center sm:mt-6">
                         <Button
                           color="secondary"
                           data-testid="cancel"
