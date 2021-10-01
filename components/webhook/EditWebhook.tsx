@@ -247,14 +247,26 @@ export default function EditTeam(props: {
                     <h2 className="text-sm text-gray-800">Webhook Enabled</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
-                    <Switch
-                      defaultChecked={true}
-                      id="webhook-enabled"
-                      value={webhookEnabled}
-                      onCheckedChange={() => {
-                        setWebhookEnabled(!webhookEnabled);
-                      }}
-                    />
+                    {props.webhook.active && (
+                      <Switch
+                        defaultChecked={true}
+                        id="booking-cancelled"
+                        value={bookingCancelled}
+                        onCheckedChange={() => {
+                          setBookingCancelled(!bookingCancelled);
+                        }}
+                      />
+                    )}
+                    {!props.webhook.active && (
+                      <Switch
+                        defaultChecked={false}
+                        id="booking-cancelled"
+                        value={bookingCancelled}
+                        onCheckedChange={() => {
+                          setBookingCancelled(!bookingCancelled);
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
