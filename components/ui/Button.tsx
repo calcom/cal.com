@@ -6,7 +6,7 @@ import { SVGComponent } from "@lib/types/SVGComponent";
 
 export type ButtonProps = {
   color?: "primary" | "secondary" | "minimal" | "warn";
-  size?: "base" | "sm" | "lg" | "fab";
+  size?: "base" | "sm" | "lg" | "fab" | "icon";
   loading?: boolean;
   disabled?: boolean;
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -52,6 +52,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm",
         size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
         size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
+        size === "icon" && "group p-2 border border-transparent text-neutral-400 hover:border-gray-200",
         // turn button into a floating action button (fab)
         size === "fab" ? "fixed" : "relative",
         size === "fab" && "justify-center bottom-20 right-8 rounded-full p-4 w-14 h-14",
@@ -85,7 +86,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         : props.onClick,
     },
     <>
-      {StartIcon && <StartIcon className="inline w-5 h-5 mr-2 -ml-1" />}
+      {StartIcon && (
+        <StartIcon
+          className={classNames(
+            "inline",
+            size === "icon" ? "w-5 h-5 group-hover:text-black" : "w-5 h-5 mr-2 -ml-1"
+          )}
+        />
+      )}
       {props.children}
       {loading && (
         <div className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">

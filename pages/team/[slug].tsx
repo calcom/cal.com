@@ -65,7 +65,7 @@ function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
             <Text variant="headline">{teamName}</Text>
           </div>
           {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
-          {!showMembers.isOn && team.eventTypes.length && (
+          {!showMembers.isOn && team.eventTypes.length > 0 && (
             <div className="mx-auto max-w-3xl">
               {eventTypes}
 

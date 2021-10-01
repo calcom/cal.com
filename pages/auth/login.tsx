@@ -48,12 +48,12 @@ export default function Login({ csrfToken }) {
         callbackUrl,
       });
       if (!response) {
-        console.error("Received empty response from next auth");
-        return;
+        throw new Error("Received empty response from next auth");
       }
 
       if (!response.error) {
-        router.replace(callbackUrl);
+        // we're logged in! let's do a hard refresh to the desired url
+        window.location.replace(callbackUrl);
         return;
       }
 
@@ -63,9 +63,9 @@ export default function Login({ csrfToken }) {
       } else {
         setErrorMessage(errorMessages[response.error] || "Something went wrong.");
       }
+      setIsSubmitting(false);
     } catch (e) {
       setErrorMessage("Something went wrong.");
-    } finally {
       setIsSubmitting(false);
     }
   }
