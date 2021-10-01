@@ -27,7 +27,7 @@ interface QueryCellOptions<TData, TError extends ErrorLike> {
   empty?: (query: QueryObserverSuccessResult<TData, TError>) => JSX.Element;
 }
 
-export function useQueryCell<TData, TError extends ErrorLike>(opts: QueryCellOptions<TData, TError>) {
+export function QueryCell<TData, TError extends ErrorLike>(opts: QueryCellOptions<TData, TError>) {
   const { query } = opts;
 
   if (query.status === "success") {
@@ -51,8 +51,4 @@ export function useQueryCell<TData, TError extends ErrorLike>(opts: QueryCellOpt
   }
   // impossible state
   return null;
-}
-
-export function QueryCell<TData, TError extends ErrorLike>(opts: QueryCellOptions<TData, TError>) {
-  return useQueryCell(opts);
 }
