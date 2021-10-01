@@ -80,8 +80,9 @@ export default function WebhookListItem(props: {
             <Button
               onClick={() => props.onEditWebhook()}
               color="minimal"
+              size="icon"
               StartIcon={PencilAltIcon}
-              className="self-center w-full p-2 pr-0 ml-4 border border-transparent group text-neutral-400 hover:border-gray-200 hover:text-neutral-700"></Button>
+              className="self-center w-full p-2 ml-4"></Button>
           </Tooltip>
           <Dialog>
             <Tooltip content="Delete Webhook">
@@ -91,8 +92,9 @@ export default function WebhookListItem(props: {
                     e.stopPropagation();
                   }}
                   color="minimal"
+                  size="icon"
                   StartIcon={TrashIcon}
-                  className="self-center w-full p-2 pr-0 ml-2 border border-transparent group text-neutral-400 hover:border-gray-200 hover:text-neutral-700"></Button>
+                  className="self-center w-full p-2 ml-2"></Button>
               </DialogTrigger>
             </Tooltip>
             <ConfirmationDialogContent

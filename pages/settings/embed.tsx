@@ -1,9 +1,4 @@
-import Loader from "@components/Loader";
-import SettingsShell from "@components/SettingsShell";
-import Shell from "@components/Shell";
-import Button from "@components/ui/Button";
-import WebhookList from "@components/webhook/WebhookList";
-import { PlusIcon, ShareIcon } from "@heroicons/react/outline";
+import { PlusIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
 import { useEffect, useState, useRef } from "react";
@@ -16,7 +11,7 @@ import { Webhook } from "@lib/webhook";
 
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
 import Loader from "@components/Loader";
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
