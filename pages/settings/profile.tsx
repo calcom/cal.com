@@ -5,7 +5,7 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -155,7 +155,7 @@ export default function Settings(props: Props) {
         timeZone: enteredTimeZone,
         weekStart: asStringOrUndefined(enteredWeekStartDay),
         hideBranding: enteredHideBranding,
-        theme: asStringOrUndefined(selectedTheme?.value),
+        theme: asStringOrNull(selectedTheme?.value),
         locale: enteredLanguage,
       })
       .then(() => {
@@ -310,7 +310,7 @@ export default function Settings(props: Props) {
                         name="theme-adjust-os"
                         type="checkbox"
                         onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
-                        defaultChecked={!selectedTheme}
+                        checked={!selectedTheme}
                         className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
                       />
                     </div>
