@@ -11,7 +11,7 @@ import BookingListItem from "@components/booking/BookingListItem";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 
-const descriptionByStatus = {
+const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "As soon as someone books a time with you it will show up here.",
   past: "Your past bookings will show up here.",
   cancelled: "Your cancelled bookings will show up here.",
@@ -41,17 +41,13 @@ export default function Bookings() {
                     </table>
                   </div>
                 )}
-                empty={
-                  status
-                    ? () => (
-                        <EmptyScreen
-                          Icon={CalendarIcon}
-                          headline={`No ${status} bookings, yet`}
-                          description={`You have no ${status} bookings. ${descriptionByStatus[status]}`}
-                        />
-                      )
-                    : undefined
-                }
+                empty={() => (
+                  <EmptyScreen
+                    Icon={CalendarIcon}
+                    headline={`No ${status} bookings, yet`}
+                    description={`You have no ${status} bookings. ${descriptionByStatus[status]}`}
+                  />
+                )}
               />
             </div>
           </div>
