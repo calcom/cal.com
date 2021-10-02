@@ -182,6 +182,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         image: user.avatar,
         slug: user.username,
         theme: user.theme,
+        weekStart: user.weekStart,
       },
       date: dateParam,
       eventType: eventTypeObject,
