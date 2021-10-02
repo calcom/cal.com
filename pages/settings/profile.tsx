@@ -236,7 +236,7 @@ export default function Settings(props: Props) {
                       id="avatar-upload"
                       buttonMsg="Change avatar"
                       handleAvatarChange={handleAvatarChange}
-                      imageRef={imageSrc}
+                      imageSrc={imageSrc}
                     />
                   </div>
                   <hr className="mt-6" />
