@@ -22,11 +22,11 @@ export const viewerRouter = createProtectedRouter()
   })
   .query("bookings", {
     input: z.object({
-      status: z.enum(["upcoming", "past", "cancelled"]).optional(),
+      status: z.enum(["upcoming", "past", "cancelled"]),
     }),
     async resolve({ ctx, input }) {
       const { prisma, user } = ctx;
-      const bookingListingByStatus = input.status || "upcoming";
+      const bookingListingByStatus = input.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
         upcoming: [{ endTime: { gte: new Date() } }],
         past: [{ endTime: { lte: new Date() } }],
