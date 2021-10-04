@@ -91,10 +91,13 @@ export default async function handler(req, res) {
   const eventTrigger = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberUrls = await getSubscriberUrls(bookingToDelete.userId, eventTrigger);
-
-  await Promise.all(
-    subscriberUrls.map((url) => sendPayload(eventTrigger, new Date().toISOString(), url, evt))
+  const promises = subscriberUrls.map((url) =>
+    sendPayload(eventTrigger, new Date().toISOString(), url, evt).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${url}`, e);
+    })
   );
+  await Promise.all(promises);
+
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
   await prisma.booking.update({
