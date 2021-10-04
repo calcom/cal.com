@@ -275,3 +275,18 @@ model Payment {
   data           Json
   externalId     String   @unique
 }
+
+enum WebhookTriggerEvents {
+  BOOKING_CREATED
+  BOOKING_RESCHEDULED
+  BOOKING_CANCELLED
+}
+
+model Webhook {
+  id            String      @unique @id 
+  userId        Int       
+  subscriberUrl String
+  createdAt     DateTime  @default(now())
+  active        Boolean   @default(true)         
+  eventTriggers WebhookTriggerEvents[]
+}
