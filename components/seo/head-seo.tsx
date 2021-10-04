@@ -66,11 +66,10 @@ const buildSeoMeta = (pageProps: {
   };
 };
 
-//TODO: @yac get this inage correct
 const constructImage = (name: string, avatar: string, description: string): string => {
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +
-    ".png?md=1&images=https%3A%2F%2Fcal.com%yac-logo-white.svg&images=" +
+    ".png?md=1&images=https%3A%2F%2Fmeet.yac.com%2Fyac-logo-white-word.svg&images=" +
     encodeURIComponent(avatar)
   );
 };

@@ -54,7 +54,7 @@ export default function User(props: InferGetStaticPropsType<typeof getStaticProp
                   <Link href={`/${user.username}/${type.slug}`}>
                     <a className="block px-6 py-4">
                       <h2 className="font-semibold text-neutral-900 ">{type.title}</h2>
-                      <EventTypeDescription eventType={type} />
+                      <EventTypeDescription asyncUseCalendar={user.asyncUseCalendar} eventType={type} />
                     </a>
                   </Link>
                 </div>

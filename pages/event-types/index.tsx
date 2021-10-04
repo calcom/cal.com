@@ -164,7 +164,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                         </span>
                       )}
                     </div>
-                    <EventTypeDescription eventType={type} />
+                    <EventTypeDescription asyncUseCalendar={props.user.asyncUseCalendar} eventType={type} />
                   </a>
                 </Link>
 
@@ -597,6 +597,7 @@ export async function getServerSideProps(context) {
       id: session.user.id,
     },
     select: {
+      asyncUseCalendar: true,
       id: true,
       username: true,
       name: true,

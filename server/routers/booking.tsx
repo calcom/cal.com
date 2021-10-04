@@ -23,6 +23,7 @@ export const bookingRouter = createRouter().query("userEventTypes", {
         avatar: true,
         theme: true,
         plan: true,
+        asyncUseCalendar: true,
       },
     });
     if (!user) {

@@ -1,4 +1,4 @@
-import { CodeIcon, CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
+import { CodeIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
 
 import NavTabs from "./NavTabs";
@@ -10,22 +10,8 @@ export default function SettingsShell({ children }: { children: React.ReactNode 
       href: "/settings/profile",
       icon: UserIcon,
     },
-    {
-      name: "Security",
-      href: "/settings/security",
-      icon: KeyIcon,
-    },
+
     { name: "Embed", href: "/settings/embed", icon: CodeIcon },
-    {
-      name: "Teams",
-      href: "/settings/teams",
-      icon: UserGroupIcon,
-    },
-    {
-      name: "Billing",
-      href: "/settings/billing",
-      icon: CreditCardIcon,
-    },
   ];
 
   return (

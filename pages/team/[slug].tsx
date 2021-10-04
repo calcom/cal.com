@@ -32,7 +32,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
             <a className="flex justify-between px-6 py-4">
               <div className="flex-shrink">
                 <h2 className="font-semibold font-cal text-neutral-900 ">{type.title}</h2>
-                <EventTypeDescription className="text-sm" eventType={type} />
+                <EventTypeDescription asyncUseCalendar className="text-sm" eventType={type} />
               </div>
               <div className="mt-1">
                 <AvatarGroup
@@ -95,6 +95,7 @@ function TeamPage({ team }: InferGetServerSidePropsType<typeof getServerSideProp
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  return { notFound: true };
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const userSelect = Prisma.validator<Prisma.UserSelect>()({

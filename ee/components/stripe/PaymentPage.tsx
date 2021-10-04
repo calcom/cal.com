@@ -33,7 +33,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   return isReady ? (
     <div className="h-screen bg-neutral-50">
       <Head>
-        <title>Payment | {eventName} | Calendso</title>
+        <title>Payment | {eventName} | Yac Meet</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="max-w-3xl py-24 mx-auto">

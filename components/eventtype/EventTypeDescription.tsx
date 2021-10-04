@@ -14,6 +14,7 @@ const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
     currency: true,
     schedulingType: true,
     description: true,
+    slug: true,
   },
 });
 
@@ -22,9 +23,15 @@ type EventType = Prisma.EventTypeGetPayload<typeof eventTypeData>;
 export type EventTypeDescriptionProps = {
   eventType: EventType;
   className?: string;
+  asyncUseCalendar: boolean;
 };
 
-export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
+export const EventTypeDescription = ({
+  eventType,
+  className,
+  asyncUseCalendar,
+}: EventTypeDescriptionProps) => {
+  console.log(eventType);
   return (
     <>
       <div className={classNames("text-neutral-500 ", className)}>
@@ -34,10 +41,12 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           </h2>
         )}
         <ul className="flex mt-2 space-x-4 ">
-          <li className="flex whitespace-nowrap">
-            <ClockIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
-            {eventType.length}m
-          </li>
+          {(eventType.slug !== "async" || asyncUseCalendar) && (
+            <li className="flex whitespace-nowrap">
+              <ClockIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
+              {eventType.length}m
+            </li>
+          )}
           {eventType.schedulingType ? (
             <li className="flex whitespace-nowrap">
               <UsersIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
