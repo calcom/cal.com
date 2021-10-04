@@ -283,7 +283,7 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String      @id 
+  id            String      @unique @id 
   userId        Int       
   subscriberUrl String
   createdAt     DateTime  @default(now())

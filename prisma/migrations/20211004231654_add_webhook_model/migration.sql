@@ -9,6 +9,7 @@ CREATE TABLE "Webhook" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "eventTriggers" "WebhookTriggerEvents"[],
+
     PRIMARY KEY ("id")
 );
 
