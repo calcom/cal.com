@@ -1,15 +1,18 @@
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req: req });
+dayjs.extend(utc);
 
-  if (!session) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getSession({ req });
+
+  if (!session?.user?.id) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
