@@ -1,4 +1,5 @@
 import { ExclamationIcon } from "@heroicons/react/outline";
+import { CheckIcon } from "@heroicons/react/solid";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren } from "react";
 
@@ -8,9 +9,9 @@ import { Button } from "@components/ui/Button";
 export type ConfirmationDialogContentProps = {
   confirmBtnText?: string;
   cancelBtnText?: string;
-  onConfirm: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
-  variety?: "danger" /* no others yet */;
+  variety?: "danger" | "warning" | "success";
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
@@ -24,6 +25,16 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
             {variety === "danger" && (
               <div className="text-center p-2 rounded-full mx-auto bg-red-100">
                 <ExclamationIcon className="w-5 h-5 text-red-600" />
+              </div>
+            )}
+            {variety === "warning" && (
+              <div className="text-center p-2 rounded-full mx-auto bg-orange-100">
+                <ExclamationIcon className="w-5 h-5 text-orange-600" />
+              </div>
+            )}
+            {variety === "success" && (
+              <div className="text-center p-2 rounded-full mx-auto bg-green-100">
+                <CheckIcon className="w-5 h-5 text-green-600" />
               </div>
             )}
           </div>
