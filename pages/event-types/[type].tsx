@@ -1227,7 +1227,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
     { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
-    { value: LocationType.Daily, label: "Daily.co Video" },
   ];
 
   if (hasIntegration(integrations, "zoom_video")) {
@@ -1237,7 +1236,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
   }
-  const hasDailyIntegration = integrations.find((i) => i.type === "daily_video" && i.installed === true);
+  const hasDailyIntegration = process.env.DAILY_API_KEY;
   if (hasDailyIntegration) {
     locationOptions.push({ value: LocationType.Daily, label: "Daily.co Video" });
   }

@@ -22,6 +22,13 @@ import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
+export interface dailyReturn {
+  name: string;
+  url: string;
+  id: string;
+  created_at: string;
+}
+
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -448,11 +455,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   //for Daily.co video calls will grab the meeting token for the call
   const isDaily = evt.location === "integrations:daily";
-  let dailyEvent;
+
+  let dailyEvent: dailyReturn;
+
   if (!rescheduleUid) {
-    dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent;
+    dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent as dailyReturn;
   } else {
-    dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent;
+    dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent as dailyReturn;
   }
 
   let meetingToken;

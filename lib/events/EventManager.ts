@@ -59,7 +59,7 @@ export default class EventManager {
 
     //for  Daily.co video, temporarily pushes a credential for the daily-video-client
 
-    const hasDailyIntegration = process.env.DAILY_API_KEY != null;
+    const hasDailyIntegration = process.env.DAILY_API_KEY;
     const dailyCredential: Credential = {
       id: +new Date().getTime(),
       type: "daily_video",
