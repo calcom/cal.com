@@ -1,7 +1,7 @@
 import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 
-import { QueryCell } from "@lib/hooks/QueryCell";
+import { QueryCell } from "@lib/QueryCell";
 import { inferQueryInput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
