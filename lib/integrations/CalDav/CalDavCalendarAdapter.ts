@@ -1,6 +1,5 @@
 import { Credential } from "@prisma/client";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
 import { Attendee, createEvent, DurationObject, Person } from "ics";
 import {
@@ -19,8 +18,6 @@ import logger from "@lib/logger";
 
 import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
 import { stripHtml } from "../../emails/helpers";
-
-dayjs.extend(utc);
 
 const log = logger.getChildLogger({ prefix: ["[lib] caldav"] });
 
