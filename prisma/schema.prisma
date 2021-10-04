@@ -30,7 +30,6 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
-  webhooks                WebhookEventTypes[]
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
@@ -284,22 +283,10 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            Int       @id @default(autoincrement())
-  uid           String    @unique
+  id            String      @id 
   userId        Int       
   subscriberUrl String
-  eventType     WebhookEventTypes[]
   createdAt     DateTime  @default(now())
   active        Boolean   @default(true)         
   eventTriggers WebhookTriggerEvents[]
-}
-
-model WebhookEventTypes {
-  webhook       Webhook     @relation(fields: [webhookId], references: [id])
-  webhookId     Int
-  eventType     EventType   @relation(fields: [eventTypeId], references: [id])
-  eventTypeId   Int
-  createdAt     DateTime @default(now())
-  
-  @@id([webhookId, eventTypeId])
 }

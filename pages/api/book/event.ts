@@ -468,7 +468,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscriberUrls = await getSubscriberUrls(user.id, eventTypeId, eventTrigger);
+  const subscriberUrls = await getSubscriberUrls(user.id, eventTrigger);
   await Promise.all(
     subscriberUrls.map((url) => sendPayload(eventTrigger, new Date().toISOString(), url, evt))
   );

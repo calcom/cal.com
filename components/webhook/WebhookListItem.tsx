@@ -1,5 +1,4 @@
 import { TrashIcon, PencilAltIcon } from "@heroicons/react/outline";
-import { EventType } from "@prisma/client";
 
 import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
@@ -12,8 +11,7 @@ import Button from "@components/ui/Button";
 export default function WebhookListItem(props: {
   onChange: () => void;
   key: number;
-  webhook: Webhook & { webhookEvents: EventType[] };
-  eventTypes: EventType[];
+  webhook: Webhook;
   onEditWebhook: () => void;
 }) {
   const handleErrors = async (resp: Response) => {
@@ -24,7 +22,7 @@ export default function WebhookListItem(props: {
     return resp.json();
   };
 
-  const deleteWebhook = (webhookId: number) => {
+  const deleteWebhook = (webhookId: string) => {
     fetch("/api/webhooks/" + webhookId, {
       method: "DELETE",
       headers: {
@@ -53,15 +51,6 @@ export default function WebhookListItem(props: {
         <div className="flex w-full">
           <div className="self-center inline-block ml-3 space-y-1">
             <span className="flex text-sm text-neutral-700">{props.webhook.subscriberUrl}</span>
-
-            <div className="inline-block space-x-1 space-y-1">
-              {props.webhook.webhookEvents.map((webhookEvent, ind: number) => (
-                <span key={ind} className="px-2 py-1 text-xs text-gray-700 rounded-md w-max bg-gray-50">
-                  {"/"}
-                  {webhookEvent.slug}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
         <div className="flex">

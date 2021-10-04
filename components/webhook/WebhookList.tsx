@@ -1,12 +1,9 @@
-import { EventType } from "@prisma/client";
-
 import { Webhook } from "@lib/webhook";
 
 import WebhookListItem from "./WebhookListItem";
 
 export default function WebhookList(props: {
   webhooks: Webhook[];
-  eventTypes: EventType[];
   onChange: () => void;
   onEditWebhook: (webhook: Webhook) => void;
 }) {
@@ -16,7 +13,6 @@ export default function WebhookList(props: {
         {props.webhooks.map((webhook: Webhook) => (
           <WebhookListItem
             onChange={props.onChange}
-            eventTypes={props.eventTypes}
             key={webhook.id}
             webhook={webhook}
             onEditWebhook={() => props.onEditWebhook(webhook)}></WebhookListItem>

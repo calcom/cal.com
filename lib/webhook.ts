@@ -1,7 +1,3 @@
-export interface Webhook {
-  id: number;
-  subscriberUrl: string | null;
-  active: boolean;
-  eventTriggers: string[];
-  prevState: null;
-}
+import { Webhook as PrismaWebhook } from "@prisma/client";
+
+export type Webhook = PrismaWebhook & { prevState: null };

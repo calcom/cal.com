@@ -12,15 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // GET /api/webhook/{hook}
   const webhooks = await prisma.webhook.findFirst({
     where: {
-      id: Number(req.query.hook),
+      id: String(req.query.hook),
       userId: session.user.id,
-    },
-    include: {
-      eventType: {
-        include: {
-          eventType: true,
-        },
-      },
     },
   });
   if (req.method === "GET") {
@@ -29,14 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // DELETE /api/webhook/{hook}
   if (req.method === "DELETE") {
-    await prisma.webhookEventTypes.deleteMany({
-      where: {
-        webhookId: Number(req.query.hook),
-      },
-    });
     await prisma.webhook.delete({
       where: {
-        id: Number(req.query.hook),
+        id: String(req.query.hook),
       },
     });
     return res.status(200).json({});
@@ -45,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "PATCH") {
     const webhook = await prisma.webhook.findUnique({
       where: {
-        id: parseInt(req.query.hook as string),
+        id: req.query.hook as string,
       },
     });
 
@@ -55,29 +43,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await prisma.webhook.update({
       where: {
-        id: parseInt(req.query.hook as string),
+        id: req.query.hook as string,
       },
       data: {
         subscriberUrl: req.body.subscriberUrl,
         eventTriggers: req.body.eventTriggers,
         active: req.body.enabled,
       },
-    });
-
-    const webhookEventTypesData: { webhookId: number; eventTypeId: number }[] = [];
-    await req.body.eventTypeId.forEach((ev: number) =>
-      webhookEventTypesData.push({ webhookId: parseInt(req.query.hook as string), eventTypeId: ev })
-    );
-
-    await prisma.webhookEventTypes.deleteMany({
-      where: {
-        webhookId: parseInt(req.query.hook as string),
-      },
-    });
-
-    await prisma.webhookEventTypes.createMany({
-      data: webhookEventTypesData,
-      skipDuplicates: true,
     });
 
     return res.status(200).json({ message: "Webhook updated successfully" });

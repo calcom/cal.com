@@ -90,11 +90,7 @@ export default async function handler(req, res) {
   // Hook up the webhook logic here
   const eventTrigger = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscriberUrls = await getSubscriberUrls(
-    bookingToDelete.userId,
-    bookingToDelete.eventTypeId,
-    eventTrigger
-  );
+  const subscriberUrls = await getSubscriberUrls(bookingToDelete.userId, eventTrigger);
 
   await Promise.all(
     subscriberUrls.map((url) => sendPayload(eventTrigger, new Date().toISOString(), url, evt))

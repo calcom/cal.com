@@ -4,7 +4,6 @@ import { useSession } from "next-auth/client";
 import { useEffect, useState, useRef } from "react";
 
 import { getSession } from "@lib/auth";
-// import { Member } from "@lib/member";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Webhook } from "@lib/webhook";
@@ -18,8 +17,6 @@ import Switch from "@components/ui/Switch";
 import EditWebhook from "@components/webhook/EditWebhook";
 import WebhookList from "@components/webhook/WebhookList";
 
-import { EventType } from ".prisma/client";
-
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
 
@@ -29,14 +26,12 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [bookingCancelled, setBookingCancelled] = useState(true);
   const [editWebhookEnabled, setEditWebhookEnabled] = useState(false);
   const [webhooks, setWebhooks] = useState([]);
-  const [webhookToEdit, setWebhookToEdit] = useState<(Webhook & { webhookEvents: EventType }) | null>();
+  const [webhookToEdit, setWebhookToEdit] = useState<Webhook | null>();
   const [webhookEventTrigger, setWebhookEventTriggers] = useState([
     "BOOKING_CREATED",
     "BOOKING_RESCHEDULED",
     "BOOKING_CANCELLED",
   ]);
-  const [webhookEventTypes, setWebhookEventTypes] = useState([]);
-  const [selectedWebhookEventTypes, setSelectedWebhookEventTypes] = useState([]);
 
   const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
@@ -46,12 +41,10 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
     bookingCancelled && arr.push("BOOKING_CANCELLED");
     setWebhookEventTriggers(arr);
-    console.log("Selected: ", selectedWebhookEventTypes);
-  }, [bookingCreated, bookingRescheduled, bookingCancelled, selectedWebhookEventTypes]);
+  }, [bookingCreated, bookingRescheduled, bookingCancelled]);
 
   useEffect(() => {
     getWebhooks();
-    getEventTypes();
   }, []);
 
   if (loading) {
@@ -86,37 +79,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     setLoading(false);
   };
 
-  const getEventTypes = () => {
-    fetch("/api/eventType")
-      .then(handleErrors)
-      .then((data) => {
-        setWebhookEventTypes(data.eventTypes);
-        setSelectedWebhookEventTypes(data.eventTypes.map((eventType: EventType) => eventType.id));
-      });
-  };
-
-  function eventTypeSelectionHandler(eventType: EventType) {
-    return (selected: number[]) => {
-      const i = webhookEventTypes.findIndex((c) => c.id === eventType.id);
-      webhookEventTypes[i].selected = selected;
-      if (selected) {
-        // push
-        if (!selectedWebhookEventTypes.includes(eventType.id)) {
-          setSelectedWebhookEventTypes([...selectedWebhookEventTypes, eventType.id]);
-        }
-      } else {
-        //pop
-        const index = selectedWebhookEventTypes.indexOf(eventType.id);
-        if (index > -1) {
-          const arr = selectedWebhookEventTypes;
-          arr.splice(index, 1);
-          console.log(arr);
-          setSelectedWebhookEventTypes(arr);
-        }
-      }
-    };
-  }
-
   const createWebhook = () => {
     setLoading(true);
     fetch("/api/webhook", {
@@ -124,7 +86,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
       body: JSON.stringify({
         subscriberUrl: subUrlRef.current.value,
         eventTriggers: webhookEventTrigger,
-        eventTypeId: selectedWebhookEventTypes,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -221,29 +182,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                         />
                         <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
                           {" "}
-                          Event Types{" "}
-                        </legend>
-                        <div className="p-2 border border-gray-300 rounded-sm">
-                          <ul className="overflow-y-auto max-h-96">
-                            {webhookEventTypes.map((eventType) => (
-                              <li key={eventType.slug} className="flex py-2">
-                                <div className="w-10/12">
-                                  <h2 className="font-medium text-gray-800 align-middle">
-                                    /{eventType.slug}
-                                  </h2>
-                                </div>
-                                <div className="flex items-center justify-center w-2/12 text-right">
-                                  <Switch
-                                    defaultChecked={true}
-                                    onCheckedChange={eventTypeSelectionHandler(eventType)}
-                                  />
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
-                          {" "}
                           Event Triggers{" "}
                         </legend>
                         <div className="p-2 border border-gray-300 rounded-sm">
@@ -324,7 +262,6 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                   {!!webhooks.length && (
                     <WebhookList
                       webhooks={webhooks}
-                      eventTypes={webhookEventTypes}
                       onChange={getWebhooks}
                       onEditWebhook={editWebhook}></WebhookList>
                   )}
@@ -344,9 +281,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
             </a>
           </div>
         )}
-        {!!editWebhookEnabled && (
-          <EditWebhook webhook={webhookToEdit} eventTypes={webhookEventTypes} onCloseEdit={onCloseEdit} />
-        )}
+        {!!editWebhookEnabled && <EditWebhook webhook={webhookToEdit} onCloseEdit={onCloseEdit} />}
       </SettingsShell>
     </Shell>
   );
