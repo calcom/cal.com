@@ -16,12 +16,6 @@
   ],
   "plugins": ["@typescript-eslint", "prettier", "react", "react-hooks"],
   "rules": {
-    "prettier/prettier": [
-      "error",
-      {
-        "endOfLine": "auto"
-      }
-    ],
     "@typescript-eslint/no-unused-vars": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
