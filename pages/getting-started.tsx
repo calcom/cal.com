@@ -16,7 +16,7 @@ import { NextPageContext } from "next";
 import { useSession } from "next-auth/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { Integration } from "pages/integrations";
+import { Integration } from "pages/integrations/_new";
 import React, { useEffect, useRef, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 
