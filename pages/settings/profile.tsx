@@ -14,6 +14,7 @@ import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { DialogClose, Dialog, DialogContent } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
 import Modal from "@components/Modal";
 import SettingsShell from "@components/SettingsShell";
@@ -403,12 +404,29 @@ export default function Settings(props: Props) {
             </div>
           </div>
         </form>
-        <Modal
-          heading="Profile updated successfully"
-          description="Your user profile has been updated successfully."
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
+        <Dialog open={successModalOpen}>
+          <DialogContent>
+            <div className="sm:flex sm:items-start mb-4">
+              <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                  Profile updated successfully
+                </h3>
+              </div>
+            </div>
+            <div className="mb-4">
+              <div className="cropper mt-6 flex flex-col justify-center items-center p-8 bg-gray-50">
+                Your user profile has been updated successfully.
+              </div>
+            </div>
+            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+              <DialogClose asChild>
+                <Button color="secondary" onClick={() => closeSuccessModal()}>
+                  Dismiss
+                </Button>
+              </DialogClose>
+            </div>
+          </DialogContent>
+        </Dialog>
       </SettingsShell>
     </Shell>
   );
