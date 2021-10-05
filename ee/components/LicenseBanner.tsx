@@ -32,7 +32,7 @@ export default function LicenseBanner() {
                 <span className="inline">
                   Accept our license by changing the .env variable{" "}
                   <span className="bg-gray-50 bg-opacity-20 px-1">NEXT_PUBLIC_LICENSE_CONSENT</span> to
-                  &apos;I agree&apos;.
+                  &apos;agree&apos;.
                 </span>
               </p>
             </div>
