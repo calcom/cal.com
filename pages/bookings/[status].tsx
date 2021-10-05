@@ -1,7 +1,7 @@
 import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 
-import { QueryCell } from "@lib/hooks/QueryCell";
+import { QueryCell } from "@lib/QueryCell";
 import { inferQueryInput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
@@ -10,6 +10,12 @@ import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+
+const descriptionByStatus: Record<BookingListingStatus, string> = {
+  upcoming: "As soon as someone books a time with you it will show up here.",
+  past: "Your past bookings will show up here.",
+  cancelled: "Your cancelled bookings will show up here.",
+};
 
 export default function Bookings() {
   const router = useRouter();
@@ -38,8 +44,8 @@ export default function Bookings() {
                 empty={() => (
                   <EmptyScreen
                     Icon={CalendarIcon}
-                    headline={`No upcoming bookings, yet`}
-                    description="You have no upcoming bookings. As soon as someone books a time with you it will show up here."
+                    headline={`No ${status} bookings, yet`}
+                    description={`You have no ${status} bookings. ${descriptionByStatus[status]}`}
                   />
                 )}
               />
