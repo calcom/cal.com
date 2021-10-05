@@ -186,7 +186,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }) => {
                   periodCountCalendarDays={eventType?.periodCountCalendarDays}
                   onDatePicked={changeDate}
                   workingHours={workingHours}
-                  weekStart="Sunday"
+                  weekStart={profile.weekStart || "Sunday"}
                   eventLength={eventType.length}
                   minimumBookingNotice={eventType.minimumBookingNotice}
                 />

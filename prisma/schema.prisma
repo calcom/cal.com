@@ -91,7 +91,7 @@ model User {
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
   //Dont delete this
-  asyncUseCalendar    Boolean            @default(false)
+  asyncUseCalendar    Boolean            @default(true)
 
   plan     UserPlan   @default(PRO)
   Schedule Schedule[]

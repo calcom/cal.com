@@ -1,23 +1,15 @@
 import { InferGetServerSidePropsType } from "next";
-import { getSession, useSession } from "next-auth/client";
 import React from "react";
 
+import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
-import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 
 export default function Security({ user }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
-
-  if (loading) {
-    return <Loader />;
-  }
-
   return (
     <Shell heading="Security" subtitle="Manage your account's security.">
       <SettingsShell>
@@ -31,13 +23,13 @@ export default function Security({ user }: InferGetServerSidePropsType<typeof ge
 export async function getServerSideProps(context) {
   return { notFound: true };
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
   const user = await prisma.user.findFirst({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       id: true,

@@ -5,7 +5,7 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -14,7 +14,6 @@ import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import ImageUploader from "@components/ImageUploader";
 import Modal from "@components/Modal";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
@@ -104,7 +103,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
     value: locale,
     label: props.localeLabels[locale],
   });
-  const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
+  const [imageSrc] = useState<string>(props.user.avatar);
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -118,19 +117,6 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
 
   const closeSuccessModal = () => {
     setSuccessModalOpen(false);
-  };
-
-  const handleAvatarChange = (newAvatar) => {
-    avatarRef.current.value = newAvatar;
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      "value"
-    ).set;
-    nativeInputValueSetter.call(avatarRef.current, newAvatar);
-    const ev2 = new Event("input", { bubbles: true });
-    avatarRef.current.dispatchEvent(ev2);
-    updateProfileHandler(ev2);
-    setImageSrc(newAvatar);
   };
 
   async function updateProfileHandler(event) {
@@ -157,7 +143,7 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
         timeZone: enteredTimeZone,
         weekStart: asStringOrUndefined(enteredWeekStartDay),
         hideBranding: enteredHideBranding,
-        theme: asStringOrUndefined(selectedTheme?.value),
+        theme: asStringOrNull(selectedTheme?.value),
         locale: enteredLanguage,
         asyncUseCalendar: enteredAsyncUseCalendar,
       })
@@ -203,6 +189,29 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                   </div>
                 </div>
 
+                <div className="block sm:flex">
+                  <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      Email
+                    </label>
+                    <input
+                      type="text"
+                      name="email"
+                      id="email"
+                      placeholder="Your email"
+                      disabled
+                      className="block w-full px-3 py-2 mt-1 text-gray-500 border border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
+                      defaultValue={props.user.email}
+                    />
+                    <p className="mt-2 text-sm text-gray-500" id="email-description">
+                      To change your email, please contact{" "}
+                      <a className="text-blue-500" href="mailto:help@cal.com">
+                        help@cal.com
+                      </a>
+                    </p>
+                  </div>
+                </div>
+
                 <div>
                   <label htmlFor="about" className="block text-sm font-medium text-gray-700">
                     About
@@ -235,14 +244,14 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={imageSrc}
                     />
-                    <ImageUploader
+                    {/* <ImageUploader
                       noChange
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg="Change avatar"
                       handleAvatarChange={handleAvatarChange}
-                      imageRef={imageSrc}
-                    />
+                      imageSrc={imageSrc}
+                    /> */}
                   </div>
                   <hr className="mt-6" />
                 </div>

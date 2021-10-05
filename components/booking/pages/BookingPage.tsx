@@ -209,10 +209,12 @@ const BookingPage = (props) => {
                 />
                 <h2 className="font-medium text-gray-500 font-cal ">{props.profile.name}</h2>
                 <h1 className="mb-4 text-3xl font-semibold text-gray-800 ">{props.eventType.title}</h1>
-                <p className="mb-2 text-gray-500">
-                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {props.eventType.length} minutes
-                </p>
+                {!(!props.profile.asyncUseCalendar && props.eventType.slug === "async") && (
+                  <p className="mb-2 text-gray-500">
+                    <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {props.eventType.length} minutes
+                  </p>
+                )}
                 {props.eventType.price > 0 && (
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
@@ -231,10 +233,12 @@ const BookingPage = (props) => {
                     {locationInfo(selectedLocation).address}
                   </p>
                 )}
-                <p className="mb-4 text-green-500">
-                  <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
-                </p>
+                {!(!props.profile.asyncUseCalendar && props.eventType.slug === "async") && (
+                  <p className="mb-4 text-green-500">
+                    <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
+                  </p>
+                )}
                 <p className="mb-8 text-gray-600 ">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">

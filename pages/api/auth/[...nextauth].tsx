@@ -190,7 +190,7 @@ export default NextAuth({
               title: "Async Meeting",
               userId: id,
               length: 10,
-              eventName: `[ASYNC] ${name} <> {USER}`,
+              eventName: `[async] ${name} <> {USER}`,
               locations: null,
               users: {
                 connect: {
@@ -207,7 +207,7 @@ export default NextAuth({
               slug: "async",
               description: `Async meeting with ${name}.`,
               length: 10,
-              eventName: `[ASYNC] ${name} <> {USER}`,
+              eventName: `[async] ${name} <> {USER}`,
               locations: null,
               users: {
                 connect: {

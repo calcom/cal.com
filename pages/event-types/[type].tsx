@@ -7,6 +7,7 @@ import {
   ExternalLinkIcon,
   LinkIcon,
   LocationMarkerIcon,
+  PencilAltIcon,
   PlusIcon,
   UserAddIcon,
   UsersIcon,
@@ -109,6 +110,9 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
   // });
 
   const [users, setUsers] = useState<AdvancedOptions["users"]>([]);
+
+  const [editIcon, setEditIcon] = useState(true);
+
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
@@ -353,17 +357,24 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
       <Shell
         title={`${eventType.title} | Event Type`}
         heading={
-          <input
-            disabled
-            ref={titleRef}
-            type="text"
-            name="title"
-            id="title"
-            required
-            className="w-full pl-0 text-xl font-bold text-gray-500 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
-            placeholder="Quick Chat"
-            defaultValue={eventType.title}
-          />
+          <div className="relative group" onClick={() => setEditIcon(false)}>
+            <input
+              ref={titleRef}
+              type="text"
+              name="title"
+              id="title"
+              required
+              className="pl-0 w-full text-xl font-bold focus:text-black text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
+              placeholder="Quick Chat"
+              defaultValue={eventType.title}
+            />
+            {editIcon && (
+              <PencilAltIcon
+                style={{ top: 14, left: `${eventType.title.length * 10 + 8}` }}
+                className="group-hover:text-gray-700 text-gray-500 absolute left-0 w-4 h-4 inline"
+              />
+            )}
+          </div>
         }
         subtitle={eventType.description || ""}>
         <div className="block sm:flex">
