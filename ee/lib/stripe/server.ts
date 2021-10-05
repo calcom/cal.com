@@ -74,7 +74,11 @@ export async function handlePayment(
   });
 
   const mail = new EventPaymentMail(
-    createPaymentLink(payment.uid, booking.user?.name, booking.startTime.toISOString()),
+    createPaymentLink({
+      paymentUid: payment.uid,
+      name: booking.user?.name,
+      date: booking.startTime.toISOString(),
+    }),
     evt,
     booking.uid
   );

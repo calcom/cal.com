@@ -1,4 +1,5 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { Maybe } from "@trpc/server";
 import { stringify } from "querystring";
 
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!;
@@ -21,9 +22,10 @@ const getStripe = (userPublicKey?: string) => {
 export function createPaymentLink(opts: {
   paymentUid: string;
   name?: Maybe<string>;
-  date?: string;
+  date?: Maybe<string>;
   absolute?: boolean;
 }): string {
+  const { paymentUid, name, date, absolute = true } = opts;
   let link = "";
   if (absolute) link = process.env.NEXT_PUBLIC_APP_URL!;
   const query = stringify({ date, name });
