@@ -29,10 +29,7 @@ import Logo from "./Logo";
 
 function useMeQuery() {
   const [session] = useSession();
-  const meQuery = trpc.useQuery(["viewer.me"], {
-    // refetch max once per 5s
-    staleTime: 5000,
-  });
+  const meQuery = trpc.useQuery(["viewer.me"]);
 
   useEffect(() => {
     // refetch if sesion changes

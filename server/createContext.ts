@@ -37,6 +37,12 @@ async function getUserFromSession(session: Maybe<Session>) {
           key: true,
         },
       },
+      selectedCalendars: {
+        select: {
+          externalId: true,
+          integration: true,
+        },
+      },
     },
   });
 

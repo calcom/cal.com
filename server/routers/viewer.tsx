@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
+import { listCalendars, IntegrationCalendar } from "@lib/calendarClient";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
@@ -98,7 +99,22 @@ export const viewerRouter = createProtectedRouter()
       const { credentials } = user;
       const integrations = getIntegrations(credentials);
 
-      return integrations;
+      const calendars: IntegrationCalendar[] = await listCalendars(user.credentials);
+      const selectableCalendars = calendars.map((cal) => {
+        return {
+          selected: user.selectedCalendars.some((s) => s.externalId === cal.externalId),
+          ...cal,
+        };
+      });
+
+      return {
+        integrations: integrations.map((integration) => ({
+          ...integration,
+          calendars: integration.type.endsWith("_calendar")
+            ? selectableCalendars.filter((cal) => cal.integration === integration.type)
+            : null,
+        })),
+      };
     },
   })
   .mutation("updateProfile", {
