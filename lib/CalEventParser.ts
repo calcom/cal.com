@@ -80,7 +80,7 @@ export default class CalEventParser {
   /**
    * Conditionally returns the event's location. When VideoCallData is set,
    * it returns the meeting url. Otherwise, the regular location is returned.
-   *
+   * For Daily video calls returns the direct link
    * @protected
    */
   protected getLocation(): string | undefined {
