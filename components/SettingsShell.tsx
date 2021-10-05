@@ -15,7 +15,7 @@ export default function SettingsShell({ children }: { children: React.ReactNode 
       href: "/settings/security",
       icon: KeyIcon,
     },
-    { name: "Embed & Webhooks", href: "/settings/embed", icon: CodeIcon },
+    { name: "Embed", href: "/settings/embed", icon: CodeIcon },
     {
       name: "Teams",
       href: "/settings/teams",
