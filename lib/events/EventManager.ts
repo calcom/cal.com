@@ -44,6 +44,9 @@ interface GetLocationRequestFromIntegrationRequest {
   location: string;
 }
 
+//const to idenfity a daily event location
+const dailyLocation = "integrations:daily";
+
 export default class EventManager {
   calendarCredentials: Array<Credential>;
   videoCredentials: Array<Credential>;
@@ -163,7 +166,7 @@ export default class EventManager {
     });
 
     const isDedicated =
-      EventManager.isDedicatedIntegration(event.location) || event.location === "integrations:daily";
+      EventManager.isDedicatedIntegration(event.location) || event.location === dailyLocation;
 
     let results: Array<EventResult> = [];
     let optionalVideoCallData: VideoCallData | undefined = undefined;
@@ -262,7 +265,7 @@ export default class EventManager {
   private createVideoEvent(event: CalendarEvent, maybeUid?: string): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
-    const isDaily = event.location === "integrations:daily";
+    const isDaily = event.location === dailyLocation;
 
     if (credential && !isDaily) {
       return createMeeting(credential, event, maybeUid);
@@ -305,7 +308,7 @@ export default class EventManager {
    */
   private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
     const credential = this.getVideoCredential(event);
-    const isDaily = event.location === "integrations:daily";
+    const isDaily = event.location === dailyLocation;
 
     if (credential && !isDaily) {
       const bookingRef = booking.references.filter((ref) => ref.type === credential.type)[0];
@@ -340,7 +343,7 @@ export default class EventManager {
   private static isDedicatedIntegration(location: string): boolean {
     // Hard-coded for now, because Zoom and Google Meet are both integrations, but one is dedicated, the other one isn't.
 
-    return location === "integrations:zoom" || location === "integrations:daily";
+    return location === "integrations:zoom" || location === dailyLocation;
   }
 
   /**
