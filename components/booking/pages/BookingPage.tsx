@@ -159,7 +159,12 @@ const BookingPage = (props: BookingPageProps) => {
         let successUrl = `/success?${query}`;
 
         if (content?.paymentUid) {
-          successUrl = createPaymentLink(content?.paymentUid, payload.name, date, false);
+          successUrl = createPaymentLink({
+            paymentUid: content?.paymentUid,
+            name: payload.name,
+            date,
+            absolute: false,
+          });
         }
 
         await router.push(successUrl);
