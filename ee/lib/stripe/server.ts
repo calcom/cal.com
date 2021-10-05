@@ -42,7 +42,7 @@ export async function handlePayment(
   }
 ) {
   const paymentFee = Math.round(
-    selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}}`)
+    selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}`)
   );
   const { stripe_user_id, stripe_publishable_key } = stripeCredential.key as Stripe.OAuthToken;
 
