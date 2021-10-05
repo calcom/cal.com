@@ -1,10 +1,11 @@
 import { PlusIcon } from "@heroicons/react/solid";
-import Head from "next/head";
 import React from "react";
 
 import { Button, ButtonProps } from "@components/ui/Button";
 
-export default function ButtonPage() {
+import { sandboxPage } from ".";
+
+const page = sandboxPage(function ButtonPage() {
   const list: ButtonProps[] = [
     // primary
     { color: "primary" },
@@ -35,9 +36,6 @@ export default function ButtonPage() {
   ];
   return (
     <>
-      <Head>
-        <meta name="googlebot" content="noindex" />
-      </Head>
       <div className="p-4 bg-gray-200">
         <h1>Button component</h1>
         <div className="flex flex-col">
@@ -57,11 +55,14 @@ export default function ButtonPage() {
                   )}
                 </code>
               </h3>
-              <Button {...props}>Button text</Button>
+              <Button {...(props as any)}>Button text</Button>
             </div>
           ))}
         </div>
       </div>
     </>
   );
-}
+});
+
+export default page.default;
+export const getStaticProps = page.getStaticProps;

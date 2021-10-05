@@ -22,6 +22,7 @@ import classNames from "@lib/classNames";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
+import { PageHeading } from "@components/PageHeading";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
@@ -200,14 +201,7 @@ export default function Shell(props: {
               </div>
             </nav>
             <div className="py-8">
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                <div className="mb-8">
-                  <h1 className="font-cal text-xl font-bold text-gray-900">{props.heading}</h1>
-                  <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
-                </div>
-                <div className="mb-4 flex-shrink-0">{props.CTA}</div>
-              </div>
-              <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
+              <PageHeading heading={props.heading} subtitle={props.subtitle} CTA={props.CTA} />
 
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
