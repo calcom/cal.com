@@ -809,8 +809,8 @@ paths:
                     type: string
   /api/me:
     get:
-      description: Fetches current user's profile.
-      summary: Fetches current user's profile.
+      description: Gets current user's profile.
+      summary: Gets current user's profile.
       tags:
         - User
       responses:
