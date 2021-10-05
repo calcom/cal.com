@@ -22,7 +22,7 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [is24h, setIs24h] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(props.booking ? null : "This booking was already cancelled");
+  const [error, setError] = useState(props.booking ? null : "This meeting was already cancelled");
   const telemetry = useTelemetry();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -97,8 +97,8 @@ export default function Type(props: InferGetServerSidePropsType<typeof getServer
                       <div className="mt-3 text-center sm:mt-5">
                         <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
                           {props.cancellationAllowed
-                            ? "Really cancel your booking?"
-                            : "You cannot cancel this booking"}
+                            ? "Really cancel your meeting?"
+                            : "You cannot cancel this meeting"}
                         </h3>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">

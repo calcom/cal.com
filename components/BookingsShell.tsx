@@ -6,15 +6,15 @@ export default function BookingsShell({ children }: { children: React.ReactNode 
   const tabs = [
     {
       name: "Upcoming",
-      href: "/bookings/upcoming",
+      href: "/meetings/upcoming",
     },
     {
       name: "Past",
-      href: "/bookings/past",
+      href: "/meetings/past",
     },
     {
       name: "Cancelled",
-      href: "/bookings/cancelled",
+      href: "/meetings/cancelled",
     },
   ];
 
