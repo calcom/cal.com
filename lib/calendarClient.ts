@@ -1,4 +1,4 @@
-import { Prisma, Credential } from "@prisma/client";
+import { Credential, Prisma } from "@prisma/client";
 
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
@@ -10,6 +10,7 @@ import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMai
 import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
 import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 import prisma from "./prisma";
+import { Ensure } from "./types/utils";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
@@ -113,7 +114,8 @@ const o365Auth = (credential) => {
 const userData = Prisma.validator<Prisma.UserArgs>()({
   select: { name: true, email: true, timeZone: true },
 });
-export type Person = Prisma.UserGetPayload<typeof userData>;
+
+export type Person = Ensure<Prisma.UserGetPayload<typeof userData>, "email" | "name">;
 
 export interface CalendarEvent {
   type: string;

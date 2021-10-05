@@ -18,7 +18,12 @@ const getStripe = (userPublicKey?: string) => {
   return stripePromise;
 };
 
-export function createPaymentLink(paymentUid: string, name?: string, date?: string, absolute = true): string {
+export function createPaymentLink(
+  paymentUid: string,
+  name?: string | null,
+  date?: string,
+  absolute = true
+): string {
   let link = "";
   if (absolute) link = process.env.NEXT_PUBLIC_APP_URL!;
   const query = stringify({ date, name });
