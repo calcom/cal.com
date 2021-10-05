@@ -102,6 +102,7 @@ export default function ForgotPassword({ csrfToken }) {
                       id="email"
                       name="email"
                       type="email"
+                      inputMode="email"
                       autoComplete="email"
                       placeholder="john.doe@example.com"
                       required
