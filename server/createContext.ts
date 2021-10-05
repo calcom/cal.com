@@ -30,6 +30,13 @@ async function getUserFromSession(session: Maybe<Session>) {
       createdDate: true,
       hideBranding: true,
       avatar: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+        },
+      },
     },
   });
 

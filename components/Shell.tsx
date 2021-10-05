@@ -22,7 +22,6 @@ import classNames from "@lib/classNames";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
-import { PageHeading } from "@components/PageHeading";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
@@ -60,12 +59,32 @@ function useRedirectToLoginIfUnauthenticated() {
   }, [loading, session, router]);
 }
 
+export function ShellHeading(props: { heading: ReactNode; subtitle: ReactNode; CTA?: ReactNode }) {
+  return (
+    <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
+      <div className="mb-8">
+        <h1 className="font-cal text-xl font-bold text-gray-900">{props.heading}</h1>
+        <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
+      </div>
+      {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
+    </div>
+  );
+}
+export function ShellContent(props: { children: ReactNode }) {
+  return <div className="px-4 sm:px-6 md:px-8">{props.children}</div>;
+}
+
 export default function Shell(props: {
   title?: string;
   heading: ReactNode;
   subtitle: string;
   children: ReactNode;
   CTA?: ReactNode;
+  /**
+   * Temporary property to remove content wrapper (`<ShellContent />`)
+   * Should be the default and be removed
+   */
+  skipWrapper?: true;
 }) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -201,8 +220,8 @@ export default function Shell(props: {
               </div>
             </nav>
             <div className="py-8">
-              <PageHeading heading={props.heading} subtitle={props.subtitle} CTA={props.CTA} />
-              <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
+              <ShellHeading heading={props.heading} subtitle={props.subtitle} CTA={props.CTA} />
+              {props.skipWrapper ? props.children : <ShellContent>{props.children}</ShellContent>}
 
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">

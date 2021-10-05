@@ -5,6 +5,7 @@ import { z } from "zod";
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import getIntegrations from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
 import { createProtectedRouter } from "../createRouter";
@@ -89,6 +90,15 @@ export const viewerRouter = createProtectedRouter()
       });
 
       return bookings;
+    },
+  })
+  .query("integrations", {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      const { credentials } = user;
+      const integrations = getIntegrations(credentials);
+
+      return integrations;
     },
   })
   .mutation("updateProfile", {
