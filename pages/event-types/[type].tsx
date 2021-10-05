@@ -732,7 +732,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                             id="disableGuests"
                             name="disableGuests"
                             label="Disable guests"
-                            description="Disable adding aditional guests while meeting."
+                            description="Disable adding aditional guests while booking."
                             defaultChecked={eventType.disableGuests}
                           />
 
