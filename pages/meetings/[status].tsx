@@ -17,7 +17,7 @@ export default function Bookings() {
   const query = trpc.useQuery(["viewer.bookings", { status }]);
 
   return (
-    <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
+    <Shell heading="Meetings" subtitle="See upcoming and past events booked through your event type links.">
       <BookingsShell>
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -38,8 +38,8 @@ export default function Bookings() {
                 empty={() => (
                   <EmptyScreen
                     Icon={CalendarIcon}
-                    headline={`No upcoming bookings, yet`}
-                    description="You have no upcoming bookings. As soon as someone books a time with you it will show up here."
+                    headline={`No upcoming meetings, yet`}
+                    description="You have no upcoming meetings. As soon as someone books a time with you it will show up here."
                   />
                 )}
               />

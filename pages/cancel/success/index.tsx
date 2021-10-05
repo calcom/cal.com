@@ -48,8 +48,8 @@ export default function CancelSuccess(props) {
                   <div className="mt-5">
                     {!loading && !session.user && <Button href={eventPage}>Pick another</Button>}
                     {!loading && session.user && (
-                      <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
-                        Back to bookings
+                      <Button data-testid="back-to-bookings" href="/meetings" EndIcon={ArrowRightIcon}>
+                        Back to meetings
                       </Button>
                     )}
                   </div>

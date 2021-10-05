@@ -68,7 +68,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
         <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
         <p className="mt-1 mb-2 text-md text-neutral-600">
           Event types enable you to share links that show available times on your calendar and allow people to
-          make bookings with you.
+          schedule meetings with you.
         </p>
         <CreateNewEventDialog
           localeProp={locale}

@@ -159,8 +159,8 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
       advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
       // prettier-ignore
       advancedPayload.price =
-        !requirePayment ? undefined                                                     :
-        formData.price  ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
+        !requirePayment ? undefined :
+          formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
         /* otherwise */   0;
       advancedPayload.currency = currency;
     }
@@ -724,7 +724,7 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                             id="requiresConfirmation"
                             name="requiresConfirmation"
                             label="Opt-in booking"
-                            description="The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent."
+                            description="The meeting needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent."
                             defaultChecked={eventType.requiresConfirmation}
                           />
 
@@ -732,14 +732,14 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
                             id="disableGuests"
                             name="disableGuests"
                             label="Disable guests"
-                            description="Disable adding aditional guests while booking."
+                            description="Disable adding aditional guests while meeting."
                             defaultChecked={eventType.disableGuests}
                           />
 
                           <hr className="border-neutral-200" />
 
                           <MinutesField
-                            label="Minimum booking notice"
+                            label="Minimum meeting notice"
                             name="minimumBookingNotice"
                             id="minimumBookingNotice"
                             required
