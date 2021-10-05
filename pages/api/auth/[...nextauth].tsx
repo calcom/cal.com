@@ -99,6 +99,7 @@ export default NextAuth({
             email,
             emailVerified: new Date(Date.now()),
             avatar: image,
+            asyncUseCalendar: true,
           },
         });
         const yacCredential = await prisma.credential.findFirst({
