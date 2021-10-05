@@ -52,7 +52,9 @@ import { Dialog, DialogTrigger } from "@components/Dialog";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import ImperativeDialog from "@components/dialog/ImperativeDialog";
 import CustomInputTypeDialog, { CustomInputTypeDialogRef } from "@components/eventtype/CustomInputTypeDialog";
+import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
 import Switch from "@components/ui/Switch";
@@ -1025,11 +1027,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         )}
-        <CustomInputTypeDialog
+        <ImperativeDialog
           ref={customInputDialog}
-          selectedCustomInput={selectedCustomInput}
-          onSubmit={updateCustom}
-        />
+          title="Add new custom input field"
+          icon={PlusIcon}
+          subtitle="This input will be shown when booking this event">
+          <CustomInputTypeForm
+            selectedCustomInput={selectedCustomInput}
+            onSubmit={(values) => {
+              customInputDialog.current?.close();
+              updateCustom(values);
+            }}
+            onCancel={() => {
+              customInputDialog.current?.close();
+            }}
+          />
+        </ImperativeDialog>
       </Shell>
     </div>
   );
