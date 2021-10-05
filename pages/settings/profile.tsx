@@ -16,7 +16,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { DialogClose, Dialog, DialogContent } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
-import Modal from "@components/Modal";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
@@ -59,11 +58,15 @@ function HideBrandingInput(props: {
           setModalOpen(true);
         }}
       />
-
-      <Modal
-        heading="This feature is only available in paid plan"
-        variant="warning"
-        description={
+      <Dialog open={modelOpen}>
+        <DialogContent>
+          <div className="sm:flex sm:items-start mb-4">
+            <div className="mt-3 text-center sm:mt-0 sm:text-left">
+              <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                This feature is only available in paid plan
+              </h3>
+            </div>
+          </div>
           <div className="flex flex-col space-y-3">
             <p>
               In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
@@ -79,10 +82,15 @@ function HideBrandingInput(props: {
               .
             </p>
           </div>
-        }
-        open={modelOpen}
-        handleClose={() => setModalOpen(false)}
-      />
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+            <DialogClose asChild>
+              <Button color="secondary" onClick={() => setModalOpen(false)}>
+                Dismiss
+              </Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
