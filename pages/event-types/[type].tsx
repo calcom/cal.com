@@ -169,8 +169,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
       // prettier-ignore
       advancedPayload.price =
-        !requirePayment ? undefined                                                     :
-        formData.price  ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
+        !requirePayment ? undefined :
+          formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
         /* otherwise */   0;
       advancedPayload.currency = currency;
     }
@@ -1277,9 +1277,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
-    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
+  if (hasIntegration(integrations, "zoom_video")) {
+    locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });
+  }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
