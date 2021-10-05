@@ -74,8 +74,8 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
     (isReady && (
       <div className="h-screen bg-neutral-50 ">
         <HeadSeo
-          title={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
-          description={`Booking ${needsConfirmation ? "Submitted" : "Confirmed"}`}
+          title={`Meeting ${needsConfirmation ? "Submitted" : "Confirmed"}`}
+          description={`Meeting ${needsConfirmation ? "Submitted" : "Confirmed"}`}
         />
         <main className="max-w-3xl py-24 mx-auto">
           <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -102,8 +102,8 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                         <p className="text-sm text-neutral-600 ">
                           {needsConfirmation
                             ? props.profile.name !== null
-                              ? `${props.profile.name} still needs to confirm or reject the booking.`
-                              : "Your booking still needs to be confirmed or rejected."
+                              ? `${props.profile.name} still needs to confirm or reject the meeting.`
+                              : "Your meeting still needs to be confirmed or rejected."
                             : `We emailed you and the other attendees a calendar invitation with all the details.`}
                         </p>
                       </div>
@@ -239,7 +239,7 @@ export default function Success(props: InferGetServerSidePropsType<typeof getSer
                   {!props.hideBranding && (
                     <div
                       className={"pt-4 mt-4 text-xs text-center text-gray-400  " + (date ? "border-t" : "")}>
-                      <a href="https://cal.com/signup">Create your own booking link with Yac Meet</a>
+                      <a href="https://cal.com/signup">Create your own meeting link with Yac Meet</a>
                     </div>
                   )}
                 </div>

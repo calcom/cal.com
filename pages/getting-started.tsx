@@ -474,7 +474,7 @@ export default function Onboarding(props: InferGetServerSidePropsType<typeof get
       id: "profile",
       title: "Nearly there",
       description:
-        "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re booking with.",
+        "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re meeting with.",
       Component: (
         <form className="sm:mx-auto sm:w-full sm:max-w-md" id="ONBOARDING_STEP_4">
           <section className="space-y-4">

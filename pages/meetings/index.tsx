@@ -250,7 +250,7 @@ export default function Bookings(props) {
   const bookings = query.data;
 
   return (
-    <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
+    <Shell heading="Meetings" subtitle="See upcoming and past events booked through your event type links.">
       <div className="flex flex-col -mx-4 sm:mx-auto">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -262,8 +262,8 @@ export default function Bookings(props) {
               (bookings.length === 0 ? (
                 <EmptyScreen
                   Icon={CalendarIcon}
-                  headline="No upcoming bookings, yet"
-                  description="You have no upcoming bookings. As soon as someone books a time with you it will show up here."
+                  headline="No upcoming meetings, yet"
+                  description="You have no upcoming meetings. As soon as someone books a time with you it will show up here."
                 />
               ) : (
                 <div className="overflow-hidden border border-b border-gray-200 rounded-sm">

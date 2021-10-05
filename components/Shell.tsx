@@ -80,10 +80,10 @@ export default function Shell(props: {
       current: router.pathname.startsWith("/event-types"),
     },
     {
-      name: "Bookings",
-      href: "/bookings",
+      name: "Meetings",
+      href: "/meetings",
       icon: ClockIcon,
-      current: router.pathname.startsWith("/bookings"),
+      current: router.pathname.startsWith("/meetings"),
     },
     {
       name: "Availability",

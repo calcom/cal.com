@@ -122,7 +122,7 @@ export default function Availability() {
 
   return (
     <div>
-      <Shell heading="Availability" subtitle="Configure times when you are available for bookings.">
+      <Shell heading="Availability" subtitle="Configure times when you are available for meetings.">
         <div className="flex">
           <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
