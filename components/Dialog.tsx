@@ -32,11 +32,11 @@ type DialogHeaderProps = {
 export function DialogHeader({ title, subtitle }: DialogHeaderProps) {
   return (
     <div className="mb-8">
-      <h3 className="font-cal text-trueWhite text-lg font-bold leading-6" id="modal-title">
+      <h3 className="font-cal text-gray-900 text-lg font-bold leading-6" id="modal-title">
         {title}
       </h3>
       <div>
-        <p className="text-trueWhite text-sm">{subtitle}</p>
+        <p className="text-gray-900 text-sm">{subtitle}</p>
       </div>
     </div>
   );
