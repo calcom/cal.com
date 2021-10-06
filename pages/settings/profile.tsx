@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
@@ -9,17 +9,14 @@ import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Modal from "@components/Modal";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
-import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import { UsernameInput } from "@components/ui/UsernameInput";
 
@@ -27,63 +24,6 @@ const themeOptions = [
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
 ];
-
-type Props = inferSSRProps<typeof getServerSideProps>;
-function HideBrandingInput(props: {
-  //
-  hideBrandingRef: RefObject<HTMLInputElement>;
-  user: Props["user"];
-}) {
-  const [modelOpen, setModalOpen] = useState(false);
-  return (
-    <>
-      <input
-        id="hide-branding"
-        name="hide-branding"
-        type="checkbox"
-        ref={props.hideBrandingRef}
-        defaultChecked={isBrandingHidden(props.user)}
-        className={
-          "focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50 hover:checked:bg-black checked:bg-black"
-        }
-        onClick={(e) => {
-          if (!e.currentTarget.checked || props.user.plan !== "FREE") {
-            return;
-          }
-
-          // prevent checking the input
-          e.preventDefault();
-
-          setModalOpen(true);
-        }}
-      />
-
-      <Modal
-        heading="This feature is only available in paid plan"
-        variant="warning"
-        description={
-          <div className="flex flex-col space-y-3">
-            <p>
-              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
-              account.
-            </p>
-
-            <p>
-              {" "}
-              To upgrade go to{" "}
-              <a href="https://cal.com/upgrade" className="underline">
-                cal.com/upgrade
-              </a>
-              .
-            </p>
-          </div>
-        }
-        open={modelOpen}
-        handleClose={() => setModalOpen(false)}
-      />
-    </>
-  );
-}
 
 export default function Settings(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { locale } = useLocale({ localeProp: props.localeProp });
@@ -332,37 +272,6 @@ export default function Settings(props: InferGetServerSidePropsType<typeof getSe
                       <label htmlFor="async-use-calendar" className="font-medium text-gray-700">
                         Async meetings schedule a space in your calendar
                       </label>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start mt-8">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="theme-adjust-os"
-                        name="theme-adjust-os"
-                        type="checkbox"
-                        onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
-                        defaultChecked={!selectedTheme}
-                        className="w-4 h-4 border-gray-300 rounded-sm hover:checked:bg-black checked:bg-black focus:ring-neutral-500 text-neutral-900"
-                      />
-                    </div>
-                    <div className="ml-3 text-sm">
-                      <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                        Automatically adjust theme based on invitee preferences
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="relative flex items-start">
-                    <div className="flex items-center h-5">
-                      <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
-                    </div>
-                    <div className="ml-3 text-sm">
-                      <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Yac branding{" "}
-                        {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
-                      </label>
-                      <p className="text-gray-500">Hide all Yac branding from your public pages.</p>
                     </div>
                   </div>
                 </div>
