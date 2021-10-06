@@ -110,9 +110,10 @@ export const viewerRouter = createProtectedRouter()
       return {
         integrations: integrations.map((integration) => ({
           ...integration,
-          calendars: integration.type.endsWith("_calendar")
-            ? selectableCalendars.filter((cal) => cal.integration === integration.type)
-            : null,
+          calendars:
+            integration.variant === "calendar"
+              ? selectableCalendars.filter((cal) => cal.integration === integration.type)
+              : null,
         })),
       };
     },

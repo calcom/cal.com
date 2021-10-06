@@ -3,6 +3,7 @@ import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroi
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
 import Link from "next/link";
+import { type } from "os";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getSession } from "@lib/auth";
@@ -492,7 +493,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const { credentials } = user;
 
-  const integrations = getIntegrations(credentials);
+  const integrations = getIntegrations(credentials).map((item) => ({
+    id: type,
+    type: item.type,
+    imageSrc: item.imageSrc,
+    hasCredentials: !!item.credential,
+  }));
 
   return {
     props: { session, integrations },

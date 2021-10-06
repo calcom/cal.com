@@ -17,6 +17,7 @@ function getIntegrations(credentials: CredentialData[]) {
       title: "Google Calendar",
       imageSrc: "integrations/google-calendar.svg",
       description: "For personal and business calendars",
+      variant: "calendar" as const,
     },
     {
       installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
@@ -25,6 +26,7 @@ function getIntegrations(credentials: CredentialData[]) {
       title: "Office 365 / Outlook.com Calendar",
       imageSrc: "integrations/outlook.svg",
       description: "For personal and business calendars",
+      variant: "calendar" as const,
     },
     {
       installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
@@ -33,6 +35,7 @@ function getIntegrations(credentials: CredentialData[]) {
       title: "Zoom",
       imageSrc: "integrations/zoom.svg",
       description: "Video Conferencing",
+      variant: "conferencing" as const,
     },
     {
       installed: true,
@@ -41,6 +44,7 @@ function getIntegrations(credentials: CredentialData[]) {
       title: "CalDav Server",
       imageSrc: "integrations/caldav.svg",
       description: "For personal and business calendars",
+      variant: "calendar" as const,
     },
     {
       installed: true,
@@ -49,6 +53,7 @@ function getIntegrations(credentials: CredentialData[]) {
       title: "Apple Calendar",
       imageSrc: "integrations/apple-calendar.svg",
       description: "For personal and business calendars",
+      variant: "calendar" as const,
     },
     {
       installed: !!(
@@ -61,6 +66,7 @@ function getIntegrations(credentials: CredentialData[]) {
       title: "Stripe",
       imageSrc: "integrations/stripe.svg",
       description: "Receive payments",
+      variant: "payment" as const,
     },
   ];
 
