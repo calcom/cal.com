@@ -21,7 +21,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
-import React, { ComponentProps, useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
 import Select, { OptionTypeBase } from "react-select";
@@ -38,6 +38,7 @@ import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
@@ -52,7 +53,6 @@ import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import CustomInputTypeDialog from "@components/eventtype/CustomInputTypeDialog";
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -119,8 +119,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [locations, setLocations] = useState(eventType.locations || []);
-  const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
-  const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
+
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -131,6 +130,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       PERIOD_TYPES.find((s) => s.type === "unlimited")
     );
   });
+
+  const selectedCustomModal = useToggleQuery("custom");
+  const selectedCustomInput = useMemo(() => {
+    const value = selectedCustomModal.value;
+    if (!value) {
+      return undefined;
+    }
+    return customInputs.find((input) => input.id === parseInt(value));
+  }, [customInputs, selectedCustomModal.value]);
+
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
 
   const [hidden, setHidden] = useState<boolean>(eventType.hidden);
@@ -273,27 +282,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return <p className="text-sm">Cal will provide a Zoom meeting URL.</p>;
     }
     return null;
-  };
-
-  const updateCustom: ComponentProps<typeof CustomInputTypeDialog>["onSubmit"] = (data) => {
-    const customInput: EventTypeCustomInput = {
-      id: -1,
-      eventTypeId: -1,
-      label: data.label,
-      placeholder: data.placeholder,
-      required: data.required,
-      type: data.type,
-    };
-
-    if (selectedCustomInput) {
-      selectedCustomInput.label = customInput.label;
-      selectedCustomInput.placeholder = customInput.placeholder;
-      selectedCustomInput.required = customInput.required;
-      selectedCustomInput.type = customInput.type;
-    } else {
-      setCustomInputs(customInputs.concat(customInput));
-    }
-    setSelectedCustomInputModalOpen(false);
   };
 
   const removeCustom = (index: number) => {
@@ -662,8 +650,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <div className="flex">
                                       <Button
                                         onClick={() => {
-                                          setSelectedCustomInput(customInput);
-                                          setSelectedCustomInputModalOpen(true);
+                                          router.replace(selectedCustomModal.hrefOn(customInput.id));
                                         }}
                                         color="minimal"
                                         type="button">
@@ -679,8 +666,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <li>
                                 <Button
                                   onClick={() => {
-                                    setSelectedCustomInput(undefined);
-                                    setSelectedCustomInputModalOpen(true);
+                                    router.replace(selectedCustomModal.hrefOn("new"));
                                   }}
                                   color="secondary"
                                   type="button"
@@ -1020,7 +1006,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         )}
-        <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
+        <Dialog
+          open={selectedCustomModal.isOn}
+          onOpenChange={(open) => {
+            if (!open) {
+              router.replace(selectedCustomModal.hrefOff());
+            }
+          }}>
           <DialogContent asChild>
             <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div className="mb-4 sm:flex sm:items-start">
@@ -1037,13 +1029,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </div>
               </div>
               <CustomInputTypeForm
+                key={selectedCustomModal.value}
                 selectedCustomInput={selectedCustomInput}
-                onSubmit={(values) => {
-                  updateCustom(values);
-                  setSelectedCustomInputModalOpen(false);
+                onSubmit={(data) => {
+                  if (selectedCustomInput) {
+                    selectedCustomInput.label = data.label;
+                    selectedCustomInput.placeholder = data.placeholder;
+                    selectedCustomInput.required = data.required;
+                    selectedCustomInput.type = data.type;
+                  } else {
+                    setCustomInputs(customInputs.concat(data));
+                  }
+                  router.replace(selectedCustomModal.hrefOff());
                 }}
                 onCancel={() => {
-                  setSelectedCustomInputModalOpen(false);
+                  router.replace(selectedCustomModal.hrefOff());
                 }}
               />
             </div>

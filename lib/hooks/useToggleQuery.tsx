@@ -25,10 +25,13 @@ export function useToggleQuery(name: string) {
     },
     [router.query, name]
   );
+  const rawValue = router.query[name];
+  const value = rawValue && typeof rawValue === "string" ? rawValue : undefined;
 
   return {
     hrefOn,
     hrefOff,
-    isOn: !!router.query[name],
+    isOn: !!value,
+    value,
   };
 }

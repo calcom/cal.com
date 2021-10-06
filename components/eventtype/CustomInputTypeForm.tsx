@@ -1,4 +1,5 @@
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
+import { useId } from "@radix-ui/react-id";
 import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import Select, { OptionTypeBase } from "react-select";
@@ -30,6 +31,9 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   const onCancel = () => {
     props.onCancel();
   };
+
+  const uniqueId = useId().split("-").pop() as string; // radix-id-0-1
+  const id = parseInt(uniqueId) * -1;
 
   return (
     <form onSubmit={handleSubmit(props.onSubmit)}>
@@ -102,13 +106,13 @@ const CustomInputTypeForm: FC<Props> = (props) => {
       <input
         type="hidden"
         id="eventTypeId"
-        value={selectedCustomInput?.eventTypeId || -1}
+        value={selectedCustomInput?.eventTypeId || id}
         {...register("eventTypeId", { valueAsNumber: true })}
       />
       <input
         type="hidden"
         id="id"
-        value={selectedCustomInput?.id || -1}
+        value={selectedCustomInput?.id || id}
         {...register("id", { valueAsNumber: true })}
       />
       <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
