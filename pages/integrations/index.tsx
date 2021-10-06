@@ -155,8 +155,8 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
                       <img className="w-8 h-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                     </div>
                     <div className="w-10/12">
-                      <h2 className="font-medium text-gray-800 font-cal">{integration.title}</h2>
-                      <p className="text-sm text-gray-400">{integration.description}</p>
+                      <h2 className="font-medium text-trueWhite font-cal">{integration.title}</h2>
+                      <p className="text-sm text-trueWhite">{integration.description}</p>
                     </div>
                     <div className="w-2/12 pt-2 text-right">
                       <button
@@ -382,7 +382,7 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
                             <div className="flex-1 min-w-0 px-4 md:grid md:grid-cols-2 md:gap-4">
                               <div>
                                 <p className="text-sm font-medium truncate text-neutral-900">{ig.title}</p>
-                                <p className="flex items-center text-sm text-gray-500">
+                                <p className="flex items-center text-sm text-white-500">
                                   {ig.type.endsWith("_calendar") && (
                                     <span className="truncate">Calendar Integration</span>
                                   )}
