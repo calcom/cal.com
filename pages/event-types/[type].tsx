@@ -48,12 +48,11 @@ import { defaultAvatarSrc } from "@lib/profile";
 import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import ImperativeDialog from "@components/dialog/ImperativeDialog";
-import CustomInputTypeDialog, { CustomInputTypeDialogRef } from "@components/eventtype/CustomInputTypeDialog";
+import CustomInputTypeDialog from "@components/eventtype/CustomInputTypeDialog";
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -88,7 +87,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const customInputDialog = useRef<CustomInputTypeDialogRef>(null);
 
   const updateMutation = useMutation(updateEventType, {
     onSuccess: async ({ eventType }) => {
@@ -122,6 +120,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [locations, setLocations] = useState(eventType.locations || []);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
+  const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -212,11 +211,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setShowLocationModal(false);
   };
 
-  const closeAddCustomModal = () => {
-    customInputDialog.current?.close();
-    setSelectedCustomInput(undefined);
-  };
-
   const closeSuccessModal = () => {
     setSuccessModalOpen(false);
   };
@@ -244,11 +238,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     setLocations(locations.filter((location) => location.type !== selectedLocation.type));
-  };
-
-  const openEditCustomModel = (customInput: EventTypeCustomInput) => {
-    setSelectedCustomInput(customInput);
-    customInputDialog.current?.open();
   };
 
   const LocationOptions = () => {
@@ -304,7 +293,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     } else {
       setCustomInputs(customInputs.concat(customInput));
     }
-    closeAddCustomModal();
+    setSelectedCustomInputModalOpen(false);
   };
 
   const removeCustom = (index: number) => {
@@ -671,12 +660,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                     </div>
                                     <div className="flex">
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditCustomModel(customInput)}
-                                        className="mr-2 text-sm text-primary-600">
+                                      <Button
+                                        onClick={() => {
+                                          setSelectedCustomInput(customInput);
+                                          setSelectedCustomInputModalOpen(true);
+                                        }}
+                                        color="minimal"
+                                        type="button">
                                         Edit
-                                      </button>
+                                      </Button>
                                       <button type="button" onClick={() => removeCustom(idx)}>
                                         <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
                                       </button>
@@ -685,15 +677,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 </li>
                               ))}
                               <li>
-                                <button
+                                <Button
+                                  onClick={() => {
+                                    setSelectedCustomInput(undefined);
+                                    setSelectedCustomInputModalOpen(true);
+                                  }}
+                                  color="secondary"
                                   type="button"
-                                  className="flex px-3 py-2 rounded-sm bg-neutral-100"
-                                  onClick={() => customInputDialog.current?.open()}>
-                                  <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
-                                  <span className="ml-1 text-sm font-medium text-neutral-700">
-                                    Add an input
-                                  </span>
-                                </button>
+                                  StartIcon={PlusIcon}>
+                                  Add an input
+                                </Button>
                               </li>
                             </ul>
                           </div>
@@ -1027,22 +1020,35 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         )}
-        <ImperativeDialog
-          ref={customInputDialog}
-          title="Add new custom input field"
-          icon={PlusIcon}
-          subtitle="This input will be shown when booking this event">
-          <CustomInputTypeForm
-            selectedCustomInput={selectedCustomInput}
-            onSubmit={(values) => {
-              customInputDialog.current?.close();
-              updateCustom(values);
-            }}
-            onCancel={() => {
-              customInputDialog.current?.close();
-            }}
-          />
-        </ImperativeDialog>
+        <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
+          <DialogContent asChild>
+            <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="mb-4 sm:flex sm:items-start">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <PlusIcon className="w-6 h-6 text-primary-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                    Add new custom input field
+                  </h3>
+                  <div>
+                    <p className="text-sm text-gray-400">This input will be shown when booking this event</p>
+                  </div>
+                </div>
+              </div>
+              <CustomInputTypeForm
+                selectedCustomInput={selectedCustomInput}
+                onSubmit={(values) => {
+                  updateCustom(values);
+                  setSelectedCustomInputModalOpen(false);
+                }}
+                onCancel={() => {
+                  setSelectedCustomInputModalOpen(false);
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </Shell>
     </div>
   );
