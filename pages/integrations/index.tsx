@@ -382,7 +382,7 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
                             <div className="flex-1 min-w-0 px-4 md:grid md:grid-cols-2 md:gap-4">
                               <div>
                                 <p className="text-sm font-medium truncate text-neutral-900">{ig.title}</p>
-                                <p className="flex items-center text-sm text-white-500">
+                                <p className="flex items-center text-sm text-gray-500">
                                   {ig.type.endsWith("_calendar") && (
                                     <span className="truncate">Calendar Integration</span>
                                   )}
