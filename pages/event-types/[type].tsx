@@ -1033,10 +1033,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 selectedCustomInput={selectedCustomInput}
                 onSubmit={(data) => {
                   if (selectedCustomInput) {
-                    selectedCustomInput.label = data.label;
-                    selectedCustomInput.placeholder = data.placeholder;
-                    selectedCustomInput.required = data.required;
-                    selectedCustomInput.type = data.type;
+                    Object.assign(selectedCustomInput, data);
                   } else {
                     setCustomInputs(customInputs.concat(data));
                   }
