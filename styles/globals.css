@@ -376,3 +376,11 @@ body {
   background: #000;
   color: #fff;
 }
+
+.calLogo{
+  display: inline-block;
+}
+
+.calLogo path{
+  fill: rgb(155, 155, 155);
+}
