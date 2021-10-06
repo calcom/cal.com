@@ -107,6 +107,9 @@ yarn dx
    yarn install
    ```
 3. Copy `.env.example` to a new file called `.env`
+   ```sh
+   cp .env.example .env
+   ```
 4. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
@@ -154,7 +157,7 @@ yarn dx
    npx prisma studio
    ```
 8. Click on the `User` model to add a new user record.
-9. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+9.  Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
 
