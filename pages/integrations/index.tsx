@@ -155,8 +155,8 @@ export default function Home({ integrations }: InferGetServerSidePropsType<typeo
                       <img className="w-8 h-8 mr-2" src={integration.imageSrc} alt={integration.title} />
                     </div>
                     <div className="w-10/12">
-                      <h2 className="font-medium text-gray-800 font-cal">{integration.title}</h2>
-                      <p className="text-sm text-gray-400">{integration.description}</p>
+                      <h2 className="font-medium text-gray-900 font-cal">{integration.title}</h2>
+                      <p className="text-sm text-gray-900">{integration.description}</p>
                     </div>
                     <div className="w-2/12 pt-2 text-right">
                       <button
