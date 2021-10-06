@@ -106,7 +106,7 @@ yarn dx
    ```sh
    yarn install
    ```
-3. Copy `.env.example` to `.env`
+3. Copy `.env.example` to a new file called `.env`
 4. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
