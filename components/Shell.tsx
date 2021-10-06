@@ -1,4 +1,3 @@
-// TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
@@ -10,78 +9,119 @@ import {
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
-import { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import LicenseBanner from "@ee/components/LicenseBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { trpc } from "@lib/trpc";
 
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
 import Logo from "./Logo";
 
-export default function Shell(props) {
+function useMeQuery() {
+  const [session] = useSession();
+  const meQuery = trpc.useQuery(["viewer.me"], {
+    // refetch max once per 5s
+    staleTime: 5000,
+  });
+
+  useEffect(() => {
+    // refetch if sesion changes
+    meQuery.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  return meQuery;
+}
+
+function useRedirectToLoginIfUnauthenticated() {
+  const [session, loading] = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !session) {
+      router.replace({
+        pathname: "/auth/login",
+        query: {
+          callbackUrl: `${location.pathname}${location.search}`,
+        },
+      });
+    }
+  }, [loading, session, router]);
+}
+
+export default function Shell(props: {
+  title?: string;
+  heading: ReactNode;
+  subtitle: string;
+  children: ReactNode;
+  CTA?: ReactNode;
+}) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
+  useRedirectToLoginIfUnauthenticated();
+
   const telemetry = useTelemetry();
+  const query = useMeQuery();
 
   const navigation = [
     {
       name: "Event Types",
       href: "/event-types",
       icon: LinkIcon,
-      current: router.pathname.startsWith("/event-types"),
+      current: router.asPath.startsWith("/event-types"),
     },
     {
       name: "Bookings",
-      href: "/bookings",
+      href: "/bookings/upcoming",
       icon: ClockIcon,
-      current: router.pathname.startsWith("/bookings"),
+      current: router.asPath.startsWith("/bookings"),
     },
     {
       name: "Availability",
       href: "/availability",
       icon: CalendarIcon,
-      current: router.pathname.startsWith("/availability"),
+      current: router.asPath.startsWith("/availability"),
     },
     {
       name: "Integrations",
       href: "/integrations",
       icon: PuzzleIcon,
-      current: router.pathname.startsWith("/integrations"),
+      current: router.asPath.startsWith("/integrations"),
     },
     {
       name: "Settings",
       href: "/settings/profile",
       icon: CogIcon,
-      current: router.pathname.startsWith("/settings"),
+      current: router.asPath.startsWith("/settings"),
     },
   ];
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) => {
-      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.pathname));
+      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
   }, [telemetry]);
 
-  if (!loading && !session) {
+  if (query.status !== "loading" && !query.data) {
     router.replace("/auth/login");
   }
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
-  return session ? (
+  return (
     <>
       <HeadSeo
-        title={pageTitle}
+        title={pageTitle ?? "Cal.com"}
         description={props.subtitle}
         nextSeoProps={{
           nofollow: true,
@@ -137,7 +177,7 @@ export default function Shell(props) {
         </div>
 
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
+          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]">
             {/* show top navigation for md and smaller (tablet and phones) */}
             <nav className="md:hidden bg-white shadow p-4 flex justify-between items-center">
               <Link href="/event-types">
@@ -155,12 +195,12 @@ export default function Shell(props) {
                   </Link>
                 </button>
                 <div className="mt-1">
-                  <UserDropdown small bottom session={session} />
+                  <UserDropdown small bottom />
                 </div>
               </div>
             </nav>
             <div className="py-8">
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8">
+              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
                 <div className="mb-8">
                   <h1 className="font-cal text-xl font-bold text-gray-900">{props.heading}</h1>
                   <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
@@ -202,23 +242,17 @@ export default function Shell(props) {
               {/* add padding to content for mobile navigation*/}
               <div className="block md:hidden pt-12" />
             </div>
+            <LicenseBanner />
           </main>
         </div>
       </div>
     </>
-  ) : null;
+  );
 }
 
 function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    fetch("/api/me")
-      .then((res) => res.json())
-      .then((responseBody) => {
-        setUser(responseBody.user);
-      });
-  }, []);
+  const query = useMeQuery();
+  const user = query.data;
 
   return (
     <Menu as="div" className="w-full relative inline-block text-left">
@@ -230,8 +264,8 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                 <span className="flex w-full justify-between items-center">
                   <span className="flex min-w-0 items-center justify-between space-x-3">
                     <Avatar
-                      imageSrc={user?.avatar}
-                      displayName={user?.name}
+                      imageSrc={user.avatar}
+                      alt={user.username}
                       className={classNames(
                         small ? "w-8 h-8" : "w-10 h-10",
                         "bg-gray-300 rounded-full flex-shrink-0"
@@ -239,9 +273,9 @@ function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) 
                     />
                     {!small && (
                       <span className="flex-1 flex flex-col min-w-0">
-                        <span className="text-gray-900 text-sm font-medium truncate">{user?.name}</span>
+                        <span className="text-gray-900 text-sm font-medium truncate">{user.name}</span>
                         <span className="text-neutral-500 font-normal text-sm truncate">
-                          /{user?.username}
+                          /{user.username}
                         </span>
                       </span>
                     )}

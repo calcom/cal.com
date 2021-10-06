@@ -13,7 +13,7 @@ export default function EmptyScreen({
 }) {
   return (
     <>
-      <div className="min-h-80 border border-dashed rounded-sm flex justify-center items-center flex-col">
+      <div className="min-h-80 border border-dashed rounded-sm flex justify-center items-center flex-col my-6">
         <div className="bg-white w-[72px] h-[72px] flex justify-center items-center rounded-full">
           <Icon className="inline-block w-10 h-10 bg-white" />
         </div>
