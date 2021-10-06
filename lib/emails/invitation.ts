@@ -9,17 +9,20 @@ export type Invitation = {
   token?: string;
 };
 
-export function createInvitationEmail(data: any, options: any = {}) {
-  return sendEmail(data, {
-    provider: {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
-    },
-    ...options,
-  });
+type EmailProvider = {
+  from: string;
+  transport: any;
+};
+
+export function createInvitationEmail(data: Invitation) {
+  const provider = {
+    transport: serverConfig.transport,
+    from: serverConfig.from,
+  } as EmailProvider;
+  return sendEmail(data, provider);
 }
 
-const sendEmail = (invitation: Invitation, { provider }) =>
+const sendEmail = (invitation: Invitation, provider: EmailProvider): Promise<void> =>
   new Promise((resolve, reject) => {
     const { transport, from } = provider;
 
