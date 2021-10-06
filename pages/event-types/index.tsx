@@ -366,14 +366,14 @@ const CreateNewEventDialog = ({
     <Dialog
       open={modalOpen.isOn}
       onOpenChange={(isOpen) => {
-        router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
+        router.push(isOpen ? modalOpen.hrefOn() : modalOpen.hrefOff());
       }}>
       {!profiles.filter((profile) => profile.teamId).length && (
         <Button
           data-testid="new-event-type"
           {...(canAddEvents
             ? {
-                href: modalOpen.hrefOn,
+                href: modalOpen.hrefOn(),
               }
             : {
                 disabled: true,

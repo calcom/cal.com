@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useCallback } from "react";
 
 export function useToggleQuery(name: string) {
   const router = useRouter();
 
-  const hrefOff = useMemo(() => {
+  const hrefOff = useCallback(() => {
     const query = {
       ...router.query,
     };
@@ -13,19 +13,22 @@ export function useToggleQuery(name: string) {
       query,
     };
   }, [router.query, name]);
-  const hrefOn = useMemo(() => {
-    const query = {
-      ...router.query,
-      [name]: "1",
-    };
-    return {
-      query,
-    };
-  }, [router.query, name]);
+  const hrefOn = useCallback(
+    (value = "1") => {
+      const query = {
+        ...router.query,
+        [name]: value,
+      };
+      return {
+        query,
+      };
+    },
+    [router.query, name]
+  );
 
   return {
     hrefOn,
     hrefOff,
-    isOn: router.query[name] === "1",
+    isOn: !!router.query[name],
   };
 }

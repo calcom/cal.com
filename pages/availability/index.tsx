@@ -77,7 +77,7 @@ export default function Availability() {
                 </p>
               </div>
               <div className="mt-5">
-                <Button href={formModal.hrefOn}>Change available times</Button>
+                <Button href={formModal.hrefOn()}>Change available times</Button>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function Availability() {
         <Dialog
           open={formModal.isOn}
           onOpenChange={(isOpen) => {
-            router.push(isOpen ? formModal.hrefOn : formModal.hrefOff);
+            router.push(isOpen ? formModal.hrefOn() : formModal.hrefOff());
           }}>
           <DialogContent>
             <div className="sm:flex sm:items-start mb-4">
@@ -140,7 +140,7 @@ export default function Availability() {
                   return;
                 }
                 await queryMe.refetch();
-                router.push(formModal.hrefOff);
+                router.push(formModal.hrefOff());
 
                 showToast("The start and end times for your day have been changed successfully.", "success");
               })}>
@@ -230,7 +230,7 @@ export default function Availability() {
                 </div>
               </div>
               <div className="mt-5 sm:mt-4 sm:flex space-x-2">
-                <Button href={formModal.hrefOff} color="secondary" tabIndex={-1}>
+                <Button href={formModal.hrefOff()} color="secondary" tabIndex={-1}>
                   Cancel
                 </Button>
                 <Button type="submit" loading={formMethods.formState.isSubmitting}>
