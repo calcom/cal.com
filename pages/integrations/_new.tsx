@@ -10,7 +10,7 @@ import { trpc } from "@lib/trpc";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import Badge from "@components/ui/Badge";
-import Button from "@components/ui/Button";
+import Button, { ButtonProps } from "@components/ui/Button";
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
@@ -43,11 +43,7 @@ function ConnectIntegration(props: {
    * @example apple_calendar
    */
   type: string;
-  render: (renderProps: {
-    //
-    onClick: () => void;
-    loading: boolean;
-  }) => JSX.Element;
+  render: (renderProps: ButtonProps) => JSX.Element;
 }) {
   const { type } = props;
   const [isLoading, setIsLoading] = useState(false);
