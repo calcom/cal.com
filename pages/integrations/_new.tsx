@@ -7,7 +7,8 @@ import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
-import { trpc } from "@lib/trpc";
+import showToast from "@lib/notification";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
@@ -172,6 +173,71 @@ function IntegrationListItem(props: {
   );
 }
 
+type TIntegrations = inferQueryOutput<"viewer.integrations">;
+type TCalendar = TIntegrations["calendar"]["items"][number];
+type TCalendarItem = TCalendar["calendars"][number];
+
+export function CalendarSwitch(props: { item: TCalendarItem; calendar: TCalendar }) {
+  const utils = trpc.useContext();
+  const mutation = useMutation<
+    unknown,
+    unknown,
+    {
+      isOn: boolean;
+    }
+  >(
+    async ({ isOn }) => {
+      const body = {
+        integration: props.calendar.type,
+        externalId: props.item.externalId,
+      };
+      if (isOn) {
+        const res = await fetch("/api/availability/calendar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          throw new Error("Something went wrong");
+        }
+      } else {
+        const res = await fetch("/api/availability/calendar", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          throw new Error("Something went wrong");
+        }
+      }
+    },
+    {
+      async onSettled() {
+        await utils.invalidateQuery(["viewer.integrations"]);
+      },
+      onError() {
+        showToast(`Something went wrong when toggling ${props.item.name}`, "error");
+      },
+    }
+  );
+  return (
+    <Switch
+      key={props.item.externalId}
+      name="enabled"
+      label={props.item.name}
+      defaultChecked={props.item.selected}
+      onCheckedChange={(isOn: boolean) => {
+        mutation.mutate({ isOn });
+      }}
+    />
+  );
+}
+
 export default function IntegrationsPage() {
   const query = trpc.useQuery(["viewer.integrations"]);
 
@@ -247,16 +313,9 @@ export default function IntegrationsPage() {
                       }>
                       <div className="space-y-4 p-4">
                         {item.calendars.map((cal) => (
-                          <Switch
-                            key={cal.externalId}
-                            name="enabled"
-                            label={cal.name}
-                            defaultChecked={cal.selected}
-                            onCheckedChange={() => {}}
-                          />
+                          <CalendarSwitch key={cal.externalId} calendar={item} item={cal} />
                         ))}
                       </div>
-                      <pre className="text-xs">{JSON.stringify(item, null, 4)}</pre>
                     </IntegrationListItem>
                   ) : (
                     <IntegrationListItem
