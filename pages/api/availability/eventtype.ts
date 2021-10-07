@@ -136,11 +136,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const openingHours = req.body.availability.openingHours || [];
         // const overrides = req.body.availability.dateOverrides || [];
 
-        await prisma.availability.deleteMany({
-          where: {
-            eventTypeId: +req.body.id,
-          },
-        });
         Promise.all(
           openingHours.map((schedule) =>
             prisma.availability.create({
@@ -169,6 +164,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method == "DELETE") {
     await prisma.eventTypeCustomInput.deleteMany({
+      where: {
+        eventTypeId: req.body.id,
+      },
+    });
+
+    await prisma.webhookEventTypes.deleteMany({
       where: {
         eventTypeId: req.body.id,
       },
