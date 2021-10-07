@@ -7,6 +7,6 @@ module.exports = {
   semi: true,
   printWidth: 110,
   arrowParens: "always",
-  importOrder: ["^@ee/(.*)$", "^@lib/(.*)$", "^@components/(.*)$", "^[./]"],
+  importOrder: ["^@ee/(.*)$", "^@lib/(.*)$", "^@components/(.*)$", "^@(server|trcp)/(.*)$", "^[./]"],
   importOrderSeparation: true,
 };

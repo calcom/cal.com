@@ -14,7 +14,7 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { EventTypeCustomInput, EventTypeCustomInputType, Prisma, SchedulingType } from "@prisma/client";
+import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -48,10 +48,11 @@ import { defaultAvatarSrc } from "@lib/profile";
 import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
 import Switch from "@components/ui/Switch";
@@ -86,13 +87,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
-  const inputOptions: OptionTypeBase[] = [
-    { value: EventTypeCustomInputType.TEXT, label: "Text" },
-    { value: EventTypeCustomInputType.TEXTLONG, label: "Multiline Text" },
-    { value: EventTypeCustomInputType.NUMBER, label: "Number" },
-    { value: EventTypeCustomInputType.BOOL, label: "Checkbox" },
-  ];
-
   const updateMutation = useMutation(updateEventType, {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types");
@@ -121,12 +115,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showAddCustomModal, setShowAddCustomModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
-  const [selectedInputOption, setSelectedInputOption] = useState<OptionTypeBase>(inputOptions[0]);
   const [locations, setLocations] = useState(eventType.locations || []);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
+  const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -217,12 +210,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setShowLocationModal(false);
   };
 
-  const closeAddCustomModal = () => {
-    setSelectedInputOption(inputOptions[0]);
-    setShowAddCustomModal(false);
-    setSelectedCustomInput(undefined);
-  };
-
   const closeSuccessModal = () => {
     setSuccessModalOpen(false);
   };
@@ -250,12 +237,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     setLocations(locations.filter((location) => location.type !== selectedLocation.type));
-  };
-
-  const openEditCustomModel = (customInput: EventTypeCustomInput) => {
-    setSelectedCustomInput(customInput);
-    setSelectedInputOption(inputOptions.find((e) => e.value === customInput.type)!);
-    setShowAddCustomModal(true);
   };
 
   const LocationOptions = () => {
@@ -291,29 +272,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return <p className="text-sm">Cal will provide a Zoom meeting URL.</p>;
     }
     return null;
-  };
-
-  const updateCustom = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const customInput: EventTypeCustomInput = {
-      id: -1,
-      eventTypeId: -1,
-      label: e.currentTarget.label.value,
-      placeholder: e.currentTarget.placeholder?.value,
-      required: e.currentTarget.required.checked,
-      type: e.currentTarget.type.value,
-    };
-
-    if (selectedCustomInput) {
-      selectedCustomInput.label = customInput.label;
-      selectedCustomInput.placeholder = customInput.placeholder;
-      selectedCustomInput.required = customInput.required;
-      selectedCustomInput.type = customInput.type;
-    } else {
-      setCustomInputs(customInputs.concat(customInput));
-    }
-    closeAddCustomModal();
   };
 
   const removeCustom = (index: number) => {
@@ -422,7 +380,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     id="length"
                     required
                     placeholder="15"
-                    defaultValue={eventType.length}
+                    defaultValue={eventType.length || 15}
                   />
                 </div>
                 <hr />
@@ -679,12 +637,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                     </div>
                                     <div className="flex">
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditCustomModel(customInput)}
-                                        className="mr-2 text-sm text-primary-600">
+                                      <Button
+                                        onClick={() => {
+                                          setSelectedCustomInput(customInput);
+                                          setSelectedCustomInputModalOpen(true);
+                                        }}
+                                        color="minimal"
+                                        type="button">
                                         Edit
-                                      </button>
+                                      </Button>
                                       <button type="button" onClick={() => removeCustom(idx)}>
                                         <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
                                       </button>
@@ -693,15 +654,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 </li>
                               ))}
                               <li>
-                                <button
+                                <Button
+                                  onClick={() => {
+                                    setSelectedCustomInput(undefined);
+                                    setSelectedCustomInputModalOpen(true);
+                                  }}
+                                  color="secondary"
                                   type="button"
-                                  className="flex px-3 py-2 rounded-sm bg-neutral-100"
-                                  onClick={() => setShowAddCustomModal(true)}>
-                                  <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
-                                  <span className="ml-1 text-sm font-medium text-neutral-700">
-                                    Add an input
-                                  </span>
-                                </button>
+                                  StartIcon={PlusIcon}>
+                                  Add an input
+                                </Button>
                               </li>
                             </ul>
                           </div>
@@ -1035,111 +997,51 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         )}
-        {showAddCustomModal && (
-          <div
-            className="fixed inset-0 z-50 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
-                aria-hidden="true"
-              />
-
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-
-              <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="mb-4 sm:flex sm:items-start">
-                  <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <PlusIcon className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                      Add new custom input field
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-400">
-                        This input will be shown when booking this event
-                      </p>
-                    </div>
+        <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
+          <DialogContent asChild>
+            <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="mb-4 sm:flex sm:items-start">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <PlusIcon className="w-6 h-6 text-primary-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                    Add new custom input field
+                  </h3>
+                  <div>
+                    <p className="text-sm text-gray-400">This input will be shown when booking this event</p>
                   </div>
                 </div>
-                <form onSubmit={updateCustom}>
-                  <div className="mb-2">
-                    <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-                      Input type
-                    </label>
-                    <Select
-                      name="type"
-                      defaultValue={selectedInputOption}
-                      options={inputOptions}
-                      isSearchable={false}
-                      required
-                      className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
-                      onChange={setSelectedInputOption}
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label htmlFor="label" className="block text-sm font-medium text-gray-700">
-                      Label
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="text"
-                        name="label"
-                        id="label"
-                        required
-                        className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                        defaultValue={selectedCustomInput?.label}
-                      />
-                    </div>
-                  </div>
-                  {(selectedInputOption.value === EventTypeCustomInputType.TEXT ||
-                    selectedInputOption.value === EventTypeCustomInputType.TEXTLONG) && (
-                    <div className="mb-2">
-                      <label htmlFor="placeholder" className="block text-sm font-medium text-gray-700">
-                        Placeholder
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="placeholder"
-                          id="placeholder"
-                          className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
-                          defaultValue={selectedCustomInput?.placeholder}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex items-center h-5">
-                    <input
-                      id="required"
-                      name="required"
-                      type="checkbox"
-                      className="w-4 h-4 mr-2 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
-                      defaultChecked={selectedCustomInput?.required ?? true}
-                    />
-                    <label htmlFor="required" className="block text-sm font-medium text-gray-700">
-                      Is required
-                    </label>
-                  </div>
-                  <input type="hidden" name="id" id="id" value={selectedCustomInput?.id} />
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      Save
-                    </button>
-                    <button onClick={closeAddCustomModal} type="button" className="mr-2 btn btn-white">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
               </div>
+              <CustomInputTypeForm
+                selectedCustomInput={selectedCustomInput}
+                onSubmit={(values) => {
+                  const customInput: EventTypeCustomInput = {
+                    id: -1,
+                    eventTypeId: -1,
+                    label: values.label,
+                    placeholder: values.placeholder,
+                    required: values.required,
+                    type: values.type,
+                  };
+
+                  if (selectedCustomInput) {
+                    selectedCustomInput.label = customInput.label;
+                    selectedCustomInput.placeholder = customInput.placeholder;
+                    selectedCustomInput.required = customInput.required;
+                    selectedCustomInput.type = customInput.type;
+                  } else {
+                    setCustomInputs(customInputs.concat(customInput));
+                  }
+                  setSelectedCustomInputModalOpen(false);
+                }}
+                onCancel={() => {
+                  setSelectedCustomInputModalOpen(false);
+                }}
+              />
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
       </Shell>
     </div>
   );

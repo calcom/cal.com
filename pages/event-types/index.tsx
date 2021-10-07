@@ -520,6 +520,7 @@ const CreateNewEventDialog = ({
                   required
                   className="block w-full pr-20 border-gray-300 rounded-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
                   placeholder="15"
+                  defaultValue={15}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-400">
                   minutes
