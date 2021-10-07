@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import {
@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@components/Dialog";
 import { Form, TextField } from "@components/form/fields";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 type Props = {
@@ -31,6 +32,7 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
       password: "",
     },
   });
+  const [errorMessage, setErrorMessage] = useState("");
   return (
     <Dialog {...props}>
       <DialogContent>
@@ -42,6 +44,7 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
         <Form
           form={form}
           onSubmit={form.handleSubmit(async (values) => {
+            setErrorMessage("");
             const res = await fetch("/api/integrations/caldav/add", {
               method: "POST",
               body: JSON.stringify(values),
@@ -51,7 +54,7 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
             });
             const json = await res.json();
             if (!res.ok) {
-              throw new Error(json?.message || "Something went wrong");
+              setErrorMessage(json?.message || "Something went wrong");
             }
           })}>
           <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
@@ -75,8 +78,11 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
               {...form.register("password")}
               label="Password"
               placeholder="•••••••••••••"
+              autoComplete="password"
             />
           </fieldset>
+
+          {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
           <DialogFooter>
             {/* <div className="my-4">
             {addCalDavError && (
@@ -90,6 +96,7 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
               onSubmit={handleAddCalDavIntegrationSaveButtonPress}
             />
           </div> */}
+
             <DialogClose
               onClick={() => {
                 props.onOpenChange?.(false);
@@ -100,7 +107,9 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
               </Button>
             </DialogClose>
 
-            <Button type="submit">Save</Button>
+            <Button type="submit" loading={form.formState.isSubmitting}>
+              Save
+            </Button>
           </DialogFooter>
         </Form>
       </DialogContent>
