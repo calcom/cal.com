@@ -159,11 +159,11 @@ yarn dx
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
 
-#### E2E-Testing
+### E2E-Testing
 
 ```bash
 # In first terminal
-yarn dev 
+yarn dx
 # In second terminal
 yarn test-playwright
 ```
