@@ -1,9 +1,10 @@
 import Image from "next/image";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
+import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import { trpc } from "@lib/trpc";
 
@@ -57,18 +58,20 @@ function ConnectIntegration(props: {
     setIsLoading(true);
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // refetch intergrations when modal closes
+  const utils = trpc.useContext();
+  useEffect(() => {
+    utils.invalidateQuery(["viewer.integrations"]);
+  }, [isModalOpen, utils]);
+
   return (
     <>
       {props.render({
         onClick() {
-          if (type === "caldav_calendar") {
+          if (["caldav_calendar", "apple_calendar"].includes(type)) {
+            // special handlers
             setIsModalOpen(true);
-            return;
-          }
-
-          if (type === "apple_calendar") {
-            // setAddAppleError(null);
-            // setIsAddAppleIntegrationDialogOpen(true);
             return;
           }
 
@@ -79,6 +82,10 @@ function ConnectIntegration(props: {
       })}
       {type === "caldav_calendar" && (
         <AddCalDavIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      )}
+
+      {type === "apple_calendar" && (
+        <AddAppleIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
       )}
     </>
   );

@@ -35,9 +35,7 @@ export function DialogHeader({ title, subtitle }: DialogHeaderProps) {
       <h3 className="font-cal text-gray-900 text-lg font-bold leading-6" id="modal-title">
         {title}
       </h3>
-      <div>
-        <p className="text-gray-400 text-sm">{subtitle}</p>
-      </div>
+      <div className="text-gray-400 text-sm">{subtitle}</div>
     </div>
   );
 }
