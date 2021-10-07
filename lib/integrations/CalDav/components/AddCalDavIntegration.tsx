@@ -1,4 +1,16 @@
 import React from "react";
+import { useForm } from "react-hook-form";
+
+import {
+  DialogHeader,
+  DialogProps,
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogFooter,
+} from "@components/Dialog";
+import { Form, TextField } from "@components/form/fields";
+import Button from "@components/ui/Button";
 
 type Props = {
   onSubmit: () => void;
@@ -11,6 +23,94 @@ export type AddCalDavIntegrationRequest = {
   password: string;
 };
 
+export function AddCalDavIntegrationModal(props: DialogProps) {
+  const form = useForm({
+    defaultValues: {
+      url: "",
+      username: "",
+      password: "",
+    },
+  });
+  return (
+    <Dialog {...props}>
+      <DialogContent>
+        <DialogHeader
+          title="Connect to CalDav Server"
+          subtitle="Your credentials will be stored and encrypted."
+        />
+
+        <Form
+          form={form}
+          onSubmit={form.handleSubmit(async (values) => {
+            const res = await fetch("/api/integrations/caldav/add", {
+              method: "POST",
+              body: JSON.stringify(values),
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+            const json = await res.json();
+            if (!res.ok) {
+              throw new Error(json?.message || "Something went wrong");
+            }
+          })}>
+          <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
+            <TextField
+              required
+              type="text"
+              {...form.register("url")}
+              label="Calendar URL"
+              placeholder="https://example.com/calendar"
+            />
+            <TextField
+              required
+              type="text"
+              {...form.register("username")}
+              label="Username"
+              placeholder="rickroll"
+            />
+            <TextField
+              required
+              type="password"
+              {...form.register("password")}
+              label="Password"
+              placeholder="•••••••••••••"
+            />
+          </fieldset>
+          <DialogFooter>
+            {/* <div className="my-4">
+            {addCalDavError && (
+              <p className="text-red-700 text-sm">
+                <span className="font-bold">Error: </span>
+                {addCalDavError.message}
+              </p>
+            )}
+            <AddCalDavIntegration
+              ref={addCalDavIntegrationRef}
+              onSubmit={handleAddCalDavIntegrationSaveButtonPress}
+            />
+          </div> */}
+            <DialogClose
+              onClick={() => {
+                props.onOpenChange?.(false);
+              }}
+              asChild>
+              <Button type="button" color="secondary" tabIndex={-1}>
+                Cancel
+              </Button>
+            </DialogClose>
+
+            <Button type="submit">Save</Button>
+          </DialogFooter>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * @deprecated
+ */
 const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, ref) => {
   const onSubmit = (event) => {
     event.preventDefault();

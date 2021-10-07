@@ -4,6 +4,7 @@ import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
+import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import { trpc } from "@lib/trpc";
 
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -59,24 +60,34 @@ function ConnectIntegration(props: {
     window.location.href = json.url;
     setIsLoading(true);
   });
-  return props.render({
-    onClick() {
-      if (type === "caldav_calendar") {
-        // setAddCalDavError(null);
-        // setIsAddCalDavIntegrationDialogOpen(true);
-        return;
-      }
+  const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
+  return (
+    <>
+      {props.render({
+        onClick() {
+          if (type === "caldav_calendar") {
+            setIsAddCalDavIntegrationDialogOpen(true);
+            return;
+          }
 
-      if (type === "apple_calendar") {
-        // setAddAppleError(null);
-        // setIsAddAppleIntegrationDialogOpen(true);
-        return;
-      }
+          if (type === "apple_calendar") {
+            // setAddAppleError(null);
+            // setIsAddAppleIntegrationDialogOpen(true);
+            return;
+          }
 
-      mutation.mutate();
-    },
-    loading: mutation.isLoading || isLoading,
-  });
+          mutation.mutate();
+        },
+        loading: mutation.isLoading || isLoading,
+      })}
+      {type === "caldav_calendar" && (
+        <AddCalDavIntegrationModal
+          open={isAddCalDavIntegrationDialogOpen}
+          onOpenChange={setIsAddCalDavIntegrationDialogOpen}
+        />
+      )}
+    </>
+  );
 }
 
 function DisconnectIntegration(props: {
