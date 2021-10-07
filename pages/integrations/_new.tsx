@@ -11,7 +11,7 @@ import { trpc } from "@lib/trpc";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import Badge from "@components/ui/Badge";
-import Button, { ButtonProps } from "@components/ui/Button";
+import Button, { ButtonB, ButtonBasePropsaseProps } from "@components/ui/Button";
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
@@ -44,7 +44,7 @@ function ConnectIntegration(props: {
    * @example apple_calendar
    */
   type: string;
-  render: (renderProps: ButtonProps) => JSX.Element;
+  render: (renderProps: ButtonBaseProps) => JSX.Element;
 }) {
   const { type } = props;
   const [isLoading, setIsLoading] = useState(false);
@@ -181,7 +181,6 @@ export default function IntegrationsPage() {
                   />
                 ))}
               </List>
-              <pre className="text-xs">{JSON.stringify(data.conferencing, null, 4)}</pre>
 
               <ShellSubHeading
                 className="mt-6"
@@ -203,7 +202,7 @@ export default function IntegrationsPage() {
                   </ListItem>
                 ))}
               </List>
-              <pre className="text-xs">{JSON.stringify(data.payment, null, 4)}</pre>
+
               <ShellSubHeading
                 className="mt-6"
                 title={
@@ -249,7 +248,6 @@ export default function IntegrationsPage() {
                   )
                 )}
               </List>
-              <pre className="text-xs">{JSON.stringify(data.calendar, null, 4)}</pre>
             </>
           );
         }}

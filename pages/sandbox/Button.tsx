@@ -1,12 +1,12 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import React from "react";
 
-import { Button, ButtonProps } from "@components/ui/Button";
+import { Button, ButtonBaseProps } from "@components/ui/Button";
 
 import { sandboxPage } from ".";
 
 const page = sandboxPage(function ButtonPage() {
-  const list: ButtonProps[] = [
+  const list: ButtonBaseProps[] = [
     // primary
     { color: "primary" },
     { color: "primary", disabled: true },
@@ -27,9 +27,9 @@ const page = sandboxPage(function ButtonPage() {
     { color: "primary", size: "base" },
     { color: "primary", size: "lg" },
 
-    // href
-    { href: "/staging" },
-    { href: "/staging", disabled: true },
+    // // href
+    // { href: "/staging" },
+    // { href: "/staging", disabled: true },
 
     { StartIcon: PlusIcon },
     { EndIcon: PlusIcon },
