@@ -163,7 +163,7 @@ yarn dx
 
 ```bash
 # In first terminal
-yarn dev 
+yarn dx
 # In second terminal
 yarn test-playwright
 ```
