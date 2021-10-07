@@ -24,7 +24,7 @@ export function ListItem(props: ListItemProps) {
       ...passThroughProps,
       className: classNames(
         "items-center bg-white min-w-0 flex-1 flex border-gray-200",
-        expanded ? "my-2 border" : "border-l border-r border-b first:border-t",
+        expanded ? "my-2 border" : "border -mb-px last:mb-0",
         props.className,
         (props.onClick || href) && "hover:bg-neutral-50"
       ),
