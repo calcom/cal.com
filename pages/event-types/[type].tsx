@@ -380,8 +380,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     id="length"
                     required
                     placeholder="15"
-                    min={15}
-                    defaultValue={eventType.length}
+                    defaultValue={eventType.length || 15}
                   />
                 </div>
                 <hr />

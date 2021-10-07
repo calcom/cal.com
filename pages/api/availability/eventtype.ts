@@ -4,6 +4,45 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
+function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
+  if (!customInputs || customInputs?.length) return undefined;
+  const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
+  const cInputsToCreate = customInputs
+    .filter((input) => input.id < 0)
+    .map((input) => ({
+      type: input.type,
+      label: input.label,
+      required: input.required,
+      placeholder: input.placeholder,
+    }));
+  const cInputsToUpdate = customInputs
+    .filter((input) => input.id > 0)
+    .map((input) => ({
+      data: {
+        type: input.type,
+        label: input.label,
+        required: input.required,
+        placeholder: input.placeholder,
+      },
+      where: {
+        id: input.id,
+      },
+    }));
+
+  return {
+    deleteMany: {
+      eventTypeId,
+      NOT: {
+        id: { in: cInputsIdsToDelete },
+      },
+    },
+    createMany: {
+      data: cInputsToCreate,
+    },
+    update: cInputsToUpdate,
+  };
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
 
@@ -42,29 +81,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method == "PATCH" || req.method == "POST") {
-    const customInputs = req.body.customInputs as EventTypeCustomInput[];
-    const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
-    const cInputsToCreate = customInputs
-      .filter((input) => input.id < 0)
-      .map((input) => ({
-        type: input.type,
-        label: input.label,
-        required: input.required,
-        placeholder: input.placeholder,
-      }));
-    const cInputsToUpdate = customInputs
-      .filter((input) => input.id > 0)
-      .map((input) => ({
-        data: {
-          type: input.type,
-          label: input.label,
-          required: input.required,
-          placeholder: input.placeholder,
-        },
-        where: {
-          id: input.id,
-        },
-      }));
     const data: Prisma.EventTypeUpdateInput = {
       title: req.body.title,
       slug: req.body.slug.trim(),
@@ -75,20 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       disableGuests: req.body.disableGuests,
       locations: req.body.locations,
       eventName: req.body.eventName,
-      customInputs: !customInputs
-        ? undefined
-        : {
-            deleteMany: {
-              eventTypeId: req.body.id,
-              NOT: {
-                id: { in: cInputsIdsToDelete },
-              },
-            },
-            createMany: {
-              data: cInputsToCreate,
-            },
-            update: cInputsToUpdate,
-          },
+      customInputs: handleCustomInputs(req.body.customInputs as EventTypeCustomInput[], req.body.id),
       periodType: req.body.periodType,
       periodDays: req.body.periodDays,
       periodStartDate: req.body.periodStartDate,
