@@ -10,8 +10,10 @@ import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/A
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import { Dialog } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
@@ -99,13 +101,10 @@ function DisconnectIntegration(props: {
    * Integration credential id
    */
   id: number;
-  render: (renderProps: {
-    //
-    onClick: () => void;
-    loading: boolean;
-  }) => JSX.Element;
+  render: (renderProps: ButtonBaseProps) => JSX.Element;
 }) {
   const utils = trpc.useContext();
+  const [modalOpen, setModalOpen] = useState(false);
   const mutation = useMutation(
     async () => {
       const res = await fetch("/api/integrations", {
@@ -123,14 +122,34 @@ function DisconnectIntegration(props: {
       async onSettled() {
         await utils.invalidateQuery(["viewer.integrations"]);
       },
+      onSuccess() {
+        setModalOpen(false);
+      },
     }
   );
-  return props.render({
-    onClick() {
-      mutation.mutate();
-    },
-    loading: mutation.isLoading,
-  });
+  return (
+    <>
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title="Disconnect Integration"
+          confirmBtnText="Yes, delete integration"
+          cancelBtnText="Cancel"
+          onConfirm={() => {
+            mutation.mutate();
+          }}>
+          Are you sure you want to disconnect this integration?
+        </ConfirmationDialogContent>
+      </Dialog>
+      {props.render({
+        onClick() {
+          setModalOpen(true);
+        },
+        disabled: modalOpen,
+        loading: mutation.isLoading,
+      })}
+    </>
+  );
 }
 
 function ConnectOrDisconnectIntegrationButton(props: {

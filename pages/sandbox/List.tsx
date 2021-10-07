@@ -30,7 +30,7 @@ const page = sandboxPage(() => {
       One expanded
       <List>
         <ListItem>An item</ListItem>
-        <ListItem className="my-4 border-t border-b">Spaced</ListItem>
+        <ListItem expanded>Spaced</ListItem>
         <ListItem>An item</ListItem>
         <ListItem>An item</ListItem>
       </List>
