@@ -118,7 +118,6 @@ export const viewerRouter = createProtectedRouter()
         }));
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
       return {
-        integrations,
         conferencing: {
           items: conferencing,
           numActive: countActive(conferencing),
