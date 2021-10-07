@@ -1,3 +1,4 @@
+import { Maybe } from "@trpc/server";
 import Image from "next/image";
 import { ReactNode, useEffect, useState } from "react";
 import { useMutation } from "react-query";
@@ -130,6 +131,22 @@ function DisconnectIntegration(props: {
   });
 }
 
+function ConnectOrDisconnectIntegrationButton(props: {
+  //
+  credential: Maybe<{ id: number }>;
+  type: string;
+}) {
+  if (props.credential) {
+    <DisconnectIntegration
+      id={props.credential.id}
+      render={(btnProps) => <Button {...btnProps}>Connect</Button>}
+    />;
+  }
+  return (
+    <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
+  );
+}
+
 function IntegrationListItem(props: {
   imageSrc: string;
   title: string;
@@ -138,7 +155,7 @@ function IntegrationListItem(props: {
   children?: ReactNode;
 }) {
   return (
-    <ListItem className={classNames("flex-col", props.children && "my-2")}>
+    <ListItem expanded={!!props.children} className={classNames("flex-col")}>
       <div className={classNames("flex flex-1 space-x-2 w-full p-4")}>
         <div>
           <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
@@ -149,7 +166,7 @@ function IntegrationListItem(props: {
         </div>
         <div>{props.actions}</div>
       </div>
-      {props.children && <div className="w-full border-t border-gray-200 ">{props.children}</div>}
+      {props.children && <div className="w-full border-t border-gray-200">{props.children}</div>}
     </ListItem>
   );
 }
@@ -177,7 +194,7 @@ export default function IntegrationsPage() {
                   <IntegrationListItem
                     key={item.title}
                     {...item}
-                    actions={<>{item.credential ? <Button>TODO</Button> : <Button>Connect</Button>}</>}
+                    actions={<ConnectOrDisconnectIntegrationButton {...item} />}
                   />
                 ))}
               </List>
@@ -190,16 +207,11 @@ export default function IntegrationsPage() {
               />
               <List>
                 {data.payment.items.map((item) => (
-                  <ListItem key={item.title} className="p-4 space-x-4">
-                    <div className="flex-shrink-0">
-                      <img className="h-10 w-10 mr-2" src={`/${item.imageSrc}`} alt={item.title} />
-                    </div>
-                    <div className="flex-grow">
-                      <ListItemTitle component="h3">{item.title}</ListItemTitle>
-                      <ListItemText component="p">{item.description}</ListItemText>
-                    </div>
-                    <div>{item.credential ? <Button>TODO</Button> : <Button>Connect</Button>}</div>
-                  </ListItem>
+                  <IntegrationListItem
+                    key={item.title}
+                    {...item}
+                    actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+                  />
                 ))}
               </List>
 
