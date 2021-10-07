@@ -13,6 +13,7 @@ import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
+import Switch from "@components/ui/Switch";
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
@@ -244,7 +245,18 @@ export default function IntegrationsPage() {
                           render={(btnProps) => <Button {...btnProps}>Disconnect</Button>}
                         />
                       }>
-                      hello
+                      <div className="space-y-4 p-4">
+                        {item.calendars.map((cal) => (
+                          <Switch
+                            key={cal.externalId}
+                            name="enabled"
+                            label={cal.name}
+                            defaultChecked={cal.selected}
+                            onCheckedChange={() => {}}
+                          />
+                        ))}
+                      </div>
+                      <pre className="text-xs">{JSON.stringify(item, null, 4)}</pre>
                     </IntegrationListItem>
                   ) : (
                     <IntegrationListItem
