@@ -12,7 +12,8 @@
     "db-seed": "yarn ts-node scripts/seed.ts",
     "db-nuke": "docker compose down --volumes --remove-orphans",
     "dx": "cross-env BASE_URL=http://localhost:3000 JWT_SECRET=secret DATABASE_URL=postgresql://postgres:@localhost:5450/calendso run-s db-up db-migrate db-seed dev",
-    "test": "node node_modules/.bin/jest",
+    "test": "jest",
+    "test-playwright": "jest --maxWorkers=2 --config jest.playwright.config.js && nyc report --reporter=lcov",
     "build": "next build",
     "start": "next start",
     "ts-node": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\"",
@@ -108,6 +109,9 @@
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.29.2",
     "autoprefixer": "^10.3.1",
+    "babel": "^6.23.0",
+    "babel-jest": "^27.2.4",
+    "babel-plugin-istanbul": "^6.0.0",
     "cross-env": "^7.0.3",
     "cypress": "^8.3.0",
     "eslint": "^7.32.0",
@@ -117,13 +121,18 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "husky": "^7.0.1",
     "jest": "^27.2.2",
+    "jest-playwright": "^0.0.1",
+    "jest-playwright-preset": "^1.7.0",
     "lint-staged": "^11.1.2",
     "mockdate": "^3.0.5",
     "npm-run-all": "^4.1.5",
+    "nyc": "^15.1.0",
+    "playwright": "^1.15.2",
     "postcss": "^8.3.6",
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
     "tailwindcss": "^2.2.16",
+    "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   },
@@ -131,24 +140,6 @@
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint"
-    ]
-  },
-  "jest": {
-    "verbose": true,
-    "extensionsToTreatAsEsm": [
-      ".ts"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "ts"
-    ],
-    "moduleNameMapper": {
-      "^@components(.*)$": "<rootDir>/components$1",
-      "^@lib(.*)$": "<rootDir>/lib$1"
-    },
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/cypress/"
     ]
   }
 }
