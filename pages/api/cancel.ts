@@ -11,6 +11,8 @@ import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
+import { dailyDeleteMeeting } from "../../lib/dailyVideoClient";
+
 export default async function handler(req, res) {
   // just bail if it not a DELETE
   if (req.method !== "DELETE" && req.method !== "POST") {
@@ -37,6 +39,7 @@ export default async function handler(req, res) {
         },
       },
       attendees: true,
+      location: true,
       references: {
         select: {
           uid: true,
@@ -117,6 +120,13 @@ export default async function handler(req, res) {
       } else if (credential.type.endsWith("_video")) {
         return await deleteMeeting(credential, bookingRefUid);
       }
+    }
+    //deleting a Daily meeting
+
+    const isDaily = bookingToDelete.location === "integrations:daily";
+    const bookingUID = bookingToDelete.references.filter((ref) => ref.type === "daily")[0]?.uid;
+    if (isDaily) {
+      return await dailyDeleteMeeting(credential, bookingUID);
     }
   });
 

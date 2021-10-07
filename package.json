@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.4.1",
+    "@daily-co/daily-js": "^0.16.0",
     "@heroicons/react": "^1.0.4",
     "@hookform/resolvers": "^2.8.1",
     "@jitsu/sdk-js": "^2.2.4",
@@ -84,6 +85,7 @@
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
     "react-use-intercom": "1.4.0",
+    "react-router-dom": "^5.2.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.168.0",
     "superjson": "1.7.5",
