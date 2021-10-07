@@ -376,13 +376,13 @@ const CreateNewEventDialog = ({
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          {t("new-event-type-btn")}
+          {t("new_event_type_btn")}
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>{t("new-event-type-btn")}</Button>
+            <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>

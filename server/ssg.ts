@@ -8,7 +8,6 @@ export const ssg = createSSGHelpers({
   router: appRouter,
   ctx: {
     prisma,
-    localeProp: null,
     session: null,
     user: null,
   },

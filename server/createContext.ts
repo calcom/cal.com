@@ -6,8 +6,6 @@ import * as trpcNext from "@trpc/server/adapters/next";
 import { getSession, Session } from "@lib/auth";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 async function getUserFromSession(session: Maybe<Session>) {
   if (!session?.user?.id) {
@@ -59,14 +57,11 @@ async function getUserFromSession(session: Maybe<Session>) {
 export const createContext = async ({ req, res }: trpcNext.CreateNextContextOptions) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
-  const locale = await getOrSetUserLocaleFromHeaders(req);
 
   return {
-    localeProp: locale,
     prisma,
     session,
-    user: await getUserFromSession(session),
-    ...(await serverSideTranslations(locale, ["common"])),
+    user: await getUserFromSession(session)
   };
 };
 
