@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 
-import { CalendarEvent, Person } from "@lib/calendarClient";
+import { CalendarEvent } from "@lib/calendarClient";
 import EventOrganizerRefundFailedMail from "@lib/emails/EventOrganizerRefundFailedMail";
 import EventPaymentMail from "@lib/emails/EventPaymentMail";
 import prisma from "@lib/prisma";
@@ -35,19 +35,14 @@ export async function handlePayment(
   },
   stripeCredential: { key: JsonValue },
   booking: {
-    user: { email: string; name: string; timeZone: string };
+    user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
-    title: string;
-    description: string;
     startTime: { toISOString: () => string };
-    endTime: { toISOString: () => string };
-    attendees: Person[];
-    location?: string;
     uid: string;
   }
 ) {
   const paymentFee = Math.round(
-    selectedEventType.price * parseFloat(paymentFeePercentage || "0") + parseInt(paymentFeeFixed || "0")
+    selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}`)
   );
   const { stripe_user_id, stripe_publishable_key } = stripeCredential.key as Stripe.OAuthToken;
 
@@ -79,7 +74,11 @@ export async function handlePayment(
   });
 
   const mail = new EventPaymentMail(
-    createPaymentLink(payment.uid, booking.user.name, booking.startTime.toISOString()),
+    createPaymentLink({
+      paymentUid: payment.uid,
+      name: booking.user?.name,
+      date: booking.startTime.toISOString(),
+    }),
     evt,
     booking.uid
   );
