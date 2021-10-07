@@ -97,7 +97,7 @@ export const viewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       const { credentials } = user;
-      const allIntegrations = getIntegrations(credentials);
+      const integrations = getIntegrations(credentials);
 
       const calendars: IntegrationCalendar[] = await listCalendars(user.credentials);
       const selectableCalendars = calendars.map((cal) => {
@@ -106,24 +106,31 @@ export const viewerRouter = createProtectedRouter()
           ...cal,
         };
       });
-      const integrations = allIntegrations.map((integration) => ({
-        ...integration,
-        calendars:
-          integration.variant === "calendar"
-            ? selectableCalendars.filter((cal) => cal.integration === integration.type)
-            : null,
-      }));
-
+      function countActive(items: { credential?: unknown }[]) {
+        return items.reduce((acc, item) => acc + (item.credential ? 1 : 0), 0);
+      }
+      const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
+      const calendar = integrations
+        .flatMap((item) => (item.variant === "calendar" ? [item] : []))
+        .map((item) => ({
+          ...item,
+          calendars: selectableCalendars.filter((cal) => cal.integration === item.type),
+        }));
+      const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
       return {
         integrations,
-        conferencing: integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : [])),
-        calendar: integrations
-          .flatMap((item) => (item.variant === "calendar" ? [item] : []))
-          .map((item) => ({
-            ...item,
-            calendars: selectableCalendars.filter((cal) => cal.integration === item.type),
-          })),
-        payment: integrations.flatMap((item) => (item.variant === "payment" ? [item] : [])),
+        conferencing: {
+          items: conferencing,
+          numActive: countActive(conferencing),
+        },
+        calendar: {
+          items: calendar,
+          numActive: countActive(calendar),
+        },
+        payment: {
+          items: payment,
+          numActive: countActive(payment),
+        },
       };
     },
   })

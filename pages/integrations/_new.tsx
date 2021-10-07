@@ -48,7 +48,7 @@ export default function IntegrationsPage() {
                 title={
                   <SubHeadingTitleWithConnections
                     title="Conferencing"
-                    numConnections={data.conferencing.length}
+                    numConnections={data.conferencing.numActive}
                   />
                 }
                 subtitle={
@@ -60,7 +60,7 @@ export default function IntegrationsPage() {
                 }
               />
               <List>
-                {data.conferencing.map((item) => (
+                {data.conferencing.items.map((item) => (
                   <ListItem key={item.title} className="p-4 space-x-4">
                     <div className="flex-shrink-0">
                       <img className="h-10 w-10 mr-2" src={`/${item.imageSrc}`} alt={item.title} />
@@ -78,11 +78,11 @@ export default function IntegrationsPage() {
               <ShellSubHeading
                 className="mt-6"
                 title={
-                  <SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.length} />
+                  <SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />
                 }
               />
               <List>
-                {data.payment.map((item) => (
+                {data.payment.items.map((item) => (
                   <ListItem key={item.title} className="p-4 space-x-4">
                     <div className="flex-shrink-0">
                       <img className="h-10 w-10 mr-2" src={`/${item.imageSrc}`} alt={item.title} />
@@ -99,7 +99,10 @@ export default function IntegrationsPage() {
               <ShellSubHeading
                 className="mt-6"
                 title={
-                  <SubHeadingTitleWithConnections title="Calendars" numConnections={data.calendar.length} />
+                  <SubHeadingTitleWithConnections
+                    title="Calendars"
+                    numConnections={data.calendar.numActive}
+                  />
                 }
                 subtitle={
                   <>
