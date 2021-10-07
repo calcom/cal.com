@@ -21,7 +21,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
-import React, { ComponentProps, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
 import Select, { OptionTypeBase } from "react-select";
@@ -52,7 +52,6 @@ import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import CustomInputTypeDialog from "@components/eventtype/CustomInputTypeDialog";
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -273,27 +272,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return <p className="text-sm">Cal will provide a Zoom meeting URL.</p>;
     }
     return null;
-  };
-
-  const updateCustom: ComponentProps<typeof CustomInputTypeDialog>["onSubmit"] = (data) => {
-    const customInput: EventTypeCustomInput = {
-      id: -1,
-      eventTypeId: -1,
-      label: data.label,
-      placeholder: data.placeholder,
-      required: data.required,
-      type: data.type,
-    };
-
-    if (selectedCustomInput) {
-      selectedCustomInput.label = customInput.label;
-      selectedCustomInput.placeholder = customInput.placeholder;
-      selectedCustomInput.required = customInput.required;
-      selectedCustomInput.type = customInput.type;
-    } else {
-      setCustomInputs(customInputs.concat(customInput));
-    }
-    setSelectedCustomInputModalOpen(false);
   };
 
   const removeCustom = (index: number) => {
@@ -1039,7 +1017,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <CustomInputTypeForm
                 selectedCustomInput={selectedCustomInput}
                 onSubmit={(values) => {
-                  updateCustom(values);
+                  const customInput: EventTypeCustomInput = {
+                    id: -1,
+                    eventTypeId: -1,
+                    label: values.label,
+                    placeholder: values.placeholder,
+                    required: values.required,
+                    type: values.type,
+                  };
+
+                  if (selectedCustomInput) {
+                    selectedCustomInput.label = customInput.label;
+                    selectedCustomInput.placeholder = customInput.placeholder;
+                    selectedCustomInput.required = customInput.required;
+                    selectedCustomInput.type = customInput.type;
+                  } else {
+                    setCustomInputs(customInputs.concat(customInput));
+                  }
                   setSelectedCustomInputModalOpen(false);
                 }}
                 onCancel={() => {
