@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -34,6 +35,95 @@ function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnection
       ) : null}
     </>
   );
+}
+
+function ConnectIntegration(props: {
+  /**
+   * @example apple_calendar
+   */
+  type: string;
+  render: (renderProps: {
+    //
+    onClick: () => void;
+    loading: boolean;
+  }) => JSX.Element;
+}) {
+  const { type } = props;
+  const utils = trpc.useContext();
+  const [isLoading, setIsLoading] = useState(false);
+  const mutation = useMutation(
+    async () => {
+      const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
+      if (!res.ok) {
+        throw new Error("Something went wrong");
+      }
+      const json = await res.json();
+      window.location.href = json.url;
+      setIsLoading(true);
+    },
+    {
+      async onSettled() {
+        await utils.invalidateQuery(["viewer.integrations"]);
+      },
+    }
+  );
+  return props.render({
+    onClick() {
+      if (type === "caldav_calendar") {
+        // setAddCalDavError(null);
+        // setIsAddCalDavIntegrationDialogOpen(true);
+        return;
+      }
+
+      if (type === "apple_calendar") {
+        // setAddAppleError(null);
+        // setIsAddAppleIntegrationDialogOpen(true);
+        return;
+      }
+
+      mutation.mutate();
+    },
+    loading: mutation.isLoading || isLoading,
+  });
+}
+
+function DisconnectIntegration(props: {
+  /**
+   * Integration credential id
+   */
+  id: number;
+  render: (renderProps: {
+    //
+    onClick: () => void;
+    loading: boolean;
+  }) => JSX.Element;
+}) {
+  const utils = trpc.useContext();
+  const mutation = useMutation(
+    async () => {
+      const res = await fetch("/api/integrations", {
+        method: "DELETE",
+        body: JSON.stringify({ id: props.id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Something went wrong");
+      }
+    },
+    {
+      async onSettled() {
+        await utils.invalidateQuery(["viewer.integrations"]);
+      },
+    }
+  );
+  return props.render({
+    onClick() {
+      mutation.mutate();
+    },
+    loading: mutation.isLoading,
+  });
 }
 
 function IntegrationListItem(props: {
@@ -130,11 +220,28 @@ export default function IntegrationsPage() {
               <List>
                 {data.calendar.items.map((item) =>
                   item.credential ? (
-                    <IntegrationListItem key={item.title} {...item} actions={<Button>Disconnect</Button>}>
+                    <IntegrationListItem
+                      key={item.title}
+                      {...item}
+                      actions={
+                        <DisconnectIntegration
+                          id={item.credential.id}
+                          render={(btnProps) => <Button {...btnProps}>Disconnect</Button>}
+                        />
+                      }>
                       hello
                     </IntegrationListItem>
                   ) : (
-                    <IntegrationListItem key={item.title} {...item} actions={<Button>Connect</Button>} />
+                    <IntegrationListItem
+                      key={item.title}
+                      {...item}
+                      actions={
+                        <ConnectIntegration
+                          type={item.type}
+                          render={(btnProps) => <Button {...btnProps}>Connect</Button>}
+                        />
+                      }
+                    />
                   )
                 )}
               </List>
