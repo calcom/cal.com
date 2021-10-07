@@ -1,4 +1,3 @@
-import type { AppRouter } from "@server/routers/_app";
 import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
 import { loggerLink } from "@trpc/client/links/loggerLink";
 import { withTRPC } from "@trpc/next";
@@ -7,9 +6,12 @@ import { Maybe } from "@trpc/server";
 import { appWithTranslation } from "next-i18next";
 import { DefaultSeo } from "next-seo";
 import type { AppProps as NextAppProps } from "next/app";
+import superjson from "superjson";
 
 import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
+
+import type { AppRouter } from "@server/routers/_app";
 
 import "../styles/globals.css";
 
@@ -77,6 +79,10 @@ export default withTRPC<AppRouter>({
           },
         },
       },
+      /**
+       * @link https://trpc.io/docs/data-transformers
+       */
+      transformer: superjson,
     };
   },
   /**

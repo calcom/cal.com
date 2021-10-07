@@ -2,20 +2,31 @@ import nodemailer from "nodemailer";
 
 import { serverConfig } from "../serverConfig";
 
-export default function createInvitationEmail(data: any, options: any = {}) {
-  return sendEmail(data, {
-    provider: {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
-    },
-    ...options,
-  });
+export type Invitation = {
+  from?: string;
+  toEmail: string;
+  teamName: string;
+  token?: string;
+};
+
+type EmailProvider = {
+  from: string;
+  transport: any;
+};
+
+export function createInvitationEmail(data: Invitation) {
+  const provider = {
+    transport: serverConfig.transport,
+    from: serverConfig.from,
+  } as EmailProvider;
+  return sendEmail(data, provider);
 }
 
-const sendEmail = (invitation: any, { provider }) =>
+const sendEmail = (invitation: Invitation, provider: EmailProvider): Promise<void> =>
   new Promise((resolve, reject) => {
     const { transport, from } = provider;
 
+    const invitationHtml = html(invitation);
     nodemailer.createTransport(transport).sendMail(
       {
         from: `Cal.com <${from}>`,
@@ -23,8 +34,8 @@ const sendEmail = (invitation: any, { provider }) =>
         subject:
           (invitation.from ? invitation.from + " invited you" : "You have been invited") +
           ` to join ${invitation.teamName}`,
-        html: html(invitation),
-        text: text(invitation),
+        html: invitationHtml,
+        text: text(invitationHtml),
       },
       (error) => {
         if (error) {
@@ -36,7 +47,7 @@ const sendEmail = (invitation: any, { provider }) =>
     );
   });
 
-const html = (invitation: any) => {
+export function html(invitation: Invitation): string {
   let url: string = process.env.BASE_URL + "/settings/teams";
   if (invitation.token) {
     url = `${process.env.BASE_URL}/auth/signup?token=${invitation.token}&callbackUrl=${url}`;
@@ -82,10 +93,9 @@ const html = (invitation: any) => {
     </table>
   `
   );
-};
+}
 
 // just strip all HTML and convert <br /> to \n
-const text = (evt: any) =>
-  html(evt)
-    .replace("<br />", "\n")
-    .replace(/<[^>]+>/g, "");
+export function text(htmlStr: string): string {
+  return htmlStr.replace("<br />", "\n").replace(/<[^>]+>/g, "");
+}
