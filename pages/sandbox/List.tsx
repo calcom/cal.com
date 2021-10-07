@@ -1,26 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { List, ListItem } from "@components/List";
+import Button from "@components/ui/Button";
 
 import { sandboxPage } from ".";
 
-const page = sandboxPage(() => (
-  <div className="p-4">
-    Unstyled
-    <List>
-      <ListItem>An item</ListItem>
-      <ListItem href="#">A link</ListItem>
-      <ListItem>An item</ListItem>
-      <ListItem>An item</ListItem>
-      <ListItem href="#">A link</ListItem>
-    </List>
-    Spaced
-    <List className="space-y-8">
-      <ListItem className="p-4">Hello</ListItem>
-      <ListItem className="p-4">Hello</ListItem>
-    </List>
-  </div>
-));
+const page = sandboxPage(() => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="p-4">
+      Unstyled -{" "}
+      <Button size="sm" color="minimal" onClick={() => setExpanded((state) => !state)}>
+        Toggle expanded
+      </Button>
+      <List>
+        <ListItem expanded={expanded} className="transition-all">
+          An item
+        </ListItem>
+        <ListItem expanded={expanded} className="transition-all">
+          An item
+        </ListItem>
+        <ListItem expanded={expanded} className="transition-all">
+          An item
+        </ListItem>
+        <ListItem expanded={expanded} className="transition-all">
+          An item
+        </ListItem>
+      </List>
+      One expanded
+      <List>
+        <ListItem>An item</ListItem>
+        <ListItem className="my-4 border-t border-b">Spaced</ListItem>
+        <ListItem>An item</ListItem>
+        <ListItem>An item</ListItem>
+      </List>
+    </div>
+  );
+});
 
 export default page.default;
 export const getStaticProps = page.getStaticProps;

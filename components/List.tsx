@@ -5,9 +5,39 @@ import classNames from "@lib/classNames";
 
 export function List(props: JSX.IntrinsicElements["ul"]) {
   return (
-    <ul {...props} className={classNames("overflow-hidden rounded-sm sm:mx-0 divide", props.className)}>
+    <ul {...props} className={classNames("overflow-hidden rounded-sm sm:mx-0", props.className)}>
       {props.children}
     </ul>
+  );
+}
+
+export type ListItemProps = { expanded?: boolean } & ({ href?: never } & JSX.IntrinsicElements["li"]);
+
+export function ListItem(props: ListItemProps) {
+  const { href, expanded, ...passThroughProps } = props;
+
+  const elementType = href ? "a" : "li";
+
+  const element = createElement(
+    elementType,
+    {
+      ...passThroughProps,
+      className: classNames(
+        "items-center bg-white min-w-0 flex-1 flex border-gray-200",
+        expanded ? "my-2 border" : "border-l border-r border-b first:border-t",
+        props.className,
+        (props.onClick || href) && "hover:bg-neutral-50"
+      ),
+    },
+    props.children
+  );
+
+  return href ? (
+    <Link passHref href={href}>
+      {element}
+    </Link>
+  ) : (
+    element
   );
 }
 
@@ -23,37 +53,6 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
       className: classNames("text-sm font-medium text-neutral-900 truncate", props.className),
     },
     props.children
-  );
-}
-
-export type ListItemProps =
-  // | ({ href: LinkProps["href"] } & Omit<JSX.IntrinsicElements["a"], "href">)
-  { href?: never } & JSX.IntrinsicElements["li"];
-
-export function ListItem(props: ListItemProps) {
-  const { href, ...passThroughProps } = props;
-
-  const elementType = href ? "a" : "li";
-
-  const element = createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      className: classNames(
-        "items-center bg-white border border-gray-200 min-w-0 flex-1 flex",
-        props.className,
-        (props.onClick || href) && "hover:bg-neutral-50"
-      ),
-    },
-    props.children
-  );
-
-  return href ? (
-    <Link passHref href={href}>
-      {element}
-    </Link>
-  ) : (
-    element
   );
 }
 
