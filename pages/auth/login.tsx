@@ -3,6 +3,8 @@ import Head from "next/head";
 
 import { getSession } from "@lib/auth";
 
+import AddToHomescreen from "@components/AddToHomescreen";
+
 // const errorMessages: { [key: string]: string } = {
 //   [ErrorCode.SecondFactorRequired]:
 //     "Two-factor authentication enabled. Please enter the six-digit code from your authenticator app.",
@@ -161,6 +163,8 @@ export default function Login({ csrfToken }) {
           </Link>
         </div> */}
       </div>
+
+      <AddToHomescreen />
     </div>
   );
 }

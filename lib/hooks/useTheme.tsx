@@ -11,6 +11,8 @@ export default function useTheme(theme?: Maybe<string>) {
     }
     if (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches) {
       document.documentElement.classList.add("dark");
+    } else if (!theme) {
+      /** Uncovered case */
     } else {
       document.documentElement.classList.add(theme);
     }

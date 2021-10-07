@@ -364,14 +364,14 @@ const EventTypePage = (props: InferGetServerSidePropsType<typeof getServerSidePr
               name="title"
               id="title"
               required
-              className="pl-0 w-full text-xl font-bold focus:text-black text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
+              className="w-full pl-0 text-xl font-bold text-gray-500 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
               placeholder="Quick Chat"
               defaultValue={eventType.title}
             />
             {editIcon && (
               <PencilAltIcon
                 style={{ top: 14, left: `${eventType.title.length * 10 + 8}` }}
-                className="group-hover:text-gray-700 text-gray-500 absolute left-0 w-4 h-4 inline"
+                className="absolute left-0 inline w-4 h-4 text-gray-500 group-hover:text-gray-700"
               />
             )}
           </div>
@@ -1303,9 +1303,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const locationOptions: OptionTypeBase[] = [
     // { value: LocationType.InPerson, label: "Link or In-person meeting" },
     // { value: LocationType.Phone, label: "Phone call" },
-    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
+  if (hasIntegration(integrations, "zoom_video")) {
+    locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });
+  }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });

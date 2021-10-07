@@ -1,4 +1,4 @@
-import { Prisma, Credential } from "@prisma/client";
+import { Credential } from "@prisma/client";
 
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
@@ -110,10 +110,7 @@ const o365Auth = (credential) => {
   };
 };
 
-const userData = Prisma.validator<Prisma.UserArgs>()({
-  select: { name: true, email: true, timeZone: true },
-});
-export type Person = Prisma.UserGetPayload<typeof userData>;
+export type Person = { name: string; email: string; timeZone: string };
 
 export interface CalendarEvent {
   type: string;
