@@ -83,19 +83,6 @@ export function AddAppleIntegrationModal(props: DialogProps) {
 
           {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
           <DialogFooter>
-            {/* <div className="my-4">
-            {addCalDavError && (
-              <p className="text-red-700 text-sm">
-                <span className="font-bold">Error: </span>
-                {addCalDavError.message}
-              </p>
-            )}
-            <AddCalDavIntegration
-              ref={addCalDavIntegrationRef}
-              onSubmit={handleAddCalDavIntegrationSaveButtonPress}
-            />
-          </div> */}
-
             <DialogClose
               onClick={() => {
                 props.onOpenChange?.(false);
