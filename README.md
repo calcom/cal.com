@@ -82,8 +82,9 @@ Here is what you need to be able to run Cal.
 
 You will also need Google API credentials. You can get this from the [Google API Console](https://console.cloud.google.com/apis/dashboard). More details on this can be found below under the [Obtaining the Google API Credentials section](#Obtaining-the-Google-API-Credentials).
 
-### Development Setup
+## Development
 
+### Setup
 #### Quick start with `yarn dx`
 
 > - **Requires Docker to be installed**
@@ -157,6 +158,15 @@ yarn dx
 9. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
+
+#### E2E-Testing
+
+```bash
+# In first terminal
+yarn dev 
+# In second terminal
+yarn test-playwright
+```
 
 ### Upgrading from earlier versions
 
