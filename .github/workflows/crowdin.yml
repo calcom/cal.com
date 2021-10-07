@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      # Testing
-      - feat/i18n-crowdin
 
 jobs:
   synchronize-with-crowdin:
