@@ -22,6 +22,13 @@ import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
+export interface DailyReturnType {
+  name: string;
+  url: string;
+  id: string;
+  created_at: string;
+}
+
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -249,7 +256,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  const seed = `${users[0].username}:${dayjs(reqBody.start).utc().format()}`;
+  const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const evt: CalendarEvent = {
@@ -353,8 +360,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedCalendars
       );
 
-      const videoBusyTimes = await getBusyVideoTimes(credentials);
+      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter((time) => time);
       calendarBusyTimes.push(...videoBusyTimes);
+      console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
       const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
         start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
@@ -443,6 +451,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.username} failed`, error, results);
     }
+  }
+
+  //for Daily.co video calls will grab the meeting token for the call
+  const isDaily = evt.location === "integrations:daily";
+
+  let dailyEvent: DailyReturnType;
+
+  if (!rescheduleUid) {
+    dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent as DailyReturnType;
+  } else {
+    dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent as DailyReturnType;
+  }
+
+  let meetingToken;
+  if (isDaily) {
+    const response = await fetch("https://api.daily.co/v1/meeting-tokens", {
+      method: "POST",
+      body: JSON.stringify({ properties: { room_name: dailyEvent.name, is_owner: true } }),
+      headers: {
+        Authorization: "Bearer " + process.env.DAILY_API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
+    meetingToken = await response.json();
+  }
+
+  //for Daily.co video calls will update the dailyEventReference table
+
+  if (isDaily) {
+    await prisma.dailyEventReference.create({
+      data: {
+        dailyurl: dailyEvent.url,
+        dailytoken: meetingToken.token,
+        booking: {
+          connect: {
+            uid: booking.uid,
+          },
+        },
+      },
+    });
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {

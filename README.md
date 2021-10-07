@@ -283,6 +283,13 @@ Contributions are what make the open source community such an amazing place to b
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
+## Obtaining Daily API Credentials
+
+ 1. Open [Daily](https://www.daily.co/) and sign into your account.
+ 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
+ 3. Copy your API key.
+ 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+
 <!-- LICENSE -->
 
 ## License
