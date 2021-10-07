@@ -121,7 +121,7 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
  * @deprecated
  */
 const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, ref) => {
-  const onSubmit = (event) => {
+  const onSubmit = (event: any) => {
     event.preventDefault();
     event.stopPropagation();
 

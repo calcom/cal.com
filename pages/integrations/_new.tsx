@@ -60,13 +60,13 @@ function ConnectIntegration(props: {
     window.location.href = json.url;
     setIsLoading(true);
   });
-  const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
       {props.render({
         onClick() {
           if (type === "caldav_calendar") {
-            setIsAddCalDavIntegrationDialogOpen(true);
+            setIsModalOpen(true);
             return;
           }
 
@@ -79,12 +79,10 @@ function ConnectIntegration(props: {
           mutation.mutate();
         },
         loading: mutation.isLoading || isLoading,
+        disabled: isModalOpen,
       })}
       {type === "caldav_calendar" && (
-        <AddCalDavIntegrationModal
-          open={isAddCalDavIntegrationDialogOpen}
-          onOpenChange={setIsAddCalDavIntegrationDialogOpen}
-        />
+        <AddCalDavIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
       )}
     </>
   );
