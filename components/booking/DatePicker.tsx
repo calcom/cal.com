@@ -140,7 +140,7 @@ const DatePicker = ({
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">
             {t(inviteeDate().format("MMMM").toLowerCase())}
-          </strong>
+          </strong>{" "}
           <span className="text-gray-500">{inviteeDate().format("YYYY")}</span>
         </span>
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
@@ -158,11 +158,11 @@ const DatePicker = ({
         </div>
       </div>
       <div className="grid grid-cols-7 gap-4 text-center border-b border-t dark:border-gray-800 sm:border-0">
-        {[t("monday"), t("tuesday"), t("wednesday"), t("thursday"), t("friday"), t("saturday"), t("sunday")]
+        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
             <div key={weekDay} className="uppercase text-gray-500 text-xs tracking-widest my-4">
-              {weekDay.substring(0, 3)}
+              {t(weekDay.toLowerCase()).substring(0, 3)}
             </div>
           ))}
       </div>
