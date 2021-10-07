@@ -65,6 +65,7 @@ export const localeLabels: localeType = {
   de: "German",
   pt: "Portuguese",
   ro: "Romanian",
+  nl: "Dutch",
 };
 
 export type OptionType = {
