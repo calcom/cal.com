@@ -1,5 +1,4 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { ssg } from "@server/ssg";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
 import Link from "next/link";
 import React from "react";
@@ -12,6 +11,8 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
+
+import { ssg } from "@server/ssg";
 
 export default function User(props: inferSSRProps<typeof getStaticProps>) {
   const { username } = props;
