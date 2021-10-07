@@ -11,6 +11,11 @@
 
 # testing
 /coverage
+.nyc_output
+cypress/videos
+cypress/screenshots
+playwright/videos
+playwright/screenshots
 
 # next.js
 /.next/
@@ -51,6 +56,3 @@ yarn-error.log*
 # Local History for Visual Studio Code
 .history/
 
-
-cypress/videos
-cypress/screenshots

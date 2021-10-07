@@ -19,6 +19,8 @@ import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
+import sendPayload from "@lib/webhooks/sendPayload";
+import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
@@ -239,8 +241,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamMembers =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map((user) => ({
-          email: user.email,
-          name: user.name,
+          email: user.email || "",
+          name: user.name || "",
           timeZone: user.timeZone,
         }))
       : [];
@@ -257,8 +259,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
-      name: users[0].name,
-      email: users[0].email,
+      name: users[0].name || "Nameless",
+      email: users[0].email || "Email-less",
       timeZone: users[0].timeZone,
     },
     attendees: attendeesList,
@@ -328,6 +330,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let referencesToCreate: PartialReference[] = [];
   type User = Prisma.UserGetPayload<typeof userData>;
   let user: User | null = null;
+
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);
@@ -404,6 +407,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
   }
+
+  if (!user) throw Error("Can't continue, user not found.");
+
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const eventManager = new EventManager(await refreshCredentials(user.credentials));
 
@@ -446,11 +452,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof eventType.price === "number" && eventType.price > 0) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      /* @ts-ignore https://github.com/prisma/prisma/issues/9389 */
       if (!booking.user) booking.user = user;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      /* @ts-ignore https://github.com/prisma/prisma/issues/9389 */
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
       res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment.uid });
@@ -463,6 +465,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   log.debug(`Booking ${user.username} completed`);
+
+  const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+  const subscriberUrls = await getSubscriberUrls(user.id, eventTrigger);
+  const promises = subscriberUrls.map((url) =>
+    sendPayload(eventTrigger, new Date().toISOString(), url, evt).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${url}`, e);
+    })
+  );
+  await Promise.all(promises);
 
   await prisma.booking.update({
     where: {
