@@ -1,15 +1,15 @@
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import React from "react";
 
 import { getSession } from "@lib/auth";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
-import { useLocale } from '@lib/hooks/useLocale';
-import { getOrSetUserLocaleFromHeaders } from '@lib/core/i18n/i18n.utils';
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function Security({ user, localeProp }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

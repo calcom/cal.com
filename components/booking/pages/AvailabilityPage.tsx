@@ -34,7 +34,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
-  const { t, locale } = useLocale({ localeProp })
+  const { t, locale } = useLocale({ localeProp });
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);

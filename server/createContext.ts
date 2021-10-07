@@ -61,7 +61,7 @@ export const createContext = async ({ req, res }: trpcNext.CreateNextContextOpti
   return {
     prisma,
     session,
-    user: await getUserFromSession(session)
+    user: await getUserFromSession(session),
   };
 };
 

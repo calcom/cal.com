@@ -1,10 +1,9 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { Prisma } from "@prisma/client";
+import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
-import { GetServerSidePropsContext } from "next";
 
 import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -12,6 +11,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
