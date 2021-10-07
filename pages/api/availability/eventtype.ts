@@ -1,10 +1,50 @@
+import { EventTypeCustomInput, Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
+function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
+  if (!customInputs || customInputs?.length) return undefined;
+  const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
+  const cInputsToCreate = customInputs
+    .filter((input) => input.id < 0)
+    .map((input) => ({
+      type: input.type,
+      label: input.label,
+      required: input.required,
+      placeholder: input.placeholder,
+    }));
+  const cInputsToUpdate = customInputs
+    .filter((input) => input.id > 0)
+    .map((input) => ({
+      data: {
+        type: input.type,
+        label: input.label,
+        required: input.required,
+        placeholder: input.placeholder,
+      },
+      where: {
+        id: input.id,
+      },
+    }));
+
+  return {
+    deleteMany: {
+      eventTypeId,
+      NOT: {
+        id: { in: cInputsIdsToDelete },
+      },
+    },
+    createMany: {
+      data: cInputsToCreate,
+    },
+    update: cInputsToUpdate,
+  };
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req: req });
+  const session = await getSession({ req });
 
   if (!session) {
     res.status(401).json({ message: "Not authenticated" });
@@ -41,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method == "PATCH" || req.method == "POST") {
-    const data = {
+    const data: Prisma.EventTypeUpdateInput = {
       title: req.body.title,
       slug: req.body.slug.trim(),
       description: req.body.description,
@@ -51,39 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       disableGuests: req.body.disableGuests,
       locations: req.body.locations,
       eventName: req.body.eventName,
-      customInputs: !req.body.customInputs
-        ? undefined
-        : {
-            deleteMany: {
-              eventTypeId: req.body.id,
-              NOT: {
-                id: { in: req.body.customInputs.filter((input) => !!input.id).map((e) => e.id) },
-              },
-            },
-            createMany: {
-              data: req.body.customInputs
-                .filter((input) => !input.id)
-                .map((input) => ({
-                  type: input.type,
-                  label: input.label,
-                  required: input.required,
-                  placeholder: input.placeholder,
-                })),
-            },
-            update: req.body.customInputs
-              .filter((input) => !!input.id)
-              .map((input) => ({
-                data: {
-                  type: input.type,
-                  label: input.label,
-                  required: input.required,
-                  placeholder: input.placeholder,
-                },
-                where: {
-                  id: input.id,
-                },
-              })),
-          },
+      customInputs: handleCustomInputs(req.body.customInputs as EventTypeCustomInput[], req.body.id),
       periodType: req.body.periodType,
       periodDays: req.body.periodDays,
       periodStartDate: req.body.periodStartDate,
