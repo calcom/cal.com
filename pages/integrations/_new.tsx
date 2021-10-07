@@ -49,24 +49,16 @@ function ConnectIntegration(props: {
   }) => JSX.Element;
 }) {
   const { type } = props;
-  const utils = trpc.useContext();
   const [isLoading, setIsLoading] = useState(false);
-  const mutation = useMutation(
-    async () => {
-      const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
-      if (!res.ok) {
-        throw new Error("Something went wrong");
-      }
-      const json = await res.json();
-      window.location.href = json.url;
-      setIsLoading(true);
-    },
-    {
-      async onSettled() {
-        await utils.invalidateQuery(["viewer.integrations"]);
-      },
+  const mutation = useMutation(async () => {
+    const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
+    if (!res.ok) {
+      throw new Error("Something went wrong");
     }
-  );
+    const json = await res.json();
+    window.location.href = json.url;
+    setIsLoading(true);
+  });
   return props.render({
     onClick() {
       if (type === "caldav_calendar") {
