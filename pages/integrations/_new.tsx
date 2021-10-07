@@ -11,7 +11,7 @@ import { trpc } from "@lib/trpc";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import Badge from "@components/ui/Badge";
-import Button, { ButtonB, ButtonBasePropsaseProps } from "@components/ui/Button";
+import Button, { ButtonBaseProps } from "@components/ui/Button";
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
