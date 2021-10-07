@@ -159,11 +159,11 @@ yarn dx
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
 
-#### E2E-Testing
+### E2E-Testing
 
 ```bash
 # In first terminal
-yarn dev 
+yarn dx
 # In second terminal
 yarn test-playwright
 ```
@@ -282,6 +282,13 @@ Contributions are what make the open source community such an amazing place to b
 11. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
+
+## Obtaining Daily API Credentials
+
+ 1. Open [Daily](https://www.daily.co/) and sign into your account.
+ 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
+ 3. Copy your API key.
+ 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 
 <!-- LICENSE -->
 
