@@ -56,12 +56,7 @@ function useRedirectToLoginIfUnauthenticated() {
   }, [loading, session, router]);
 }
 
-export function ShellHeading(props: {
-  heading: ReactNode;
-  subtitle: ReactNode;
-  CTA?: ReactNode;
-  className?: string;
-}) {
+function ShellHeading(props: { title: ReactNode; subtitle: ReactNode; CTA?: ReactNode; className?: string }) {
   return (
     <div
       className={classNames(
@@ -69,15 +64,32 @@ export function ShellHeading(props: {
         props.className
       )}>
       <div className="mb-8">
-        <h1 className="font-cal text-xl font-bold text-gray-900">{props.heading}</h1>
+        <h1 className="font-cal text-xl font-bold text-gray-900">{props.title}</h1>
         <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
       </div>
       {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
     </div>
   );
 }
-export function ShellContent(props: { children: ReactNode }) {
-  return <div className="px-4 sm:px-6 md:px-8">{props.children}</div>;
+
+export function ShellSubHeading(props: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
+      <div>
+        {/* TODO should be Roboto */}
+        <h1 className="textl-lg font-bold text-gray-900 flex items-center content-center space-x-2">
+          {props.title}
+        </h1>
+        {props.subtitle && <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>}
+      </div>
+      {props.actions && <div className="mb-4 flex-shrink-0">{props.actions}</div>}
+    </div>
+  );
 }
 
 export default function Shell(props: {
@@ -86,11 +98,6 @@ export default function Shell(props: {
   subtitle: string;
   children: ReactNode;
   CTA?: ReactNode;
-  /**
-   * Temporary property to remove content wrapper (`<ShellContent />`)
-   * Should be the default and be removed
-   */
-  skipWrapper?: true;
 }) {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -226,9 +233,8 @@ export default function Shell(props: {
               </div>
             </nav>
             <div className="py-8">
-              <ShellHeading heading={props.heading} subtitle={props.subtitle} CTA={props.CTA} />
-              {props.skipWrapper ? props.children : <ShellContent>{props.children}</ShellContent>}
-
+              <ShellHeading title={props.heading} subtitle={props.subtitle} CTA={props.CTA} />
+              <div className="px-4 sm:px-6 md:px-8">{props.children}</div>;
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
@@ -258,7 +264,6 @@ export default function Shell(props: {
                   )
                 )}
               </nav>
-
               {/* add padding to content for mobile navigation*/}
               <div className="block md:hidden pt-12" />
             </div>

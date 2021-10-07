@@ -97,7 +97,7 @@ export const viewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       const { credentials } = user;
-      const integrations = getIntegrations(credentials);
+      const allIntegrations = getIntegrations(credentials);
 
       const calendars: IntegrationCalendar[] = await listCalendars(user.credentials);
       const selectableCalendars = calendars.map((cal) => {
@@ -106,15 +106,24 @@ export const viewerRouter = createProtectedRouter()
           ...cal,
         };
       });
+      const integrations = allIntegrations.map((integration) => ({
+        ...integration,
+        calendars:
+          integration.variant === "calendar"
+            ? selectableCalendars.filter((cal) => cal.integration === integration.type)
+            : null,
+      }));
 
       return {
-        integrations: integrations.map((integration) => ({
-          ...integration,
-          calendars:
-            integration.variant === "calendar"
-              ? selectableCalendars.filter((cal) => cal.integration === integration.type)
-              : null,
-        })),
+        integrations,
+        conferencing: integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : [])),
+        calendar: integrations
+          .flatMap((item) => (item.variant === "calendar" ? [item] : []))
+          .map((item) => ({
+            ...item,
+            calendars: selectableCalendars.filter((cal) => cal.integration === item.type),
+          })),
+        payment: integrations.flatMap((item) => (item.variant === "payment" ? [item] : [])),
       };
     },
   })
