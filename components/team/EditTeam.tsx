@@ -209,14 +209,14 @@ export default function EditTeam(props: {
                       id="avatar"
                       placeholder="URL"
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                      defaultValue={imageSrc ? imageSrc : props.team?.logo}
+                      defaultValue={imageSrc ?? props.team?.logo}
                     />
                     <ImageUploader
                       target="logo"
                       id="logo-upload"
                       buttonMsg={imageSrc !== "" ? t("edit_logo") : t("upload_a_logo")}
                       handleAvatarChange={handleLogoChange}
-                      imageRef={imageSrc ? imageSrc : props.team?.logo}
+                      imageSrc={imageSrc ?? props.team?.logo}
                     />
                   </div>
                   <hr className="mt-6" />

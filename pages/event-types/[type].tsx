@@ -8,6 +8,7 @@ import {
   ExternalLinkIcon,
   LinkIcon,
   LocationMarkerIcon,
+  PencilAltIcon,
   PlusIcon,
   TrashIcon,
   UserAddIcon,
@@ -117,6 +118,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   });
 
   const [users, setUsers] = useState<AdvancedOptions["users"]>([]);
+
+  const [editIcon, setEditIcon] = useState(true);
+
   const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showAddCustomModal, setShowAddCustomModal] = useState(false);
@@ -167,8 +171,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
       // prettier-ignore
       advancedPayload.price =
-        !requirePayment ? undefined                                                     :
-        formData.price  ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
+        !requirePayment ? undefined :
+          formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
         /* otherwise */   0;
       advancedPayload.currency = currency;
     }
@@ -360,16 +364,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       <Shell
         title={`${eventType.title} | Event Type`}
         heading={
-          <input
-            ref={titleRef}
-            type="text"
-            name="title"
-            id="title"
-            required
-            className="pl-0 w-full text-xl font-bold focus:text-black text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
-            placeholder="Quick Chat"
-            defaultValue={eventType.title}
-          />
+          <div className="relative group" onClick={() => setEditIcon(false)}>
+            <input
+              ref={titleRef}
+              type="text"
+              name="title"
+              id="title"
+              required
+              className="pl-0 w-full text-xl font-bold focus:text-black text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer focus:ring-0 focus:outline-none"
+              placeholder="Quick Chat"
+              defaultValue={eventType.title}
+            />
+            {editIcon && (
+              <PencilAltIcon
+                style={{ top: 14, left: `${eventType.title.length * 10 + 8}` }}
+                className="group-hover:text-gray-700 text-gray-500 absolute left-0 w-4 h-4 inline"
+              />
+            )}
+          </div>
         }
         subtitle={eventType.description || ""}>
         <div className="block sm:flex">
@@ -387,7 +399,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="w-full">
                       <div className="flex rounded-sm shadow-sm">
                         <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
-                          {typeof location !== "undefined" ? location.hostname : ""}/
+                          {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
@@ -1268,9 +1280,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
-    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
+  if (hasIntegration(integrations, "zoom_video")) {
+    locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });
+  }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
