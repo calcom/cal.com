@@ -103,50 +103,9 @@ export const viewerRouter = createProtectedRouter()
       function countActive(items: { credentials: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentials.length, 0);
       }
-      async function fetchCalendars() {
-        const results = await Promise.allSettled(
-          integrations
-            .flatMap((item) => (item.variant === "calendar" ? [item] : []))
-            .map(async (item) => {
-              if (!item.credential) {
-                return {
-                  ...item,
-                  selectable: null,
-                };
-              }
-              const adapter = getCalendarAdapterOrNull({
-                ...item.credential,
-                userId: user.id,
-              });
-
-              const selectable = (await adapter.listCalendars()).map((item) => ({
-                ...item,
-                selected: !!user.selectedCalendars.find((cal) => cal.externalId === item.externalId),
-              }));
-
-              const primary = selectable.find((cal) => cal.primary);
-              if (!primary) {
-                return {
-                  ...item,
-                  selectable: null,
-                };
-              }
-              return {
-                ...item,
-                selectable: {
-                  primary,
-                  items: selectable,
-                },
-              };
-            })
-        );
-        // FIXME do something with the rejected promises?
-
-        return results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
-      }
       const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const calendar = await fetchCalendars();
+      const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
       // get user's credentials + their connected integrations
       const calendarCredentials = user.credentials
