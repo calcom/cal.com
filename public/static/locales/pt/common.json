@@ -1,4 +1,6 @@
 {
+  "uh_oh": "Uh oh!",
+  "no_event_types_have_been_setup": "Este utilizador ainda não configurou nenhum tipo de evento.",
   "edit_logo": "Editar Logo",
   "upload_a_logo": "Carregar Logo",
   "enable": "Ativar",
