@@ -158,10 +158,12 @@ function ConnectOrDisconnectIntegrationButton(props: {
   type: string;
 }) {
   if (props.credential) {
-    <DisconnectIntegration
-      id={props.credential.id}
-      render={(btnProps) => <Button {...btnProps}>Connect</Button>}
-    />;
+    return (
+      <DisconnectIntegration
+        id={props.credential.id}
+        render={(btnProps) => <Button {...btnProps}>Disconnect</Button>}
+      />
+    );
   }
   return (
     <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
@@ -342,22 +344,15 @@ export default function IntegrationsPage() {
                 </List>
               )}
               <List>
-                {data.calendar.items.map((item) => (
-                  <IntegrationListItem
-                    key={item.title}
-                    {...item}
-                    actions={
-                      <ConnectIntegration
-                        type={item.type}
-                        render={(btnProps) => (
-                          <Button {...btnProps}>
-                            {item.selectable?.items.length ? "Connect another" : "Connect"}
-                          </Button>
-                        )}
-                      />
-                    }
-                  />
-                ))}
+                {data.calendar.items
+                  .filter((item) => !item.credential)
+                  .map((item) => (
+                    <IntegrationListItem
+                      key={item.title}
+                      {...item}
+                      actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+                    />
+                  ))}
               </List>
             </>
           );
