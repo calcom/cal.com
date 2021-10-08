@@ -138,7 +138,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const titleRef = useRef<HTMLInputElement>(null);
   const eventNameRef = useRef<HTMLInputElement>(null);
-  const isAdvancedSettingsVisible = !!eventNameRef.current;
+  const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || "");
@@ -152,7 +152,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     const enteredTitle: string = titleRef.current!.value;
 
     const advancedPayload: AdvancedOptions = {};
-    if (isAdvancedSettingsVisible) {
+    if (advancedSettingsVisible) {
       advancedPayload.eventName = eventNameRef.current.value;
       advancedPayload.periodType = periodType?.type;
       advancedPayload.periodDays = asNumberOrUndefined(formData.periodDays);
@@ -168,6 +168,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
         /* otherwise */   0;
       advancedPayload.currency = currency;
+      advancedPayload.availability = enteredAvailability || undefined;
+      advancedPayload.customInputs = customInputs;
+      advancedPayload.timeZone = selectedTimeZone;
+      advancedPayload.hidden = hidden;
+      advancedPayload.disableGuests = formData.disableGuests === "on";
+      advancedPayload.requiresConfirmation = formData.requiresConfirmation === "on";
     }
 
     const payload: EventTypeInput = {
@@ -176,13 +182,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       slug: asStringOrThrow(formData.slug),
       description: asStringOrThrow(formData.description),
       length: asNumberOrThrow(formData.length),
-      requiresConfirmation: formData.requiresConfirmation === "on",
-      disableGuests: formData.disableGuests === "on",
-      hidden,
       locations,
-      customInputs,
-      timeZone: selectedTimeZone,
-      availability: enteredAvailability || undefined,
       ...advancedPayload,
       ...(team
         ? {
@@ -623,12 +623,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <Disclosure>
                   {({ open }) => (
                     <>
-                      <Disclosure.Button className="flex w-full">
-                        <ChevronRightIcon
-                          className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-neutral-500 ml-auto`}
-                        />
-                        <span className="text-sm font-medium text-neutral-700">Show advanced settings</span>
-                      </Disclosure.Button>
+                      <div onClick={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
+                        <Disclosure.Button className="flex w-full">
+                          <ChevronRightIcon
+                            className={`${
+                              open ? "transform rotate-90" : ""
+                            } w-5 h-5 text-neutral-500 ml-auto`}
+                          />
+                          <span className="text-sm font-medium text-neutral-700">Show advanced settings</span>
+                        </Disclosure.Button>
+                      </div>
                       <Disclosure.Panel className="space-y-4">
                         <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-44 sm:mb-0">
