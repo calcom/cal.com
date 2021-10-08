@@ -24,6 +24,7 @@ function convertMinsToHrsMins(mins: number) {
 export default function Availability() {
   const queryMe = trpc.useQuery(["viewer.me"]);
   const formModal = useToggleQuery("edit");
+  console.log("test");
 
   const formMethods = useForm<{
     startHours: string;
