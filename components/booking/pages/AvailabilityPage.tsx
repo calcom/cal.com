@@ -51,11 +51,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
   }, [router.query.date]);
 
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-  const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
@@ -81,10 +79,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
     }
     timeZone(selectedTimeZone);
     setIsTimeOptionsOpen(false);
-  };
-
-  const handleToggle24hClock = (is24hClock: boolean) => {
-    setTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
   return (
@@ -162,8 +156,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="font-medium text-gray-500 dark:text-gray-300 mt-3">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
+                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 font-cal dark:text-white">
                     {eventType.title}
                   </h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
@@ -210,7 +204,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
                   <AvailableTimes
                     localeProp={locale}
                     workingHours={workingHours}
-                    timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
                     eventLength={eventType.length}
@@ -241,11 +234,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
           )}
         </Collapsible.Trigger>
         <Collapsible.Content>
-          <TimeOptions
-            localeProp={locale}
-            onSelectTimeZone={handleSelectTimeZone}
-            onToggle24hClock={handleToggle24hClock}
-          />
+          <TimeOptions localeProp={locale} onSelectTimeZone={handleSelectTimeZone} />
         </Collapsible.Content>
       </Collapsible.Root>
     );

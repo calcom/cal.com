@@ -1,48 +1,55 @@
 // TODO: replace headlessui with radix-ui
 import { Switch } from "@headlessui/react";
+import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
 import classNames from "@lib/classNames";
+import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
-
-import { is24h, timeZone } from "../../lib/clock";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 
 type Props = {
   localeProp: string;
   onSelectTimeZone: (selectedTimeZone: string) => void;
-  onToggle24hClock: (is24hClock: boolean) => void;
 };
 
 const TimeOptions: FC<Props> = (props) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [is24hClock, setIs24hClock] = useState(false);
+  const [is24hClock, setIs24hClock] = useState<boolean | null>(null);
   const { t } = useLocale({ localeProp: props.localeProp });
+  const hour12 = useToggleQuery("hour12", { zero: true });
+  const router = useRouter();
 
   useEffect(() => {
-    setIs24hClock(is24h());
+    setIs24hClock(
+      hour12.isOn === new Intl.Locale(props.localeProp).hour12
+        ? !new Intl.Locale(props.localeProp).hour12
+        : !hour12.isOn
+    );
     setSelectedTimeZone(timeZone());
-  }, []);
-
-  useEffect(() => {
-    if (selectedTimeZone && timeZone() && selectedTimeZone !== timeZone()) {
-      props.onSelectTimeZone(timeZone(selectedTimeZone));
-    }
-  }, [selectedTimeZone]);
+  }, [hour12.isOn, props.localeProp]);
 
   const handle24hClockToggle = (is24hClock: boolean) => {
     setIs24hClock(is24hClock);
-    props.onToggle24hClock(is24h(is24hClock));
+    router.push(is24hClock ? hour12.hrefOff : hour12.hrefOn);
+  };
+
+  const handleSelectTimeZone = (tz: ITimezoneOption) => {
+    if (tz.value !== timeZone()) {
+      setSelectedTimeZone(tz.value);
+      props.onSelectTimeZone(timeZone(tz.value));
+    }
   };
 
   return selectedTimeZone !== "" ? (
-    <div className="absolute z-10 w-full max-w-80 rounded-sm border border-gray-200 dark:bg-gray-700 dark:border-0 bg-white px-4 py-2">
+    <div className="absolute z-10 w-full px-4 py-2 bg-white border border-gray-200 rounded-sm max-w-80 dark:bg-gray-700 dark:border-0">
       <div className="flex mb-4">
-        <div className="w-1/2 dark:text-white text-gray-600 font-medium">{t("time_options")}</div>
+        <div className="w-1/2 font-medium text-gray-600 dark:text-white">{t("time_options")}</div>
         <div className="w-1/2">
           <Switch.Group as="div" className="flex items-center justify-end">
             <Switch.Label as="span" className="mr-3">
-              <span className="text-sm dark:text-white text-gray-500">{t("am_pm")}</span>
+              <span className="text-sm text-gray-500 dark:text-white">{t("am_pm")}</span>
             </Switch.Label>
             <Switch
               checked={is24hClock}
@@ -61,7 +68,7 @@ const TimeOptions: FC<Props> = (props) => {
               />
             </Switch>
             <Switch.Label as="span" className="ml-3">
-              <span className="text-sm dark:text-white text-gray-500">{t("24_h")}</span>
+              <span className="text-sm text-gray-500 dark:text-white">{t("24_h")}</span>
             </Switch.Label>
           </Switch.Group>
         </div>
@@ -69,8 +76,8 @@ const TimeOptions: FC<Props> = (props) => {
       <TimezoneSelect
         id="timeZone"
         value={selectedTimeZone}
-        onChange={(tz: ITimezoneOption) => setSelectedTimeZone(tz.value)}
-        className="mb-2 shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+        onChange={handleSelectTimeZone}
+        className="block w-full mt-1 mb-2 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
       />
     </div>
   ) : null;

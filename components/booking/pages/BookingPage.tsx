@@ -18,13 +18,12 @@ import "react-phone-number-input/style.css";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
-import { parseZone } from "@lib/parseZone";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { BookingCreateBody } from "@lib/types/booking";
 
@@ -43,7 +42,6 @@ const BookingPage = (props: BookingPageProps) => {
   const { isReady } = useTheme(props.profile.theme);
 
   const date = asStringOrNull(router.query.date);
-  const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -247,14 +245,28 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
+                  {new Intl.DateTimeFormat(
+                    props.localeProp,
+                    asStringOrUndefined(router.query.hour12) !== undefined
+                      ? {
+                          hour12: asStringOrUndefined(router.query.hour12) === "1",
+                          hour: asStringOrUndefined(router.query.hour12) === "1" ? "numeric" : "2-digit",
+                          minute: "2-digit",
+                        }
+                      : { timeStyle: "short" }
+                  )
+                    .format(new Date(date))
+                    .replace(" ", "")
+                    .toLowerCase()}
+                  ,&nbsp;
+                  {new Intl.DateTimeFormat(props.localeProp, { dateStyle: "full" }).format(new Date(date))}
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("your_name")}
                     </label>
                     <div className="mt-1">
@@ -272,7 +284,7 @@ const BookingPage = (props: BookingPageProps) => {
                   <div className="mb-4">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium dark:text-white text-gray-700">
+                      className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("email_address")}
                     </label>
                     <div className="mt-1">
@@ -446,7 +458,7 @@ const BookingPage = (props: BookingPageProps) => {
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                       placeholder={t("share_additional_notes")}
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
