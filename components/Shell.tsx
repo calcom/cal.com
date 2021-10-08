@@ -19,6 +19,7 @@ import LicenseBanner from "@ee/components/LicenseBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
+import { shouldShowOnboarding } from "@lib/getting-started";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -101,6 +102,15 @@ export default function Shell(props: {
 
   const telemetry = useTelemetry();
   const query = useMeQuery();
+
+  useEffect(
+    function redirectToOnboardingIfNeeded() {
+      if (query.data && shouldShowOnboarding(query.data)) {
+        router.push("/getting-started");
+      }
+    },
+    [query.data, router]
+  );
 
   const navigation = [
     {

@@ -43,6 +43,7 @@ async function getUserFromSession(session: Maybe<Session>) {
           integration: true,
         },
       },
+      completedOnboarding: true,
     },
   });
 
