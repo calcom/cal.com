@@ -193,10 +193,14 @@ function IntegrationListItem(props: {
 }
 
 type TIntegrations = inferQueryOutput<"viewer.integrations">;
-type TCalendar = TIntegrations["calendar"]["items"][number];
-type TCalendarItem = TCalendar["calendars"][number];
+type TSelectable = NonNullable<TIntegrations["calendar"]["items"][number]["selectable"]>;
+type TSelectableCalendar = TSelectable["items"][number];
 
-export function CalendarSwitch(props: { item: TCalendarItem; calendar: TCalendar }) {
+export function CalendarSwitch(props: {
+  //
+  type: string;
+  calendar: TSelectableCalendar;
+}) {
   const utils = trpc.useContext();
   const mutation = useMutation<
     unknown,
@@ -207,8 +211,8 @@ export function CalendarSwitch(props: { item: TCalendarItem; calendar: TCalendar
   >(
     async ({ isOn }) => {
       const body = {
-        integration: props.calendar.type,
-        externalId: props.item.externalId,
+        integration: props.type,
+        externalId: props.calendar.externalId,
       };
       if (isOn) {
         const res = await fetch("/api/availability/calendar", {
@@ -240,16 +244,16 @@ export function CalendarSwitch(props: { item: TCalendarItem; calendar: TCalendar
         await utils.invalidateQuery(["viewer.integrations"]);
       },
       onError() {
-        showToast(`Something went wrong when toggling ${props.item.name}`, "error");
+        showToast(`Something went wrong when toggling ${props.calendar.name}`, "error");
       },
     }
   );
   return (
     <Switch
-      key={props.item.externalId}
+      key={props.calendar.externalId}
       name="enabled"
-      label={props.item.name}
-      defaultChecked={props.item.selected}
+      label={props.calendar.name}
+      defaultChecked={false}
       onCheckedChange={(isOn: boolean) => {
         mutation.mutate({ isOn });
       }}
@@ -318,32 +322,42 @@ export default function IntegrationsPage() {
                 }
               />
 
+              {data.calendar.numActive > 0 && (
+                <List>
+                  {data.calendar.items
+                    .flatMap((item) => (item.selectable ? [item] : []))
+                    .map((item) => (
+                      <IntegrationListItem
+                        key={item.title}
+                        {...item}
+                        description={item.selectable.primary.externalId}
+                        actions={<ConnectOrDisconnectIntegrationButton {...item} />}>
+                        <ul className="space-y-2 p-4">
+                          {item.selectable.items.map((cal) => (
+                            <CalendarSwitch key={cal.externalId} calendar={cal} type={item.type} />
+                          ))}
+                        </ul>
+                      </IntegrationListItem>
+                    ))}
+                </List>
+              )}
               <List>
-                {data.calendar.items.map((item) =>
-                  item.credential ? (
-                    <IntegrationListItem
-                      key={item.title}
-                      {...item}
-                      actions={
-                        <DisconnectIntegration
-                          id={item.credential.id}
-                          render={(btnProps) => <Button {...btnProps}>Disconnect</Button>}
-                        />
-                      }>
-                      <div className="space-y-4 p-4">
-                        {item.calendars.map((cal) => (
-                          <CalendarSwitch key={cal.externalId} calendar={item} item={cal} />
-                        ))}
-                      </div>
-                    </IntegrationListItem>
-                  ) : (
-                    <IntegrationListItem
-                      key={item.title}
-                      {...item}
-                      actions={<ConnectOrDisconnectIntegrationButton {...item} />}
-                    />
-                  )
-                )}
+                {data.calendar.items.map((item) => (
+                  <IntegrationListItem
+                    key={item.title}
+                    {...item}
+                    actions={
+                      <ConnectIntegration
+                        type={item.type}
+                        render={(btnProps) => (
+                          <Button {...btnProps}>
+                            {item.selectable?.items.length ? "Connect another" : "Connect"}
+                          </Button>
+                        )}
+                      />
+                    }
+                  />
+                ))}
               </List>
             </>
           );

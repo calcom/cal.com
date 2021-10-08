@@ -79,6 +79,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const { error, value: iCalString } = await createEvent({
         uid,
         startInputType: "utc",
+        // FIXME types
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
@@ -137,6 +138,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const { error, value: iCalString } = await createEvent({
         uid,
         startInputType: "utc",
+        // FIXME - types wrong
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
@@ -203,6 +205,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
     }
   }
 
+  // FIXME - types wrong
   async getAvailability(
     dateFrom: string,
     dateTo: string,

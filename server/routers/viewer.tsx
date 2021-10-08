@@ -1,14 +1,14 @@
-import { Prisma, BookingStatus } from "@prisma/client";
+import { BookingStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
-import { listCalendars, IntegrationCalendar } from "@lib/calendarClient";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
+import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
 import { createProtectedRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 
@@ -99,24 +99,50 @@ export const viewerRouter = createProtectedRouter()
       const { credentials } = user;
       const integrations = getIntegrations(credentials);
 
-      const calendars: IntegrationCalendar[] = await listCalendars(user.credentials);
-      const selectableCalendars = calendars.map((cal) => {
-        return {
-          selected: user.selectedCalendars.some((s) => s.externalId === cal.externalId),
-          ...cal,
-        };
-      });
       function countActive(items: { credential?: unknown }[]) {
         return items.reduce((acc, item) => acc + (item.credential ? 1 : 0), 0);
       }
+      async function fetchCalendars() {
+        const results = await Promise.allSettled(
+          integrations
+            .flatMap((item) => (item.variant === "calendar" ? [item] : []))
+            .map(async (item) => {
+              if (!item.credential) {
+                return {
+                  ...item,
+                  selectable: null,
+                };
+              }
+              const adapter = getCalendarAdapterOrNull({
+                ...item.credential,
+                userId: user.id,
+              });
+
+              const selectable = await adapter.listCalendars();
+              const primary = selectable.find((cal) => cal.primary);
+              if (!primary) {
+                return {
+                  ...item,
+                  selectable: null,
+                };
+              }
+              return {
+                ...item,
+                selectable: {
+                  primary,
+                  items: selectable,
+                },
+              };
+            })
+        );
+        // FIXME do something with the rejected promises?
+
+        return results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+      }
       const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const calendar = integrations
-        .flatMap((item) => (item.variant === "calendar" ? [item] : []))
-        .map((item) => ({
-          ...item,
-          calendars: selectableCalendars.filter((cal) => cal.integration === item.type),
-        }));
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const calendar = await fetchCalendars();
+
       return {
         conferencing: {
           items: conferencing,

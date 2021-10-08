@@ -13,7 +13,7 @@ function getIntegrations(credentials: CredentialData[]) {
     {
       installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
       credential: credentials.find((integration) => integration.type === "google_calendar") || null,
-      type: "google_calendar",
+      type: "google_calendar" as const,
       title: "Google Calendar",
       imageSrc: "integrations/google-calendar.svg",
       description: "For personal and business calendars",
@@ -21,7 +21,7 @@ function getIntegrations(credentials: CredentialData[]) {
     },
     {
       installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-      type: "office365_calendar",
+      type: "office365_calendar" as const,
       credential: credentials.find((integration) => integration.type === "office365_calendar") || null,
       title: "Office 365 / Outlook.com Calendar",
       imageSrc: "integrations/outlook.svg",
@@ -30,7 +30,7 @@ function getIntegrations(credentials: CredentialData[]) {
     },
     {
       installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-      type: "zoom_video",
+      type: "zoom_video" as const,
       credential: credentials.find((integration) => integration.type === "zoom_video") || null,
       title: "Zoom",
       imageSrc: "integrations/zoom.svg",
@@ -39,7 +39,7 @@ function getIntegrations(credentials: CredentialData[]) {
     },
     {
       installed: true,
-      type: "caldav_calendar",
+      type: "caldav_calendar" as const,
       credential: credentials.find((integration) => integration.type === "caldav_calendar") || null,
       title: "CalDav Server",
       imageSrc: "integrations/caldav.svg",
@@ -48,7 +48,7 @@ function getIntegrations(credentials: CredentialData[]) {
     },
     {
       installed: true,
-      type: "apple_calendar",
+      type: "apple_calendar" as const,
       credential: credentials.find((integration) => integration.type === "apple_calendar") || null,
       title: "Apple Calendar",
       imageSrc: "integrations/apple-calendar.svg",
@@ -61,7 +61,7 @@ function getIntegrations(credentials: CredentialData[]) {
         process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
         process.env.STRIPE_PRIVATE_KEY
       ),
-      type: "stripe_payment",
+      type: "stripe_payment" as const,
       credential: credentials.find((integration) => integration.type === "stripe_payment") || null,
       title: "Stripe",
       imageSrc: "integrations/stripe.svg",
@@ -72,6 +72,8 @@ function getIntegrations(credentials: CredentialData[]) {
 
   return integrations;
 }
+
+export type IntegraionMeta = ReturnType<typeof getIntegrations>;
 
 export function hasIntegration(integrations: ReturnType<typeof getIntegrations>, type: string): boolean {
   return !!integrations.find((i) => i.type === type && !!i.installed && !!i.credential);
