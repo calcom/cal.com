@@ -563,41 +563,13 @@ const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalenda
 
 /**
  *
- * @param withCredentials @deprecated
- * @returns
+ * @param withCredentials
+ * @deprecated
  */
 const listCalendars = (withCredentials) =>
   Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then((results) =>
     results.reduce((acc, calendars) => acc.concat(calendars), []).filter((c) => c != null)
   );
-
-// const listCalendarsSafe = async (credentials: {
-//   id: number;
-//   type: string;
-//   key: Prisma.JsonValue;
-//   userId: number;
-// }[]) => {
-//   const cals = calendars(withCredentials).map((c) => c.listCalendars());
-
-//   const result = await Promise.allSettled(cals);
-//   const integrations = getIntegrations(withCredentials);
-//   // FIXME we really need error handling too
-//   const settled = result
-//     .flatMap((item) => (item.status === "fulfilled" ? [item.value] : []))
-//     .map((items) => ({ primary: items.find((cal) => cal.primary), items }))
-//     .map((withPrimary) => ({
-//       ...withPrimary,
-//       integration: integrations.find(
-//         (integration) =>
-//           integration.type === withPrimary.primary?.integration && integration.variant === "calendar"
-//       ),
-//     }))
-//     .flatMap((withIntegration) =>
-//       withIntegration.primary && withIntegration.integration ? [withIntegration] : []
-//     );
-
-//   return settled;
-// };
 
 const createEvent = async (
   credential: Credential,
