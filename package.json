@@ -146,7 +146,7 @@
       "eslint"
     ],
     "./{*,{ee,pages,components,lib}/**/*}.{ts,tsx}": [
-      "tsc-files --noEmit"
+      "tsc-files -p tsconfig.tsc-files.json --noEmit"
     ]
   }
 }
