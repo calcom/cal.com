@@ -530,7 +530,7 @@ function getCalendarAdapterOrNull(credential: Credential): CalendarApiAdapter {
       // FIXME types wrong & type casting should not be needed
       return new AppleCalendar(credential) as never as CalendarApiAdapter;
   }
-  return null;
+  throw Error("There's no adapter for this type of calendar: " + credential.type);
 }
 
 /**
