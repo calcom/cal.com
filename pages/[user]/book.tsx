@@ -5,7 +5,7 @@ import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -21,7 +21,7 @@ export default function Book(props: BookPageProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   const user = await prisma.user.findUnique({
     where: {

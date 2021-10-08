@@ -22,7 +22,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -56,10 +56,7 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
-  const { locale } = useLocale({
-    localeProp: props.localeProp,
-    namespaces: "event-types-page",
-  });
+  const { locale } = useLocale({ localeProp: props.localeProp });
 
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
@@ -164,7 +161,7 @@ const EventTypesPage = (props: PageProps) => {
                         </span>
                       )}
                     </div>
-                    <EventTypeDescription eventType={type} />
+                    <EventTypeDescription localeProp={locale} eventType={type} />
                   </a>
                 </Link>
 
@@ -379,13 +376,13 @@ const CreateNewEventDialog = ({
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          {t("new-event-type-btn")}
+          {t("new_event_type_btn")}
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>{t("new-event-type-btn")}</Button>
+            <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>
@@ -563,7 +560,7 @@ const CreateNewEventDialog = ({
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
