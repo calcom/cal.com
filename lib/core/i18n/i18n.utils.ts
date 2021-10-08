@@ -6,8 +6,8 @@ import prisma from "@lib/prisma";
 
 import { i18n } from "../../../next-i18next.config";
 
-export const extractLocaleInfo = async (req: IncomingMessage) => {
-  const session = await getSession({ req: req });
+export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage) => {
+  const session = await getSession({ req });
   const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]);
 
   if (session?.user?.id) {
@@ -58,7 +58,14 @@ interface localeType {
 
 export const localeLabels: localeType = {
   en: "English",
+  fr: "French",
+  it: "Italian",
+  ru: "Russian",
+  es: "Spanish",
+  de: "German",
+  pt: "Portuguese",
   ro: "Romanian",
+  nl: "Dutch",
 };
 
 export type OptionType = {

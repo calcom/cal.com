@@ -4,7 +4,6 @@
 import superjson from "superjson";
 
 import { createRouter } from "../createRouter";
-import { bookingRouter } from "./booking";
 import { viewerRouter } from "./viewer";
 
 /**
@@ -24,7 +23,6 @@ export const appRouter = createRouter()
    * @link https://trpc.io/docs/error-formatting
    */
   // .formatError(({ shape, error }) => { })
-  .merge("viewer.", viewerRouter)
-  .merge("booking.", bookingRouter);
+  .merge("viewer.", viewerRouter);
 
 export type AppRouter = typeof appRouter;
