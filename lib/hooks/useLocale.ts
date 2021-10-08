@@ -1,10 +1,10 @@
 import { useTranslation } from "next-i18next";
 
-type LocaleProps = {
+type LocaleProp = {
   localeProp: string;
 };
 
-export const useLocale = (props: LocaleProps) => {
+export const useLocale = (props: LocaleProp) => {
   const { i18n, t } = useTranslation("common");
 
   if (i18n.language !== props.localeProp) {

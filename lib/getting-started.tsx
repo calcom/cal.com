@@ -1,5 +1,5 @@
-import dayjs from "dayjs";
 import { User } from "@prisma/client";
+import dayjs from "dayjs";
 
 export const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
 
