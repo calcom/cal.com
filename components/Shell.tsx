@@ -82,9 +82,9 @@ export function ShellSubHeading(props: {
     <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
       <div>
         {/* TODO should be Roboto */}
-        <h1 className="textl-lg font-bold text-gray-900 flex items-center content-center space-x-2">
+        <h2 className="text-lg font-bold text-gray-900 flex items-center content-center space-x-2">
           {props.title}
-        </h1>
+        </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="mb-4 flex-shrink-0">{props.actions}</div>}

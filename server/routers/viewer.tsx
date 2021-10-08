@@ -1,11 +1,12 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import getIntegrations from "@lib/integrations/getIntegrations";
+import getIntegrations, { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
 import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
@@ -99,8 +100,8 @@ export const viewerRouter = createProtectedRouter()
       const { credentials } = user;
       const integrations = getIntegrations(credentials);
 
-      function countActive(items: { credential?: unknown }[]) {
-        return items.reduce((acc, item) => acc + (item.credential ? 1 : 0), 0);
+      function countActive(items: { credentials: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.credentials.length, 0);
       }
       async function fetchCalendars() {
         const results = await Promise.allSettled(
@@ -147,6 +148,57 @@ export const viewerRouter = createProtectedRouter()
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
       const calendar = await fetchCalendars();
 
+      // get user's credentials + their connected integrations
+      const calendarCredentials = user.credentials
+        .filter((credential) => credential.type.endsWith("_calendar"))
+        .flatMap((credential) => {
+          const integration = ALL_INTEGRATIONS.find((integration) => integration.type === credential.type);
+
+          const adapter = getCalendarAdapterOrNull({
+            ...credential,
+            userId: user.id,
+          });
+          return integration && adapter && integration.variant === "calendar"
+            ? [{ integration, credential, adapter }]
+            : [];
+        });
+
+      // get all the connected integrations' calendars (from third party)
+      const connectedCalendars = await Promise.all(
+        calendarCredentials.map(async (item) => {
+          const { adapter, integration, credential } = item;
+          try {
+            const _calendars = await adapter.listCalendars();
+            const calendars = _calendars.map((cal) => ({
+              ...cal,
+              isSelected: !!user.selectedCalendars.find((selected) => selected.externalId === cal.externalId),
+            }));
+            const primary = calendars.find((item) => item.primary);
+            if (!primary) {
+              return {
+                integration,
+                error: {
+                  message: "No primary calendar found",
+                },
+              };
+            }
+            return {
+              integration,
+              credentialId: credential.id,
+              primary,
+              calendars,
+            };
+          } catch (_error) {
+            const error = getErrorFromUnknown(_error);
+            return {
+              integration,
+              error: {
+                message: error.message,
+              },
+            };
+          }
+        })
+      );
       return {
         conferencing: {
           items: conferencing,
@@ -160,6 +212,7 @@ export const viewerRouter = createProtectedRouter()
           items: payment,
           numActive: countActive(payment),
         },
+        connectedCalendars,
       };
     },
   })

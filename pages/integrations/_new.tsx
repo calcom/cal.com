@@ -8,12 +8,13 @@ import classNames from "@lib/classNames";
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import showToast from "@lib/notification";
-import { inferQueryOutput, trpc } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 import { Dialog } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
@@ -194,14 +195,11 @@ function IntegrationListItem(props: {
   );
 }
 
-type TIntegrations = inferQueryOutput<"viewer.integrations">;
-type TSelectable = NonNullable<TIntegrations["calendar"]["items"][number]["selectable"]>;
-type TSelectableCalendar = TSelectable["items"][number];
-
 export function CalendarSwitch(props: {
-  //
   type: string;
-  calendar: TSelectableCalendar;
+  externalId: string;
+  title: string;
+  defaultSelected: boolean;
 }) {
   const utils = trpc.useContext();
 
@@ -215,7 +213,7 @@ export function CalendarSwitch(props: {
     async ({ isOn }) => {
       const body = {
         integration: props.type,
-        externalId: props.calendar.externalId,
+        externalId: props.externalId,
       };
       if (isOn) {
         const res = await fetch("/api/availability/calendar", {
@@ -247,16 +245,16 @@ export function CalendarSwitch(props: {
         await utils.invalidateQuery(["viewer.integrations"]);
       },
       onError() {
-        showToast(`Something went wrong when toggling ${props.calendar.name}`, "error");
+        showToast(`Something went wrong when toggling "${props.title}""`, "error");
       },
     }
   );
   return (
     <Switch
-      key={props.calendar.externalId}
+      key={props.externalId}
       name="enabled"
-      label={props.calendar.name}
-      defaultChecked={props.calendar.selected}
+      label={props.title}
+      defaultChecked={props.defaultSelected}
       onCheckedChange={(isOn: boolean) => {
         mutation.mutate({ isOn });
       }}
@@ -325,35 +323,66 @@ export default function IntegrationsPage() {
                 }
               />
 
-              {data.calendar.numActive > 0 && (
-                <List>
-                  {data.calendar.items
-                    .flatMap((item) => (item.selectable ? [item] : []))
-                    .map((item) => (
-                      <IntegrationListItem
-                        key={item.title}
-                        {...item}
-                        description={item.selectable.primary.externalId}
-                        actions={<ConnectOrDisconnectIntegrationButton {...item} />}>
-                        <ul className="space-y-2 p-4">
-                          {item.selectable.items.map((cal) => (
-                            <CalendarSwitch key={cal.externalId} calendar={cal} type={item.type} />
-                          ))}
-                        </ul>
-                      </IntegrationListItem>
+              {data.connectedCalendars.length > 0 && (
+                <>
+                  <List>
+                    {data.connectedCalendars.map((item, index) => (
+                      <li key={index}>
+                        {item.calendars ? (
+                          <IntegrationListItem
+                            {...item.integration}
+                            description={item.primary.externalId}
+                            actions={
+                              <DisconnectIntegration
+                                id={item.credentialId}
+                                render={(btnProps) => (
+                                  <Button {...btnProps} color="warn">
+                                    Disconnect
+                                  </Button>
+                                )}
+                              />
+                            }>
+                            <ul className="space-y-2 p-4">
+                              {item.calendars.map((cal) => (
+                                <CalendarSwitch
+                                  key={cal.externalId}
+                                  externalId={cal.externalId}
+                                  title={cal.name}
+                                  type={item.integration.type}
+                                  defaultSelected={cal.isSelected}
+                                />
+                              ))}
+                            </ul>
+                          </IntegrationListItem>
+                        ) : (
+                          <Alert
+                            severity="warning"
+                            title="Something went wrong"
+                            message={item.error.message}
+                          />
+                        )}
+                      </li>
                     ))}
-                </List>
+
+                    <h2 className="font-bold text-gray-900 flex items-center content-center mb-2 mt-4">
+                      Connect an additional calendar
+                    </h2>
+                  </List>
+                </>
               )}
               <List>
-                {data.calendar.items
-                  .filter((item) => !item.credential)
-                  .map((item) => (
-                    <IntegrationListItem
-                      key={item.title}
-                      {...item}
-                      actions={<ConnectOrDisconnectIntegrationButton {...item} />}
-                    />
-                  ))}
+                {data.calendar.items.map((item) => (
+                  <IntegrationListItem
+                    key={item.title}
+                    {...item}
+                    actions={
+                      <ConnectIntegration
+                        type={item.type}
+                        render={(btnProps) => <Button {...btnProps}>Connect</Button>}
+                      />
+                    }
+                  />
+                ))}
               </List>
             </>
           );
