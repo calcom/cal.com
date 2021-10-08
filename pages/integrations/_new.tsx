@@ -157,6 +157,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   //
   credential: Maybe<{ id: number }>;
   type: string;
+  installed: boolean;
 }) {
   if (props.credential) {
     return (
@@ -165,6 +166,9 @@ function ConnectOrDisconnectIntegrationButton(props: {
         render={(btnProps) => <Button {...btnProps}>Disconnect</Button>}
       />
     );
+  }
+  if (!props.installed) {
+    return <Alert severity="warning" title="Not installed" />;
   }
   return (
     <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
