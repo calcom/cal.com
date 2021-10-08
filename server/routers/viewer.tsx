@@ -28,8 +28,8 @@ export const viewerRouter = createProtectedRouter()
       const { prisma, user } = ctx;
       const bookingListingByStatus = input.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
-        upcoming: [{ endTime: { gte: new Date() } }],
-        past: [{ endTime: { lte: new Date() } }],
+        upcoming: [{ endTime: { gte: new Date() }, NOT: { status: { equals: BookingStatus.CANCELLED } } }],
+        past: [{ endTime: { lte: new Date() }, NOT: { status: { equals: BookingStatus.CANCELLED } } }],
         cancelled: [{ status: { equals: BookingStatus.CANCELLED } }],
       };
       const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
