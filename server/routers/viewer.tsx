@@ -136,6 +136,7 @@ export const viewerRouter = createProtectedRouter()
             if (!primary) {
               return {
                 integration,
+                credentialId: credential.id,
                 error: {
                   message: "No primary calendar found",
                 },

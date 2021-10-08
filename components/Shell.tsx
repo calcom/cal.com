@@ -240,7 +240,7 @@ export default function Shell(props: {
             </nav>
             <div className="py-8">
               <ShellHeading title={props.heading} subtitle={props.subtitle} CTA={props.CTA} />
-              <div className="px-4 sm:px-6 md:px-8">{props.children}</div>;
+              <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}

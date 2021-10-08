@@ -61,6 +61,8 @@ export function AddAppleIntegrationModal(props: DialogProps) {
             const json = await res.json();
             if (!res.ok) {
               setErrorMessage(json?.message || "Something went wrong");
+            } else {
+              props.onOpenChange?.(false);
             }
           })}>
           <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
