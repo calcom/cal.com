@@ -14,14 +14,28 @@ export default function JoinCall(props, session) {
 
   //if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
+
+  //find out if the meeting is upcoming or delayed
+  const isPast = new Date(props.booking.endTime) <= new Date();
+  const isUpcoming = new Date(props.booking.startTime) >= new Date();
+  const meetingUnavailable = isUpcoming || isPast;
+
   useEffect(() => {
     if (emptyBooking) {
       router.push("/call/no-meeting-found");
     }
+
+    if (isUpcoming) {
+      router.push(`/call/meeting-not-started/${props.booking.uid}`);
+    }
+
+    if (isPast) {
+      router.push(`/call/meeting-ended/${props.booking.uid}`);
+    }
   });
 
   useEffect(() => {
-    if (!emptyBooking && session.userid !== props.booking.user.id) {
+    if (!meetingUnavailable && !emptyBooking && session.userid !== props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
         showLeaveButton: true,
         iframeStyle: {
@@ -35,7 +49,7 @@ export default function JoinCall(props, session) {
         showLeaveButton: true,
       });
     }
-    if (!emptyBooking && session.userid === props.booking.user.id) {
+    if (!meetingUnavailable && !emptyBooking && session.userid === props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
         showLeaveButton: true,
         iframeStyle: {
@@ -80,12 +94,17 @@ export default function JoinCall(props, session) {
 }
 
 export async function getServerSideProps(context) {
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid,
     },
     select: {
+      uid: true,
       id: true,
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
       user: {
         select: {
           credentials: true,
@@ -107,11 +126,22 @@ export async function getServerSideProps(context) {
     },
   });
 
+  if (!booking) {
+    // TODO: Booking is already cancelled
+    return {
+      props: { booking: null },
+    };
+  }
+
+  const bookingObj = Object.assign({}, booking, {
+    startTime: booking.startTime.toString(),
+    endTime: booking.endTime.toString(),
+  });
   const session = await getSession();
 
   return {
     props: {
-      booking: booking,
+      booking: bookingObj,
       session: session,
     },
   };
