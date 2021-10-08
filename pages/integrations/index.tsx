@@ -8,7 +8,7 @@ import classNames from "@lib/classNames";
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import showToast from "@lib/notification";
-import { trpc } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { Dialog } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -18,6 +18,8 @@ import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
+
+type IntegrationCalendar = inferQueryOutput<"viewer.integrations">["calendar"]["items"][number];
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
@@ -46,10 +48,7 @@ function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnection
 }
 
 function ConnectIntegration(props: {
-  /**
-   * @example apple_calendar
-   */
-  type: string;
+  type: IntegrationCalendar["type"];
   render: (renderProps: ButtonBaseProps) => JSX.Element;
 }) {
   const { type } = props;
@@ -156,7 +155,7 @@ function DisconnectIntegration(props: {
 function ConnectOrDisconnectIntegrationButton(props: {
   //
   credential: Maybe<{ id: number }>;
-  type: string;
+  type: IntegrationCalendar["type"];
   installed: boolean;
 }) {
   if (props.credential) {
@@ -200,7 +199,7 @@ function IntegrationListItem(props: {
 }
 
 export function CalendarSwitch(props: {
-  type: string;
+  type: IntegrationCalendar["type"];
   externalId: string;
   title: string;
   defaultSelected: boolean;
@@ -363,6 +362,16 @@ export default function IntegrationsPage() {
                             severity="warning"
                             title="Something went wrong"
                             message={item.error.message}
+                            actions={
+                              <DisconnectIntegration
+                                id={item.credentialId}
+                                render={(btnProps) => (
+                                  <Button {...btnProps} color="warn">
+                                    Disconnect
+                                  </Button>
+                                )}
+                              />
+                            }
                           />
                         )}
                       </li>
