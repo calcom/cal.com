@@ -1138,6 +1138,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               },
             },
             {
+              team: {
+                members: {
+                  some: {
+                    userId: session.user.id,
+                  },
+                },
+              },
+            },
+            {
               userId: session.user.id,
             },
           ],
