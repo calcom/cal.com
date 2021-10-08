@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
 
+import { getUserIdFromTokenOrCookie } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req: req });
-  if (!session) {
+  const userId = await getUserIdFromTokenOrCookie({ req });
+  if (!userId) {
     return res.status(401).json({ message: "Not authenticated" });
   }
 
@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const webhooks = await prisma.webhook.findFirst({
     where: {
       id: String(req.query.hook),
-      userId: session.user.id,
+      userId,
     },
   });
   if (req.method === "GET") {

@@ -4,24 +4,22 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { getSession } from "@lib/auth";
+import { getUserIdFromTokenOrCookie } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 dayjs.extend(utc);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req });
-
-  if (!session?.user?.id) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+  const userId = await getUserIdFromTokenOrCookie({ req });
+  if (!userId) {
+    return res.status(401).json({ message: "Not authenticated" });
   }
 
   // List webhooks
   if (req.method === "GET") {
     const webhooks = await prisma.webhook.findMany({
       where: {
-        userId: session.user.id,
+        userId,
       },
     });
 
@@ -36,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.webhook.create({
       data: {
         id: uid,
-        userId: session.user.id,
+        userId,
         subscriberUrl: req.body.subscriberUrl,
         eventTriggers: req.body.eventTriggers,
       },

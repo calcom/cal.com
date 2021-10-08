@@ -1,6 +1,8 @@
 import { compare, hash } from "bcryptjs";
+import { NextApiRequest } from "next";
 import { DefaultSession } from "next-auth";
 import { getSession as getSessionInner, GetSessionOptions } from "next-auth/client";
+import { getToken } from "next-auth/jwt";
 
 export async function hashPassword(password: string) {
   const hashedPassword = await hash(password, 12);
@@ -28,6 +30,21 @@ export async function getSession(options: GetSessionOptions): Promise<Session | 
   return session as Session | null;
 }
 
+// Temporary auth using either token or cookie.
+export async function getUserIdFromTokenOrCookie(options: GetSessionOptions): Promise<number | null> {
+  let userId = null;
+  const token = await getToken({ req: options.req as NextApiRequest, secret: process.env.JWT_SECRET });
+  if (token && token.id) {
+    userId = token.id as number;
+  } else {
+    const session = await getSession(options);
+    if (!session || !session.user) {
+      return null;
+    }
+    userId = session.user?.id;
+  }
+  return userId;
+}
 export enum ErrorCode {
   UserNotFound = "user-not-found",
   IncorrectPassword = "incorrect-password",
