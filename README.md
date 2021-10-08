@@ -82,8 +82,9 @@ Here is what you need to be able to run Cal.
 
 You will also need Google API credentials. You can get this from the [Google API Console](https://console.cloud.google.com/apis/dashboard). More details on this can be found below under the [Obtaining the Google API Credentials section](#Obtaining-the-Google-API-Credentials).
 
-### Development Setup
+## Development
 
+### Setup
 #### Quick start with `yarn dx`
 
 > - **Requires Docker to be installed**
@@ -157,6 +158,15 @@ yarn dx
 9. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
+
+### E2E-Testing
+
+```bash
+# In first terminal
+yarn dx
+# In second terminal
+yarn test-playwright
+```
 
 ### Upgrading from earlier versions
 
@@ -272,6 +282,13 @@ Contributions are what make the open source community such an amazing place to b
 11. You don't need to provide basic information about your app. Instead click at "Scopes" and then at "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
+
+## Obtaining Daily API Credentials
+
+ 1. Open [Daily](https://www.daily.co/) and sign into your account.
+ 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
+ 3. Copy your API key.
+ 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 
 <!-- LICENSE -->
 

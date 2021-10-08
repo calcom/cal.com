@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -30,12 +31,14 @@ interface Team {
 }
 
 export default function TeamListItem(props: {
+  localeProp: string;
   onChange: () => void;
   key: number;
   team: Team;
   onActionSelect: (text: string) => void;
 }) {
   const [team, setTeam] = useState<Team | null>(props.team);
+  const { t, locale } = useLocale({ localeProp: props.localeProp });
 
   const acceptInvite = () => invitationResponse(true);
   const declineInvite = () => invitationResponse(false);
@@ -79,24 +82,24 @@ export default function TeamListItem(props: {
           {props.team.role === "INVITEE" && (
             <div>
               <Button type="button" color="secondary" onClick={declineInvite}>
-                Reject
+                {t("reject")}
               </Button>
               <Button type="button" color="primary" className="ml-1" onClick={acceptInvite}>
-                Accept
+                {t("accept")}
               </Button>
             </div>
           )}
           {props.team.role === "MEMBER" && (
             <div>
               <Button type="button" color="primary" onClick={declineInvite}>
-                Leave
+                {t("leave")}
               </Button>
             </div>
           )}
           {props.team.role === "OWNER" && (
             <div className="flex space-x-4">
               <span className="self-center h-6 px-3 py-1 text-xs text-gray-700 capitalize rounded-md bg-gray-50">
-                Owner
+                {t("owner")}
               </span>
               <Tooltip content="Copy link">
                 <Button
@@ -104,7 +107,7 @@ export default function TeamListItem(props: {
                     navigator.clipboard.writeText(
                       process.env.NEXT_PUBLIC_APP_URL + "/team/" + props.team.slug
                     );
-                    showToast("Link copied!", "success");
+                    showToast(t("link_copied"), "success");
                   }}
                   size="icon"
                   color="minimal"
@@ -124,14 +127,16 @@ export default function TeamListItem(props: {
                       className="w-full"
                       onClick={() => props.onActionSelect("edit")}
                       StartIcon={PencilAltIcon}>
-                      Edit team
+                      {" "}
+                      {t("edit_team")}
                     </Button>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
-                          Preview team page
+                          {" "}
+                          {t("preview_team")}
                         </Button>
                       </a>
                     </Link>
@@ -146,17 +151,16 @@ export default function TeamListItem(props: {
                           color="warn"
                           StartIcon={TrashIcon}
                           className="w-full">
-                          Disband Team
+                          {t("disband_team")}
                         </Button>
                       </DialogTrigger>
                       <ConfirmationDialogContent
+                        localeProp={locale}
                         variety="danger"
                         title="Disband Team"
-                        confirmBtnText="Yes, disband team"
-                        cancelBtnText="Cancel"
+                        confirmBtnText={t("confirm_disband_team")}
                         onConfirm={() => props.onActionSelect("disband")}>
-                        Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
-                        link with will no longer be able to book using it.
+                        {t("disband_team_confirmation_message")}
                       </ConfirmationDialogContent>
                     </Dialog>
                   </DropdownMenuItem>

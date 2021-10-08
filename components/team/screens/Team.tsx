@@ -4,11 +4,15 @@ import classnames from "classnames";
 import Link from "next/link";
 import React from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
-const Team = ({ team }) => {
+const Team = ({ team, localeProp }) => {
+  const { t } = useLocale({ localeProp: localeProp });
+
   const Member = ({ member }) => {
     const classes = classnames(
       "group",
@@ -71,7 +75,7 @@ const Team = ({ team }) => {
       {team.eventTypes.length > 0 && (
         <aside className="text-center dark:text-white mt-8">
           <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
-            Go back
+            {t("go_back")}
           </Button>
         </aside>
       )}
