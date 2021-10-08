@@ -42,10 +42,4 @@ export default class VideoEventOrganizerMail extends EventOrganizerMail {
 <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
   }
-  if (isDaily){
-    return `
-<strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
-<strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
-    `;
-  }
 }

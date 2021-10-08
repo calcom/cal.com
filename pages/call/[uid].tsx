@@ -15,10 +15,17 @@ export default function JoinCall(props, session) {
   //if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
 
-  //find out if the meeting is upcoming or delayed
-  const isPast = new Date(props.booking.endTime) <= new Date();
-  const isUpcoming = new Date(props.booking.startTime) >= new Date();
-  const meetingUnavailable = isUpcoming || isPast;
+  //daily.co calls have a 60 minute exit and entry buffer when a user enters a call when it's not available it will trigger the modals
+  const now = new Date();
+  const enterDate = new Date(now.getTime() + 60 * 60 * 1000);
+  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
+
+  console.log(enterDate);
+
+  //find out if the meeting is upcoming or in the past
+  const isPast = new Date(props.booking.endTime) <= exitDate;
+  const isUpcoming = new Date(props.booking.startTime) >= enterDate;
+  const meetingUnavailable = isUpcoming == true || isPast == true;
 
   useEffect(() => {
     if (emptyBooking) {
