@@ -23,6 +23,6 @@ export const appRouter = createRouter()
    * @link https://trpc.io/docs/error-formatting
    */
   // .formatError(({ shape, error }) => { })
-  .merge("viewer.", viewerRouter)
+  .merge("viewer.", viewerRouter);
 
 export type AppRouter = typeof appRouter;
