@@ -65,6 +65,9 @@ export const ALL_INTEGRATIONS = [
 function getIntegrations(credentials: CredentialData[]) {
   const integrations = ALL_INTEGRATIONS.map((integration) => ({
     ...integration,
+    /**
+     * @deprecated use `credentials.
+     */
     credential: credentials.find((credential) => credential.type === integration.type) || null,
     credentials: credentials.filter((credential) => credential.type === integration.type) || null,
   }));
