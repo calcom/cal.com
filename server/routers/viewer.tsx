@@ -118,7 +118,11 @@ export const viewerRouter = createProtectedRouter()
                 userId: user.id,
               });
 
-              const selectable = await adapter.listCalendars();
+              const selectable = (await adapter.listCalendars()).map((item) => ({
+                ...item,
+                selected: !!user.selectedCalendars.find((cal) => cal.externalId === item.externalId),
+              }));
+
               const primary = selectable.find((cal) => cal.primary);
               if (!primary) {
                 return {

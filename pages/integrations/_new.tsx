@@ -204,6 +204,7 @@ export function CalendarSwitch(props: {
   calendar: TSelectableCalendar;
 }) {
   const utils = trpc.useContext();
+
   const mutation = useMutation<
     unknown,
     unknown,
@@ -255,7 +256,7 @@ export function CalendarSwitch(props: {
       key={props.calendar.externalId}
       name="enabled"
       label={props.calendar.name}
-      defaultChecked={false}
+      defaultChecked={props.calendar.selected}
       onCheckedChange={(isOn: boolean) => {
         mutation.mutate({ isOn });
       }}
