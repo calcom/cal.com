@@ -8,9 +8,8 @@ import {
   PlusIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { SchedulingType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-import dayjs from "dayjs";
+import { SchedulingType, Prisma } from "@prisma/client";
+import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import Link from "next/link";
@@ -23,7 +22,7 @@ import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
-import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { shouldShowOnboarding, ONBOARDING_NEXT_REDIRECT } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import createEventType from "@lib/mutations/event-types/create-event-type";
@@ -145,7 +144,7 @@ const EventTypesPage = (props: PageProps) => {
                 "hover:bg-neutral-50 flex justify-between items-center ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="flex items-center w-full justify-between px-4 py-4 sm:px-6 hover:bg-neutral-50">
+              <div className="flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
                 <Link href={"/event-types/" + type.id}>
                   <a className="flex-grow text-sm truncate">
                     <div>
@@ -224,7 +223,7 @@ const EventTypesPage = (props: PageProps) => {
                         leaveTo="transform opacity-0 scale-95">
                         <Menu.Items
                           static
-                          className="absolute z-10 right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
+                          className="absolute right-0 z-10 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
                           <div className="py-1">
                             <Menu.Item>
                               {({ active }) => (
@@ -558,7 +557,7 @@ const CreateNewEventDialog = ({
   );
 };
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
   const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
@@ -647,13 +646,10 @@ export async function getServerSideProps(context) {
     };
   }
 
-  if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/getting-started",
-      },
-    };
+  if (
+    shouldShowOnboarding({ completedOnboarding: user.completedOnboarding, createdDate: user.createdDate })
+  ) {
+    return ONBOARDING_NEXT_REDIRECT;
   }
 
   // backwards compatibility, TMP:
