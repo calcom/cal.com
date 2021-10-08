@@ -1,8 +1,9 @@
-import { CalendarEvent } from "../calendarClient";
-import EventOrganizerMail from "./EventOrganizerMail";
-import { VideoCallData } from "../videoClient";
-import { getFormattedMeetingId, getIntegrationName } from "./helpers";
 import { AdditionInformation } from "@lib/emails/EventMail";
+
+import { CalendarEvent } from "../calendarClient";
+import { VideoCallData } from "../videoClient";
+import EventOrganizerMail from "./EventOrganizerMail";
+import { getFormattedMeetingId, getIntegrationName } from "./helpers";
 
 export default class VideoEventOrganizerMail extends EventOrganizerMail {
   videoCallData: VideoCallData;
@@ -25,11 +26,19 @@ export default class VideoEventOrganizerMail extends EventOrganizerMail {
    * @protected
    */
   protected getAdditionalBody(): string {
+    const meetingPassword = this.videoCallData.password;
+    const meetingId = getFormattedMeetingId(this.videoCallData);
     // This odd indentation is necessary because otherwise the leading tabs will be applied into the event description.
-    return `
+    if (meetingPassword && meetingId) {
+      return `
 <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
 <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
 <strong>Meeting Password:</strong> ${this.videoCallData.password}<br />
+<strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
+    `;
+    }
+    return `
+<strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
 <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
   }

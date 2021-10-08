@@ -1,10 +1,22 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withTM = require("next-transpile-modules")(["react-timezone-select"]);
+const { i18n } = require("./next-i18next.config");
 
-// TODO: Revisit this later with getStaticProps in App
-if (process.env.NEXTAUTH_URL) {
-  process.env.BASE_URL = process.env.NEXTAUTH_URL.replace("/api/auth", "");
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
+
+// So we can test deploy previews preview
+if (process.env.VERCEL_URL && !process.env.BASE_URL) {
+  process.env.BASE_URL = "https://" + process.env.VERCEL_URL;
 }
+if (process.env.BASE_URL) {
+  process.env.NEXTAUTH_URL = process.env.BASE_URL + "/api/auth";
+}
+if (!process.env.NEXT_PUBLIC_APP_URL) {
+  process.env.NEXT_PUBLIC_APP_URL = process.env.BASE_URL;
+}
+process.env.NEXT_PUBLIC_BASE_URL = process.env.BASE_URL;
 
 if (!process.env.EMAIL_FROM) {
   console.warn(
@@ -12,9 +24,6 @@ if (!process.env.EMAIL_FROM) {
     "\x1b[0m",
     "EMAIL_FROM environment variable is not set, this may indicate mailing is currently disabled. Please refer to the .env.example file."
   );
-}
-if (process.env.BASE_URL) {
-  process.env.NEXTAUTH_URL = process.env.BASE_URL + "/api/auth";
 }
 
 const validJson = (jsonString) => {
@@ -37,11 +46,11 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
   );
 }
 
-module.exports = withTM({
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
-  },
+const plugins = [withBundleAnalyzer, withTM];
+
+// prettier-ignore
+module.exports = () => plugins.reduce((acc, next) => next(acc), {
+  i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
     ignoreDuringBuilds: true,
@@ -65,9 +74,11 @@ module.exports = withTM({
         destination: "/settings/profile",
         permanent: true,
       },
+      {
+        source: "/bookings",
+        destination: "/bookings/upcoming",
+        permanent: true,
+      },
     ];
-  },
-  publicRuntimeConfig: {
-    BASE_URL: process.env.BASE_URL || "http://localhost:3000",
   },
 });

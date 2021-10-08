@@ -1,12 +1,12 @@
-import classNames from "@lib/classNames";
 import Link, { LinkProps } from "next/link";
-import React from "react";
+import React, { forwardRef } from "react";
 
-type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+import classNames from "@lib/classNames";
+import { SVGComponent } from "@lib/types/SVGComponent";
 
 export type ButtonProps = {
   color?: "primary" | "secondary" | "minimal" | "warn";
-  size?: "base" | "sm" | "lg" | "fab";
+  size?: "base" | "sm" | "lg" | "fab" | "icon";
   loading?: boolean;
   disabled?: boolean;
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -18,7 +18,10 @@ export type ButtonProps = {
   | (JSX.IntrinsicElements["button"] & { href?: never })
 );
 
-export const Button = function Button(props: ButtonProps) {
+export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(
+  props: ButtonProps,
+  forwardedRef
+) {
   const {
     loading = false,
     color = "primary",
@@ -41,6 +44,7 @@ export const Button = function Button(props: ButtonProps) {
     {
       ...passThroughProps,
       disabled,
+      ref: forwardedRef,
       className: classNames(
         // base styles independent what type of button it is
         "inline-flex items-center",
@@ -48,6 +52,7 @@ export const Button = function Button(props: ButtonProps) {
         size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm",
         size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
         size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
+        size === "icon" && "group p-2 border border-transparent text-neutral-400 hover:border-gray-200",
         // turn button into a floating action button (fab)
         size === "fab" ? "fixed" : "relative",
         size === "fab" && "justify-center bottom-20 right-8 rounded-full p-4 w-14 h-14",
@@ -56,7 +61,7 @@ export const Button = function Button(props: ButtonProps) {
         color === "primary" &&
           (disabled
             ? "border border-transparent bg-gray-400 text-white"
-            : "border border-transparent text-white bg-neutral-900 hover:bg-neutral-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            : "border border-transparent dark:text-black text-white bg-neutral-900 dark:bg-white hover:bg-neutral-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
         color === "secondary" &&
           (disabled
             ? "border border-gray-200 text-gray-400 bg-white"
@@ -81,14 +86,21 @@ export const Button = function Button(props: ButtonProps) {
         : props.onClick,
     },
     <>
-      {StartIcon && <StartIcon className="inline w-5 h-5 mr-2 -ml-1" />}
+      {StartIcon && (
+        <StartIcon
+          className={classNames(
+            "inline",
+            size === "icon" ? "w-5 h-5 group-hover:text-black" : "w-5 h-5 mr-2 -ml-1"
+          )}
+        />
+      )}
       {props.children}
       {loading && (
         <div className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
           <svg
             className={classNames(
               "w-5 h-5 mx-4 animate-spin",
-              color === "primary" ? "text-white" : "text-black"
+              color === "primary" ? "dark:text-black text-white" : "text-black"
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -117,6 +129,6 @@ export const Button = function Button(props: ButtonProps) {
   ) : (
     element
   );
-};
+});
 
 export default Button;

@@ -1,21 +1,28 @@
+import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { RefObject, useEffect, useRef, useState } from "react";
-import prisma from "@lib/prisma";
-import Modal from "@components/Modal";
-import Shell from "@components/Shell";
-import SettingsShell from "@components/Settings";
-import Avatar from "@components/ui/Avatar";
-import { getSession } from "@lib/auth";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
-import { UsernameInput } from "@components/ui/UsernameInput";
-import ErrorAlert from "@components/ui/alerts/Error";
-import ImageUploader from "@components/ImageUploader";
-import crypto from "crypto";
+
+import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import { extractLocaleInfo, localeLabels, localeOptions, OptionType } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
+import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import ImageUploader from "@components/ImageUploader";
+import Modal from "@components/Modal";
+import SettingsShell from "@components/SettingsShell";
+import Shell from "@components/Shell";
+import { Alert } from "@components/ui/Alert";
+import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { UsernameInput } from "@components/ui/UsernameInput";
 
 const themeOptions = [
   { value: "light", label: "Light" },
@@ -58,15 +65,15 @@ function HideBrandingInput(props: {
         description={
           <div className="flex flex-col space-y-3">
             <p>
-              In order to remove the Calendso branding from your booking pages, you need to upgrade to a paid
+              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
               account.
             </p>
 
             <p>
               {" "}
               To upgrade go to{" "}
-              <a href="https://calendso.com/upgrade" className="underline">
-                calendso.com/upgrade
+              <a href="https://cal.com/upgrade" className="underline">
+                cal.com/upgrade
               </a>
               .
             </p>
@@ -80,6 +87,9 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
+  const { locale } = useLocale({ localeProp: props.localeProp });
+  const mutation = trpc.useMutation("viewer.updateProfile");
+
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -89,8 +99,11 @@ export default function Settings(props: Props) {
   const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
+  const [selectedLanguage, setSelectedLanguage] = useState<OptionType>({
+    value: locale,
+    label: props.localeLabels[locale],
+  });
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
-
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -99,6 +112,7 @@ export default function Settings(props: Props) {
       props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : null
     );
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
+    setSelectedLanguage({ value: locale, label: props.localeLabels[locale] });
   }, []);
 
   const closeSuccessModal = () => {
@@ -118,13 +132,6 @@ export default function Settings(props: Props) {
     setImageSrc(newAvatar);
   };
 
-  const handleError = async (resp) => {
-    if (!resp.ok) {
-      const error = await resp.json();
-      throw new Error(error.message);
-    }
-  };
-
   async function updateProfileHandler(event) {
     event.preventDefault();
 
@@ -135,26 +142,22 @@ export default function Settings(props: Props) {
     const enteredTimeZone = selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
+    const enteredLanguage = selectedLanguage.value;
 
     // TODO: Add validation
 
-    await fetch("/api/user/profile", {
-      method: "PATCH",
-      body: JSON.stringify({
+    await mutation
+      .mutateAsync({
         username: enteredUsername,
         name: enteredName,
-        description: enteredDescription,
+        bio: enteredDescription,
         avatar: enteredAvatar,
         timeZone: enteredTimeZone,
-        weekStart: enteredWeekStartDay,
+        weekStart: asStringOrUndefined(enteredWeekStartDay),
         hideBranding: enteredHideBranding,
-        theme: selectedTheme ? selectedTheme.value : null,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(handleError)
+        theme: asStringOrNull(selectedTheme?.value),
+        locale: enteredLanguage,
+      })
       .then(() => {
         setSuccessModalOpen(true);
         setHasErrors(false); // dismiss any open errors
@@ -162,6 +165,7 @@ export default function Settings(props: Props) {
       .catch((err) => {
         setHasErrors(true);
         setErrorMessage(err.message);
+        document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
       });
   }
 
@@ -169,7 +173,7 @@ export default function Settings(props: Props) {
     <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
-          {hasErrors && <ErrorAlert message={errorMessage} />}
+          {hasErrors && <Alert severity="error" title={errorMessage} />}
           <div className="py-6 lg:pb-8">
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
@@ -192,6 +196,29 @@ export default function Settings(props: Props) {
                       className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={props.user.name}
                     />
+                  </div>
+                </div>
+
+                <div className="block sm:flex">
+                  <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      Email
+                    </label>
+                    <input
+                      type="text"
+                      name="email"
+                      id="email"
+                      placeholder="Your email"
+                      disabled
+                      className="mt-1 block w-full py-2 px-3 text-gray-500 border  border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
+                      defaultValue={props.user.email}
+                    />
+                    <p className="mt-2 text-sm text-gray-500" id="email-description">
+                      To change your email, please contact{" "}
+                      <a className="text-blue-500" href="mailto:help@cal.com">
+                        help@cal.com
+                      </a>
+                    </p>
                   </div>
                 </div>
 
@@ -232,10 +259,25 @@ export default function Settings(props: Props) {
                       id="avatar-upload"
                       buttonMsg="Change avatar"
                       handleAvatarChange={handleAvatarChange}
-                      imageRef={imageSrc}
+                      imageSrc={imageSrc}
                     />
                   </div>
                   <hr className="mt-6" />
+                </div>
+                <div>
+                  <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+                    Language
+                  </label>
+                  <div className="mt-1">
+                    <Select
+                      id="languageSelect"
+                      value={selectedLanguage || locale}
+                      onChange={setSelectedLanguage}
+                      classNamePrefix="react-select"
+                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
+                      options={props.localeOptions}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
@@ -291,7 +333,7 @@ export default function Settings(props: Props) {
                         name="theme-adjust-os"
                         type="checkbox"
                         onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
-                        defaultChecked={!selectedTheme}
+                        checked={!selectedTheme}
                         className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
                       />
                     </div>
@@ -309,10 +351,10 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Calendso branding{" "}
+                        Disable Cal.com branding{" "}
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
-                      <p className="text-gray-500">Hide all Calendso branding from your public pages.</p>
+                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
                     </div>
                   </div>
                 </div>
@@ -374,6 +416,8 @@ export default function Settings(props: Props) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
+  const locale = await extractLocaleInfo(context.req);
+
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -400,12 +444,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) {
     throw new Error("User seems logged in but cannot be found in the db");
   }
+
   return {
     props: {
+      session,
+      localeProp: locale,
+      localeOptions,
+      localeLabels,
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

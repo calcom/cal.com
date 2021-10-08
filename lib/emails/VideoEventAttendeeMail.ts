@@ -1,8 +1,9 @@
+import { AdditionInformation } from "@lib/emails/EventMail";
+
 import { CalendarEvent } from "../calendarClient";
+import { VideoCallData } from "../videoClient";
 import EventAttendeeMail from "./EventAttendeeMail";
 import { getFormattedMeetingId, getIntegrationName } from "./helpers";
-import { VideoCallData } from "../videoClient";
-import { AdditionInformation } from "@lib/emails/EventMail";
 
 export default class VideoEventAttendeeMail extends EventAttendeeMail {
   videoCallData: VideoCallData;
@@ -24,10 +25,20 @@ export default class VideoEventAttendeeMail extends EventAttendeeMail {
    * @protected
    */
   protected getAdditionalBody(): string {
-    return `
+    const meetingPassword = this.videoCallData.password;
+    const meetingId = getFormattedMeetingId(this.videoCallData);
+
+    if (meetingId && meetingPassword) {
+      return `
       <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
       <strong>Meeting ID:</strong> ${getFormattedMeetingId(this.videoCallData)}<br />
       <strong>Meeting Password:</strong> ${this.videoCallData.password}<br />
+      <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
+    `;
+    }
+
+    return `
+      <strong>Video call provider:</strong> ${getIntegrationName(this.videoCallData)}<br />
       <strong>Meeting URL:</strong> <a href="${this.videoCallData.url}">${this.videoCallData.url}</a><br />
     `;
   }

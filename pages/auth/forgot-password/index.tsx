@@ -1,9 +1,11 @@
-import { HeadSeo } from "@components/seo/head-seo";
+import debounce from "lodash.debounce";
+import { getCsrfToken } from "next-auth/client";
 import Link from "next/link";
 import React from "react";
-import { getCsrfToken } from "next-auth/client";
-import debounce from "lodash.debounce";
+
 import { getSession } from "@lib/auth";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function ForgotPassword({ csrfToken }) {
   const [loading, setLoading] = React.useState(false);
@@ -79,7 +81,9 @@ export default function ForgotPassword({ csrfToken }) {
           {!success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Forgot Password</h2>
+                <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  Forgot Password
+                </h2>
                 <p>
                   Enter the email address associated with your account and we will send you a link to reset
                   your password.
@@ -98,6 +102,7 @@ export default function ForgotPassword({ csrfToken }) {
                       id="email"
                       name="email"
                       type="email"
+                      inputMode="email"
                       autoComplete="email"
                       placeholder="john.doe@example.com"
                       required

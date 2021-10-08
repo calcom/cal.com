@@ -1,19 +1,20 @@
-import React from "react";
-import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
+import { IdProvider } from "@radix-ui/react-id";
 import { Provider } from "next-auth/client";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { Hydrate } from "react-query/hydration";
+import { AppProps } from "next/dist/shared/lib/router/router";
+import React from "react";
 
-export const queryClient = new QueryClient();
+import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
-const AppProviders: React.FC = (props, pageProps) => {
+import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
+
+const AppProviders = (props: AppProps) => {
   return (
     <TelemetryProvider value={createTelemetryClient()}>
-      <QueryClientProvider client={queryClient}>
-        <Hydrate state={pageProps.dehydratedState}>
-          <Provider session={pageProps.session}>{props.children}</Provider>
-        </Hydrate>
-      </QueryClientProvider>
+      <IdProvider>
+        <DynamicIntercomProvider>
+          <Provider session={props.pageProps.session}>{props.children}</Provider>
+        </DynamicIntercomProvider>
+      </IdProvider>
     </TelemetryProvider>
   );
 };

@@ -1,4 +1,4 @@
-describe("cancel", () => {
+describe.skip("cancel", () => {
   describe("Admin user can cancel events", () => {
     before(() => {
       cy.visit("/bookings");

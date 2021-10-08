@@ -1,6 +1,10 @@
+import { pick } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@lib/prisma";
+
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+
+import { resizeBase64Image } from "@server/lib/resizeBase64Image";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -10,17 +14,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const description = req.body.description;
-  delete req.body.description;
-
   try {
+    const avatar = req.body.avatar ? await resizeBase64Image(req.body.avatar) : undefined;
     await prisma.user.update({
       where: {
         id: session.user.id,
       },
       data: {
-        ...req.body,
-        bio: description,
+        ...pick(req.body, [
+          "username",
+          "name",
+          "timeZone",
+          "weekStart",
+          "hideBranding",
+          "theme",
+          "completedOnboarding",
+          "locale",
+        ]),
+        avatar,
+        bio: req.body.description,
       },
     });
   } catch (e) {

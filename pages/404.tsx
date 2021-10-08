@@ -1,8 +1,9 @@
-import { ChevronRightIcon } from "@heroicons/react/solid";
 import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
+import { ChevronRightIcon } from "@heroicons/react/solid";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
-import Link from "next/link";
+
 import { HeadSeo } from "@components/seo/head-seo";
 
 const links = [
@@ -10,19 +11,19 @@ const links = [
     title: "Documentation",
     description: "Learn how to integrate our tools with your app",
     icon: DocumentTextIcon,
-    href: "https://docs.calendso.com",
+    href: "https://docs.cal.com",
   },
   {
     title: "API Reference",
     description: "A complete API reference for our libraries",
     icon: CodeIcon,
-    href: "https://api.docs.calendso.com",
+    href: "https://api.docs.cal.com",
   },
   {
     title: "Blog",
     description: "Read our latest news and articles",
     icon: BookOpenIcon,
-    href: "https://calendso.com/blog",
+    href: "https://cal.com/blog",
   },
 ];
 
@@ -46,7 +47,7 @@ export default function Custom404() {
         <main className="max-w-xl mx-auto pb-6 pt-16 sm:pt-24">
           <div className="text-center">
             <p className="text-sm font-semibold text-black uppercase tracking-wide">404 error</p>
-            <h1 className="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
+            <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
               This page does not exist.
             </h1>
             {isEventType404 ? (
@@ -54,9 +55,9 @@ export default function Custom404() {
                 Check for spelling mistakes or go back to the previous page.
               </span>
             ) : (
-              <a href="https://checkout.calendso.com" className="inline-block mt-2 text-lg ">
-                The username <strong className="text-blue-500">calendso.com{username}</strong> is still
-                available. <span className="text-blue-500">Register now</span>.
+              <a href="https://cal.com/signup" className="inline-block mt-2 text-lg ">
+                The username <strong className="text-blue-500">cal.com{username}</strong> is still available.{" "}
+                <span className="text-blue-500">Register now</span>.
               </a>
             )}
           </div>
@@ -65,9 +66,7 @@ export default function Custom404() {
             {!isEventType404 && (
               <ul role="list" className="mt-4">
                 <li className="border-2 border-green-500 px-4 py-2">
-                  <a
-                    href="https://checkout.calendso.com"
-                    className="relative py-6 flex items-start space-x-4">
+                  <a href="https://cal.com/signup" className="relative py-6 flex items-start space-x-4">
                     <div className="flex-shrink-0">
                       <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-green-50">
                         <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
@@ -119,7 +118,7 @@ export default function Custom404() {
                 </li>
               ))}
               <li className="px-4 py-2">
-                <a href="https://calendso.com/slack" className="relative py-6 flex items-start space-x-4">
+                <a href="https://cal.com/slack" className="relative py-6 flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     <span className="flex items-center justify-center h-12 w-12 rounded-lg bg-gray-50">
                       <svg viewBox="0 0 2447.6 2452.5" className="h-6 w-6" xmlns="http://www.w3.org/2000/svg">

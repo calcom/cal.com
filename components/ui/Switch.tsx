@@ -1,6 +1,6 @@
-import { useState } from "react";
-import * as PrimitiveSwitch from "@radix-ui/react-switch";
 import * as Label from "@radix-ui/react-label";
+import * as PrimitiveSwitch from "@radix-ui/react-switch";
+import { useState } from "react";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");

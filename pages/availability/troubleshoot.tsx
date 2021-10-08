@@ -1,22 +1,23 @@
-import Loader from "@components/Loader";
-import prisma from "@lib/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { GetServerSideProps } from "next";
-import { getSession } from "@lib/auth";
+import { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
+
+import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 
 dayjs.extend(utc);
 
-export default function Troubleshoot({ user }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSideProps>) {
   const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  function convertMinsToHrsMins(mins) {
+  function convertMinsToHrsMins(mins: number) {
     let h = Math.floor(mins / 60);
     let m = mins % 60;
     h = h < 10 ? "0" + h : h;
@@ -33,7 +34,7 @@ export default function Troubleshoot({ user }) {
         return res.json();
       })
       .then((availableIntervals) => {
-        setAvailability(availableIntervals);
+        setAvailability(availableIntervals.busy);
         setLoading(false);
       })
       .catch((e) => {
@@ -54,9 +55,17 @@ export default function Troubleshoot({ user }) {
       <Shell
         heading="Troubleshoot"
         subtitle="Understand why certain times are available and others are blocked.">
-        <div className="bg-white max-w-md overflow-hidden shadow rounded-sm">
+        <div className="bg-white max-w-xl overflow-hidden shadow rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            Here is an overview of your day on {selectedDate.format("D MMMM YYYY")}:
+            Here is an overview of your day on{" "}
+            <input
+              type="date"
+              className="inline border-none h-8 p-0"
+              defaultValue={selectedDate.format("YYYY-MM-DD")}
+              onBlur={(e) => {
+                setSelectedDate(dayjs(e.target.value));
+              }}
+            />
             <small className="block text-neutral-400">
               Tip: Hover over the bold times for a full timestamp
             </small>
@@ -95,9 +104,9 @@ export default function Troubleshoot({ user }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
-  if (!session) {
+  if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
@@ -112,7 +121,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   });
 
+  if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
+
   return {
-    props: { user },
+    props: { session, user },
   };
 };

@@ -1,11 +1,12 @@
-import React from "react";
-import Text from "@components/ui/Text";
-import Link from "next/link";
-import Avatar from "@components/ui/Avatar";
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import classnames from "classnames";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
+import classnames from "classnames";
+import Link from "next/link";
+import React from "react";
+
+import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
+import Text from "@components/ui/Text";
 
 const Team = ({ team }) => {
   const Member = ({ member }) => {
@@ -56,9 +57,9 @@ const Team = ({ team }) => {
     }
 
     return (
-      <section className="mx-auto min-w-full lg:min-w-lg max-w-5xl grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6">
+      <section className="mx-auto min-w-full lg:min-w-lg max-w-5xl flex flex-wrap gap-x-12 gap-y-6 justify-center">
         {members.map((member) => {
-          return <Member key={member.id} member={member} />;
+          return member.user.username !== null && <Member key={member.id} member={member} />;
         })}
       </section>
     );
@@ -67,7 +68,7 @@ const Team = ({ team }) => {
   return (
     <div>
       <Members members={team.members} />
-      {team.eventTypes.length && (
+      {team.eventTypes.length > 0 && (
         <aside className="text-center dark:text-white mt-8">
           <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
             Go back

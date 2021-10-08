@@ -1,9 +1,10 @@
-import { HeadSeo } from "@components/seo/head-seo";
-import { useRouter } from "next/router";
 import { CheckIcon } from "@heroicons/react/outline";
-import { useSession } from "next-auth/client";
-import Button from "@components/ui/Button";
 import { ArrowRightIcon } from "@heroicons/react/solid";
+import { useSession } from "next-auth/client";
+import { useRouter } from "next/router";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import Button from "@components/ui/Button";
 
 export default function CancelSuccess() {
   // Get router variables
