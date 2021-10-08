@@ -27,8 +27,8 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
-    "@headlessui/react": "^1.4.1",
     "@daily-co/daily-js": "^0.16.0",
+    "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
     "@hookform/resolvers": "^2.8.1",
     "@jitsu/sdk-js": "^2.2.4",
@@ -82,10 +82,10 @@
     "react-multi-email": "^0.5.3",
     "react-phone-number-input": "^3.1.25",
     "react-query": "^3.23.1",
+    "react-router-dom": "^5.2.0",
     "react-select": "^4.3.1",
     "react-timezone-select": "^1.0.7",
     "react-use-intercom": "1.4.0",
-    "react-router-dom": "^5.2.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.168.0",
     "superjson": "1.7.5",
@@ -137,12 +137,16 @@
     "tailwindcss": "^2.2.16",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
+    "tsc-files": "^1.1.2",
     "typescript": "^4.4.3"
   },
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint"
+    ],
+    "./{*,{ee,pages,components,lib}/**/*}.{ts,tsx}": [
+      "tsc-files --noEmit"
     ]
   }
 }
