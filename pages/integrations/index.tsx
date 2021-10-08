@@ -67,7 +67,7 @@ function ConnectIntegration(props: {
   // refetch intergrations when modal closes
   const utils = trpc.useContext();
   useEffect(() => {
-    utils.invalidateQuery(["viewer.integrations"]);
+    utils.invalidateQueries(["viewer.integrations"]);
   }, [isModalOpen, utils]);
 
   return (
@@ -120,7 +120,7 @@ function DisconnectIntegration(props: {
     },
     {
       async onSettled() {
-        await utils.invalidateQuery(["viewer.integrations"]);
+        await utils.invalidateQueries(["viewer.integrations"]);
       },
       onSuccess() {
         setModalOpen(false);
@@ -245,7 +245,7 @@ export function CalendarSwitch(props: {
     },
     {
       async onSettled() {
-        await utils.invalidateQuery(["viewer.integrations"]);
+        await utils.invalidateQueries(["viewer.integrations"]);
       },
       onError() {
         showToast(`Something went wrong when toggling "${props.title}""`, "error");
