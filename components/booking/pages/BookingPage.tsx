@@ -20,6 +20,7 @@ import { createPaymentLink } from "@ee/lib/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
+import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
@@ -36,6 +37,7 @@ import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
 const BookingPage = (props: BookingPageProps) => {
+  const { t } = useLocale({ localeProp: props.localeProp });
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(props.profile.theme);
@@ -67,8 +69,8 @@ const BookingPage = (props: BookingPageProps) => {
 
   // TODO: Move to translations
   const locationLabels = {
-    [LocationType.InPerson]: "Link or In-person meeting",
-    [LocationType.Phone]: "Phone call",
+    [LocationType.InPerson]: t("in_person_meeting"),
+    [LocationType.Phone]: t("phone_call"),
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
     [LocationType.Daily]: "Daily.co Video",
@@ -85,7 +87,7 @@ const BookingPage = (props: BookingPageProps) => {
             const data = event.target["custom_" + input.id];
             if (data) {
               if (input.type === EventTypeCustomInputType.BOOL) {
-                return input.label + "\n" + (data.checked ? "Yes" : "No");
+                return input.label + "\n" + (data.checked ? t("yes") : t("no"));
               } else {
                 return input.label + "\n" + data.value;
               }
@@ -94,7 +96,7 @@ const BookingPage = (props: BookingPageProps) => {
           .join("\n\n");
       }
       if (!!notes && !!event.target.notes.value) {
-        notes += "\n\nAdditional notes:\n" + event.target.notes.value;
+        notes += `\n\n${t("additional_notes")}:\n` + event.target.notes.value;
       } else {
         notes += event.target.notes.value;
       }
@@ -185,8 +187,16 @@ const BookingPage = (props: BookingPageProps) => {
     <div>
       <Head>
         <title>
-          {rescheduleUid ? "Reschedule" : "Confirm"} your {props.eventType.title} with {props.profile.name} |
-          Cal.com
+          {rescheduleUid
+            ? t("booking_reschedule_confirmation", {
+                eventTypeTitle: props.eventType.title,
+                profileName: props.profile.name,
+              })
+            : t("booking_confirmation", {
+                eventTypeTitle: props.eventType.title,
+                profileName: props.profile.name,
+              })}{" "}
+          | Cal.com
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -215,7 +225,7 @@ const BookingPage = (props: BookingPageProps) => {
                 </h1>
                 <p className="mb-2 text-gray-500">
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {props.eventType.length} minutes
+                  {props.eventType.length} {t("minutes")}
                 </p>
                 {props.eventType.price > 0 && (
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
@@ -244,8 +254,8 @@ const BookingPage = (props: BookingPageProps) => {
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
-                      Your name
+                    <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
+                      {t("your_name")}
                     </label>
                     <div className="mt-1">
                       <input
@@ -262,8 +272,8 @@ const BookingPage = (props: BookingPageProps) => {
                   <div className="mb-4">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
-                      Email address
+                      className="block text-sm font-medium dark:text-white text-gray-700">
+                      {t("email_address")}
                     </label>
                     <div className="mt-1">
                       <input
@@ -281,7 +291,7 @@ const BookingPage = (props: BookingPageProps) => {
                   {locations.length > 1 && (
                     <div className="mb-4">
                       <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                        Location
+                        {t("location")}
                       </span>
                       {locations.map((location) => (
                         <label key={location.type} className="block">
@@ -306,12 +316,12 @@ const BookingPage = (props: BookingPageProps) => {
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium text-gray-700 dark:text-white">
-                        Phone Number
+                        {t("phone_number")}
                       </label>
                       <div className="mt-1">
                         <PhoneInput
                           name="phone"
-                          placeholder="Enter phone number"
+                          placeholder={t("enter_phone_number")}
                           id="phone"
                           required
                           className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
@@ -390,7 +400,7 @@ const BookingPage = (props: BookingPageProps) => {
                           onClick={toggleGuestEmailInput}
                           htmlFor="guests"
                           className="block mb-1 text-sm font-medium text-blue-500 dark:text-white hover:cursor-pointer">
-                          + Additional Guests
+                          {t("additional_guests")}
                         </label>
                       )}
                       {guestToggle && (
@@ -430,24 +440,24 @@ const BookingPage = (props: BookingPageProps) => {
                     <label
                       htmlFor="notes"
                       className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
-                      Additional notes
+                      {t("additional_notes")}
                     </label>
                     <textarea
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
-                      placeholder="Please share anything that will help prepare for our meeting."
+                      className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                      placeholder={t("share_additional_notes")}
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
                   </div>
                   <div className="flex items-start space-x-2">
                     {/* TODO: add styling props to <Button variant="" color="" /> and get rid of btn-primary */}
                     <Button type="submit" loading={loading}>
-                      {rescheduleUid ? "Reschedule" : "Confirm"}
+                      {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
-                      Cancel
+                      {t("cancel")}
                     </Button>
                   </div>
                 </form>
@@ -459,7 +469,7 @@ const BookingPage = (props: BookingPageProps) => {
                       </div>
                       <div className="ml-3">
                         <p className="text-sm text-yellow-700">
-                          Could not {rescheduleUid ? "reschedule" : "book"} the meeting.
+                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
                         </p>
                       </div>
                     </div>

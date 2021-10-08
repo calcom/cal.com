@@ -1,6 +1,7 @@
 import React, { SyntheticEvent, useState } from "react";
 
 import { ErrorCode } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { Dialog, DialogContent } from "@components/Dialog";
 import Button from "@components/ui/Button";
@@ -18,6 +19,7 @@ interface EnableTwoFactorModalProps {
    * Called when the user enables two-factor auth
    */
   onEnable: () => void;
+  localeProp: string;
 }
 
 enum SetupStep {
@@ -45,7 +47,7 @@ const WithStep = ({
   return step === current ? children : null;
 };
 
-const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps) => {
+const EnableTwoFactorModal = ({ onEnable, onCancel, localeProp }: EnableTwoFactorModalProps) => {
   const [step, setStep] = useState(SetupStep.ConfirmPassword);
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
@@ -53,6 +55,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
   const [secret, setSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { t } = useLocale({ localeProp });
 
   async function handleSetup(e: SyntheticEvent) {
     e.preventDefault();
@@ -76,13 +79,13 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
       }
 
       if (body.error === ErrorCode.IncorrectPassword) {
-        setErrorMessage("Password is incorrect.");
+        setErrorMessage(t("incorrect_password"));
       } else {
-        setErrorMessage("Something went wrong.");
+        setErrorMessage(t("something_went_wrong"));
       }
     } catch (e) {
-      setErrorMessage("Something went wrong.");
-      console.error("Error setting up two-factor authentication", e);
+      setErrorMessage(t("something_went_wrong"));
+      console.error(t("error_enabling_2fa"), e);
     } finally {
       setIsSubmitting(false);
     }
@@ -108,13 +111,13 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
       }
 
       if (body.error === ErrorCode.IncorrectTwoFactorCode) {
-        setErrorMessage("Code is incorrect. Please try again.");
+        setErrorMessage(`${t("code_is_incorrect")} ${t("please_try_again")}`);
       } else {
-        setErrorMessage("Something went wrong.");
+        setErrorMessage(t("something_went_wrong"));
       }
     } catch (e) {
-      setErrorMessage("Something went wrong.");
-      console.error("Error enabling up two-factor authentication", e);
+      setErrorMessage(t("something_went_wrong"));
+      console.error(t("error_enabling_2fa"), e);
     } finally {
       setIsSubmitting(false);
     }
@@ -123,16 +126,13 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
   return (
     <Dialog open={true}>
       <DialogContent>
-        <TwoFactorModalHeader
-          title="Enable two-factor authentication"
-          description={setupDescriptions[step]}
-        />
+        <TwoFactorModalHeader title={t("enable_2fa")} description={setupDescriptions[step]} />
 
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">
               <label htmlFor="password" className="mt-4 block text-sm font-medium text-gray-700">
-                Password
+                {t("password")}
               </label>
               <div className="mt-1">
                 <input
@@ -162,7 +162,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
           <form onSubmit={handleEnable}>
             <div className="mb-4">
               <label htmlFor="code" className="mt-4 block text-sm font-medium text-gray-700">
-                Code
+                {t("code")}
               </label>
               <div className="mt-1">
                 <input
@@ -191,12 +191,12 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
               className="ml-2"
               onClick={handleSetup}
               disabled={password.length === 0 || isSubmitting}>
-              Continue
+              {t("continue")}
             </Button>
           </WithStep>
           <WithStep step={SetupStep.DisplayQrCode} current={step}>
             <Button type="submit" className="ml-2" onClick={() => setStep(SetupStep.EnterTotpCode)}>
-              Continue
+              {t("continue")}
             </Button>
           </WithStep>
           <WithStep step={SetupStep.EnterTotpCode} current={step}>
@@ -205,11 +205,11 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
               className="ml-2"
               onClick={handleEnable}
               disabled={totpCode.length !== 6 || isSubmitting}>
-              Enable
+              {t("enable")}
             </Button>
           </WithStep>
           <Button color="secondary" onClick={onCancel}>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </DialogContent>
