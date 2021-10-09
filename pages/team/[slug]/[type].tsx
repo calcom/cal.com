@@ -6,7 +6,7 @@ import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
+import AvailabilityPage, { eventTypeSelect } from "@components/booking/pages/AvailabilityPage";
 
 export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -37,25 +37,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         where: {
           slug: typeParam,
         },
-        select: {
-          id: true,
-          users: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true,
-              username: true,
-              timeZone: true,
-            },
-          },
-          title: true,
-          availability: true,
-          description: true,
-          length: true,
-          schedulingType: true,
-          periodStartDate: true,
-          periodEndDate: true,
-        },
+        select: eventTypeSelect,
       },
     },
   });
@@ -86,6 +68,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         name: team.name,
         slug: team.slug,
         image: team.logo || null,
+        // FIXME Handle team-specific weekStart maybe?
+        weekStart: eventType.users[0].weekStart || null,
         theme: null,
       },
       date: dateParam,

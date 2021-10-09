@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -7,7 +6,7 @@ import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
+import AvailabilityPage, { eventTypeSelect } from "@components/booking/pages/AvailabilityPage";
 
 export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -26,32 +25,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!userParam || !typeParam) {
     throw new Error(`File is not named [type]/[user]`);
   }
-
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    availability: true,
-    description: true,
-    length: true,
-    price: true,
-    currency: true,
-    periodType: true,
-    periodStartDate: true,
-    periodEndDate: true,
-    periodDays: true,
-    periodCountCalendarDays: true,
-    schedulingType: true,
-    minimumBookingNotice: true,
-    users: {
-      select: {
-        avatar: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-      },
-    },
-  });
 
   const user = await prisma.user.findUnique({
     where: {
