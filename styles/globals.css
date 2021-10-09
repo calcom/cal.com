@@ -106,6 +106,10 @@
   .btn-wide.btn-white {
     @apply w-full text-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
   }
+  /* btn icon */
+  .btn-icon {
+    @apply p-2 border border-transparent hover:border-gray-300 rounded-sm text-neutral-500 hover:text-neutral-900;
+  }
   /* slider */
   .slider {
     @apply relative flex items-center w-40 h-4 select-none;
