@@ -23,12 +23,13 @@ const TimeOptions: FC<Props> = (props) => {
 
   useEffect(() => {
     setIs24hClock(
-      hour12.isOn === new Intl.Locale(props.localeProp).hour12
-        ? !new Intl.Locale(props.localeProp).hour12
-        : !hour12.isOn
+      (router.query.hour12 !== undefined && !hour12.isOn) ||
+        !new Intl.DateTimeFormat(props.localeProp, { timeStyle: "short" })
+          .format(new Date())
+          .match(/\d+:\d+ (AM|PM)/)
     );
     setSelectedTimeZone(timeZone());
-  }, [hour12.isOn, props.localeProp]);
+  }, [props.localeProp, hour12.isOn, router.query.hour12]);
 
   const handle24hClockToggle = (is24hClock: boolean) => {
     setIs24hClock(is24hClock);

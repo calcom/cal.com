@@ -11,14 +11,14 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import { useCallback, useEffect, useState } from "react";
-import { FormattedNumber, IntlProvider } from "react-intl";
+import { FormattedNumber, IntlProvider, FormattedDate } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
-import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
@@ -27,6 +27,7 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { BookingCreateBody } from "@lib/types/booking";
 
+import Clock from "@components/i18n/Clock";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
 
@@ -245,21 +246,10 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {new Intl.DateTimeFormat(
-                    props.localeProp,
-                    asStringOrUndefined(router.query.hour12) !== undefined
-                      ? {
-                          hour12: asStringOrUndefined(router.query.hour12) === "1",
-                          hour: asStringOrUndefined(router.query.hour12) === "1" ? "numeric" : "2-digit",
-                          minute: "2-digit",
-                        }
-                      : { timeStyle: "short" }
-                  )
-                    .format(new Date(date))
-                    .replace(" ", "")
-                    .toLowerCase()}
-                  ,&nbsp;
-                  {new Intl.DateTimeFormat(props.localeProp, { dateStyle: "full" }).format(new Date(date))}
+                  <IntlProvider locale={props.localeProp}>
+                    <Clock value={new Date(date)} />,{" "}
+                    <FormattedDate value={new Date(date)} dateStyle="full" />
+                  </IntlProvider>
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>

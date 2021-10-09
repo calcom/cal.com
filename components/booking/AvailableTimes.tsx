@@ -4,12 +4,13 @@ import { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC } from "react";
+import { IntlProvider } from "react-intl";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
 import Loader from "@components/Loader";
+import Clock from "@components/i18n/Clock";
 
 type AvailableTimesProps = {
   localeProp: string;
@@ -88,20 +89,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               <div key={slot.time.format()}>
                 <Link href={bookingUrl}>
                   <a className="block py-4 mb-2 font-medium lowercase bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-primary-500 dark:border-transparent hover:text-white hover:bg-primary-500 dark:hover:border-black dark:hover:bg-black">
-                    {new Intl.DateTimeFormat(
-                      localeProp,
-                      asStringOrUndefined(router.query.hour12) !== undefined
-                        ? {
-                            hour12: asStringOrUndefined(router.query.hour12) === "1",
-                            hour: asStringOrUndefined(router.query.hour12) === "1" ? "numeric" : "2-digit",
-                            minute: "2-digit",
-                          }
-                        : {
-                            timeStyle: "short",
-                          }
-                    )
-                      .format(slot.time.toDate())
-                      .replace(" ", "")}
+                    <IntlProvider locale={localeProp}>
+                      <Clock value={slot.time.toDate()} />
+                    </IntlProvider>
                   </a>
                 </Link>
               </div>
