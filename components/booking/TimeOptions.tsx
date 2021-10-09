@@ -16,7 +16,7 @@ type Props = {
 
 const TimeOptions: FC<Props> = (props) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [is24hClock, setIs24hClock] = useState<boolean | null>(null);
+  const [is24hClock, setIs24hClock] = useState(false);
   const { t } = useLocale({ localeProp: props.localeProp });
   const hour12 = useToggleQuery("hour12", { zero: true });
   const router = useRouter();
