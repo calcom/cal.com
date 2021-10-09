@@ -223,7 +223,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
           </option>
         ));
       return (
-        <div key={`${day}-range-${index}`} className="flex items-center justify-between space-x-2">
+        <div key={`${day}-range-${index}`} className="flex items-center space-x-2">
           <div className="flex items-center space-x-2">
             <select
               id={`${day}.${index}.start`}
@@ -252,9 +252,9 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
 
     const Actions = () => {
       return (
-        <div className="flex items-center space-x-2">
-          <button type="button" onClick={() => handleAddRange()}>
-            <PlusIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-500" />
+        <div className="flex items-center">
+          <button className="btn-icon" type="button" onClick={() => handleAddRange()}>
+            <PlusIcon className="h-5 w-5" />
           </button>
         </div>
       );
@@ -262,8 +262,8 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
 
     const DeleteAction = ({ range }: { range: TimeRange }) => {
       return (
-        <button type="button" onClick={() => handleDeleteRange(range)}>
-          <TrashIcon className="h-5 w-5 text-neutral-400 hover:text-neutral-500" />
+        <button className="btn-icon" type="button" onClick={() => handleDeleteRange(range)}>
+          <TrashIcon className="h-5 w-5" />
         </button>
       );
     };
