@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 
+import Logo from "@components/Logo";
+
 import prisma from "../../lib/prisma";
 
 export default function JoinCall(props, session) {
@@ -52,15 +54,7 @@ export default function JoinCall(props, session) {
   return (
     <div style={{ zIndex: 2, position: "relative" }}>
       <Link href="/">
-        <img
-          className="hidden sm:inline-block z-10 fixed w-auto h-5"
-          src="/logo-white.svg"
-          alt="Cal.com Logo"
-          style={{
-            top: 46,
-            left: 24,
-          }}
-        />
+        <Logo />
       </Link>
       {JoinCall}
     </div>
