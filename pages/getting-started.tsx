@@ -144,18 +144,21 @@ export default function Onboarding(props: OnboardingProps) {
     }
 
     return (
-      <li onClick={() => handleAddIntegration(integration.type)} key={integration.type} className="flex py-4">
-        <div className="w-1/12 mr-4 pt-2">
+      <li
+        onClick={() => handleAddIntegration(integration.type)}
+        key={integration.type}
+        className="flex px-4 py-3 items-center">
+        <div className="w-1/12 mr-4">
           <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
         </div>
         <div className="w-10/12">
-          <Text className="text-gray-800 font-medium">{integration.title}</Text>
+          <Text className="text-gray-900 text-sm font-medium">{integration.title}</Text>
           <Text className="text-gray-400" variant="subtitle">
             {integration.description}
           </Text>
         </div>
-        <div className="w-2/12 text-right pt-2">
-          <Button color="secondary" onClick={() => handleAddIntegration(integration.type)}>
+        <div className="w-2/12 text-right">
+          <Button className="btn-sm" color="secondary" onClick={() => handleAddIntegration(integration.type)}>
             Connect
           </Button>
         </div>
@@ -369,8 +372,8 @@ export default function Onboarding(props: OnboardingProps) {
       description:
         "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
       Component: (
-        <form className="sm:mx-auto sm:w-full sm:max-w-md">
-          <section className="space-y-4">
+        <form className="sm:mx-auto sm:w-full">
+          <section className="space-y-8">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Full name
@@ -433,7 +436,7 @@ export default function Onboarding(props: OnboardingProps) {
       description:
         "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
       Component: (
-        <ul className="divide-y divide-gray-200 sm:mx-auto sm:w-full sm:max-w-md">
+        <ul className="divide-y divide-gray-200 sm:mx-auto sm:w-full border border-gray-200 rounded-sm">
           {props.integrations.map((integration) => {
             return <IntegrationGridListItem key={integration.type} integration={integration} />;
           })}
@@ -467,7 +470,7 @@ export default function Onboarding(props: OnboardingProps) {
               }}
             />
           </section>
-          <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6">
+          <footer className="py-6 sm:mx-auto sm:w-full flex flex-col space-y-6">
             <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
               Continue
             </Button>
@@ -483,7 +486,7 @@ export default function Onboarding(props: OnboardingProps) {
       description:
         "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re booking with.",
       Component: (
-        <form className="sm:mx-auto sm:w-full sm:max-w-md" id="ONBOARDING_STEP_4">
+        <form className="sm:mx-auto sm:w-full" id="ONBOARDING_STEP_4">
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -514,7 +517,7 @@ export default function Onboarding(props: OnboardingProps) {
                 className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                 defaultValue={props.user.bio}
               />
-              <Text variant="caption">
+              <Text variant="caption" className="mt-2">
                 A few sentences about yourself. This will appear on your personal url page.
               </Text>
             </fieldset>
@@ -565,7 +568,7 @@ export default function Onboarding(props: OnboardingProps) {
       )}
       <div className="mx-auto py-24 px-4">
         <article className="relative">
-          <section className="sm:mx-auto sm:w-full sm:max-w-md space-y-4">
+          <section className="sm:mx-auto sm:w-full sm:max-w-lg space-y-4">
             <header>
               <Text className="text-white" variant="largetitle">
                 {steps[currentStep].title}
@@ -574,7 +577,7 @@ export default function Onboarding(props: OnboardingProps) {
                 {steps[currentStep].description}
               </Text>
             </header>
-            <section className="space-y-2">
+            <section className="space-y-2 pt-4">
               <Text variant="footnote">
                 Step {currentStep + 1} of {steps.length}
               </Text>
@@ -598,11 +601,11 @@ export default function Onboarding(props: OnboardingProps) {
               </section>
             </section>
           </section>
-          <section className="py-6 mt-10 mx-auto max-w-xl bg-white p-10 rounded-sm">
+          <section className="mt-10 mx-auto max-w-xl bg-white p-10 rounded-sm">
             {steps[currentStep].Component}
 
             {!steps[currentStep].hideConfirm && (
-              <footer className="py-6 sm:mx-auto sm:w-full sm:max-w-md flex flex-col space-y-6 mt-8">
+              <footer className="sm:mx-auto sm:w-full flex flex-col space-y-6 mt-8">
                 <Button
                   className="justify-center"
                   disabled={isSubmitting}
@@ -613,7 +616,7 @@ export default function Onboarding(props: OnboardingProps) {
               </footer>
             )}
           </section>
-          <section className="py-6 mt-8 mx-auto max-w-xl">
+          <section className="py-8 mx-auto max-w-xl">
             <div className="flex justify-between flex-row-reverse">
               <button disabled={isSubmitting} onClick={handleSkipStep}>
                 <Text variant="caption">Skip Step</Text>
