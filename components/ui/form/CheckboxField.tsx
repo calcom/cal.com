@@ -8,7 +8,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description, ...rest }, ref) => {
   return (
     <div className="items-center block sm:flex">
-      <div className="mb-4 min-w-44 sm:mb-0">
+      <div className="mb-4 min-w-48 sm:mb-0">
         <label htmlFor={rest.id} className="flex text-sm font-medium text-neutral-700">
           {label}
         </label>

@@ -165,7 +165,7 @@ const EventTypesPage = (props: PageProps) => {
                 </Link>
 
                 <div className="flex-shrink-0 hidden mt-4 sm:flex sm:mt-0 sm:ml-5">
-                  <div className="flex items-center space-x-5 overflow-hidden">
+                  <div className="flex items-center space-x-2 overflow-hidden">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         size={8}
@@ -181,7 +181,7 @@ const EventTypesPage = (props: PageProps) => {
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
+                        className="btn-icon">
                         <ExternalLinkIcon className="w-5 h-5 group-hover:text-black" />
                       </a>
                     </Tooltip>
@@ -194,7 +194,7 @@ const EventTypesPage = (props: PageProps) => {
                             `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
                           );
                         }}
-                        className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
+                        className="btn-icon">
                         <LinkIcon className="w-5 h-5 group-hover:text-black" />
                       </button>
                     </Tooltip>
