@@ -1,21 +1,22 @@
 import React, { SyntheticEvent, useState } from "react";
 
 import { ErrorCode } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import Modal from "@components/Modal";
 
-const errorMessages: { [key: string]: string } = {
-  [ErrorCode.IncorrectPassword]: "Current password is incorrect",
-  [ErrorCode.NewPasswordMatchesOld]:
-    "New password matches your old password. Please choose a different password.",
-};
-
-const ChangePasswordSection = () => {
+const ChangePasswordSection = ({ localeProp }: { localeProp: string }) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useLocale({ localeProp });
+
+  const errorMessages: { [key: string]: string } = {
+    [ErrorCode.IncorrectPassword]: t("current_incorrect_password"),
+    [ErrorCode.NewPasswordMatchesOld]: t("new_password_matches_old_password"),
+  };
 
   const closeSuccessModal = () => {
     setSuccessModalOpen(false);
@@ -48,10 +49,10 @@ const ChangePasswordSection = () => {
       }
 
       const body = await response.json();
-      setErrorMessage(errorMessages[body.error] || "Something went wrong. Please try again");
+      setErrorMessage(errorMessages[body.error] || `${t("something_went_wrong")}${t("please_try_again")}`);
     } catch (err) {
-      console.error("Error changing password", err);
-      setErrorMessage("Something went wrong. Please try again");
+      console.error(t("error_changing_password"), err);
+      setErrorMessage(`${t("something_went_wrong")}${t("please_try_again")}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -60,14 +61,14 @@ const ChangePasswordSection = () => {
   return (
     <>
       <div className="mt-6">
-        <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">Change Password</h2>
+        <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">{t("change_password")}</h2>
       </div>
       <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
         <div className="py-6 lg:pb-8">
           <div className="flex">
             <div className="w-1/2 mr-2">
               <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
-                Current Password
+                {t("current_password")}
               </label>
               <div className="mt-1">
                 <input
@@ -78,13 +79,13 @@ const ChangePasswordSection = () => {
                   id="current_password"
                   required
                   className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
-                  placeholder="Your old password"
+                  placeholder={t("your_old_password")}
                 />
               </div>
             </div>
             <div className="w-1/2 ml-2">
               <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">
-                New Password
+                {t("new_password")}
               </label>
               <div className="mt-1">
                 <input
@@ -95,7 +96,7 @@ const ChangePasswordSection = () => {
                   required
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
                   className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
-                  placeholder="Your super secure new password"
+                  placeholder={t("super_secure_new_password")}
                 />
               </div>
             </div>
@@ -105,15 +106,15 @@ const ChangePasswordSection = () => {
             <button
               type="submit"
               className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              Save
+              {t("save")}
             </button>
           </div>
           <hr className="mt-4" />
         </div>
       </form>
       <Modal
-        heading="Password updated successfully"
-        description="Your password has been successfully changed."
+        heading={t("password_updated_successfully")}
+        description={t("password_has_been_changed")}
         open={successModalOpen}
         handleClose={closeSuccessModal}
       />

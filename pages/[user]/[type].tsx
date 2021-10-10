@@ -3,7 +3,7 @@ import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -16,7 +16,9 @@ export default function Type(props: AvailabilityPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
+  // get query params and typecast them to string
+  // (would be even better to assert them instead of typecasting)
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);

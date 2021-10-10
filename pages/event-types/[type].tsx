@@ -37,7 +37,8 @@ import {
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
@@ -84,6 +85,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
     props;
 
+  const { locale } = useLocale({ localeProp: props.localeProp });
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -983,6 +985,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   Delete
                 </DialogTrigger>
                 <ConfirmationDialogContent
+                  localeProp={locale}
                   variety="danger"
                   title="Delete Event Type"
                   confirmBtnText="Yes, delete event type"
@@ -1097,7 +1100,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   const typeParam = parseInt(asStringOrThrow(query.type));
 
