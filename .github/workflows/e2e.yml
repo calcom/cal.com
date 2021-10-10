@@ -60,6 +60,8 @@ jobs:
       - run: yarn start &
       - run: npx wait-port 3000 --timeout 10000
       - run: yarn cypress run
+      - run: yarn playwright install-deps
+      - run: yarn test-playwright
 
       - name: Upload videos
         if: ${{ always() }}
@@ -69,3 +71,4 @@ jobs:
           path: |
             cypress/videos
             cypress/screenshots
+            playwright/screenshots

@@ -1,12 +1,18 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import { Team } from "@lib/team";
 
 import Button from "@components/ui/Button";
 
-export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
+export default function MemberInvitationModal(props: {
+  localeProp: string;
+  team: Team | undefined | null;
+  onExit: () => void;
+}) {
   const [errorMessage, setErrorMessage] = useState("");
+  const { t } = useLocale({ localeProp: props.localeProp });
 
   const handleError = async (res: Response) => {
     const responseData = await res.json();
@@ -64,10 +70,10 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                Invite a new member
+                {t("invite_new_member")}
               </h3>
               <div>
-                <p className="text-sm text-gray-400">Invite someone to your team.</p>
+                <p className="text-sm text-gray-400">{t("invite_new_team_member")}</p>
               </div>
             </div>
           </div>
@@ -75,7 +81,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
             <div>
               <div className="mb-4">
                 <label htmlFor="inviteUser" className="block text-sm font-medium text-gray-700">
-                  Email or Username
+                  {t("email_or_username")}
                 </label>
                 <input
                   type="text"
@@ -88,13 +94,13 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
               </div>
               <div className="mb-4">
                 <label className="block mb-2 text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
-                  Role
+                  {t("role")}
                 </label>
                 <select
                   id="role"
                   className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm">
-                  <option value="MEMBER">Member</option>
-                  <option value="OWNER">Owner</option>
+                  <option value="MEMBER">{t("member")}</option>
+                  <option value="OWNER">{t("owner")}</option>
                 </select>
               </div>
               <div className="relative flex items-start">
@@ -109,7 +115,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                 </div>
                 <div className="ml-2 text-sm">
                   <label htmlFor="sendInviteEmail" className="font-medium text-gray-700">
-                    Send an invite email
+                    {t("send_invite_email")}
                   </label>
                 </div>
               </div>
@@ -122,10 +128,10 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
               <Button type="submit" color="primary" className="ml-2">
-                Invite
+                {t("invite")}
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>
-                Cancel
+                {t("cancel")}
               </Button>
             </div>
           </form>

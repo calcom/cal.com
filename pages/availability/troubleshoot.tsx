@@ -15,7 +15,7 @@ dayjs.extend(utc);
 export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSideProps>) {
   const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState([]);
-  const [selectedDate] = useState(dayjs());
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
     let h = Math.floor(mins / 60);
@@ -55,9 +55,17 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
       <Shell
         heading="Troubleshoot"
         subtitle="Understand why certain times are available and others are blocked.">
-        <div className="bg-white max-w-md overflow-hidden shadow rounded-sm">
+        <div className="bg-white max-w-xl overflow-hidden shadow rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            Here is an overview of your day on {selectedDate.format("D MMMM YYYY")}:
+            Here is an overview of your day on{" "}
+            <input
+              type="date"
+              className="inline border-none h-8 p-0"
+              defaultValue={selectedDate.format("YYYY-MM-DD")}
+              onBlur={(e) => {
+                setSelectedDate(dayjs(e.target.value));
+              }}
+            />
             <small className="block text-neutral-400">
               Tip: Hover over the bold times for a full timestamp
             </small>
