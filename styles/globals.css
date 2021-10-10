@@ -108,7 +108,7 @@
   }
   /* btn icon */
   .btn-icon {
-    @apply p-2 border border-transparent hover:border-gray-300 rounded-sm text-neutral-500 hover:text-neutral-900;
+    @apply p-2 border border-transparent hover:border-gray-300 cursor-pointer rounded-sm text-neutral-500 hover:text-neutral-900;
   }
   /* slider */
   .slider {
