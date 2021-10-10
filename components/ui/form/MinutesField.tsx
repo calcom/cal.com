@@ -7,13 +7,13 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, ref) => {
   return (
     <div className="block sm:flex">
-      <div className="mb-4 min-w-44 sm:mb-0">
-        <label htmlFor={rest.id} className="flex mt-2 text-sm font-medium text-neutral-700">
+      <div className="mb-4 min-w-48 sm:mb-0">
+        <label htmlFor={rest.id} className="flex text-sm font-medium text-neutral-700">
           {label}
         </label>
       </div>
       <div className="w-full">
-        <div className="relative mt-1 rounded-sm shadow-sm">
+        <div className="relative rounded-sm shadow-sm">
           <input
             {...rest}
             ref={ref}
