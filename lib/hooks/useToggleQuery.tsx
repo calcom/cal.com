@@ -4,27 +4,17 @@ import { useMemo } from "react";
 export function useToggleQuery(name: string, opts: { zero?: boolean } = {}) {
   const router = useRouter();
 
-  const hrefOff = useMemo(() => {
+  const makeHref = (value: "0" | "1") => {
     const query = {
       ...router.query,
-      [name]: "0",
+      [name]: value,
     };
-    if (!opts.zero) {
-      delete query[name];
-    }
-    return {
-      query,
-    };
-  }, [router.query, name, opts.zero]);
-  const hrefOn = useMemo(() => {
-    const query = {
-      ...router.query,
-      [name]: "1",
-    };
-    return {
-      query,
-    };
-  }, [router.query, name]);
+    if (!opts.zero && value !== "1") delete query[name];
+    return { query };
+  };
+
+  const hrefOff = useMemo(() => makeHref("0"), [router.query, name, opts.zero]);
+  const hrefOn = useMemo(() => makeHref("1"), [router.query, name]);
 
   return {
     hrefOn,
