@@ -32,7 +32,7 @@ export default function Switch(props) {
         />
       </PrimitiveSwitch.Root>
       {label && (
-        <Label.Root className="text-neutral-700 align-text-top ml-3 font-medium cursor-pointer">
+        <Label.Root className="text-neutral-700 text-sm align-text-top ml-3 font-medium cursor-pointer">
           {label}
         </Label.Root>
       )}
