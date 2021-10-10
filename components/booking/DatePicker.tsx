@@ -1,17 +1,17 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import dayjs, { Dayjs } from "dayjs";
-import dayjsBusinessDays from "dayjs-business-days";
+import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
 import weekdayNames from "@lib/core/i18n/weekdayNames";
-import getSlots from "@lib/slots";
+import getSlots, { WorkingHour } from "@lib/slots";
 
-import { PeriodType } from ".prisma/client";
+import { PeriodType, WeekStart } from ".prisma/client";
 
-dayjs.extend(dayjsBusinessDays);
+dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -21,35 +21,34 @@ interface DatePickerProps {
   localeProp: string;
   minimumBookingNotice: number;
   onDatePicked: (day: Dayjs) => void;
-  // FIXME Finish typing this
-  organizerTimeZone: any;
-  periodCountCalendarDays: any;
-  periodDays: any;
-  periodEndDate: any;
-  periodStartDate: any;
+  organizerTimeZone: string;
+  periodCountCalendarDays: boolean;
+  periodDays: number;
+  periodEndDate: string;
+  periodStartDate: string;
   periodType: PeriodType;
-  weekStart: any;
-  workingHours: any;
+  weekStart: WeekStart;
+  workingHours: WorkingHour[];
 }
 
 const DatePicker = ({
-  localeProp,
-  weekStart,
-  onDatePicked,
-  workingHours,
-  organizerTimeZone,
-  eventLength,
   date,
-  periodType = "unlimited",
-  periodStartDate,
-  periodEndDate,
-  periodDays,
-  periodCountCalendarDays,
+  eventLength,
+  localeProp,
   minimumBookingNotice,
+  onDatePicked,
+  organizerTimeZone,
+  periodCountCalendarDays,
+  periodDays,
+  periodEndDate,
+  periodStartDate,
+  periodType = "unlimited",
+  weekStart,
+  workingHours,
 }: DatePickerProps) => {
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
 
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(
+  const [selectedMonth, setSelectedMonth] = useState<number>(
     date
       ? periodType === "range"
         ? dayjs(periodStartDate).utcOffset(date.utcOffset()).month()
@@ -91,7 +90,7 @@ const DatePicker = ({
         case "rolling": {
           const periodRollingEndDay = periodCountCalendarDays
             ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
-            : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
+            : dayjs().tz(organizerTimeZone).addBusinessDays(periodDays).endOf("day");
           return (
             date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
