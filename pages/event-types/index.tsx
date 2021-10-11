@@ -55,17 +55,14 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
-  const { locale } = useLocale({ localeProp: props.localeProp });
+  const { t, locale } = useLocale({ localeProp: props.localeProp });
 
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="block mx-auto text-center md:max-w-screen-sm">
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">Create your first event type</h3>
-        <p className="mt-1 mb-2 text-md text-neutral-600">
-          Event types enable you to share links that show available times on your calendar and allow people to
-          make bookings with you.
-        </p>
+        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
+        <p className="mt-1 mb-2 text-md text-neutral-600">{t("new_event_type_description")}</p>
         <CreateNewEventDialog
           localeProp={locale}
           canAddEvents={props.canAddEvents}
@@ -151,12 +148,12 @@ const EventTypesPage = (props: PageProps) => {
                       <span className="font-medium truncate text-neutral-900">{type.title}</span>
                       {type.hidden && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Hidden
+                          {t("hidden")}
                         </span>
                       )}
                       {readOnly && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
-                          Readonly
+                          {t("readonly")}
                         </span>
                       )}
                     </div>
@@ -207,7 +204,7 @@ const EventTypesPage = (props: PageProps) => {
                     <>
                       <div>
                         <Menu.Button className="p-2 mt-1 border border-transparent text-neutral-400 hover:border-gray-200">
-                          <span className="sr-only">Open options</span>
+                          <span className="sr-only">{t("open_options")}</span>
                           <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
                         </Menu.Button>
                       </div>
@@ -239,7 +236,7 @@ const EventTypesPage = (props: PageProps) => {
                                     className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  Preview
+                                  {t("preview")}
                                 </a>
                               )}
                             </Menu.Item>
@@ -260,7 +257,7 @@ const EventTypesPage = (props: PageProps) => {
                                     className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  Copy link to event
+                                  {t("copy_link")}
                                 </button>
                               )}
                             </Menu.Item>
@@ -281,12 +278,12 @@ const EventTypesPage = (props: PageProps) => {
   return (
     <div>
       <Head>
-        <title>Event Types | Cal.com</title>
+        <title>{t("event_types_page_title")}| Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
-        heading="Event Types"
-        subtitle="Create events to share for people to book on your calendar."
+        heading={t("event_types_page_title")}
+        subtitle={t("event_types_page_subtitle")}
         CTA={
           props.eventTypes.length !== 0 && (
             <CreateNewEventDialog canAddEvents={props.canAddEvents} profiles={props.profiles} />
@@ -295,10 +292,10 @@ const EventTypesPage = (props: PageProps) => {
         {props.user.plan === "FREE" && !props.canAddEvents && (
           <Alert
             severity="warning"
-            title={<>You need to upgrade your plan to have more than one active event type.</>}
+            title={<>{t("plan_upgrade")}</>}
             message={
               <>
-                To upgrade go to{" "}
+                {t("to_upgrade_go_to")}{" "}
                 <a href={"https://cal.com/upgrade"} className="underline">
                   {"https://cal.com/upgrade"}
                 </a>
@@ -384,7 +381,7 @@ const CreateNewEventDialog = ({
             <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {profiles.map((profile) => (
               <DropdownMenuItem
@@ -420,10 +417,10 @@ const CreateNewEventDialog = ({
       <DialogContent>
         <div className="mb-8">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            Add a new {teamId ? "team " : ""}event type
+            {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">Create a new event type for people to book times with.</p>
+            <p className="text-sm text-gray-500">{t("new_event_type_to_book_description")}</p>
           </div>
         </div>
         <form
@@ -452,7 +449,7 @@ const CreateNewEventDialog = ({
           <div>
             <div className="mb-4">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                Title
+                {t("title")}
               </label>
               <div className="mt-1">
                 <input
@@ -467,17 +464,18 @@ const CreateNewEventDialog = ({
                   id="title"
                   required
                   className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder="Quick Chat"
+                  placeholder={t("quick_chat")}
                 />
               </div>
             </div>
             <div className="mb-4">
               <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                URL
+                {t("url")}
               </label>
               <div className="mt-1">
                 <div className="flex rounded-sm shadow-sm">
                   <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 sm:text-sm">
+                  <span className="input-left">
                     {process.env.NEXT_PUBLIC_APP_URL}/{router.query.eventPage || profiles[0].slug}/
                   </span>
                   <input
@@ -493,20 +491,20 @@ const CreateNewEventDialog = ({
             </div>
             <div className="mb-4">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
+                {t("description")}
               </label>
               <div className="mt-1">
                 <textarea
                   name="description"
                   id="description"
                   className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder="A quick video meeting."
+                  placeholder={t("quick_video_meeting")}
                 />
               </div>
             </div>
             <div className="mb-4">
               <label htmlFor="length" className="block text-sm font-medium text-gray-700">
-                Length
+                {t("length")}
               </label>
               <div className="relative mt-1 rounded-sm shadow-sm">
                 <input
@@ -519,7 +517,7 @@ const CreateNewEventDialog = ({
                   defaultValue={15}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-400">
-                  minutes
+                  {t("minutes")}
                 </div>
               </div>
             </div>
@@ -527,28 +525,28 @@ const CreateNewEventDialog = ({
           {teamId && (
             <div className="mb-4">
               <label htmlFor="schedulingType" className="block text-sm font-medium text-gray-700">
-                Scheduling Type
+                {t("scheduling_type")}
               </label>
               <RadioArea.Group
                 name="schedulingType"
                 className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
                 <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
-                  <strong className="block mb-1">Collective</strong>
-                  <p>Schedule meetings when all selected team members are available.</p>
+                  <strong className="block mb-1">{t("collective")}</strong>
+                  <p>{t("collective_description")}</p>
                 </RadioArea.Item>
                 <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="w-1/2 text-sm">
-                  <strong className="block mb-1">Round Robin</strong>
-                  <p>Cycle meetings between multiple team members.</p>
+                  <strong className="block mb-1">{t("round_robin")}</strong>
+                  <p>{t("round_robin_description")}</p>
                 </RadioArea.Item>
               </RadioArea.Group>
             </div>
           )}
           <div className="mt-8 sm:flex sm:flex-row-reverse gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>
-              Continue
+              {t("continue")}
             </Button>
             <DialogClose asChild>
-              <Button color="secondary">Cancel</Button>
+              <Button color="secondary">{t("cancel")}</Button>
             </DialogClose>
           </div>
         </form>
