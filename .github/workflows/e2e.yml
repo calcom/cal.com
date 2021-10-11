@@ -55,6 +55,7 @@ jobs:
 
       - run: yarn test
       - run: yarn prisma migrate deploy
+      - run: yarn prisma migrate dev
       - run: yarn db-seed
       - run: yarn build
       - run: yarn start &
