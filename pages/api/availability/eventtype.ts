@@ -5,7 +5,7 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
-  if (!customInputs || customInputs?.length) return undefined;
+  if (!customInputs || !customInputs?.length) return undefined;
   const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
   const cInputsToCreate = customInputs
     .filter((input) => input.id < 0)
