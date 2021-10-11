@@ -55,16 +55,7 @@ jobs:
 
       - run: yarn test
       - run: yarn prisma migrate deploy
-      - run: yarn prisma migrate dev
-        timeout-minutes: 1
-      - run: |
-          if [[ `git status --porcelain` ]]; then
-            # Changes
-            echo "Tree is dirty - have you create migration files without running 'yarn dx'?";
-            exit 1;
-          else
-            # No changes
-          fi
+      - run: yarn ts-node scripts/check-schema-up-to-date.ts
       - run: yarn db-seed
       - run: yarn build
       - run: yarn start &
