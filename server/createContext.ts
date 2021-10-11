@@ -64,10 +64,13 @@ export const createContext = async ({ req, res }: trpcNext.CreateNextContextOpti
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
 
+  const user = await getUserFromSession({ session, req });
+  const locale = user?.locale ?? getLocaleFromHeaders(req);
   return {
     prisma,
     session,
-    user: await getUserFromSession({ session, req }),
+    user,
+    locale,
   };
 };
 
