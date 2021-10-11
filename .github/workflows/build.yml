@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
@@ -42,5 +44,7 @@ jobs:
           key: ${{ runner.os }}-nextjs
 
       - run: yarn prisma migrate deploy
+      - name: Detect schema drift
+        run: yarn migrate dev && git diff --exit-code
       - run: yarn test
       - run: yarn build
