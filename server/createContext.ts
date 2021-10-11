@@ -2,12 +2,14 @@
 import * as trpc from "@trpc/server";
 import { Maybe } from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
+import { NextApiRequest } from "next";
 
 import { getSession, Session } from "@lib/auth";
+import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 
-async function getUserFromSession(session: Maybe<Session>) {
+async function getUserFromSession({ session, req }: { session: Maybe<Session>; req: NextApiRequest }) {
   if (!session?.user?.id) {
     return null;
   }
@@ -30,6 +32,7 @@ async function getUserFromSession(session: Maybe<Session>) {
       createdDate: true,
       hideBranding: true,
       avatar: true,
+      locale: true,
     },
   });
 
@@ -42,11 +45,14 @@ async function getUserFromSession(session: Maybe<Session>) {
     return null;
   }
   const avatar = user.avatar || defaultAvatarSrc({ email });
+
+  const locale = user.locale ?? getLocaleFromHeaders(req);
   return {
     ...user,
     avatar,
     email,
     username,
+    locale,
   };
 }
 
@@ -58,10 +64,13 @@ export const createContext = async ({ req, res }: trpcNext.CreateNextContextOpti
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
 
+  const user = await getUserFromSession({ session, req });
+  const locale = user?.locale ?? getLocaleFromHeaders(req);
   return {
     prisma,
     session,
-    user: await getUserFromSession(session),
+    user,
+    locale,
   };
 };
 
