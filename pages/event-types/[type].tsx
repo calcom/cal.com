@@ -322,9 +322,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <div>
       <Shell
+        centered
         title={`${eventType.title} | Event Type`}
         heading={
-          <div className="relative group md:max-w-5xl mx-auto" onClick={() => setEditIcon(false)}>
+          <div className="relative group -mb-2" onClick={() => setEditIcon(false)}>
             <input
               ref={titleRef}
               type="text"
@@ -343,7 +344,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             )}
           </div>
         }
-        subtitle={<div className="-mt-1 md:max-w-5xl mx-auto pl-2">{eventType.description}</div> || ""}>
+        subtitle={eventType.description || ""}>
         <div className="block sm:flex md:max-w-5xl mx-auto">
           <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
