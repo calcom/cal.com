@@ -15,6 +15,7 @@ import {
 } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -104,7 +105,6 @@ export default function Settings(props: Props) {
   const { locale } = useLocale({ localeProp: props.localeProp });
   const mutation = trpc.useMutation("viewer.updateProfile");
 
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -128,10 +128,6 @@ export default function Settings(props: Props) {
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
     setSelectedLanguage({ value: locale, label: props.localeLabels[locale] });
   }, []);
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
-  };
 
   const handleAvatarChange = (newAvatar) => {
     avatarRef.current.value = newAvatar;
@@ -173,7 +169,7 @@ export default function Settings(props: Props) {
         locale: enteredLanguage,
       })
       .then(() => {
-        setSuccessModalOpen(true);
+        showToast("Your user profile has been updated successfully", "success");
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -417,29 +413,6 @@ export default function Settings(props: Props) {
             </div>
           </div>
         </form>
-        <Dialog open={successModalOpen}>
-          <DialogContent>
-            <div className="sm:flex sm:items-start mb-4">
-              <div className="mt-3 text-center sm:mt-0 sm:text-left">
-                <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                  Profile updated successfully
-                </h3>
-              </div>
-            </div>
-            <div className="mb-4">
-              <div className="cropper mt-6 flex flex-col justify-center items-center p-8 bg-gray-50">
-                Your user profile has been updated successfully.
-              </div>
-            </div>
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
-              <DialogClose asChild>
-                <Button color="secondary" onClick={() => closeSuccessModal()}>
-                  Dismiss
-                </Button>
-              </DialogClose>
-            </div>
-          </DialogContent>
-        </Dialog>
       </SettingsShell>
     </Shell>
   );
