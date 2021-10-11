@@ -55,7 +55,7 @@ jobs:
 
       - run: yarn test
       - run: yarn prisma migrate deploy
-      - run: yarn ts-node scripts/check-schema-up-to-date.ts
+      - run: yarn ts-node scripts/check-db-up-to-date.ts
       - run: yarn db-seed
       - run: yarn build
       - run: yarn start &
