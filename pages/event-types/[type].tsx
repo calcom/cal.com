@@ -943,8 +943,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
                     {t("cancel")}
                   </Button>
-                    {t("update")}
-                  </Button>
+                  <Button type="submit">{t("update")}</Button>
                 </div>
               </form>
               <Modal
