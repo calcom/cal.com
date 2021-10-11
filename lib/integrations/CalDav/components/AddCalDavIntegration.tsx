@@ -86,7 +86,6 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
 
           {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
           <DialogFooter>
-
             <DialogClose
               onClick={() => {
                 props.onOpenChange?.(false);
