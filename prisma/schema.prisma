@@ -95,8 +95,6 @@ model User {
   Schedule Schedule[]
 
   @@map(name: "users")
-
-  testColumn String?
 }
 
 model Team {
