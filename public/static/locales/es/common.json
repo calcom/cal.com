@@ -223,6 +223,7 @@
   "add_new_custom_input_field": "Agregar nuevo campo de entrada personalizado",
   "quick_chat": "Chat Rápido",
   "add_new_event_type": "Crear Nuevo Tipo de Evento",
+  "add_new_team_event_type": "Crear Nuevo Tipo de Evento para Equipo",
   "new_event_type_to_book_description": "Crea un nuevo tipo de evento para que las personas reserven horarios.",
   "length": "Tamaño",
   "minimum_booking_notice": "Aviso de Reserva",

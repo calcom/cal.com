@@ -417,7 +417,7 @@ const CreateNewEventDialog = ({
       <DialogContent>
         <div className="mb-8">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            {t("add_new_event_type")}
+            {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
           </h3>
           <div>
             <p className="text-sm text-gray-500">{t("new_event_type_to_book_description")}</p>
