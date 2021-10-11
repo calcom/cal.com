@@ -49,9 +49,8 @@ jobs:
       - name: Detect schema drift
         run: |
           if git diff --exit-code; then
-            echo yay
-          else
-            echo nay
+            echo "Schema drift detected"
+            exit 1;
           fi
       - run: yarn test
       - run: yarn build
