@@ -55,7 +55,7 @@ jobs:
 
       - run: yarn test
       - run: yarn prisma migrate deploy
-      - run: yarn prisma migrate dev
+      - run: CI=0 yarn prisma migrate dev
         timeout-minutes: 1
       - run: yarn db-seed
       - run: yarn build
