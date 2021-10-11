@@ -59,7 +59,7 @@ jobs:
         timeout-minutes: 1
       - run: |
           if [ -z "$(git status --porcelain)" ]; then
-            echo "Tree is dirty"
+            echo "Tree is dirty - have you create migration files without running `yarn dx`?"
             exit 1
           else
             # Uncommitted changes
