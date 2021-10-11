@@ -322,9 +322,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <div>
       <Shell
+        centered
         title={`${eventType.title} | Event Type`}
         heading={
-          <div className="relative group" onClick={() => setEditIcon(false)}>
+          <div className="relative group -mb-2" onClick={() => setEditIcon(false)}>
             <input
               ref={titleRef}
               type="text"
