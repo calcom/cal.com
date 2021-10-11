@@ -8,9 +8,8 @@ import {
   PlusIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { SchedulingType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-import dayjs from "dayjs";
+import { SchedulingType, Prisma } from "@prisma/client";
+import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import Link from "next/link";
@@ -22,8 +21,8 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
-import { ONBOARDING_INTRODUCED_AT } from "@lib/getting-started";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { shouldShowOnboarding, ONBOARDING_NEXT_REDIRECT } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import createEventType from "@lib/mutations/event-types/create-event-type";
@@ -56,10 +55,7 @@ type Profile = PageProps["profiles"][number];
 type MembershipCount = EventType["metadata"]["membershipCount"];
 
 const EventTypesPage = (props: PageProps) => {
-  const { locale } = useLocale({
-    localeProp: props.localeProp,
-    namespaces: "event-types-page",
-  });
+  const { locale } = useLocale({ localeProp: props.localeProp });
 
   const CreateFirstEventTypeView = () => (
     <div className="md:py-20">
@@ -148,7 +144,7 @@ const EventTypesPage = (props: PageProps) => {
                 "hover:bg-neutral-50 flex justify-between items-center ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="flex items-center w-full justify-between px-4 py-4 sm:px-6 hover:bg-neutral-50">
+              <div className="flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
                 <Link href={"/event-types/" + type.id}>
                   <a className="flex-grow text-sm truncate">
                     <div>
@@ -164,12 +160,12 @@ const EventTypesPage = (props: PageProps) => {
                         </span>
                       )}
                     </div>
-                    <EventTypeDescription eventType={type} />
+                    <EventTypeDescription localeProp={locale} eventType={type} />
                   </a>
                 </Link>
 
                 <div className="flex-shrink-0 hidden mt-4 sm:flex sm:mt-0 sm:ml-5">
-                  <div className="flex items-center space-x-5 overflow-hidden">
+                  <div className="flex items-center space-x-2 overflow-hidden">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         size={8}
@@ -185,7 +181,7 @@ const EventTypesPage = (props: PageProps) => {
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-2 border border-transparent cursor-pointer group text-neutral-400 hover:border-gray-200">
+                        className="btn-icon">
                         <ExternalLinkIcon className="w-5 h-5 group-hover:text-black" />
                       </a>
                     </Tooltip>
@@ -198,7 +194,7 @@ const EventTypesPage = (props: PageProps) => {
                             `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
                           );
                         }}
-                        className="p-2 border border-transparent group text-neutral-400 hover:border-gray-200">
+                        className="btn-icon">
                         <LinkIcon className="w-5 h-5 group-hover:text-black" />
                       </button>
                     </Tooltip>
@@ -227,7 +223,7 @@ const EventTypesPage = (props: PageProps) => {
                         leaveTo="transform opacity-0 scale-95">
                         <Menu.Items
                           static
-                          className="absolute z-10 right-0 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
+                          className="absolute right-0 z-10 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-neutral-100">
                           <div className="py-1">
                             <Menu.Item>
                               {({ active }) => (
@@ -379,13 +375,13 @@ const CreateNewEventDialog = ({
                 disabled: true,
               })}
           StartIcon={PlusIcon}>
-          {t("new-event-type-btn")}
+          {t("new_event_type_btn")}
         </Button>
       )}
       {profiles.filter((profile) => profile.teamId).length > 0 && (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>{t("new-event-type-btn")}</Button>
+            <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Create an event type under your name or a team.</DropdownMenuLabel>
@@ -561,9 +557,9 @@ const CreateNewEventDialog = ({
   );
 };
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
@@ -650,13 +646,10 @@ export async function getServerSideProps(context) {
     };
   }
 
-  if (!user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/getting-started",
-      },
-    };
+  if (
+    shouldShowOnboarding({ completedOnboarding: user.completedOnboarding, createdDate: user.createdDate })
+  ) {
+    return ONBOARDING_NEXT_REDIRECT;
   }
 
   // backwards compatibility, TMP:

@@ -1,7 +1,9 @@
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import "react-phone-number-input/style.css";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -14,6 +16,7 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));
   if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
     return {
@@ -86,6 +89,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      localeProp: locale,
       profile: {
         ...eventTypeObject.team,
         slug: "team/" + eventTypeObject.slug,
@@ -94,6 +98,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       eventType: eventTypeObject,
       booking,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }

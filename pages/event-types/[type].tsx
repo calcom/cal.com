@@ -8,7 +8,7 @@ import {
   ExternalLinkIcon,
   LinkIcon,
   LocationMarkerIcon,
-  PencilAltIcon,
+  PencilIcon,
   PlusIcon,
   TrashIcon,
   UserAddIcon,
@@ -37,7 +37,8 @@ import {
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { extractLocaleInfo } from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
@@ -84,6 +85,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
     props;
 
+  const { locale } = useLocale({ localeProp: props.localeProp });
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -320,21 +322,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <div>
       <Shell
+        centered
         title={`${eventType.title} | Event Type`}
         heading={
-          <div className="relative group" onClick={() => setEditIcon(false)}>
+          <div className="relative group -mb-2" onClick={() => setEditIcon(false)}>
             <input
               ref={titleRef}
               type="text"
               name="title"
               id="title"
               required
-              className="w-full pl-0 text-xl font-bold text-gray-500 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
+              className="w-full pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
               placeholder="Quick Chat"
               defaultValue={eventType.title}
             />
             {editIcon && (
-              <PencilAltIcon
+              <PencilIcon
                 style={{ top: 14, left: `${eventType.title.length * 10 + 8}` }}
                 className="absolute left-0 inline w-4 h-4 text-gray-500 group-hover:text-gray-700"
               />
@@ -342,15 +345,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           </div>
         }
         subtitle={eventType.description || ""}>
-        <div className="block sm:flex">
-          <div className="w-full mr-2 sm:w-10/12">
+        <div className="block sm:flex md:max-w-5xl mx-auto">
+          <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
               <form onSubmit={updateEventTypeHandler} className="space-y-6">
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
-                    <div className="mb-4 min-w-44 sm:mb-0">
+                    <div className="mb-4 min-w-48 sm:mb-0">
                       <label htmlFor="slug" className="flex mt-0 text-sm font-medium text-neutral-700">
-                        <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        <LinkIcon className="w-4 h-4 mr-2 text-neutral-500" />
                         URL
                       </label>
                     </div>
@@ -387,9 +390,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </div>
                 <hr />
                 <div className="space-y-3">
-                  <div className="items-center block sm:flex">
-                    <div className="min-w-44 sm:mb-0">
-                      <label htmlFor="location" className="flex mt-0 text-sm font-medium text-neutral-700">
+                  <div className="block sm:flex">
+                    <div className="min-w-48 sm:mb-0">
+                      <label htmlFor="location" className="flex mt-2.5 text-sm font-medium text-neutral-700">
                         <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                         Location
                       </label>
@@ -413,7 +416,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {locations.map((location) => (
                             <li
                               key={location.type}
-                              className="p-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
+                              className="py-1.5 px-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
                               <div className="flex justify-between">
                                 {location.type === LocationType.InPerson && (
                                   <div className="flex items-center flex-grow">
@@ -534,11 +537,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <button
                                     type="button"
                                     onClick={() => openLocationModal(location.type)}
-                                    className="mr-2 text-sm text-primary-600">
-                                    Edit
+                                    className="mr-1 text-gray-500 hover:text-gray-900 p-1">
+                                    <PencilIcon className="w-4 h-4" />
                                   </button>
                                   <button onClick={() => removeLocation(location)}>
-                                    <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
+                                    <XIcon className="w-6 h-6 pl-1 border-l-1 text-gray-500 hover:text-gray-900 " />
                                   </button>
                                 </div>
                               </div>
@@ -548,11 +551,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <li>
                               <button
                                 type="button"
-                                className="flex px-3 py-2 rounded-sm bg-neutral-100"
+                                className="flex px-3 py-2 rounded-sm hover:bg-gray-100"
                                 onClick={() => setShowLocationModal(true)}>
                                 <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
                                 <span className="ml-1 text-sm font-medium text-neutral-700">
-                                  Add another location
+                                  Add a location
                                 </span>
                               </button>
                             </li>
@@ -564,8 +567,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </div>
                 <hr className="border-neutral-200" />
                 <div className="space-y-3">
-                  <div className="items-center block sm:flex">
-                    <div className="mb-4 min-w-44 sm:mb-0">
+                  <div className="block sm:flex">
+                    <div className="mb-4 min-w-48 sm:mb-0 mt-2.5">
                       <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
                         <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                         Description
@@ -585,7 +588,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {team && (
                   <div className="space-y-3">
                     <div className="block sm:flex">
-                      <div className="mb-4 min-w-44 sm:mb-0">
+                      <div className="mb-4 min-w-48 sm:mb-0">
                         <label
                           htmlFor="schedulingType"
                           className="flex mt-2 text-sm font-medium text-neutral-700">
@@ -600,8 +603,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
 
                     <div className="block sm:flex">
-                      <div className="mb-4 min-w-44 sm:mb-0">
-                        <label htmlFor="users" className="flex mt-2 text-sm font-medium text-neutral-700">
+                      <div className="mb-4 min-w-48 sm:mb-0">
+                        <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
                           <UserAddIcon className="w-5 h-5 mr-2 text-neutral-500" /> Attendees
                         </label>
                       </div>
@@ -627,12 +630,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
                         <span className="text-sm font-medium text-neutral-700">Show advanced settings</span>
                       </Disclosure.Button>
-                      <Disclosure.Panel className="space-y-4">
+                      <Disclosure.Panel className="space-y-6">
                         <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
-                            <label
-                              htmlFor="eventName"
-                              className="flex mt-2 text-sm font-medium text-neutral-700">
+                          <div className="mb-4 min-w-48 sm:mb-0">
+                            <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
                               Event name
                             </label>
                           </div>
@@ -651,10 +652,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                         <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
+                          <div className="mb-4 min-w-48 sm:mb-0">
                             <label
                               htmlFor="additionalFields"
-                              className="flex mt-2 text-sm font-medium text-neutral-700">
+                              className="flexflex mt-2 text-sm font-medium text-neutral-700 text-sm font-medium text-neutral-700">
                               Additional inputs
                             </label>
                           </div>
@@ -732,7 +733,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           defaultChecked={eventType.disableGuests}
                         />
 
-                        <hr className="border-neutral-200" />
+                        <hr className="my-2 border-neutral-200" />
 
                         <MinutesField
                           label="Minimum booking notice"
@@ -744,10 +745,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
 
                         <div className="block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
+                          <div className="mb-4 min-w-48 sm:mb-0">
                             <label
                               htmlFor="inviteesCanSchedule"
-                              className="flex mt-2 text-sm font-medium text-neutral-700">
+                              className="flex text-sm font-medium text-neutral-700 mt-2.5">
                               Invitees can schedule
                             </label>
                           </div>
@@ -762,7 +763,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     className={({ checked }) =>
                                       classNames(
                                         checked ? "border-secondary-200 z-10" : "border-gray-200",
-                                        "relative min-h-14 flex items-center cursor-pointer focus:outline-none"
+                                        "relative min-h-12 flex items-center cursor-pointer focus:outline-none"
                                       )
                                     }>
                                     {({ active, checked }) => (
@@ -833,10 +834,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <hr className="border-neutral-200" />
 
                         <div className="block sm:flex">
-                          <div className="mb-4 min-w-44 sm:mb-0">
+                          <div className="mb-4 min-w-48 sm:mb-0">
                             <label
                               htmlFor="availability"
-                              className="flex mt-2 text-sm font-medium text-neutral-700">
+                              className="flex text-sm font-medium text-neutral-700">
                               Availability
                             </label>
                           </div>
@@ -854,7 +855,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <>
                             <hr className="border-neutral-200" />
                             <div className="block sm:flex">
-                              <div className="mb-4 min-w-44 sm:mb-0">
+                              <div className="mb-4 min-w-48 sm:mb-0">
                                 <label
                                   htmlFor="payment"
                                   className="flex mt-2 text-sm font-medium text-neutral-700">
@@ -951,20 +952,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               />
             </div>
           </div>
-          <div className="w-full px-4 mt-8 ml-2 sm:w-2/12 sm:mt-0 min-w-32">
-            <div className="space-y-4">
+          <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
+            <div className="px-2">
               <Switch
                 name="isHidden"
                 defaultChecked={hidden}
                 onCheckedChange={setHidden}
                 label="Hide event type"
               />
+            </div>
+            <div className="mt-4 space-y-1.5">
               <a
                 href={permalink}
                 target="_blank"
                 rel="noreferrer"
-                className="flex font-medium text-md text-neutral-700">
-                <ExternalLinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" aria-hidden="true" />
+                className="flex font-medium text-md text-neutral-700 text-sm items-center hover:text-gray-900 hover:bg-gray-200 px-2 py-1 rounded-sm inline-flex">
+                <ExternalLinkIcon className="w-4 h-4 mr-2 text-neutral-500" aria-hidden="true" />
                 Preview
               </a>
               <button
@@ -973,16 +976,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   showToast("Link copied!", "success");
                 }}
                 type="button"
-                className="flex font-medium text-md text-neutral-700">
-                <LinkIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
+                className="flex font-medium text-md text-sm text-gray-700 items-center hover:text-gray-900 hover:bg-gray-200 px-2 py-1 rounded-sm">
+                <LinkIcon className="w-4 h-4 mr-2 text-neutral-500" />
                 Copy link
               </button>
               <Dialog>
-                <DialogTrigger className="flex font-medium text-md text-neutral-700">
-                  <TrashIcon className="w-4 h-4 mt-1 mr-2 text-neutral-500" />
+                <DialogTrigger className="flex font-medium text-md text-sm text-neutral-700 items-center hover:text-gray-900 hover:bg-gray-200 px-2 py-1 rounded-sm">
+                  <TrashIcon className="w-4 h-4 mr-2 text-neutral-500" />
                   Delete
                 </DialogTrigger>
                 <ConfirmationDialogContent
+                  localeProp={locale}
                   variety="danger"
                   title="Delete Event Type"
                   confirmBtnText="Yes, delete event type"
@@ -1097,7 +1101,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  const locale = await extractLocaleInfo(context.req);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   const typeParam = parseInt(asStringOrThrow(query.type));
 
