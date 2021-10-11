@@ -348,8 +348,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
                     <div className="mb-4 min-w-48 sm:mb-0">
-                      <label htmlFor="slug" className="mt-0 label-form-icon">
-                        <LinkIcon className="w-4 h-4 mr-2 text-neutral-500" />
+                      <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
+                        <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                         {t("url")}
                       </label>
                     </div>
