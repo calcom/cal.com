@@ -45,9 +45,9 @@ jobs:
           key: ${{ runner.os }}-nextjs
 
       - run: yarn prisma migrate deploy
+      - run: yarn prisma migrate dev
       - name: Detect schema drift
         run: |
-          yarn prisma migrate dev
           git diff --exit-code
       - run: yarn test
       - run: yarn build
