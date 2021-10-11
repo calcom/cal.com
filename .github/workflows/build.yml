@@ -47,10 +47,6 @@ jobs:
       - run: yarn prisma migrate deploy
       - run: yarn prisma migrate dev
       - name: Detect schema drift
-        run: |
-          if git diff --exit-code; then
-            echo "Schema drift detected"
-            exit 1;
-          fi
+        run: git diff --exit-code
       - run: yarn test
       - run: yarn build
