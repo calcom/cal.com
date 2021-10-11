@@ -24,6 +24,9 @@
   @apply rounded-sm focus:ring-primary-500 focus:border-primary-500 h-auto py-0.5 my-0.5;
 }
 
+/* Roboto */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap");
+
 /* Cal Sans */
 @font-face {
   font-family: "Cal Sans";
@@ -108,7 +111,7 @@
   }
   /* btn icon */
   .btn-icon {
-    @apply p-2 border border-transparent hover:border-gray-300 rounded-sm text-neutral-500 hover:text-neutral-900;
+    @apply p-2 border border-transparent hover:border-gray-300 cursor-pointer rounded-sm text-neutral-500 hover:text-neutral-900;
   }
   /* slider */
   .slider {

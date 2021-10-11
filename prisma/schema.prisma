@@ -49,8 +49,8 @@ model EventType {
   minimumBookingNotice    Int                    @default(120)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
-  price                   Int @default(0)
-  currency                String @default("usd")
+  price                   Int                    @default(0)
+  currency                String                 @default("usd")
   @@unique([userId, slug])
 }
 
@@ -68,27 +68,17 @@ enum UserPlan {
   PRO
 }
 
-enum WeekStart {
-  Monday
-  Tuesday
-  Wednesday
-  Thursday
-  Friday
-  Saturday
-  Sunday
-}
-
 model User {
   id                  Int                @id @default(autoincrement())
   username            String?            @unique
   name                String?
-  email               String?            @unique
+  email               String             @unique
   emailVerified       DateTime?
   password            String?
   bio                 String?
   avatar              String?
   timeZone            String             @default("Europe/London")
-  weekStart           WeekStart          @default(Sunday)
+  weekStart           String             @default("Sunday")
   startTime           Int                @default(0)
   endTime             Int                @default(1440)
   bufferTime          Int                @default(0)
@@ -101,7 +91,7 @@ model User {
   bookings            Booking[]
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
-  completedOnboarding Boolean?           @default(false)
+  completedOnboarding Boolean            @default(false)
   locale String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
@@ -180,7 +170,7 @@ enum BookingStatus {
 
 model DailyEventReference {
   id         Int         @id @default(autoincrement())
-  dailyurl   String      @default("dailycallurl") 
+  dailyurl   String      @default("dailycallurl")
   dailytoken String      @default("dailytoken")
   booking    Booking?    @relation(fields: [bookingId], references: [id])
   bookingId  Int?
@@ -309,10 +299,10 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String      @unique @id 
-  userId        Int       
+  id            String      @unique @id
+  userId        Int
   subscriberUrl String
   createdAt     DateTime  @default(now())
-  active        Boolean   @default(true)         
+  active        Boolean   @default(true)
   eventTriggers WebhookTriggerEvents[]
 }
