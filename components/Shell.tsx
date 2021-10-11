@@ -60,9 +60,10 @@ function useRedirectToLoginIfUnauthenticated() {
 }
 
 export default function Shell(props: {
+  centered?: boolean;
   title?: string;
   heading: ReactNode;
-  subtitle: string;
+  subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
 }) {
@@ -122,7 +123,7 @@ export default function Shell(props: {
     <>
       <HeadSeo
         title={pageTitle ?? "Cal.com"}
-        description={props.subtitle}
+        description={props.subtitle ? props.subtitle?.toString() : ""}
         nextSeoProps={{
           nofollow: true,
           noindex: true,
@@ -133,10 +134,8 @@ export default function Shell(props: {
       </div>
 
       <div className="h-screen flex overflow-hidden bg-gray-100">
-        {/* Static sidebar for desktop */}
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-56">
-            {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
               <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
                 <Link href="/event-types">
@@ -199,7 +198,7 @@ export default function Shell(props: {
                 </div>
               </div>
             </nav>
-            <div className="py-8">
+            <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
                 <div className="mb-8 w-full">
                   <h1 className="font-cal text-xl font-bold text-gray-900 tracking-wide mb-1">

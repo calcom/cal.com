@@ -16,12 +16,6 @@ enum SchedulingType {
   COLLECTIVE  @map("collective")
 }
 
-enum PeriodType {
-  unlimited
-  rolling
-  range
-}
-
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
@@ -39,7 +33,7 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              PeriodType             @default(unlimited) // unlimited | rolling | range
+  periodType              String?                @default("unlimited") // unlimited | rolling | range
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
@@ -49,8 +43,8 @@ model EventType {
   minimumBookingNotice    Int                    @default(120)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
-  price                   Int                    @default(0)
-  currency                String                 @default("usd")
+  price                   Int @default(0)
+  currency                String @default("usd")
   @@unique([userId, slug])
 }
 
@@ -72,13 +66,13 @@ model User {
   id                  Int                @id @default(autoincrement())
   username            String?            @unique
   name                String?
-  email               String             @unique
+  email               String?            @unique
   emailVerified       DateTime?
   password            String?
   bio                 String?
   avatar              String?
   timeZone            String             @default("Europe/London")
-  weekStart           String             @default("Sunday")
+  weekStart           String?            @default("Sunday")
   startTime           Int                @default(0)
   endTime             Int                @default(1440)
   bufferTime          Int                @default(0)
@@ -91,7 +85,7 @@ model User {
   bookings            Booking[]
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
-  completedOnboarding Boolean            @default(false)
+  completedOnboarding Boolean?           @default(false)
   locale String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
