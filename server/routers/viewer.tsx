@@ -132,7 +132,7 @@ export const viewerRouter = createProtectedRouter()
               ...cal,
               isSelected: !!user.selectedCalendars.find((selected) => selected.externalId === cal.externalId),
             }));
-            const primary = calendars.find((item) => item.primary);
+            const primary = calendars.find((item) => item.primary) ?? calendars[0];
             if (!primary) {
               return {
                 integration,
