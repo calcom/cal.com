@@ -1,3 +1,4 @@
+import { Maybe } from "@trpc/server";
 import parser from "accept-language-parser";
 import { IncomingMessage } from "http";
 
@@ -6,9 +7,15 @@ import prisma from "@lib/prisma";
 
 import { i18n } from "../../../next-i18next.config";
 
-export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage) => {
+export function getLocaleFromHeaders(req: IncomingMessage): string {
+  const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]) as Maybe<string>;
+
+  return preferredLocale ?? i18n.defaultLocale;
+}
+
+export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage): Promise<string> => {
   const session = await getSession({ req });
-  const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]);
+  const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]) as Maybe<string>;
 
   if (session?.user?.id) {
     const user = await prisma.user.findUnique({
