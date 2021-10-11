@@ -162,7 +162,11 @@ function ConnectOrDisconnectIntegrationButton(props: {
     return (
       <DisconnectIntegration
         id={props.credential.id}
-        render={(btnProps) => <Button {...btnProps}>Disconnect</Button>}
+        render={(btnProps) => (
+          <Button {...btnProps} color="warn">
+            Disconnect
+          </Button>
+        )}
       />
     );
   }
