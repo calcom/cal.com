@@ -517,7 +517,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
   };
 };
 
-function getCalendarAdapterOrNull(credential: Credential): CalendarApiAdapter {
+function getCalendarAdapterOrNull(credential: Credential): CalendarApiAdapter | null {
   switch (credential.type) {
     case "google_calendar":
       return GoogleCalendar(credential);
@@ -530,7 +530,7 @@ function getCalendarAdapterOrNull(credential: Credential): CalendarApiAdapter {
       // FIXME types wrong & type casting should not be needed
       return new AppleCalendar(credential) as never as CalendarApiAdapter;
   }
-  throw Error("There's no adapter for this type of calendar: " + credential.type);
+  return null;
 }
 
 /**
