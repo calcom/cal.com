@@ -62,7 +62,7 @@ function useRedirectToLoginIfUnauthenticated() {
 export default function Shell(props: {
   title?: string;
   heading: ReactNode;
-  subtitle: string;
+  subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
 }) {
@@ -122,7 +122,7 @@ export default function Shell(props: {
     <>
       <HeadSeo
         title={pageTitle ?? "Cal.com"}
-        description={props.subtitle}
+        description={props.subtitle ? props.subtitle : "Cal.com"}
         nextSeoProps={{
           nofollow: true,
           noindex: true,
