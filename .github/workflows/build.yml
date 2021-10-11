@@ -27,6 +27,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
+          # `fetch-depth: 0` is needed for the diff check below
           fetch-depth: 0
 
       - name: Use Node ${{ matrix.node }}
