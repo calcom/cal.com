@@ -7,7 +7,7 @@ try {
   execSync(`git diff --exit-code`, { stdio: [0, 1, 2] });
 } catch (err) {
   console.error("\n\n");
-  console.error(`❌  You need to run 'yarn dev' locally in the root folder`);
+  console.error(`❌  You need to run 'yarn dx' locally in the root folder`);
 
   process.exit(1);
 }
