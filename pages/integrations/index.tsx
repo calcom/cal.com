@@ -141,11 +141,11 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
     <Dialog>
       <DialogTrigger className="px-4 py-2 mt-6 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
         <PlusIcon className="inline w-5 h-5 mr-1" />
-        Connect a new App
+        {t("connect_new_app")}
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader title="Connect a new App" subtitle="Integrate your account with other services." />
+        <DialogHeader title={t("connect_new_app")} subtitle={t("integrate_your_account_services")} />
         <div className="my-4">
           <ul className="divide-y divide-gray-200">
             {integrations
@@ -164,7 +164,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                       <button
                         onClick={() => integrationHandler(integration.type)}
                         className="font-medium text-neutral-900 hover:text-neutral-500">
-                        Add
+                        {t("add")}
                       </button>
                     </div>
                   </li>
@@ -174,7 +174,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         </div>
         <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose asChild>
-            <Button color="secondary">Cancel</Button>
+            <Button color="secondary">{t("cancel")}</Button>
           </DialogClose>
         </div>
       </DialogContent>
@@ -184,14 +184,11 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
   const SelectCalendarDialog = () => (
     <Dialog onOpenChange={(open) => !open && onCloseSelectCalendar()}>
       <DialogTrigger className="px-4 py-2 mt-6 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-        Select calendars
+        {t("select_calendars")}
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader
-          title="Select calendars"
-          subtitle="If no entry is selected, all calendars will be checked"
-        />
+        <DialogHeader title={t("select_calendars")} subtitle={t("if_no_entry_all_calendars_checked")} />
         <div className="my-4">
           <ul className="overflow-y-auto divide-y divide-gray-200 max-h-96">
             {selectableCalendars.map((calendar) => (
@@ -218,7 +215,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         </div>
         <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose asChild>
-            <Button color="secondary">Confirm</Button>
+            <Button color="secondary">{t("confirm")}</Button>
           </DialogClose>
         </div>
       </DialogContent>
@@ -271,13 +268,13 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
-            title="Connect to CalDav Server"
-            subtitle="Your credentials will be stored and encrypted."
+            title={t("connect_caldav_server")}
+            subtitle={t("your_credentials_stored_encrypted")}
           />
           <div className="my-4">
             {addCalDavError && (
               <p className="text-sm text-red-700">
-                <span className="font-bold">Error: </span>
+                <span className="font-bold">{t("error")}: </span>
                 {addCalDavError.message}
               </p>
             )}
@@ -291,14 +288,14 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              Save
+              {t("save")}
             </Button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
               asChild>
-              <Button color="secondary">Cancel</Button>
+              <Button color="secondary">{t("cancel")}</Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -313,10 +310,10 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         onOpenChange={(isOpen) => setIsAddAppleIntegrationDialogOpen(isOpen)}>
         <DialogContent>
           <DialogHeader
-            title="Connect to Apple Server"
+            title={t("connect_apple_server")}
             subtitle={
               <p>
-                Generate an app specific password to use with Cal.com at{" "}
+                {t("generate_app_spec_password")}{" "}
                 <a
                   className="text-indigo-400"
                   href="https://appleid.apple.com/account/manage"
@@ -324,14 +321,14 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                   rel="noopener noreferrer">
                   https://appleid.apple.com/account/manage
                 </a>
-                . Your credentials will be stored and encrypted.
+                . {t("your_credentials_stored_encrypted")}
               </p>
             }
           />
           <div className="my-4">
             {addAppleError && (
               <p className="text-sm text-red-700">
-                <span className="font-bold">Error: </span>
+                <span className="font-bold">{t("error")}: </span>
                 {addAppleError.message}
               </p>
             )}
@@ -345,14 +342,14 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
               type="submit"
               form={ADD_APPLE_INTEGRATION_FORM_TITLE}
               className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              Save
+              {t("save")}
             </button>
             <DialogClose
               onClick={() => {
                 setIsAddAppleIntegrationDialogOpen(false);
               }}
               asChild>
-              <Button color="secondary">Cancel</Button>
+              <Button color="secondary">{t("cancel")}</Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -366,8 +363,8 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
 
   return (
     <div>
-      <Shell heading="Integrations" subtitle="Connect your favourite apps." CTA={<ConnectNewAppDialog />}>
         <div className="mb-8 overflow-hidden bg-white border border-gray-200 rounded-sm">
+      <Shell heading={t("integrations")} subtitle={t("connect_favourite_apps")} CTA={<ConnectNewAppDialog />}>
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
               {integrations
@@ -386,10 +383,10 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                                 <p className="text-sm font-medium truncate text-neutral-900">{ig.title}</p>
                                 <p className="flex items-center text-sm text-gray-500">
                                   {ig.type.endsWith("_calendar") && (
-                                    <span className="truncate">Calendar Integration</span>
+                                    <span className="truncate">{t("calendar_integration")}</span>
                                   )}
                                   {ig.type.endsWith("_video") && (
-                                    <span className="truncate">Video Conferencing</span>
+                                    <span className="truncate">{t("video_conferencing")}</span>
                                   )}
                                 </p>
                               </div>
@@ -397,13 +394,13 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                                 {ig.credential.key && (
                                   <p className="flex items-center mt-2 text-gray-500 text">
                                     <CheckCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" />
-                                    Connected
+                                    {t("connected")}
                                   </p>
                                 )}
                                 {!ig.credential.key && (
                                   <p className="flex items-center mt-3 text-gray-500 text">
                                     <XCircleIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-yellow-400" />
-                                    Not connected
+                                    {t("not_connected")}
                                   </p>
                                 )}
                               </div>
@@ -426,11 +423,11 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                 </div>
                 <div className="py-5 sm:p-6">
                   <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    You don&apos;t have any apps connected.
+                    {t("dont_have_apps_connected")}
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
                     <p>
-                      You currently do not have any apps connected. Connect your first app to get started.
+                      {t("dont_have_apps_connected_description")}
                     </p>
                   </div>
                   <ConnectNewAppDialog />
@@ -441,22 +438,22 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         </div>
         <div className="mb-8 bg-white border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">Select calendars</h3>
+            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("select_calendars")}</h3>
             <div className="max-w-xl mt-2 text-sm text-gray-500">
-              <p>Select which calendars are checked for availability to prevent double bookings.</p>
+              <p>{t("select_which_calendars_checked_double_booking")}</p>
             </div>
             <SelectCalendarDialog />
           </div>
         </div>
         <div className="border border-gray-200 rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">Launch your own App</h3>
+            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("launch_own_app")}</h3>
             <div className="max-w-xl mt-2 text-sm text-gray-500">
-              <p>If you want to add your own App here, get in touch with us.</p>
+              <p>{t("if_want_add_your_app_touch_us")}</p>
             </div>
             <div className="mt-5">
               <a href="mailto:apps@cal.com" className="btn btn-white">
-                Contact us
+                {t("contact_us")}
               </a>
             </div>
           </div>
@@ -464,9 +461,7 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
         <ConnectCalDavServerDialog />
         <ConnectAppleServerDialog />
       </Shell>
-    </div>
-  );
-}
+    </}
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
