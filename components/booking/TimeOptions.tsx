@@ -16,24 +16,17 @@ type Props = {
 
 const TimeOptions: FC<Props> = (props) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [is24hClock, setIs24hClock] = useState(false);
   const { t } = useLocale({ localeProp: props.localeProp });
   const hour12 = useToggleQuery("hour12", { zero: true });
+  const is24hClock = !hour12.isOn;
   const router = useRouter();
 
   useEffect(() => {
-    setIs24hClock(
-      (router.query.hour12 !== undefined && !hour12.isOn) ||
-        !new Intl.DateTimeFormat(props.localeProp, { timeStyle: "short" })
-          .format(new Date())
-          .match(/\d+:\d+ (AM|PM)/)
-    );
     setSelectedTimeZone(timeZone());
   }, [props.localeProp, hour12.isOn, router.query.hour12]);
 
-  const handle24hClockToggle = (is24hClock: boolean) => {
-    setIs24hClock(is24hClock);
-    router.push(is24hClock ? hour12.hrefOff : hour12.hrefOn);
+  const handle24hClockToggle = (newValue: boolean) => {
+    router.replace(newValue ? hour12.hrefOff : hour12.hrefOn);
   };
 
   const handleSelectTimeZone = (tz: ITimezoneOption) => {

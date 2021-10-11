@@ -5,7 +5,7 @@ import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-type WorkingHour = {
+export type WorkingHour = {
   days: number[];
   startTime: number;
   endTime: number;

@@ -1,5 +1,6 @@
 // Get router variables
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
+import { Prisma } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -27,6 +28,33 @@ import { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
+
+export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  id: true,
+  title: true,
+  availability: true,
+  description: true,
+  length: true,
+  price: true,
+  currency: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodDays: true,
+  periodCountCalendarDays: true,
+  schedulingType: true,
+  minimumBookingNotice: true,
+  users: {
+    select: {
+      avatar: true,
+      name: true,
+      username: true,
+      hideBranding: true,
+      plan: true,
+      weekStart: true,
+    },
+  },
+});
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
@@ -184,11 +212,11 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
                 <DatePicker
                   localeProp={locale}
                   date={selectedDate}
-                  periodType={eventType?.periodType}
-                  periodStartDate={eventType?.periodStartDate}
-                  periodEndDate={eventType?.periodEndDate}
-                  periodDays={eventType?.periodDays}
-                  periodCountCalendarDays={eventType?.periodCountCalendarDays}
+                  periodType={eventType.periodType}
+                  periodStartDate={eventType.periodStartDate}
+                  periodEndDate={eventType.periodEndDate}
+                  periodDays={eventType.periodDays}
+                  periodCountCalendarDays={eventType.periodCountCalendarDays}
                   onDatePicked={changeDate}
                   workingHours={workingHours}
                   weekStart={profile.weekStart || "Sunday"}
