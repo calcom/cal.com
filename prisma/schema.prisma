@@ -16,12 +16,6 @@ enum SchedulingType {
   COLLECTIVE  @map("collective")
 }
 
-enum PeriodType {
-  unlimited
-  rolling
-  range
-}
-
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
@@ -39,7 +33,7 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              PeriodType             @default(unlimited) // unlimited | rolling | range
+  periodType              String                @default("unlimited") // unlimited | rolling | range
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
