@@ -57,7 +57,13 @@ jobs:
       - run: yarn prisma migrate deploy
       - run: yarn prisma migrate dev
         timeout-minutes: 1
-      - run: git diff --exit-code
+      - run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Tree is dirty"
+            exit 1
+          else
+            # Uncommitted changes
+          fi
       - run: yarn db-seed
       - run: yarn build
       - run: yarn start &
