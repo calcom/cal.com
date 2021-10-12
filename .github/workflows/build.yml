@@ -35,20 +35,20 @@ jobs:
       - name: Install deps
         uses: bahmutov/npm-install@v1
 
-      - name: Next.js cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs
+      # - name: Next.js cache
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ${{ github.workspace }}/.next/cache
+      #     key: ${{ runner.os }}-nextjs
 
       - run: yarn prisma migrate dev --create-only
       - name: Detect schema drift
         run: |
           if yarn prisma migrate status | grep -q 'Database schema is up to date'; then
             echo "All OK"
-          else;
+          else
             echo "Missing migration files"
-            exit 1
+            exit 1;
           fi;
       - run: yarn test
       - run: yarn build
