@@ -675,9 +675,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         </span>
                                       </div>
                                       {customInput.placeholder && (
-                                        <div>
-                                          <span className="ml-2 text-sm">
-                                            Placeholder: {customInput.placeholder}
+                                        <div className="truncate">
+                                          <span
+                                            className="ml-2 text-sm"
+                                            title={`${t("placeholder")}: ${customInput.placeholder}`}>
+                                            {t("placeholder")}: {customInput.placeholder}
                                           </span>
                                         </div>
                                       )}
