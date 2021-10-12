@@ -12,20 +12,13 @@ import { Tooltip } from "@components/Tooltip";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
+import { EventTypesPageProps } from "../../pages/event-types";
+
+type EventType = EventTypesPageProps["eventTypes"][number];
 interface Props {
-  profile: { slug: string };
+  profile: { slug: string | null };
   readOnly: boolean;
-  types: {
-    $disabled: boolean;
-    hidden: boolean;
-    id: number;
-    slug: string;
-    title: string;
-    users: {
-      name: string;
-      avatar: string;
-    }[];
-  };
+  types: EventType["eventTypes"];
 }
 
 const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {

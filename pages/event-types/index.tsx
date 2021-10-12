@@ -37,10 +37,10 @@ import Dropdown, {
 import * as RadioArea from "@components/ui/form/radio-area";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
-type PageProps = inferSSRProps<typeof getServerSideProps>;
-type Profile = PageProps["profiles"][number];
+export type EventTypesPageProps = inferSSRProps<typeof getServerSideProps>;
+type Profile = EventTypesPageProps["profiles"][number];
 
-const EventTypesPage = (props: PageProps) => {
+const EventTypesPage = (props: EventTypesPageProps) => {
   const { t } = useLocale();
 
   const CreateFirstEventTypeView = () => (
@@ -430,7 +430,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   type EventTypeGroup = {
     teamId?: number | null;
-    profile?: {
+    profile: {
       slug: typeof user["username"];
       name: typeof user["name"];
       image: typeof user["avatar"];
