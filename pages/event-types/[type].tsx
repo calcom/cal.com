@@ -627,7 +627,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               open ? "transform rotate-90" : ""
                             } w-5 h-5 text-neutral-500 ml-auto`}
                           />
-                          <span className="text-sm font-medium text-neutral-700">{t("show_advanced_settings")}</span>
+                          <span className="text-sm font-medium text-neutral-700">
+                            {t("show_advanced_settings")}
+                          </span>
                         </Disclosure.Button>
                       </div>
                       <Disclosure.Panel className="space-y-6">
