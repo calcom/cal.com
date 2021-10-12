@@ -44,11 +44,11 @@ jobs:
       - run: yarn prisma migrate dev --create-only
       - name: Detect schema drift
         run: |
-          if [[ $(yarn prisma migrate status | grep -L "not yet been applied") ]];
-            echo "Missing migrations"
-            then exit 1;
+          if yarn prisma migrate status | grep -q 'Database schema is up to date'; then
+            echo "All OK"
           else;
-            echo "All OK";
+            echo "Missing migration files"
+            exit 1
           fi;
       - run: yarn test
       - run: yarn build
