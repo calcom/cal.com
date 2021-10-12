@@ -193,6 +193,7 @@
   "meeting_with_user": "Meeting with {USER}",
   "additional_inputs": "Additional Inputs",
   "label": "Label",
+  "placeholder": "Placeholder",
   "type": "Type",
   "edit": "Edit",
   "add_input": "Add an Input",
