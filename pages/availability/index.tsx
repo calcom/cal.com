@@ -74,7 +74,7 @@ export default function Availability(props: Props) {
               </h3>
               <div className="max-w-xl mt-2 text-sm text-gray-500">
                 <p>
-                  {t("currently_start_end_time")}
+                  {t('currently_start_end_time', { startAt: convertMinsToHrsMins(user.startTime), endAt: convertMinsToHrsMins(user.endTime) })
                 </p>
               </div>
               <div className="mt-5">

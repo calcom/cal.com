@@ -1,7 +1,10 @@
 import { useSession } from "next-auth/client";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 
 import { getSession } from "@lib/auth";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import { getIntegrationName, getIntegrationType } from "@lib/integrations";
 import prisma from "@lib/prisma";
 
@@ -9,6 +12,7 @@ import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 
 export default function Integration(props) {
+  const { t, locale } = useLocale({ localeProp: props.localeProp });
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [session, loading] = useSession();
@@ -36,14 +40,14 @@ export default function Integration(props) {
   return (
     <div>
       <Shell
-        heading={t("name_app_prop")}
+        heading={t("name_app_prop", { integrationName: getIntegrationName(props.integration.type) })}
         subtitle={t("manage_delete_this_app")}>
         <div className="block grid-cols-3 gap-4 sm:grid">
           <div className="col-span-2 mb-6 overflow-hidden bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900">{t("integrations_details")}</h3>
               <p className="max-w-2xl mt-1 text-sm text-gray-500">
-                {t("name_app_description")}
+                {t("name_app_description", { integrationName: getIntegrationName(props.integration.type) })}
               </p>
             </div>
             <div className="px-4 py-5 border-t border-gray-200 sm:px-6">
@@ -85,6 +89,7 @@ export default function Integration(props) {
 
 export async function getServerSideProps(context) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const session = await getSession(context);
 
   const integration = await prisma.credential.findFirst({
@@ -98,6 +103,11 @@ export async function getServerSideProps(context) {
     },
   });
   return {
-    props: { session, integration },
+    props: {
+      session,
+      integration,
+      localeProp: locale,
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
   };
 }

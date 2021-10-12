@@ -1,9 +1,12 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useEffect, useState } from "react";
 
 import { getSession } from "@lib/auth";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -12,7 +15,8 @@ import Shell from "@components/Shell";
 
 dayjs.extend(utc);
 
-export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSideProps>) {
+export default function Troubleshoot({ user, localeProp }: inferSSRProps<typeof getServerSideProps>) {
+  const { t, locale } = useLocale({ localeProp });
   const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
@@ -52,9 +56,7 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
 
   return (
     <div>
-      <Shell
-        heading={t("troubleshoot")}
-        subtitle={t("troubleshoot_subtitle")}>
+      <Shell heading={t("troubleshoot")} subtitle={t("troubleshoot_subtitle")}>
         <div className="max-w-xl overflow-hidden bg-white rounded-sm shadow">
           <div className="px-4 py-5 sm:p-6">
             {t("here_overview_your_day")}{" "}
@@ -66,9 +68,7 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
                 setSelectedDate(dayjs(e.target.value));
               }}
             />
-            <small className="block text-neutral-400">
-              {t("tip_hover_full_timestamp")}
-            </small>
+            <small className="block text-neutral-400">{t("tip_hover_full_timestamp")}</small>
             <div className="mt-4 space-y-4">
               <div className="overflow-hidden bg-black rounded-sm">
                 <div className="px-4 py-2 text-white sm:px-6">
@@ -104,7 +104,8 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const session = await getSession(context);
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
@@ -124,6 +125,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
 
   return {
-    props: { session, user },
+    props: {
+      session,
+      user,
+      localeProp: locale,
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
   };
-};
+}

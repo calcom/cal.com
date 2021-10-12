@@ -2,11 +2,14 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import { CheckCircleIcon, ChevronRightIcon, PlusIcon, XCircleIcon } from "@heroicons/react/solid";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getSession } from "@lib/auth";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { ONBOARDING_NEXT_REDIRECT, shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import AddAppleIntegration, {
   ADD_APPLE_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/Apple/components/AddAppleIntegration";
@@ -23,9 +26,9 @@ import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
-export default function Home({ integrations }: inferSSRProps<typeof getServerSideProps>) {
+export default function Home({ integrations, localeProp }: inferSSRProps<typeof getServerSideProps>) {
+  const { t, locale } = useLocale({ localeProp });
   const [, loading] = useSession();
-
   const [selectableCalendars, setSelectableCalendars] = useState([]);
   const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
   const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
@@ -363,8 +366,11 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
 
   return (
     <div>
-        <div className="mb-8 overflow-hidden bg-white border border-gray-200 rounded-sm">
-      <Shell heading={t("integrations")} subtitle={t("connect_favourite_apps")} CTA={<ConnectNewAppDialog />}>
+      <div className="mb-8 overflow-hidden bg-white border border-gray-200 rounded-sm">
+        <Shell
+          heading={t("integrations")}
+          subtitle={t("connect_favourite_apps")}
+          CTA={<ConnectNewAppDialog />}>
           {integrations.filter((ig) => ig.credential).length !== 0 ? (
             <ul className="divide-y divide-gray-200">
               {integrations
@@ -426,44 +432,47 @@ export default function Home({ integrations }: inferSSRProps<typeof getServerSid
                     {t("dont_have_apps_connected")}
                   </h3>
                   <div className="mt-2 text-sm text-gray-500">
-                    <p>
-                      {t("dont_have_apps_connected_description")}
-                    </p>
+                    <p>{t("dont_have_apps_connected_description")}</p>
                   </div>
                   <ConnectNewAppDialog />
                 </div>
               </div>
             </div>
           )}
-        </div>
-        <div className="mb-8 bg-white border border-gray-200 rounded-sm">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("select_calendars")}</h3>
-            <div className="max-w-xl mt-2 text-sm text-gray-500">
-              <p>{t("select_which_calendars_checked_double_booking")}</p>
-            </div>
-            <SelectCalendarDialog />
-          </div>
-        </div>
-        <div className="border border-gray-200 rounded-sm">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("launch_own_app")}</h3>
-            <div className="max-w-xl mt-2 text-sm text-gray-500">
-              <p>{t("if_want_add_your_app_touch_us")}</p>
-            </div>
-            <div className="mt-5">
-              <a href="mailto:apps@cal.com" className="btn btn-white">
-                {t("contact_us")}
-              </a>
+          <div className="mb-8 bg-white border border-gray-200 rounded-sm">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">
+                {t("select_calendars")}
+              </h3>
+              <div className="max-w-xl mt-2 text-sm text-gray-500">
+                <p>{t("select_which_calendars_checked_double_booking")}</p>
+              </div>
+              <SelectCalendarDialog />
             </div>
           </div>
-        </div>
-        <ConnectCalDavServerDialog />
-        <ConnectAppleServerDialog />
-      </Shell>
-    </}
+          <div className="border border-gray-200 rounded-sm">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("launch_own_app")}</h3>
+              <div className="max-w-xl mt-2 text-sm text-gray-500">
+                <p>{t("if_want_add_your_app_touch_us")}</p>
+              </div>
+              <div className="mt-5">
+                <a href="mailto:apps@cal.com" className="btn btn-white">
+                  {t("contact_us")}
+                </a>
+              </div>
+            </div>
+          </div>
+          <ConnectCalDavServerDialog />
+          <ConnectAppleServerDialog />
+        </Shell>
+      </div>
+    </div>
+  );
+}
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const session = await getSession(context);
   if (!session?.user?.email) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
@@ -500,6 +509,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const integrations = getIntegrations(user.credentials);
 
   return {
-    props: { session, integrations },
+    props: {
+      session,
+      integrations,
+      localeProp: locale,
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
   };
 }
