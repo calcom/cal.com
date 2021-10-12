@@ -384,11 +384,11 @@ export default function IntegrationsPage() {
                         )}
                       </li>
                     ))}
-
-                    <h2 className="font-bold text-gray-900 flex items-center content-center mb-2 mt-4">
-                      Connect an additional calendar
-                    </h2>
                   </List>
+                  <ShellSubHeading
+                    className="mt-6"
+                    title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
+                  />
                 </>
               )}
               <List>
