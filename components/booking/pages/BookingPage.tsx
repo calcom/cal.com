@@ -181,7 +181,7 @@ const BookingPage = (props: BookingPageProps) => {
     book();
   };
 
-  const bookingHandler = useCallback(_bookingHandler);
+  const bookingHandler = useCallback(_bookingHandler, [guestEmails]);
 
   return (
     <div>
