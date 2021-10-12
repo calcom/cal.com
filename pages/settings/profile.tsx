@@ -1,3 +1,4 @@
+import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -66,6 +67,9 @@ function HideBrandingInput(props: {
       />
       <Dialog open={modelOpen}>
         <DialogContent>
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+            <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
+          </div>
           <div className="sm:flex sm:items-start mb-4">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">
               <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
@@ -73,7 +77,7 @@ function HideBrandingInput(props: {
               </h3>
             </div>
           </div>
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col space-y-3 text-center">
             <p>
               In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
               account.
@@ -90,7 +94,7 @@ function HideBrandingInput(props: {
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
             <DialogClose asChild>
-              <Button color="secondary" onClick={() => setModalOpen(false)}>
+              <Button className="btn-wide btn-primary" onClick={() => setModalOpen(false)}>
                 Dismiss
               </Button>
             </DialogClose>
