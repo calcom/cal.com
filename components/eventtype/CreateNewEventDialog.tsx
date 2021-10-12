@@ -10,6 +10,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import createEventType from "@lib/mutations/event-types/create-event-type";
 import showToast from "@lib/notification";
+import { inferQueryOutput } from "@lib/trpc";
 import { CreateEventType } from "@lib/types/event-type";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
@@ -24,11 +25,9 @@ import Dropdown, {
 } from "@components/ui/Dropdown";
 import * as RadioArea from "@components/ui/form/radio-area";
 
-import { EventTypesPageProps } from "../../pages/event-types";
+type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 
-type Profile = EventTypesPageProps["profiles"][number];
-
-const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[]; canAddEvents: boolean }) => {
+const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profiles; canAddEvents: boolean }) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
