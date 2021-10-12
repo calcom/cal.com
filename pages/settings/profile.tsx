@@ -14,6 +14,7 @@ import {
   localeOptions,
   OptionType,
 } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
@@ -42,6 +43,7 @@ function HideBrandingInput(props: {
   user: Props["user"];
 }) {
   const [modelOpen, setModalOpen] = useState(false);
+  const { t } = useLocale();
   return (
     <>
       <input
@@ -96,7 +98,7 @@ function HideBrandingInput(props: {
               <Button
                 className="btn-wide btn-primary text-center table-cell"
                 onClick={() => setModalOpen(false)}>
-                Dismiss
+                {t("dismiss")}
               </Button>
             </DialogClose>
           </div>
@@ -107,6 +109,7 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
+  const { t } = useLocale();
   const mutation = trpc.useMutation("viewer.updateProfile");
 
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -189,7 +192,7 @@ export default function Settings(props: Props) {
   }
 
   return (
-    <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
+    <Shell heading="Profile" subtitle={t("edit_profile_info_description")}>
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <Alert severity="error" title={errorMessage} />}
