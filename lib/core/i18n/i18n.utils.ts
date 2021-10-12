@@ -73,6 +73,7 @@ export const localeLabels: localeType = {
   pt: "Portuguese",
   ro: "Romanian",
   nl: "Dutch",
+  "pt-BR": "Portuguese (Brazilian)",
 };
 
 export type OptionType = {
