@@ -172,6 +172,14 @@ function ConnectOrDisconnectIntegrationButton(props: {
       </div>
     );
   }
+  /** We don't need to "Connect", just show that it's installed */
+  if (props.type === "daily_video") {
+    return (
+      <div className="px-3 py-2 truncate">
+        <h3 className="text-sm font-medium">Installed</h3>
+      </div>
+    );
+  }
   return (
     <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
   );
