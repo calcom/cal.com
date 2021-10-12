@@ -32,6 +32,20 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
       createdDate: true,
       hideBranding: true,
       avatar: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+        },
+      },
+      selectedCalendars: {
+        select: {
+          externalId: true,
+          integration: true,
+        },
+      },
+      completedOnboarding: true,
       locale: true,
     },
   });

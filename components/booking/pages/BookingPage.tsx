@@ -180,7 +180,7 @@ const BookingPage = (props: BookingPageProps) => {
     book();
   };
 
-  const bookingHandler = useCallback(_bookingHandler, []);
+  const bookingHandler = useCallback(_bookingHandler, [guestEmails]);
 
   return (
     <div>
@@ -253,7 +253,7 @@ const BookingPage = (props: BookingPageProps) => {
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("your_name")}
                     </label>
                     <div className="mt-1">
@@ -271,7 +271,7 @@ const BookingPage = (props: BookingPageProps) => {
                   <div className="mb-4">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium dark:text-white text-gray-700">
+                      className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("email_address")}
                     </label>
                     <div className="mt-1">
@@ -436,7 +436,7 @@ const BookingPage = (props: BookingPageProps) => {
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                       placeholder={t("share_additional_notes")}
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
