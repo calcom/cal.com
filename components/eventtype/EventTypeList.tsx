@@ -7,18 +7,17 @@ import React, { Fragment } from "react";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
+import { inferQueryOutput } from "@lib/trpc";
 
 import { Tooltip } from "@components/Tooltip";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
-import { EventTypesPageProps } from "../../pages/event-types";
-
-type EventType = EventTypesPageProps["eventTypes"][number];
+type EventTypes = inferQueryOutput<"viewer.eventTypes">["eventTypes"];
 interface Props {
   profile: { slug: string | null };
   readOnly: boolean;
-  types: EventType["eventTypes"];
+  types: EventTypes[number]["eventTypes"];
 }
 
 const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {
