@@ -44,8 +44,9 @@ jobs:
           path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs
 
-      - run: yarn prisma migrate deploy
-      - run: yarn prisma migrate dev
+      - run: yarn prisma migrate dev --create-only
+      - name: Detect schema drift
+        run: if [[ $(yarn prisma migrate status | grep -L "not yet been applied") ]]; then exit 1; else; echo "All ok!"; fi;
       - name: Detect schema drift
         run: git diff --exit-code
       - run: yarn test
