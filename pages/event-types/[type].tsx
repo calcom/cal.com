@@ -85,7 +85,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
     props;
 
-  const { t, locale } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
   const router = useRouter();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
@@ -992,7 +992,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {t("delete")}
                 </DialogTrigger>
                 <ConfirmationDialogContent
-                  localeProp={locale}
                   variety="danger"
                   title={t("delete_event_type")}
                   confirmBtnText={t("confirm_delete_event_type")}

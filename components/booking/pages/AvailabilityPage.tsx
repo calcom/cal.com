@@ -30,11 +30,11 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Props) => {
+const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
-  const { t, locale } = useLocale({ localeProp });
+  const { t } = useLocale();
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -188,7 +188,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
                   <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
                 </div>
                 <DatePicker
-                  localeProp={locale}
                   date={selectedDate}
                   periodType={eventType?.periodType}
                   periodStartDate={eventType?.periodStartDate}
@@ -208,7 +207,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
 
                 {selectedDate && (
                   <AvailableTimes
-                    localeProp={locale}
                     workingHours={workingHours}
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
@@ -241,11 +239,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, localeProp }: Prop
           )}
         </Collapsible.Trigger>
         <Collapsible.Content>
-          <TimeOptions
-            localeProp={locale}
-            onSelectTimeZone={handleSelectTimeZone}
-            onToggle24hClock={handleToggle24hClock}
-          />
+          <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
         </Collapsible.Content>
       </Collapsible.Root>
     );

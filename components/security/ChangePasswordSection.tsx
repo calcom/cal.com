@@ -5,13 +5,13 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 import Modal from "@components/Modal";
 
-const ChangePasswordSection = ({ localeProp }: { localeProp: string }) => {
+const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { t } = useLocale({ localeProp });
+  const { t } = useLocale();
 
   const errorMessages: { [key: string]: string } = {
     [ErrorCode.IncorrectPassword]: t("current_incorrect_password"),

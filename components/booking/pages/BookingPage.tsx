@@ -13,8 +13,6 @@ import { stringify } from "querystring";
 import { useCallback, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
-import PhoneInput from "react-phone-number-input";
-import "react-phone-number-input/style.css";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
@@ -30,6 +28,7 @@ import { BookingCreateBody } from "@lib/types/booking";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
+import PhoneInput from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
@@ -37,7 +36,7 @@ import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
 const BookingPage = (props: BookingPageProps) => {
-  const { t } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(props.profile.theme);
@@ -319,16 +318,7 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          name="phone"
-                          placeholder={t("enter_phone_number")}
-                          id="phone"
-                          required
-                          className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
-                          onChange={() => {
-                            /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
-                          }}
-                        />
+                        <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
                       </div>
                     </div>
                   )}
