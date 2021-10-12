@@ -78,7 +78,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       {props.booking.location && (
                         <>
                           <div className="font-medium">Where</div>
-                          <div className="col-span-2">{location}</div>
+                          <div className="mb-6 col-span-2">{props.booking.location}</div>
                         </>
                       )}
                       <div className="font-medium">Price</div>
