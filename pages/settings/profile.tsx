@@ -132,9 +132,7 @@ export default function Settings(props: Props) {
 
   useEffect(() => {
     setSelectedTheme(
-      props.user.theme | { value: string }
-        ? themeOptions.find((theme) => theme.value === props.user.theme)
-        : null
+      props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : null
     );
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
     setSelectedLanguage({ value: props.localeProp, label: props.localeLabels[props.localeProp] });
