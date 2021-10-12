@@ -1,12 +1,15 @@
-import { Prisma, BookingStatus } from "@prisma/client";
+import { BookingStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import getIntegrations, { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
+import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
 import { createProtectedRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 
@@ -89,6 +92,88 @@ export const viewerRouter = createProtectedRouter()
       });
 
       return bookings;
+    },
+  })
+  .query("integrations", {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      const { credentials } = user;
+      const integrations = getIntegrations(credentials);
+
+      function countActive(items: { credentials: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.credentials.length, 0);
+      }
+      const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
+      const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+
+      // get user's credentials + their connected integrations
+      const calendarCredentials = user.credentials
+        .filter((credential) => credential.type.endsWith("_calendar"))
+        .flatMap((credential) => {
+          const integration = ALL_INTEGRATIONS.find((integration) => integration.type === credential.type);
+
+          const adapter = getCalendarAdapterOrNull({
+            ...credential,
+            userId: user.id,
+          });
+          return integration && adapter && integration.variant === "calendar"
+            ? [{ integration, credential, adapter }]
+            : [];
+        });
+
+      // get all the connected integrations' calendars (from third party)
+      const connectedCalendars = await Promise.all(
+        calendarCredentials.map(async (item) => {
+          const { adapter, integration, credential } = item;
+          try {
+            const _calendars = await adapter.listCalendars();
+            const calendars = _calendars.map((cal) => ({
+              ...cal,
+              isSelected: !!user.selectedCalendars.find((selected) => selected.externalId === cal.externalId),
+            }));
+            const primary = calendars.find((item) => item.primary) ?? calendars[0];
+            if (!primary) {
+              return {
+                integration,
+                credentialId: credential.id,
+                error: {
+                  message: "No primary calendar found",
+                },
+              };
+            }
+            return {
+              integration,
+              credentialId: credential.id,
+              primary,
+              calendars,
+            };
+          } catch (_error) {
+            const error = getErrorFromUnknown(_error);
+            return {
+              integration,
+              error: {
+                message: error.message,
+              },
+            };
+          }
+        })
+      );
+      return {
+        conferencing: {
+          items: conferencing,
+          numActive: countActive(conferencing),
+        },
+        calendar: {
+          items: calendar,
+          numActive: countActive(calendar),
+        },
+        payment: {
+          items: payment,
+          numActive: countActive(payment),
+        },
+        connectedCalendars,
+      };
     },
   })
   .mutation("updateProfile", {

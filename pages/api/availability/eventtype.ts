@@ -144,6 +144,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const openingHours = req.body.availability.openingHours || [];
         // const overrides = req.body.availability.dateOverrides || [];
 
+        const eventTypeId = +req.body.id;
+        if (eventTypeId) {
+          await prisma.availability.deleteMany({
+            where: {
+              eventTypeId,
+            },
+          });
+        }
+
         Promise.all(
           openingHours.map((schedule) =>
             prisma.availability.create({

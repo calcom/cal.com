@@ -1,9 +1,10 @@
-import Head from "next/head";
 import React from "react";
 
 import { Alert, AlertProps } from "@components/ui/Alert";
 
-export default function AlertPage() {
+import { sandboxPage } from ".";
+
+const page = sandboxPage(function AlertPage() {
   const list: AlertProps[] = [
     { title: "Something went wrong", severity: "error" },
     { title: "Something went kinda wrong", severity: "warning" },
@@ -23,9 +24,6 @@ export default function AlertPage() {
   ];
   return (
     <>
-      <Head>
-        <meta name="googlebot" content="noindex" />
-      </Head>
       <div className="p-4 bg-gray-200">
         <h1>Alert component</h1>
         <div className="flex flex-col">
@@ -52,4 +50,7 @@ export default function AlertPage() {
       </div>
     </>
   );
-}
+});
+
+export default page.default;
+export const getStaticProps = page.getStaticProps;

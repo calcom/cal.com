@@ -7,7 +7,14 @@ import { hashPassword } from "../lib/auth";
 const prisma = new PrismaClient();
 
 async function createUserAndEventType(opts: {
-  user: { email: string; password: string; username: string; plan: UserPlan; name: string };
+  user: {
+    email: string;
+    password: string;
+    username: string;
+    plan: UserPlan;
+    name: string;
+    completedOnboarding?: boolean;
+  };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
       _bookings?: Prisma.BookingCreateInput[];
@@ -18,7 +25,7 @@ async function createUserAndEventType(opts: {
     ...opts.user,
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
-    completedOnboarding: true,
+    completedOnboarding: opts.user.completedOnboarding ?? true,
   };
   const user = await prisma.user.upsert({
     where: { email: opts.user.email },
@@ -97,24 +104,14 @@ async function createUserAndEventType(opts: {
 async function main() {
   await createUserAndEventType({
     user: {
-      email: "free@example.com",
-      password: "free",
-      username: "free",
-      name: "Free Example",
-      plan: "FREE",
+      email: "onboarding@example.com",
+      password: "onboarding",
+      username: "onboarding",
+      name: "onboarding",
+      plan: "TRIAL",
+      completedOnboarding: false,
     },
-    eventTypes: [
-      {
-        title: "30min",
-        slug: "30min",
-        length: 30,
-      },
-      {
-        title: "60min",
-        slug: "60min",
-        length: 30,
-      },
-    ],
+    eventTypes: [],
   });
 
   await createUserAndEventType({
@@ -195,6 +192,28 @@ async function main() {
         title: "60min",
         slug: "60min",
         length: 60,
+      },
+    ],
+  });
+
+  await createUserAndEventType({
+    user: {
+      email: "free@example.com",
+      password: "free",
+      username: "free",
+      name: "Free Example",
+      plan: "FREE",
+    },
+    eventTypes: [
+      {
+        title: "30min",
+        slug: "30min",
+        length: 30,
+      },
+      {
+        title: "60min",
+        slug: "60min",
+        length: 30,
       },
     ],
   });

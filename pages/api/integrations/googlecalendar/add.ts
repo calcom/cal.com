@@ -21,7 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Get token from Google Calendar API
     const { client_secret, client_id, redirect_uris } = JSON.parse(credentials).web;
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    const redirect_uri = process.env.GOOGLE_REDIRECT_URL || redirect_uris[0];
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
