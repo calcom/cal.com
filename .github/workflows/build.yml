@@ -43,6 +43,12 @@ jobs:
 
       - run: yarn prisma migrate dev --create-only
       - name: Detect schema drift
-        run: if [[ $(yarn prisma migrate status | grep -L "not yet been applied") ]]; then exit 1; else; echo "All OK"; fi;
+        run: |
+          if [[ $(yarn prisma migrate status | grep -L "not yet been applied") ]];
+            echo "Missing migrations"
+            then exit 1;
+          else;
+            echo "All OK";
+          fi;
       - run: yarn test
       - run: yarn build
