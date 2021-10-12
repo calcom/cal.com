@@ -20,7 +20,34 @@ const checkUsername =
 export const viewerRouter = createProtectedRouter()
   .query("me", {
     resolve({ ctx }) {
-      return ctx.user;
+      const {
+        // pick only the part we want to expose in the API
+        id,
+        name,
+        username,
+        email,
+        startTime,
+        endTime,
+        bufferTime,
+        locale,
+        avatar,
+        createdDate,
+        completedOnboarding,
+      } = ctx.user;
+      const me = {
+        id,
+        name,
+        username,
+        email,
+        startTime,
+        endTime,
+        bufferTime,
+        locale,
+        avatar,
+        createdDate,
+        completedOnboarding,
+      };
+      return me;
     },
   })
   .query("bookings", {
