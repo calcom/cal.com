@@ -9,7 +9,6 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { is24h, timeZone } from "../../lib/clock";
 
 type Props = {
-  localeProp: string;
   onSelectTimeZone: (selectedTimeZone: string) => void;
   onToggle24hClock: (is24hClock: boolean) => void;
 };
@@ -17,7 +16,7 @@ type Props = {
 const TimeOptions: FC<Props> = (props) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [is24hClock, setIs24hClock] = useState(false);
-  const { t } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
 
   useEffect(() => {
     setIs24hClock(is24h());

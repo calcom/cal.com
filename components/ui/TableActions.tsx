@@ -7,7 +7,7 @@ import { SVGComponent } from "@lib/types/SVGComponent";
 
 import Button from "./Button";
 
-type ActionType = {
+export type ActionType = {
   id: string;
   icon: SVGComponent;
   label: string;

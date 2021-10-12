@@ -10,23 +10,17 @@ import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";
 
 interface DisableTwoFactorAuthModalProps {
-  /**
-   * Called when the user closes the modal without disabling two-factor auth
-   */
+  /** Called when the user closes the modal without disabling two-factor auth */
   onCancel: () => void;
-
-  /**
-   * Called when the user disables two-factor auth
-   */
+  /** Called when the user disables two-factor auth */
   onDisable: () => void;
-  localeProp: string;
 }
 
-const DisableTwoFactorAuthModal = ({ onDisable, onCancel, localeProp }: DisableTwoFactorAuthModalProps) => {
+const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuthModalProps) => {
   const [password, setPassword] = useState("");
   const [isDisabling, setIsDisabling] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { t } = useLocale({ localeProp });
+  const { t } = useLocale();
 
   async function handleDisable(e: SyntheticEvent) {
     e.preventDefault();

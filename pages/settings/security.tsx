@@ -11,14 +11,14 @@ import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 
-export default function Security({ user, localeProp }) {
+export default function Security({ user }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { locale, t } = useLocale({ localeProp });
+  const { t } = useLocale();
   return (
     <Shell heading={t("security")} subtitle={t("manage_account_security")}>
       <SettingsShell>
-        <ChangePasswordSection localeProp={locale} />
-        <TwoFactorAuthSection localeProp={locale} twoFactorEnabled={user.twoFactorEnabled} />
+        <ChangePasswordSection />
+        <TwoFactorAuthSection twoFactorEnabled={user.twoFactorEnabled} />
       </SettingsShell>
     </Shell>
   );
