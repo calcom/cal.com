@@ -1,5 +1,6 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import _ from "lodash";
 import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
@@ -154,11 +155,16 @@ export const viewerRouter = createProtectedRouter()
         calendarCredentials.map(async (item) => {
           const { adapter, integration, credential } = item;
           try {
-            const _calendars = await adapter.listCalendars();
-            const calendars = _calendars.map((cal) => ({
-              ...cal,
-              isSelected: !!user.selectedCalendars.find((selected) => selected.externalId === cal.externalId),
-            }));
+            const cals = await adapter.listCalendars();
+            const calendars = _(cals)
+              .map((cal) => ({
+                ...cal,
+                isSelected: !!user.selectedCalendars.find(
+                  (selected) => selected.externalId === cal.externalId
+                ),
+              }))
+              .sortBy(["primary"])
+              .value();
             const primary = calendars.find((item) => item.primary) ?? calendars[0];
             if (!primary) {
               return {
