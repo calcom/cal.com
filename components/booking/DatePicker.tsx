@@ -14,7 +14,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const DatePicker = ({
-  localeProp,
   weekStart,
   onDatePicked,
   workingHours,
@@ -28,7 +27,7 @@ const DatePicker = ({
   periodCountCalendarDays,
   minimumBookingNotice,
 }) => {
-  const { t } = useLocale({ localeProp: localeProp });
+  const { t } = useLocale();
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
 
   const [selectedMonth, setSelectedMonth] = useState<number | null>(

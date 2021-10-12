@@ -6,7 +6,7 @@ import { useMutation } from "react-query";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import TableActions from "@components/ui/TableActions";
+import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">[number];
 
@@ -34,7 +34,7 @@ function BookingListItem(booking: BookingItem) {
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
 
-  const pendingActions = [
+  const pendingActions: ActionType[] = [
     {
       id: "reject",
       label: "Reject",
@@ -52,7 +52,7 @@ function BookingListItem(booking: BookingItem) {
     },
   ];
 
-  const bookedActions = [
+  const bookedActions: ActionType[] = [
     {
       id: "cancel",
       label: "Cancel",

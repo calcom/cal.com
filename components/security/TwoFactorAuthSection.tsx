@@ -8,17 +8,11 @@ import Button from "@components/ui/Button";
 import DisableTwoFactorModal from "./DisableTwoFactorModal";
 import EnableTwoFactorModal from "./EnableTwoFactorModal";
 
-const TwoFactorAuthSection = ({
-  twoFactorEnabled,
-  localeProp,
-}: {
-  twoFactorEnabled: boolean;
-  localeProp: string;
-}) => {
+const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean }) => {
   const [enabled, setEnabled] = useState(twoFactorEnabled);
   const [enableModalOpen, setEnableModalOpen] = useState(false);
   const [disableModalOpen, setDisableModalOpen] = useState(false);
-  const { t, locale } = useLocale({ localeProp });
+  const { t } = useLocale();
 
   return (
     <>
@@ -39,7 +33,6 @@ const TwoFactorAuthSection = ({
 
       {enableModalOpen && (
         <EnableTwoFactorModal
-          localeProp={locale}
           onEnable={() => {
             setEnabled(true);
             setEnableModalOpen(false);
@@ -50,7 +43,6 @@ const TwoFactorAuthSection = ({
 
       {disableModalOpen && (
         <DisableTwoFactorModal
-          localeProp={locale}
           onDisable={() => {
             setEnabled(false);
             setDisableModalOpen(false);
