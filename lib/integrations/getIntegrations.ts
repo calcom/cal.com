@@ -35,6 +35,14 @@ export const ALL_INTEGRATIONS = [
     variant: "conferencing",
   },
   {
+    installed: !!process.env.DAILY_API_KEY,
+    type: "daily_video",
+    title: "Daily.co Video",
+    imageSrc: "integrations/daily.svg",
+    description: "Video Conferencing",
+    variant: "conferencing",
+  },
+  {
     installed: true,
     type: "caldav_calendar",
     title: "CalDav Server",
@@ -84,10 +92,12 @@ function getIntegrations(userCredentials: CredentialData[]) {
   return integrations;
 }
 
-export type IntegraionMeta = ReturnType<typeof getIntegrations>;
+export type IntegrationMeta = ReturnType<typeof getIntegrations>;
 
-export function hasIntegration(integrations: ReturnType<typeof getIntegrations>, type: string): boolean {
-  return !!integrations.find((i) => i.type === type && !!i.installed && !!i.credential);
+export function hasIntegration(integrations: IntegrationMeta, type: string): boolean {
+  return !!integrations.find(
+    (i) => i.type === type && !!i.installed && (type === "daily_video" || i.credentials.length > 0)
+  );
 }
 
 export default getIntegrations;
