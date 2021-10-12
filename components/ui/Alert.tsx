@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 export interface AlertProps {
   title?: ReactNode;
   message?: ReactNode;
+  actions?: ReactNode;
   className?: string;
   severity: "success" | "warning" | "error";
 }
@@ -36,6 +37,7 @@ export function Alert(props: AlertProps) {
           <h3 className="text-sm font-medium">{props.title}</h3>
           <div className="text-sm">{props.message}</div>
         </div>
+        {props.actions && <div className="text-sm">{props.actions}</div>}
       </div>
     </div>
   );
