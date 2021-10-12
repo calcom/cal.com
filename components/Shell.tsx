@@ -19,6 +19,7 @@ import LicenseBanner from "@ee/components/LicenseBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
+import { shouldShowOnboarding } from "@lib/getting-started";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -29,10 +30,7 @@ import Logo from "./Logo";
 
 function useMeQuery() {
   const [session] = useSession();
-  const meQuery = trpc.useQuery(["viewer.me"], {
-    // refetch max once per 5s
-    staleTime: 5000,
-  });
+  const meQuery = trpc.useQuery(["viewer.me"]);
 
   useEffect(() => {
     // refetch if sesion changes
@@ -59,6 +57,26 @@ function useRedirectToLoginIfUnauthenticated() {
   }, [loading, session, router]);
 }
 
+export function ShellSubHeading(props: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
+      <div>
+        {/* TODO should be Roboto */}
+        <h2 className="text-lg font-bold text-gray-900 flex items-center content-center space-x-2">
+          {props.title}
+        </h2>
+        {props.subtitle && <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>}
+      </div>
+      {props.actions && <div className="mb-4 flex-shrink-0">{props.actions}</div>}
+    </div>
+  );
+}
+
 export default function Shell(props: {
   centered?: boolean;
   title?: string;
@@ -73,6 +91,15 @@ export default function Shell(props: {
 
   const telemetry = useTelemetry();
   const query = useMeQuery();
+
+  useEffect(
+    function redirectToOnboardingIfNeeded() {
+      if (query.data && shouldShowOnboarding(query.data)) {
+        router.push("/getting-started");
+      }
+    },
+    [query.data, router]
+  );
 
   const navigation = [
     {
@@ -209,7 +236,6 @@ export default function Shell(props: {
                 <div className="mb-4 flex-shrink-0">{props.CTA}</div>
               </div>
               <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
-
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
@@ -239,7 +265,6 @@ export default function Shell(props: {
                   )
                 )}
               </nav>
-
               {/* add padding to content for mobile navigation*/}
               <div className="block md:hidden pt-12" />
             </div>
