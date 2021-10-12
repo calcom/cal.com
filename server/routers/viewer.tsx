@@ -26,10 +26,6 @@ export const viewerRouter = createProtectedRouter()
   .query("eventTypes", {
     async resolve({ ctx }) {
       const { prisma } = ctx;
-      /**
-       * This makes the select reusable and type safe.
-       * @url https://www.prisma.io/docs/concepts/components/prisma-client/advanced-type-safety/prisma-validator#using-the-prismavalidator
-       * */
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         id: true,
         title: true,

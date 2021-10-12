@@ -6,7 +6,6 @@ const createEventType = async (data: CreateEventType) => {
     "/api/availability/eventtype",
     data
   );
-  console.log(`response`, response);
   return response;
 };
 
