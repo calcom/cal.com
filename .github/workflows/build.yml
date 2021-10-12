@@ -26,9 +26,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-        with:
-          # `fetch-depth: 0` is needed for the diff check below
-          fetch-depth: 0
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
@@ -47,7 +44,5 @@ jobs:
       - run: yarn prisma migrate dev --create-only
       - name: Detect schema drift
         run: if [[ $(yarn prisma migrate status | grep -L "not yet been applied") ]]; then exit 1; else; echo "All ok!"; fi;
-      - name: Detect schema drift
-        run: git diff --exit-code
       - run: yarn test
       - run: yarn build
