@@ -30,6 +30,10 @@ export type AdvancedOptions = {
     label: string;
     avatar: string;
   }[];
+  availability?: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
+  customInputs?: EventTypeCustomInput[];
+  timeZone: string;
+  hidden: boolean;
 };
 
 export type EventTypeCustomInput = {
