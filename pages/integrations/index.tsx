@@ -176,7 +176,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (props.type === "daily_video") {
     return (
       <div className="px-3 py-2 truncate">
-        <h3 className="text-sm font-medium">Installed</h3>
+        <h3 className="text-sm font-medium text-gray-700">Installed</h3>
       </div>
     );
   }
@@ -196,7 +196,7 @@ function IntegrationListItem(props: {
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
       <div className={classNames("flex flex-1 space-x-2 w-full p-4 items-center")}>
         <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
-        <div className="pl-2 flex-grow truncate">
+        <div className="flex-grow pl-2 truncate">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
         </div>
@@ -356,7 +356,7 @@ export default function IntegrationsPage() {
                                 )}
                               />
                             }>
-                            <ul className="space-y-2 p-4">
+                            <ul className="p-4 space-y-2">
                               {item.calendars.map((cal) => (
                                 <CalendarSwitch
                                   key={cal.externalId}
