@@ -172,7 +172,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   if (!props.installed) {
     return (
-      <div className="h-12 -mt-1">
+      <div className="h-12 -mt-1 truncate">
         <Alert severity="warning" title="Not installed" />
       </div>
     );
@@ -193,7 +193,7 @@ function IntegrationListItem(props: {
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
       <div className={classNames("flex flex-1 space-x-2 w-full p-4 items-center")}>
         <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
-        <div className="pl-2 flex-grow">
+        <div className="pl-2 flex-grow truncate">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
         </div>
