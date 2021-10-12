@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import _ from "lodash";
 
 import { validJson } from "@lib/jsonUtils";
 
@@ -63,15 +64,22 @@ export const ALL_INTEGRATIONS = [
   },
 ] as const;
 
-function getIntegrations(credentials: CredentialData[]) {
-  const integrations = ALL_INTEGRATIONS.map((integration) => ({
-    ...integration,
-    /**
-     * @deprecated use `credentials.
-     */
-    credential: credentials.find((credential) => credential.type === integration.type) || null,
-    credentials: credentials.filter((credential) => credential.type === integration.type) || null,
-  }));
+function getIntegrations(userCredentials: CredentialData[]) {
+  const integrations = ALL_INTEGRATIONS.map((integration) => {
+    const credentials = userCredentials
+      .filter((credential) => credential.type === integration.type)
+      .map((credential) => _.pick(credential, ["id", "type"])); // ensure we don't leak `key` to frontend
+
+    const credential: typeof credentials[number] | null = credentials[0] || null;
+    return {
+      ...integration,
+      /**
+       * @deprecated use `credentials`
+       */
+      credential,
+      credentials,
+    };
+  });
 
   return integrations;
 }
