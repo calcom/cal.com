@@ -662,20 +662,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </label>
                           </div>
                           <div className="w-full">
-                            <ul className="mt-1 w-max">
+                            <ul className="mt-1">
                               {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
                                 <li key={idx} className="p-2 mb-2 border bg-secondary-50">
                                   <div className="flex justify-between">
-                                    <div>
-                                      <div>
-                                        <span className="ml-2 text-sm">
+                                    <div className="flex-1 w-0">
+                                      <div className="truncate">
+                                        <span
+                                          className="ml-2 text-sm"
+                                          title={`${t("label")}: ${customInput.label}`}>
                                           {t("label")}: {customInput.label}
                                         </span>
                                       </div>
                                       {customInput.placeholder && (
-                                        <div>
-                                          <span className="ml-2 text-sm">
-                                            Placeholder: {customInput.placeholder}
+                                        <div className="truncate">
+                                          <span
+                                            className="ml-2 text-sm"
+                                            title={`${t("placeholder")}: ${customInput.placeholder}`}>
+                                            {t("placeholder")}: {customInput.placeholder}
                                           </span>
                                         </div>
                                       )}

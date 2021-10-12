@@ -47,7 +47,9 @@ const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {
               )}>
               <div className="flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
                 <Link href={"/event-types/" + type.id}>
-                  <a className="flex-grow text-sm truncate">
+                  <a
+                    className="flex-grow text-sm truncate"
+                    title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
                       <span className="font-medium truncate text-neutral-900">{type.title}</span>
                       {type.hidden && (
