@@ -11,7 +11,7 @@ import classnames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import debounce from "lodash.debounce";
+import debounce from "lodash/debounce";
 import { NextPageContext } from "next";
 import { useSession } from "next-auth/client";
 import Head from "next/head";
