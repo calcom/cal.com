@@ -1,3 +1,4 @@
+import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -14,12 +15,13 @@ import {
   OptionType,
 } from "@lib/core/i18n/i18n.utils";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { DialogClose, Dialog, DialogContent } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
-import Modal from "@components/Modal";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
@@ -62,11 +64,18 @@ function HideBrandingInput(props: {
           setModalOpen(true);
         }}
       />
-
-      <Modal
-        heading="This feature is only available in paid plan"
-        variant="warning"
-        description={
+      <Dialog open={modelOpen}>
+        <DialogContent>
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+            <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
+          </div>
+          <div className="sm:flex sm:items-start mb-4">
+            <div className="mt-3 sm:mt-0 sm:text-left">
+              <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                This feature is only available in paid plan
+              </h3>
+            </div>
+          </div>
           <div className="flex flex-col space-y-3">
             <p>
               In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
@@ -82,10 +91,15 @@ function HideBrandingInput(props: {
               .
             </p>
           </div>
-        }
-        open={modelOpen}
-        handleClose={() => setModalOpen(false)}
-      />
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+            <DialogClose asChild>
+              <Button className="btn-wide btn-primary text-center" onClick={() => setModalOpen(false)}>
+                <span className="m-auto">Dismiss</span>
+              </Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -93,7 +107,6 @@ function HideBrandingInput(props: {
 export default function Settings(props: Props) {
   const mutation = trpc.useMutation("viewer.updateProfile");
 
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>();
@@ -122,10 +135,6 @@ export default function Settings(props: Props) {
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
     setSelectedLanguage({ value: props.localeProp, label: props.localeLabels[props.localeProp] });
   }, []);
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
-  };
 
   const handleAvatarChange = (newAvatar) => {
     avatarRef.current.value = newAvatar;
@@ -167,7 +176,7 @@ export default function Settings(props: Props) {
         locale: enteredLanguage,
       })
       .then(() => {
-        setSuccessModalOpen(true);
+        showToast("Your user profile has been updated successfully", "success");
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -411,12 +420,6 @@ export default function Settings(props: Props) {
             </div>
           </div>
         </form>
-        <Modal
-          heading="Profile updated successfully"
-          description="Your user profile has been updated successfully."
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
       </SettingsShell>
     </Shell>
   );
