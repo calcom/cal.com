@@ -1,6 +1,6 @@
 // TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
-import { DotsHorizontalIcon, ExternalLinkIcon, LinkIcon } from "@heroicons/react/solid";
+import { DotsHorizontalIcon, ExternalLinkIcon, LinkIcon, MenuIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import React, { Fragment } from "react";
 
@@ -45,7 +45,9 @@ const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {
                 "hover:bg-neutral-50 flex justify-between items-center ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
+              <div className="group flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
+                <MenuIcon className="absolute left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent cursor-move text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7  p-1 invisible group-hover:visible bg-white rounded-full " />
+
                 <Link href={"/event-types/" + type.id}>
                   <a className="flex-grow text-sm truncate">
                     <div>
@@ -77,6 +79,7 @@ const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {
                         }))}
                       />
                     )}
+
                     <Tooltip content="Preview">
                       <a
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
