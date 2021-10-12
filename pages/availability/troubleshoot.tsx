@@ -53,47 +53,47 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
   return (
     <div>
       <Shell
-        heading="Troubleshoot"
-        subtitle="Understand why certain times are available and others are blocked.">
-        <div className="bg-white max-w-xl overflow-hidden shadow rounded-sm">
+        heading={t("troubleshoot")}
+        subtitle={t("troubleshoot_subtitle")}>
+        <div className="max-w-xl overflow-hidden bg-white rounded-sm shadow">
           <div className="px-4 py-5 sm:p-6">
-            Here is an overview of your day on{" "}
+            {t("here_overview_your_day")}{" "}
             <input
               type="date"
-              className="inline border-none h-8 p-0"
+              className="inline h-8 p-0 border-none"
               defaultValue={selectedDate.format("YYYY-MM-DD")}
               onBlur={(e) => {
                 setSelectedDate(dayjs(e.target.value));
               }}
             />
             <small className="block text-neutral-400">
-              Tip: Hover over the bold times for a full timestamp
+              {t("tip_hover_full_timestamp")}
             </small>
             <div className="mt-4 space-y-4">
-              <div className="bg-black overflow-hidden rounded-sm">
-                <div className="px-4 sm:px-6 py-2 text-white">
-                  Your day starts at {convertMinsToHrsMins(user.startTime)}
+              <div className="overflow-hidden bg-black rounded-sm">
+                <div className="px-4 py-2 text-white sm:px-6">
+                  {t("your_day_starts")} {convertMinsToHrsMins(user.startTime)}
                 </div>
               </div>
               {availability.map((slot) => (
-                <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
-                  <div className="px-4 py-5 sm:p-6 text-black">
-                    Your calendar shows you as busy between{" "}
+                <div key={slot.start} className="overflow-hidden rounded-sm bg-neutral-100">
+                  <div className="px-4 py-5 text-black sm:p-6">
+                    {t("your_calendar_busy")}{" "}
                     <span className="font-medium text-neutral-800" title={slot.start}>
                       {dayjs(slot.start).format("HH:mm")}
                     </span>{" "}
-                    and{" "}
+                    {t("and")}{" "}
                     <span className="font-medium text-neutral-800" title={slot.end}>
                       {dayjs(slot.end).format("HH:mm")}
                     </span>{" "}
-                    on {dayjs(slot.start).format("D MMMM YYYY")}
+                    {t("on")} {dayjs(slot.start).format("D MMMM YYYY")}
                   </div>
                 </div>
               ))}
               {availability.length === 0 && <Loader />}
-              <div className="bg-black overflow-hidden rounded-sm">
-                <div className="px-4 sm:px-6 py-2 text-white">
-                  Your day ends at {convertMinsToHrsMins(user.endTime)}
+              <div className="overflow-hidden bg-black rounded-sm">
+                <div className="px-4 py-2 text-white sm:px-6">
+                  {t("your_day_ends")} {convertMinsToHrsMins(user.endTime)}
                 </div>
               </div>
             </div>
