@@ -48,7 +48,7 @@ jobs:
             echo "All OK"
           else
             echo "Missing migration files"
-            exit 1;
+            exit 1
           fi;
       - run: yarn test
       - run: yarn build
