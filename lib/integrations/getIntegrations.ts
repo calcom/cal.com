@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { validJson } from "@lib/jsonUtils";
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true },
+  select: { id: true, type: true },
 });
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
@@ -62,6 +62,7 @@ export const ALL_INTEGRATIONS = [
     variant: "payment",
   },
 ] as const;
+
 function getIntegrations(credentials: CredentialData[]) {
   const integrations = ALL_INTEGRATIONS.map((integration) => ({
     ...integration,

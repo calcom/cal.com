@@ -12,6 +12,7 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import debounce from "lodash/debounce";
+import omit from "lodash/omit";
 import { NextPageContext } from "next";
 import { useSession } from "next-auth/client";
 import Head from "next/head";
@@ -691,7 +692,7 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  integrations = getIntegrations(credentials);
+  integrations = getIntegrations(credentials).map((item) => omit(item, "key"));
 
   eventTypes = await prisma.eventType.findMany({
     where: {

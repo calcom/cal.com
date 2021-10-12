@@ -7,7 +7,7 @@ import { z } from "zod";
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import getIntegrations, { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
+import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
 import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
@@ -126,11 +126,17 @@ export const viewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       const { credentials } = user;
-      const integrations = getIntegrations(credentials);
 
-      function countActive(items: { credentials: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentials.length, 0);
+      function countActive(items: { credentialIds: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
+      const integrations = ALL_INTEGRATIONS.map((integration) => ({
+        ...integration,
+        credentialIds: credentials
+          .filter((credential) => credential.type === integration.type)
+          .map((credential) => credential.id),
+      }));
+      // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
       const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
@@ -154,6 +160,8 @@ export const viewerRouter = createProtectedRouter()
       const connectedCalendars = await Promise.all(
         calendarCredentials.map(async (item) => {
           const { adapter, integration, credential } = item;
+
+          const credentialId = credential.id;
           try {
             const cals = await adapter.listCalendars();
             const calendars = _(cals)
@@ -167,17 +175,11 @@ export const viewerRouter = createProtectedRouter()
               .value();
             const primary = calendars.find((item) => item.primary) ?? calendars[0];
             if (!primary) {
-              return {
-                integration,
-                credentialId: credential.id,
-                error: {
-                  message: "No primary calendar found",
-                },
-              };
+              throw new Error("No primary calendar found");
             }
             return {
               integration,
-              credentialId: credential.id,
+              credentialId,
               primary,
               calendars,
             };
@@ -185,6 +187,7 @@ export const viewerRouter = createProtectedRouter()
             const error = getErrorFromUnknown(_error);
             return {
               integration,
+              credentialId,
               error: {
                 message: error.message,
               },

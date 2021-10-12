@@ -1,4 +1,3 @@
-import { Maybe } from "@trpc/server";
 import Image from "next/image";
 import { ReactNode, useEffect, useState } from "react";
 import { useMutation } from "react-query";
@@ -8,7 +7,7 @@ import classNames from "@lib/classNames";
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import showToast from "@lib/notification";
-import { inferQueryOutput, trpc } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 import { Dialog } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -18,8 +17,6 @@ import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-
-type IntegrationCalendar = inferQueryOutput<"viewer.integrations">["calendar"]["items"][number];
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
@@ -47,10 +44,7 @@ function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnection
   );
 }
 
-function ConnectIntegration(props: {
-  type: IntegrationCalendar["type"];
-  render: (renderProps: ButtonBaseProps) => JSX.Element;
-}) {
+function ConnectIntegration(props: { type: string; render: (renderProps: ButtonBaseProps) => JSX.Element }) {
   const { type } = props;
   const [isLoading, setIsLoading] = useState(false);
   const mutation = useMutation(async () => {
@@ -154,14 +148,15 @@ function DisconnectIntegration(props: {
 
 function ConnectOrDisconnectIntegrationButton(props: {
   //
-  credential: Maybe<{ id: number }>;
-  type: IntegrationCalendar["type"];
+  credentialIds: number[];
+  type: string;
   installed: boolean;
 }) {
-  if (props.credential) {
+  const [credentialId] = props.credentialIds;
+  if (credentialId) {
     return (
       <DisconnectIntegration
-        id={props.credential.id}
+        id={credentialId}
         render={(btnProps) => (
           <Button {...btnProps} color="warn">
             Disconnect
@@ -203,7 +198,7 @@ function IntegrationListItem(props: {
 }
 
 export function CalendarSwitch(props: {
-  type: IntegrationCalendar["type"];
+  type: string;
   externalId: string;
   title: string;
   defaultSelected: boolean;
