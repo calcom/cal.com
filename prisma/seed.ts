@@ -203,10 +203,3 @@ async function main() {
 }
 
 main()
-  .then(() => {
-    console.log("🌱 Seeded db");
-  })
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  });
