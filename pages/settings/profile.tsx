@@ -72,7 +72,7 @@ function HideBrandingInput(props: {
           <div className="sm:flex sm:items-start mb-4">
             <div className="mt-3 sm:mt-0 sm:text-left">
               <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                This feature is only available in paid plan
+                This feature is only available in Pro plan
               </h3>
             </div>
           </div>
@@ -93,8 +93,10 @@ function HideBrandingInput(props: {
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
             <DialogClose asChild>
-              <Button className="btn-wide btn-primary text-center" onClick={() => setModalOpen(false)}>
-                <span className="m-auto">Dismiss</span>
+              <Button
+                className="btn-wide btn-primary text-center table-cell"
+                onClick={() => setModalOpen(false)}>
+                Dismiss
               </Button>
             </DialogClose>
           </div>
