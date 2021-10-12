@@ -14,6 +14,7 @@
     "dx": "cross-env BASE_URL=http://localhost:3000 JWT_SECRET=secret DATABASE_URL=postgresql://postgres:@localhost:5450/calendso run-s db-up db-migrate db-seed dev",
     "test": "jest",
     "test-playwright": "jest --maxWorkers=2 --config jest.playwright.config.js && nyc report --reporter=lcov",
+    "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
     "ts-node": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\"",
