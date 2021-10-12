@@ -31,14 +31,13 @@ interface Team {
 }
 
 export default function TeamListItem(props: {
-  localeProp: string;
   onChange: () => void;
   key: number;
   team: Team;
   onActionSelect: (text: string) => void;
 }) {
   const [team, setTeam] = useState<Team | null>(props.team);
-  const { t, locale } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
 
   const acceptInvite = () => invitationResponse(true);
   const declineInvite = () => invitationResponse(false);
@@ -155,7 +154,6 @@ export default function TeamListItem(props: {
                         </Button>
                       </DialogTrigger>
                       <ConfirmationDialogContent
-                        localeProp={locale}
                         variety="danger"
                         title="Disband Team"
                         confirmBtnText={t("confirm_disband_team")}

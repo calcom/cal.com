@@ -5,7 +5,7 @@ import classNames from "@lib/classNames";
 
 export function List(props: JSX.IntrinsicElements["ul"]) {
   return (
-    <ul {...props} className={classNames("overflow-hidden rounded-sm sm:mx-0", props.className)}>
+    <ul {...props} className={classNames("sm:overflow-hidden rounded-sm sm:mx-0 -mx-4", props.className)}>
       {props.children}
     </ul>
   );
@@ -50,7 +50,7 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm font-medium text-neutral-900 truncate", props.className),
+      className: classNames("font-cal text-sm font-medium text-neutral-900 truncate", props.className),
     },
     props.children
   );
@@ -65,7 +65,7 @@ export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "s
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm text-gray-500", props.className),
+      className: classNames("text-sm text-gray-500 truncate", props.className),
     },
     props.children
   );

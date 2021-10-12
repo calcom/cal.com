@@ -58,7 +58,7 @@ export const ALL_INTEGRATIONS = [
     type: "stripe_payment",
     title: "Stripe",
     imageSrc: "integrations/stripe.svg",
-    description: "Receive payments",
+    description: "Collect payments",
     variant: "payment",
   },
 ] as const;
