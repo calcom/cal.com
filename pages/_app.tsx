@@ -11,6 +11,8 @@ import superjson from "superjson";
 import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
+import I18nLanguageHandler from "@components/I18nLanguageHandler";
+
 import type { AppRouter } from "@server/routers/_app";
 
 import "../styles/globals.css";
@@ -26,6 +28,7 @@ function MyApp(props: AppProps) {
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
+      <I18nLanguageHandler localeProp={pageProps.localeProp} />
       <Component {...pageProps} err={err} />
     </AppProviders>
   );

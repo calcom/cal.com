@@ -21,10 +21,10 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
-function TeamPage({ team, localeProp }: inferSSRProps<typeof getServerSideProps>) {
+function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme();
   const showMembers = useToggleQuery("members");
-  const { t, locale } = useLocale({ localeProp: localeProp });
+  const { t } = useLocale();
 
   const eventTypes = (
     <ul className="space-y-3">
@@ -37,7 +37,7 @@ function TeamPage({ team, localeProp }: inferSSRProps<typeof getServerSideProps>
             <a className="px-6 py-4 flex justify-between">
               <div className="flex-shrink">
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                <EventTypeDescription localeProp={locale} className="text-sm" eventType={type} />
+                <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1">
                 <AvatarGroup
@@ -68,7 +68,7 @@ function TeamPage({ team, localeProp }: inferSSRProps<typeof getServerSideProps>
             <Avatar alt={teamName} imageSrc={team.logo} className="mx-auto w-20 h-20 rounded-full mb-4" />
             <Text variant="headline">{teamName}</Text>
           </div>
-          {(showMembers.isOn || !team.eventTypes.length) && <Team localeProp={locale} team={team} />}
+          {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
           {!showMembers.isOn && team.eventTypes.length > 0 && (
             <div className="mx-auto max-w-3xl">
               {eventTypes}

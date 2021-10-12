@@ -21,13 +21,12 @@ const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
 type EventType = Prisma.EventTypeGetPayload<typeof eventTypeData>;
 
 export type EventTypeDescriptionProps = {
-  localeProp: string;
   eventType: EventType;
   className?: string;
 };
 
-export const EventTypeDescription = ({ localeProp, eventType, className }: EventTypeDescriptionProps) => {
-  const { t } = useLocale({ localeProp });
+export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
+  const { t } = useLocale();
 
   return (
     <>

@@ -255,10 +255,11 @@ export class AppleCalendar implements CalendarApiAdapter {
         .filter((calendar) => {
           return calendar.components?.includes("VEVENT");
         })
-        .map((calendar) => ({
+        .map((calendar, index) => ({
           externalId: calendar.url,
           name: calendar.displayName ?? "",
-          primary: false,
+          // FIXME Find a better way to set the primary calendar
+          primary: index === 0,
           integration: this.integrationName,
         }));
     } catch (reason) {

@@ -9,7 +9,6 @@ import { DialogClose, DialogContent } from "@components/Dialog";
 import { Button } from "@components/ui/Button";
 
 export type ConfirmationDialogContentProps = {
-  localeProp: string;
   confirmBtnText?: string;
   cancelBtnText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -18,7 +17,7 @@ export type ConfirmationDialogContentProps = {
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
-  const { t } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
   const {
     title,
     variety,
