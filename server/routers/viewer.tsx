@@ -167,9 +167,7 @@ export const viewerRouter = createProtectedRouter()
             const calendars = _(cals)
               .map((cal) => ({
                 ...cal,
-                isSelected: !!user.selectedCalendars.find(
-                  (selected) => selected.externalId === cal.externalId
-                ),
+                isSelected: user.selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               }))
               .sortBy(["primary"])
               .value();
