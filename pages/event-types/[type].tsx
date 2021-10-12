@@ -1067,33 +1067,33 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
                   </div>
                 </div>
-                <CustomInputTypeForm
-                  selectedCustomInput={selectedCustomInput}
-                  onSubmit={(values) => {
-                    const customInput: EventTypeCustomInput = {
-                      id: -1,
-                      eventTypeId: -1,
-                      label: values.label,
-                      placeholder: values.placeholder,
-                      required: values.required,
-                      type: values.type,
-                    };
-
-                    if (selectedCustomInput) {
-                      selectedCustomInput.label = customInput.label;
-                      selectedCustomInput.placeholder = customInput.placeholder;
-                      selectedCustomInput.required = customInput.required;
-                      selectedCustomInput.type = customInput.type;
-                    } else {
-                      setCustomInputs(customInputs.concat(customInput));
-                    }
-                    setSelectedCustomInputModalOpen(false);
-                  }}
-                  onCancel={() => {
-                    setSelectedCustomInputModalOpen(false);
-                  }}
-                />
               </div>
+              <CustomInputTypeForm
+                selectedCustomInput={selectedCustomInput}
+                onSubmit={(values) => {
+                  const customInput: EventTypeCustomInput = {
+                    id: -1,
+                    eventTypeId: -1,
+                    label: values.label,
+                    placeholder: values.placeholder,
+                    required: values.required,
+                    type: values.type,
+                  };
+
+                  if (selectedCustomInput) {
+                    selectedCustomInput.label = customInput.label;
+                    selectedCustomInput.placeholder = customInput.placeholder;
+                    selectedCustomInput.required = customInput.required;
+                    selectedCustomInput.type = customInput.type;
+                  } else {
+                    setCustomInputs(customInputs.concat(customInput));
+                  }
+                  setSelectedCustomInputModalOpen(false);
+                }}
+                onCancel={() => {
+                  setSelectedCustomInputModalOpen(false);
+                }}
+              />
             </div>
           </DialogContent>
         </Dialog>
