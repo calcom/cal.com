@@ -171,7 +171,11 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   if (!props.installed) {
-    return <Alert severity="warning" title="Not installed" />;
+    return (
+      <div className="h-12 -mt-1">
+        <Alert severity="warning" title="Not installed" />
+      </div>
+    );
   }
   return (
     <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
@@ -187,11 +191,9 @@ function IntegrationListItem(props: {
 }) {
   return (
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
-      <div className={classNames("flex flex-1 space-x-2 w-full p-4")}>
-        <div>
-          <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
-        </div>
-        <div className="flex-grow">
+      <div className={classNames("flex flex-1 space-x-2 w-full p-4 items-center")}>
+        <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
+        <div className="pl-2 flex-grow">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
         </div>
@@ -257,15 +259,17 @@ export function CalendarSwitch(props: {
     }
   );
   return (
-    <Switch
-      key={props.externalId}
-      name="enabled"
-      label={props.title}
-      defaultChecked={props.defaultSelected}
-      onCheckedChange={(isOn: boolean) => {
-        mutation.mutate({ isOn });
-      }}
-    />
+    <div className="py-1">
+      <Switch
+        key={props.externalId}
+        name="enabled"
+        label={props.title}
+        defaultChecked={props.defaultSelected}
+        onCheckedChange={(isOn: boolean) => {
+          mutation.mutate({ isOn });
+        }}
+      />
+    </div>
   );
 }
 
@@ -395,7 +399,11 @@ export default function IntegrationsPage() {
                     actions={
                       <ConnectIntegration
                         type={item.type}
-                        render={(btnProps) => <Button {...btnProps}>Connect</Button>}
+                        render={(btnProps) => (
+                          <Button color="secondary" {...btnProps}>
+                            Connect
+                          </Button>
+                        )}
                       />
                     }
                   />
