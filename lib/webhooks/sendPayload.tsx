@@ -15,7 +15,6 @@ const sendPayload = (
       createdAt: createdAt,
       payload: payload,
     };
-    console.log({ subscriberUrl, body });
 
     fetch(subscriberUrl, {
       method: "POST",
@@ -29,7 +28,6 @@ const sendPayload = (
           reject(new Error(`Response code ${response.status}`));
           return;
         }
-        console.log("all good response");
         resolve(response);
       })
       .catch((err) => {

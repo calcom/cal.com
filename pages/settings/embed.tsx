@@ -158,11 +158,10 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
               </div>
               <div>
                 <Dialog>
-                  <DialogTrigger
-                    className="px-4 py-2 my-6 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900"
-                    data-testid="new-webhook">
-                    <PlusIcon className="inline w-5 h-5 mr-1" />
-                    {t("new_webhook")}
+                  <DialogTrigger asChild>
+                    <Button StartIcon={PlusIcon} data-testid="new-webhook">
+                      {t("new_webhook")}
+                    </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader

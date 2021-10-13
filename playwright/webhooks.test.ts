@@ -1,11 +1,7 @@
 import { kont } from "kont";
-import _ from "lodash";
 
 import { loginProvider } from "./lib/loginProvider";
-import {
-  createHttpServer,
-  waitFor,
-} from "./lib/testUtils";
+import { createHttpServer, waitFor } from "./lib/testUtils";
 
 jest.setTimeout(60e3);
 
@@ -18,19 +14,19 @@ const ctx = kont()
   )
   .done();
 
-test("add webhook & test", async () => {
+test("add webhook & test that creating an event triggers a webhook call", async () => {
   const { page } = ctx;
-  const server = createHttpServer();
+  const webhookReceiver = createHttpServer();
 
   // --- add webhook
   await expect(page).toHaveSelector('[data-testid="new-webhook"]');
   await page.click('[data-testid="new-webhook"]');
 
-  await page.fill('[name="subUrl"]', server.url);
+  await page.fill('[name="subUrl"]', webhookReceiver.url);
 
   await page.click("[type=submit]");
 
-  await expect(page).toHaveSelector(`text='${server.url}'`);
+  await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
 
   // --- navigate to meeting form
   await page.goto("http://localhost:3000/pro/30min");
@@ -48,14 +44,14 @@ test("add webhook & test", async () => {
 
   // --- check that webhook was called
   await waitFor(() => {
-    expect(server.requestList.length).toBe(1);
+    expect(webhookReceiver.requestList.length).toBe(1);
   });
 
-  const [request] = server.requestList;
+  const [request] = webhookReceiver.requestList;
   const body = request.body as any;
 
-  // remove dynamic properties
-  const dynamic = "<<redacted - dynamic property that differs between different computers>>";
+  // remove dynamic properties that differs depending on where you run the tests
+  const dynamic = "[redacted/dynamic]";
   body.createdAt = dynamic;
   body.payload.startTime = dynamic;
   body.payload.endTime = dynamic;
@@ -65,7 +61,31 @@ test("add webhook & test", async () => {
   body.payload.organizer.timeZone = dynamic;
 
   // if we change the shape of our webhooks, we can simply update this by clicking `u`
-  expect(body).toMatchInlineSnapshot();
+  expect(body).toMatchInlineSnapshot(`
+    Object {
+      "createdAt": "[redacted/dynamic]",
+      "payload": Object {
+        "attendees": Array [
+          Object {
+            "email": "test@example.com",
+            "name": "Test Testson",
+            "timeZone": "[redacted/dynamic]",
+          },
+        ],
+        "description": "",
+        "endTime": "[redacted/dynamic]",
+        "organizer": Object {
+          "email": "pro@example.com",
+          "name": "Pro Example",
+          "timeZone": "[redacted/dynamic]",
+        },
+        "startTime": "[redacted/dynamic]",
+        "title": "30min with Test Testson",
+        "type": "30min",
+      },
+      "triggerEvent": "BOOKING_CREATED",
+    }
+  `);
 
-  server.close();
+  webhookReceiver.close();
 });

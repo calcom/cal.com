@@ -1,4 +1,5 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
+import { nextTick } from "process";
 
 export function randomString(length = 12) {
   let result = "";
@@ -17,7 +18,6 @@ type RequestHandler = (opts: RequestHandlerOptions) => void;
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {
-      console.log("responding");
       res.writeHead(200, { "Content-Type": "application/json" });
       res.write(JSON.stringify({}));
       res.end();
@@ -64,7 +64,7 @@ export async function waitFor(fn: () => Promise<unknown> | unknown) {
       await fn();
       finished = true;
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => nextTick(resolve));
     }
   }
 }
