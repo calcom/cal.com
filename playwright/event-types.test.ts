@@ -3,6 +3,8 @@ import { kont } from "kont";
 import { loginProvider } from "./lib/loginProvider";
 import { randomString } from "./lib/testUtils";
 
+jest.setTimeout(30e3);
+
 describe("pro user", () => {
   const ctx = kont()
     .useBeforeEach(
@@ -34,13 +36,14 @@ describe("pro user", () => {
     await page.fill("[name=length]", "10");
     await page.click("[type=submit]");
 
-    // cy.get("[name=title]").focus().type(eventTitle);
-    // cy.get("[name=length]").focus().type("10");
-    // cy.get("[type=submit]").click();
+    await page.waitForNavigation({
+      url(url) {
+        return url.pathname !== "/event-types";
+      },
+    });
 
-    // cy.location("pathname").should("not.eq", "/event-types");
-    // cy.visit("/event-types");
+    await page.goto("http://localhost:3000/event-types");
 
-    // cy.get("[data-testid=event-types]").contains(eventTitle);
+    await page.waitForSelector(`text=${nonce}`);
   });
 });
