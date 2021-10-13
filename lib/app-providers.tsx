@@ -16,7 +16,7 @@ const CustomI18nextProvider = (props: { children: ReactNode }) => {
   const { i18n, locale } = trpc.useQuery(["viewer.i18n"]).data ?? {};
   const passedProps = {
     ...props,
-    pageProps: { _nextI18Next: i18n },
+    pageProps: { ...i18n },
     router: { locale },
   } as unknown as ComponentProps<typeof I18nextAdapter>;
   return <I18nextAdapter {...passedProps} />;
