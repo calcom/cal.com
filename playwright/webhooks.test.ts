@@ -2,7 +2,10 @@ import { kont } from "kont";
 import _ from "lodash";
 
 import { loginProvider } from "./lib/loginProvider";
-import { createHttpServer, waitFor } from "./lib/testUtils";
+import {
+  createHttpServer,
+  waitFor,
+} from "./lib/testUtils";
 
 jest.setTimeout(60e3);
 
@@ -52,10 +55,16 @@ test("add webhook & test", async () => {
   const body = request.body as any;
 
   // remove dynamic properties
-  body.createdAt = "[redacted]";
-  body.payload.startTime = "[redacted]";
-  body.payload.endTime = "[redacted]";
+  const dynamic = "<<redacted - dynamic property that differs between different computers>>";
+  body.createdAt = dynamic;
+  body.payload.startTime = dynamic;
+  body.payload.endTime = dynamic;
+  for (const attendee of body.payload.attendees) {
+    attendee.timeZone = dynamic;
+  }
+  body.payload.organizer.timeZone = dynamic;
 
+  // if we change the shape of our webhooks, we can simply update this by clicking `u`
   expect(body).toMatchInlineSnapshot();
 
   server.close();
