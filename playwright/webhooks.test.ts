@@ -31,11 +31,11 @@ test("add webhook & test that creating an event triggers a webhook call", async 
   // --- navigate to meeting form
   await page.goto("http://localhost:3000/pro/30min");
 
+  // click first day that isn't disabled
   await page.click("[data-testid=day]:not([data-disabled=true])");
 
+  // click first time available
   await page.click("[data-testid=time]");
-
-  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   // --- fill form
   await page.fill('[name="name"]', "Test Testson");
