@@ -63,7 +63,7 @@ export async function waitFor(fn: () => Promise<unknown> | unknown) {
       await fn();
       finished = true;
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
   }
 }
