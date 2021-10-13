@@ -9,16 +9,20 @@ describe("free user", () => {
       const page = await context.newPage();
 
       await page.goto("http://localhost:3000/free");
+
       return {
         page,
+        context,
       };
     })
-    .afterEach((ktx) => ktx.page?.close())
+    .afterEach(async (ktx) => {
+      await ktx.page?.close();
+      await ktx.context?.close();
+    })
     .done();
 
   test("only one visible event", async () => {
     const { page } = ctx;
-    await expect(page).toHaveSelectorCount("[data-testid=event-types]", 1);
     await expect(page).toHaveSelector(`[href="/free/30min"]`);
     await expect(page).not.toHaveSelector(`[href="/free/60min"]`);
   });
@@ -29,13 +33,20 @@ describe("free user", () => {
 describe("pro user", () => {
   const ctx = kont()
     .beforeEach(async () => {
-      const page = await browser.newPage();
+      const context = await browser.newContext();
+      const page = await context.newPage();
+
       await page.goto("http://localhost:3000/pro");
+
       return {
         page,
+        context,
       };
     })
-    .afterEach((ktx) => ktx.page?.close())
+    .afterEach(async (ktx) => {
+      await ktx.page?.close();
+      await ktx.context?.close();
+    })
     .done();
 
   test("pro user's page has at least 2 visible events", async () => {
