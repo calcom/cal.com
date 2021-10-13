@@ -2,6 +2,7 @@ import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 
 import { QueryCell } from "@lib/QueryCell";
+import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryInput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
@@ -11,19 +12,21 @@ import BookingListItem from "@components/booking/BookingListItem";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 
-const descriptionByStatus: Record<BookingListingStatus, string> = {
-  upcoming: "As soon as someone books a time with you it will show up here.",
-  past: "Your past bookings will show up here.",
-  cancelled: "Your cancelled bookings will show up here.",
-};
-
 export default function Bookings() {
+  const { t } = useLocale();
+
+  const descriptionByStatus: Record<BookingListingStatus, string> = {
+    upcoming: t("upcoming_bookings"),
+    past: t("past_bookings"),
+    cancelled: t("cancelled_bookings"),
+  };
+
   const router = useRouter();
   const status = router.query?.status as BookingListingStatus;
   const query = trpc.useQuery(["viewer.bookings", { status }]);
 
   return (
-    <Shell heading="Bookings" subtitle="See upcoming and past events booked through your event type links.">
+    <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <BookingsShell>
         <div className="-mx-4 sm:mx-auto flex flex-col">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -44,8 +47,11 @@ export default function Bookings() {
                 empty={() => (
                   <EmptyScreen
                     Icon={CalendarIcon}
-                    headline={`No ${status} bookings, yet`}
-                    description={`You have no ${status} bookings. ${descriptionByStatus[status]}`}
+                    headline={t("no_status_bookings_yet", { status: status })}
+                    description={t("no_status_bookings_yet_description", {
+                      status: status,
+                      description: descriptionByStatus[status],
+                    })}
                   />
                 )}
               />
