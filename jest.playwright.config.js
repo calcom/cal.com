@@ -19,7 +19,7 @@ module.exports = {
           dir: "playwright/videos/",
         },
       },
-      collectCoverage: true,
+      collectCoverage: !!process.env.COVERAGE,
     },
   },
 };

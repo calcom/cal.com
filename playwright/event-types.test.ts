@@ -44,7 +44,7 @@ describe("pro user", () => {
 
     await page.goto("http://localhost:3000/event-types");
 
-    await page.waitForSelector(`text=${nonce}`);
+    await page.waitForSelector(`text='${eventTitle}'`);
   });
 });
 
