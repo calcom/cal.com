@@ -38,6 +38,9 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
           type: true,
           key: true,
         },
+        orderBy: {
+          id: "asc",
+        },
       },
       selectedCalendars: {
         select: {
