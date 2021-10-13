@@ -1,8 +1,8 @@
 const opts = {
   // launch headless on CI, in browser locally
-  headless: !!process.env.CI,
+  headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
   executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
-  collectCoverage: !!process.env.COVERAGE,
+  collectCoverage: !!process.env.PLAYWRIGHT_HEADLESS,
 };
 
 console.log("⚙️ Playwright options:", opts);
@@ -24,7 +24,7 @@ module.exports = {
       },
       contextOptions: {
         recordVideo: {
-          dir: "playwright/videos/",
+          dir: "playwright/videos",
         },
       },
       collectCoverage: opts.collectCoverage,
