@@ -3,7 +3,6 @@ declare namespace NodeJS {
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
     readonly GOOGLE_API_CREDENTIALS: string | undefined;
-    readonly GOOGLE_REDIRECT_URL: string | undefined;
     readonly BASE_URL: string | undefined;
     readonly NEXT_PUBLIC_BASE_URL: string | undefined;
     readonly NEXT_PUBLIC_APP_URL: string | undefined;
