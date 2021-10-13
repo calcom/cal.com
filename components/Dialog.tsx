@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import React from "react";
+import React, { ReactNode } from "react";
 
-type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]>;
+export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]>;
 export function Dialog(props: DialogProps) {
   const { children, ...other } = props;
   return (
@@ -35,9 +35,15 @@ export function DialogHeader({ title, subtitle }: DialogHeaderProps) {
       <h3 className="font-cal text-gray-900 text-lg font-bold leading-6" id="modal-title">
         {title}
       </h3>
-      <div>
-        <p className="text-gray-400 text-sm">{subtitle}</p>
-      </div>
+      <div className="text-gray-400 text-sm">{subtitle}</div>
+    </div>
+  );
+}
+
+export function DialogFooter(props: { children: ReactNode }) {
+  return (
+    <div>
+      <div className="mt-5 flex space-x-2 justify-end">{props.children}</div>
     </div>
   );
 }

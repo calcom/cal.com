@@ -20,7 +20,8 @@ import TeamList from "@components/team/TeamList";
 import TeamListItem from "@components/team/TeamListItem";
 import Button from "@components/ui/Button";
 
-export default function Teams(props: { localeProp: string }) {
+export default function Teams() {
+  const { t } = useLocale();
   const noop = () => undefined;
   const [, loading] = useSession();
   const [teams, setTeams] = useState([]);
@@ -29,7 +30,6 @@ export default function Teams(props: { localeProp: string }) {
   const [editTeamEnabled, setEditTeamEnabled] = useState(false);
   const [teamToEdit, setTeamToEdit] = useState<Team | null>();
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
-  const { locale } = useLocale({ localeProp: props.localeProp });
 
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
@@ -82,7 +82,7 @@ export default function Teams(props: { localeProp: string }) {
   };
 
   return (
-    <Shell heading="Teams" subtitle="Create and manage teams to use collaborative features.">
+    <Shell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
       <SettingsShell>
         {!editTeamEnabled && (
           <div className="divide-y divide-gray-200 lg:col-span-9">
@@ -93,10 +93,10 @@ export default function Teams(props: { localeProp: string }) {
                     <div className="sm:rounded-sm">
                       <div className="pb-5 pr-4 sm:pb-6">
                         <h3 className="text-lg font-medium leading-6 text-gray-900">
-                          Create a team to get started
+                          {t("create_team_to_get_started")}
                         </h3>
                         <div className="max-w-xl mt-2 text-sm text-gray-500">
-                          <p>Create your first team and invite other users to work together with you.</p>
+                          <p>{t("create_first_team_and_invite_others")}</p>
                         </div>
                       </div>
                     </div>
@@ -108,17 +108,13 @@ export default function Teams(props: { localeProp: string }) {
                     onClick={() => setShowCreateTeamModal(true)}
                     className="btn btn-white">
                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
-                    New Team
+                    {t("new_team")}
                   </Button>
                 </div>
               </div>
               <div>
                 {!!teams.length && (
-                  <TeamList
-                    localeProp={locale}
-                    teams={teams}
-                    onChange={loadData}
-                    onEditTeam={editTeam}></TeamList>
+                  <TeamList teams={teams} onChange={loadData} onEditTeam={editTeam}></TeamList>
                 )}
 
                 {!!invites.length && (
@@ -127,7 +123,6 @@ export default function Teams(props: { localeProp: string }) {
                     <ul className="px-4 mt-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
                       {invites.map((team: Team) => (
                         <TeamListItem
-                          localeProp={locale}
                           onChange={loadData}
                           key={team.id}
                           team={team}
@@ -140,7 +135,7 @@ export default function Teams(props: { localeProp: string }) {
             </div>
           </div>
         )}
-        {!!editTeamEnabled && <EditTeam localeProp={locale} team={teamToEdit} onCloseEdit={onCloseEdit} />}
+        {!!editTeamEnabled && <EditTeam team={teamToEdit} onCloseEdit={onCloseEdit} />}
         {showCreateTeamModal && (
           <div
             className="fixed inset-0 z-50 overflow-y-auto"
@@ -163,17 +158,17 @@ export default function Teams(props: { localeProp: string }) {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                      Create a new team
+                      {t("create_new_team")}
                     </h3>
                     <div>
-                      <p className="text-sm text-gray-400">Create a new team to collaborate with users.</p>
+                      <p className="text-sm text-gray-400">{t("create_new_team_description")}</p>
                     </div>
                   </div>
                 </div>
                 <form onSubmit={createTeam}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Name
+                      {t("name")}
                     </label>
                     <input
                       ref={nameRef}
@@ -187,13 +182,13 @@ export default function Teams(props: { localeProp: string }) {
                   </div>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" className="btn btn-primary">
-                      Create team
+                      {t("create_team")}
                     </button>
                     <button
                       onClick={() => setShowCreateTeamModal(false)}
                       type="button"
                       className="mr-2 btn btn-white">
-                      Cancel
+                      {t("cancel")}
                     </button>
                   </div>
                 </form>

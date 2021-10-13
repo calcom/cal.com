@@ -22,10 +22,10 @@ function convertMinsToHrsMins(mins: number) {
   const minutes = m < 10 ? "0" + m : m;
   return `${hours}:${minutes}`;
 }
-export default function Availability(props: Props) {
+export default function Availability() {
+  const { t } = useLocale();
   const queryMe = trpc.useQuery(["viewer.me"]);
   const formModal = useToggleQuery("edit");
-  const { t } = useLocale({ localeProp: props.localeProp });
 
   const formMethods = useForm<{
     startHours: string;
@@ -65,16 +65,15 @@ export default function Availability(props: Props) {
 
   return (
     <div>
-      <Shell heading={t("availability")} subtitle={t("availability_subtitle")}>
+      <Shell heading={t("availability")} subtitle={t("configure_availability")}>
         <div className="flex">
           <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">
-                {t("change_start_and_end_day")}
-              </h3>
-              <div className="max-w-xl mt-2 text-sm text-gray-500">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">{t("change_start_end")}</h3>
+              <div className="mt-2 max-w-xl text-sm text-gray-500">
                 <p>
-                  {t('currently_start_end_time', { startAt: convertMinsToHrsMins(user.startTime), endAt: convertMinsToHrsMins(user.endTime) })
+                  {t("current_start_date")} {convertMinsToHrsMins(user.startTime)} {t("and_end_at")}{" "}
+                  {convertMinsToHrsMins(user.endTime)}.
                 </p>
               </div>
               <div className="mt-5">
@@ -85,11 +84,11 @@ export default function Availability(props: Props) {
 
           <div className="w-1/2 ml-2 border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">
-                {t("something_does_look_right")}
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                {t("something_doesnt_look_right")}
               </h3>
-              <div className="max-w-xl mt-2 text-sm text-gray-500">
-                <p>{t("troubleshooter_availability_explore_times")}</p>
+              <div className="mt-2 max-w-xl text-sm text-gray-500">
+                <p>{t("troubleshoot_availability")}</p>
               </div>
               <div className="mt-5">
                 <Link href="/availability/troubleshoot">
@@ -106,18 +105,16 @@ export default function Availability(props: Props) {
             router.push(isOpen ? formModal.hrefOn : formModal.hrefOff);
           }}>
           <DialogContent>
-            <div className="mb-4 sm:flex sm:items-start">
-              <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-                <ClockIcon className="w-6 h-6 text-neutral-600" />
+            <div className="sm:flex sm:items-start mb-4">
+              <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
+                <ClockIcon className="h-6 w-6 text-neutral-600" />
               </div>
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                  {t("change_available_times")}
+                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                  {t("change_your_available_times")}
                 </h3>
                 <div>
-                  <p className="text-sm text-gray-500">
-                    {t("set_start_and_end_time_minimum_meeting")}
-                  </p>
+                  <p className="text-sm text-gray-500">{t("change_start_end_buffer")}</p>
                 </div>
               </div>
             </div>
@@ -137,16 +134,18 @@ export default function Availability(props: Props) {
                   },
                 });
                 if (!response.ok) {
-                  showToast({t("something_went_wrong")}, "error");
+                  showToast(t("something_went_wrong"), "error");
                   return;
                 }
                 await queryMe.refetch();
                 router.push(formModal.hrefOff);
 
-                showToast({t("start_and_end_times_successfully")}, "success");
+                showToast(t("start_end_changed_successfully"), "success");
               })}>
               <div className="flex mb-4">
-                <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("start_time")}</label>
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">
+                  {t("start_time")}
+                </label>
                 <div>
                   <label htmlFor="startHours" className="sr-only">
                     {t("hours")}
@@ -155,12 +154,12 @@ export default function Availability(props: Props) {
                     {...formMethods.register("startHours")}
                     id="startHours"
                     type="number"
-                    className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="9"
                     defaultValue={convertMinsToHrsMins(user.startTime).split(":")[0]}
                   />
                 </div>
-                <span className="pt-1 mx-2">:</span>
+                <span className="mx-2 pt-1">:</span>
                 <div>
                   <label htmlFor="startMins" className="sr-only">
                     {t("minutes")}
@@ -169,13 +168,13 @@ export default function Availability(props: Props) {
                     {...formMethods.register("startMins")}
                     id="startMins"
                     type="number"
-                    className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="30"
                   />
                 </div>
               </div>
               <div className="flex mb-4">
-                <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("end_time")}</label>
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("end_time")}</label>
                 <div>
                   <label htmlFor="endHours" className="sr-only">
                     {t("hours")}
@@ -184,11 +183,11 @@ export default function Availability(props: Props) {
                     {...formMethods.register("endHours")}
                     type="number"
                     id="endHours"
-                    className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="17"
                   />
                 </div>
-                <span className="pt-1 mx-2">:</span>
+                <span className="mx-2 pt-1">:</span>
                 <div>
                   <label htmlFor="endMins" className="sr-only">
                     {t("minutes")}
@@ -197,13 +196,13 @@ export default function Availability(props: Props) {
                     {...formMethods.register("endMins")}
                     type="number"
                     id="endMins"
-                    className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="30"
                   />
                 </div>
               </div>
               <div className="flex mb-4">
-                <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">Buffer</label>
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("buffer")}</label>
                 <div>
                   <label htmlFor="bufferHours" className="sr-only">
                     {t("hours")}
@@ -212,11 +211,11 @@ export default function Availability(props: Props) {
                     {...formMethods.register("bufferHours")}
                     type="number"
                     id="bufferHours"
-                    className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="0"
                   />
                 </div>
-                <span className="pt-1 mx-2">:</span>
+                <span className="mx-2 pt-1">:</span>
                 <div>
                   <label htmlFor="bufferMins" className="sr-only">
                     {t("minutes")}
@@ -225,12 +224,12 @@ export default function Availability(props: Props) {
                     {...formMethods.register("bufferMins")}
                     type="number"
                     id="bufferMins"
-                    className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                    className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 block w-full sm:text-sm border-gray-300 rounded-sm"
                     placeholder="10"
                   />
                 </div>
               </div>
-              <div className="mt-5 space-x-2 sm:mt-4 sm:flex">
+              <div className="mt-5 sm:mt-4 sm:flex space-x-2">
                 <Button href={formModal.hrefOff} color="secondary" tabIndex={-1}>
                   {t("cancel")}
                 </Button>

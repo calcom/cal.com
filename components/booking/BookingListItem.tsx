@@ -6,7 +6,7 @@ import { useMutation } from "react-query";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import TableActions from "@components/ui/TableActions";
+import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">[number];
 
@@ -27,14 +27,14 @@ function BookingListItem(booking: BookingItem) {
     },
     {
       async onSettled() {
-        await utils.invalidateQuery(["viewer.bookings"]);
+        await utils.invalidateQueries(["viewer.bookings"]);
       },
     }
   );
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
 
-  const pendingActions = [
+  const pendingActions: ActionType[] = [
     {
       id: "reject",
       label: "Reject",
@@ -52,7 +52,7 @@ function BookingListItem(booking: BookingItem) {
     },
   ];
 
-  const bookedActions = [
+  const bookedActions: ActionType[] = [
     {
       id: "cancel",
       label: "Cancel",
@@ -101,7 +101,7 @@ function BookingListItem(booking: BookingItem) {
           {booking.title}
         </div>
         {booking.description && (
-          <div className="text-sm text-neutral-600 truncate max-w-60 md:max-w-96">
+          <div className="text-sm text-neutral-600 truncate max-w-60 md:max-w-96" title={booking.description}>
             &quot;{booking.description}&quot;
           </div>
         )}
