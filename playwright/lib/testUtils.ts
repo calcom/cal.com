@@ -11,8 +11,6 @@ export function randomString(length: number) {
   return result;
 }
 
-const userSessions: Dict<Promise<BrowserContext>> = {};
-
 /**
  * Login with user returning a [possibly prefetched] browser context in case of parallelisation
  * User is always `${user}@example.com` & password is always `${user}`

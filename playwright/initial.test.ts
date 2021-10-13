@@ -1,4 +1,4 @@
-import { login } from "./_testUtils";
+import { login } from "./lib/testUtils";
 
 jest.setTimeout(35e3);
 

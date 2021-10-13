@@ -1,23 +1,22 @@
-import { kont, providers } from "kont";
+import { kont } from "kont";
 
-import { loginProvider } from "./_loginProvider";
-import { randomString } from "./_testUtils";
+import { loginProvider } from "./lib/loginProvider";
+import { randomString } from "./lib/testUtils";
 
 describe("pro user", () => {
   const ctx = kont()
-    .useBeforeAll(providers.browser())
-    .useBeforeAll(loginProvider("pro"))
-    .useBeforeEach(providers.page())
-    .beforeEach(async ({ page }) => {
-      await page.goto("http://localhost:3000/event-types");
-      console.log("went to event types");
-      await page.waitForSelector("[data-testid=event-types]");
-      console.log("went to /event-types");
-    })
+    .useBeforeEach(
+      loginProvider({
+        user: "pro",
+        path: "/event-types",
+        waitForSelector: "[data-testid=event-types]",
+      })
+    )
     .done();
 
   it("has at least 2 events", async () => {
-    const $eventTypes = await ctx.page.$$("[data-testid=event-types] > *");
+    const { page } = ctx;
+    const $eventTypes = await page.$$("[data-testid=event-types] > *");
     console.log("$eventTypes", $eventTypes);
     expect($eventTypes.length).toBeGreaterThanOrEqual(2);
     for (const $el of $eventTypes) {
