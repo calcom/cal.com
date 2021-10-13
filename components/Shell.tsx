@@ -11,7 +11,7 @@ import {
 import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
@@ -67,6 +67,23 @@ function useRedirectToLoginIfUnauthenticated() {
   }
 }
 
+function useRedirectToOnboardingIfNeeded() {
+  const [session, loading] = useSession();
+  const router = useRouter();
+  const query = useMeQuery();
+  const user = query.data;
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (shouldShowOnboarding(user)) {
+        router.replace({
+          pathname: "/getting-started",
+        });
+      }
+    }
+  }, [loading, session, router, user]);
+}
+
 export function ShellSubHeading(props: {
   title: ReactNode;
   subtitle?: ReactNode;
@@ -95,8 +112,8 @@ export default function Shell(props: {
   CTA?: ReactNode;
 }) {
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   useRedirectToLoginIfUnauthenticated();
+  useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
 
