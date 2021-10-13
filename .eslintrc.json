@@ -25,12 +25,6 @@
   },
   "overrides": [
     {
-      "files": ["cypress/**/*.js"],
-      "rules": {
-        "no-undef": "off"
-      }
-    },
-    {
       "files": ["playwright/**/*.{js,jsx,tsx,ts}"],
       "rules": {
         "no-undef": "off",

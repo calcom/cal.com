@@ -117,7 +117,6 @@
     "babel-jest": "^27.2.4",
     "babel-plugin-istanbul": "^6.0.0",
     "cross-env": "^7.0.3",
-    "cypress": "^8.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
