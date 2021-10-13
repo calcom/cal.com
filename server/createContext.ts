@@ -3,6 +3,7 @@ import * as trpc from "@trpc/server";
 import { Maybe } from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
 import { NextApiRequest } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession, Session } from "@lib/auth";
 import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
@@ -84,6 +85,7 @@ export const createContext = async ({ req, res }: trpcNext.CreateNextContextOpti
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
   return {
+    ...(await serverSideTranslations(locale, ["common"])),
     prisma,
     session,
     user,
