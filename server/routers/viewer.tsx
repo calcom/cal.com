@@ -19,6 +19,16 @@ const checkUsername =
 
 // routes only available to authenticated users
 export const viewerRouter = createProtectedRouter()
+  .query("session", {
+    resolve({ ctx }) {
+      return ctx.session;
+    },
+  })
+  .query("_nextI18Next", {
+    resolve({ ctx }) {
+      return ctx._nextI18Next;
+    },
+  })
   .query("me", {
     resolve({ ctx }) {
       const {

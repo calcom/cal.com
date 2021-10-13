@@ -3,7 +3,6 @@ import { loggerLink } from "@trpc/client/links/loggerLink";
 import { withTRPC } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
-import { appWithTranslation } from "next-i18next";
 import { DefaultSeo } from "next-seo";
 import type { AppProps as NextAppProps } from "next/app";
 import superjson from "superjson";
@@ -28,7 +27,7 @@ function MyApp(props: AppProps) {
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
-      <I18nLanguageHandler localeProp={pageProps.localeProp} />
+      <I18nLanguageHandler />
       <Component {...pageProps} err={err} />
     </AppProviders>
   );
@@ -92,4 +91,4 @@ export default withTRPC<AppRouter>({
    * @link https://trpc.io/docs/ssr
    */
   ssr: false,
-})(appWithTranslation(MyApp));
+})(MyApp);
