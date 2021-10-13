@@ -1,9 +1,12 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useEffect, useState } from "react";
 
 import { getSession } from "@lib/auth";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -13,6 +16,7 @@ import Shell from "@components/Shell";
 dayjs.extend(utc);
 
 export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSideProps>) {
+  const { t } = useLocale();
   const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
@@ -52,12 +56,10 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
 
   return (
     <div>
-      <Shell
-        heading="Troubleshoot"
-        subtitle="Understand why certain times are available and others are blocked.">
+      <Shell heading={t("troubleshoot")} subtitle={t("troubleshoot_description")}>
         <div className="bg-white max-w-xl overflow-hidden shadow rounded-sm">
           <div className="px-4 py-5 sm:p-6">
-            Here is an overview of your day on{" "}
+            {t("overview_of_day")}{" "}
             <input
               type="date"
               className="inline border-none h-8 p-0"
@@ -66,34 +68,33 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
                 setSelectedDate(dayjs(e.target.value));
               }}
             />
-            <small className="block text-neutral-400">
-              Tip: Hover over the bold times for a full timestamp
-            </small>
+            <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
             <div className="mt-4 space-y-4">
               <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
-                  Your day starts at {convertMinsToHrsMins(user.startTime)}
+                  {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
                 </div>
               </div>
               {availability.map((slot) => (
                 <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
                   <div className="px-4 py-5 sm:p-6 text-black">
-                    Your calendar shows you as busy between{" "}
+                    {t("calendar_shows_busy_between")}{" "}
                     <span className="font-medium text-neutral-800" title={slot.start}>
                       {dayjs(slot.start).format("HH:mm")}
                     </span>{" "}
-                    and{" "}
+                    {t("and")}{" "}
                     <span className="font-medium text-neutral-800" title={slot.end}>
                       {dayjs(slot.end).format("HH:mm")}
                     </span>{" "}
-                    on {dayjs(slot.start).format("D MMMM YYYY")}
+                    {t("on")} {dayjs(slot.start).format("D")}{" "}
+                    {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
                   </div>
                 </div>
               ))}
               {availability.length === 0 && <Loader />}
               <div className="bg-black overflow-hidden rounded-sm">
                 <div className="px-4 sm:px-6 py-2 text-white">
-                  Your day ends at {convertMinsToHrsMins(user.endTime)}
+                  {t("your_day_ends_at")} {convertMinsToHrsMins(user.endTime)}
                 </div>
               </div>
             </div>
@@ -106,6 +107,8 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
+
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -124,6 +127,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
 
   return {
-    props: { session, user },
+    props: {
+      session,
+      user,
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
   };
 };
