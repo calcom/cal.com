@@ -27,7 +27,7 @@ import * as RadioArea from "@components/ui/form/radio-area";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 
-const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profiles; canAddEvents: boolean }) => {
+const CreateNewEventButton = ({ profiles, canAddEvents }: { profiles: Profiles; canAddEvents: boolean }) => {
   const router = useRouter();
   const teamId: number | null = Number(router.query.teamId) || null;
   const modalOpen = useToggleQuery("new");
@@ -240,4 +240,4 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profiles; 
   );
 };
 
-export default CreateNewEventDialog;
+export default CreateNewEventButton;

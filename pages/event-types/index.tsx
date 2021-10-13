@@ -13,10 +13,10 @@ import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Shell from "@components/Shell";
-import CreateFirstEventTypeView from "@components/eventtype/CreateFirstEventTypeView";
-import CreateNewEventDialog from "@components/eventtype/CreateNewEventDialog";
-import EventTypeList from "@components/eventtype/EventTypeList";
-import EventTypeListHeading from "@components/eventtype/EventTypeListHeading";
+import CreateFirstEventTypeView from "@components/pages/eventtypes/CreateFirstEventTypeView";
+import CreateNewEventButton from "@components/pages/eventtypes/CreateNewEventButton";
+import EventTypeList from "@components/pages/eventtypes/EventTypeList";
+import EventTypeListHeading from "@components/pages/eventtypes/EventTypeListHeading";
 import { Alert } from "@components/ui/Alert";
 
 export type EventTypesPageProps = inferSSRProps<typeof getServerSideProps>;
@@ -37,7 +37,7 @@ const EventTypesPage = () => {
         CTA={
           query.data &&
           query.data.eventTypes.length !== 0 && (
-            <CreateNewEventDialog canAddEvents={query.data.canAddEvents} profiles={query.data.profiles} />
+            <CreateNewEventButton canAddEvents={query.data.canAddEvents} profiles={query.data.profiles} />
           )
         }>
         <QueryCell
