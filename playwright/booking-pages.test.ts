@@ -1,24 +1,12 @@
 import { kont } from "kont";
 
+import { pageProvider } from "./lib/pageProvider";
+
 jest.setTimeout(60e3);
 
 describe("free user", () => {
   const ctx = kont()
-    .beforeEach(async () => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-
-      await page.goto("http://localhost:3000/free");
-
-      return {
-        page,
-        context,
-      };
-    })
-    .afterEach(async (ktx) => {
-      await ktx.page?.close();
-      await ktx.context?.close();
-    })
+    .useBeforeEach(pageProvider({ path: "/free" }))
     .done();
 
   test("only one visible event", async () => {
@@ -32,21 +20,7 @@ describe("free user", () => {
 
 describe("pro user", () => {
   const ctx = kont()
-    .beforeEach(async () => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-
-      await page.goto("http://localhost:3000/pro");
-
-      return {
-        page,
-        context,
-      };
-    })
-    .afterEach(async (ktx) => {
-      await ktx.page?.close();
-      await ktx.context?.close();
-    })
+    .useBeforeEach(pageProvider({ path: "/pro" }))
     .done();
 
   test("pro user's page has at least 2 visible events", async () => {
