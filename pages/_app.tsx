@@ -28,7 +28,7 @@ function MyApp(props: AppProps) {
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
-      <I18nLanguageHandler localeProp={pageProps.localeProp} />
+      <I18nLanguageHandler />
       <Component {...pageProps} err={err} />
     </AppProviders>
   );
