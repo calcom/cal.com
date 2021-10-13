@@ -1,12 +1,16 @@
-import { Prisma, BookingStatus } from "@prisma/client";
+import { BookingStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import _ from "lodash";
+import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
+import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
 import { createProtectedRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 
@@ -17,19 +21,46 @@ const checkUsername =
 export const viewerRouter = createProtectedRouter()
   .query("me", {
     resolve({ ctx }) {
-      return ctx.user;
+      const {
+        // pick only the part we want to expose in the API
+        id,
+        name,
+        username,
+        email,
+        startTime,
+        endTime,
+        bufferTime,
+        locale,
+        avatar,
+        createdDate,
+        completedOnboarding,
+      } = ctx.user;
+      const me = {
+        id,
+        name,
+        username,
+        email,
+        startTime,
+        endTime,
+        bufferTime,
+        locale,
+        avatar,
+        createdDate,
+        completedOnboarding,
+      };
+      return me;
     },
   })
   .query("bookings", {
     input: z.object({
-      status: z.enum(["upcoming", "past", "cancelled"]).optional(),
+      status: z.enum(["upcoming", "past", "cancelled"]),
     }),
     async resolve({ ctx, input }) {
       const { prisma, user } = ctx;
-      const bookingListingByStatus = input.status || "upcoming";
+      const bookingListingByStatus = input.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
-        upcoming: [{ endTime: { gte: new Date() } }],
-        past: [{ endTime: { lte: new Date() } }],
+        upcoming: [{ endTime: { gte: new Date() }, NOT: { status: { equals: BookingStatus.CANCELLED } } }],
+        past: [{ endTime: { lte: new Date() }, NOT: { status: { equals: BookingStatus.CANCELLED } } }],
         cancelled: [{ status: { equals: BookingStatus.CANCELLED } }],
       };
       const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
@@ -91,6 +122,94 @@ export const viewerRouter = createProtectedRouter()
       return bookings;
     },
   })
+  .query("integrations", {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      const { credentials } = user;
+
+      function countActive(items: { credentialIds: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
+      }
+      const integrations = ALL_INTEGRATIONS.map((integration) => ({
+        ...integration,
+        credentialIds: credentials
+          .filter((credential) => credential.type === integration.type)
+          .map((credential) => credential.id),
+      }));
+      // `flatMap()` these work like `.filter()` but infers the types correctly
+      const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
+      const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+
+      // get user's credentials + their connected integrations
+      const calendarCredentials = user.credentials
+        .filter((credential) => credential.type.endsWith("_calendar"))
+        .flatMap((credential) => {
+          const integration = ALL_INTEGRATIONS.find((integration) => integration.type === credential.type);
+
+          const adapter = getCalendarAdapterOrNull({
+            ...credential,
+            userId: user.id,
+          });
+          return integration && adapter && integration.variant === "calendar"
+            ? [{ integration, credential, adapter }]
+            : [];
+        });
+
+      // get all the connected integrations' calendars (from third party)
+      const connectedCalendars = await Promise.all(
+        calendarCredentials.map(async (item) => {
+          const { adapter, integration, credential } = item;
+
+          const credentialId = credential.id;
+          try {
+            const cals = await adapter.listCalendars();
+            const calendars = _(cals)
+              .map((cal) => ({
+                ...cal,
+                isSelected: user.selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+              }))
+              .sortBy(["primary"])
+              .value();
+            const primary = calendars.find((item) => item.primary) ?? calendars[0];
+            if (!primary) {
+              throw new Error("No primary calendar found");
+            }
+            return {
+              integration,
+              credentialId,
+              primary,
+              calendars,
+            };
+          } catch (_error) {
+            const error = getErrorFromUnknown(_error);
+            return {
+              integration,
+              credentialId,
+              error: {
+                message: error.message,
+              },
+            };
+          }
+        })
+      );
+      return {
+        conferencing: {
+          items: conferencing,
+          numActive: countActive(conferencing),
+        },
+        calendar: {
+          items: calendar,
+          numActive: countActive(calendar),
+        },
+        payment: {
+          items: payment,
+          numActive: countActive(payment),
+        },
+        connectedCalendars,
+      };
+    },
+  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
@@ -100,7 +219,7 @@ export const viewerRouter = createProtectedRouter()
       timeZone: z.string().optional(),
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
-      theme: z.string().optional(),
+      theme: z.string().optional().nullable(),
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
     }),

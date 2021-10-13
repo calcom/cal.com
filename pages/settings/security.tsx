@@ -1,24 +1,22 @@
-import { getSession, useSession } from "next-auth/client";
+import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import React from "react";
 
+import { getSession } from "@lib/auth";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 
-export default function Security({ user }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [session, loading] = useSession();
-
-  if (loading) {
-    return <Loader />;
-  }
-
+export default function Security({ user }: inferSSRProps<typeof getServerSideProps>) {
+  const { t } = useLocale();
   return (
-    <Shell heading="Security" subtitle="Manage your account's security.">
+    <Shell heading={t("security")} subtitle={t("manage_account_security")}>
       <SettingsShell>
         <ChangePasswordSection />
         <TwoFactorAuthSection twoFactorEnabled={user.twoFactorEnabled} />
@@ -27,15 +25,17 @@ export default function Security({ user }) {
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  if (!session) {
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
+
+  if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
   const user = await prisma.user.findFirst({
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       id: true,
@@ -45,7 +45,15 @@ export async function getServerSideProps(context) {
     },
   });
 
+  if (!user) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+
   return {
-    props: { session, user },
+    props: {
+      session,
+      user,
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
   };
 }

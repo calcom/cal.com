@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { ErrorCode, getSession } from "@lib/auth";
 
+import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -179,6 +180,8 @@ export default function Login({ csrfToken }) {
           </a>
         </div>
       </div>
+
+      <AddToHomescreen />
     </div>
   );
 }

@@ -807,6 +807,40 @@ paths:
                 properties:
                   message:
                     type: string
+  /api/me:
+    get:
+      description: Gets current user's profile.
+      summary: Gets current user's profile.
+      tags:
+        - User
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
   /api/user/membership:
     get:
       description: Get a list of the teams the user has joined.

@@ -3,6 +3,8 @@ import { CheckIcon } from "@heroicons/react/solid";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import { DialogClose, DialogContent } from "@components/Dialog";
 import { Button } from "@components/ui/Button";
 
@@ -15,7 +17,15 @@ export type ConfirmationDialogContentProps = {
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
-  const { title, variety, confirmBtnText = "Confirm", cancelBtnText = "Cancel", onConfirm, children } = props;
+  const { t } = useLocale();
+  const {
+    title,
+    variety,
+    confirmBtnText = t("confirm"),
+    cancelBtnText = t("cancel"),
+    onConfirm,
+    children,
+  } = props;
 
   return (
     <DialogContent>
