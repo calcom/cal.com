@@ -1,13 +1,13 @@
 import { kont, providers } from "kont";
 
 import { loginProvider } from "./_loginProvider";
-import { login, randomString } from "./_testUtils";
+import { randomString } from "./_testUtils";
 
 describe("pro user", () => {
   const ctx = kont()
     .useBeforeAll(providers.browser())
-    .useBeforeEach(providers.page())
     .useBeforeAll(loginProvider("pro"))
+    .useBeforeEach(providers.page())
     .beforeEach(async ({ page }) => {
       await page.goto("http://localhost:3000/event-types");
       console.log("went to event types");
