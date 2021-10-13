@@ -64,11 +64,12 @@ export function loginProvider(opts: {
 
       return {
         page,
+        context,
       };
     })
     .after(async (ctx) => {
-      await ctx.page?.context()?.close();
       await ctx.page?.close();
+      await ctx.context?.close();
     })
     .done();
 }
