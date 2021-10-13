@@ -1,4 +1,4 @@
-import merge from "lodash.merge";
+import merge from "lodash/merge";
 import { NextSeo, NextSeoProps } from "next-seo";
 import React from "react";
 
