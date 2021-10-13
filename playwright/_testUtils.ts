@@ -19,32 +19,22 @@ const userSessions: Dict<Promise<BrowserContext>> = {};
  * @param user
  */
 export async function login(user: string): Promise<BrowserContext> {
-  const _login = async () => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
 
-    await page.goto("http://localhost:3000/event-types");
-    // Click input[name="email"]
-    await page.click('input[name="email"]');
-    // Fill input[name="email"]
-    await page.fill('input[name="email"]', `${user}@example.com`);
-    // Press Tab
-    await page.press('input[name="email"]', "Tab");
-    // Fill input[name="password"]
-    await page.fill('input[name="password"]', user);
-    // Press Enter
-    await page.press('input[name="password"]', "Enter");
+  await page.goto("http://localhost:3000/event-types");
+  // Click input[name="email"]
+  await page.click('input[name="email"]');
+  // Fill input[name="email"]
+  await page.fill('input[name="email"]', `${user}@example.com`);
+  // Press Tab
+  await page.press('input[name="email"]', "Tab");
+  // Fill input[name="password"]
+  await page.fill('input[name="password"]', user);
+  // Press Enter
+  await page.press('input[name="password"]', "Enter");
 
-    await page.waitForSelector("[data-testid=event-types]");
-
-    return context;
-  };
-
-  const cachedContext = userSessions[user];
-  if (cachedContext) {
-    return await cachedContext;
-  }
-  const context = (userSessions[user] = _login());
+  await page.waitForSelector("[data-testid=event-types]");
 
   return await context;
 }
