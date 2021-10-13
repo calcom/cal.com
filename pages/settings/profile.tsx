@@ -14,6 +14,7 @@ import {
   localeOptions,
   OptionType,
 } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
@@ -30,17 +31,9 @@ import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import { UsernameInput } from "@components/ui/UsernameInput";
 
-const themeOptions = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
-
 type Props = inferSSRProps<typeof getServerSideProps>;
-function HideBrandingInput(props: {
-  //
-  hideBrandingRef: RefObject<HTMLInputElement>;
-  user: Props["user"];
-}) {
+function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
+  const { t } = useLocale();
   const [modelOpen, setModalOpen] = useState(false);
   return (
     <>
@@ -72,19 +65,16 @@ function HideBrandingInput(props: {
           <div className="sm:flex sm:items-start mb-4">
             <div className="mt-3 sm:mt-0 sm:text-left">
               <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                This feature is only available in Pro plan
+                {t("only_available_on_pro_plan")}
               </h3>
             </div>
           </div>
           <div className="flex flex-col space-y-3">
-            <p>
-              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
-              account.
-            </p>
+            <p>{t("remove_cal_branding_description")}</p>
 
             <p>
               {" "}
-              To upgrade go to{" "}
+              {t("to_upgrade_go_to")}{" "}
               <a href="https://cal.com/upgrade" className="underline">
                 cal.com/upgrade
               </a>
@@ -96,7 +86,7 @@ function HideBrandingInput(props: {
               <Button
                 className="btn-wide btn-primary text-center table-cell"
                 onClick={() => setModalOpen(false)}>
-                Dismiss
+                {t("dismiss")}
               </Button>
             </DialogClose>
           </div>
@@ -107,7 +97,13 @@ function HideBrandingInput(props: {
 }
 
 export default function Settings(props: Props) {
+  const { t } = useLocale();
   const mutation = trpc.useMutation("viewer.updateProfile");
+
+  const themeOptions = [
+    { value: "light", label: t("light") },
+    { value: "dark", label: t("dark") },
+  ];
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -178,7 +174,7 @@ export default function Settings(props: Props) {
         locale: enteredLanguage,
       })
       .then(() => {
-        showToast("Your user profile has been updated successfully", "success");
+        showToast(t("your_user_profile_updated_successfully"), "success");
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -189,7 +185,7 @@ export default function Settings(props: Props) {
   }
 
   return (
-    <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
+    <Shell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <Alert severity="error" title={errorMessage} />}
@@ -202,7 +198,7 @@ export default function Settings(props: Props) {
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Full name
+                      {t("full_name")}
                     </label>
                     <input
                       ref={nameRef}
@@ -210,7 +206,7 @@ export default function Settings(props: Props) {
                       name="name"
                       id="name"
                       autoComplete="given-name"
-                      placeholder="Your name"
+                      placeholder={t("your_name")}
                       required
                       className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={props.user.name}
@@ -221,19 +217,19 @@ export default function Settings(props: Props) {
                 <div className="block sm:flex">
                   <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                      Email
+                      {t("email")}
                     </label>
                     <input
                       type="text"
                       name="email"
                       id="email"
-                      placeholder="Your email"
+                      placeholder={t("your_email")}
                       disabled
                       className="mt-1 block w-full py-2 px-3 text-gray-500 border  border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
                       defaultValue={props.user.email}
                     />
                     <p className="mt-2 text-sm text-gray-500" id="email-description">
-                      To change your email, please contact{" "}
+                      {t("change_email_contact")}{" "}
                       <a className="text-blue-500" href="mailto:help@cal.com">
                         help@cal.com
                       </a>
@@ -243,14 +239,14 @@ export default function Settings(props: Props) {
 
                 <div>
                   <label htmlFor="about" className="block text-sm font-medium text-gray-700">
-                    About
+                    {t("about")}
                   </label>
                   <div className="mt-1">
                     <textarea
                       ref={descriptionRef}
                       id="about"
                       name="about"
-                      placeholder="A little something about yourself."
+                      placeholder={t("little_something_about")}
                       rows={3}
                       defaultValue={props.user.bio}
                       className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"></textarea>
@@ -276,7 +272,7 @@ export default function Settings(props: Props) {
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
-                      buttonMsg="Change avatar"
+                      buttonMsg={t("change_avatar")}
                       handleAvatarChange={handleAvatarChange}
                       imageSrc={imageSrc}
                     />
@@ -285,7 +281,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="language" className="block text-sm font-medium text-gray-700">
-                    Language
+                    {t("language")}
                   </label>
                   <div className="mt-1">
                     <Select
@@ -300,7 +296,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                    Timezone
+                    {t("timezone")}
                   </label>
                   <div className="mt-1">
                     <TimezoneSelect
@@ -314,7 +310,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
-                    First Day of Week
+                    {t("first_day_of_week")}
                   </label>
                   <div className="mt-1">
                     <Select
@@ -324,15 +320,15 @@ export default function Settings(props: Props) {
                       classNamePrefix="react-select"
                       className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
                       options={[
-                        { value: "Sunday", label: "Sunday" },
-                        { value: "Monday", label: "Monday" },
+                        { value: "Sunday", label: t("sunday") },
+                        { value: "Monday", label: t("monday") },
                       ]}
                     />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                    Single Theme
+                    {t("single_theme")}
                   </label>
                   <div className="my-1">
                     <Select
@@ -358,7 +354,7 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                        Automatically adjust theme based on invitee preferences
+                        {t("automatically_adjust_theme")}
                       </label>
                     </div>
                   </div>
@@ -370,10 +366,10 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Cal.com branding{" "}
+                        {t("disable_cal_branding")}{" "}
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
-                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
+                      <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                     </div>
                   </div>
                 </div>
@@ -418,7 +414,7 @@ export default function Settings(props: Props) {
             </div>
             <hr className="mt-8" />
             <div className="py-4 flex justify-end">
-              <Button type="submit">Save</Button>
+              <Button type="submit">{t("save")}</Button>
             </div>
           </div>
         </form>
