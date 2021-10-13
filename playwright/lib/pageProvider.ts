@@ -3,12 +3,12 @@ import { provider, Provider } from "kont";
 import { Page } from "playwright";
 
 /**
- * Context data that Login provder needs.
+ * Context data that Page provder needs.
  */
 export type Needs = {};
 
 /**
- * Login provider's options.
+ * Page provider's options.
  */
 export type Params = {
   user: string;
