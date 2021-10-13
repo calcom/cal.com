@@ -51,7 +51,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      localeProp: locale,
       session,
       user,
       ...(await serverSideTranslations(locale, ["common"])),

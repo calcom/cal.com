@@ -1,12 +1,13 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import _ from "lodash";
 import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import getIntegrations, { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
+import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
 import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
@@ -20,7 +21,34 @@ const checkUsername =
 export const viewerRouter = createProtectedRouter()
   .query("me", {
     resolve({ ctx }) {
-      return ctx.user;
+      const {
+        // pick only the part we want to expose in the API
+        id,
+        name,
+        username,
+        email,
+        startTime,
+        endTime,
+        bufferTime,
+        locale,
+        avatar,
+        createdDate,
+        completedOnboarding,
+      } = ctx.user;
+      const me = {
+        id,
+        name,
+        username,
+        email,
+        startTime,
+        endTime,
+        bufferTime,
+        locale,
+        avatar,
+        createdDate,
+        completedOnboarding,
+      };
+      return me;
     },
   })
   .query("bookings", {
@@ -98,11 +126,17 @@ export const viewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       const { credentials } = user;
-      const integrations = getIntegrations(credentials);
 
-      function countActive(items: { credentials: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentials.length, 0);
+      function countActive(items: { credentialIds: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
+      const integrations = ALL_INTEGRATIONS.map((integration) => ({
+        ...integration,
+        credentialIds: credentials
+          .filter((credential) => credential.type === integration.type)
+          .map((credential) => credential.id),
+      }));
+      // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
       const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
@@ -126,25 +160,24 @@ export const viewerRouter = createProtectedRouter()
       const connectedCalendars = await Promise.all(
         calendarCredentials.map(async (item) => {
           const { adapter, integration, credential } = item;
+
+          const credentialId = credential.id;
           try {
-            const _calendars = await adapter.listCalendars();
-            const calendars = _calendars.map((cal) => ({
-              ...cal,
-              isSelected: !!user.selectedCalendars.find((selected) => selected.externalId === cal.externalId),
-            }));
+            const cals = await adapter.listCalendars();
+            const calendars = _(cals)
+              .map((cal) => ({
+                ...cal,
+                isSelected: user.selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+              }))
+              .sortBy(["primary"])
+              .value();
             const primary = calendars.find((item) => item.primary) ?? calendars[0];
             if (!primary) {
-              return {
-                integration,
-                credentialId: credential.id,
-                error: {
-                  message: "No primary calendar found",
-                },
-              };
+              throw new Error("No primary calendar found");
             }
             return {
               integration,
-              credentialId: credential.id,
+              credentialId,
               primary,
               calendars,
             };
@@ -152,6 +185,7 @@ export const viewerRouter = createProtectedRouter()
             const error = getErrorFromUnknown(_error);
             return {
               integration,
+              credentialId,
               error: {
                 message: error.message,
               },

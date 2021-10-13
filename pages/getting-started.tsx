@@ -11,12 +11,12 @@ import classnames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import debounce from "lodash.debounce";
+import debounce from "lodash/debounce";
+import omit from "lodash/omit";
 import { NextPageContext } from "next";
 import { useSession } from "next-auth/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { Integration } from "pages/integrations/_new";
 import React, { useEffect, useRef, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 
@@ -691,7 +691,7 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  integrations = getIntegrations(credentials);
+  integrations = getIntegrations(credentials).map((item) => omit(item, "key"));
 
   eventTypes = await prisma.eventType.findMany({
     where: {
