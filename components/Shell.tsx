@@ -49,6 +49,7 @@ function useMeQuery() {
 function useRedirectToLoginIfUnauthenticated() {
   const [session, loading] = useSession();
   const router = useRouter();
+  const query = useMeQuery();
 
   useEffect(() => {
     if (!loading && !session) {
@@ -60,6 +61,10 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
   }, [loading, session, router]);
+
+  if (query.status !== "loading" && !query.data) {
+    router.replace("/auth/login");
+  }
 }
 
 export function ShellSubHeading(props: {
@@ -94,16 +99,6 @@ export default function Shell(props: {
   useRedirectToLoginIfUnauthenticated();
 
   const telemetry = useTelemetry();
-  const query = useMeQuery();
-
-  useEffect(
-    function redirectToOnboardingIfNeeded() {
-      if (query.data && shouldShowOnboarding(query.data)) {
-        router.push("/getting-started");
-      }
-    },
-    [query.data, router]
-  );
 
   const navigation = [
     {
@@ -143,10 +138,6 @@ export default function Shell(props: {
       return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
   }, [telemetry]);
-
-  if (query.status !== "loading" && !query.data) {
-    router.replace("/auth/login");
-  }
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
