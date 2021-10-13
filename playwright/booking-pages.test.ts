@@ -1,6 +1,6 @@
 import { kont } from "kont";
 
-jest.setTimeout(30e3);
+jest.setTimeout(60e3);
 
 describe("free user", () => {
   const ctx = kont()

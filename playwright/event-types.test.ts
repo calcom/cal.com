@@ -3,7 +3,7 @@ import { kont } from "kont";
 import { loginProvider } from "./lib/loginProvider";
 import { randomString } from "./lib/testUtils";
 
-jest.setTimeout(30e3);
+jest.setTimeout(60e3);
 
 describe("pro user", () => {
   const ctx = kont()
