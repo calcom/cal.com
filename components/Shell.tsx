@@ -57,6 +57,23 @@ function useRedirectToLoginIfUnauthenticated() {
   }, [loading, session, router]);
 }
 
+function useRedirectToOnboardingIfNeeded() {
+  const [session, loading] = useSession();
+  const router = useRouter();
+  const query = useMeQuery();
+  const user = query.data;
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (shouldShowOnboarding(user)) {
+        router.replace({
+          pathname: "/getting-started",
+        });
+      }
+    }
+  }, [loading, session, router]);
+}
+
 export function ShellSubHeading(props: {
   title: ReactNode;
   subtitle?: ReactNode;
@@ -87,6 +104,7 @@ export default function Shell(props: {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   useRedirectToLoginIfUnauthenticated();
+  useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
   const query = useMeQuery();

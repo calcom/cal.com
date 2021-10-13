@@ -129,7 +129,7 @@ export const viewerRouter = createProtectedRouter()
         },
       });
 
-      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       // backwards compatibility, TMP:
       const typesRaw = await prisma.eventType.findMany({
