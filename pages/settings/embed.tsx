@@ -55,7 +55,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     return <Loader />;
   }
 
-  const iframeTemplate = `<iframe src="${process.env.BASE_URL}/${props.user?.username}" frameborder="0" allowfullscreen></iframe>`;
+  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/${props.user?.username}" frameborder="0" allowfullscreen></iframe>`;
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
     "schedule_a_meeting"
   )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
