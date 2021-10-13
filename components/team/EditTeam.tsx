@@ -3,11 +3,11 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
+import showToast from "@lib/notification";
 import { Team } from "@lib/team";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
-import Modal from "@components/Modal";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import Avatar from "@components/ui/Avatar";
@@ -26,7 +26,6 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
   const hideBrandingRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const logoRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const [hasErrors, setHasErrors] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [inviteModalTeam, setInviteModalTeam] = useState<Team | null | undefined>();
   const [errorMessage, setErrorMessage] = useState("");
@@ -96,7 +95,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
     })
       .then(handleError)
       .then(() => {
-        setSuccessModalOpen(true);
+        showToast(t("your_team_updated_successfully"), "success");
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -108,10 +107,6 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
   const onMemberInvitationModalExit = () => {
     loadMembers();
     setShowMemberInvitationModal(false);
-  };
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
   };
 
   const handleLogoChange = (newLogo: string) => {
@@ -288,12 +283,6 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
             </div>
           </div>
         </form>
-        <Modal
-          heading={t("team_updated_successfully")}
-          description={t("your_team_updated_successfully")}
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
         {showMemberInvitationModal && (
           <MemberInvitationModal team={inviteModalTeam} onExit={onMemberInvitationModalExit} />
         )}

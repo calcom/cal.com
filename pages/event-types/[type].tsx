@@ -50,7 +50,6 @@ import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
-import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
@@ -87,7 +86,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const { t } = useLocale();
   const router = useRouter();
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const updateMutation = useMutation(updateEventType, {
     onSuccess: async ({ eventType }) => {
@@ -208,10 +206,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const closeLocationModal = () => {
     setSelectedLocation(undefined);
     setShowLocationModal(false);
-  };
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
   };
 
   const updateLocations = (e: React.FormEvent<HTMLFormElement>) => {
@@ -954,12 +948,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <Button type="submit">{t("update")}</Button>
                 </div>
               </form>
-              <Modal
-                heading={t("event_type_updated_successfully")}
-                description={t("event_type_updated_successfully_description")}
-                open={successModalOpen}
-                handleClose={closeSuccessModal}
-              />
             </div>
           </div>
           <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
