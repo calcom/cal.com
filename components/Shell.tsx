@@ -154,7 +154,7 @@ export default function Shell(props: {
     telemetry.withJitsu((jitsu) => {
       return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
-  }, [telemetry]);
+  }, [telemetry, router.asPath]);
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
