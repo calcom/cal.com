@@ -1,9 +1,12 @@
 import { PlusIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useEffect, useState, useRef } from "react";
 
 import { getSession } from "@lib/auth";
+import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Webhook } from "@lib/webhook";
@@ -19,6 +22,7 @@ import WebhookList from "@components/webhook/WebhookList";
 
 export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   const [, loading] = useSession();
+  const { t } = useLocale();
 
   const [isLoading, setLoading] = useState(false);
   const [bookingCreated, setBookingCreated] = useState(true);
@@ -52,7 +56,9 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   }
 
   const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/${props.user?.username}" frameborder="0" allowfullscreen></iframe>`;
-  const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Schedule a meeting</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
+  const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
+    "schedule_a_meeting"
+  )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
@@ -106,26 +112,24 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
   };
 
   return (
-    <Shell
-      heading="Embed &amp; Webhooks"
-      subtitle="Integrate with your website using our embed options, or get real-time booking information using custom webhooks.">
+    <Shell heading={t("embed_and_webhooks")} subtitle={t("integrate_using_embed_or_webhooks")}>
       <SettingsShell>
         {!editWebhookEnabled && (
           <div className="py-6 lg:pb-8 lg:col-span-9">
             <div className="mb-6">
-              <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">iframe Embed</h2>
-              <p className="mt-1 text-sm text-gray-500">The easiest way to embed Cal.com on your website.</p>
+              <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("iframe_embed")}</h2>
+              <p className="mt-1 text-sm text-gray-500">{t("embed_calcom")}</p>
             </div>
             <div className="grid grid-cols-2 space-x-4">
               <div>
                 <label htmlFor="iframe" className="block text-sm font-medium text-gray-700">
-                  Standard iframe
+                  {t("standard_iframe")}
                 </label>
                 <div className="mt-1">
                   <textarea
                     id="iframe"
                     className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                    placeholder="Loading..."
+                    placeholder={t("loading")}
                     defaultValue={iframeTemplate}
                     readOnly
                   />
@@ -133,13 +137,13 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
               </div>
               <div>
                 <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700">
-                  Responsive full screen iframe
+                  {t("responsive_fullscreen_iframe")}
                 </label>
                 <div className="mt-1">
                   <textarea
                     id="fullscreen"
                     className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                    placeholder="Loading..."
+                    placeholder={t("loading")}
                     defaultValue={htmlTemplate}
                     readOnly
                   />
@@ -150,26 +154,23 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
             <div className="flex justify-between my-6">
               <div>
                 <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">Webhooks</h2>
-                <p className="mt-1 text-sm text-gray-500">
-                  Receive Cal meeting data at a specified URL, in real-time, when an event is scheduled or
-                  cancelled.{" "}
-                </p>
+                <p className="mt-1 text-sm text-gray-500">{t("receive_cal_meeting_data")} </p>
               </div>
               <div>
                 <Dialog>
                   <DialogTrigger className="px-4 py-2 my-6 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
                     <PlusIcon className="inline w-5 h-5 mr-1" />
-                    New Webhook
+                    {t("new_webhook")}
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader
-                      title="Create a new webhook"
-                      subtitle="Create a new webhook to your account"
+                      title={t("create_new_webhook")}
+                      subtitle={t("create_new_webhook_to_account")}
                     />
                     <div className="my-4">
                       <div className="mb-4">
                         <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
-                          Subscriber Url
+                          {t("subscriber_url")}
                         </label>
                         <input
                           ref={subUrlRef}
@@ -182,12 +183,12 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                         />
                         <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
                           {" "}
-                          Event Triggers{" "}
+                          {t("event_triggers")}{" "}
                         </legend>
                         <div className="p-2 border border-gray-300 rounded-sm">
                           <div className="flex pb-4">
                             <div className="w-10/12">
-                              <h2 className="font-medium text-gray-800">Booking Created</h2>
+                              <h2 className="font-medium text-gray-800">{t("booking_created")}</h2>
                             </div>
                             <div className="flex items-center justify-center w-2/12 text-right">
                               <Switch
@@ -202,7 +203,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                           </div>
                           <div className="flex py-1">
                             <div className="w-10/12">
-                              <h2 className="font-medium text-gray-800">Booking Rescheduled</h2>
+                              <h2 className="font-medium text-gray-800">{t("booking_rescheduled")}</h2>
                             </div>
                             <div className="flex items-center justify-center w-2/12 text-right">
                               <Switch
@@ -217,7 +218,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                           </div>
                           <div className="flex pt-4">
                             <div className="w-10/12">
-                              <h2 className="font-medium text-gray-800">Booking Cancelled</h2>
+                              <h2 className="font-medium text-gray-800">{t("booking_cancelled")}</h2>
                             </div>
                             <div className="flex items-center justify-center w-2/12 text-right">
                               <Switch
@@ -240,11 +241,11 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
                             onClick={createWebhook}
                             color="primary"
                             className="ml-2">
-                            Create Webhook
+                            {t("create_webhook")}
                           </Button>
                         </DialogClose>
                         <DialogClose asChild>
-                          <Button color="secondary">Cancel</Button>
+                          <Button color="secondary">{t("cancel")}</Button>
                         </DialogClose>
                       </div>
                     </div>
@@ -272,12 +273,10 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
             <hr className="mt-8" />
             <div className="my-6">
               <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">Cal.com API</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Leverage our API for full control and customizability.
-              </p>
+              <p className="mt-1 text-sm text-gray-500">{t("leverage_our_api")}</p>
             </div>
             <a href="https://developer.cal.com/api" className="btn btn-primary">
-              Browse our API documentation
+              {t("browse_api_documentation")}
             </a>
           </div>
         )}
@@ -289,6 +288,8 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
+  const locale = await getOrSetUserLocaleFromHeaders(context.req);
+
   if (!session?.user?.email) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
@@ -310,6 +311,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   return {
-    props: { session, user },
+    props: {
+      session,
+      user,
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
   };
 }
