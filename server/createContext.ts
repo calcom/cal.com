@@ -84,8 +84,9 @@ export const createContext = async ({ req, res }: trpcNext.CreateNextContextOpti
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
+  const i18n = await serverSideTranslations(locale, ["common"]);
   return {
-    ...(await serverSideTranslations(locale, ["common"])),
+    i18n,
     prisma,
     session,
     user,

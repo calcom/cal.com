@@ -8,7 +8,7 @@ import { trpc } from "@lib/trpc";
  */
 const I18nLanguageHandler = (): null => {
   const { i18n } = useTranslation("common");
-  const locale = trpc.useQuery(["viewer.me"]).data?.locale;
+  const locale = trpc.useQuery(["viewer.i18n"]).data?.locale;
 
   useEffect(() => {
     if (locale && i18n.language && i18n.language !== locale) {
