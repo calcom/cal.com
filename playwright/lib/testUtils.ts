@@ -1,5 +1,4 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { nextTick } from "process";
 
 export function randomString(length = 12) {
   let result = "";
@@ -64,7 +63,7 @@ export async function waitFor(fn: () => Promise<unknown> | unknown) {
       await fn();
       finished = true;
     } catch {
-      await new Promise((resolve) => nextTick(resolve));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
   }
 }
