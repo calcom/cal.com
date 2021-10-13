@@ -191,15 +191,15 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                     <Avatar
                       className="relative w-10 h-10 rounded-full"
                       imageSrc={imageSrc ? imageSrc : props.team?.logo}
-                      displayName="Logo"
+                      displayName={t("logo")}
                     />
                     <input
                       ref={logoRef}
                       type="hidden"
                       name="avatar"
                       id="avatar"
-                      placeholder="URL"
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                      placeholder={t("url")}
                       defaultValue={imageSrc ?? props.team?.logo}
                     />
                     <ImageUploader

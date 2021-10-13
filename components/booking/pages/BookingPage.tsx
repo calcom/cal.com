@@ -398,7 +398,7 @@ const BookingPage = (props: BookingPageProps) => {
                           <label
                             htmlFor="guests"
                             className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
-                            Guests
+                            {t("guests")}
                           </label>
                           <ReactMultiEmail
                             className="relative"

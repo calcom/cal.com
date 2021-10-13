@@ -68,7 +68,7 @@ export default function TeamListItem(props: {
                   : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
                     encodeURIComponent(props.team.name || "")
               }
-              alt="Team Logo"
+              alt={t("team_logo")}
               className="rounded-full w-9 h-9"
             />
             <div className="inline-block ml-3">
@@ -155,7 +155,7 @@ export default function TeamListItem(props: {
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         variety="danger"
-                        title="Disband Team"
+                        title={t("disband_team")}
                         confirmBtnText={t("confirm_disband_team")}
                         onConfirm={() => props.onActionSelect("disband")}>
                         {t("disband_team_confirmation_message")}

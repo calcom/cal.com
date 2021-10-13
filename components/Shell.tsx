@@ -19,6 +19,7 @@ import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -95,6 +96,7 @@ export default function Shell(props: {
 
   const telemetry = useTelemetry();
   const query = useMeQuery();
+  const { t } = useLocale();
 
   useEffect(
     function redirectToOnboardingIfNeeded() {
@@ -107,31 +109,31 @@ export default function Shell(props: {
 
   const navigation = [
     {
-      name: "Event Types",
+      name: t("event_types"),
       href: "/event-types",
-      icon: LinkIcon,
+      icon: CalendarIcon,
       current: router.asPath.startsWith("/event-types"),
     },
     {
-      name: "Bookings",
+      name: t("bookings"),
       href: "/bookings/upcoming",
       icon: ClockIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
-      name: "Availability",
+      name: t("availability"),
       href: "/availability",
-      icon: CalendarIcon,
+      icon: BriefcaseIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: "Integrations",
+      name: t("integrations"),
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.asPath.startsWith("/integrations"),
     },
     {
-      name: "Settings",
+      name: t("settings"),
       href: "/settings/profile",
       icon: CogIcon,
       current: router.asPath.startsWith("/settings"),
@@ -242,7 +244,7 @@ export default function Shell(props: {
               <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
-                  item.name === "Settings" ? (
+                  item.name === t("settings") ? (
                     []
                   ) : (
                     <Link key={item.name} href={item.href}>
