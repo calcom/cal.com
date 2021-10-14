@@ -1,6 +1,7 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { Maybe } from "@trpc/server";
 import { stringify } from "querystring";
+
+import { Maybe } from "@trpc/server";
 
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!;
 let stripePromise: Promise<Stripe | null>;
