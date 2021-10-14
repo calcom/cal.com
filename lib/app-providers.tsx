@@ -13,11 +13,10 @@ import { trpc } from "./trpc";
 const I18nextAdapter = appWithTranslation(({ children }: { children?: ReactNode }) => <>{children}</>);
 
 const CustomI18nextProvider = (props: { children: ReactNode }) => {
-  const _nextI18Next = trpc.useQuery(["viewer._nextI18Next"]).data;
-  const locale = trpc.useQuery(["viewer.me"]).data?.locale;
+  const { i18n, locale } = trpc.useQuery(["viewer.i18n"]).data ?? {};
   const passedProps = {
     ...props,
-    pageProps: { _nextI18Next },
+    pageProps: { ...i18n },
     router: { locale },
   } as unknown as ComponentProps<typeof I18nextAdapter>;
   return <I18nextAdapter {...passedProps} />;
@@ -29,7 +28,7 @@ const AppProviders = (props: AppProps) => {
     <TelemetryProvider value={createTelemetryClient()}>
       <IdProvider>
         <DynamicIntercomProvider>
-          <Provider session={session}>
+          <Provider session={session || undefined}>
             <CustomI18nextProvider>{props.children}</CustomI18nextProvider>
           </Provider>
         </DynamicIntercomProvider>

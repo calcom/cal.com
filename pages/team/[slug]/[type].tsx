@@ -1,8 +1,6 @@
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -15,7 +13,6 @@ export default function TeamType(props: AvailabilityTeamPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const slugParam = asStringOrNull(context.query.slug);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
@@ -81,7 +78,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      localeProp: locale,
       profile: {
         name: team.name,
         slug: team.slug,
@@ -91,7 +87,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

@@ -2,11 +2,9 @@ import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { getSession } from "next-auth/client";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -145,7 +143,6 @@ export default function Type(props) {
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid,
@@ -202,7 +199,6 @@ export async function getServerSideProps(context) {
       booking: bookingObj,
       cancellationAllowed:
         (!!session?.user && session.user.id == booking.user?.id) || booking.startTime >= new Date(),
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }

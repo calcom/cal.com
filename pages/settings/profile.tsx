@@ -1,7 +1,6 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { RefObject, useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
@@ -105,14 +104,12 @@ export default function Settings(props: Props) {
     { value: "dark", label: t("dark") },
   ];
 
-  const usernameRef = useRef<HTMLInputElement>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const avatarRef = useRef<HTMLInputElement>(null);
-  const hideBrandingRef = useRef<HTMLInputElement>(null);
-  const [selectedTheme, setSelectedTheme] = useState<null | { value: string | null }>({
-    value: props.user.theme,
-  });
+  const usernameRef = useRef<HTMLInputElement>(null!);
+  const nameRef = useRef<HTMLInputElement>(null!);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null!);
+  const avatarRef = useRef<HTMLInputElement>(null!);
+  const hideBrandingRef = useRef<HTMLInputElement>(null!);
+  const [selectedTheme, setSelectedTheme] = useState<undefined | { value: string; label: string }>(undefined);
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
     value: props.user.weekStart,
@@ -128,24 +125,11 @@ export default function Settings(props: Props) {
 
   useEffect(() => {
     setSelectedTheme(
-      props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : null
+      props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : undefined
     );
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
     setSelectedLanguage({ value: props.localeProp, label: props.localeLabels[props.localeProp] });
   }, []);
-
-  const handleAvatarChange = (newAvatar) => {
-    avatarRef.current.value = newAvatar;
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      "value"
-    ).set;
-    nativeInputValueSetter.call(avatarRef.current, newAvatar);
-    const ev2 = new Event("input", { bubbles: true });
-    avatarRef.current.dispatchEvent(ev2);
-    updateProfileHandler(ev2);
-    setImageSrc(newAvatar);
-  };
 
   async function updateProfileHandler(event) {
     event.preventDefault();
@@ -273,7 +257,18 @@ export default function Settings(props: Props) {
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg={t("change_avatar")}
-                      handleAvatarChange={handleAvatarChange}
+                      handleAvatarChange={(newAvatar) => {
+                        avatarRef.current.value = newAvatar;
+                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                          window.HTMLInputElement.prototype,
+                          "value"
+                        ).set;
+                        nativeInputValueSetter.call(avatarRef.current, newAvatar);
+                        const ev2 = new Event("input", { bubbles: true });
+                        avatarRef.current.dispatchEvent(ev2);
+                        updateProfileHandler(ev2);
+                        setImageSrc(newAvatar);
+                      }}
                       imageSrc={imageSrc}
                     />
                   </div>
@@ -464,7 +459,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

@@ -23,7 +23,11 @@ export default function Bookings() {
 
   const router = useRouter();
   const status = router.query?.status as BookingListingStatus;
-  const query = trpc.useQuery(["viewer.bookings", { status }]);
+
+  const query = trpc.useQuery(["viewer.bookings", { status }], {
+    // first render has status `undefined`
+    enabled: !!status,
+  });
 
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
