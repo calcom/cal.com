@@ -36,7 +36,6 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
       _req.body = json;
       requestList.push(_req);
-      console.log("adding request", requestList.length);
       requestHandler({ req: _req, res });
     });
   });
@@ -56,13 +55,18 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 /**
  * When in need to wait for any period of time you can use waitFor, to wait for your expectations to pass.
  */
-export async function waitFor(fn: () => Promise<unknown> | unknown) {
+export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { timeout?: number } = {}) {
   let finished = false;
+  const timeout = opts.timeout ?? 5000; // 5s
+  const timeStart = Date.now();
   while (!finished) {
     try {
       await fn();
       finished = true;
     } catch {
+      if (Date.now() - timeStart >= timeout) {
+        throw new Error("waitFor timed out");
+      }
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
   }
