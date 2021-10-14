@@ -1,18 +1,14 @@
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { PaymentData } from "@ee/lib/stripe/server";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
-
   const rawPayment = await prisma.payment.findFirst({
     where: {
       uid: asStringOrThrow(context.query.uid),
@@ -103,8 +99,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking,
       payment,
       profile,
-      localeProp: locale,
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

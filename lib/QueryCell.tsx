@@ -66,7 +66,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
     return opts.loading?.(query) ?? <Loader />;
   }
   if (query.status === "idle") {
-    return null;
+    return opts.idle?.(query) ?? <Loader />;
   }
   // impossible state
   return null;

@@ -33,6 +33,9 @@
   src: url("https://cal.com/cal.ttf");
 }
 
+/* Lexend Fallback for Cal Sans*/
+@import url("https://fonts.googlepis.com/css2?family=Lexend:wght@100&display=swap");
+
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {
   /* Primary buttons */
