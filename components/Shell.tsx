@@ -19,6 +19,7 @@ import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -111,6 +112,7 @@ export default function Shell(props: {
   children: ReactNode;
   CTA?: ReactNode;
 }) {
+  const { t } = useLocale();
   const router = useRouter();
   useRedirectToLoginIfUnauthenticated();
   useRedirectToOnboardingIfNeeded();
@@ -119,31 +121,31 @@ export default function Shell(props: {
 
   const navigation = [
     {
-      name: "Event Types",
+      name: t("event_types_page_title"),
       href: "/event-types",
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),
     },
     {
-      name: "Bookings",
+      name: t("bookings"),
       href: "/bookings/upcoming",
       icon: ClockIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
-      name: "Availability",
+      name: t("availability"),
       href: "/availability",
       icon: CalendarIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: "Integrations",
+      name: t("integrations"),
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.asPath.startsWith("/integrations"),
     },
     {
-      name: "Settings",
+      name: t("settings"),
       href: "/settings/profile",
       icon: CogIcon,
       current: router.asPath.startsWith("/settings"),
