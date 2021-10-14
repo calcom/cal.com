@@ -4,6 +4,7 @@ import { loginProvider } from "./lib/loginProvider";
 import { createHttpServer, waitFor } from "./lib/testUtils";
 
 jest.setTimeout(60e3);
+jest.retryTimes(3);
 
 const ctx = kont()
   .useBeforeEach(
