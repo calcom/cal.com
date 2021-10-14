@@ -1,7 +1,6 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import _ from "lodash";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
@@ -27,8 +26,7 @@ const publicViewerRouter = createRouter()
   })
   .query("i18n", {
     async resolve({ ctx }) {
-      const { locale } = ctx;
-      const i18n = await serverSideTranslations(locale, ["common"]);
+      const { locale, i18n } = ctx;
       return {
         i18n,
         locale,
@@ -53,6 +51,7 @@ const loggedInViewerRouter = createProtectedRouter()
         avatar,
         createdDate,
         completedOnboarding,
+        twoFactorEnabled,
       } = ctx.user;
       const me = {
         id,
@@ -66,6 +65,7 @@ const loggedInViewerRouter = createProtectedRouter()
         avatar,
         createdDate,
         completedOnboarding,
+        twoFactorEnabled,
       };
       return me;
     },
