@@ -19,7 +19,6 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -37,7 +36,6 @@ import {
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
@@ -1097,8 +1095,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
-
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
@@ -1278,7 +1274,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       session,
-      localeProp: locale,
       eventType: eventTypeObject,
       locationOptions,
       availability,
@@ -1286,7 +1281,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       currency,
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

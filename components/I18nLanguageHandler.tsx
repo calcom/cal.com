@@ -1,21 +1,18 @@
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 
-interface Props {
-  localeProp: string;
-}
+import { trpc } from "@lib/trpc";
 
-const I18nLanguageHandler = ({ localeProp }: Props): null => {
+/**
+ * Auto-switches locale client-side to the logged in user's preference
+ */
+const I18nLanguageHandler = (): null => {
   const { i18n } = useTranslation("common");
-  const router = useRouter();
-  const { pathname } = router;
-  if (!localeProp)
-    console.warn(
-      `You may forgot to return 'localeProp' from 'getServerSideProps' or 'getStaticProps' in ${pathname}`
-    );
-  if (i18n.language !== localeProp) {
-    i18n.changeLanguage(localeProp);
+  const locale = trpc.useQuery(["viewer.i18n"]).data?.locale;
+
+  if (locale && i18n.language && i18n.language !== locale) {
+    if (typeof i18n.changeLanguage === "function") i18n.changeLanguage(locale);
   }
+
   return null;
 };
 

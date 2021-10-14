@@ -1,10 +1,8 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
@@ -75,7 +73,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const username = (context.query.user as string).toLowerCase();
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   const user = await prisma.user.findUnique({
     where: {
@@ -139,10 +136,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      localeProp: locale,
       user,
       eventTypes,
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };
