@@ -1,6 +1,6 @@
+import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { RefObject, useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect from "react-timezone-select";
@@ -15,12 +15,13 @@ import {
 } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { DialogClose, Dialog, DialogContent } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
-import Modal from "@components/Modal";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
@@ -29,17 +30,9 @@ import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import { UsernameInput } from "@components/ui/UsernameInput";
 
-const themeOptions = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
-
 type Props = inferSSRProps<typeof getServerSideProps>;
-function HideBrandingInput(props: {
-  //
-  hideBrandingRef: RefObject<HTMLInputElement>;
-  user: Props["user"];
-}) {
+function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
+  const { t } = useLocale();
   const [modelOpen, setModalOpen] = useState(false);
   return (
     <>
@@ -63,79 +56,80 @@ function HideBrandingInput(props: {
           setModalOpen(true);
         }}
       />
-
-      <Modal
-        heading="This feature is only available in paid plan"
-        variant="warning"
-        description={
+      <Dialog open={modelOpen}>
+        <DialogContent>
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+            <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
+          </div>
+          <div className="sm:flex sm:items-start mb-4">
+            <div className="mt-3 sm:mt-0 sm:text-left">
+              <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                {t("only_available_on_pro_plan")}
+              </h3>
+            </div>
+          </div>
           <div className="flex flex-col space-y-3">
-            <p>
-              In order to remove the Cal branding from your booking pages, you need to upgrade to a paid
-              account.
-            </p>
+            <p>{t("remove_cal_branding_description")}</p>
 
             <p>
               {" "}
-              To upgrade go to{" "}
+              {t("to_upgrade_go_to")}{" "}
               <a href="https://cal.com/upgrade" className="underline">
                 cal.com/upgrade
               </a>
               .
             </p>
           </div>
-        }
-        open={modelOpen}
-        handleClose={() => setModalOpen(false)}
-      />
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+            <DialogClose asChild>
+              <Button
+                className="btn-wide btn-primary text-center table-cell"
+                onClick={() => setModalOpen(false)}>
+                {t("dismiss")}
+              </Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
 export default function Settings(props: Props) {
-  const { locale } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
   const mutation = trpc.useMutation("viewer.updateProfile");
 
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const usernameRef = useRef<HTMLInputElement>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>();
-  const avatarRef = useRef<HTMLInputElement>(null);
-  const hideBrandingRef = useRef<HTMLInputElement>(null);
-  const [selectedTheme, setSelectedTheme] = useState({ value: props.user.theme });
+  const themeOptions = [
+    { value: "light", label: t("light") },
+    { value: "dark", label: t("dark") },
+  ];
+
+  const usernameRef = useRef<HTMLInputElement>(null!);
+  const nameRef = useRef<HTMLInputElement>(null!);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null!);
+  const avatarRef = useRef<HTMLInputElement>(null!);
+  const hideBrandingRef = useRef<HTMLInputElement>(null!);
+  const [selectedTheme, setSelectedTheme] = useState<undefined | { value: string; label: string }>(undefined);
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
-  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({ value: props.user.weekStart });
-  const [selectedLanguage, setSelectedLanguage] = useState<OptionType>({
-    value: locale,
-    label: props.localeLabels[locale],
+  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
+    value: props.user.weekStart,
+    label: "",
   });
-  const [imageSrc, setImageSrc] = useState<string>(props.user.avatar);
+  const [selectedLanguage, setSelectedLanguage] = useState<OptionType>({
+    value: props.localeProp,
+    label: props.localeLabels[props.localeProp],
+  });
+  const [imageSrc, setImageSrc] = useState<string>(props.user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     setSelectedTheme(
-      props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : null
+      props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : undefined
     );
     setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
-    setSelectedLanguage({ value: locale, label: props.localeLabels[locale] });
+    setSelectedLanguage({ value: props.localeProp, label: props.localeLabels[props.localeProp] });
   }, []);
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
-  };
-
-  const handleAvatarChange = (newAvatar) => {
-    avatarRef.current.value = newAvatar;
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      "value"
-    ).set;
-    nativeInputValueSetter.call(avatarRef.current, newAvatar);
-    const ev2 = new Event("input", { bubbles: true });
-    avatarRef.current.dispatchEvent(ev2);
-    updateProfileHandler(ev2);
-    setImageSrc(newAvatar);
-  };
 
   async function updateProfileHandler(event) {
     event.preventDefault();
@@ -164,7 +158,7 @@ export default function Settings(props: Props) {
         locale: enteredLanguage,
       })
       .then(() => {
-        setSuccessModalOpen(true);
+        showToast(t("your_user_profile_updated_successfully"), "success");
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -175,7 +169,7 @@ export default function Settings(props: Props) {
   }
 
   return (
-    <Shell heading="Profile" subtitle="Edit your profile information, which shows on your scheduling link.">
+    <Shell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
       <SettingsShell>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
           {hasErrors && <Alert severity="error" title={errorMessage} />}
@@ -188,7 +182,7 @@ export default function Settings(props: Props) {
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Full name
+                      {t("full_name")}
                     </label>
                     <input
                       ref={nameRef}
@@ -196,7 +190,7 @@ export default function Settings(props: Props) {
                       name="name"
                       id="name"
                       autoComplete="given-name"
-                      placeholder="Your name"
+                      placeholder={t("your_name")}
                       required
                       className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={props.user.name}
@@ -207,19 +201,19 @@ export default function Settings(props: Props) {
                 <div className="block sm:flex">
                   <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                      Email
+                      {t("email")}
                     </label>
                     <input
                       type="text"
                       name="email"
                       id="email"
-                      placeholder="Your email"
+                      placeholder={t("your_email")}
                       disabled
                       className="mt-1 block w-full py-2 px-3 text-gray-500 border  border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
                       defaultValue={props.user.email}
                     />
                     <p className="mt-2 text-sm text-gray-500" id="email-description">
-                      To change your email, please contact{" "}
+                      {t("change_email_contact")}{" "}
                       <a className="text-blue-500" href="mailto:help@cal.com">
                         help@cal.com
                       </a>
@@ -229,14 +223,14 @@ export default function Settings(props: Props) {
 
                 <div>
                   <label htmlFor="about" className="block text-sm font-medium text-gray-700">
-                    About
+                    {t("about")}
                   </label>
                   <div className="mt-1">
                     <textarea
                       ref={descriptionRef}
                       id="about"
                       name="about"
-                      placeholder="A little something about yourself."
+                      placeholder={t("little_something_about")}
                       rows={3}
                       defaultValue={props.user.bio}
                       className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"></textarea>
@@ -262,8 +256,19 @@ export default function Settings(props: Props) {
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
-                      buttonMsg="Change avatar"
-                      handleAvatarChange={handleAvatarChange}
+                      buttonMsg={t("change_avatar")}
+                      handleAvatarChange={(newAvatar) => {
+                        avatarRef.current.value = newAvatar;
+                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                          window.HTMLInputElement.prototype,
+                          "value"
+                        ).set;
+                        nativeInputValueSetter.call(avatarRef.current, newAvatar);
+                        const ev2 = new Event("input", { bubbles: true });
+                        avatarRef.current.dispatchEvent(ev2);
+                        updateProfileHandler(ev2);
+                        setImageSrc(newAvatar);
+                      }}
                       imageSrc={imageSrc}
                     />
                   </div>
@@ -271,12 +276,12 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="language" className="block text-sm font-medium text-gray-700">
-                    Language
+                    {t("language")}
                   </label>
                   <div className="mt-1">
                     <Select
                       id="languageSelect"
-                      value={selectedLanguage || locale}
+                      value={selectedLanguage || props.localeProp}
                       onChange={setSelectedLanguage}
                       classNamePrefix="react-select"
                       className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
@@ -286,7 +291,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                    Timezone
+                    {t("timezone")}
                   </label>
                   <div className="mt-1">
                     <TimezoneSelect
@@ -300,7 +305,7 @@ export default function Settings(props: Props) {
                 </div>
                 <div>
                   <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
-                    First Day of Week
+                    {t("first_day_of_week")}
                   </label>
                   <div className="mt-1">
                     <Select
@@ -310,15 +315,15 @@ export default function Settings(props: Props) {
                       classNamePrefix="react-select"
                       className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
                       options={[
-                        { value: "Sunday", label: "Sunday" },
-                        { value: "Monday", label: "Monday" },
+                        { value: "Sunday", label: t("sunday") },
+                        { value: "Monday", label: t("monday") },
                       ]}
                     />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                    Single Theme
+                    {t("single_theme")}
                   </label>
                   <div className="my-1">
                     <Select
@@ -327,7 +332,7 @@ export default function Settings(props: Props) {
                       defaultValue={selectedTheme || themeOptions[0]}
                       value={selectedTheme || themeOptions[0]}
                       onChange={setSelectedTheme}
-                      className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
+                      className="shadow-sm | { value: string } focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
                       options={themeOptions}
                     />
                   </div>
@@ -344,7 +349,7 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                        Automatically adjust theme based on invitee preferences
+                        {t("automatically_adjust_theme")}
                       </label>
                     </div>
                   </div>
@@ -356,10 +361,10 @@ export default function Settings(props: Props) {
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Cal.com branding{" "}
+                        {t("disable_cal_branding")}{" "}
                         {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                       </label>
-                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
+                      <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                     </div>
                   </div>
                 </div>
@@ -404,16 +409,10 @@ export default function Settings(props: Props) {
             </div>
             <hr className="mt-8" />
             <div className="py-4 flex justify-end">
-              <Button type="submit">Save</Button>
+              <Button type="submit">{t("save")}</Button>
             </div>
           </div>
         </form>
-        <Modal
-          heading="Profile updated successfully"
-          description="Your user profile has been updated successfully."
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
       </SettingsShell>
     </Shell>
   );
@@ -460,7 +459,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

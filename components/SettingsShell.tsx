@@ -1,28 +1,32 @@
 import { CodeIcon, CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import NavTabs from "./NavTabs";
 
 export default function SettingsShell({ children }: { children: React.ReactNode }) {
+  const { t } = useLocale();
+
   const tabs = [
     {
-      name: "Profile",
+      name: t("profile"),
       href: "/settings/profile",
       icon: UserIcon,
     },
     {
-      name: "Security",
+      name: t("security"),
       href: "/settings/security",
       icon: KeyIcon,
     },
-    { name: "Embed & Webhooks", href: "/settings/embed", icon: CodeIcon },
+    { name: t("embed_and_webhooks"), href: "/settings/embed", icon: CodeIcon },
     {
-      name: "Teams",
+      name: t("teams"),
       href: "/settings/teams",
       icon: UserGroupIcon,
     },
     {
-      name: "Billing",
+      name: t("billing"),
       href: "/settings/billing",
       icon: CreditCardIcon,
     },

@@ -12,8 +12,6 @@
 # testing
 /coverage
 .nyc_output
-cypress/videos
-cypress/screenshots
 playwright/videos
 playwright/screenshots
 

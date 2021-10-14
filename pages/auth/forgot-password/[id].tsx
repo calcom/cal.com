@@ -1,6 +1,6 @@
 import { ResetPasswordRequest } from "@prisma/client";
 import dayjs from "dayjs";
-import debounce from "lodash.debounce";
+import debounce from "lodash/debounce";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/client";
 import Link from "next/link";

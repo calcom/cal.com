@@ -19,7 +19,6 @@ interface EnableTwoFactorModalProps {
    * Called when the user enables two-factor auth
    */
   onEnable: () => void;
-  localeProp: string;
 }
 
 enum SetupStep {
@@ -47,7 +46,7 @@ const WithStep = ({
   return step === current ? children : null;
 };
 
-const EnableTwoFactorModal = ({ onEnable, onCancel, localeProp }: EnableTwoFactorModalProps) => {
+const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps) => {
   const [step, setStep] = useState(SetupStep.ConfirmPassword);
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
@@ -55,7 +54,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, localeProp }: EnableTwoFacto
   const [secret, setSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { t } = useLocale({ localeProp });
+  const { t } = useLocale();
 
   async function handleSetup(e: SyntheticEvent) {
     e.preventDefault();

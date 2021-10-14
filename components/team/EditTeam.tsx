@@ -3,11 +3,11 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
+import showToast from "@lib/notification";
 import { Team } from "@lib/team";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
-import Modal from "@components/Modal";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import Avatar from "@components/ui/Avatar";
@@ -17,11 +17,7 @@ import ErrorAlert from "@components/ui/alerts/Error";
 
 import MemberList from "./MemberList";
 
-export default function EditTeam(props: {
-  localeProp: string;
-  team: Team | undefined | null;
-  onCloseEdit: () => void;
-}) {
+export default function EditTeam(props: { team: Team | undefined | null; onCloseEdit: () => void }) {
   const [members, setMembers] = useState([]);
 
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
@@ -30,12 +26,11 @@ export default function EditTeam(props: {
   const hideBrandingRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const logoRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const [hasErrors, setHasErrors] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [inviteModalTeam, setInviteModalTeam] = useState<Team | null | undefined>();
   const [errorMessage, setErrorMessage] = useState("");
   const [imageSrc, setImageSrc] = useState<string>("");
-  const { t, locale } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
 
   const loadMembers = () =>
     fetch("/api/teams/" + props.team?.id + "/membership")
@@ -100,7 +95,7 @@ export default function EditTeam(props: {
     })
       .then(handleError)
       .then(() => {
-        setSuccessModalOpen(true);
+        showToast(t("your_team_updated_successfully"), "success");
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -112,10 +107,6 @@ export default function EditTeam(props: {
   const onMemberInvitationModalExit = () => {
     loadMembers();
     setShowMemberInvitationModal(false);
-  };
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
   };
 
   const handleLogoChange = (newLogo: string) => {
@@ -235,12 +226,7 @@ export default function EditTeam(props: {
                 </div>
                 <div>
                   {!!members.length && (
-                    <MemberList
-                      localeProp={locale}
-                      members={members}
-                      onRemoveMember={onRemoveMember}
-                      onChange={loadMembers}
-                    />
+                    <MemberList members={members} onRemoveMember={onRemoveMember} onChange={loadMembers} />
                   )}
                   <hr className="mt-6" />
                 </div>
@@ -278,7 +264,6 @@ export default function EditTeam(props: {
                         {t("disband_team")}
                       </DialogTrigger>
                       <ConfirmationDialogContent
-                        localeProp={locale}
                         variety="danger"
                         title={t("disband_team")}
                         confirmBtnText={t("confirm_disband_team")}
@@ -298,18 +283,8 @@ export default function EditTeam(props: {
             </div>
           </div>
         </form>
-        <Modal
-          heading={t("team_updated_successfully")}
-          description={t("your_team_updated_successfully")}
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
         {showMemberInvitationModal && (
-          <MemberInvitationModal
-            localeProp={locale}
-            team={inviteModalTeam}
-            onExit={onMemberInvitationModalExit}
-          />
+          <MemberInvitationModal team={inviteModalTeam} onExit={onMemberInvitationModalExit} />
         )}
       </div>
     </div>

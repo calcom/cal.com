@@ -10,8 +10,8 @@ import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
-const Team = ({ team, localeProp }) => {
-  const { t } = useLocale({ localeProp: localeProp });
+const Team = ({ team }) => {
+  const { t } = useLocale();
 
   const Member = ({ member }) => {
     const classes = classnames(

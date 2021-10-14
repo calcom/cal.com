@@ -1,13 +1,17 @@
 import { XIcon } from "@heroicons/react/outline";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
 export default function NoMeetingFound() {
+  const { t } = useLocale();
+
   return (
     <div>
-      <HeadSeo title={`No meeting found`} description={`No Meeting found`} />
+      <HeadSeo title={t("no_meeting_found")} description={t("no_meeting_found")} />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -26,19 +30,17 @@ export default function NoMeetingFound() {
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
-                      No Meeting Found
+                      {t("no_meeting_found")}
                     </h3>
                   </div>
                   <div className="mt-2">
-                    <p className="text-sm text-center text-gray-500">
-                      This meeting does not exist. Contact the meeting owner for an updated link.
-                    </p>
+                    <p className="text-sm text-center text-gray-500">{t("no_meeting_found_description")}</p>
                   </div>
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
                     <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRightIcon}>
-                      Go back home
+                      {t("go_back_home")}
                     </Button>
                   </div>
                 </div>
