@@ -22,6 +22,7 @@ import { shouldShowOnboarding } from "@lib/getting-started";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
+import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 import Dropdown, {
@@ -158,6 +159,16 @@ export default function Shell(props: {
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
+  const i18n = trpc.useQuery(["viewer.i18n"]);
+
+  if (i18n.status === "loading") {
+    // show spinner whilst i18n is loading to avoid language flicker
+    return (
+      <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <>
       <HeadSeo
