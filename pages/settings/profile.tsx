@@ -7,12 +7,8 @@ import TimezoneSelect from "react-timezone-select";
 
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import {
-  getOrSetUserLocaleFromHeaders,
-  localeLabels,
-  localeOptions,
-  OptionType,
-} from "@lib/core/i18n/i18n.utils";
+import { getOrSetUserLocaleFromHeaders, localeOptions } from "@lib/core/i18n/i18n.utils";
+import { nameOfDay } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import showToast from "@lib/notification";
@@ -58,12 +54,12 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
       />
       <Dialog open={modelOpen}>
         <DialogContent>
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
-            <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-yellow-100 rounded-full">
+            <InformationCircleIcon className="w-6 h-6 text-yellow-400" aria-hidden="true" />
           </div>
-          <div className="sm:flex sm:items-start mb-4">
+          <div className="mb-4 sm:flex sm:items-start">
             <div className="mt-3 sm:mt-0 sm:text-left">
-              <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
+              <h3 className="text-lg font-bold leading-6 text-gray-900 font-cal" id="modal-title">
                 {t("only_available_on_pro_plan")}
               </h3>
             </div>
@@ -83,7 +79,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
             <DialogClose asChild>
               <Button
-                className="btn-wide btn-primary text-center table-cell"
+                className="table-cell text-center btn-wide btn-primary"
                 onClick={() => setModalOpen(false)}>
                 {t("dismiss")}
               </Button>
@@ -113,11 +109,12 @@ export default function Settings(props: Props) {
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
     value: props.user.weekStart,
-    label: "",
+    label: nameOfDay(props.localeProp, props.user.weekStart === "Sunday" ? 0 : 1),
   });
+
   const [selectedLanguage, setSelectedLanguage] = useState<OptionType>({
     value: props.localeProp,
-    label: props.localeLabels[props.localeProp],
+    label: props.localeOptions.find((option) => option.value === props.localeProp)?.label,
   });
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
@@ -127,8 +124,6 @@ export default function Settings(props: Props) {
     setSelectedTheme(
       props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : undefined
     );
-    setSelectedWeekStartDay({ value: props.user.weekStart, label: props.user.weekStart });
-    setSelectedLanguage({ value: props.localeProp, label: props.localeLabels[props.localeProp] });
   }, []);
 
   async function updateProfileHandler(event) {
@@ -177,7 +172,7 @@ export default function Settings(props: Props) {
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
                 <div className="block sm:flex">
-                  <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
+                  <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
                     <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
@@ -192,14 +187,14 @@ export default function Settings(props: Props) {
                       autoComplete="given-name"
                       placeholder={t("your_name")}
                       required
-                      className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={props.user.name}
                     />
                   </div>
                 </div>
 
                 <div className="block sm:flex">
-                  <div className="w-full sm:w-1/2 sm:mr-2 mb-6">
+                  <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                       {t("email")}
                     </label>
@@ -209,7 +204,7 @@ export default function Settings(props: Props) {
                       id="email"
                       placeholder={t("your_email")}
                       disabled
-                      className="mt-1 block w-full py-2 px-3 text-gray-500 border  border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 text-gray-500 border border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
                       defaultValue={props.user.email}
                     />
                     <p className="mt-2 text-sm text-gray-500" id="email-description">
@@ -233,14 +228,14 @@ export default function Settings(props: Props) {
                       placeholder={t("little_something_about")}
                       rows={3}
                       defaultValue={props.user.bio}
-                      className="shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"></textarea>
+                      className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"></textarea>
                   </div>
                 </div>
                 <div>
-                  <div className="mt-1 flex">
+                  <div className="flex mt-1">
                     <Avatar
                       displayName={props.user.name}
-                      className="relative rounded-full w-10 h-10"
+                      className="relative w-10 h-10 rounded-full"
                       gravatarFallbackMd5={props.user.emailMd5}
                       imageSrc={imageSrc}
                     />
@@ -250,7 +245,7 @@ export default function Settings(props: Props) {
                       name="avatar"
                       id="avatar"
                       placeholder="URL"
-                      className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={imageSrc}
                     />
                     <ImageUploader
@@ -284,7 +279,7 @@ export default function Settings(props: Props) {
                       value={selectedLanguage || props.localeProp}
                       onChange={setSelectedLanguage}
                       classNamePrefix="react-select"
-                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
+                      className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       options={props.localeOptions}
                     />
                   </div>
@@ -299,7 +294,7 @@ export default function Settings(props: Props) {
                       value={selectedTimeZone}
                       onChange={setSelectedTimeZone}
                       classNamePrefix="react-select"
-                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
+                      className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                     />
                   </div>
                 </div>
@@ -313,10 +308,10 @@ export default function Settings(props: Props) {
                       value={selectedWeekStartDay}
                       onChange={setSelectedWeekStartDay}
                       classNamePrefix="react-select"
-                      className="react-select-container border border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm"
+                      className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       options={[
-                        { value: "Sunday", label: t("sunday") },
-                        { value: "Monday", label: t("monday") },
+                        { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
+                        { value: "Monday", label: nameOfDay(props.localeProp, 1) },
                       ]}
                     />
                   </div>
@@ -336,7 +331,7 @@ export default function Settings(props: Props) {
                       options={themeOptions}
                     />
                   </div>
-                  <div className="mt-8 relative flex items-start">
+                  <div className="relative flex items-start mt-8">
                     <div className="flex items-center h-5">
                       <input
                         id="theme-adjust-os"
@@ -344,7 +339,7 @@ export default function Settings(props: Props) {
                         type="checkbox"
                         onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
                         checked={!selectedTheme}
-                        className="focus:ring-neutral-500 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm"
+                        className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
                       />
                     </div>
                     <div className="ml-3 text-sm">
@@ -369,46 +364,9 @@ export default function Settings(props: Props) {
                   </div>
                 </div>
               </div>
-
-              {/*<div className="mt-6 flex-grow lg:mt-0 lg:ml-6 lg:flex-grow-0 lg:flex-shrink-0">
-                <p className="mb-2 text-sm font-medium text-gray-700" aria-hidden="true">
-                  Photo
-                </p>
-                <div className="mt-1 lg:hidden">
-                  <div className="flex items-center">
-                    <div
-                      className="flex-shrink-0 inline-block rounded-full overflow-hidden h-12 w-12"
-                      aria-hidden="true">
-                      <Avatar user={props.user} className="rounded-full h-full w-full" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="hidden relative rounded-full overflow-hidden lg:block">
-                  <Avatar
-                    user={props.user}
-                    className="relative rounded-full w-40 h-40"
-                    fallback={<div className="relative bg-neutral-900 rounded-full w-40 h-40"></div>}
-                  />
-                </div>
-                <div className="mt-4">
-                  <label htmlFor="avatar" className="block text-sm font-medium text-gray-700">
-                    Avatar URL
-                  </label>
-                  <input
-                    ref={avatarRef}
-                    type="text"
-                    name="avatar"
-                    id="avatar"
-                    placeholder="URL"
-                    className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                    defaultValue={props.user.avatar}
-                  />
-                </div>
-              </div>*/}
             </div>
             <hr className="mt-8" />
-            <div className="py-4 flex justify-end">
+            <div className="flex justify-end py-4">
               <Button type="submit">{t("save")}</Button>
             </div>
           </div>
@@ -453,8 +411,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       session,
       localeProp: locale,
-      localeOptions,
-      localeLabels,
+      localeOptions: localeOptions(locale),
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
