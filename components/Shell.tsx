@@ -23,6 +23,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
+import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 import Dropdown, {
@@ -32,6 +33,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
+import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useMeQuery() {
@@ -160,6 +162,16 @@ export default function Shell(props: {
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
+  const i18n = useViewerI18n();
+
+  if (i18n.status === "loading") {
+    // show spinner whilst i18n is loading to avoid language flicker
+    return (
+      <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <>
       <HeadSeo
