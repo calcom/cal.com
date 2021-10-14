@@ -165,7 +165,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       advancedPayload.availability = enteredAvailability || undefined;
       advancedPayload.customInputs = customInputs;
       advancedPayload.timeZone = selectedTimeZone;
-      advancedPayload.hidden = hidden;
       advancedPayload.disableGuests = formData.disableGuests === "on";
       advancedPayload.requiresConfirmation = formData.requiresConfirmation === "on";
     }
@@ -176,6 +175,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       slug: asStringOrThrow(formData.slug),
       description: asStringOrThrow(formData.description),
       length: asNumberOrThrow(formData.length),
+      hidden,
       locations,
       ...advancedPayload,
       ...(team
