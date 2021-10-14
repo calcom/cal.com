@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import * as trpc from "@trpc/server";
-import { Maybe } from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
 import { NextApiRequest } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession, Session } from "@lib/auth";
 import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
+
+import * as trpc from "@trpc/server";
+import { Maybe } from "@trpc/server";
+import * as trpcNext from "@trpc/server/adapters/next";
 
 async function getUserFromSession({ session, req }: { session: Maybe<Session>; req: NextApiRequest }) {
   if (!session?.user?.id) {
@@ -37,6 +39,9 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
           id: true,
           type: true,
           key: true,
+        },
+        orderBy: {
+          id: "asc",
         },
       },
       selectedCalendars: {
@@ -80,7 +85,9 @@ export const createContext = async ({ req, res }: trpcNext.CreateNextContextOpti
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
+  const i18n = await serverSideTranslations(locale, ["common"]);
   return {
+    i18n,
     prisma,
     session,
     user,

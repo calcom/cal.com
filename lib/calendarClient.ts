@@ -388,7 +388,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["location"] = event.location;
           }
 
-          if (event.conferenceData) {
+          if (event.conferenceData && event.location === "integrations:google:meet") {
             payload["conferenceData"] = event.conferenceData;
           }
 
