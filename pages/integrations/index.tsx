@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ReactNode, useEffect, useState } from "react";
+import { Fragment, ReactNode, useState } from "react";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -56,13 +56,15 @@ function ConnectIntegration(props: { type: string; render: (renderProps: ButtonB
     window.location.href = json.url;
     setIsLoading(true);
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // refetch intergrations when modal closes
+  const [isModalOpen, _setIsModalOpen] = useState(false);
   const utils = trpc.useContext();
-  useEffect(() => {
+
+  const setIsModalOpen: typeof _setIsModalOpen = (v) => {
+    _setIsModalOpen(v);
+    // refetch intergrations on modal toggles
+
     utils.invalidateQueries(["viewer.integrations"]);
-  }, [isModalOpen, utils]);
+  };
 
   return (
     <>
@@ -340,8 +342,8 @@ export default function IntegrationsPage() {
               {data.connectedCalendars.length > 0 && (
                 <>
                   <List>
-                    {data.connectedCalendars.map((item, index) => (
-                      <li key={index}>
+                    {data.connectedCalendars.map((item) => (
+                      <Fragment key={item.credentialId}>
                         {item.calendars ? (
                           <IntegrationListItem
                             {...item.integration}
@@ -385,7 +387,7 @@ export default function IntegrationsPage() {
                             }
                           />
                         )}
-                      </li>
+                      </Fragment>
                     ))}
                   </List>
                   <ShellSubHeading
