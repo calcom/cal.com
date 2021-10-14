@@ -32,6 +32,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
+import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useMeQuery() {
@@ -159,7 +160,7 @@ export default function Shell(props: {
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
-  const i18n = trpc.useQuery(["viewer.i18n"]);
+  const i18n = useViewerI18n();
 
   if (i18n.status === "loading") {
     // show spinner whilst i18n is loading to avoid language flicker
