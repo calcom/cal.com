@@ -1,5 +1,4 @@
 import { ArrowLeftIcon } from "@heroicons/react/solid";
-import { EventType } from "@prisma/client";
 import { useEffect, useRef, useState } from "react";
 
 import showToast from "@lib/notification";
@@ -8,11 +7,7 @@ import { Webhook } from "@lib/webhook";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
-export default function EditTeam(props: {
-  webhook: Webhook;
-  eventTypes: EventType[];
-  onCloseEdit: () => void;
-}) {
+export default function EditTeam(props: { webhook: Webhook; onCloseEdit: () => void }) {
   const [bookingCreated, setBookingCreated] = useState(
     props.webhook.eventTriggers.includes("booking_created")
   );

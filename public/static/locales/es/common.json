@@ -174,7 +174,7 @@
   "profile_updated_successfully": "Perfil Actualizado con Éxito",
   "your_user_profile_updated_successfully": "Su perfil de usuario se ha actualizado correctamente.",
   "user_cannot_found_db": "El usuario parece haber iniciado sesión pero no se puede encontrar en la base de datos",
-  "embed_and_webhooks": "Insertar &amp; Webhooks",
+  "embed_and_webhooks": "Incrustrar y Webhooks",
   "enabled": "Activado",
   "disabled": "Desactivado",
   "billing": "Facturación",

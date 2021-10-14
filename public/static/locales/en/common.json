@@ -22,6 +22,7 @@
   "on": "on",
   "and": "and",
   "calendar_shows_busy_between": "Your calendar shows you as busy between",
+  "calendar_no_busy_slots": "Your don't have busy slots in this date.",
   "troubleshoot": "Troubleshoot",
   "troubleshoot_description": "Understand why certain times are available and others are blocked.",
   "overview_of_day": "Here is an overview of your day on",

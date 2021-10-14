@@ -11,7 +11,7 @@ import {
 import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
@@ -49,6 +49,7 @@ function useMeQuery() {
 function useRedirectToLoginIfUnauthenticated() {
   const [session, loading] = useSession();
   const router = useRouter();
+  const query = useMeQuery();
 
   useEffect(() => {
     if (!loading && !session) {
@@ -60,6 +61,27 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
   }, [loading, session, router]);
+
+  if (query.status !== "loading" && !query.data) {
+    router.replace("/auth/login");
+  }
+}
+
+function useRedirectToOnboardingIfNeeded() {
+  const [session, loading] = useSession();
+  const router = useRouter();
+  const query = useMeQuery();
+  const user = query.data;
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (shouldShowOnboarding(user)) {
+        router.replace({
+          pathname: "/getting-started",
+        });
+      }
+    }
+  }, [loading, session, router, user]);
 }
 
 export function ShellSubHeading(props: {
@@ -90,20 +112,10 @@ export default function Shell(props: {
   CTA?: ReactNode;
 }) {
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   useRedirectToLoginIfUnauthenticated();
+  useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
-  const query = useMeQuery();
-
-  useEffect(
-    function redirectToOnboardingIfNeeded() {
-      if (query.data && shouldShowOnboarding(query.data)) {
-        router.push("/getting-started");
-      }
-    },
-    [query.data, router]
-  );
 
   const navigation = [
     {
@@ -142,11 +154,7 @@ export default function Shell(props: {
     telemetry.withJitsu((jitsu) => {
       return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
-  }, [telemetry]);
-
-  if (query.status !== "loading" && !query.data) {
-    router.replace("/auth/login");
-  }
+  }, [telemetry, router.asPath]);
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
