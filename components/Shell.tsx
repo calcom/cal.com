@@ -37,14 +37,7 @@ import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useMeQuery() {
-  const [session] = useSession();
   const meQuery = trpc.useQuery(["viewer.me"]);
-
-  useEffect(() => {
-    // refetch if sesion changes
-    meQuery.refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
 
   return meQuery;
 }
