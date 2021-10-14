@@ -130,7 +130,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
-  const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>(undefined);
+  const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>();
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState<OptionTypeBase>({
     value: props.user.weekStart,
@@ -292,7 +292,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedLanguage || props.localeProp}
                   onChange={setSelectedLanguage}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                   options={localeOptions}
                 />
               </div>
