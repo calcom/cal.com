@@ -2,7 +2,7 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { RefObject, useEffect, useRef, useState } from "react";
-import Select from "react-select";
+import Select, { OptionsType, OptionTypeBase } from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -105,14 +105,14 @@ export default function Settings(props: Props) {
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
-  const [selectedTheme, setSelectedTheme] = useState<undefined | { value: string; label: string }>(undefined);
+  const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>();
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
-  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
+  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState<OptionTypeBase>({
     value: props.user.weekStart,
     label: nameOfDay(props.localeProp, props.user.weekStart === "Sunday" ? 0 : 1),
   });
 
-  const [selectedLanguage, setSelectedLanguage] = useState<OptionType>({
+  const [selectedLanguage, setSelectedLanguage] = useState<OptionTypeBase>({
     value: props.localeProp,
     label: props.localeOptions.find((option) => option.value === props.localeProp)?.label,
   });
@@ -124,6 +124,7 @@ export default function Settings(props: Props) {
     setSelectedTheme(
       props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : undefined
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function updateProfileHandler(event) {
@@ -337,7 +338,7 @@ export default function Settings(props: Props) {
                         id="theme-adjust-os"
                         name="theme-adjust-os"
                         type="checkbox"
-                        onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
+                        onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
                         checked={!selectedTheme}
                         className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
                       />
@@ -411,7 +412,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       session,
       localeProp: locale,
-      localeOptions: localeOptions(locale),
+      localeOptions: localeOptions(locale) as OptionsType<OptionTypeBase>,
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),

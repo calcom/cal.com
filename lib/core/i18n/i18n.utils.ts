@@ -1,7 +1,6 @@
 import { Maybe } from "@trpc/server";
 import parser from "accept-language-parser";
 import { IncomingMessage } from "http";
-import { OptionTypeBase } from "react-select";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -45,7 +44,7 @@ export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage): Promi
   return preferredLocale;
 };
 
-export const localeOptions: OptionTypeBase[] = (displayLocale: string | string[]) => {
+export const localeOptions = (displayLocale: string | string[]) => {
   return i18n.locales.map((locale) => ({
     value: locale,
     label: new Intl.DisplayNames(displayLocale, { type: "language" }).of(locale),
