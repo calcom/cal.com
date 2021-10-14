@@ -4,7 +4,7 @@ import React, { forwardRef } from "react";
 import classNames from "@lib/classNames";
 import { SVGComponent } from "@lib/types/SVGComponent";
 
-export type ButtonProps = {
+export type ButtonBaseProps = {
   color?: "primary" | "secondary" | "minimal" | "warn";
   size?: "base" | "sm" | "lg" | "fab" | "icon";
   loading?: boolean;
@@ -13,10 +13,12 @@ export type ButtonProps = {
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
   shallow?: boolean;
-} & (
-  | (Omit<JSX.IntrinsicElements["a"], "href"> & { href: LinkProps["href"] })
-  | (JSX.IntrinsicElements["button"] & { href?: never })
-);
+};
+export type ButtonProps = ButtonBaseProps &
+  (
+    | (Omit<JSX.IntrinsicElements["a"], "href"> & { href: LinkProps["href"] })
+    | (JSX.IntrinsicElements["button"] & { href?: never })
+  );
 
 export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(
   props: ButtonProps,

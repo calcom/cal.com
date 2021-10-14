@@ -12,13 +12,12 @@ import Button from "@components/ui/Button";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 
 export default function MemberListItem(props: {
-  localeProp: string;
   member: Member;
   onActionSelect: (text: string) => void;
   onChange: (text: string) => void;
 }) {
   const [member] = useState(props.member);
-  const { t, locale } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
 
   return (
     member && (
@@ -80,7 +79,6 @@ export default function MemberListItem(props: {
                       </Button>
                     </DialogTrigger>
                     <ConfirmationDialogContent
-                      localeProp={locale}
                       variety="danger"
                       title={t("remove_member")}
                       confirmBtnText={t("confirm_remove_member")}

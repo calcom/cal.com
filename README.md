@@ -144,7 +144,7 @@ yarn dx
 
 5. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
    ```sh
-   npx prisma db push
+   npx prisma migrate deploy
    ```
 6. Run (in development mode)
    ```sh

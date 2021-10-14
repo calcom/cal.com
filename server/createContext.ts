@@ -1,13 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { NextApiRequest } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
+import { getSession, Session } from "@lib/auth";
+import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
+import prisma from "@lib/prisma";
+import { defaultAvatarSrc } from "@lib/profile";
+
 import * as trpc from "@trpc/server";
 import { Maybe } from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
 
-import { getSession, Session } from "@lib/auth";
-import prisma from "@lib/prisma";
-import { defaultAvatarSrc } from "@lib/profile";
-
-async function getUserFromSession(session: Maybe<Session>) {
+async function getUserFromSession({ session, req }: { session: Maybe<Session>; req: NextApiRequest }) {
   if (!session?.user?.id) {
     return null;
   }
@@ -30,6 +34,24 @@ async function getUserFromSession(session: Maybe<Session>) {
       createdDate: true,
       hideBranding: true,
       avatar: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      },
+      selectedCalendars: {
+        select: {
+          externalId: true,
+          integration: true,
+        },
+      },
+      completedOnboarding: true,
+      locale: true,
     },
   });
 
@@ -42,11 +64,14 @@ async function getUserFromSession(session: Maybe<Session>) {
     return null;
   }
   const avatar = user.avatar || defaultAvatarSrc({ email });
+
+  const locale = user.locale ?? getLocaleFromHeaders(req);
   return {
     ...user,
     avatar,
     email,
     username,
+    locale,
   };
 }
 
@@ -58,10 +83,15 @@ export const createContext = async ({ req, res }: trpcNext.CreateNextContextOpti
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
 
+  const user = await getUserFromSession({ session, req });
+  const locale = user?.locale ?? getLocaleFromHeaders(req);
+  const i18n = await serverSideTranslations(locale, ["common"]);
   return {
+    i18n,
     prisma,
     session,
-    user: await getUserFromSession(session),
+    user,
+    locale,
   };
 };
 

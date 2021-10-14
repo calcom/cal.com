@@ -11,7 +11,6 @@ import { useSlots } from "@lib/hooks/useSlots";
 import Loader from "@components/Loader";
 
 type AvailableTimesProps = {
-  localeProp: string;
   workingHours: {
     days: number[];
     startTime: number;
@@ -29,7 +28,6 @@ type AvailableTimesProps = {
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
-  localeProp,
   date,
   eventLength,
   eventTypeId,
@@ -39,7 +37,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   users,
   schedulingType,
 }) => {
-  const { t } = useLocale({ localeProp: localeProp });
+  const { t } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
 
@@ -68,7 +66,11 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         {!loading &&
           slots?.length > 0 &&
           slots.map((slot) => {
-            const bookingUrl = {
+            type BookingURL = {
+              pathname: string;
+              query: Record<string, string | number | string[] | undefined>;
+            };
+            const bookingUrl: BookingURL = {
               pathname: "book",
               query: {
                 ...router.query,
@@ -78,7 +80,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             };
 
             if (rescheduleUid) {
-              bookingUrl.query.rescheduleUid = rescheduleUid;
+              bookingUrl.query.rescheduleUid = rescheduleUid as string;
             }
 
             if (schedulingType === SchedulingType.ROUND_ROBIN) {
