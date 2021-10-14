@@ -130,14 +130,14 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
-  const [selectedTheme, setSelectedTheme] = useState<undefined | { value: string; label: string }>(undefined);
+  const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>(undefined);
   const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
-  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
+  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState<OptionTypeBase>({
     value: props.user.weekStart,
     label: nameOfDay(props.localeProp, props.user.weekStart === "Sunday" ? 0 : 1),
   });
 
-  const [selectedLanguage, setSelectedLanguage] = useState<OptionType>({
+  const [selectedLanguage, setSelectedLanguage] = useState<OptionTypeBase>({
     value: props.localeProp,
     label: localeOptions.find((option) => option.value === props.localeProp)?.label,
   });
