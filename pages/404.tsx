@@ -4,40 +4,42 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import { HeadSeo } from "@components/seo/head-seo";
 
-const links = [
-  {
-    title: "Documentation",
-    description: "Learn how to integrate our tools with your app",
-    icon: DocumentTextIcon,
-    href: "https://docs.cal.com",
-  },
-  {
-    title: "API Reference",
-    description: "A complete API reference for our libraries",
-    icon: CodeIcon,
-    href: "https://api.docs.cal.com",
-  },
-  {
-    title: "Blog",
-    description: "Read our latest news and articles",
-    icon: BookOpenIcon,
-    href: "https://cal.com/blog",
-  },
-];
-
 export default function Custom404() {
+  const { t } = useLocale();
   const router = useRouter();
   const username = router.asPath.replace("%20", "-");
+  const links = [
+    {
+      title: t("documentation"),
+      description: t("documentation_description"),
+      icon: DocumentTextIcon,
+      href: "https://docs.cal.com",
+    },
+    {
+      title: t("api_reference"),
+      description: t("api_reference_description"),
+      icon: CodeIcon,
+      href: "https://api.docs.cal.com",
+    },
+    {
+      title: t("blog"),
+      description: t("blog_description"),
+      icon: BookOpenIcon,
+      href: "https://cal.com/blog",
+    },
+  ];
 
   const isEventType404 = router.asPath.includes("/event-types");
 
   return (
     <>
       <HeadSeo
-        title="404: This page could not be found."
-        description="404: This page could not be found."
+        title={t("404_page_not_found")}
+        description={t("404_page_not_found")}
         nextSeoProps={{
           nofollow: true,
           noindex: true,
@@ -48,21 +50,21 @@ export default function Custom404() {
           <div className="text-center">
             <p className="text-sm font-semibold text-black uppercase tracking-wide">404 error</p>
             <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
-              This page does not exist.
+              {t("page_doesnt_exist")}
             </h1>
             {isEventType404 ? (
-              <span className="inline-block mt-2 text-lg ">
-                Check for spelling mistakes or go back to the previous page.
-              </span>
+              <span className="inline-block mt-2 text-lg ">{t("check_spelling_mistakes_or_go_back")}</span>
             ) : (
               <a href="https://cal.com/signup" className="inline-block mt-2 text-lg ">
-                The username <strong className="text-blue-500">cal.com{username}</strong> is still available.{" "}
-                <span className="text-blue-500">Register now</span>.
+                {t("the_username")} <strong className="text-blue-500">cal.com{username}</strong>{" "}
+                {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
               </a>
             )}
           </div>
           <div className="mt-12">
-            <h2 className="text-sm font-semibold text-gray-500 tracking-wide uppercase">Popular pages</h2>
+            <h2 className="text-sm font-semibold text-gray-500 tracking-wide uppercase">
+              {t("popular_pages")}
+            </h2>
             {!isEventType404 && (
               <ul role="list" className="mt-4">
                 <li className="border-2 border-green-500 px-4 py-2">
@@ -77,11 +79,11 @@ export default function Custom404() {
                         <span className="rounded-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-500">
                           <span className="focus:outline-none">
                             <span className="absolute inset-0" aria-hidden="true" />
-                            Register <strong className="text-green-500">{username}</strong>
+                            {t("register")} <strong className="text-green-500">{username}</strong>
                           </span>
                         </span>
                       </h3>
-                      <p className="text-base text-gray-500">Claim your username and schedule events</p>
+                      <p className="text-base text-gray-500">{t("claim_username_and_schedule_events")}</p>
                     </div>
                     <div className="flex-shrink-0 self-center">
                       <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -146,7 +148,7 @@ export default function Custom404() {
                         Slack
                       </span>
                     </h3>
-                    <p className="text-base text-gray-500">Join our community</p>
+                    <p className="text-base text-gray-500">{t("join_our_community")}</p>
                   </div>
                   <div className="flex-shrink-0 self-center">
                     <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -157,7 +159,8 @@ export default function Custom404() {
             <div className="mt-8">
               <Link href="/">
                 <a className="text-base font-medium text-black hover:text-gray-500">
-                  Or go back home<span aria-hidden="true"> &rarr;</span>
+                  {t("or_go_back_home")}
+                  <span aria-hidden="true"> &rarr;</span>
                 </a>
               </Link>
             </div>
