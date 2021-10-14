@@ -43,10 +43,3 @@ export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage): Promi
 
   return preferredLocale;
 };
-
-export const localeOptions = (displayLocale: string | string[]) => {
-  return i18n.locales.map((locale) => ({
-    value: locale,
-    label: new Intl.DisplayNames(displayLocale, { type: "language" }).of(locale),
-  }));
-};
