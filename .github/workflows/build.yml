@@ -50,7 +50,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    container: alpine:latest
     steps:
+      - name: Obtain Latest Git ONLY within container for checkout
+        run: apk add git --update-cache
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
