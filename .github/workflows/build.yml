@@ -52,7 +52,9 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Use Node 14
         uses: actions/setup-node@v1
