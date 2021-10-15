@@ -7856,6 +7856,10 @@ ts-pnp@^1.1.6:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/ts-pnp/-/ts-pnp-1.2.0.tgz#a500ad084b0798f1c3071af391e65912c86bca92"
 
+"tsc-files@git://github.com/calendso/tsc-files.git#feature/ignore-include":
+  version "0.0.0"
+  resolved "git://github.com/calendso/tsc-files.git#3cda4ca4a53110b1f361714a5ff91be796fbf2e0"
+
 tsdav@1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/tsdav/-/tsdav-1.0.6.tgz#65c22fc77d6516db234c1288ff9c9fed6730fef5"

@@ -137,13 +137,14 @@
     "tailwindcss": "^2.2.16",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
+    "tsc-files": "git://github.com/calendso/tsc-files.git#feature/ignore-include",
     "typescript": "^4.4.3"
   },
   "lint-staged": {
-    "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
+    "./{*,{ee,pages,components,lib,server}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint",
-      "yarn tsc --noEmit"
+      "tsc-files -ii --pretty --noEmit"
     ]
   }
 }
