@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { useMutation } from "react-query";
 
 import { HttpError } from "@lib/core/http/error";
+import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import TableActions, { ActionType } from "@components/ui/TableActions";
@@ -11,6 +12,7 @@ import TableActions, { ActionType } from "@components/ui/TableActions";
 type BookingItem = inferQueryOutput<"viewer.bookings">[number];
 
 function BookingListItem(booking: BookingItem) {
+  const { t } = useLocale();
   const utils = trpc.useContext();
   const mutation = useMutation(
     async (confirm: boolean) => {
@@ -37,14 +39,14 @@ function BookingListItem(booking: BookingItem) {
   const pendingActions: ActionType[] = [
     {
       id: "reject",
-      label: "Reject",
+      label: t("reject"),
       onClick: () => mutation.mutate(false),
       icon: BanIcon,
       disabled: mutation.isLoading,
     },
     {
       id: "confirm",
-      label: "Confirm",
+      label: t("confirm"),
       onClick: () => mutation.mutate(true),
       icon: CheckIcon,
       disabled: mutation.isLoading,
@@ -55,13 +57,13 @@ function BookingListItem(booking: BookingItem) {
   const bookedActions: ActionType[] = [
     {
       id: "cancel",
-      label: "Cancel",
+      label: t("cancel"),
       href: `/cancel/${booking.uid}`,
       icon: XIcon,
     },
     {
       id: "reschedule",
-      label: "Reschedule",
+      label: t("reschedule"),
       href: `/reschedule/${booking.uid}`,
       icon: ClockIcon,
     },
@@ -78,7 +80,7 @@ function BookingListItem(booking: BookingItem) {
         </div>
         {!booking.confirmed && !booking.rejected && (
           <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-            Unconfirmed
+            {t("unconfirmed")}
           </span>
         )}
       </td>
@@ -86,7 +88,7 @@ function BookingListItem(booking: BookingItem) {
         <div className="sm:hidden">
           {!booking.confirmed && !booking.rejected && (
             <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-              Unconfirmed
+              {t("unconfirmed")}
             </span>
           )}
           <div className="text-sm text-gray-900 font-medium">
@@ -117,7 +119,9 @@ function BookingListItem(booking: BookingItem) {
           <>
             {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}
             {booking.confirmed && !booking.rejected && <TableActions actions={bookedActions} />}
-            {!booking.confirmed && booking.rejected && <div className="text-sm text-gray-500">Rejected</div>}
+            {!booking.confirmed && booking.rejected && (
+              <div className="text-sm text-gray-500">{t("rejected")}</div>
+            )}
           </>
         ) : null}
       </td>

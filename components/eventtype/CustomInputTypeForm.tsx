@@ -3,12 +3,7 @@ import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import Select, { OptionTypeBase } from "react-select";
 
-const inputOptions: OptionTypeBase[] = [
-  { value: EventTypeCustomInputType.TEXT, label: "Text" },
-  { value: EventTypeCustomInputType.TEXTLONG, label: "Multiline Text" },
-  { value: EventTypeCustomInputType.NUMBER, label: "Number" },
-  { value: EventTypeCustomInputType.BOOL, label: "Checkbox" },
-];
+import { useLocale } from "@lib/hooks/useLocale";
 
 interface Props {
   onSubmit: SubmitHandler<IFormInput>;
@@ -19,6 +14,13 @@ interface Props {
 type IFormInput = EventTypeCustomInput;
 
 const CustomInputTypeForm: FC<Props> = (props) => {
+  const { t } = useLocale();
+  const inputOptions: OptionTypeBase[] = [
+    { value: EventTypeCustomInputType.TEXT, label: t("text") },
+    { value: EventTypeCustomInputType.TEXTLONG, label: t("multiline_text") },
+    { value: EventTypeCustomInputType.NUMBER, label: t("number") },
+    { value: EventTypeCustomInputType.BOOL, label: t("checkbox") },
+  ];
   const { selectedCustomInput } = props;
   const defaultValues = selectedCustomInput || { type: inputOptions[0].value };
   const { register, control, handleSubmit } = useForm<IFormInput>({
@@ -35,7 +37,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     <form onSubmit={handleSubmit(props.onSubmit)}>
       <div className="mb-2">
         <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-          Input type
+          {t("input_type")}
         </label>
         <Controller
           name="type"
@@ -57,7 +59,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
       </div>
       <div className="mb-2">
         <label htmlFor="label" className="block text-sm font-medium text-gray-700">
-          Label
+          {t("label")}
         </label>
         <div className="mt-1">
           <input
@@ -74,7 +76,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         selectedInputType === EventTypeCustomInputType.TEXTLONG) && (
         <div className="mb-2">
           <label htmlFor="placeholder" className="block text-sm font-medium text-gray-700">
-            Placeholder
+            {t("placeholder")}
           </label>
           <div className="mt-1">
             <input
@@ -96,7 +98,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           {...register("required")}
         />
         <label htmlFor="required" className="block text-sm font-medium text-gray-700">
-          Is required
+          {t("is_required")}
         </label>
       </div>
       <input
@@ -113,10 +115,10 @@ const CustomInputTypeForm: FC<Props> = (props) => {
       />
       <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
         <button type="submit" className="btn btn-primary">
-          Save
+          {t("save")}
         </button>
         <button onClick={onCancel} type="button" className="mr-2 btn btn-white">
-          Cancel
+          {t("cancel")}
         </button>
       </div>
     </form>
