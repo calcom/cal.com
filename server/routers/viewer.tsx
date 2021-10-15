@@ -211,7 +211,7 @@ const loggedInViewerRouter = createProtectedRouter()
         canAddEvents,
         user,
         // don't display event teams without event types,
-        eventTypes: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
+        eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
         // so we can show a dropdown when the user has teams
         profiles: eventTypeGroups.map((group) => ({
           teamId: group.teamId,

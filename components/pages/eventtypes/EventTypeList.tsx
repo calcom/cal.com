@@ -13,11 +13,12 @@ import { Tooltip } from "@components/Tooltip";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
-type EventTypes = inferQueryOutput<"viewer.eventTypes">["eventTypes"];
+type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
+type EventType = EventTypeGroup["eventTypes"][number];
 interface Props {
   profile: { slug: string | null };
   readOnly: boolean;
-  types: EventTypes[number]["eventTypes"];
+  types: EventType[];
 }
 
 const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {
