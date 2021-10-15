@@ -62,4 +62,4 @@ jobs:
       - name: Install deps
         uses: bahmutov/npm-install@v1
 
-      - run: check-changed-files
+      - run: yarn check-changed-files
