@@ -100,7 +100,7 @@ export default function TeamListItem(props: {
               <span className="self-center h-6 px-3 py-1 text-xs text-gray-700 capitalize rounded-md bg-gray-50">
                 {t("owner")}
               </span>
-              <Tooltip content="Copy link">
+              <Tooltip content={t("copy_link")}>
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(
@@ -155,7 +155,7 @@ export default function TeamListItem(props: {
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         variety="danger"
-                        title="Disband Team"
+                        title={t("disband_team")}
                         confirmBtnText={t("confirm_disband_team")}
                         onConfirm={() => props.onActionSelect("disband")}>
                         {t("disband_team_confirmation_message")}

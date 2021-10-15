@@ -232,7 +232,7 @@ export default function Shell(props: {
               </Link>
               <div className="flex items-center self-center gap-3">
                 <button className="p-2 text-gray-400 bg-white rounded-full hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                  <span className="sr-only">View notifications</span>
+                  <span className="sr-only">{t("view_notifications")}</span>
                   <Link href="/settings/profile">
                     <a>
                       <CogIcon className="w-6 h-6" aria-hidden="true" />
@@ -294,6 +294,7 @@ export default function Shell(props: {
 }
 
 function UserDropdown({ small }: { small?: boolean }) {
+  const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
 
@@ -331,7 +332,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               rel="noopener noreferrer"
               href={`${process.env.NEXT_PUBLIC_APP_URL}/${user?.username || ""}`}
               className="flex px-4 py-2 text-sm text-neutral-500">
-              View public page <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
+              {t("view_public_page")} <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="h-px bg-gray-200" />
@@ -363,7 +364,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     fill="#9BA6B6"></path>
                 </g>
               </svg>
-              Join our Slack
+              {t("join_our_slack")}
             </a>
           </DropdownMenuItem>
           <HelpMenuItemDynamic />
@@ -379,7 +380,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 )}
                 aria-hidden="true"
               />
-              Sign out
+              {t("sign_out")}
             </a>
           </DropdownMenuItem>
         </DropdownMenuContent>

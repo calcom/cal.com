@@ -3,6 +3,7 @@ import Cropper from "react-easy-crop";
 
 import { Area, getCroppedImg } from "@lib/cropImage";
 import { useFileReader } from "@lib/hooks/useFileReader";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { DialogClose, DialogTrigger, Dialog, DialogContent } from "@components/Dialog";
 import Slider from "@components/Slider";
@@ -24,6 +25,7 @@ function CropContainer({
   imageSrc: string;
   onCropComplete: (croppedAreaPixels: Area) => void;
 }) {
+  const { t } = useLocale();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
 
@@ -49,7 +51,7 @@ function CropContainer({
         min={1}
         max={3}
         step={0.1}
-        label="Slide to zoom, drag to reposition"
+        label={t("slide_zoom_drag_instructions")}
         changeHandler={handleZoomSliderChange}
       />
     </div>
@@ -63,6 +65,7 @@ export default function ImageUploader({
   handleAvatarChange,
   ...props
 }: ImageUploaderProps) {
+  const { t } = useLocale();
   const [imageSrc, setImageSrc] = useState<string | null>();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>();
 
@@ -110,7 +113,7 @@ export default function ImageUploader({
         <div className="sm:flex sm:items-start mb-4">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
             <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
-              Upload {target}
+              {t("upload_target", { target })}
             </h3>
           </div>
         </div>
@@ -118,7 +121,11 @@ export default function ImageUploader({
           <div className="cropper mt-6 flex flex-col justify-center items-center p-8 bg-gray-50">
             {!result && (
               <div className="flex justify-start items-center bg-gray-500 max-h-20 h-20 w-20 rounded-full">
-                {!imageSrc && <p className="sm:text-xs text-sm text-white w-full text-center">No {target}</p>}
+                {!imageSrc && (
+                  <p className="sm:text-xs text-sm text-white w-full text-center">
+                    {t("no_target", { target })}
+                  </p>
+                )}
                 {imageSrc && <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />}
               </div>
             )}
@@ -128,20 +135,20 @@ export default function ImageUploader({
                 onInput={onInputFile}
                 type="file"
                 name={id}
-                placeholder="Upload image"
+                placeholder={t("upload_image")}
                 className="mt-4 pointer-events-none opacity-0 absolute"
                 accept="image/*"
               />
-              Choose a file...
+              {t("choose_a_file")}
             </label>
           </div>
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
           <DialogClose asChild>
-            <Button onClick={() => showCroppedImage(croppedAreaPixels)}>Save</Button>
+            <Button onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button color="secondary">Cancel</Button>
+            <Button color="secondary">{t("cancel")}</Button>
           </DialogClose>
         </div>
       </DialogContent>
