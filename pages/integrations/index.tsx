@@ -129,7 +129,7 @@ function DisconnectIntegration(props: {
         <ConfirmationDialogContent
           variety="danger"
           title="Disconnect Integration"
-          confirmBtnText="Yes, delete integration"
+          confirmBtnText="Yes, disconnect integration"
           cancelBtnText="Cancel"
           onConfirm={() => {
             mutation.mutate();
@@ -169,7 +169,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   if (!props.installed) {
     return (
-      <div className="h-12 -mt-1 truncate">
+      <div className="flex items-center truncate">
         <Alert severity="warning" title="Not installed" />
       </div>
     );
@@ -183,7 +183,14 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   return (
-    <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
+    <ConnectIntegration
+      type={props.type}
+      render={(btnProps) => (
+        <Button color="secondary" {...btnProps}>
+          Connect
+        </Button>
+      )}
+    />
   );
 }
 
@@ -196,7 +203,7 @@ function IntegrationListItem(props: {
 }) {
   return (
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
-      <div className={classNames("flex flex-1 space-x-2 w-full p-4 items-center")}>
+      <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
         <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
         <div className="flex-grow pl-2 truncate">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
@@ -307,7 +314,7 @@ export default function IntegrationsPage() {
               </List>
 
               <ShellSubHeading
-                className="mt-6"
+                className="mt-10"
                 title={
                   <SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />
                 }
@@ -323,7 +330,7 @@ export default function IntegrationsPage() {
               </List>
 
               <ShellSubHeading
-                className="mt-6"
+                className="mt-10"
                 title={
                   <SubHeadingTitleWithConnections
                     title="Calendars"
