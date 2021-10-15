@@ -22,7 +22,8 @@
     "postinstall": "prisma generate",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "check-changed-files": "yarn ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
     "node": "14.x",
