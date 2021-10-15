@@ -19,7 +19,7 @@ const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean 
       <div className="flex flex-row items-center">
         <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">{t("2fa")}</h2>
         <Badge className="text-xs ml-2" variant={enabled ? "success" : "gray"}>
-          {enabled ? "Enabled" : "Disabled"}
+          {enabled ? t("enabled") : t("disabled")}
         </Badge>
       </div>
       <p className="mt-1 text-sm text-gray-500">{t("add_an_extra_layer_of_security")}</p>
@@ -28,7 +28,7 @@ const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean 
         className="mt-6"
         type="submit"
         onClick={() => (enabled ? setDisableModalOpen(true) : setEnableModalOpen(true))}>
-        {enabled ? "Disable" : "Enable"} {t("2fa")}
+        {enabled ? t("disable") : t("enable")} {t("2fa")}
       </Button>
 
       {enableModalOpen && (

@@ -19,7 +19,6 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -37,7 +36,6 @@ import {
 import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
@@ -50,7 +48,6 @@ import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
-import Modal from "@components/Modal";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
@@ -87,7 +84,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const { t } = useLocale();
   const router = useRouter();
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const updateMutation = useMutation(updateEventType, {
     onSuccess: async ({ eventType }) => {
@@ -169,7 +165,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       advancedPayload.availability = enteredAvailability || undefined;
       advancedPayload.customInputs = customInputs;
       advancedPayload.timeZone = selectedTimeZone;
-      advancedPayload.hidden = hidden;
       advancedPayload.disableGuests = formData.disableGuests === "on";
       advancedPayload.requiresConfirmation = formData.requiresConfirmation === "on";
     }
@@ -180,6 +175,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       slug: asStringOrThrow(formData.slug),
       description: asStringOrThrow(formData.description),
       length: asNumberOrThrow(formData.length),
+      hidden,
       locations,
       ...advancedPayload,
       ...(team
@@ -208,10 +204,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const closeLocationModal = () => {
     setSelectedLocation(undefined);
     setShowLocationModal(false);
-  };
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
   };
 
   const updateLocations = (e: React.FormEvent<HTMLFormElement>) => {
@@ -954,12 +946,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <Button type="submit">{t("update")}</Button>
                 </div>
               </form>
-              <Modal
-                heading={t("event_type_updated_successfully")}
-                description={t("event_type_updated_successfully_description")}
-                open={successModalOpen}
-                handleClose={closeSuccessModal}
-              />
             </div>
           </div>
           <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
@@ -1109,8 +1095,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, query } = context;
   const session = await getSession({ req });
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
-
   const typeParam = parseInt(asStringOrThrow(query.type));
 
   if (!session?.user?.id) {
@@ -1247,7 +1231,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const locationOptions: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "Link or In-person meeting" },
     { value: LocationType.Phone, label: "Phone call" },
-    { value: LocationType.Zoom, label: "Zoom Video", disabled: true },
   ];
 
   if (hasIntegration(integrations, "zoom_video")) {
@@ -1257,8 +1240,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
   }
-  const hasDailyIntegration = process.env.DAILY_API_KEY;
-  if (hasDailyIntegration) {
+  if (hasIntegration(integrations, "daily_video")) {
     locationOptions.push({ value: LocationType.Daily, label: "Daily.co Video" });
   }
   const currency =
@@ -1292,7 +1274,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       session,
-      localeProp: locale,
       eventType: eventTypeObject,
       locationOptions,
       availability,
@@ -1300,7 +1281,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       currency,
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

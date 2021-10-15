@@ -1,6 +1,5 @@
-import { Maybe } from "@trpc/server";
 import Image from "next/image";
-import { ReactNode, useEffect, useState } from "react";
+import { Fragment, ReactNode, useState } from "react";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -8,7 +7,7 @@ import classNames from "@lib/classNames";
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import showToast from "@lib/notification";
-import { inferQueryOutput, trpc } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 import { Dialog } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -18,8 +17,6 @@ import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-
-type IntegrationCalendar = inferQueryOutput<"viewer.integrations">["calendar"]["items"][number];
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
@@ -47,10 +44,7 @@ function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnection
   );
 }
 
-function ConnectIntegration(props: {
-  type: IntegrationCalendar["type"];
-  render: (renderProps: ButtonBaseProps) => JSX.Element;
-}) {
+function ConnectIntegration(props: { type: string; render: (renderProps: ButtonBaseProps) => JSX.Element }) {
   const { type } = props;
   const [isLoading, setIsLoading] = useState(false);
   const mutation = useMutation(async () => {
@@ -62,13 +56,15 @@ function ConnectIntegration(props: {
     window.location.href = json.url;
     setIsLoading(true);
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // refetch intergrations when modal closes
+  const [isModalOpen, _setIsModalOpen] = useState(false);
   const utils = trpc.useContext();
-  useEffect(() => {
+
+  const setIsModalOpen: typeof _setIsModalOpen = (v) => {
+    _setIsModalOpen(v);
+    // refetch intergrations on modal toggles
+
     utils.invalidateQueries(["viewer.integrations"]);
-  }, [isModalOpen, utils]);
+  };
 
   return (
     <>
@@ -133,7 +129,7 @@ function DisconnectIntegration(props: {
         <ConfirmationDialogContent
           variety="danger"
           title="Disconnect Integration"
-          confirmBtnText="Yes, delete integration"
+          confirmBtnText="Yes, disconnect integration"
           cancelBtnText="Cancel"
           onConfirm={() => {
             mutation.mutate();
@@ -154,14 +150,15 @@ function DisconnectIntegration(props: {
 
 function ConnectOrDisconnectIntegrationButton(props: {
   //
-  credential: Maybe<{ id: number }>;
-  type: IntegrationCalendar["type"];
+  credentialIds: number[];
+  type: string;
   installed: boolean;
 }) {
-  if (props.credential) {
+  const [credentialId] = props.credentialIds;
+  if (credentialId) {
     return (
       <DisconnectIntegration
-        id={props.credential.id}
+        id={credentialId}
         render={(btnProps) => (
           <Button {...btnProps} color="warn">
             Disconnect
@@ -172,13 +169,28 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   if (!props.installed) {
     return (
-      <div className="h-12 -mt-1 truncate">
+      <div className="flex items-center truncate">
         <Alert severity="warning" title="Not installed" />
       </div>
     );
   }
+  /** We don't need to "Connect", just show that it's installed */
+  if (props.type === "daily_video") {
+    return (
+      <div className="px-3 py-2 truncate">
+        <h3 className="text-sm font-medium text-gray-700">Installed</h3>
+      </div>
+    );
+  }
   return (
-    <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
+    <ConnectIntegration
+      type={props.type}
+      render={(btnProps) => (
+        <Button color="secondary" {...btnProps}>
+          Connect
+        </Button>
+      )}
+    />
   );
 }
 
@@ -191,9 +203,9 @@ function IntegrationListItem(props: {
 }) {
   return (
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
-      <div className={classNames("flex flex-1 space-x-2 w-full p-4 items-center")}>
+      <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
         <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
-        <div className="pl-2 flex-grow truncate">
+        <div className="flex-grow pl-2 truncate">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
         </div>
@@ -205,7 +217,7 @@ function IntegrationListItem(props: {
 }
 
 export function CalendarSwitch(props: {
-  type: IntegrationCalendar["type"];
+  type: string;
   externalId: string;
   title: string;
   defaultSelected: boolean;
@@ -302,7 +314,7 @@ export default function IntegrationsPage() {
               </List>
 
               <ShellSubHeading
-                className="mt-6"
+                className="mt-10"
                 title={
                   <SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />
                 }
@@ -318,7 +330,7 @@ export default function IntegrationsPage() {
               </List>
 
               <ShellSubHeading
-                className="mt-6"
+                className="mt-10"
                 title={
                   <SubHeadingTitleWithConnections
                     title="Calendars"
@@ -337,8 +349,8 @@ export default function IntegrationsPage() {
               {data.connectedCalendars.length > 0 && (
                 <>
                   <List>
-                    {data.connectedCalendars.map((item, index) => (
-                      <li key={index}>
+                    {data.connectedCalendars.map((item) => (
+                      <Fragment key={item.credentialId}>
                         {item.calendars ? (
                           <IntegrationListItem
                             {...item.integration}
@@ -353,7 +365,7 @@ export default function IntegrationsPage() {
                                 )}
                               />
                             }>
-                            <ul className="space-y-2 p-4">
+                            <ul className="p-4 space-y-2">
                               {item.calendars.map((cal) => (
                                 <CalendarSwitch
                                   key={cal.externalId}
@@ -382,7 +394,7 @@ export default function IntegrationsPage() {
                             }
                           />
                         )}
-                      </li>
+                      </Fragment>
                     ))}
                   </List>
                   <ShellSubHeading

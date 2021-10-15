@@ -25,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { client_secret, client_id, redirect_uris } = JSON.parse(credentials).web;
-  const redirect_uri = process.env.GOOGLE_REDIRECT_URL || redirect_uris[0];
+  const { client_secret, client_id } = JSON.parse(credentials).web;
+  const redirect_uri = process.env.BASE_URL + "/api/integrations/googlecalendar/callback";
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
   const token = await oAuth2Client.getToken(code);
   const key = token.res?.data;

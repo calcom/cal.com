@@ -1,6 +1,8 @@
 import { CheckIcon, XIcon } from "@heroicons/react/outline";
 import React, { ForwardedRef, useEffect, useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";
 
@@ -21,6 +23,7 @@ export type CheckedSelectProps = {
 
 export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: ForwardedRef<unknown>) => {
   const [selectedOptions, setSelectedOptions] = useState<CheckedSelectValue>(props.defaultValue || []);
+  const { t } = useLocale();
 
   useEffect(() => {
     props.onChange(selectedOptions);
@@ -66,12 +69,12 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
           }),
         }}
         name={props.name}
-        placeholder={props.placeholder || "Select..."}
+        placeholder={props.placeholder || t("select")}
         isSearchable={false}
         formatOptionLabel={formatOptionLabel}
         options={options}
         isMulti
-        value={props.placeholder || "Select..."}
+        value={props.placeholder || t("select")}
         onChange={changeHandler}
       />
       {selectedOptions.map((option) => (
