@@ -44,31 +44,3 @@ export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage): Promi
 
   return preferredLocale;
 };
-
-interface localeType {
-  [locale: string]: string;
-}
-
-export const localeLabels: localeType = {
-  en: "English",
-  fr: "French",
-  it: "Italian",
-  ru: "Russian",
-  es: "Spanish",
-  de: "German",
-  pt: "Portuguese",
-  ro: "Romanian",
-  nl: "Dutch",
-  "pt-BR": "Portuguese (Brazilian)",
-  "es-419": "Spanish, Latin America",
-  ko: "Korean",
-};
-
-export type OptionType = {
-  value: string;
-  label: string;
-};
-
-export const localeOptions: OptionType[] = i18n.locales.map((locale) => {
-  return { value: locale, label: localeLabels[locale] };
-});
