@@ -89,7 +89,7 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
       <div>
-        <h2 className="flex items-center content-center space-x-2 text-lg font-bold text-gray-900">
+        <h2 className="flex items-center content-center space-x-2 text-base font-bold text-gray-900 leading-6">
           {props.title}
         </h2>
         {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
@@ -244,7 +244,7 @@ export default function Shell(props: {
             </nav>
             <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                <div className="w-full mb-8">
+                <div className="w-full mb-10">
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
                     {props.heading}
                   </h1>
