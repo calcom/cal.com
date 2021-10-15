@@ -79,7 +79,7 @@ const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {
                         }))}
                       />
                     )}
-                    <Tooltip content="Preview">
+                    <Tooltip content={t("preview")}>
                       <a
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
@@ -89,10 +89,10 @@ const EventTypeList = ({ readOnly, types, profile }: Props): JSX.Element => {
                       </a>
                     </Tooltip>
 
-                    <Tooltip content="Copy link">
+                    <Tooltip content={t("copy_link")}>
                       <button
                         onClick={() => {
-                          showToast("Link copied!", "success");
+                          showToast(t("link_copied"), "success");
                           navigator.clipboard.writeText(
                             `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
                           );

@@ -1,7 +1,10 @@
 import { XIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 export default function AddToHomescreen() {
+  const { t } = useLocale();
   const [closeBanner, setCloseBanner] = useState(false);
 
   if (typeof window !== "undefined") {
@@ -27,9 +30,7 @@ export default function AddToHomescreen() {
                 </svg>
               </span>
               <p className="ml-3 text-xs font-medium text-white">
-                <span className="inline">
-                  Add this app to your home screen for faster access and improved experience.
-                </span>
+                <span className="inline">{t("add_to_homescreen")}</span>
               </p>
             </div>
 
@@ -38,7 +39,7 @@ export default function AddToHomescreen() {
                 onClick={() => setCloseBanner(true)}
                 type="button"
                 className="-mr-1 flex p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
-                <span className="sr-only">Dismiss</span>
+                <span className="sr-only">{t("dismiss")}</span>
                 <XIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
             </div>

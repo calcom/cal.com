@@ -1,5 +1,6 @@
 import { TrashIcon, PencilAltIcon } from "@heroicons/react/outline";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
 
@@ -14,6 +15,7 @@ export default function WebhookListItem(props: {
   webhook: Webhook;
   onEditWebhook: () => void;
 }) {
+  const { t } = useLocale();
   const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
@@ -31,7 +33,7 @@ export default function WebhookListItem(props: {
     })
       .then(handleErrors)
       .then(() => {
-        showToast("Webhook removed successfully!", "success");
+        showToast(t("webhook_removed_successfully"), "success");
         props.onChange();
       });
   };
@@ -43,7 +45,7 @@ export default function WebhookListItem(props: {
           <span className="flex flex-col space-y-2 text-xs">
             {props.webhook.eventTriggers.map((eventTrigger, ind) => (
               <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
-                {eventTrigger}
+                {t(`${eventTrigger}`)}
               </span>
             ))}
           </span>
@@ -56,16 +58,16 @@ export default function WebhookListItem(props: {
         <div className="flex">
           {!props.webhook.active && (
             <span className="self-center h-6 px-3 py-1 text-xs text-red-700 capitalize rounded-md bg-red-50">
-              Disabled
+              {t("disabled")}
             </span>
           )}
           {!!props.webhook.active && (
             <span className="self-center h-6 px-3 py-1 text-xs text-green-700 capitalize rounded-md bg-green-50">
-              Enabled
+              {t("enabled")}
             </span>
           )}
 
-          <Tooltip content="Edit Webhook">
+          <Tooltip content={t("edit_webhook")}>
             <Button
               onClick={() => props.onEditWebhook()}
               color="minimal"
@@ -74,7 +76,7 @@ export default function WebhookListItem(props: {
               className="self-center w-full p-2 ml-4"></Button>
           </Tooltip>
           <Dialog>
-            <Tooltip content="Delete Webhook">
+            <Tooltip content={t("delete_webhook")}>
               <DialogTrigger asChild>
                 <Button
                   onClick={(e) => {
@@ -88,14 +90,13 @@ export default function WebhookListItem(props: {
             </Tooltip>
             <ConfirmationDialogContent
               variety="danger"
-              title="Delete Webhook"
-              confirmBtnText="Yes, delete webhook"
-              cancelBtnText="Cancel"
+              title={t("delete_webhook")}
+              confirmBtnText={t("confirm_delete_webhook")}
+              cancelBtnText={t("cancel")}
               onConfirm={() => {
                 deleteWebhook(props.webhook.id);
               }}>
-              Are you sure you want to delete this webhook? You will no longer receive Cal.com meeting data at
-              a specified URL, in real-time, when an event is scheduled or canceled .
+              {t("delete_webhook_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>
         </div>
