@@ -21,6 +21,7 @@ import React, { useEffect, useRef, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 import AddCalDavIntegration, {
   ADD_CALDAV_INTEGRATION_FORM_TITLE,
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
@@ -40,25 +41,6 @@ import getEventTypes from "../lib/queries/event-types/get-event-types";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const DEFAULT_EVENT_TYPES = [
-  {
-    title: "15 Min Meeting",
-    slug: "15min",
-    length: 15,
-  },
-  {
-    title: "30 Min Meeting",
-    slug: "30min",
-    length: 30,
-  },
-  {
-    title: "Secret Meeting",
-    slug: "secret",
-    length: 15,
-    hidden: true,
-  },
-];
-
 type OnboardingProps = {
   user: User;
   integrations?: Record<string, string>[];
@@ -67,7 +49,27 @@ type OnboardingProps = {
 };
 
 export default function Onboarding(props: OnboardingProps) {
+  const { t } = useLocale();
   const router = useRouter();
+
+  const DEFAULT_EVENT_TYPES = [
+    {
+      title: t("15min_meeting"),
+      slug: "15min",
+      length: 15,
+    },
+    {
+      title: t("30min_meeting"),
+      slug: "30min",
+      length: 30,
+    },
+    {
+      title: t("secret_meeting"),
+      slug: "secret",
+      length: 15,
+      hidden: true,
+    },
+  ];
 
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [enteredName, setEnteredName] = React.useState();
@@ -159,7 +161,7 @@ export default function Onboarding(props: OnboardingProps) {
         </div>
         <div className="w-2/12 text-right">
           <Button className="btn-sm" color="secondary" onClick={() => handleAddIntegration(integration.type)}>
-            Connect
+            {t("connect")}
           </Button>
         </div>
       </li>
@@ -229,14 +231,11 @@ export default function Onboarding(props: OnboardingProps) {
         open={isAddCalDavIntegrationDialogOpen}
         onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
         <DialogContent>
-          <DialogHeader
-            title="Connect to CalDav Server"
-            subtitle="Your credentials will be stored and encrypted."
-          />
+          <DialogHeader title={t("connect_caldav")} subtitle={t("credentials_stored_and_encrypted")} />
           <div className="my-4">
             {addCalDavError && (
               <p className="text-red-700 text-sm">
-                <span className="font-bold">Error: </span>
+                <span className="font-bold">{t("error")}: </span>
                 {addCalDavError.message}
               </p>
             )}
@@ -250,14 +249,14 @@ export default function Onboarding(props: OnboardingProps) {
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
               className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              Save
+              {t("save")}
             </button>
             <DialogClose
               onClick={() => {
                 setIsAddCalDavIntegrationDialogOpen(false);
               }}
               asChild>
-              <Button color="secondary">Cancel</Button>
+              <Button color="secondary">{t("cancel")}</Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -367,16 +366,15 @@ export default function Onboarding(props: OnboardingProps) {
 
   const steps = [
     {
-      id: "welcome",
-      title: "Welcome to Cal.com",
-      description:
-        "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
+      id: t("welcome"),
+      title: t("welcome_to_calcom"),
+      description: t("welcome_instructions"),
       Component: (
         <form className="sm:mx-auto sm:w-full">
           <section className="space-y-8">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full name
+                {t("full_name")}
               </label>
               <input
                 ref={nameRef}
@@ -384,7 +382,7 @@ export default function Onboarding(props: OnboardingProps) {
                 name="name"
                 id="name"
                 autoComplete="given-name"
-                placeholder="Your name"
+                placeholder={t("your_name")}
                 defaultValue={props.user.name ?? enteredName}
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
@@ -394,10 +392,10 @@ export default function Onboarding(props: OnboardingProps) {
             <fieldset>
               <section className="flex justify-between">
                 <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                  Timezone
+                  {t("timezone")}
                 </label>
                 <Text variant="caption">
-                  Current time:&nbsp;
+                  {t("current_time")}:&nbsp;
                   <span className="text-black">{currentTime}</span>
                 </Text>
               </section>
@@ -412,9 +410,9 @@ export default function Onboarding(props: OnboardingProps) {
         </form>
       ),
       hideConfirm: false,
-      confirmText: "Continue",
+      confirmText: t("continue"),
       showCancel: true,
-      cancelText: "Set up later",
+      cancelText: t("set_up_later"),
       onComplete: async () => {
         try {
           setSubmitting(true);
@@ -432,9 +430,8 @@ export default function Onboarding(props: OnboardingProps) {
     },
     {
       id: "connect-calendar",
-      title: "Connect your calendar",
-      description:
-        "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
+      title: t("connect_your_calendar"),
+      description: t("connect_your_calendar_instructions"),
       Component: (
         <ul className="divide-y divide-gray-200 sm:mx-auto sm:w-full border border-gray-200 rounded-sm">
           {props.integrations.map((integration) => {
@@ -443,15 +440,14 @@ export default function Onboarding(props: OnboardingProps) {
         </ul>
       ),
       hideConfirm: true,
-      confirmText: "Continue",
+      confirmText: t("continue"),
       showCancel: true,
-      cancelText: "Continue without calendar",
+      cancelText: t("continue_without_calendar"),
     },
     {
       id: "set-availability",
-      title: "Set your availability",
-      description:
-        "Define ranges of time when you are available on a recurring basis. You can create more of these later and assign them to different calendars.",
+      title: t("set_availability"),
+      description: t("set_availability_instructions"),
       Component: (
         <>
           <section className="bg-white dark:bg-opacity-5 text-black dark:text-white mx-auto max-w-lg">
@@ -472,7 +468,7 @@ export default function Onboarding(props: OnboardingProps) {
           </section>
           <footer className="py-6 sm:mx-auto sm:w-full flex flex-col space-y-6">
             <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
-              Continue
+              {t("continue")}
             </Button>
           </footer>
         </>
@@ -482,15 +478,14 @@ export default function Onboarding(props: OnboardingProps) {
     },
     {
       id: "profile",
-      title: "Nearly there",
-      description:
-        "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re booking with.",
+      title: t("nearly_there"),
+      description: t("nearly_there_instructions"),
       Component: (
         <form className="sm:mx-auto sm:w-full" id="ONBOARDING_STEP_4">
           <section className="space-y-4">
             <fieldset>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full name
+                {t("full_name")}
               </label>
               <input
                 ref={nameRef}
@@ -498,7 +493,7 @@ export default function Onboarding(props: OnboardingProps) {
                 name="name"
                 id="name"
                 autoComplete="given-name"
-                placeholder="Your name"
+                placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
@@ -506,7 +501,7 @@ export default function Onboarding(props: OnboardingProps) {
             </fieldset>
             <fieldset>
               <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                About
+                {t("about")}
               </label>
               <input
                 ref={bioRef}
@@ -518,16 +513,16 @@ export default function Onboarding(props: OnboardingProps) {
                 defaultValue={props.user.bio}
               />
               <Text variant="caption" className="mt-2">
-                A few sentences about yourself. This will appear on your personal url page.
+                {t("few_sentences_about_yourself")}
               </Text>
             </fieldset>
           </section>
         </form>
       ),
       hideConfirm: false,
-      confirmText: "Finish",
+      confirmText: t("finish"),
       showCancel: true,
-      cancelText: "Set up later",
+      cancelText: t("set_up_later"),
       onComplete: async () => {
         try {
           setSubmitting(true);
@@ -557,7 +552,7 @@ export default function Onboarding(props: OnboardingProps) {
   return (
     <div className="bg-black min-h-screen">
       <Head>
-        <title>Cal.com - Getting Started</title>
+        <title>Cal.com - {t("getting_started")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

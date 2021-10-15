@@ -11,7 +11,7 @@ import {
 import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
@@ -19,9 +19,11 @@ import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
+import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 import Dropdown, {
@@ -31,17 +33,11 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
+import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useMeQuery() {
-  const [session] = useSession();
   const meQuery = trpc.useQuery(["viewer.me"]);
-
-  useEffect(() => {
-    // refetch if sesion changes
-    meQuery.refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
 
   return meQuery;
 }
@@ -49,6 +45,7 @@ function useMeQuery() {
 function useRedirectToLoginIfUnauthenticated() {
   const [session, loading] = useSession();
   const router = useRouter();
+  const query = useMeQuery();
 
   useEffect(() => {
     if (!loading && !session) {
@@ -60,6 +57,27 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
   }, [loading, session, router]);
+
+  if (query.status !== "loading" && !query.data) {
+    router.replace("/auth/login");
+  }
+}
+
+function useRedirectToOnboardingIfNeeded() {
+  const [session, loading] = useSession();
+  const router = useRouter();
+  const query = useMeQuery();
+  const user = query.data;
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (shouldShowOnboarding(user)) {
+        router.replace({
+          pathname: "/getting-started",
+        });
+      }
+    }
+  }, [loading, session, router, user]);
 }
 
 export function ShellSubHeading(props: {
@@ -71,7 +89,7 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
       <div>
-        <h2 className="flex items-center content-center space-x-2 text-lg font-bold text-gray-900">
+        <h2 className="flex items-center content-center space-x-2 text-base font-bold text-gray-900 leading-6">
           {props.title}
         </h2>
         {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
@@ -89,49 +107,40 @@ export default function Shell(props: {
   children: ReactNode;
   CTA?: ReactNode;
 }) {
+  const { t } = useLocale();
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   useRedirectToLoginIfUnauthenticated();
+  useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
-  const query = useMeQuery();
-
-  useEffect(
-    function redirectToOnboardingIfNeeded() {
-      if (query.data && shouldShowOnboarding(query.data)) {
-        router.push("/getting-started");
-      }
-    },
-    [query.data, router]
-  );
 
   const navigation = [
     {
-      name: "Event Types",
+      name: t("event_types_page_title"),
       href: "/event-types",
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),
     },
     {
-      name: "Bookings",
+      name: t("bookings"),
       href: "/bookings/upcoming",
       icon: ClockIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
-      name: "Availability",
+      name: t("availability"),
       href: "/availability",
       icon: CalendarIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: "Integrations",
+      name: t("integrations"),
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.asPath.startsWith("/integrations"),
     },
     {
-      name: "Settings",
+      name: t("settings"),
       href: "/settings/profile",
       icon: CogIcon,
       current: router.asPath.startsWith("/settings"),
@@ -142,14 +151,20 @@ export default function Shell(props: {
     telemetry.withJitsu((jitsu) => {
       return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
-  }, [telemetry]);
-
-  if (query.status !== "loading" && !query.data) {
-    router.replace("/auth/login");
-  }
+  }, [telemetry, router.asPath]);
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
+  const i18n = useViewerI18n();
+
+  if (i18n.status === "loading") {
+    // show spinner whilst i18n is loading to avoid language flicker
+    return (
+      <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <>
       <HeadSeo
@@ -217,7 +232,7 @@ export default function Shell(props: {
               </Link>
               <div className="flex items-center self-center gap-3">
                 <button className="p-2 text-gray-400 bg-white rounded-full hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                  <span className="sr-only">View notifications</span>
+                  <span className="sr-only">{t("view_notifications")}</span>
                   <Link href="/settings/profile">
                     <a>
                       <CogIcon className="w-6 h-6" aria-hidden="true" />
@@ -229,7 +244,7 @@ export default function Shell(props: {
             </nav>
             <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                <div className="w-full mb-8">
+                <div className="w-full mb-10">
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
                     {props.heading}
                   </h1>
@@ -279,6 +294,7 @@ export default function Shell(props: {
 }
 
 function UserDropdown({ small }: { small?: boolean }) {
+  const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
 
@@ -316,7 +332,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               rel="noopener noreferrer"
               href={`${process.env.NEXT_PUBLIC_APP_URL}/${user?.username || ""}`}
               className="flex px-4 py-2 text-sm text-neutral-500">
-              View public page <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
+              {t("view_public_page")} <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="h-px bg-gray-200" />
@@ -348,7 +364,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     fill="#9BA6B6"></path>
                 </g>
               </svg>
-              Join our Slack
+              {t("join_our_slack")}
             </a>
           </DropdownMenuItem>
           <HelpMenuItemDynamic />
@@ -364,7 +380,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 )}
                 aria-hidden="true"
               />
-              Sign out
+              {t("sign_out")}
             </a>
           </DropdownMenuItem>
         </DropdownMenuContent>

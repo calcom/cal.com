@@ -1,14 +1,9 @@
 import { PlusIcon } from "@heroicons/react/outline";
-import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/client";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { getSession } from "@lib/auth";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { trpc } from "@lib/trpc";
 import { Webhook } from "@lib/webhook";
 
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
@@ -20,7 +15,8 @@ import Switch from "@components/ui/Switch";
 import EditWebhook from "@components/webhook/EditWebhook";
 import WebhookList from "@components/webhook/WebhookList";
 
-export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
+export default function Embed() {
+  const user = trpc.useQuery(["viewer.me"]).data;
   const [, loading] = useSession();
   const { t } = useLocale();
 
@@ -51,11 +47,7 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     getWebhooks();
   }, []);
 
-  if (loading) {
-    return <Loader />;
-  }
-
-  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/${props.user?.username}" frameborder="0" allowfullscreen></iframe>`;
+  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
     "schedule_a_meeting"
   )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
@@ -110,6 +102,10 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
     getWebhooks();
     setEditWebhookEnabled(false);
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <Shell heading={t("embed_and_webhooks")} subtitle={t("integrate_using_embed_or_webhooks")}>
@@ -280,41 +276,10 @@ export default function Embed(props: inferSSRProps<typeof getServerSideProps>) {
             </a>
           </div>
         )}
-        {!!editWebhookEnabled && <EditWebhook webhook={webhookToEdit} onCloseEdit={onCloseEdit} />}
+        {!!editWebhookEnabled && webhookToEdit && (
+          <EditWebhook webhook={webhookToEdit} onCloseEdit={onCloseEdit} />
+        )}
       </SettingsShell>
     </Shell>
   );
-}
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getSession(context);
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
-
-  if (!session?.user?.email) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session?.user?.email,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      timeZone: true,
-      weekStart: true,
-    },
-  });
-
-  return {
-    props: {
-      session,
-      user,
-      ...(await serverSideTranslations(locale, ["common"])),
-    },
-  };
 }

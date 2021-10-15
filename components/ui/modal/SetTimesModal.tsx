@@ -1,7 +1,10 @@
 import { ClockIcon } from "@heroicons/react/outline";
 import { useRef } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 export default function SetTimesModal(props) {
+  const { t } = useLocale();
   const [startHours, startMinutes] = [Math.floor(props.startTime / 60), props.startTime % 60];
   const [endHours, endMinutes] = [Math.floor(props.endTime / 60), props.endTime % 60];
 
@@ -48,18 +51,18 @@ export default function SetTimesModal(props) {
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                Change when you are available for bookings
+                {t("change_bookings_availability")}
               </h3>
               <div>
-                <p className="text-sm text-gray-500">Set your work schedule</p>
+                <p className="text-sm text-gray-500">{t("set_work_schedule")}</p>
               </div>
             </div>
           </div>
           <div className="flex mb-4">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
+            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("start_time")}</label>
             <div>
               <label htmlFor="startHours" className="sr-only">
-                Hours
+                {t("hours")}
               </label>
               <input
                 ref={startHoursRef}
@@ -77,7 +80,7 @@ export default function SetTimesModal(props) {
             <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="startMinutes" className="sr-only">
-                Minutes
+                {t("minutes")}
               </label>
               <input
                 ref={startMinsRef}
@@ -95,10 +98,10 @@ export default function SetTimesModal(props) {
             </div>
           </div>
           <div className="flex">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
+            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("end_time")}</label>
             <div>
               <label htmlFor="endHours" className="sr-only">
-                Hours
+                {t("hours")}
               </label>
               <input
                 ref={endHoursRef}
@@ -116,7 +119,7 @@ export default function SetTimesModal(props) {
             <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="endMinutes" className="sr-only">
-                Minutes
+                {t("minutes")}
               </label>
               <input
                 ref={endMinsRef}
@@ -135,10 +138,10 @@ export default function SetTimesModal(props) {
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button onClick={updateStartEndTimesHandler} type="submit" className="btn btn-primary">
-              Save
+              {t("save")}
             </button>
             <button onClick={props.onExit} type="button" className="btn btn-white mr-2">
-              Cancel
+              {t("cancel")}
             </button>
           </div>
         </div>

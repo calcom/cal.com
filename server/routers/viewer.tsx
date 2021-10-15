@@ -1,5 +1,4 @@
 import { BookingStatus, Prisma } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
 import _ from "lodash";
 import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
@@ -10,15 +9,34 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
+import { TRPCError } from "@trpc/server";
+
 import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
-import { createProtectedRouter } from "../createRouter";
+import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 
 const checkUsername =
   process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
+// things that unauthenticated users can query about themselves
+const publicViewerRouter = createRouter()
+  .query("session", {
+    resolve({ ctx }) {
+      return ctx.session;
+    },
+  })
+  .query("i18n", {
+    async resolve({ ctx }) {
+      const { locale, i18n } = ctx;
+      return {
+        i18n,
+        locale,
+      };
+    },
+  });
+
 // routes only available to authenticated users
-export const viewerRouter = createProtectedRouter()
+const loggedInViewerRouter = createProtectedRouter()
   .query("me", {
     resolve({ ctx }) {
       const {
@@ -34,6 +52,7 @@ export const viewerRouter = createProtectedRouter()
         avatar,
         createdDate,
         completedOnboarding,
+        twoFactorEnabled,
       } = ctx.user;
       const me = {
         id,
@@ -47,6 +66,7 @@ export const viewerRouter = createProtectedRouter()
         avatar,
         createdDate,
         completedOnboarding,
+        twoFactorEnabled,
       };
       return me;
     },
@@ -251,3 +271,5 @@ export const viewerRouter = createProtectedRouter()
       });
     },
   });
+
+export const viewerRouter = createRouter().merge(publicViewerRouter).merge(loggedInViewerRouter);

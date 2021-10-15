@@ -1,19 +1,22 @@
 import React from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import NavTabs from "./NavTabs";
 
 export default function BookingsShell({ children }: { children: React.ReactNode }) {
+  const { t } = useLocale();
   const tabs = [
     {
-      name: "Upcoming",
+      name: t("upcoming"),
       href: "/bookings/upcoming",
     },
     {
-      name: "Past",
+      name: t("past"),
       href: "/bookings/past",
     },
     {
-      name: "Cancelled",
+      name: t("cancelled"),
       href: "/bookings/cancelled",
     },
   ];
