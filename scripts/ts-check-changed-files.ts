@@ -6,7 +6,12 @@ const diff = execSync(`git diff --name-only origin/main HEAD`).toString();
 const files = diff.trim().split("\n");
 
 console.log("ℹ️ Changed files:");
-console.log(files.map((str) => `  - ${str}`).join("\n"));
+console.log(
+  files
+    .filter(Boolean)
+    .map((str) => `  - ${str}`)
+    .join("\n")
+);
 
 try {
   console.log("⏳ Checking type errors..");
