@@ -3,6 +3,8 @@ import { CheckIcon } from "@heroicons/react/solid";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import { DialogClose, DialogContent } from "@components/Dialog";
 import { Button } from "@components/ui/Button";
 
@@ -15,7 +17,15 @@ export type ConfirmationDialogContentProps = {
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
-  const { title, variety, confirmBtnText = "Confirm", cancelBtnText = "Cancel", onConfirm, children } = props;
+  const { t } = useLocale();
+  const {
+    title,
+    variety,
+    confirmBtnText = t("confirm"),
+    cancelBtnText = t("cancel"),
+    onConfirm,
+    children,
+  } = props;
 
   return (
     <DialogContent>
@@ -43,10 +53,12 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
           <DialogPrimitive.Title className="font-cal text-xl font-bold text-gray-900">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Description className="text-neutral-500">{children}</DialogPrimitive.Description>
+          <DialogPrimitive.Description className="text-neutral-500 text-sm">
+            {children}
+          </DialogPrimitive.Description>
         </div>
       </div>
-      <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+      <div className="mt-5 sm:mt-8 sm:flex sm:flex-row-reverse gap-x-2">
         <DialogClose onClick={onConfirm} asChild>
           <Button color="primary">{confirmBtnText}</Button>
         </DialogClose>

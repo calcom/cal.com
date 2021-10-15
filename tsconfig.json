@@ -20,7 +20,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "types": ["@types/jest", "jest-playwright-preset", "expect-playwright"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "lib/*.js"],
   "exclude": ["node_modules"]

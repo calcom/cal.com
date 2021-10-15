@@ -25,9 +25,10 @@
   },
   "overrides": [
     {
-      "files": ["cypress/**/*.js"],
+      "files": ["playwright/**/*.{js,jsx,tsx,ts}"],
       "rules": {
-        "no-undef": "off"
+        "no-undef": "off",
+        "@typescript-eslint/no-non-null-assertion": "off"
       }
     }
   ],

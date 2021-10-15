@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
@@ -22,6 +23,7 @@ function convertMinsToHrsMins(mins: number) {
   return `${hours}:${minutes}`;
 }
 export default function Availability() {
+  const { t } = useLocale();
   const queryMe = trpc.useQuery(["viewer.me"]);
   const formModal = useToggleQuery("edit");
 
@@ -57,27 +59,25 @@ export default function Availability() {
     return <Loader />;
   }
   if (queryMe.status !== "success") {
-    return <Alert severity="error" title="Something went wrong" />;
+    return <Alert severity="error" title={t("something_went_wrong")} />;
   }
   const user = queryMe.data;
 
   return (
     <div>
-      <Shell heading="Availability" subtitle="Configure times when you are available for bookings.">
+      <Shell heading={t("availability")} subtitle={t("configure_availability")}>
         <div className="flex">
           <div className="w-1/2 mr-2 bg-white border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Change the start and end times of your day
-              </h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">{t("change_start_end")}</h3>
               <div className="mt-2 max-w-xl text-sm text-gray-500">
                 <p>
-                  Currently, your day is set to start at {convertMinsToHrsMins(user.startTime)} and end at{" "}
+                  {t("current_start_date")} {convertMinsToHrsMins(user.startTime)} {t("and_end_at")}{" "}
                   {convertMinsToHrsMins(user.endTime)}.
                 </p>
               </div>
               <div className="mt-5">
-                <Button href={formModal.hrefOn}>Change available times</Button>
+                <Button href={formModal.hrefOn}>{t("change_available_times")}</Button>
               </div>
             </div>
           </div>
@@ -85,14 +85,14 @@ export default function Availability() {
           <div className="w-1/2 ml-2 border border-gray-200 rounded-sm">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Something doesn&apos;t look right?
+                {t("something_doesnt_look_right")}
               </h3>
               <div className="mt-2 max-w-xl text-sm text-gray-500">
-                <p>Troubleshoot your availability to explore why your times are showing as they are.</p>
+                <p>{t("troubleshoot_availability")}</p>
               </div>
               <div className="mt-5">
                 <Link href="/availability/troubleshoot">
-                  <a className="btn btn-white">Launch troubleshooter</a>
+                  <a className="btn btn-white">{t("launch_troubleshooter")}</a>
                 </Link>
               </div>
             </div>
@@ -111,12 +111,10 @@ export default function Availability() {
               </div>
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  Change your available times
+                  {t("change_your_available_times")}
                 </h3>
                 <div>
-                  <p className="text-sm text-gray-500">
-                    Set the start and end time of your day and a minimum buffer between your meetings.
-                  </p>
+                  <p className="text-sm text-gray-500">{t("change_start_end_buffer")}</p>
                 </div>
               </div>
             </div>
@@ -136,19 +134,21 @@ export default function Availability() {
                   },
                 });
                 if (!response.ok) {
-                  showToast("Something went wrong", "error");
+                  showToast(t("something_went_wrong"), "error");
                   return;
                 }
                 await queryMe.refetch();
                 router.push(formModal.hrefOff);
 
-                showToast("The start and end times for your day have been changed successfully.", "success");
+                showToast(t("start_end_changed_successfully"), "success");
               })}>
               <div className="flex mb-4">
-                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Start time</label>
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">
+                  {t("start_time")}
+                </label>
                 <div>
                   <label htmlFor="startHours" className="sr-only">
-                    Hours
+                    {t("hours")}
                   </label>
                   <input
                     {...formMethods.register("startHours")}
@@ -162,7 +162,7 @@ export default function Availability() {
                 <span className="mx-2 pt-1">:</span>
                 <div>
                   <label htmlFor="startMins" className="sr-only">
-                    Minutes
+                    {t("minutes")}
                   </label>
                   <input
                     {...formMethods.register("startMins")}
@@ -174,10 +174,10 @@ export default function Availability() {
                 </div>
               </div>
               <div className="flex mb-4">
-                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">End time</label>
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("end_time")}</label>
                 <div>
                   <label htmlFor="endHours" className="sr-only">
-                    Hours
+                    {t("hours")}
                   </label>
                   <input
                     {...formMethods.register("endHours")}
@@ -190,7 +190,7 @@ export default function Availability() {
                 <span className="mx-2 pt-1">:</span>
                 <div>
                   <label htmlFor="endMins" className="sr-only">
-                    Minutes
+                    {t("minutes")}
                   </label>
                   <input
                     {...formMethods.register("endMins")}
@@ -202,10 +202,10 @@ export default function Availability() {
                 </div>
               </div>
               <div className="flex mb-4">
-                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">Buffer</label>
+                <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("buffer")}</label>
                 <div>
                   <label htmlFor="bufferHours" className="sr-only">
-                    Hours
+                    {t("hours")}
                   </label>
                   <input
                     {...formMethods.register("bufferHours")}
@@ -218,7 +218,7 @@ export default function Availability() {
                 <span className="mx-2 pt-1">:</span>
                 <div>
                   <label htmlFor="bufferMins" className="sr-only">
-                    Minutes
+                    {t("minutes")}
                   </label>
                   <input
                     {...formMethods.register("bufferMins")}
@@ -231,10 +231,10 @@ export default function Availability() {
               </div>
               <div className="mt-5 sm:mt-4 sm:flex space-x-2">
                 <Button href={formModal.hrefOff} color="secondary" tabIndex={-1}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button type="submit" loading={formMethods.formState.isSubmitting}>
-                  Update
+                  {t("update")}
                 </Button>
               </div>
             </form>
