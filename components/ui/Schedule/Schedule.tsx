@@ -3,6 +3,8 @@ import classnames from "classnames";
 import dayjs, { Dayjs } from "dayjs";
 import React from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import Text from "@components/ui/Text";
 
 export const SCHEDULE_FORM_ID = "SCHEDULE_FORM_ID";
@@ -79,6 +81,7 @@ type Props = {
 };
 
 const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
+  const { t } = useLocale();
   const ref = React.useRef<HTMLFormElement>(null);
 
   const transformElementsToSchedule = (elements: HTMLFormControlsCollection): Schedule => {
@@ -299,7 +302,7 @@ const SchedulerForm = ({ schedule = DEFAULT_SCHEDULE, onSubmit }: Props) => {
               ))
             ) : (
               <Text key={`${day}`} variant="caption">
-                Unavailable
+                {t("unavailable")}
               </Text>
             )}
           </div>

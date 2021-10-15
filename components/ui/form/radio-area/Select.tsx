@@ -3,6 +3,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import React from "react";
 
 import classNames from "@lib/classNames";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
 
@@ -15,10 +16,11 @@ type RadioAreaSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
+  const { t } = useLocale();
   const {
     options,
     disabled = !options.length, // if not explicitly disabled and the options length is empty, disable anyway
-    placeholder = "Select...",
+    placeholder = t("select"),
   } = props;
 
   const getLabel = (value: string | ReadonlyArray<string> | number) =>
