@@ -58,6 +58,8 @@ jobs:
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
 
       - name: Install deps
         uses: bahmutov/npm-install@v1
