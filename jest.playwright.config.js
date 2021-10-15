@@ -13,8 +13,7 @@ module.exports = {
   transform: {
     "^.+\\.ts$": "ts-jest",
   },
-  roots: ["<rootDir>"],
-  testMatch: ["playwright/**/?(*.)+(spec|test).[jt]s?(x)"],
+  testMatch: ["<rootDir>/playwright/**/?(*.)+(spec|test).[jt]s?(x)"],
   testEnvironmentOptions: {
     "jest-playwright": {
       browsers: ["chromium" /*, 'firefox', 'webkit'*/],
