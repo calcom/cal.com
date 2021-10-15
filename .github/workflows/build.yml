@@ -44,3 +44,22 @@ jobs:
       - run: yarn prisma migrate deploy
       - run: yarn test
       - run: yarn build
+
+  types:
+    name: Check types
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+
+      - name: Install deps
+        uses: bahmutov/npm-install@v1
+
+      - run: check-changed-files
