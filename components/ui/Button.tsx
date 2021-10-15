@@ -75,7 +75,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         color === "warn" &&
           (disabled
             ? "text-gray-400 bg-transparent"
-            : "text-red-700 bg-transparent hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-50 focus:ring-red-500"),
+            : "text-gray-700 bg-transparent hover:text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-50 focus:ring-red-500"),
         // set not-allowed cursor if disabled
         loading ? "cursor-wait" : disabled ? "cursor-not-allowed" : "",
         props.className

@@ -1,9 +1,10 @@
-import { Maybe } from "@trpc/server";
 import parser from "accept-language-parser";
 import { IncomingMessage } from "http";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
+
+import { Maybe } from "@trpc/server";
 
 import { i18n } from "../../../next-i18next.config";
 
@@ -60,6 +61,7 @@ export const localeLabels: localeType = {
   nl: "Dutch",
   "pt-BR": "Portuguese (Brazilian)",
   "es-419": "Spanish, Latin America",
+  ko: "Korean",
 };
 
 export type OptionType = {

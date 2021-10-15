@@ -19,9 +19,11 @@ import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
+import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 import Dropdown, {
@@ -31,17 +33,11 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
+import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useMeQuery() {
-  const [session] = useSession();
   const meQuery = trpc.useQuery(["viewer.me"]);
-
-  useEffect(() => {
-    // refetch if sesion changes
-    meQuery.refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
 
   return meQuery;
 }
@@ -93,7 +89,7 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
       <div>
-        <h2 className="flex items-center content-center space-x-2 text-lg font-bold text-gray-900">
+        <h2 className="flex items-center content-center space-x-2 text-base font-bold text-gray-900 leading-6">
           {props.title}
         </h2>
         {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
@@ -111,6 +107,7 @@ export default function Shell(props: {
   children: ReactNode;
   CTA?: ReactNode;
 }) {
+  const { t } = useLocale();
   const router = useRouter();
   useRedirectToLoginIfUnauthenticated();
   useRedirectToOnboardingIfNeeded();
@@ -119,31 +116,31 @@ export default function Shell(props: {
 
   const navigation = [
     {
-      name: "Event Types",
+      name: t("event_types_page_title"),
       href: "/event-types",
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),
     },
     {
-      name: "Bookings",
+      name: t("bookings"),
       href: "/bookings/upcoming",
       icon: ClockIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
-      name: "Availability",
+      name: t("availability"),
       href: "/availability",
       icon: CalendarIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: "Integrations",
+      name: t("integrations"),
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.asPath.startsWith("/integrations"),
     },
     {
-      name: "Settings",
+      name: t("settings"),
       href: "/settings/profile",
       icon: CogIcon,
       current: router.asPath.startsWith("/settings"),
@@ -158,6 +155,16 @@ export default function Shell(props: {
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
+  const i18n = useViewerI18n();
+
+  if (i18n.status === "loading") {
+    // show spinner whilst i18n is loading to avoid language flicker
+    return (
+      <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <>
       <HeadSeo
@@ -237,7 +244,7 @@ export default function Shell(props: {
             </nav>
             <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                <div className="w-full mb-8">
+                <div className="w-full mb-10">
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
                     {props.heading}
                   </h1>

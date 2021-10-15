@@ -1,8 +1,3 @@
-import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
-import { loggerLink } from "@trpc/client/links/loggerLink";
-import { withTRPC } from "@trpc/next";
-import type { TRPCClientErrorLike } from "@trpc/react";
-import { Maybe } from "@trpc/server";
 import { DefaultSeo } from "next-seo";
 import type { AppProps as NextAppProps } from "next/app";
 import superjson from "superjson";
@@ -13,6 +8,11 @@ import { seoConfig } from "@lib/config/next-seo.config";
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 import type { AppRouter } from "@server/routers/_app";
+import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
+import { loggerLink } from "@trpc/client/links/loggerLink";
+import { withTRPC } from "@trpc/next";
+import type { TRPCClientErrorLike } from "@trpc/react";
+import { Maybe } from "@trpc/server";
 
 import "../styles/globals.css";
 

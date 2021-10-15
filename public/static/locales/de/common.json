@@ -22,6 +22,7 @@
   "on": "auf",
   "and": "und",
   "calendar_shows_busy_between": "Ihr Kalender ist belegt zwischen",
+  "calendar_no_busy_slots": "Du hast keine belegten Plätze an diesem Tag.",
   "troubleshoot": "Problemlösungen",
   "troubleshoot_description": "Verstehen Sie, warum bestimmte Zeiten verfügbar und andere blockiert sind.",
   "overview_of_day": "Hier ist eine Übersicht Ihres Tages am",
@@ -302,5 +303,7 @@
   "minimum_booking_notice": "Minimaler Abstand zwischen Terminen",
   "delete_event_type_description": "Sind Sie sicher, dass Sie diesen Ereignistyp löschen möchten? Empfänger dieses Links können Sie nicht mehr buchen.",
   "delete_event_type": "Ereignistyp löschen",
-  "confirm_delete_event_type": "Ja, Ereignistyp löschen"
+  "confirm_delete_event_type": "Ja, Ereignistyp löschen",
+  "integrations": "Integrationen",
+  "settings": "Einstellungen"
 }

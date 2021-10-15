@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ReactNode, useEffect, useState } from "react";
+import { Fragment, ReactNode, useState } from "react";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -56,13 +56,15 @@ function ConnectIntegration(props: { type: string; render: (renderProps: ButtonB
     window.location.href = json.url;
     setIsLoading(true);
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // refetch intergrations when modal closes
+  const [isModalOpen, _setIsModalOpen] = useState(false);
   const utils = trpc.useContext();
-  useEffect(() => {
+
+  const setIsModalOpen: typeof _setIsModalOpen = (v) => {
+    _setIsModalOpen(v);
+    // refetch intergrations on modal toggles
+
     utils.invalidateQueries(["viewer.integrations"]);
-  }, [isModalOpen, utils]);
+  };
 
   return (
     <>
@@ -127,7 +129,7 @@ function DisconnectIntegration(props: {
         <ConfirmationDialogContent
           variety="danger"
           title="Disconnect Integration"
-          confirmBtnText="Yes, delete integration"
+          confirmBtnText="Yes, disconnect integration"
           cancelBtnText="Cancel"
           onConfirm={() => {
             mutation.mutate();
@@ -167,7 +169,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   if (!props.installed) {
     return (
-      <div className="h-12 -mt-1 truncate">
+      <div className="flex items-center truncate">
         <Alert severity="warning" title="Not installed" />
       </div>
     );
@@ -181,7 +183,14 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   return (
-    <ConnectIntegration type={props.type} render={(btnProps) => <Button {...btnProps}>Connect</Button>} />
+    <ConnectIntegration
+      type={props.type}
+      render={(btnProps) => (
+        <Button color="secondary" {...btnProps}>
+          Connect
+        </Button>
+      )}
+    />
   );
 }
 
@@ -194,7 +203,7 @@ function IntegrationListItem(props: {
 }) {
   return (
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
-      <div className={classNames("flex flex-1 space-x-2 w-full p-4 items-center")}>
+      <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
         <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
         <div className="flex-grow pl-2 truncate">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
@@ -305,7 +314,7 @@ export default function IntegrationsPage() {
               </List>
 
               <ShellSubHeading
-                className="mt-6"
+                className="mt-10"
                 title={
                   <SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />
                 }
@@ -321,7 +330,7 @@ export default function IntegrationsPage() {
               </List>
 
               <ShellSubHeading
-                className="mt-6"
+                className="mt-10"
                 title={
                   <SubHeadingTitleWithConnections
                     title="Calendars"
@@ -340,8 +349,8 @@ export default function IntegrationsPage() {
               {data.connectedCalendars.length > 0 && (
                 <>
                   <List>
-                    {data.connectedCalendars.map((item, index) => (
-                      <li key={index}>
+                    {data.connectedCalendars.map((item) => (
+                      <Fragment key={item.credentialId}>
                         {item.calendars ? (
                           <IntegrationListItem
                             {...item.integration}
@@ -385,7 +394,7 @@ export default function IntegrationsPage() {
                             }
                           />
                         )}
-                      </li>
+                      </Fragment>
                     ))}
                   </List>
                   <ShellSubHeading
