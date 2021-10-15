@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { execSync } from "child_process";
 
-const diff = execSync(`git diff --name-only main`).toString();
+const diff = execSync(`git diff --name-only origin/main HEAD`).toString();
 
 const files = diff.trim().split("\n");
 
