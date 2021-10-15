@@ -15,6 +15,7 @@
     "test": "jest",
     "test-playwright": "jest --config jest.playwright.config.js",
     "test-playwright-lcov": "cross-env PLAYWRIGHT_HEADLESS=1 PLAYWRIGHT_COVERAGE=1 yarn test-playwright && nyc report --reporter=lcov",
+    "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
     "ts-node": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\"",

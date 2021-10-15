@@ -3,6 +3,7 @@ import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import React, { FC, Fragment } from "react";
 
 import classNames from "@lib/classNames";
+import { useLocale } from "@lib/hooks/useLocale";
 import { SVGComponent } from "@lib/types/SVGComponent";
 
 import Button from "./Button";
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const TableActions: FC<Props> = ({ actions }) => {
+  const { t } = useLocale();
   return (
     <>
       <div className="space-x-2 hidden lg:block">
@@ -41,7 +43,7 @@ const TableActions: FC<Props> = ({ actions }) => {
           <>
             <div>
               <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
-                <span className="sr-only">Open options</span>
+                <span className="sr-only">{t("open_options")}</span>
                 <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
               </Menu.Button>
             </div>

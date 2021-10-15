@@ -151,7 +151,7 @@ const BookingPage = (props: BookingPageProps) => {
 
         if (payload["location"]) {
           if (payload["location"].includes("integration")) {
-            params.location = "Web conferencing details to follow.";
+            params.location = t("web_conferencing_details_to_follow");
           } else {
             params.location = payload["location"];
           }
@@ -398,7 +398,7 @@ const BookingPage = (props: BookingPageProps) => {
                           <label
                             htmlFor="guests"
                             className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
-                            Guests
+                            {t("guests")}
                           </label>
                           <ReactMultiEmail
                             className="relative"
