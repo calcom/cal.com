@@ -24,7 +24,7 @@ try {
     console.log(`🎉 You haven't introduced any new type errors!`);
     process.exit(0);
   }
-  console.error("❌ ❌ ❌ You seem to have touched files that have type errors ❌ ❌ ❌");
+  console.log("❌ ❌ ❌ You seem to have touched files that have type errors ❌ ❌ ❌");
   console.log("🙏 Please inspect the following files:");
   console.log(filesWithTypeErrors.map((str) => `  - ${str}`).join("\n"));
 
