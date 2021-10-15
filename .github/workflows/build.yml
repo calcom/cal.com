@@ -54,8 +54,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v1
 
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node 14
         uses: actions/setup-node@v1
+        with:
+          node-version: "14"
 
       - name: Install deps
         uses: bahmutov/npm-install@v1
