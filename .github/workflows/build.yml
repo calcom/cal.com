@@ -59,10 +59,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node 14
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 14
 
       - name: Install deps
         uses: bahmutov/npm-install@v1
