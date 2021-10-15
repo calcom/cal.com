@@ -142,7 +142,8 @@
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
-      "eslint"
+      "eslint",
+      "yarn tsc --noEmit"
     ]
   }
 }
