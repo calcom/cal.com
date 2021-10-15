@@ -9,7 +9,6 @@ import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 
-console.log("break build");
 dayjs.extend(dayjsBusinessDays);
 dayjs.extend(utc);
 dayjs.extend(timezone);
