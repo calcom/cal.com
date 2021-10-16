@@ -3034,11 +3034,6 @@ data-urls@^2.0.0:
     whatwg-mimetype "^2.3.0"
     whatwg-url "^8.0.0"
 
-dayjs-business-days@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/dayjs-business-days/-/dayjs-business-days-1.0.4.tgz#36e93e7566149e175c1541d92ce16e12145412bf"
-  integrity sha512-kmb8Hvlhmv7INc2YXWew4SaEBJprqJ9C48CdlO1NTsqQa31ZEcO48ziFa3YFr5W9rdwB1nUmd5iIkLwgCkJ8nA==
-
 dayjs-business-time@^1.0.4:
   version "1.0.4"
   resolved "https://registry.npmjs.org/dayjs-business-time/-/dayjs-business-time-1.0.4.tgz#2970b80e832e92bbaa27a06ea62772b0d970b75b"

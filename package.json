@@ -59,7 +59,6 @@
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
     "dayjs": "^1.10.6",
-    "dayjs-business-days": "^1.0.4",
     "dayjs-business-time": "^1.0.4",
     "googleapis": "^84.0.0",
     "handlebars": "^4.7.7",

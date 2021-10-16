@@ -14,7 +14,7 @@ dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// TODO fix prop types
+// FIXME prop types
 function DatePicker({
   weekStart,
   onDatePicked,
