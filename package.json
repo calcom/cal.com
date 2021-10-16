@@ -15,13 +15,15 @@
     "test": "jest",
     "test-playwright": "jest --config jest.playwright.config.js",
     "test-playwright-lcov": "cross-env PLAYWRIGHT_HEADLESS=1 PLAYWRIGHT_COVERAGE=1 yarn test-playwright && nyc report --reporter=lcov",
+    "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
     "ts-node": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\"",
     "postinstall": "prisma generate",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "check-changed-files": "yarn ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
     "node": "14.x",
