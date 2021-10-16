@@ -71,6 +71,156 @@ const loggedInViewerRouter = createProtectedRouter()
       return me;
     },
   })
+  .query("eventTypes", {
+    async resolve({ ctx }) {
+      const { prisma } = ctx;
+      const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+        id: true,
+        title: true,
+        description: true,
+        length: true,
+        schedulingType: true,
+        slug: true,
+        hidden: true,
+        price: true,
+        currency: true,
+        users: {
+          select: {
+            id: true,
+            avatar: true,
+            name: true,
+          },
+        },
+      });
+
+      const user = await prisma.user.findUnique({
+        where: {
+          id: ctx.user.id,
+        },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          startTime: true,
+          endTime: true,
+          bufferTime: true,
+          avatar: true,
+          plan: true,
+          teams: {
+            where: {
+              accepted: true,
+            },
+            select: {
+              role: true,
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  logo: true,
+                  members: {
+                    select: {
+                      userId: true,
+                    },
+                  },
+                  eventTypes: {
+                    select: eventTypeSelect,
+                  },
+                },
+              },
+            },
+          },
+          eventTypes: {
+            where: {
+              team: null,
+            },
+            select: eventTypeSelect,
+          },
+        },
+      });
+
+      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      // backwards compatibility, TMP:
+      const typesRaw = await prisma.eventType.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        select: eventTypeSelect,
+      });
+
+      type EventTypeGroup = {
+        teamId?: number | null;
+        profile: {
+          slug: typeof user["username"];
+          name: typeof user["name"];
+          image: typeof user["avatar"];
+        };
+        metadata: {
+          membershipCount: number;
+          readOnly: boolean;
+        };
+        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+      };
+
+      let eventTypeGroups: EventTypeGroup[] = [];
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+        const oldItem = hashMap[newItem.id] || {};
+        hashMap[newItem.id] = { ...oldItem, ...newItem };
+        return hashMap;
+      }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
+      const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
+        ...et,
+        $disabled: user.plan === "FREE" && index > 0,
+      }));
+
+      eventTypeGroups.push({
+        teamId: null,
+        profile: {
+          slug: user.username,
+          name: user.name,
+          image: user.avatar,
+        },
+        eventTypes: mergedEventTypes,
+        metadata: {
+          membershipCount: 1,
+          readOnly: false,
+        },
+      });
+
+      eventTypeGroups = ([] as EventTypeGroup[]).concat(
+        eventTypeGroups,
+        user.teams.map((membership) => ({
+          teamId: membership.team.id,
+          profile: {
+            name: membership.team.name,
+            image: membership.team.logo || "",
+            slug: "team/" + membership.team.slug,
+          },
+          metadata: {
+            membershipCount: membership.team.members.length,
+            readOnly: membership.role !== "OWNER",
+          },
+          eventTypes: membership.team.eventTypes,
+        }))
+      );
+
+      const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
+
+      return {
+        canAddEvents,
+        user,
+        // don't display event teams without event types,
+        eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
+        // so we can show a dropdown when the user has teams
+        profiles: eventTypeGroups.map((group) => ({
+          teamId: group.teamId,
+          ...group.profile,
+          ...group.metadata,
+        })),
+      };
+    },
+  })
   .query("bookings", {
     input: z.object({
       status: z.enum(["upcoming", "past", "cancelled"]),
