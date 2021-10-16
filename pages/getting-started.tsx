@@ -149,12 +149,12 @@ export default function Onboarding(props: OnboardingProps) {
       <li
         onClick={() => handleAddIntegration(integration.type)}
         key={integration.type}
-        className="flex px-4 py-3 items-center">
+        className="flex items-center px-4 py-3">
         <div className="w-1/12 mr-4">
-          <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
+          <img className="w-8 h-8 mr-2" src={integration.imageSrc} alt={integration.title} />
         </div>
         <div className="w-10/12">
-          <Text className="text-gray-900 text-sm font-medium">{integration.title}</Text>
+          <Text className="text-sm font-medium text-gray-900">{integration.title}</Text>
           <Text className="text-gray-400" variant="subtitle">
             {integration.description}
           </Text>
@@ -234,7 +234,7 @@ export default function Onboarding(props: OnboardingProps) {
           <DialogHeader title={t("connect_caldav")} subtitle={t("credentials_stored_and_encrypted")} />
           <div className="my-4">
             {addCalDavError && (
-              <p className="text-red-700 text-sm">
+              <p className="text-sm text-red-700">
                 <span className="font-bold">{t("error")}: </span>
                 {addCalDavError.message}
               </p>
@@ -248,7 +248,7 @@ export default function Onboarding(props: OnboardingProps) {
             <button
               type="submit"
               form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
+              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
               {t("save")}
             </button>
             <DialogClose
@@ -385,7 +385,7 @@ export default function Onboarding(props: OnboardingProps) {
                 placeholder={t("your_name")}
                 defaultValue={props.user.name ?? enteredName}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
             </fieldset>
 
@@ -403,7 +403,7 @@ export default function Onboarding(props: OnboardingProps) {
                 id="timeZone"
                 value={selectedTimeZone}
                 onChange={setSelectedTimeZone}
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </fieldset>
           </section>
@@ -433,7 +433,7 @@ export default function Onboarding(props: OnboardingProps) {
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <ul className="divide-y divide-gray-200 sm:mx-auto sm:w-full border border-gray-200 rounded-sm">
+        <ul className="border border-gray-200 divide-y divide-gray-200 rounded-sm sm:mx-auto sm:w-full">
           {props.integrations.map((integration) => {
             return <IntegrationGridListItem key={integration.type} integration={integration} />;
           })}
@@ -450,7 +450,7 @@ export default function Onboarding(props: OnboardingProps) {
       description: t("set_availability_instructions"),
       Component: (
         <>
-          <section className="bg-white dark:bg-opacity-5 text-black dark:text-white mx-auto max-w-lg">
+          <section className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white">
             <SchedulerForm
               onSubmit={async (data) => {
                 try {
@@ -466,7 +466,7 @@ export default function Onboarding(props: OnboardingProps) {
               }}
             />
           </section>
-          <footer className="py-6 sm:mx-auto sm:w-full flex flex-col space-y-6">
+          <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
             <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
               {t("continue")}
             </Button>
@@ -496,7 +496,7 @@ export default function Onboarding(props: OnboardingProps) {
                 placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
             </fieldset>
             <fieldset>
@@ -509,8 +509,8 @@ export default function Onboarding(props: OnboardingProps) {
                 name="bio"
                 id="bio"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                defaultValue={props.user.bio}
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                defaultValue={props.user.bio || undefined}
               />
               <Text variant="caption" className="mt-2">
                 {t("few_sentences_about_yourself")}
@@ -550,20 +550,20 @@ export default function Onboarding(props: OnboardingProps) {
   }
 
   return (
-    <div className="bg-black min-h-screen">
+    <div className="min-h-screen bg-black">
       <Head>
         <title>Cal.com - {t("getting_started")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       {isSubmitting && (
-        <div className="fixed w-full h-full bg-white bg-opacity-25 flex flex-col justify-center items-center content-center z-10">
+        <div className="fixed z-10 flex flex-col items-center content-center justify-center w-full h-full bg-white bg-opacity-25">
           <Loader />
         </div>
       )}
-      <div className="mx-auto py-24 px-4">
+      <div className="px-4 py-24 mx-auto">
         <article className="relative">
-          <section className="sm:mx-auto sm:w-full sm:max-w-lg space-y-4">
+          <section className="space-y-4 sm:mx-auto sm:w-full sm:max-w-lg">
             <header>
               <Text className="text-white" variant="largetitle">
                 {steps[currentStep].title}
@@ -572,14 +572,14 @@ export default function Onboarding(props: OnboardingProps) {
                 {steps[currentStep].description}
               </Text>
             </header>
-            <section className="space-y-2 pt-4">
+            <section className="pt-4 space-y-2">
               <Text variant="footnote">
                 Step {currentStep + 1} of {steps.length}
               </Text>
 
               {error && <ErrorAlert {...error} />}
 
-              <section className="w-full space-x-2 flex">
+              <section className="flex w-full space-x-2">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
                     <div
@@ -590,17 +590,17 @@ export default function Onboarding(props: OnboardingProps) {
                         index < currentStep ? "cursor-pointer" : ""
                       )}></div>
                   ) : (
-                    <div key={`step-${index}`} className="h-1 bg-white bg-opacity-25 w-1/4"></div>
+                    <div key={`step-${index}`} className="w-1/4 h-1 bg-white bg-opacity-25"></div>
                   );
                 })}
               </section>
             </section>
           </section>
-          <section className="mt-10 mx-auto max-w-xl bg-white p-10 rounded-sm">
+          <section className="max-w-xl p-10 mx-auto mt-10 bg-white rounded-sm">
             {steps[currentStep].Component}
 
             {!steps[currentStep].hideConfirm && (
-              <footer className="sm:mx-auto sm:w-full flex flex-col space-y-6 mt-8">
+              <footer className="flex flex-col mt-8 space-y-6 sm:mx-auto sm:w-full">
                 <Button
                   className="justify-center"
                   disabled={isSubmitting}
@@ -611,8 +611,8 @@ export default function Onboarding(props: OnboardingProps) {
               </footer>
             )}
           </section>
-          <section className="py-8 mx-auto max-w-xl">
-            <div className="flex justify-between flex-row-reverse">
+          <section className="max-w-xl py-8 mx-auto">
+            <div className="flex flex-row-reverse justify-between">
               <button disabled={isSubmitting} onClick={handleSkipStep}>
                 <Text variant="caption">Skip Step</Text>
               </button>

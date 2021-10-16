@@ -10,5 +10,12 @@ export const ssg = createSSGHelpers({
     prisma,
     session: null,
     user: null,
+    i18n: {
+      _nextI18Next: {
+        initialI18nStore: null,
+        userConfig: null,
+      },
+    },
+    locale: "en",
   },
 });
