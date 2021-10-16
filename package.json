@@ -60,6 +60,7 @@
     "classnames": "^2.3.1",
     "dayjs": "^1.10.6",
     "dayjs-business-days": "^1.0.4",
+    "dayjs-business-time": "^1.0.4",
     "googleapis": "^84.0.0",
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
