@@ -14,11 +14,16 @@ const ctx = kont()
       path: "/settings/embed",
     })
   )
+  .beforeEach(() => ({
+    webhookReceiver: createHttpServer(),
+  }))
+  .afterEach((ktx) => {
+    ktx.webhookReceiver?.close();
+  })
   .done();
 
 test("add webhook & test that creating an event triggers a webhook call", async () => {
-  const { page } = ctx;
-  const webhookReceiver = createHttpServer();
+  const { page, webhookReceiver } = ctx;
 
   // --- add webhook
   await expect(page).toHaveSelector('[data-testid="new-webhook"]');
@@ -88,6 +93,4 @@ test("add webhook & test that creating an event triggers a webhook call", async 
       "triggerEvent": "BOOKING_CREATED",
     }
   `);
-
-  webhookReceiver.close();
 });
