@@ -52,7 +52,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         .utc()
         .toArray()
         .slice(0, 6)
-        .map((v, i) => (i === 1 ? v + 1 : v)) as any, // <-- TODO fix types, not sure what's going on here
+        .map((v, i) => (i === 1 ? v + 1 : v)) as any, // <-- FIXME fix types, not sure what's going on here
       startInputType: "utc",
       title: eventName,
       description: props.eventType.description ? props.eventType.description : undefined,
