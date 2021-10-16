@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 export const WeekdaySelect = (props) => {
   const [activeDays, setActiveDays] = useState(
-    [...Array(7).keys()].map((v, i) => (props.defaultValue || []).includes(i))
+    Array.from(Array(7).keys()).map((v, i) => (props.defaultValue || []).includes(i))
   );
 
   const days = ["S", "M", "T", "W", "T", "F", "S"];

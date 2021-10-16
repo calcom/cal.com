@@ -52,6 +52,7 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
       },
       completedOnboarding: true,
       locale: true,
+      twoFactorEnabled: true,
     },
   });
 
