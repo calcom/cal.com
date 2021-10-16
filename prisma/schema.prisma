@@ -23,7 +23,7 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
-  users                   User[]                 @relation("user_eventtype", onDelete: Cascade, onUpdate: Cascade)
+  users                   User[]                 @relation("user_eventtype", onDelete: NoAction, onUpdate: Cascade)
   userId                  Int?
   team                    Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   teamId                  Int?
@@ -79,7 +79,7 @@ model User {
   hideBranding        Boolean            @default(false)
   theme               String?
   createdDate         DateTime           @default(now()) @map(name: "created")
-  eventTypes          EventType[]        @relation("user_eventtype", onDelete: Cascade, onUpdate: Cascade)
+  eventTypes          EventType[]        @relation("user_eventtype", onDelete: NoAction, onUpdate: Cascade)
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
