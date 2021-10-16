@@ -11,7 +11,7 @@ export const useFileReader = (options: UseFileReaderProps) => {
   const { method = "readAsText", onLoad } = options;
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<ProgressEvent<FileReader> | null>(null);
+  const [error, setError] = useState<DOMException | null>(null);
   const [result, setResult] = useState<string | ArrayBuffer | null>(null);
 
   useEffect(() => {
@@ -28,21 +28,16 @@ export const useFileReader = (options: UseFileReaderProps) => {
     const reader = new FileReader();
     reader.onloadstart = () => setLoading(true);
     reader.onloadend = () => setLoading(false);
-    reader.onerror = setError;
+    reader.onerror = () => setError(reader.error);
 
-    reader.onload = (e) => {
-      setResult(e.target.result);
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      setResult(e.target?.result ?? null);
       if (onLoad) {
-        onLoad(e.target.result);
+        onLoad(e.target?.result ?? null);
       }
     };
-
-    try {
-      reader[method](file);
-    } catch (e) {
-      setError(e);
-    }
+    reader[method](file);
   }, [file, method, onLoad]);
 
-  return [{ result, error, file, loading }, setFile];
+  return [{ result, error, file, loading }, setFile] as const;
 };
