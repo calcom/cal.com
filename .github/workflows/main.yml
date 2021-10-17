@@ -1,4 +1,4 @@
-name: main
+name: cal
 on: [push]
 jobs:
   build:
