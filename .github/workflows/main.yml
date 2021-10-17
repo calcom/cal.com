@@ -2,7 +2,7 @@ name: cal
 on: [push]
 jobs:
   build:
-    name: Build on Node ${{ matrix.node }} and ${{ matrix.os }}
+    name: Build # on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
