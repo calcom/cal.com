@@ -7,7 +7,7 @@ export type Area = {
   y: number;
 };
 
-const createImage = (url) =>
+const createImage = (url: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
@@ -16,10 +16,11 @@ const createImage = (url) =>
     image.src = url;
   });
 
-export async function getCroppedImg(imageSrc: string, pixelCrop: Area) {
+export async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Context is null, this should never happen.");
 
   const maxSize = Math.max(image.naturalWidth, image.naturalHeight);
   const resizeRatio = MAX_IMAGE_SIZE / maxSize < 1 ? Math.max(MAX_IMAGE_SIZE / maxSize, 0.75) : 1;
