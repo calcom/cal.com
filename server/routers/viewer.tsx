@@ -1,5 +1,4 @@
 import { BookingStatus, Prisma } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
 import _ from "lodash";
 import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
@@ -9,6 +8,8 @@ import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
+
+import { TRPCError } from "@trpc/server";
 
 import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -138,7 +139,9 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
 
-      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
 
       // backwards compatibility, TMP:
       const typesRaw = await prisma.eventType.findMany({
