@@ -1,28 +1,30 @@
-import { useSession } from "next-auth/client";
+import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
+import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
-import { Fragment, ReactNode, useEffect, useRef, useState } from "react";
+import { getErrorFromUnknown } from "pages/_error";
+import { Fragment, ReactNode, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
+import * as fetcher from "@lib/core/http/fetch-wrapper";
 import { useLocale } from "@lib/hooks/useLocale";
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import showToast from "@lib/notification";
-import { trpc } from "@lib/trpc";
-import { Webhook } from "@lib/webhook";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@components/Dialog";
+import { Dialog, DialogContent, DialogFooter, DialogProps, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
+import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-import EditWebhook from "@components/webhook/EditWebhook";
-import WebhookList from "@components/webhook/WebhookList";
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
@@ -31,270 +33,311 @@ function pluralize(opts: { num: number; plural: string; singular: string }) {
   return opts.singular;
 }
 
-function Embed() {
-  const user = trpc.useQuery(["viewer.me"]).data;
-  const [, loading] = useSession();
+type TIntegrations = inferQueryOutput<"viewer.integrations">;
+type TWebhook = TIntegrations["webhooks"][number];
+
+const ALL_TRIGGERS: WebhookTriggerEvents[] = [
+  //
+  "BOOKING_CREATED",
+  "BOOKING_RESCHEDULED",
+  "BOOKING_CANCELLED",
+];
+function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
+  const { t } = useLocale();
+  const utils = trpc.useContext();
+  const deleteWebhook = useMutation(async () => fetcher.remove(`/api/webhook/${props.webhook.id}`, null), {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.integrations"]);
+    },
+  });
+
+  return (
+    <ListItem className="p-4 flex w-full">
+      <div className="flex w-full justify-between my-4">
+        <div className="flex pr-2 border-r border-gray-100">
+          <span className="flex flex-col space-y-2 text-xs">
+            {props.webhook.eventTriggers.map((eventTrigger, ind) => (
+              <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
+                {t(`${eventTrigger}`)}
+              </span>
+            ))}
+          </span>
+        </div>
+        <div className="flex w-full">
+          <div className="self-center inline-block ml-3 space-y-1">
+            <span className="flex text-sm text-neutral-700">{props.webhook.subscriberUrl}</span>
+          </div>
+        </div>
+        <div className="flex">
+          {!props.webhook.active && (
+            <span className="self-center h-6 px-3 py-1 text-xs text-red-700 capitalize rounded-md bg-red-50">
+              {t("disabled")}
+            </span>
+          )}
+          {!!props.webhook.active && (
+            <span className="self-center h-6 px-3 py-1 text-xs text-green-700 capitalize rounded-md bg-green-50">
+              {t("enabled")}
+            </span>
+          )}
+
+          <Tooltip content={t("edit_webhook")}>
+            <Button
+              onClick={() => props.onEditWebhook()}
+              color="minimal"
+              size="icon"
+              StartIcon={PencilAltIcon}
+              className="self-center w-full p-2 ml-4"></Button>
+          </Tooltip>
+          <Dialog>
+            <Tooltip content={t("delete_webhook")}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  color="minimal"
+                  size="icon"
+                  StartIcon={TrashIcon}
+                  className="self-center w-full p-2 ml-2"></Button>
+              </DialogTrigger>
+            </Tooltip>
+            <ConfirmationDialogContent
+              variety="danger"
+              title={t("delete_webhook")}
+              confirmBtnText={t("confirm_delete_webhook")}
+              cancelBtnText={t("cancel")}
+              onConfirm={() => deleteWebhook.mutate()}>
+              {t("delete_webhook_confirmation_message")}
+            </ConfirmationDialogContent>
+          </Dialog>
+        </div>
+      </div>
+    </ListItem>
+  );
+}
+
+function WebhookFormDialog(props: DialogProps & { defaultValues?: TWebhook }) {
   const { t } = useLocale();
 
-  const [isLoading, setLoading] = useState(false);
-  const [bookingCreated, setBookingCreated] = useState(true);
-  const [bookingRescheduled, setBookingRescheduled] = useState(true);
-  const [bookingCancelled, setBookingCancelled] = useState(true);
-  const [editWebhookEnabled, setEditWebhookEnabled] = useState(false);
-  const [webhooks, setWebhooks] = useState([]);
-  const [webhookToEdit, setWebhookToEdit] = useState<Webhook | null>();
-  const [webhookEventTrigger, setWebhookEventTriggers] = useState([
-    "BOOKING_CREATED",
-    "BOOKING_RESCHEDULED",
-    "BOOKING_CANCELLED",
-  ]);
+  const utils = trpc.useContext();
+  const {
+    defaultValues = {
+      id: "",
+      eventTriggers: ALL_TRIGGERS,
+      subscriberUrl: "",
+      active: true,
+    },
+    ...dialogProps
+  } = props;
+  const form = useForm({
+    defaultValues,
+  });
+  console.log({ defaultValues });
+  return (
+    <Dialog {...dialogProps}>
+      <DialogContent>
+        <Form
+          form={form}
+          onSubmit={(event) => {
+            form
+              .handleSubmit(async (values) => {
+                const { id, ...body } = values;
+                if (id) {
+                  await fetcher.patch(`/api/webhook/${id}`, body);
+                  await utils.invalidateQueries(["viewer.integrations"]);
+                  showToast(t("webhook_updated_successfully"), "success");
+                } else {
+                  await fetcher.post("/api/webhook", body);
+                  await utils.invalidateQueries(["viewer.integrations"]);
+                  showToast(t("webhook_created_successfully"), "success");
+                }
 
-  const subUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
+                props.onOpenChange?.(false);
+              })(event)
+              .catch((err) => {
+                showToast(`${getErrorFromUnknown(err).message}`, "error");
+              });
+          }}
+          className="space-y-4">
+          <input type="hidden" {...form.register("id")} />
+          <TextField label={t("subscriber_url")} required type="url" />
 
-  useEffect(() => {
-    const arr = [];
-    bookingCreated && arr.push("BOOKING_CREATED");
-    bookingRescheduled && arr.push("BOOKING_RESCHEDULED");
-    bookingCancelled && arr.push("BOOKING_CANCELLED");
-    setWebhookEventTriggers(arr);
-  }, [bookingCreated, bookingRescheduled, bookingCancelled]);
+          <fieldset className="space-y-2">
+            <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
+            <InputGroupBox>
+              {ALL_TRIGGERS.map((key) => (
+                <Controller
+                  key={key}
+                  control={form.control}
+                  name="eventTriggers"
+                  render={({ field }) => (
+                    <Switch
+                      label={t(key.toLowerCase())}
+                      defaultChecked={field.value.includes(key)}
+                      onCheckedChange={(isChecked) => {
+                        const value = field.value;
+                        const newValue = isChecked ? [...value, key] : value.filter((v) => v !== key);
 
-  useEffect(() => {
-    getWebhooks();
-  }, []);
+                        form.setValue("eventTriggers", newValue, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                  )}
+                />
+              ))}
+            </InputGroupBox>
+          </fieldset>
+          <fieldset className="space-y-2">
+            <FieldsetLegend>{t("webhook_status")}</FieldsetLegend>
+            <InputGroupBox>
+              <Controller
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <Switch
+                    label={t("webhook_enabled")}
+                    defaultChecked={field.value}
+                    onCheckedChange={(isChecked) => {
+                      form.setValue("active", isChecked);
+                    }}
+                  />
+                )}
+              />
+            </InputGroupBox>
+          </fieldset>
+          <DialogFooter>
+            <Button type="button" color="secondary" onClick={() => props.onOpenChange?.(false)} tabIndex={-1}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" loading={form.formState.isSubmitting}>
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+function WebhookEmbed(props: { webhooks: TWebhook[] }) {
+  const { t } = useLocale();
+  const user = trpc.useQuery(["viewer.me"]).data;
 
   const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
     "schedule_a_meeting"
   )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
-  const handleErrors = async (resp: Response) => {
-    if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.message);
-    }
-    return resp.json();
-  };
 
-  const getWebhooks = () => {
-    fetch("/api/webhook")
-      .then(handleErrors)
-      .then((data) => {
-        setWebhooks(
-          data.webhooks.map((webhook: Webhook) => {
-            return {
-              ...webhook,
-              eventTriggers: webhook.eventTriggers.map((eventTrigger: string) => eventTrigger.toLowerCase()),
-            };
-          })
-        );
-        console.log(data.webhooks);
-      })
-      .catch(console.log);
-    setLoading(false);
-  };
-
-  const createWebhook = () => {
-    setLoading(true);
-    fetch("/api/webhook", {
-      method: "POST",
-      body: JSON.stringify({
-        subscriberUrl: subUrlRef.current.value,
-        eventTriggers: webhookEventTrigger,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(getWebhooks)
-      .catch(console.log);
-  };
-
-  const editWebhook = (webhook: Webhook) => {
-    setEditWebhookEnabled(true);
-    setWebhookToEdit(webhook);
-  };
-
-  const onCloseEdit = () => {
-    getWebhooks();
-    setEditWebhookEnabled(false);
-  };
-
-  if (loading) {
-    return <Loader />;
-  }
-
+  const [newWebhookModal, setNewWebhookModal] = useState(false);
+  const [editWebhookModal, setEditWebhookModal] = useState<false | TWebhook>(false);
   return (
     <>
-      {!editWebhookEnabled && (
-        <>
-          <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
-          <List>
-            <ListItem className={classNames("flex-col")}>
-              <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-                <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
-                <div className="flex-grow pl-2 truncate">
-                  <ListItemTitle component="h3">Webhooks</ListItemTitle>
-                  <ListItemText component="p">Automation</ListItemText>
-                </div>
-                <div>
-                  <Dialog>
-                    <DialogTrigger>
-                      <Button color="secondary">{t("new_webhook")}</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader
-                        title={t("create_new_webhook")}
-                        subtitle={t("create_new_webhook_to_account")}
-                      />
-                      <div className="my-4">
-                        <div className="mb-4">
-                          <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
-                            {t("subscriber_url")}
-                          </label>
-                          <input
-                            ref={subUrlRef}
-                            type="text"
-                            name="subUrl"
-                            id="subUrl"
-                            placeholder="https://example.com/sub"
-                            required
-                            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                          />
-                          <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
-                            {" "}
-                            {t("event_triggers")}{" "}
-                          </legend>
-                          <div className="p-2 border border-gray-300 rounded-sm">
-                            <div className="flex pb-4">
-                              <div className="w-10/12">
-                                <h2 className="font-medium text-gray-800">{t("booking_created")}</h2>
-                              </div>
-                              <div className="flex items-center justify-center w-2/12 text-right">
-                                <Switch
-                                  defaultChecked={true}
-                                  id="booking-created"
-                                  value={bookingCreated}
-                                  onCheckedChange={() => {
-                                    setBookingCreated(!bookingCreated);
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            <div className="flex py-1">
-                              <div className="w-10/12">
-                                <h2 className="font-medium text-gray-800">{t("booking_rescheduled")}</h2>
-                              </div>
-                              <div className="flex items-center justify-center w-2/12 text-right">
-                                <Switch
-                                  defaultChecked={true}
-                                  id="booking-rescheduled"
-                                  value={bookingRescheduled}
-                                  onCheckedChange={() => {
-                                    setBookingRescheduled(!bookingRescheduled);
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            <div className="flex pt-4">
-                              <div className="w-10/12">
-                                <h2 className="font-medium text-gray-800">{t("booking_cancelled")}</h2>
-                              </div>
-                              <div className="flex items-center justify-center w-2/12 text-right">
-                                <Switch
-                                  defaultChecked={true}
-                                  id="booking-cancelled"
-                                  value={bookingCancelled}
-                                  onCheckedChange={() => {
-                                    setBookingCancelled(!bookingCancelled);
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                          <DialogClose asChild>
-                            <Button
-                              type="button"
-                              loading={isLoading}
-                              onClick={createWebhook}
-                              color="primary"
-                              className="ml-2">
-                              {t("create_webhook")}
-                            </Button>
-                          </DialogClose>
-                          <DialogClose asChild>
-                            <Button color="secondary">{t("cancel")}</Button>
-                          </DialogClose>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-            </ListItem>
-          </List>
-
-          <div className="divide-y divide-gray-200 lg:col-span-9">
-            <div className="py-6 lg:pb-8">
-              <div>
-                {!!webhooks.length && (
-                  <WebhookList
-                    webhooks={webhooks}
-                    onChange={getWebhooks}
-                    onEditWebhook={editWebhook}></WebhookList>
-                )}
-              </div>
+      <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
+      <List>
+        <ListItem className={classNames("flex-col")}>
+          <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+            <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
+            <div className="flex-grow pl-2 truncate">
+              <ListItemTitle component="h3">Webhooks</ListItemTitle>
+              <ListItemText component="p">Automation</ListItemText>
+            </div>
+            <div>
+              <Button color="secondary" onClick={() => setNewWebhookModal(true)}>
+                {t("new_webhook")}
+              </Button>
             </div>
           </div>
+        </ListItem>
+      </List>
 
-          <ShellSubHeading className="mt-10" title={t("iframe_embed")} subtitle={t("embed_calcom")} />
-          <div className="py-6 lg:pb-8 lg:col-span-9">
-            <div className="mb-6">
-              <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal"></h2>
-              <p className="mt-1 text-sm text-gray-500"></p>
-            </div>
-            <div className="grid grid-cols-2 space-x-4">
-              <div>
-                <label htmlFor="iframe" className="block text-sm font-medium text-gray-700">
-                  {t("standard_iframe")}
-                </label>
-                <div className="mt-1">
-                  <textarea
-                    id="iframe"
-                    className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                    placeholder={t("loading")}
-                    defaultValue={iframeTemplate}
-                    readOnly
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700">
-                  {t("responsive_fullscreen_iframe")}
-                </label>
-                <div className="mt-1">
-                  <textarea
-                    id="fullscreen"
-                    className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                    placeholder={t("loading")}
-                    defaultValue={htmlTemplate}
-                    readOnly
-                  />
-                </div>
-              </div>
-            </div>
-
-            <ShellSubHeading className="mt-10" title="Cal.com API" subtitle={t("leverage_our_api")} />
-            <a href="https://developer.cal.com/api" className="btn btn-primary">
-              {t("browse_api_documentation")}
-            </a>
+      {props.webhooks.length ? (
+        <List>
+          {props.webhooks.map((item) => (
+            <WebhookListItem
+              key={item.id}
+              webhook={item}
+              onEditWebhook={() => {
+                setEditWebhookModal(item);
+              }}
+            />
+          ))}
+        </List>
+      ) : null}
+      <div className="divide-y divide-gray-200 lg:col-span-9">
+        <div className="py-6 lg:pb-8">
+          <div>
+            {/* {!!props.webhooks.length && (
+              <WebhookList
+                webhooks={props.webhooks}
+                onChange={() => {}}
+                onEditWebhook={editWebhook}></WebhookList>
+            )} */}
           </div>
-        </>
-      )}
-      {!!editWebhookEnabled && webhookToEdit && (
-        <EditWebhook webhook={webhookToEdit} onCloseEdit={onCloseEdit} />
-      )}
+        </div>
+      </div>
+
+      <ShellSubHeading className="mt-10" title={t("iframe_embed")} subtitle={t("embed_calcom")} />
+      <div className="py-6 lg:pb-8 lg:col-span-9">
+        <div className="mb-6">
+          <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal"></h2>
+          <p className="mt-1 text-sm text-gray-500"></p>
+        </div>
+        <div className="grid grid-cols-2 space-x-4">
+          <div>
+            <label htmlFor="iframe" className="block text-sm font-medium text-gray-700">
+              {t("standard_iframe")}
+            </label>
+            <div className="mt-1">
+              <textarea
+                id="iframe"
+                className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                placeholder={t("loading")}
+                defaultValue={iframeTemplate}
+                readOnly
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700">
+              {t("responsive_fullscreen_iframe")}
+            </label>
+            <div className="mt-1">
+              <textarea
+                id="fullscreen"
+                className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                placeholder={t("loading")}
+                defaultValue={htmlTemplate}
+                readOnly
+              />
+            </div>
+          </div>
+        </div>
+
+        <ShellSubHeading className="mt-10" title="Cal.com API" subtitle={t("leverage_our_api")} />
+        <a href="https://developer.cal.com/api" className="btn btn-primary">
+          {t("browse_api_documentation")}
+        </a>
+      </div>
+
+      {/* New webhook dialog */}
+      <WebhookFormDialog
+        open={!!newWebhookModal}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setNewWebhookModal(false);
+          }
+        }}
+      />
+      {/* Edit webhook dialog */}
+      <WebhookFormDialog
+        open={!!editWebhookModal}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setEditWebhookModal(false);
+          }
+        }}
+        defaultValues={editWebhookModal || undefined}
+      />
     </>
   );
 }
@@ -695,12 +738,11 @@ export default function IntegrationsPage() {
                   />
                 ))}
               </List>
+              <WebhookEmbed webhooks={data.webhooks} />
             </>
           );
         }}
       />
-
-      <Embed />
     </Shell>
   );
 }

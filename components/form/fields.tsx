@@ -61,3 +61,21 @@ export const Form = forwardRef<HTMLFormElement, { form: UseFormReturn<any> } & J
     );
   }
 );
+
+export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
+  return (
+    <legend {...props} className={classNames("text-sm font-medium text-gray-700", props.className)}>
+      {props.children}
+    </legend>
+  );
+}
+
+export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
+  return (
+    <div
+      {...props}
+      className={classNames("p-2 bg-white border border-gray-300 rounded-sm space-y-2", props.className)}>
+      {props.children}
+    </div>
+  );
+}
