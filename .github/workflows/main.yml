@@ -44,7 +44,7 @@ jobs:
       - run: yarn prisma migrate deploy
       - run: yarn build
 
-  test:
+  test-unit:
     name: Unit tests on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
@@ -109,7 +109,7 @@ jobs:
       - name: Lint
         run: yarn lint
 
-  e2e:
+  test-e2e:
     timeout-minutes: 10
     name: ${{ matrix.node }} and ${{ matrix.os }}
 
