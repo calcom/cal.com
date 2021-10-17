@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         node: ["14.x"]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout repo
@@ -45,7 +45,7 @@ jobs:
       - run: yarn build
 
   test-unit:
-    name: Unit tests on Node ${{ matrix.node }} and ${{ matrix.os }}
+    name: Unit tests # on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -93,6 +93,7 @@ jobs:
       - run: yarn check-changed-files
 
   lint:
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -111,7 +112,7 @@ jobs:
 
   test-e2e:
     timeout-minutes: 10
-    name: ${{ matrix.node }} and ${{ matrix.os }}
+    name: E2E tets # ${{ matrix.node }} and ${{ matrix.os }}
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
