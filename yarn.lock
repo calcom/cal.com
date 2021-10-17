@@ -1819,6 +1819,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-phone-number-input@^3.0.13":
+  version "3.0.13"
+  resolved "https://registry.yarnpkg.com/@types/react-phone-number-input/-/react-phone-number-input-3.0.13.tgz#4eb7dcd278dcf9eb2a8d2ce2cb304657cbf1b4e5"
+  integrity sha512-27k7AvLbzCjpuRORFhehFdRHVan1q6RhSTV7dFiXwZ2ojnS/JMx77wd9OyAU464oN0GIlkfhc0njGzL97/xNcw==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-select@^4.0.17":
   version "4.0.18"
   resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-4.0.18.tgz#f907f406411afa862217a9d86c54a301367a35c1"
