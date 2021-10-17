@@ -1,4 +1,3 @@
-name: Main
 on: [push]
 jobs:
   build:
