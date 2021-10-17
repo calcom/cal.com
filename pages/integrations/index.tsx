@@ -18,6 +18,8 @@ import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
+import Embed from "./embed";
+
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {
     return opts.singular;
@@ -425,6 +427,8 @@ export default function IntegrationsPage() {
           );
         }}
       />
+
+      <Embed />
     </Shell>
   );
 }

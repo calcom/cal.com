@@ -11,7 +11,7 @@ import Button from "@components/ui/Button";
 
 export default function WebhookListItem(props: {
   onChange: () => void;
-  key: number;
+  key: string;
   webhook: Webhook;
   onEditWebhook: () => void;
 }) {
