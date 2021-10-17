@@ -69,3 +69,20 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - run: yarn check-changed-files
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          version: 14.x
+
+      - name: Install deps
+        uses: bahmutov/npm-install@v1
+
+      - name: Lint
+        run: yarn lint
