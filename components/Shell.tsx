@@ -257,7 +257,7 @@ export default function Shell(props: {
               <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
-                  item.name === "Settings" ? (
+                  item.href === "/settings/profile" ? (
                     []
                   ) : (
                     <Link key={item.name} href={item.href}>
@@ -276,7 +276,7 @@ export default function Shell(props: {
                           )}
                           aria-hidden="true"
                         />
-                        <span>{item.name}</span>
+                        <span className="truncate">{item.name}</span>
                       </a>
                     </Link>
                   )
