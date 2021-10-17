@@ -4,7 +4,8 @@ import { FormProvider, UseFormReturn } from "react-hook-form";
 
 import classNames from "@lib/classNames";
 
-export const Input = forwardRef<HTMLInputElement, JSX.IntrinsicElements["input"]>(function Input(props, ref) {
+type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
   return (
     <input
       {...props}

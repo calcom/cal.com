@@ -2,7 +2,7 @@ import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
 import { getErrorFromUnknown } from "pages/_error";
-import { Fragment, ReactNode, useEffect, useState } from "react";
+import { Fragment, ReactNode, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 
@@ -15,7 +15,7 @@ import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/A
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { Dialog, DialogContent, DialogFooter, DialogProps, DialogTrigger } from "@components/Dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
@@ -45,7 +45,7 @@ const ALL_TRIGGERS: WebhookTriggerEvents[] = [
 function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const deleteWebhook = useMutation(async () => fetcher.remove(`/api/webhook/${props.webhook.id}`, null), {
+  const deleteWebhook = useMutation(async () => fetcher.remove(`/api/webhooks/${props.webhook.id}`, null), {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.integrations"]);
     },
@@ -116,7 +116,11 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   );
 }
 
-function WebhookFormDialog(props: DialogProps & { defaultValues?: TWebhook }) {
+function WebhookDialogForm(props: {
+  //
+  defaultValues?: TWebhook;
+  handleClose: () => void;
+}) {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
@@ -127,105 +131,94 @@ function WebhookFormDialog(props: DialogProps & { defaultValues?: TWebhook }) {
       subscriberUrl: "",
       active: true,
     },
-    ...dialogProps
   } = props;
 
   const form = useForm({
     defaultValues,
   });
-  useEffect(() => {
-    console.log("reset", props.defaultValues);
-    form.reset(props.defaultValues);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultValues.id]);
   return (
-    <Dialog {...dialogProps}>
-      <DialogContent>
-        <Form
-          key={defaultValues.id}
-          form={form}
-          onSubmit={(event) => {
-            form
-              .handleSubmit(async (values) => {
-                const { id, ...body } = values;
-                if (id) {
-                  await fetcher.patch(`/api/webhook/${id}`, body);
-                  await utils.invalidateQueries(["viewer.integrations"]);
-                  showToast(t("webhook_updated_successfully"), "success");
-                } else {
-                  await fetcher.post("/api/webhook", body);
-                  await utils.invalidateQueries(["viewer.integrations"]);
-                  showToast(t("webhook_created_successfully"), "success");
-                }
+    <Form
+      form={form}
+      onSubmit={(event) => {
+        form
+          .handleSubmit(async (values) => {
+            const { id, ...body } = values;
+            if (id) {
+              await fetcher.patch(`/api/webhooks/${id}`, body);
+              await utils.invalidateQueries(["viewer.integrations"]);
+              showToast(t("webhook_updated_successfully"), "success");
+            } else {
+              await fetcher.post("/api/webhook", body);
+              await utils.invalidateQueries(["viewer.integrations"]);
+              showToast(t("webhook_created_successfully"), "success");
+            }
 
-                props.onOpenChange?.(false);
-                form.reset();
-              })(event)
-              .catch((err) => {
-                showToast(`${getErrorFromUnknown(err).message}`, "error");
-              });
-          }}
-          className="space-y-4">
-          <input type="hidden" {...form.register("id")} />
-          <TextField label={t("subscriber_url")} {...form.register("subscriberUrl")} required type="url" />
+            props.handleClose();
+          })(event)
+          .catch((err) => {
+            showToast(`${getErrorFromUnknown(err).message}`, "error");
+          });
+      }}
+      className="space-y-4">
+      <input type="hidden" {...form.register("id")} />
+      <TextField label={t("subscriber_url")} {...form.register("subscriberUrl")} required type="url" />
 
-          <fieldset className="space-y-2">
-            <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
-            <InputGroupBox>
-              {ALL_TRIGGERS.map((key) => (
-                <Controller
-                  key={key}
-                  control={form.control}
-                  name="eventTriggers"
-                  render={({ field }) => (
-                    <Switch
-                      label={t(key.toLowerCase())}
-                      defaultChecked={field.value.includes(key)}
-                      onCheckedChange={(isChecked) => {
-                        const value = field.value;
-                        const newValue = isChecked ? [...value, key] : value.filter((v) => v !== key);
+      <fieldset className="space-y-2">
+        <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
+        <InputGroupBox>
+          {ALL_TRIGGERS.map((key) => (
+            <Controller
+              key={key}
+              control={form.control}
+              name="eventTriggers"
+              render={({ field }) => (
+                <Switch
+                  label={t(key.toLowerCase())}
+                  defaultChecked={field.value.includes(key)}
+                  onCheckedChange={(isChecked) => {
+                    const value = field.value;
+                    const newValue = isChecked ? [...value, key] : value.filter((v) => v !== key);
 
-                        form.setValue("eventTriggers", newValue, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
-                  )}
+                    form.setValue("eventTriggers", newValue, {
+                      shouldDirty: true,
+                    });
+                  }}
                 />
-              ))}
-            </InputGroupBox>
-          </fieldset>
-          <fieldset className="space-y-2">
-            <FieldsetLegend>{t("webhook_status")}</FieldsetLegend>
-            <InputGroupBox>
-              <Controller
-                control={form.control}
-                name="active"
-                render={({ field }) => (
-                  <Switch
-                    label={t("webhook_enabled")}
-                    defaultChecked={field.value}
-                    onCheckedChange={(isChecked) => {
-                      form.setValue("active", isChecked);
-                    }}
-                  />
-                )}
+              )}
+            />
+          ))}
+        </InputGroupBox>
+      </fieldset>
+      <fieldset className="space-y-2">
+        <FieldsetLegend>{t("webhook_status")}</FieldsetLegend>
+        <InputGroupBox>
+          <Controller
+            control={form.control}
+            name="active"
+            render={({ field }) => (
+              <Switch
+                label={t("webhook_enabled")}
+                defaultChecked={field.value}
+                onCheckedChange={(isChecked) => {
+                  form.setValue("active", isChecked);
+                }}
               />
-            </InputGroupBox>
-          </fieldset>
-          <DialogFooter>
-            <Button type="button" color="secondary" onClick={() => props.onOpenChange?.(false)} tabIndex={-1}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" loading={form.formState.isSubmitting}>
-              {t("save")}
-            </Button>
-          </DialogFooter>
-        </Form>
-      </DialogContent>
-    </Dialog>
+            )}
+          />
+        </InputGroupBox>
+      </fieldset>
+      <DialogFooter>
+        <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
+          {t("cancel")}
+        </Button>
+        <Button type="submit" loading={form.formState.isSubmitting}>
+          {t("save")}
+        </Button>
+      </DialogFooter>
+    </Form>
   );
 }
+
 function WebhookEmbed(props: { webhooks: TWebhook[] }) {
   const { t } = useLocale();
   const user = trpc.useQuery(["viewer.me"]).data;
@@ -236,7 +229,8 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
   )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
 
   const [newWebhookModal, setNewWebhookModal] = useState(false);
-  const [editWebhookModal, setEditWebhookModal] = useState<false | TWebhook>(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editing, setEditing] = useState<TWebhook | null>(null);
   return (
     <>
       <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
@@ -264,7 +258,8 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
               key={item.id}
               webhook={item}
               onEditWebhook={() => {
-                setEditWebhookModal(item);
+                setEditing(item);
+                setEditModalOpen(true);
               }}
             />
           ))}
@@ -327,24 +322,24 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
       </div>
 
       {/* New webhook dialog */}
-      <WebhookFormDialog
-        open={!!newWebhookModal}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setNewWebhookModal(false);
-          }
-        }}
-      />
+
+      <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
+        <DialogContent>
+          <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
+        </DialogContent>
+      </Dialog>
       {/* Edit webhook dialog */}
-      <WebhookFormDialog
-        open={!!editWebhookModal}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setEditWebhookModal(false);
-          }
-        }}
-        defaultValues={editWebhookModal || undefined}
-      />
+      <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
+        <DialogContent>
+          {editing && (
+            <WebhookDialogForm
+              key={editing.id}
+              handleClose={() => setEditModalOpen(false)}
+              defaultValues={editing}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
