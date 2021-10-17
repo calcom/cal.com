@@ -107,6 +107,7 @@
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",
     "@types/react": "^17.0.18",
+    "@types/react-phone-number-input": "^3.0.13",
     "@types/react-select": "^4.0.17",
     "@types/uuid": "8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
