@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { kont } from "kont";
 
 import { loginProvider } from "./lib/loginProvider";
@@ -29,11 +30,11 @@ test("add webhook & test that creating an event triggers a webhook call", async 
 
   await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
 
-  // --- navigate to meeting form
-  await page.goto("http://localhost:3000/pro/30min");
+  // --- go to tomorrow in the pro user's "30min"-event
+  const tomorrow = dayjs().add(1, "day");
+  const tomorrowFormatted = tomorrow.format("YYYY-MM-DDZZ");
 
-  // click first day that isn't disabled
-  await page.click("[data-testid=day]:not([data-disabled=true])");
+  await page.goto(`http://localhost:3000/pro/30min?date=${encodeURIComponent(tomorrowFormatted)}`);
 
   // click first time available
   await page.click("[data-testid=time]");
