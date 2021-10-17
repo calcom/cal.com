@@ -19,7 +19,6 @@ interface EnableTwoFactorModalProps {
    * Called when the user enables two-factor auth
    */
   onEnable: () => void;
-  localeProp: string;
 }
 
 enum SetupStep {
@@ -27,13 +26,6 @@ enum SetupStep {
   DisplayQrCode,
   EnterTotpCode,
 }
-
-const setupDescriptions = {
-  [SetupStep.ConfirmPassword]: "Confirm your current password to get started.",
-  [SetupStep.DisplayQrCode]:
-    "Scan the image below with the authenticator app on your phone or manually enter the text code instead.",
-  [SetupStep.EnterTotpCode]: "Enter the six-digit code from your authenticator app below.",
-};
 
 const WithStep = ({
   step,
@@ -47,7 +39,13 @@ const WithStep = ({
   return step === current ? children : null;
 };
 
-const EnableTwoFactorModal = ({ onEnable, onCancel, localeProp }: EnableTwoFactorModalProps) => {
+const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps) => {
+  const { t } = useLocale();
+  const setupDescriptions = {
+    [SetupStep.ConfirmPassword]: t("2fa_confirm_current_password"),
+    [SetupStep.DisplayQrCode]: t("2fa_scan_image_or_use_code"),
+    [SetupStep.EnterTotpCode]: t("2fa_enter_six_digit_code"),
+  };
   const [step, setStep] = useState(SetupStep.ConfirmPassword);
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
@@ -55,7 +53,6 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, localeProp }: EnableTwoFacto
   const [secret, setSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { t } = useLocale({ localeProp });
 
   async function handleSetup(e: SyntheticEvent) {
     e.preventDefault();

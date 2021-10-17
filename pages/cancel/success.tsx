@@ -3,17 +3,23 @@ import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/client";
 import { useRouter } from "next/router";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
 export default function CancelSuccess() {
+  const { t } = useLocale();
   // Get router variables
   const router = useRouter();
   const { title, name, eventPage } = router.query;
   const [session, loading] = useSession();
   return (
     <div>
-      <HeadSeo title={`Cancelled ${title} | ${name}`} description={`Cancelled ${title} | ${name}`} />
+      <HeadSeo
+        title={`${t("cancelled")} ${title} | ${name}`}
+        description={`${t("cancelled")} ${title} | ${name}`}
+      />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -32,11 +38,11 @@ export default function CancelSuccess() {
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                      Cancellation successful
+                      {t("cancellation_successful")}
                     </h3>
                     {!loading && !session.user && (
                       <div className="mt-2">
-                        <p className="text-sm text-gray-500">Feel free to pick another event anytime.</p>
+                        <p className="text-sm text-gray-500">{t("free_to_pick_another_event_type")}</p>
                       </div>
                     )}
                   </div>
@@ -46,7 +52,7 @@ export default function CancelSuccess() {
                     {!loading && !session.user && <Button href={eventPage}>Pick another</Button>}
                     {!loading && session.user && (
                       <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
-                        Back to bookings
+                        {t("back_to_bookings")}
                       </Button>
                     )}
                   </div>

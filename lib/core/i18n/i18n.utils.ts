@@ -4,11 +4,19 @@ import { IncomingMessage } from "http";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
+import { Maybe } from "@trpc/server";
+
 import { i18n } from "../../../next-i18next.config";
 
-export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage) => {
+export function getLocaleFromHeaders(req: IncomingMessage): string {
+  const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]) as Maybe<string>;
+
+  return preferredLocale ?? i18n.defaultLocale;
+}
+
+export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage): Promise<string> => {
   const session = await getSession({ req });
-  const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]);
+  const preferredLocale = getLocaleFromHeaders(req);
 
   if (session?.user?.id) {
     const user = await prisma.user.findUnique({
@@ -24,55 +32,15 @@ export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage) => {
       return user.locale;
     }
 
-    if (preferredLocale) {
-      await prisma.user.update({
-        where: {
-          id: session.user.id,
-        },
-        data: {
-          locale: preferredLocale,
-        },
-      });
-    } else {
-      await prisma.user.update({
-        where: {
-          id: session.user.id,
-        },
-        data: {
-          locale: i18n.defaultLocale,
-        },
-      });
-    }
+    await prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        locale: preferredLocale,
+      },
+    });
   }
 
-  if (preferredLocale) {
-    return preferredLocale;
-  }
-
-  return i18n.defaultLocale;
+  return preferredLocale;
 };
-
-interface localeType {
-  [locale: string]: string;
-}
-
-export const localeLabels: localeType = {
-  en: "English",
-  fr: "French",
-  it: "Italian",
-  ru: "Russian",
-  es: "Spanish",
-  de: "German",
-  pt: "Portuguese",
-  ro: "Romanian",
-  nl: "Dutch",
-};
-
-export type OptionType = {
-  value: string;
-  label: string;
-};
-
-export const localeOptions: OptionType[] = i18n.locales.map((locale) => {
-  return { value: locale, label: localeLabels[locale] };
-});

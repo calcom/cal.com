@@ -1,8 +1,11 @@
 import DailyIframe from "@daily-co/daily-js";
 import { getSession } from "next-auth/client";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 import prisma from "../../lib/prisma";
 
@@ -50,20 +53,29 @@ export default function JoinCall(props, session) {
   }, []);
 
   return (
-    <div style={{ zIndex: 2, position: "relative" }}>
-      <Link href="/">
-        <img
-          className="hidden sm:inline-block z-10 fixed w-auto h-5"
-          src="https://cal.com/logo-white.svg"
-          alt="Cal.com Logo"
-          style={{
-            top: 46,
-            left: 24,
-          }}
-        />
-      </Link>
-      {JoinCall}
-    </div>
+    <>
+      <HeadSeo title="Video Conference" description="Join the video call" />
+      <Head>
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://cal.com/video-og-image.png" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:image" content="https://cal.com/video-og-image.png" />
+      </Head>
+      <div style={{ zIndex: 2, position: "relative" }}>
+        <Link href="/">
+          <img
+            className="hidden sm:inline-block z-10 fixed w-auto h-5"
+            src="https://cal.com/logo-white.svg"
+            alt="Cal.com Logo"
+            style={{
+              top: 46,
+              left: 24,
+            }}
+          />
+        </Link>
+        {JoinCall}
+      </div>
+    </>
   );
 }
 

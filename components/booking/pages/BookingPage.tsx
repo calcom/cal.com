@@ -13,8 +13,6 @@ import { stringify } from "querystring";
 import { useCallback, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
-import PhoneInput from "react-phone-number-input";
-import "react-phone-number-input/style.css";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
@@ -30,6 +28,7 @@ import { BookingCreateBody } from "@lib/types/booking";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
+import PhoneInput from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
@@ -37,7 +36,7 @@ import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
 const BookingPage = (props: BookingPageProps) => {
-  const { t } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(props.profile.theme);
@@ -152,7 +151,7 @@ const BookingPage = (props: BookingPageProps) => {
 
         if (payload["location"]) {
           if (payload["location"].includes("integration")) {
-            params.location = "Web conferencing details to follow.";
+            params.location = t("web_conferencing_details_to_follow");
           } else {
             params.location = payload["location"];
           }
@@ -181,7 +180,7 @@ const BookingPage = (props: BookingPageProps) => {
     book();
   };
 
-  const bookingHandler = useCallback(_bookingHandler, []);
+  const bookingHandler = useCallback(_bookingHandler, [guestEmails]);
 
   return (
     <div>
@@ -254,7 +253,7 @@ const BookingPage = (props: BookingPageProps) => {
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium dark:text-white text-gray-700">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("your_name")}
                     </label>
                     <div className="mt-1">
@@ -272,7 +271,7 @@ const BookingPage = (props: BookingPageProps) => {
                   <div className="mb-4">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium dark:text-white text-gray-700">
+                      className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("email_address")}
                     </label>
                     <div className="mt-1">
@@ -319,16 +318,7 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          name="phone"
-                          placeholder={t("enter_phone_number")}
-                          id="phone"
-                          required
-                          className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
-                          onChange={() => {
-                            /* DO NOT REMOVE: Callback required by PhoneInput, comment added to satisfy eslint:no-empty-function */
-                          }}
-                        />
+                        <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
                       </div>
                     </div>
                   )}
@@ -408,7 +398,7 @@ const BookingPage = (props: BookingPageProps) => {
                           <label
                             htmlFor="guests"
                             className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
-                            Guests
+                            {t("guests")}
                           </label>
                           <ReactMultiEmail
                             className="relative"
@@ -446,7 +436,7 @@ const BookingPage = (props: BookingPageProps) => {
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
                       placeholder={t("share_additional_notes")}
                       defaultValue={props.booking ? props.booking.description : ""}
                     />

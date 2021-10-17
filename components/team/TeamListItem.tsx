@@ -31,14 +31,13 @@ interface Team {
 }
 
 export default function TeamListItem(props: {
-  localeProp: string;
   onChange: () => void;
   key: number;
   team: Team;
   onActionSelect: (text: string) => void;
 }) {
   const [team, setTeam] = useState<Team | null>(props.team);
-  const { t, locale } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
 
   const acceptInvite = () => invitationResponse(true);
   const declineInvite = () => invitationResponse(false);
@@ -101,7 +100,7 @@ export default function TeamListItem(props: {
               <span className="self-center h-6 px-3 py-1 text-xs text-gray-700 capitalize rounded-md bg-gray-50">
                 {t("owner")}
               </span>
-              <Tooltip content="Copy link">
+              <Tooltip content={t("copy_link")}>
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(
@@ -155,9 +154,8 @@ export default function TeamListItem(props: {
                         </Button>
                       </DialogTrigger>
                       <ConfirmationDialogContent
-                        localeProp={locale}
                         variety="danger"
-                        title="Disband Team"
+                        title={t("disband_team")}
                         confirmBtnText={t("confirm_disband_team")}
                         onConfirm={() => props.onActionSelect("disband")}>
                         {t("disband_team_confirmation_message")}

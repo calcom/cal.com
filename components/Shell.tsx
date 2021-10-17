@@ -1,4 +1,3 @@
-import { Menu, Transition } from "@headlessui/react";
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
@@ -12,33 +11,33 @@ import {
 import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
+import { shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
+import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/Dropdown";
 
+import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useMeQuery() {
-  const [session] = useSession();
-  const meQuery = trpc.useQuery(["viewer.me"], {
-    // refetch max once per 5s
-    staleTime: 5000,
-  });
-
-  useEffect(() => {
-    // refetch if sesion changes
-    meQuery.refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  const meQuery = trpc.useQuery(["viewer.me"]);
 
   return meQuery;
 }
@@ -46,6 +45,7 @@ function useMeQuery() {
 function useRedirectToLoginIfUnauthenticated() {
   const [session, loading] = useSession();
   const router = useRouter();
+  const query = useMeQuery();
 
   useEffect(() => {
     if (!loading && !session) {
@@ -57,49 +57,90 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
   }, [loading, session, router]);
+
+  if (query.status !== "loading" && !query.data) {
+    router.replace("/auth/login");
+  }
+}
+
+function useRedirectToOnboardingIfNeeded() {
+  const [session, loading] = useSession();
+  const router = useRouter();
+  const query = useMeQuery();
+  const user = query.data;
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (shouldShowOnboarding(user)) {
+        router.replace({
+          pathname: "/getting-started",
+        });
+      }
+    }
+  }, [loading, session, router, user]);
+}
+
+export function ShellSubHeading(props: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
+      <div>
+        <h2 className="flex items-center content-center space-x-2 text-base font-bold text-gray-900 leading-6">
+          {props.title}
+        </h2>
+        {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
+      </div>
+      {props.actions && <div className="flex-shrink-0 mb-4">{props.actions}</div>}
+    </div>
+  );
 }
 
 export default function Shell(props: {
+  centered?: boolean;
   title?: string;
   heading: ReactNode;
-  subtitle: string;
+  subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
 }) {
+  const { t } = useLocale();
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   useRedirectToLoginIfUnauthenticated();
+  useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
-  const query = useMeQuery();
 
   const navigation = [
     {
-      name: "Event Types",
+      name: t("event_types_page_title"),
       href: "/event-types",
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),
     },
     {
-      name: "Bookings",
+      name: t("bookings"),
       href: "/bookings/upcoming",
       icon: ClockIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
-      name: "Availability",
+      name: t("availability"),
       href: "/availability",
       icon: CalendarIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: "Integrations",
+      name: t("integrations"),
       href: "/integrations",
       icon: PuzzleIcon,
       current: router.asPath.startsWith("/integrations"),
     },
     {
-      name: "Settings",
+      name: t("settings"),
       href: "/settings/profile",
       icon: CogIcon,
       current: router.asPath.startsWith("/settings"),
@@ -110,19 +151,25 @@ export default function Shell(props: {
     telemetry.withJitsu((jitsu) => {
       return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
     });
-  }, [telemetry]);
-
-  if (query.status !== "loading" && !query.data) {
-    router.replace("/auth/login");
-  }
+  }, [telemetry, router.asPath]);
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
+  const i18n = useViewerI18n();
+
+  if (i18n.status === "loading") {
+    // show spinner whilst i18n is loading to avoid language flicker
+    return (
+      <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <>
       <HeadSeo
         title={pageTitle ?? "Cal.com"}
-        description={props.subtitle}
+        description={props.subtitle ? props.subtitle?.toString() : ""}
         nextSeoProps={{
           nofollow: true,
           noindex: true,
@@ -132,19 +179,17 @@ export default function Shell(props: {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="h-screen flex overflow-hidden bg-gray-100">
-        {/* Static sidebar for desktop */}
+      <div className="flex h-screen overflow-hidden bg-gray-100">
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-56">
-            {/* Sidebar component, swap this element with another sidebar if you like */}
-            <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
-              <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+            <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
+              <div className="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
                 <Link href="/event-types">
                   <a className="px-4">
                     <Logo small />
                   </a>
                 </Link>
-                <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
+                <nav className="flex-1 px-2 mt-5 space-y-1 bg-white">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
@@ -169,48 +214,47 @@ export default function Shell(props: {
                   ))}
                 </nav>
               </div>
-              <div className="flex-shrink-0 flex p-4">
+              <div className="p-4 pt-2 pr-2">
                 <UserDropdown />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <div className="flex flex-col flex-1 w-0 overflow-hidden">
           <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]">
             {/* show top navigation for md and smaller (tablet and phones) */}
-            <nav className="md:hidden bg-white shadow p-4 flex justify-between items-center">
+            <nav className="flex items-center justify-between p-4 bg-white shadow md:hidden">
               <Link href="/event-types">
                 <a>
                   <Logo />
                 </a>
               </Link>
-              <div className="flex gap-3 items-center self-center">
-                <button className="bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                  <span className="sr-only">View notifications</span>
+              <div className="flex items-center self-center gap-3">
+                <button className="p-2 text-gray-400 bg-white rounded-full hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                  <span className="sr-only">{t("view_notifications")}</span>
                   <Link href="/settings/profile">
                     <a>
-                      <CogIcon className="h-6 w-6" aria-hidden="true" />
+                      <CogIcon className="w-6 h-6" aria-hidden="true" />
                     </a>
                   </Link>
                 </button>
-                <div className="mt-1">
-                  <UserDropdown small bottom />
-                </div>
+                <UserDropdown small />
               </div>
             </nav>
-            <div className="py-8">
+            <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                <div className="mb-8">
-                  <h1 className="font-cal text-xl font-bold text-gray-900">{props.heading}</h1>
-                  <p className="text-sm text-neutral-500 mr-4">{props.subtitle}</p>
+                <div className="w-full mb-10">
+                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
+                    {props.heading}
+                  </h1>
+                  <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
                 </div>
-                <div className="mb-4 flex-shrink-0">{props.CTA}</div>
+                <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>
               <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
-
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="bottom-nav md:hidden flex fixed bottom-0 bg-white w-full shadow">
+              <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
                   item.name === "Settings" ? (
@@ -238,9 +282,8 @@ export default function Shell(props: {
                   )
                 )}
               </nav>
-
               {/* add padding to content for mobile navigation*/}
-              <div className="block md:hidden pt-12" />
+              <div className="block pt-12 md:hidden" />
             </div>
             <LicenseBanner />
           </main>
@@ -250,134 +293,98 @@ export default function Shell(props: {
   );
 }
 
-function UserDropdown({ small, bottom }: { small?: boolean; bottom?: boolean }) {
+function UserDropdown({ small }: { small?: boolean }) {
+  const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
 
   return (
-    <Menu as="div" className="w-full relative inline-block text-left">
-      {({ open }) => (
-        <>
-          <div>
-            {user && (
-              <Menu.Button className="group w-full rounded-md text-sm text-left font-medium text-gray-700 focus:outline-none">
-                <span className="flex w-full justify-between items-center">
-                  <span className="flex min-w-0 items-center justify-between space-x-3">
-                    <Avatar
-                      imageSrc={user.avatar}
-                      alt={user.username}
-                      className={classNames(
-                        small ? "w-8 h-8" : "w-10 h-10",
-                        "bg-gray-300 rounded-full flex-shrink-0"
-                      )}
-                    />
-                    {!small && (
-                      <span className="flex-1 flex flex-col min-w-0">
-                        <span className="text-gray-900 text-sm font-medium truncate">{user.name}</span>
-                        <span className="text-neutral-500 font-normal text-sm truncate">
-                          /{user.username}
-                        </span>
-                      </span>
-                    )}
-                  </span>
-                  {!small && (
-                    <SelectorIcon
-                      className="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                      aria-hidden="true"
-                    />
-                  )}
+    !!user && (
+      <Dropdown>
+        <DropdownMenuTrigger asChild>
+          <div className="flex items-center space-x-2 cursor-pointer group">
+            <Avatar
+              imageSrc={user.avatar}
+              alt={user.username}
+              className={classNames(
+                small ? "w-8 h-8" : "w-10 h-10",
+                "bg-gray-300 rounded-full flex-shrink-0"
+              )}
+            />
+            {!small && (
+              <>
+                <span className="flex-grow text-sm">
+                  <span className="block font-medium text-gray-900 truncate">{user.name}</span>
+                  <span className="block font-normal truncate text-neutral-500">/{user.username}</span>
                 </span>
-              </Menu.Button>
+                <SelectorIcon
+                  className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500"
+                  aria-hidden="true"
+                />
+              </>
             )}
           </div>
-          <Transition
-            show={open}
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95">
-            <Menu.Items
-              static
-              className={classNames(
-                bottom ? "origin-top top-1 right-0" : "origin-bottom bottom-14 left-0",
-                "w-64 z-10 absolute mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
-              )}>
-              <div className="py-1">
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${user?.username || ""}`}
-                  className="flex px-4 py-2 text-sm text-neutral-500">
-                  View public page <ExternalLinkIcon className="ml-1 mt-1 w-3 h-3 text-neutral-400" />
-                </a>
-              </div>
-              <div className="py-1">
-                <Menu.Item>
-                  {({ active }) => (
-                    <a
-                      href="https://cal.com/slack"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={classNames(
-                        active ? "bg-gray-100 text-gray-900" : "text-neutral-700",
-                        "flex px-4 py-2 text-sm font-medium"
-                      )}>
-                      <svg
-                        viewBox="0 0 2447.6 2452.5"
-                        className={classNames(
-                          "text-neutral-400 group-hover:text-neutral-500",
-                          "mt-0.5 mr-3 flex-shrink-0 h-4 w-4"
-                        )}
-                        xmlns="http://www.w3.org/2000/svg">
-                        <g clipRule="evenodd" fillRule="evenodd">
-                          <path
-                            d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                            fill="#9BA6B6"></path>
-                          <path
-                            d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                            fill="#9BA6B6"></path>
-                          <path
-                            d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                            fill="#9BA6B6"></path>
-                          <path
-                            d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                            fill="#9BA6B6"></path>
-                        </g>
-                      </svg>
-                      Join our Slack
-                    </a>
-                  )}
-                </Menu.Item>
-                <HelpMenuItemDynamic />
-              </div>
-              <div className="py-1">
-                <Menu.Item>
-                  {({ active }) => (
-                    <a
-                      onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                      className={classNames(
-                        active ? "bg-gray-100 text-gray-900" : "text-gray-700",
-                        "flex px-4 py-2 text-sm font-medium"
-                      )}>
-                      <LogoutIcon
-                        className={classNames(
-                          "text-neutral-400 group-hover:text-neutral-500",
-                          "mr-2 flex-shrink-0 h-5 w-5"
-                        )}
-                        aria-hidden="true"
-                      />
-                      Sign out
-                    </a>
-                  )}
-                </Menu.Item>
-              </div>
-            </Menu.Items>
-          </Transition>
-        </>
-      )}
-    </Menu>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href={`${process.env.NEXT_PUBLIC_APP_URL}/${user?.username || ""}`}
+              className="flex px-4 py-2 text-sm text-neutral-500">
+              {t("view_public_page")} <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="h-px bg-gray-200" />
+          <DropdownMenuItem>
+            <a
+              href="https://cal.com/slack"
+              target="_blank"
+              rel="noreferrer"
+              className="flex px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
+              <svg
+                viewBox="0 0 2447.6 2452.5"
+                className={classNames(
+                  "text-neutral-400 group-hover:text-neutral-500",
+                  "mt-0.5 mr-3 flex-shrink-0 h-4 w-4"
+                )}
+                xmlns="http://www.w3.org/2000/svg">
+                <g clipRule="evenodd" fillRule="evenodd">
+                  <path
+                    d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
+                    fill="#9BA6B6"></path>
+                  <path
+                    d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
+                    fill="#9BA6B6"></path>
+                  <path
+                    d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
+                    fill="#9BA6B6"></path>
+                  <path
+                    d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
+                    fill="#9BA6B6"></path>
+                </g>
+              </svg>
+              {t("join_our_slack")}
+            </a>
+          </DropdownMenuItem>
+          <HelpMenuItemDynamic />
+          <DropdownMenuSeparator className="h-px bg-gray-200" />
+          <DropdownMenuItem>
+            <a
+              onClick={() => signOut({ callbackUrl: "/auth/logout" })}
+              className="flex px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100 hover:text-gray-900">
+              <LogoutIcon
+                className={classNames(
+                  "text-neutral-400 group-hover:text-neutral-500",
+                  "mr-2 flex-shrink-0 h-5 w-5"
+                )}
+                aria-hidden="true"
+              />
+              {t("sign_out")}
+            </a>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </Dropdown>
+    )
   );
 }

@@ -1,18 +1,15 @@
 import { ArrowLeftIcon } from "@heroicons/react/solid";
-import { EventType } from "@prisma/client";
 import { useEffect, useRef, useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { Webhook } from "@lib/webhook";
 
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
-export default function EditTeam(props: {
-  webhook: Webhook;
-  eventTypes: EventType[];
-  onCloseEdit: () => void;
-}) {
+export default function EditTeam(props: { webhook: Webhook; onCloseEdit: () => void }) {
+  const { t } = useLocale();
   const [bookingCreated, setBookingCreated] = useState(
     props.webhook.eventTriggers.includes("booking_created")
   );
@@ -63,7 +60,7 @@ export default function EditTeam(props: {
     })
       .then(handleErrors)
       .then(() => {
-        showToast("Webhook updated successfully!", "success");
+        showToast(t("webhook_updated_successfully"), "success");
         setBtnLoading(false);
       });
   };
@@ -79,12 +76,12 @@ export default function EditTeam(props: {
             loading={btnLoading}
             StartIcon={ArrowLeftIcon}
             onClick={() => props.onCloseEdit()}>
-            Back
+            {t("back")}
           </Button>
         </div>
         <div>
           <div className="pb-5 pr-4 sm:pb-6">
-            <h3 className="text-lg font-bold leading-6 text-gray-900">Manage your webhook</h3>
+            <h3 className="text-lg font-bold leading-6 text-gray-900">{t("manage_your_webhook")}</h3>
           </div>
         </div>
         <hr className="mt-2" />
@@ -92,7 +89,7 @@ export default function EditTeam(props: {
           <div className="my-4">
             <div className="mb-4">
               <label htmlFor="subUrl" className="block text-sm font-medium text-gray-700">
-                Subscriber Url
+                {t("subscriber_url")}
               </label>
               <input
                 ref={subUrlRef}
@@ -104,11 +101,14 @@ export default function EditTeam(props: {
                 required
                 className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
-              <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700"> Event Triggers </legend>
+              <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
+                {" "}
+                {t("event_triggers")}{" "}
+              </legend>
               <div className="p-2 bg-white border border-gray-300 rounded-sm">
                 <div className="flex p-2">
                   <div className="w-10/12">
-                    <h2 className="text-sm text-gray-800">Booking Created</h2>
+                    <h2 className="text-sm text-gray-800">{t("booking_created")}</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
                     <Switch
@@ -121,7 +121,7 @@ export default function EditTeam(props: {
                 </div>
                 <div className="flex px-2 py-1">
                   <div className="w-10/12">
-                    <h2 className="text-sm text-gray-800">Booking Rescheduled</h2>
+                    <h2 className="text-sm text-gray-800">{t("booking_rescheduled")}</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
                     <Switch
@@ -134,7 +134,7 @@ export default function EditTeam(props: {
                 </div>
                 <div className="flex p-2">
                   <div className="w-10/12">
-                    <h2 className="text-sm text-gray-800">Booking Cancelled</h2>
+                    <h2 className="text-sm text-gray-800">{t("booking_cancelled")}</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
                     <Switch
@@ -146,11 +146,14 @@ export default function EditTeam(props: {
                   </div>
                 </div>
               </div>
-              <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700"> Webhook Status </legend>
+              <legend className="block pt-4 mb-2 text-sm font-medium text-gray-700">
+                {" "}
+                {t("webhook_status")}{" "}
+              </legend>
               <div className="p-2 bg-white border border-gray-300 rounded-sm">
                 <div className="flex p-2">
                   <div className="w-10/12">
-                    <h2 className="text-sm text-gray-800">Webhook Enabled</h2>
+                    <h2 className="text-sm text-gray-800">{t("webhook_enabled")}</h2>
                   </div>
                   <div className="flex items-center justify-end w-2/12 text-right">
                     <Switch
@@ -165,7 +168,7 @@ export default function EditTeam(props: {
             </div>
             <div className="gap-2 mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
               <Button type="submit" color="primary" className="ml-2" loading={btnLoading}>
-                Save
+                {t("save")}
               </Button>
             </div>
           </div>
