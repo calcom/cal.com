@@ -276,7 +276,7 @@ export default function Shell(props: {
                           )}
                           aria-hidden="true"
                         />
-                        <span>{item.name}</span>
+                        <span className="truncate">{item.name}</span>
                       </a>
                     </Link>
                   )
