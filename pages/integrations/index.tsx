@@ -2,7 +2,7 @@ import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
 import { getErrorFromUnknown } from "pages/_error";
-import { Fragment, ReactNode, useState } from "react";
+import { Fragment, ReactNode, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 
@@ -129,14 +129,20 @@ function WebhookFormDialog(props: DialogProps & { defaultValues?: TWebhook }) {
     },
     ...dialogProps
   } = props;
+
   const form = useForm({
     defaultValues,
   });
-  console.log({ defaultValues });
+  useEffect(() => {
+    console.log("reset", props.defaultValues);
+    form.reset(props.defaultValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValues.id]);
   return (
     <Dialog {...dialogProps}>
       <DialogContent>
         <Form
+          key={defaultValues.id}
           form={form}
           onSubmit={(event) => {
             form
@@ -153,6 +159,7 @@ function WebhookFormDialog(props: DialogProps & { defaultValues?: TWebhook }) {
                 }
 
                 props.onOpenChange?.(false);
+                form.reset();
               })(event)
               .catch((err) => {
                 showToast(`${getErrorFromUnknown(err).message}`, "error");
@@ -160,7 +167,7 @@ function WebhookFormDialog(props: DialogProps & { defaultValues?: TWebhook }) {
           }}
           className="space-y-4">
           <input type="hidden" {...form.register("id")} />
-          <TextField label={t("subscriber_url")} required type="url" />
+          <TextField label={t("subscriber_url")} {...form.register("subscriberUrl")} required type="url" />
 
           <fieldset className="space-y-2">
             <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
