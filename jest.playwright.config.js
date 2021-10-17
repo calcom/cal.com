@@ -1,8 +1,8 @@
 const opts = {
   // launch headless on CI, in browser locally
   headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
-  executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
   collectCoverage: !!process.env.PLAYWRIGHT_HEADLESS,
+  executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
 };
 
 console.log("⚙️ Playwright options:", opts);

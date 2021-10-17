@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { provider, Provider } from "kont";
-import { Page } from "playwright";
+import { Page, Cookie } from "playwright";
 
 /**
  * Context data that Login provder needs.
@@ -21,6 +21,7 @@ export type Contributes = {
   page: Page;
 };
 
+const cookieCache = new Map<string, Cookie[]>();
 /**
  * Creates a new context / "incognito tab" and logs in the specified user
  */
@@ -40,20 +41,26 @@ export function loginProvider(opts: {
     .before(async () => {
       const context = await browser.newContext();
       const page = await context.newPage();
+      const cachedCookies = cookieCache.get(opts.user);
+      if (cachedCookies) {
+        await context.addCookies(cachedCookies);
+      } else {
+        await page.goto("http://localhost:3000/event-types");
+        // Click input[name="email"]
+        await page.click('input[name="email"]');
+        // Fill input[name="email"]
+        await page.fill('input[name="email"]', `${opts.user}@example.com`);
+        // Press Tab
+        await page.press('input[name="email"]', "Tab");
+        // Fill input[name="password"]
+        await page.fill('input[name="password"]', opts.user);
+        // Press Enter
+        await page.press('input[name="password"]', "Enter");
 
-      await page.goto("http://localhost:3000/event-types");
-      // Click input[name="email"]
-      await page.click('input[name="email"]');
-      // Fill input[name="email"]
-      await page.fill('input[name="email"]', `${opts.user}@example.com`);
-      // Press Tab
-      await page.press('input[name="email"]', "Tab");
-      // Fill input[name="password"]
-      await page.fill('input[name="password"]', opts.user);
-      // Press Enter
-      await page.press('input[name="password"]', "Enter");
-
-      await page.waitForSelector("[data-testid=event-types]");
+        await page.waitForSelector("[data-testid=event-types]");
+        const cookies = await context.cookies();
+        cookieCache.set(opts.user, cookies);
+      }
 
       if (opts.path) {
         await page.goto(`http://localhost:3000${opts.path}`);
