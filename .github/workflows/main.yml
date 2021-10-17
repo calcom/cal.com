@@ -112,7 +112,7 @@ jobs:
 
   test-e2e:
     timeout-minutes: 10
-    name: E2E tets # ${{ matrix.node }} and ${{ matrix.os }}
+    name: E2E tests # ${{ matrix.node }} and ${{ matrix.os }}
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
