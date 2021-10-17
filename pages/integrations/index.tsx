@@ -142,7 +142,12 @@ function WebhookDialogForm(props: {
       onSubmit={(event) => {
         form
           .handleSubmit(async (values) => {
-            const { id, ...body } = values;
+            const { id } = values;
+            const body = {
+              subscriberUrl: values.subscriberUrl,
+              enabled: values.active,
+              eventTriggers: values.eventTriggers,
+            };
             if (id) {
               await fetcher.patch(`/api/webhooks/${id}`, body);
               await utils.invalidateQueries(["viewer.integrations"]);
@@ -322,7 +327,6 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
       </div>
 
       {/* New webhook dialog */}
-
       <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
         <DialogContent>
           <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
