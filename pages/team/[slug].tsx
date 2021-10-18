@@ -4,6 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import prisma from "@lib/prisma";
@@ -21,6 +22,7 @@ import Text from "@components/ui/Text";
 function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme();
   const showMembers = useToggleQuery("members");
+  const { t } = useLocale();
 
   const eventTypes = (
     <ul className="space-y-3">
@@ -75,7 +77,7 @@ function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
                 </div>
                 <div className="relative flex justify-center">
                   <span className="px-2 bg-gray-100 text-sm text-gray-500 dark:bg-black dark:text-gray-500">
-                    OR
+                    {t("or")}
                   </span>
                 </div>
               </div>
@@ -86,7 +88,7 @@ function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
                   EndIcon={ArrowRightIcon}
                   href={`/team/${team.slug}?members=1`}
                   shallow={true}>
-                  Book a team member instead
+                  {t("book_a_team_member")}
                 </Button>
               </aside>
             </div>

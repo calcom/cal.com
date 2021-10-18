@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import { Area, getCroppedImg } from "@lib/cropImage";
 import { useFileReader } from "@lib/hooks/useFileReader";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { DialogClose, DialogTrigger, Dialog, DialogContent } from "@components/Dialog";
 import Slider from "@components/Slider";
@@ -16,6 +17,10 @@ type ImageUploaderProps = {
   target: string;
 };
 
+interface FileEvent<T = Element> extends FormEvent<T> {
+  target: EventTarget & T;
+}
+
 // This is separate to prevent loading the component until file upload
 function CropContainer({
   onCropComplete,
@@ -24,16 +29,17 @@ function CropContainer({
   imageSrc: string;
   onCropComplete: (croppedAreaPixels: Area) => void;
 }) {
+  const { t } = useLocale();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
 
-  const handleZoomSliderChange = ([value]) => {
+  const handleZoomSliderChange = (value: number) => {
     value < 1 ? setZoom(1) : setZoom(value);
   };
 
   return (
-    <div className="crop-container max-h-40 h-40 w-40 rounded-full">
-      <div className="relative h-40 w-40 rounded-full">
+    <div className="w-40 h-40 rounded-full crop-container max-h-40">
+      <div className="relative w-40 h-40 rounded-full">
         <Cropper
           image={imageSrc}
           crop={crop}
@@ -49,7 +55,7 @@ function CropContainer({
         min={1}
         max={3}
         step={0.1}
-        label="Slide to zoom, drag to reposition"
+        label={t("slide_zoom_drag_instructions")}
         changeHandler={handleZoomSliderChange}
       />
     </div>
@@ -63,6 +69,7 @@ export default function ImageUploader({
   handleAvatarChange,
   ...props
 }: ImageUploaderProps) {
+  const { t } = useLocale();
   const [imageSrc, setImageSrc] = useState<string | null>();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>();
 
@@ -74,7 +81,10 @@ export default function ImageUploader({
     setImageSrc(props.imageSrc);
   }, [props.imageSrc]);
 
-  const onInputFile = (e) => {
+  const onInputFile = (e: FileEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) {
+      return;
+    }
     setFile(e.target.files[0]);
   };
 
@@ -107,41 +117,45 @@ export default function ImageUploader({
         </div>
       </DialogTrigger>
       <DialogContent>
-        <div className="sm:flex sm:items-start mb-4">
+        <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="font-cal text-lg leading-6 font-bold text-gray-900" id="modal-title">
-              Upload {target}
+            <h3 className="text-lg font-bold leading-6 text-gray-900 font-cal" id="modal-title">
+              {t("upload_target", { target })}
             </h3>
           </div>
         </div>
         <div className="mb-4">
-          <div className="cropper mt-6 flex flex-col justify-center items-center p-8 bg-gray-50">
+          <div className="flex flex-col items-center justify-center p-8 mt-6 cropper bg-gray-50">
             {!result && (
-              <div className="flex justify-start items-center bg-gray-500 max-h-20 h-20 w-20 rounded-full">
-                {!imageSrc && <p className="sm:text-xs text-sm text-white w-full text-center">No {target}</p>}
-                {imageSrc && <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />}
+              <div className="flex items-center justify-start w-20 h-20 bg-gray-500 rounded-full max-h-20">
+                {!imageSrc && (
+                  <p className="w-full text-sm text-center text-white sm:text-xs">
+                    {t("no_target", { target })}
+                  </p>
+                )}
+                {imageSrc && <img className="w-20 h-20 rounded-full" src={imageSrc} alt={target} />}
               </div>
             )}
-            {result && <CropContainer imageSrc={result} onCropComplete={setCroppedAreaPixels} />}
-            <label className="mt-8 px-3 py-1 text-xs leading-4 font-medium rounded-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900">
+            {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
+            <label className="px-3 py-1 mt-8 text-xs font-medium leading-4 text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900">
               <input
                 onInput={onInputFile}
                 type="file"
                 name={id}
-                placeholder="Upload image"
-                className="mt-4 pointer-events-none opacity-0 absolute"
+                placeholder={t("upload_image")}
+                className="absolute mt-4 opacity-0 pointer-events-none"
                 accept="image/*"
               />
-              Choose a file...
+              {t("choose_a_file")}
             </label>
           </div>
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
           <DialogClose asChild>
-            <Button onClick={() => showCroppedImage(croppedAreaPixels)}>Save</Button>
+            <Button onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button color="secondary">Cancel</Button>
+            <Button color="secondary">{t("cancel")}</Button>
           </DialogClose>
         </div>
       </DialogContent>

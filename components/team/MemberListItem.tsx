@@ -1,6 +1,7 @@
 import { DotsHorizontalIcon, UserRemoveIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -16,6 +17,7 @@ export default function MemberListItem(props: {
   onChange: (text: string) => void;
 }) {
   const [member] = useState(props.member);
+  const { t } = useLocale();
 
   return (
     member && (
@@ -41,21 +43,21 @@ export default function MemberListItem(props: {
             {props.member.role === "INVITEE" && (
               <>
                 <span className="self-center h-6 px-3 py-1 mr-2 text-xs text-yellow-700 capitalize rounded-md bg-yellow-50">
-                  Pending
+                  {t("pending")}
                 </span>
                 <span className="self-center h-6 px-3 py-1 mr-4 text-xs text-pink-700 capitalize rounded-md bg-pink-50">
-                  Member
+                  {t("member")}
                 </span>
               </>
             )}
             {props.member.role === "MEMBER" && (
               <span className="self-center h-6 px-3 py-1 mr-4 text-xs text-pink-700 capitalize rounded-md bg-pink-50">
-                Member
+                {t("member")}
               </span>
             )}
             {props.member.role === "OWNER" && (
               <span className="self-center h-6 px-3 py-1 mr-4 text-xs text-blue-700 capitalize rounded-md bg-blue-50">
-                Owner
+                {t("owner")}
               </span>
             )}
             <Dropdown>
@@ -73,16 +75,15 @@ export default function MemberListItem(props: {
                         color="warn"
                         StartIcon={UserRemoveIcon}
                         className="w-full">
-                        Remove User
+                        {t("remove_member")}
                       </Button>
                     </DialogTrigger>
                     <ConfirmationDialogContent
                       variety="danger"
-                      title="Remove member"
-                      confirmBtnText="Yes, remove member"
-                      cancelBtnText="Cancel"
+                      title={t("remove_member")}
+                      confirmBtnText={t("confirm_remove_member")}
                       onConfirm={() => props.onActionSelect("remove")}>
-                      Are you sure you want to remove this member from the team?
+                      {t("remove_member_confirmation_message")}
                     </ConfirmationDialogContent>
                   </Dialog>
                 </DropdownMenuItem>
