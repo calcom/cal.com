@@ -1,12 +1,12 @@
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getErrorFromUnknown } from "pages/_error";
 import Stripe from "stripe";
 
 import stripe from "@ee/lib/stripe/server";
 
 import { CalendarEvent } from "@lib/calendarClient";
 import { HttpError } from "@lib/core/http/error";
+import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 

@@ -1,7 +1,6 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
-import { getErrorFromUnknown } from "pages/_error";
 import { Fragment, ReactNode, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
@@ -9,6 +8,7 @@ import { useMutation } from "react-query";
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import * as fetcher from "@lib/core/http/fetch-wrapper";
+import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
@@ -52,8 +52,8 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   });
 
   return (
-    <ListItem className="p-4 flex w-full">
-      <div className="flex w-full justify-between my-4">
+    <ListItem className="flex w-full p-4">
+      <div className="flex justify-between w-full my-4">
         <div className="flex pr-2 border-r border-gray-100">
           <span className="flex flex-col space-y-2 text-xs">
             {props.webhook.eventTriggers.map((eventTrigger, ind) => (

@@ -1,11 +1,11 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import _ from "lodash";
-import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { getErrorFromUnknown } from "@lib/errors";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
