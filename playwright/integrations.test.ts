@@ -24,11 +24,15 @@ describe("webhooks", () => {
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
+    await expect(page).toHaveSelector("[data-testid='WebhookDialogForm']");
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
     await page.click("[type=submit]");
 
+    // dialog is closed
+    await expect(page).not.toHaveSelector("[data-testid='WebhookDialogForm']");
+    // page contains the url
     await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
 
     // --- go to tomorrow in the pro user's "30min"-event

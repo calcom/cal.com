@@ -138,6 +138,7 @@ function WebhookDialogForm(props: {
   });
   return (
     <Form
+      data-testid="WebhookDialogForm"
       form={form}
       onSubmit={(event) => {
         form
