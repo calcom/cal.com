@@ -179,6 +179,8 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
         dateTime: event.endTime,
         timeZone: event.organizer.timeZone,
       },
+      isOnlineMeeting: true,
+      onlineMeetingProvider: "teamsForBusiness",
       attendees: event.attendees.map((attendee) => ({
         emailAddress: {
           address: attendee.email,
