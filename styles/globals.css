@@ -34,7 +34,7 @@
 }
 
 /* Lexend Fallback for Cal Sans*/
-@import url("https://fonts.googlepis.com/css2?family=Lexend:wght@100&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@100&display=swap");
 
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {
