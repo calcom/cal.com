@@ -21,10 +21,10 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Loader from "@components/Loader";
 import CalendarsList from "@components/integrations/CalendarsList";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import Text from "@components/ui/Text";
-import ErrorAlert from "@components/ui/alerts/Error";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -434,7 +434,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 Step {currentStep + 1} of {steps.length}
               </Text>
 
-              {error && <ErrorAlert {...error} />}
+              {error && <Alert severity="error" {...error} />}
 
               <section className="flex w-full space-x-2">
                 {steps.map((s, index) => {
