@@ -136,7 +136,6 @@
     "postcss": "^8.3.6",
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
-    "rimraf": "^3.0.2",
     "tailwindcss": "^2.2.16",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
