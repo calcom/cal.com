@@ -1,13 +1,14 @@
 import { useId } from "@radix-ui/react-id";
 import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
-import { useState } from "react";
+import React, { useState } from "react";
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+import classNames from "@lib/classNames";
 
-export default function Switch(props) {
+type SwitchProps = React.ComponentProps<typeof PrimitiveSwitch.Root> & {
+  label: string;
+};
+export default function Switch(props: SwitchProps) {
   const { label, onCheckedChange, ...primitiveProps } = props;
   const [checked, setChecked] = useState(props.defaultChecked || false);
 
