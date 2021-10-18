@@ -23,7 +23,7 @@ describe("webhooks", () => {
     const webhookReceiver = createHttpServer();
 
     // --- add webhook
-    await page.click('[data-testid="new-webhook"]');
+    await page.click('[data-testid="new_webhook"]');
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
