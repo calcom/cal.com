@@ -19,6 +19,7 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
+import CalendarsList from "@components/integrations/CalendarsList";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import { Alert } from "@components/ui/Alert";
@@ -656,24 +657,7 @@ export default function IntegrationsPage() {
                   />
                 </>
               )}
-              <List>
-                {data.calendar.items.map((item) => (
-                  <IntegrationListItem
-                    key={item.title}
-                    {...item}
-                    actions={
-                      <ConnectIntegration
-                        type={item.type}
-                        render={(btnProps) => (
-                          <Button color="secondary" {...btnProps}>
-                            Connect
-                          </Button>
-                        )}
-                      />
-                    }
-                  />
-                ))}
-              </List>
+              <CalendarsList calendars={data.calendar.items} />
               <WebhookEmbed webhooks={data.webhooks} />
             </>
           );
