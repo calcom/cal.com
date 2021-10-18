@@ -139,7 +139,9 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
 
-      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
 
       // backwards compatibility, TMP:
       const typesRaw = await prisma.eventType.findMany({
@@ -363,6 +365,12 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         })
       );
+
+      const webhooks = await ctx.prisma.webhook.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
       return {
         conferencing: {
           items: conferencing,
@@ -377,6 +385,7 @@ const loggedInViewerRouter = createProtectedRouter()
           numActive: countActive(payment),
         },
         connectedCalendars,
+        webhooks,
       };
     },
   })

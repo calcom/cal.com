@@ -5,7 +5,7 @@ const opts = {
   executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
 };
 
-console.log("⚙️ Playwright options:", opts);
+console.log("⚙️ Playwright options:", JSON.stringify(opts, null, 4));
 
 module.exports = {
   verbose: true,
