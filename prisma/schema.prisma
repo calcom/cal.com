@@ -7,13 +7,13 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["selectRelationCount"]
 }
 
 enum SchedulingType {
-  ROUND_ROBIN @map("roundRobin")
-  COLLECTIVE  @map("collective")
+  ROUND_ROBIN  @map("roundRobin")
+  COLLECTIVE   @map("collective")
 }
 
 model EventType {
@@ -43,8 +43,9 @@ model EventType {
   minimumBookingNotice    Int                    @default(120)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
-  price                   Int @default(0)
-  currency                String @default("usd")
+  price                   Int                    @default(0)
+  currency                String                 @default("usd")
+
   @@unique([userId, slug])
 }
 
@@ -60,6 +61,11 @@ enum UserPlan {
   FREE
   TRIAL
   PRO
+}
+
+enum IdentityProvider {
+  CAL
+  GOOGLE
 }
 
 model User {
@@ -86,9 +92,11 @@ model User {
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean?           @default(false)
-  locale String?
+  locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
+  identityProvider    IdentityProvider   @default(CAL)
+  identityProviderId  String?
 
 
   plan     UserPlan   @default(PRO)
@@ -98,14 +106,14 @@ model User {
 }
 
 model Team {
-  id            Int          @id @default(autoincrement())
-  name          String?
-  slug          String?      @unique
-  logo          String?
-  bio           String?
-  hideBranding  Boolean      @default(false)
-  members       Membership[]
-  eventTypes    EventType[]
+  id           Int          @id @default(autoincrement())
+  name         String?
+  slug         String?      @unique
+  logo         String?
+  bio          String?
+  hideBranding Boolean      @default(false)
+  members      Membership[]
+  eventTypes   EventType[]
 }
 
 enum MembershipRole {
@@ -156,10 +164,10 @@ model Attendee {
 }
 
 enum BookingStatus {
-  CANCELLED @map("cancelled")
-  ACCEPTED  @map("accepted")
-  REJECTED  @map("rejected")
-  PENDING   @map("pending")
+  CANCELLED  @map("cancelled")
+  ACCEPTED   @map("accepted")
+  REJECTED   @map("rejected")
+  PENDING    @map("pending")
 }
 
 model Booking {
@@ -179,12 +187,12 @@ model Booking {
   attendees Attendee[]
   location  String?
 
-  createdAt DateTime  @default(now())
+  createdAt DateTime      @default(now())
   updatedAt DateTime?
-  confirmed Boolean   @default(true)
-  rejected  Boolean   @default(false)
+  confirmed Boolean       @default(true)
+  rejected  Boolean       @default(false)
   status    BookingStatus @default(ACCEPTED)
-  paid      Boolean @default(false)
+  paid      Boolean       @default(false)
   payment   Payment[]
 }
 
@@ -262,16 +270,16 @@ enum PaymentType {
 }
 
 model Payment {
-  id             Int      @id @default(autoincrement())
-  uid            String   @unique
-  type           PaymentType
-  bookingId      Int
-  booking        Booking?  @relation(fields: [bookingId], references: [id])
-  amount         Int
-  fee            Int
-  currency       String
-  success        Boolean
-  refunded       Boolean
-  data           Json
-  externalId     String   @unique
+  id         Int         @id @default(autoincrement())
+  uid        String      @unique
+  type       PaymentType
+  bookingId  Int
+  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  amount     Int
+  fee        Int
+  currency   String
+  success    Boolean
+  refunded   Boolean
+  data       Json
+  externalId String      @unique
 }

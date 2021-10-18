@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import { ErrorCode, getSession } from "@lib/auth";
+import { ErrorCode, getSession, isGoogleLoginEnabled } from "@lib/auth";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -15,9 +15,11 @@ const errorMessages: { [key: string]: string } = {
   [ErrorCode.IncorrectTwoFactorCode]: "Two-factor code is incorrect. Please try again.",
   [ErrorCode.InternalServerError]:
     "Something went wrong. Please try again and contact us if the issue persists.",
+  // TODO: when another identity provider is added, rework this message.
+  [ErrorCode.ThirdPartyIdentityProviderEnabled]: "Your account was created using Google.",
 };
 
-export default function Login({ csrfToken }) {
+export default function Login({ csrfToken, isGoogleLoginEnabled }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -79,7 +81,7 @@ export default function Login({ csrfToken }) {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 mx-2 rounded-sm sm:px-10 border border-neutral-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6 mb-6" onSubmit={handleSubmit}>
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
@@ -158,6 +160,13 @@ export default function Login({ csrfToken }) {
 
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </form>
+          {isGoogleLoginEnabled && (
+            <button
+              onClick={async () => await signIn("google")}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              Sign in with Google
+            </button>
+          )}
         </div>
         <div className="mt-4 text-neutral-600 text-center text-sm">
           Don&apos;t have an account? {/* replace this with your account creation flow */}
@@ -182,5 +191,6 @@ Login.getInitialProps = async (context) => {
 
   return {
     csrfToken: await getCsrfToken(context),
+    isGoogleLoginEnabled,
   };
 };

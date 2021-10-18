@@ -1,10 +1,95 @@
 import NextAuth from "next-auth";
-import Providers from "next-auth/providers";
+import Providers, { AppProviders } from "next-auth/providers";
 import { authenticator } from "otplib";
 
-import { ErrorCode, Session, verifyPassword } from "@lib/auth";
+import { ErrorCode, isGoogleLoginEnabled, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
+import slugify from "@lib/slugify";
+
+import { IdentityProvider } from ".prisma/client";
+
+async function authorize(credentials) {
+  const user = await prisma.user.findUnique({
+    where: {
+      email: credentials.email,
+    },
+  });
+
+  if (!user) {
+    throw new Error(ErrorCode.UserNotFound);
+  }
+
+  if (user.identityProvider !== IdentityProvider.CAL) {
+    throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
+  }
+
+  if (!user.password) {
+    throw new Error(ErrorCode.UserMissingPassword);
+  }
+
+  const isCorrectPassword = await verifyPassword(credentials.password, user.password);
+  if (!isCorrectPassword) {
+    throw new Error(ErrorCode.IncorrectPassword);
+  }
+
+  if (user.twoFactorEnabled) {
+    if (!credentials.totpCode) {
+      throw new Error(ErrorCode.SecondFactorRequired);
+    }
+
+    if (!user.twoFactorSecret) {
+      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+    if (secret.length !== 32) {
+      console.error(
+        `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+      );
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    const isValidToken = authenticator.check(credentials.totpCode, secret);
+    if (!isValidToken) {
+      throw new Error(ErrorCode.IncorrectTwoFactorCode);
+    }
+  }
+
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    name: user.name,
+  };
+}
+
+const providers: AppProviders = [
+  Providers.Credentials({
+    name: "Cal.com",
+    credentials: {
+      email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
+      password: { label: "Password", type: "password", placeholder: "Your super secure password" },
+      totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
+    },
+    authorize,
+  }),
+];
+
+if (isGoogleLoginEnabled) {
+  providers.push(
+    Providers.Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    })
+  );
+}
 
 export default NextAuth({
   session: {
@@ -18,79 +103,47 @@ export default NextAuth({
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
   },
-  providers: [
-    Providers.Credentials({
-      name: "Cal.com",
-      credentials: {
-        email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
-        password: { label: "Password", type: "password", placeholder: "Your super secure password" },
-        totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
-      },
-      async authorize(credentials) {
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
+  providers,
+  callbacks: {
+    async jwt(token, user, account, profile) {
+      if (!user) {
+        return token;
+      }
 
-        if (!user) {
-          throw new Error(ErrorCode.UserNotFound);
-        }
-
-        if (!user.password) {
-          throw new Error(ErrorCode.UserMissingPassword);
-        }
-
-        const isCorrectPassword = await verifyPassword(credentials.password, user.password);
-        if (!isCorrectPassword) {
-          throw new Error(ErrorCode.IncorrectPassword);
-        }
-
-        if (user.twoFactorEnabled) {
-          if (!credentials.totpCode) {
-            throw new Error(ErrorCode.SecondFactorRequired);
-          }
-
-          if (!user.twoFactorSecret) {
-            console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
-            throw new Error(ErrorCode.InternalServerError);
-          }
-
-          if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-            console.error(`"Missing encryption key; cannot proceed with two factor login."`);
-            throw new Error(ErrorCode.InternalServerError);
-          }
-
-          const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-          if (secret.length !== 32) {
-            console.error(
-              `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-            );
-            throw new Error(ErrorCode.InternalServerError);
-          }
-
-          const isValidToken = authenticator.check(credentials.totpCode, secret);
-          if (!isValidToken) {
-            throw new Error(ErrorCode.IncorrectTwoFactorCode);
-          }
-        }
-
+      if (account.type === "credentials") {
         return {
           id: user.id,
           username: user.username,
           email: user.email,
-          name: user.name,
         };
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt(token, user) {
-      if (user) {
-        token.id = user.id;
-        token.username = user.username;
       }
-      return token;
+
+      // The arguments above are from the provider so we need to look up the
+      // user based on those values in order to construct a JWT.
+      if (account.type === "oauth" && account.provider === "google") {
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            AND: [
+              {
+                identityProvider: IdentityProvider.GOOGLE,
+              },
+              {
+                identityProviderId: profile.id as string,
+              },
+            ],
+          },
+        });
+
+        if (!existingUser) {
+          return token;
+        }
+
+        return {
+          id: existingUser.id,
+          username: existingUser.username,
+          email: existingUser.email,
+        };
+      }
     },
     async session(session, token) {
       const calendsoSession: Session = {
@@ -102,6 +155,78 @@ export default NextAuth({
         },
       };
       return calendsoSession;
+    },
+    async signIn(user, account, profile) {
+      // In this case we've already verified the credentials in the authorize
+      // callback so we can sign the user in.
+      if (account.type === "credentials") {
+        return true;
+      }
+
+      if (account.type !== "oauth") {
+        return false;
+      }
+
+      if (account.provider === "google") {
+        if (!profile.verified_email) {
+          return "/auth/error?error=unverified-email";
+        }
+
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            AND: [
+              { identityProvider: IdentityProvider.GOOGLE },
+              { identityProviderId: profile.id as string },
+            ],
+          },
+        });
+
+        if (existingUser) {
+          // In this case there's an existing user and their email address
+          // hasn't changed since they last logged in.
+          if (existingUser.email === profile.email) {
+            return true;
+          }
+
+          // If the email address doesn't match, check if an account already exists
+          // with the new email address. If it does, for now we return an error. If
+          // not, update the email of their account and log them in.
+          const userWithNewEmail = await prisma.user.findFirst({
+            where: { email: profile.email },
+          });
+
+          if (!userWithNewEmail) {
+            await prisma.user.update({ where: { id: existingUser.id }, data: { email: profile.email } });
+            return true;
+          } else {
+            return "/auth/error?error=new-email-conflict";
+          }
+        }
+
+        // If there's no existing user for this identity provider and id, create
+        // a new account. If an account already exists with the incoming email
+        // address return an error for now.
+        const existingUserWithEmail = await prisma.user.findFirst({
+          where: { email: profile.email },
+        });
+
+        if (existingUserWithEmail) {
+          return "/auth/error?error=use-password-login";
+        }
+
+        await prisma.user.create({
+          data: {
+            // Slugify the incoming name and append a few random characters to
+            // prevent conflicts for users with the same name.
+            username: slugify(profile.name) + "-" + randomString(6),
+            email: profile.email,
+            identityProvider: IdentityProvider.GOOGLE,
+            identityProviderId: profile.id as string,
+          },
+        });
+
+        return true;
+      }
     },
   },
 });

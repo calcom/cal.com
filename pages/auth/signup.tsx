@@ -2,6 +2,7 @@ import { signIn } from "next-auth/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import { getSession, isGoogleLoginEnabled } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 import { HeadSeo } from "@components/seo/head-seo";
@@ -123,6 +124,13 @@ export default function Signup(props) {
               </a>
             </div>
           </form>
+          {props.isGoogleLoginEnabled && (
+            <button
+              onClick={async () => await signIn("google")}
+              className="w-full mt-6 flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              Sign in with Google
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -130,6 +138,11 @@ export default function Signup(props) {
 }
 
 export async function getServerSideProps(ctx) {
+  const session = await getSession(ctx);
+  if (session) {
+    return { redirect: { permanent: false, destination: "/" } };
+  }
+
   if (!ctx.query.token) {
     return {
       notFound: true,
@@ -169,5 +182,5 @@ export async function getServerSideProps(ctx) {
     };
   }
 
-  return { props: { email: verificationRequest.identifier } };
+  return { props: { isGoogleLoginEnabled, email: verificationRequest.identifier } };
 }

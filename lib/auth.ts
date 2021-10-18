@@ -1,3 +1,4 @@
+import { IdentityProvider } from "@prisma/client";
 import { compare, hash } from "bcryptjs";
 import { DefaultSession } from "next-auth";
 import { getSession as getSessionInner, GetSessionOptions } from "next-auth/client";
@@ -39,4 +40,12 @@ export enum ErrorCode {
   IncorrectTwoFactorCode = "incorrect-two-factor-code",
   InternalServerError = "internal-server-error",
   NewPasswordMatchesOld = "new-password-matches-old",
+  ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
 }
+
+export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
+  [IdentityProvider.CAL]: "Cal",
+  [IdentityProvider.GOOGLE]: "Google",
+};
+
+export const isGoogleLoginEnabled = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;

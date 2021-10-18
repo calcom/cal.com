@@ -18,3 +18,17 @@ export const buildForgotPasswordMessage = (vars) => {
     vars,
   });
 };
+
+export const forgotIdenityProverMessage = `Hey there,
+
+You use {{identityProvider}} to log into Cal. Click the "Log in with {{identityProvider}}" button on the login page to access your account.
+
+- Cal.com`;
+
+export const buildForgotIdentityProviderMessage = (vars) => {
+  return buildMessageTemplate({
+    subjectTemplate: forgotPasswordSubjectTemplate,
+    messageTemplate: forgotIdenityProverMessage,
+    vars,
+  });
+};

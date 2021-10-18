@@ -6,6 +6,8 @@ import { ErrorCode, getSession, verifyPassword } from "@lib/auth";
 import { symmetricEncrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 
+import { IdentityProvider } from ".prisma/client";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
@@ -25,6 +27,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!user) {
     console.error(`Session references user that no longer exists.`);
     return res.status(401).json({ message: "Not authenticated" });
+  }
+
+  if (user.identityProvider !== IdentityProvider.CAL) {
+    return res.status(400).json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled });
   }
 
   if (!user.password) {

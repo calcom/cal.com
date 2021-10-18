@@ -4,6 +4,8 @@ import { hashPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
 
+import { IdentityProvider } from ".prisma/client";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return;
@@ -50,17 +52,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hashedPassword = await hashPassword(password);
 
+  // TODO: clean up the member invitation workflow so that upsert can be dropped
+  // here. Inviting a team member should not create a new user until the invitee
+  // explicitly creates an account.
   await prisma.user.upsert({
     where: { email },
     update: {
       username,
       password: hashedPassword,
       emailVerified: new Date(Date.now()),
+      identityProvider: IdentityProvider.CAL,
     },
     create: {
       username,
       email,
       password: hashedPassword,
+      identityProvider: IdentityProvider.CAL,
     },
   });
 
