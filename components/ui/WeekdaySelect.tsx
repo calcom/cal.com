@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-export const WeekdaySelect = (props) => {
+interface WeekdaySelectProps {
+  defaultValue: number[];
+  onSelect: (selected: number[]) => void;
+}
+
+export const WeekdaySelect = (props: WeekdaySelectProps) => {
   const [activeDays, setActiveDays] = useState(
     Array.from(Array(7).keys()).map((v, i) => (props.defaultValue || []).includes(i))
   );
@@ -11,7 +16,7 @@ export const WeekdaySelect = (props) => {
     props.onSelect(activeDays.map((v, idx) => (v ? idx : -1)).filter((v) => v !== -1));
   }, [activeDays]);
 
-  const toggleDay = (e, idx: number) => {
+  const toggleDay = (e: MouseEvent, idx: number) => {
     e.preventDefault();
     activeDays[idx] = !activeDays[idx];
     setActiveDays([].concat(activeDays));

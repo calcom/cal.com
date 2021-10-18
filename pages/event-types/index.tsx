@@ -41,7 +41,7 @@ import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustratio
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
-type EventTypeGroupProfile = EventTypeGroups["profile"];
+type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
 interface CreateEventTypeProps {
   canAddEvents: boolean;
