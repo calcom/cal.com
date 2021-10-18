@@ -1,23 +1,27 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
 
+import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
-  if (!session) {
+  const userId = session?.user?.id;
+  if (!userId) {
     return res.status(401).json({ message: "Not authenticated" });
   }
 
   // GET /api/webhook/{hook}
-  const webhooks = await prisma.webhook.findFirst({
+  const webhook = await prisma.webhook.findFirst({
     where: {
       id: String(req.query.hook),
-      userId: session.user.id,
+      userId,
     },
   });
+  if (!webhook) {
+    return res.status(404).json({ message: "Invalid Webhook" });
+  }
   if (req.method === "GET") {
-    return res.status(200).json({ webhooks: webhooks });
+    return res.status(200).json({ webhook });
   }
 
   // DELETE /api/webhook/{hook}
@@ -31,19 +35,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
-    const webhook = await prisma.webhook.findUnique({
-      where: {
-        id: req.query.hook as string,
-      },
-    });
-
-    if (!webhook) {
-      return res.status(404).json({ message: "Invalid Webhook" });
-    }
-
     await prisma.webhook.update({
       where: {
-        id: req.query.hook as string,
+        id: webhook.id,
       },
       data: {
         subscriberUrl: req.body.subscriberUrl,
