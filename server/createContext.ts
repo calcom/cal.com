@@ -34,6 +34,7 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
       createdDate: true,
       hideBranding: true,
       avatar: true,
+      twoFactorEnabled: true,
       credentials: {
         select: {
           id: true,

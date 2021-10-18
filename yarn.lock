@@ -1819,6 +1819,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-phone-number-input@^3.0.13":
+  version "3.0.13"
+  resolved "https://registry.yarnpkg.com/@types/react-phone-number-input/-/react-phone-number-input-3.0.13.tgz#4eb7dcd278dcf9eb2a8d2ce2cb304657cbf1b4e5"
+  integrity sha512-27k7AvLbzCjpuRORFhehFdRHVan1q6RhSTV7dFiXwZ2ojnS/JMx77wd9OyAU464oN0GIlkfhc0njGzL97/xNcw==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-select@^4.0.17":
   version "4.0.18"
   resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-4.0.18.tgz#f907f406411afa862217a9d86c54a301367a35c1"
@@ -6747,10 +6754,10 @@ react-fit@^1.0.3:
     detect-element-overflow "^1.2.0"
     prop-types "^15.6.0"
 
-react-hook-form@^7.16.1:
-  version "7.16.1"
-  resolved "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.16.1.tgz#669046df378a71949e5cf8a2398cbe20d5cb27bc"
-  integrity sha512-kcLDmSmlyLUFx2UU5bG/o4+3NeK753fhKodJa8gkplXohGkpAq0/p+TR24OWjZmkEc3ES7ppC5v5d6KUk+fJTA==
+react-hook-form@^7.17.4:
+  version "7.17.4"
+  resolved "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.17.4.tgz#232b6aaccddb91eb4a228ac20b154abd90866fdb"
+  integrity sha512-7XhbCr7d9fDC1TgcK/BUbt7D3q0VJMu7jPErfsa0JrxVjv/nni41xWdJcy0Zb7R+Np8OsCkQ2lMyloAtE3DLiQ==
 
 react-hot-toast@^2.1.0:
   version "2.1.1"
