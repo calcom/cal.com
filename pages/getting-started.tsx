@@ -15,21 +15,17 @@ import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-import AddCalDavIntegration, {
-  ADD_CALDAV_INTEGRATION_FORM_TITLE,
-} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Dialog";
 import Loader from "@components/Loader";
+import CalendarsList from "@components/integrations/CalendarsList";
 import Button from "@components/ui/Button";
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import Text from "@components/ui/Text";
 import ErrorAlert from "@components/ui/alerts/Error";
 
-import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);
@@ -59,7 +55,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   ];
 
   const [isSubmitting, setSubmitting] = React.useState(false);
-  const [enteredName, setEnteredName] = React.useState();
+  const [enteredName, setEnteredName] = React.useState("");
   const Sess = useSession();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -112,53 +108,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return responseData.data;
   };
 
-  const handleAddIntegration = (type: string) => {
-    if (type === "caldav_calendar") {
-      setAddCalDavError(null);
-      setIsAddCalDavIntegrationDialogOpen(true);
-      return;
-    }
-
-    fetch("/api/integrations/" + type.replace("_", "") + "/add")
-      .then((response) => response.json())
-      .then((data) => {
-        window.location.href = data.url;
-      });
-  };
-
-  /** Internal Components */
-  const IntegrationGridListItem = ({ integration }: { integration: typeof props.integrations[number] }) => {
-    if (!integration || !integration.installed) {
-      return null;
-    }
-
-    return (
-      <li
-        onClick={() => handleAddIntegration(integration.type)}
-        key={integration.type}
-        className="flex items-center px-4 py-3">
-        <div className="w-1/12 mr-4">
-          <img className="w-8 h-8 mr-2" src={integration.imageSrc} alt={integration.title} />
-        </div>
-        <div className="w-10/12">
-          <Text className="text-sm font-medium text-gray-900">{integration.title}</Text>
-          <Text className="text-gray-400" variant="subtitle">
-            {integration.description}
-          </Text>
-        </div>
-        <div className="w-2/12 text-right">
-          <Button className="btn-sm" color="secondary" onClick={() => handleAddIntegration(integration.type)}>
-            {t("connect")}
-          </Button>
-        </div>
-      </li>
-    );
-  };
-  /** End Internal Components */
-
   /** Name */
-  const nameRef = useRef(null);
-  const bioRef = useRef(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
   const [selectedTimeZone, setSelectedTimeZone] = useState({
@@ -169,88 +121,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return dayjs().tz(selectedTimeZone.value).format("H:mm A");
   }, [selectedTimeZone]);
   /** End TimeZone */
-
-  /** CalDav Form */
-  const addCalDavIntegrationRef = useRef<HTMLFormElement>(null!);
-  const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
-  const [addCalDavError, setAddCalDavError] = useState<{ message: string } | null>(null);
-
-  const handleAddCalDavIntegration = async ({ url, username, password }: AddCalDavIntegrationRequest) => {
-    const requestBody = JSON.stringify({
-      url,
-      username,
-      password,
-    });
-
-    return await fetch("/api/integrations/caldav/add", {
-      method: "POST",
-      body: requestBody,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  };
-
-  const handleAddCalDavIntegrationSaveButtonPress = async () => {
-    const form = addCalDavIntegrationRef.current.elements;
-    const url = form.url.value;
-    const password = form.password.value;
-    const username = form.username.value;
-
-    try {
-      setAddCalDavError(null);
-      const addCalDavIntegrationResponse = await handleAddCalDavIntegration({ username, password, url });
-      if (addCalDavIntegrationResponse.ok) {
-        setIsAddCalDavIntegrationDialogOpen(false);
-        incrementStep();
-      } else {
-        const j = await addCalDavIntegrationResponse.json();
-        setAddCalDavError({ message: j.message });
-      }
-    } catch (reason) {
-      console.error(reason);
-    }
-  };
-
-  const ConnectCalDavServerDialog = () => {
-    return (
-      <Dialog
-        open={isAddCalDavIntegrationDialogOpen}
-        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
-        <DialogContent>
-          <DialogHeader title={t("connect_caldav")} subtitle={t("credentials_stored_and_encrypted")} />
-          <div className="my-4">
-            {addCalDavError && (
-              <p className="text-sm text-red-700">
-                <span className="font-bold">{t("error")}: </span>
-                {addCalDavError.message}
-              </p>
-            )}
-            <AddCalDavIntegration
-              ref={addCalDavIntegrationRef}
-              onSubmit={handleAddCalDavIntegrationSaveButtonPress}
-            />
-          </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button
-              type="submit"
-              form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              {t("save")}
-            </button>
-            <DialogClose
-              onClick={() => {
-                setIsAddCalDavIntegrationDialogOpen(false);
-              }}
-              asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-  /**End CalDav Form */
 
   /** Onboarding Steps */
   const [currentStep, setCurrentStep] = useState(0);
@@ -270,6 +140,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     if (hasSchedules) {
       step = 3;
     }
+
+    step = 1;
 
     setCurrentStep(step);
   };
@@ -404,10 +276,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         try {
           setSubmitting(true);
           await updateUser({
-            name: nameRef.current.value,
+            name: nameRef.current?.value,
             timeZone: selectedTimeZone.value,
           });
-          setEnteredName(nameRef.current.value);
+          setEnteredName(nameRef.current?.value || "");
           setSubmitting(true);
         } catch (error) {
           setError(error as Error);
@@ -420,11 +292,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <ul className="border border-gray-200 divide-y divide-gray-200 rounded-sm sm:mx-auto sm:w-full">
-          {props.integrations.map((integration) => {
-            return <IntegrationGridListItem key={integration.type} integration={integration} />;
-          })}
-        </ul>
+        <>
+          <CalendarsList calendars={props.integrations} />
+        </>
       ),
       hideConfirm: true,
       confirmText: t("continue"),
@@ -515,11 +385,11 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           setSubmitting(true);
           console.log("updating");
           await updateUser({
-            description: bioRef.current.value,
+            bio: bioRef.current?.value,
           });
           setSubmitting(false);
         } catch (error) {
-          setError(error);
+          setError(error as Error);
           setSubmitting(false);
         }
       },
@@ -612,7 +482,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </section>
         </article>
       </div>
-      <ConnectCalDavServerDialog />
     </div>
   );
 }
