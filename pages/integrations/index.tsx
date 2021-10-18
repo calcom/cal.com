@@ -70,17 +70,6 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
           </div>
         </div>
         <div className="flex">
-          {!props.webhook.active && (
-            <span className="self-center h-6 px-3 py-1 text-xs text-red-700 capitalize rounded-md bg-red-50">
-              {t("disabled")}
-            </span>
-          )}
-          {!!props.webhook.active && (
-            <span className="self-center h-6 px-3 py-1 text-xs text-green-700 capitalize rounded-md bg-green-50">
-              {t("enabled")}
-            </span>
-          )}
-
           <Tooltip content={t("edit_webhook")}>
             <Button
               onClick={() => props.onEditWebhook()}
