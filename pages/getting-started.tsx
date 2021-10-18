@@ -1,12 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import {
-  EventType,
-  EventTypeCreateInput,
-  Schedule,
-  ScheduleCreateInput,
-  User,
-  UserUpdateInput,
-} from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -27,6 +20,7 @@ import AddCalDavIntegration, {
 } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Dialog";
 import Loader from "@components/Loader";
@@ -41,14 +35,7 @@ import getEventTypes from "../lib/queries/event-types/get-event-types";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-type OnboardingProps = {
-  user: User;
-  integrations?: Record<string, string>[];
-  eventTypes?: EventType[];
-  schedules?: Schedule[];
-};
-
-export default function Onboarding(props: OnboardingProps) {
+export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -75,9 +62,9 @@ export default function Onboarding(props: OnboardingProps) {
   const [enteredName, setEnteredName] = React.useState();
   const Sess = useSession();
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
 
-  const updateUser = async (data: UserUpdateInput) => {
+  const updateUser = async (data: Prisma.UserUpdateInput) => {
     const res = await fetch(`/api/user/${props.user.id}`, {
       method: "PATCH",
       body: JSON.stringify({ data: { ...data } }),
@@ -93,7 +80,7 @@ export default function Onboarding(props: OnboardingProps) {
     return responseData.data;
   };
 
-  const createEventType = async (data: EventTypeCreateInput) => {
+  const createEventType = async (data: Prisma.EventTypeCreateInput) => {
     const res = await fetch(`/api/availability/eventtype`, {
       method: "POST",
       body: JSON.stringify(data),
@@ -109,7 +96,7 @@ export default function Onboarding(props: OnboardingProps) {
     return responseData.data;
   };
 
-  const createSchedule = async (data: ScheduleCreateInput) => {
+  const createSchedule = async (data: Prisma.ScheduleCreateInput) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
       body: JSON.stringify({ data: { ...data } }),
@@ -140,7 +127,7 @@ export default function Onboarding(props: OnboardingProps) {
   };
 
   /** Internal Components */
-  const IntegrationGridListItem = ({ integration }: { integration: Integration }) => {
+  const IntegrationGridListItem = ({ integration }: { integration: typeof props.integrations[number] }) => {
     if (!integration || !integration.installed) {
       return null;
     }
@@ -184,7 +171,7 @@ export default function Onboarding(props: OnboardingProps) {
   /** End TimeZone */
 
   /** CalDav Form */
-  const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
+  const addCalDavIntegrationRef = useRef<HTMLFormElement>(null!);
   const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
   const [addCalDavError, setAddCalDavError] = useState<{ message: string } | null>(null);
 
@@ -274,7 +261,7 @@ export default function Onboarding(props: OnboardingProps) {
       step = 1;
     }
 
-    const hasConfigureCalendar = props.integrations.some((integration) => integration.credential != null);
+    const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
     if (hasConfigureCalendar) {
       step = 2;
     }
@@ -292,17 +279,17 @@ export default function Onboarding(props: OnboardingProps) {
       setSubmitting(true);
       if (
         steps[currentStep] &&
-        steps[currentStep]?.onComplete &&
-        typeof steps[currentStep]?.onComplete === "function"
+        steps[currentStep].onComplete &&
+        typeof steps[currentStep].onComplete === "function"
       ) {
-        await steps[currentStep].onComplete();
+        await steps[currentStep].onComplete!();
       }
       incrementStep();
       setSubmitting(false);
     } catch (error) {
       console.log("handleConfirmStep", error);
       setSubmitting(false);
-      setError(error);
+      setError(error as Error);
     }
   };
 
@@ -423,7 +410,7 @@ export default function Onboarding(props: OnboardingProps) {
           setEnteredName(nameRef.current.value);
           setSubmitting(true);
         } catch (error) {
-          setError(error);
+          setError(error as Error);
           setSubmitting(false);
         }
       },
@@ -461,7 +448,7 @@ export default function Onboarding(props: OnboardingProps) {
                   debouncedHandleConfirmStep();
                   setSubmitting(false);
                 } catch (error) {
-                  setError(error);
+                  setError(error as Error);
                 }
               }}
             />
@@ -686,7 +673,9 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  integrations = getIntegrations(credentials).map((item) => omit(item, "key"));
+  integrations = getIntegrations(credentials)
+    .filter((item) => item.type.endsWith("_calendar"))
+    .map((item) => omit(item, "key"));
 
   eventTypes = await prisma.eventType.findMany({
     where: {
