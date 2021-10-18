@@ -90,7 +90,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             return (
               <div key={slot.time.format()}>
                 <Link href={bookingUrl}>
-                  <a className="block font-medium mb-2 bg-white dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-transparent rounded-sm hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black">
+                  <a
+                    className="block font-medium mb-2 bg-white dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-transparent rounded-sm hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black"
+                    data-testid="time">
                     {slot.time.format(timeFormat)}
                   </a>
                 </Link>

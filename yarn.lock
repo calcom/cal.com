@@ -1779,9 +1779,14 @@
     "@types/node" "*"
     "@types/socket.io" "2.1.13"
 
-"@types/node@*", "@types/node@>=8.1.0", "@types/node@^16.6.1":
+"@types/node@*", "@types/node@>=8.1.0":
   version "16.10.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.10.1.tgz#f3647623199ca920960006b3dccf633ea905f243"
+
+"@types/node@^16.10.2":
+  version "16.10.2"
+  resolved "https://registry.npmjs.org/@types/node/-/node-16.10.2.tgz#5764ca9aa94470adb4e1185fe2e9f19458992b2e"
+  integrity sha512-zCclL4/rx+W5SQTzFs9wyvvyCwoK9QtBpratqz2IYJ3O8Umrn0m3nsTv0wQBk9sRGpvUe9CwPDrQFB10f1FIjQ==
 
 "@types/nodemailer@^6.4.4":
   version "6.4.4"
@@ -3036,11 +3041,14 @@ data-urls@^2.0.0:
     whatwg-mimetype "^2.3.0"
     whatwg-url "^8.0.0"
 
-dayjs-business-days@^1.0.4:
+dayjs-business-time@^1.0.4:
   version "1.0.4"
-  resolved "https://registry.yarnpkg.com/dayjs-business-days/-/dayjs-business-days-1.0.4.tgz#36e93e7566149e175c1541d92ce16e12145412bf"
+  resolved "https://registry.npmjs.org/dayjs-business-time/-/dayjs-business-time-1.0.4.tgz#2970b80e832e92bbaa27a06ea62772b0d970b75b"
+  integrity sha512-v/0ynVV0Ih9Qw/pqJdScVHfoIaHkxLSom8j9+jO+VUOPnxC0fj5QGpDAZ94LUFd7jBkq2UO8C1LrVY+EHFx3aA==
+  dependencies:
+    dayjs "^1.10.4"
 
-dayjs@^1.10.6:
+dayjs@^1.10.4, dayjs@^1.10.6:
   version "1.10.7"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.10.7.tgz#2cf5f91add28116748440866a0a1d26f3a6ce468"
 

@@ -5,7 +5,7 @@ const opts = {
   executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
 };
 
-console.log("⚙️ Playwright options:", opts);
+console.log("⚙️ Playwright options:", JSON.stringify(opts, null, 4));
 
 module.exports = {
   verbose: true,
@@ -13,7 +13,7 @@ module.exports = {
   transform: {
     "^.+\\.ts$": "ts-jest",
   },
-  testMatch: ["<rootDir>/playwright/**/?(*.)+(spec|test).[jt]s?(x)"],
+  testMatch: ["<rootDir>/playwright/**/*(*.)@(spec|test).[jt]s?(x)"],
   testEnvironmentOptions: {
     "jest-playwright": {
       browsers: ["chromium" /*, 'firefox', 'webkit'*/],
