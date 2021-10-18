@@ -10,8 +10,6 @@ import classNames from "@lib/classNames";
 import * as fetcher from "@lib/core/http/fetch-wrapper";
 import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
-import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
-import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
@@ -21,6 +19,7 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
+import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button, { ButtonBaseProps } from "@components/ui/Button";
@@ -363,54 +362,6 @@ function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnection
           })}
         </Badge>
       ) : null}
-    </>
-  );
-}
-
-function ConnectIntegration(props: { type: string; render: (renderProps: ButtonBaseProps) => JSX.Element }) {
-  const { type } = props;
-  const [isLoading, setIsLoading] = useState(false);
-  const mutation = useMutation(async () => {
-    const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
-    if (!res.ok) {
-      throw new Error("Something went wrong");
-    }
-    const json = await res.json();
-    window.location.href = json.url;
-    setIsLoading(true);
-  });
-  const [isModalOpen, _setIsModalOpen] = useState(false);
-  const utils = trpc.useContext();
-
-  const setIsModalOpen: typeof _setIsModalOpen = (v) => {
-    _setIsModalOpen(v);
-    // refetch intergrations on modal toggles
-
-    utils.invalidateQueries(["viewer.integrations"]);
-  };
-
-  return (
-    <>
-      {props.render({
-        onClick() {
-          if (["caldav_calendar", "apple_calendar"].includes(type)) {
-            // special handlers
-            setIsModalOpen(true);
-            return;
-          }
-
-          mutation.mutate();
-        },
-        loading: mutation.isLoading || isLoading,
-        disabled: isModalOpen,
-      })}
-      {type === "caldav_calendar" && (
-        <AddCalDavIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      )}
-
-      {type === "apple_calendar" && (
-        <AddAppleIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      )}
     </>
   );
 }
