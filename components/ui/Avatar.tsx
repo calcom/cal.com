@@ -4,21 +4,24 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import classNames from "@lib/classNames";
 import { defaultAvatarSrc } from "@lib/profile";
 
+import { Maybe } from "@trpc/server";
+
 export type AvatarProps = {
   className?: string;
-  size: number;
-  imageSrc?: string;
+  size?: number;
+  imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
   gravatarFallbackMd5?: string;
 };
 
-export default function Avatar({ imageSrc, gravatarFallbackMd5, size, alt, title, ...props }: AvatarProps) {
-  const className = classNames("rounded-full", props.className, `h-${size} w-${size}`);
+export default function Avatar(props: AvatarProps) {
+  const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
+  const className = classNames("rounded-full", props.className, size && `h-${size} w-${size}`);
   const avatar = (
     <AvatarPrimitive.Root>
       <AvatarPrimitive.Image
-        src={imageSrc}
+        src={imageSrc ?? undefined}
         alt={alt}
         className={classNames("rounded-full", `h-auto w-${size}`, props.className)}
       />

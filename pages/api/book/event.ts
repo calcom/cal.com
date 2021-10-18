@@ -1,11 +1,12 @@
-import { SchedulingType, Prisma, Credential } from "@prisma/client";
+import { Credential, Prisma, SchedulingType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
-import dayjsBusinessDays from "dayjs-business-days";
+import dayjsBusinessTime from "dayjs-business-time";
 import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getErrorFromUnknown } from "pages/_error";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -19,8 +20,17 @@ import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
+import sendPayload from "@lib/webhooks/sendPayload";
+import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
-dayjs.extend(dayjsBusinessDays);
+export interface DailyReturnType {
+  name: string;
+  url: string;
+  id: string;
+  created_at: string;
+}
+
+dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
 dayjs.extend(timezone);
@@ -89,7 +99,7 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number)
 
 function isOutOfBounds(
   time: dayjs.ConfigType,
-  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }
+  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
 ): boolean {
   const date = dayjs(time);
 
@@ -97,7 +107,7 @@ function isOutOfBounds(
     case "rolling": {
       const periodRollingEndDay = periodCountCalendarDays
         ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
-        : dayjs().tz(timeZone).businessDaysAdd(periodDays, "days").endOf("day");
+        : dayjs().tz(timeZone).addBusinessTime(periodDays, "days").endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
@@ -239,15 +249,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamMembers =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map((user) => ({
-          email: user.email,
-          name: user.name,
+          email: user.email || "",
+          name: user.name || "",
           timeZone: user.timeZone,
         }))
       : [];
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  const seed = `${users[0].username}:${dayjs(reqBody.start).utc().format()}`;
+  const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const evt: CalendarEvent = {
@@ -257,8 +267,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
-      name: users[0].name,
-      email: users[0].email,
+      name: users[0].name || "Nameless",
+      email: users[0].email || "Email-less",
       timeZone: users[0].timeZone,
     },
     attendees: attendeesList,
@@ -289,7 +299,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
         description: evt.description,
-        confirmed: !eventType.requiresConfirmation || !!rescheduleUid,
+        confirmed: !eventType?.requiresConfirmation || !!rescheduleUid,
         location: evt.location,
         eventType: {
           connect: {
@@ -314,9 +324,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
-  } catch (e) {
-    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", e.message);
-    if (e.code === "P2002") {
+  } catch (_err) {
+    const err = getErrorFromUnknown(_err);
+    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
+    if (err.code === "P2002") {
       res.status(409).json({ message: "booking.conflict" });
       return;
     }
@@ -328,6 +339,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let referencesToCreate: PartialReference[] = [];
   type User = Prisma.UserGetPayload<typeof userData>;
   let user: User | null = null;
+
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);
@@ -350,8 +362,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedCalendars
       );
 
-      const videoBusyTimes = await getBusyVideoTimes(credentials);
-      calendarBusyTimes.push(...videoBusyTimes);
+      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter((time) => time);
+      calendarBusyTimes.push(...(videoBusyTimes as any[])); // FIXME add types
+      console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
       const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
         start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
@@ -404,6 +417,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
   }
+
+  if (!user) throw Error("Can't continue, user not found.");
+
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const eventManager = new EventManager(await refreshCredentials(user.credentials));
 
@@ -439,6 +455,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
+  //for Daily.co video calls will grab the meeting token for the call
+  const isDaily = evt.location === "integrations:daily";
+
+  let dailyEvent: DailyReturnType;
+
+  if (!rescheduleUid) {
+    dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent as DailyReturnType;
+  } else {
+    dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent as DailyReturnType;
+  }
+
+  let meetingToken;
+  if (isDaily) {
+    const response = await fetch("https://api.daily.co/v1/meeting-tokens", {
+      method: "POST",
+      body: JSON.stringify({ properties: { room_name: dailyEvent.name, is_owner: true } }),
+      headers: {
+        Authorization: "Bearer " + process.env.DAILY_API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
+    meetingToken = await response.json();
+  }
+
+  //for Daily.co video calls will update the dailyEventReference table
+
+  if (isDaily) {
+    await prisma.dailyEventReference.create({
+      data: {
+        dailyurl: dailyEvent.url,
+        dailytoken: meetingToken.token,
+        booking: {
+          connect: {
+            uid: booking.uid,
+          },
+        },
+      },
+    });
+  }
+
   if (eventType.requiresConfirmation && !rescheduleUid) {
     await new EventOrganizerRequestMail(evt, uid).sendEmail();
   }
@@ -446,11 +502,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof eventType.price === "number" && eventType.price > 0) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      /* @ts-ignore https://github.com/prisma/prisma/issues/9389 */
       if (!booking.user) booking.user = user;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      /* @ts-ignore https://github.com/prisma/prisma/issues/9389 */
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
       res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment.uid });
@@ -463,6 +515,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   log.debug(`Booking ${user.username} completed`);
+
+  const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+  const subscriberUrls = await getSubscriberUrls(user.id, eventTrigger);
+  const promises = subscriberUrls.map((url) =>
+    sendPayload(eventTrigger, new Date().toISOString(), url, evt).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${url}`, e);
+    })
+  );
+  await Promise.all(promises);
 
   await prisma.booking.update({
     where: {

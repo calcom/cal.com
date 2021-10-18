@@ -1,4 +1,4 @@
-import { Prisma, Credential } from "@prisma/client";
+import { Credential } from "@prisma/client";
 
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
@@ -110,10 +110,7 @@ const o365Auth = (credential) => {
   };
 };
 
-const userData = Prisma.validator<Prisma.UserArgs>()({
-  select: { name: true, email: true, timeZone: true },
-});
-export type Person = Prisma.UserGetPayload<typeof userData>;
+export type Person = { name: string; email: string; timeZone: string };
 
 export interface CalendarEvent {
   type: string;
@@ -391,7 +388,7 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
             payload["location"] = event.location;
           }
 
-          if (event.conferenceData) {
+          if (event.conferenceData && event.location === "integrations:google:meet") {
             payload["conferenceData"] = event.conferenceData;
           }
 
@@ -520,8 +517,26 @@ const GoogleCalendar = (credential): CalendarApiAdapter => {
   };
 };
 
-// factory
-const calendars = (withCredentials): CalendarApiAdapter[] =>
+function getCalendarAdapterOrNull(credential: Credential): CalendarApiAdapter | null {
+  switch (credential.type) {
+    case "google_calendar":
+      return GoogleCalendar(credential);
+    case "office365_calendar":
+      return MicrosoftOffice365Calendar(credential);
+    case "caldav_calendar":
+      // FIXME types wrong & type casting should not be needed
+      return new CalDavCalendar(credential) as never as CalendarApiAdapter;
+    case "apple_calendar":
+      // FIXME types wrong & type casting should not be needed
+      return new AppleCalendar(credential) as never as CalendarApiAdapter;
+  }
+  return null;
+}
+
+/**
+ * @deprecated
+ */
+const calendars = (withCredentials: Credential[]): CalendarApiAdapter[] =>
   withCredentials
     .map((cred) => {
       switch (cred.type) {
@@ -537,7 +552,7 @@ const calendars = (withCredentials): CalendarApiAdapter[] =>
           return; // unknown credential, could be legacy? In any case, ignore
       }
     })
-    .filter(Boolean);
+    .flatMap((item) => (item ? [item as CalendarApiAdapter] : []));
 
 const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) =>
   Promise.all(
@@ -546,6 +561,11 @@ const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalenda
     return results.reduce((acc, availability) => acc.concat(availability), []);
   });
 
+/**
+ *
+ * @param withCredentials
+ * @deprecated
+ */
 const listCalendars = (withCredentials) =>
   Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then((results) =>
     results.reduce((acc, calendars) => acc.concat(calendars), []).filter((c) => c != null)
@@ -653,4 +673,11 @@ const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
   return Promise.resolve({});
 };
 
-export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, listCalendars };
+export {
+  getBusyCalendarTimes,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  listCalendars,
+  getCalendarAdapterOrNull,
+};

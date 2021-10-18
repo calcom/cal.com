@@ -1,21 +1,29 @@
-import { XIcon, CheckIcon } from "@heroicons/react/outline";
+import { CheckIcon, XIcon } from "@heroicons/react/outline";
 import React, { ForwardedRef, useEffect, useState } from "react";
-import { OptionsType } from "react-select/lib/types";
+
+import { useLocale } from "@lib/hooks/useLocale";
 
 import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";
 
+type CheckedSelectValue = {
+  avatar: string;
+  label: string;
+  value: string;
+}[];
+
 export type CheckedSelectProps = {
-  defaultValue?: [];
+  defaultValue?: CheckedSelectValue;
   placeholder?: string;
   name?: string;
-  options: [];
-  onChange: (options: OptionsType) => void;
-  disabled: [];
+  options: CheckedSelectValue;
+  onChange: (options: CheckedSelectValue) => void;
+  disabled: boolean;
 };
 
 export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: ForwardedRef<unknown>) => {
-  const [selectedOptions, setSelectedOptions] = useState<[]>(props.defaultValue || []);
+  const [selectedOptions, setSelectedOptions] = useState<CheckedSelectValue>(props.defaultValue || []);
+  const { t } = useLocale();
 
   useEffect(() => {
     props.onChange(selectedOptions);
@@ -38,7 +46,7 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
     disabled: !!selectedOptions.find((selectedOption) => selectedOption.value === option.value),
   }));
 
-  const removeOption = (value) =>
+  const removeOption = (value: string) =>
     setSelectedOptions(selectedOptions.filter((option) => option.value !== value));
 
   const changeHandler = (selections) =>
@@ -61,12 +69,12 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
           }),
         }}
         name={props.name}
-        placeholder={props.placeholder || "Select..."}
+        placeholder={props.placeholder || t("select")}
         isSearchable={false}
         formatOptionLabel={formatOptionLabel}
         options={options}
         isMulti
-        value={props.placeholder || "Select..."}
+        value={props.placeholder || t("select")}
         onChange={changeHandler}
       />
       {selectedOptions.map((option) => (

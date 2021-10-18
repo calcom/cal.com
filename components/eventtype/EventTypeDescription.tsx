@@ -5,6 +5,7 @@ import React from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import classNames from "@lib/classNames";
+import { useLocale } from "@lib/hooks/useLocale";
 
 const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
   select: {
@@ -25,6 +26,8 @@ export type EventTypeDescriptionProps = {
 };
 
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
+  const { t } = useLocale();
+
   return (
     <>
       <div className={classNames("text-neutral-500 dark:text-white", className)}>
@@ -41,13 +44,13 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           {eventType.schedulingType ? (
             <li className="flex whitespace-nowrap">
               <UsersIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
-              {eventType.schedulingType === SchedulingType.ROUND_ROBIN && "Round Robin"}
-              {eventType.schedulingType === SchedulingType.COLLECTIVE && "Collective"}
+              {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
+              {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
             </li>
           ) : (
             <li className="flex whitespace-nowrap">
               <UserIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
-              1-on-1
+              {t("1_on_1")}
             </li>
           )}
           {eventType.price > 0 && (

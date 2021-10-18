@@ -53,12 +53,14 @@ jobs:
           path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs
 
-      - run: yarn build
+      - run: yarn test
       - run: yarn prisma migrate deploy
       - run: yarn db-seed
+      - run: yarn build
       - run: yarn start &
       - run: npx wait-port 3000 --timeout 10000
-      - run: yarn cypress run
+      - run: yarn playwright install-deps
+      - run: yarn test-playwright
 
       - name: Upload videos
         if: ${{ always() }}
@@ -66,5 +68,5 @@ jobs:
         with:
           name: videos
           path: |
-            cypress/videos
-            cypress/screenshots
+            playwright/screenshots
+            playwright/videos

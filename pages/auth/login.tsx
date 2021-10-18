@@ -1,25 +1,17 @@
 import { getCsrfToken, signIn } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ErrorCode, getSession, isGoogleLoginEnabled } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 
+import AddToHomescreen from "@components/AddToHomescreen";
+import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 
-const errorMessages: { [key: string]: string } = {
-  [ErrorCode.SecondFactorRequired]:
-    "Two-factor authentication enabled. Please enter the six-digit code from your authenticator app.",
-  [ErrorCode.IncorrectPassword]: "Password is incorrect. Please try again.",
-  [ErrorCode.UserNotFound]: "No account exists matching that email address.",
-  [ErrorCode.IncorrectTwoFactorCode]: "Two-factor code is incorrect. Please try again.",
-  [ErrorCode.InternalServerError]:
-    "Something went wrong. Please try again and contact us if the issue persists.",
-  // TODO: when another identity provider is added, rework this message.
-  [ErrorCode.ThirdPartyIdentityProviderEnabled]: "Your account was created using Google.",
-};
-
 export default function Login({ csrfToken, isGoogleLoginEnabled }) {
+  const { t } = useLocale();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,12 +19,17 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [secondFactorRequired, setSecondFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const errorMessages: { [key: string]: string } = {
+    [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
+    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
+    [ErrorCode.UserNotFound]: t("no_account_exists"),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    // TODO: when another identity provider is added, rework this message.
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("google_account"),
+  };
 
-  useEffect(() => {
-    if (!router.query?.callbackUrl) {
-      window.history.replaceState(null, document.title, "?callbackUrl=/");
-    }
-  }, [router.query]);
+  const callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -45,14 +42,20 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
     setErrorMessage(null);
 
     try {
-      const response = await signIn("credentials", { redirect: false, email, password, totpCode: code });
+      const response = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        totpCode: code,
+        callbackUrl,
+      });
       if (!response) {
-        console.error("Received empty response from next auth");
-        return;
+        throw new Error("Received empty response from next auth");
       }
 
       if (!response.error) {
-        window.location.reload();
+        // we're logged in! let's do a hard refresh to the desired url
+        window.location.replace(callbackUrl);
         return;
       }
 
@@ -60,22 +63,29 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
         setSecondFactorRequired(true);
         setErrorMessage(errorMessages[ErrorCode.SecondFactorRequired]);
       } else {
-        setErrorMessage(errorMessages[response.error] || "Something went wrong.");
+        setErrorMessage(errorMessages[response.error] || t("something_went_wrong"));
       }
+      setIsSubmitting(false);
     } catch (e) {
-      setErrorMessage("Something went wrong.");
-    } finally {
+      setErrorMessage(t("something_went_wrong"));
       setIsSubmitting(false);
     }
   }
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <HeadSeo title="Login" description="Login" />
+      <HeadSeo title={t("login")} description={t("login")} />
+
+      {isSubmitting && (
+        <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+          <Loader />
+        </div>
+      )}
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
         <h2 className="font-cal mt-6 text-center text-3xl font-bold text-neutral-900">
-          Sign in to your account
+          {t("sign_in_account")}
         </h2>
       </div>
 
@@ -85,13 +95,14 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
-                Email address
+                {t("email_address")}
               </label>
               <div className="mt-1">
                 <input
                   id="email"
                   name="email"
                   type="email"
+                  inputMode="email"
                   autoComplete="email"
                   required
                   value={email}
@@ -105,12 +116,14 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
               <div className="flex">
                 <div className="w-1/2">
                   <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
-                    Password
+                    {t("password")}
                   </label>
                 </div>
                 <div className="w-1/2 text-right">
                   <Link href="/auth/forgot-password">
-                    <a className="font-medium text-primary-600 text-sm">Forgot?</a>
+                    <a tabIndex={-1} className="font-medium text-primary-600 text-sm">
+                      {t("forgot")}
+                    </a>
                   </Link>
                 </div>
               </div>
@@ -131,7 +144,7 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
             {secondFactorRequired && (
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
-                  Two-Factor Code
+                  {t("2fa_code")}
                 </label>
                 <div className="mt-1">
                   <input
@@ -154,7 +167,7 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                Sign in
+                {t("sign_in")}
               </button>
             </div>
 
@@ -169,12 +182,14 @@ export default function Login({ csrfToken, isGoogleLoginEnabled }) {
           )}
         </div>
         <div className="mt-4 text-neutral-600 text-center text-sm">
-          Don&apos;t have an account? {/* replace this with your account creation flow */}
+          {t("dont_have_an_account")} {/* replace this with your account creation flow */}
           <a href="https://cal.com/signup" className="font-medium text-neutral-900">
-            Create an account
+            {t("create_an_account")}
           </a>
         </div>
       </div>
+
+      <AddToHomescreen />
     </div>
   );
 }

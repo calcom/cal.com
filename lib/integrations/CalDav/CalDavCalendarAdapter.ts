@@ -1,5 +1,6 @@
 import { Credential } from "@prisma/client";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
 import { Attendee, createEvent, DurationObject, Person } from "ics";
 import {
@@ -18,6 +19,8 @@ import logger from "@lib/logger";
 
 import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
 import { stripHtml } from "../../emails/helpers";
+
+dayjs.extend(utc);
 
 const log = logger.getChildLogger({ prefix: ["[lib] caldav"] });
 
@@ -76,6 +79,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const { error, value: iCalString } = await createEvent({
         uid,
         startInputType: "utc",
+        // FIXME types
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
@@ -134,6 +138,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const { error, value: iCalString } = await createEvent({
         uid,
         startInputType: "utc",
+        // FIXME - types wrong
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
@@ -200,6 +205,7 @@ export class CalDavCalendar implements CalendarApiAdapter {
     }
   }
 
+  // FIXME - types wrong
   async getAvailability(
     dateFrom: string,
     dateTo: string,
@@ -255,10 +261,11 @@ export class CalDavCalendar implements CalendarApiAdapter {
         .filter((calendar) => {
           return calendar.components?.includes("VEVENT");
         })
-        .map((calendar) => ({
+        .map((calendar, index) => ({
           externalId: calendar.url,
           name: calendar.displayName ?? "",
-          primary: false,
+          // FIXME Find a better way to set the primary calendar
+          primary: index === 0,
           integration: this.integrationName,
         }));
     } catch (reason) {

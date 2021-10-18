@@ -1,8 +1,15 @@
 module.exports = {
   mode: "jit",
-  purge: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  purge: [
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+    "./ee/components/**/*.{js,ts,jsx,tsx}",
+  ],
   darkMode: "class",
   theme: {
+    fontFamily: {
+      sans: ["Roboto", "sans-serif"],
+    },
     extend: {
       colors: {
         black: "#111111",
@@ -19,16 +26,16 @@ module.exports = {
           900: "#292929",
         },
         neutral: {
-          50: "#F7F8F9",
-          100: "#F4F5F6",
-          200: "#EAEEF2",
-          300: "#C6CCD5",
-          400: "#9BA6B6",
-          500: "#708097",
-          600: "#657388",
-          700: "#373F4A",
-          800: "#1F2937",
-          900: "#1A1A1A",
+          50: "#F8F8F8",
+          100: "#F5F5F5",
+          200: "#E1E1E1",
+          300: "#CFCFCF",
+          400: "#ACACAC",
+          500: "#888888",
+          600: "#494949",
+          700: "#3E3E3E",
+          800: "#313131",
+          900: "#292929",
         },
         primary: {
           50: "#F4F4F4",
@@ -92,8 +99,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        inter: ["Inter", "sans-serif"],
-        cal: ["Cal Sans", "sans-serif"],
+        cal: ["Cal Sans", "Lexend", "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",

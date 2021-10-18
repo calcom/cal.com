@@ -33,7 +33,7 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              String?                @default("unlimited") // unlimited | rolling | range
+  periodType              String                @default("unlimited") // unlimited | rolling | range
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
@@ -45,7 +45,10 @@ model EventType {
   Schedule                Schedule[]
   price                   Int                    @default(0)
   currency                String                 @default("usd")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9e69029943b64a6db139a84ba8f1207f3de20616
   @@unique([userId, slug])
 }
 
@@ -72,13 +75,13 @@ model User {
   id                  Int                @id @default(autoincrement())
   username            String?            @unique
   name                String?
-  email               String?            @unique
+  email               String             @unique
   emailVerified       DateTime?
   password            String?
   bio                 String?
   avatar              String?
   timeZone            String             @default("Europe/London")
-  weekStart           String?            @default("Sunday")
+  weekStart           String             @default("Sunday")
   startTime           Int                @default(0)
   endTime             Int                @default(1440)
   bufferTime          Int                @default(0)
@@ -170,6 +173,14 @@ enum BookingStatus {
   PENDING    @map("pending")
 }
 
+model DailyEventReference {
+  id         Int         @id @default(autoincrement())
+  dailyurl   String      @default("dailycallurl")
+  dailytoken String      @default("dailytoken")
+  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  bookingId  Int?
+}
+
 model Booking {
   id          Int                @id @default(autoincrement())
   uid         String             @unique
@@ -187,7 +198,9 @@ model Booking {
   attendees Attendee[]
   location  String?
 
-  createdAt DateTime      @default(now())
+  dailyRef  DailyEventReference?
+
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
   confirmed Boolean       @default(true)
   rejected  Boolean       @default(false)
@@ -282,4 +295,19 @@ model Payment {
   refunded   Boolean
   data       Json
   externalId String      @unique
+}
+
+enum WebhookTriggerEvents {
+  BOOKING_CREATED
+  BOOKING_RESCHEDULED
+  BOOKING_CANCELLED
+}
+
+model Webhook {
+  id            String      @unique @id
+  userId        Int
+  subscriberUrl String
+  createdAt     DateTime  @default(now())
+  active        Boolean   @default(true)
+  eventTriggers WebhookTriggerEvents[]
 }

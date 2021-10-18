@@ -1,21 +1,23 @@
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
 
-import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { QueryCell } from "@lib/QueryCell";
+import { useLocale } from "@lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 
 dayjs.extend(utc);
 
-export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSideProps>) {
+type User = inferQueryOutput<"viewer.me">;
+
+const AvailabilityView = ({ user }: { user: User }) => {
+  const { t } = useLocale();
   const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState([]);
-  const [selectedDate] = useState(dayjs());
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
     let h = Math.floor(mins / 60);
@@ -25,97 +27,92 @@ export default function Troubleshoot({ user }: inferSSRProps<typeof getServerSid
     return `${h}:${m}`;
   }
 
-  const fetchAvailability = (date) => {
-    const dateFrom = date.startOf("day").utc().format();
-    const dateTo = date.endOf("day").utc().format();
-
-    fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
-      .then((res) => {
-        return res.json();
-      })
-      .then((availableIntervals) => {
-        setAvailability(availableIntervals.busy);
-        setLoading(false);
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-  };
-
   useEffect(() => {
+    const fetchAvailability = (date: Dayjs) => {
+      const dateFrom = date.startOf("day").utc().format();
+      const dateTo = date.endOf("day").utc().format();
+      setLoading(true);
+
+      fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
+        .then((res) => {
+          return res.json();
+        })
+        .then((availableIntervals) => {
+          setAvailability(availableIntervals.busy);
+        })
+        .catch((e) => {
+          console.error(e);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
     fetchAvailability(selectedDate);
   }, [selectedDate]);
 
-  if (loading) {
-    return <Loader />;
-  }
-
   return (
-    <div>
-      <Shell
-        heading="Troubleshoot"
-        subtitle="Understand why certain times are available and others are blocked.">
-        <div className="bg-white max-w-md overflow-hidden shadow rounded-sm">
-          <div className="px-4 py-5 sm:p-6">
-            Here is an overview of your day on {selectedDate.format("D MMMM YYYY")}:
-            <small className="block text-neutral-400">
-              Tip: Hover over the bold times for a full timestamp
-            </small>
-            <div className="mt-4 space-y-4">
-              <div className="bg-black overflow-hidden rounded-sm">
-                <div className="px-4 sm:px-6 py-2 text-white">
-                  Your day starts at {convertMinsToHrsMins(user.startTime)}
+    <div className="bg-white max-w-xl overflow-hidden shadow rounded-sm">
+      <div className="px-4 py-5 sm:p-6">
+        {t("overview_of_day")}{" "}
+        <input
+          type="date"
+          className="inline border-none h-8 p-0"
+          defaultValue={selectedDate.format("YYYY-MM-DD")}
+          onChange={(e) => {
+            setSelectedDate(dayjs(e.target.value));
+          }}
+        />
+        <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
+        <div className="mt-4 space-y-4">
+          <div className="bg-black overflow-hidden rounded-sm">
+            <div className="px-4 sm:px-6 py-2 text-white">
+              {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
+            </div>
+          </div>
+          {loading ? (
+            <Loader />
+          ) : availability.length > 0 ? (
+            availability.map((slot) => (
+              <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
+                <div className="px-4 py-5 sm:p-6 text-black">
+                  {t("calendar_shows_busy_between")}{" "}
+                  <span className="font-medium text-neutral-800" title={slot.start}>
+                    {dayjs(slot.start).format("HH:mm")}
+                  </span>{" "}
+                  {t("and")}{" "}
+                  <span className="font-medium text-neutral-800" title={slot.end}>
+                    {dayjs(slot.end).format("HH:mm")}
+                  </span>{" "}
+                  {t("on")} {dayjs(slot.start).format("D")}{" "}
+                  {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
                 </div>
               </div>
-              {availability.map((slot) => (
-                <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
-                  <div className="px-4 py-5 sm:p-6 text-black">
-                    Your calendar shows you as busy between{" "}
-                    <span className="font-medium text-neutral-800" title={slot.start}>
-                      {dayjs(slot.start).format("HH:mm")}
-                    </span>{" "}
-                    and{" "}
-                    <span className="font-medium text-neutral-800" title={slot.end}>
-                      {dayjs(slot.end).format("HH:mm")}
-                    </span>{" "}
-                    on {dayjs(slot.start).format("D MMMM YYYY")}
-                  </div>
-                </div>
-              ))}
-              {availability.length === 0 && <Loader />}
-              <div className="bg-black overflow-hidden rounded-sm">
-                <div className="px-4 sm:px-6 py-2 text-white">
-                  Your day ends at {convertMinsToHrsMins(user.endTime)}
-                </div>
-              </div>
+            ))
+          ) : (
+            <div className="bg-neutral-100 overflow-hidden rounded-sm">
+              <div className="px-4 py-5 sm:p-6 text-black">{t("calendar_no_busy_slots")}</div>
+            </div>
+          )}
+
+          <div className="bg-black overflow-hidden rounded-sm">
+            <div className="px-4 sm:px-6 py-2 text-white">
+              {t("your_day_ends_at")} {convertMinsToHrsMins(user.endTime)}
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+export default function Troubleshoot() {
+  const query = trpc.useQuery(["viewer.me"]);
+  const { t } = useLocale();
+  return (
+    <div>
+      <Shell heading={t("troubleshoot")} subtitle={t("troubleshoot_description")}>
+        <QueryCell query={query} success={({ data }) => <AvailabilityView user={data} />} />
       </Shell>
     </div>
   );
 }
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getSession(context);
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      startTime: true,
-      endTime: true,
-      username: true,
-    },
-  });
-
-  if (!user) return { redirect: { permanent: false, destination: "/auth/login" } };
-
-  return {
-    props: { session, user },
-  };
-};

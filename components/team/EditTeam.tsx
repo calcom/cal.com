@@ -1,12 +1,13 @@
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import React, { useEffect, useRef, useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
+import showToast from "@lib/notification";
 import { Team } from "@lib/team";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
-import Modal from "@components/Modal";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import Avatar from "@components/ui/Avatar";
@@ -25,11 +26,11 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
   const hideBrandingRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const logoRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const [hasErrors, setHasErrors] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [inviteModalTeam, setInviteModalTeam] = useState<Team | null | undefined>();
   const [errorMessage, setErrorMessage] = useState("");
   const [imageSrc, setImageSrc] = useState<string>("");
+  const { t } = useLocale();
 
   const loadMembers = () =>
     fetch("/api/teams/" + props.team?.id + "/membership")
@@ -94,7 +95,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
     })
       .then(handleError)
       .then(() => {
-        setSuccessModalOpen(true);
+        showToast(t("your_team_updated_successfully"), "success");
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -106,10 +107,6 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
   const onMemberInvitationModalExit = () => {
     loadMembers();
     setShowMemberInvitationModal(false);
-  };
-
-  const closeSuccessModal = () => {
-    setSuccessModalOpen(false);
   };
 
   const handleLogoChange = (newLogo: string) => {
@@ -132,19 +129,19 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
             size="sm"
             StartIcon={ArrowLeftIcon}
             onClick={() => props.onCloseEdit()}>
-            Back
+            {t("back")}
           </Button>
         </div>
         <div>
           <div className="pb-5 pr-4 sm:pb-6">
             <h3 className="text-lg font-bold leading-6 text-gray-900">{props.team?.name}</h3>
             <div className="max-w-xl mt-2 text-sm text-gray-500">
-              <p>Manage your team</p>
+              <p>{t("manage_your_team")}</p>
             </div>
           </div>
         </div>
         <hr className="mt-2" />
-        <h3 className="font-cal font-bold leading-6 text-gray-900 mt-7 text-md">Profile</h3>
+        <h3 className="font-cal font-bold leading-6 text-gray-900 mt-7 text-md">{t("profile")}</h3>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateTeamHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
           <div className="py-6 lg:pb-8">
@@ -152,18 +149,22 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
               <div className="flex-grow space-y-6">
                 <div className="block sm:flex">
                   <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
-                    <UsernameInput ref={teamUrlRef} defaultValue={props.team?.slug} label={"My team URL"} />
+                    <UsernameInput
+                      ref={teamUrlRef}
+                      defaultValue={props.team?.slug}
+                      label={t("my_team_url")}
+                    />
                   </div>
                   <div className="w-full sm:w-1/2 sm:ml-2">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Team name
+                      {t("team_name")}
                     </label>
                     <input
                       ref={nameRef}
                       type="text"
                       name="name"
                       id="name"
-                      placeholder="Your team name"
+                      placeholder={t("your_team_name")}
                       required
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                       defaultValue={props.team?.name}
@@ -172,7 +173,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                 </div>
                 <div>
                   <label htmlFor="about" className="block text-sm font-medium text-gray-700">
-                    About
+                    {t("about")}
                   </label>
                   <div className="mt-1">
                     <textarea
@@ -182,9 +183,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       rows={3}
                       defaultValue={props.team?.bio}
                       className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"></textarea>
-                    <p className="mt-2 text-sm text-gray-500">
-                      A few sentences about your team. This will appear on your team&apos;s URL page.
-                    </p>
+                    <p className="mt-2 text-sm text-gray-500">{t("team_description")}</p>
                   </div>
                 </div>
                 <div>
@@ -201,27 +200,27 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                       id="avatar"
                       placeholder="URL"
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                      defaultValue={imageSrc ? imageSrc : props.team?.logo}
+                      defaultValue={imageSrc ?? props.team?.logo}
                     />
                     <ImageUploader
                       target="logo"
                       id="logo-upload"
-                      buttonMsg={imageSrc !== "" ? "Edit logo" : "Upload a logo"}
+                      buttonMsg={imageSrc !== "" ? t("edit_logo") : t("upload_a_logo")}
                       handleAvatarChange={handleLogoChange}
-                      imageRef={imageSrc ? imageSrc : props.team?.logo}
+                      imageSrc={imageSrc ?? props.team?.logo}
                     />
                   </div>
                   <hr className="mt-6" />
                 </div>
                 <div className="flex justify-between mt-7">
-                  <h3 className="font-cal font-bold leading-6 text-gray-900 text-md">Members</h3>
+                  <h3 className="font-cal font-bold leading-6 text-gray-900 text-md">{t("members")}</h3>
                   <div className="relative flex items-center">
                     <Button
                       type="button"
                       color="secondary"
                       StartIcon={PlusIcon}
                       onClick={() => onInviteMember(props.team)}>
-                      New Member
+                      {t("new_member")}
                     </Button>
                   </div>
                 </div>
@@ -245,14 +244,14 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        Disable Cal.com branding
+                        {t("disable_cal_branding")}
                       </label>
-                      <p className="text-gray-500">Hide all Cal.com branding from your public pages.</p>
+                      <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                     </div>
                   </div>
                   <hr className="mt-6" />
                 </div>
-                <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">Danger Zone</h3>
+                <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">{t("danger_zone")}</h3>
                 <div>
                   <div className="relative flex items-start">
                     <Dialog>
@@ -262,16 +261,14 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                         }}
                         className="btn-sm btn-white">
                         <TrashIcon className="group-hover:text-red text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
-                        Disband Team
+                        {t("disband_team")}
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         variety="danger"
-                        title="Disband Team"
-                        confirmBtnText="Yes, disband team"
-                        cancelBtnText="Cancel"
+                        title={t("disband_team")}
+                        confirmBtnText={t("confirm_disband_team")}
                         onConfirm={() => deleteTeam()}>
-                        Are you sure you want to disband this team? Anyone who you&apos;ve shared this team
-                        link with will no longer be able to book using it.
+                        {t("disband_team_confirmation_message")}
                       </ConfirmationDialogContent>
                     </Dialog>
                   </div>
@@ -281,17 +278,11 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
             <hr className="mt-8" />
             <div className="flex justify-end py-4">
               <Button type="submit" color="primary">
-                Save
+                {t("save")}
               </Button>
             </div>
           </div>
         </form>
-        <Modal
-          heading="Team updated successfully"
-          description="Your team has been updated successfully."
-          open={successModalOpen}
-          handleClose={closeSuccessModal}
-        />
         {showMemberInvitationModal && (
           <MemberInvitationModal team={inviteModalTeam} onExit={onMemberInvitationModalExit} />
         )}

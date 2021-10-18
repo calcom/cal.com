@@ -1,25 +1,21 @@
 import React from "react";
 
-import { getSession, identityProviderNameMap } from "@lib/auth";
-import prisma from "@lib/prisma";
+import { identityProviderNameMap } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
+import { trpc } from "@lib/trpc";
 
-import SettingsShell from "@components/Settings";
+import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 
 import { IdentityProvider } from ".prisma/client";
 
-interface SecurityProps {
-  user: {
-    twoFactorEnabled: boolean;
-    identityProvider: IdentityProvider;
-  };
-}
-
-export default function Security({ user }: SecurityProps) {
+export default function Security() {
+  const user = trpc.useQuery(["viewer.me"]).data;
+  const { t } = useLocale();
   return (
-    <Shell heading="Security" subtitle="Manage your account's security.">
+    <Shell heading={t("security")} subtitle={t("manage_account_security")}>
       <SettingsShell>
         {user.identityProvider !== IdentityProvider.CAL ? (
           <>
@@ -42,23 +38,4 @@ export default function Security({ user }: SecurityProps) {
       </SettingsShell>
     </Shell>
   );
-}
-
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      twoFactorEnabled: true,
-      identityProvider: true,
-    },
-  });
-
-  return { props: { user } };
 }

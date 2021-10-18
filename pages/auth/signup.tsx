@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { getSession, isGoogleLoginEnabled } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 
 import { HeadSeo } from "@components/seo/head-seo";
@@ -10,6 +11,7 @@ import { UsernameInput } from "@components/ui/UsernameInput";
 import ErrorAlert from "@components/ui/alerts/Error";
 
 export default function Signup(props) {
+  const { t } = useLocale();
   const router = useRouter();
 
   const [hasErrors, setHasErrors] = useState(false);
@@ -57,9 +59,11 @@ export default function Signup(props) {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <HeadSeo title="Sign up" description="Sign up" />
+      <HeadSeo title={t("sign_up")} description={t("sign_up")} />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="font-cal text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
+        <h2 className="font-cal text-center text-3xl font-extrabold text-gray-900">
+          {t("create_your_account")}
+        </h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow mx-2 sm:rounded-lg sm:px-10">
@@ -71,11 +75,12 @@ export default function Signup(props) {
               </div>
               <div className="mb-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
+                  {t("email")}
                 </label>
                 <input
                   type="email"
                   name="email"
+                  inputMode="email"
                   id="email"
                   placeholder="jdoe@example.com"
                   disabled={!!props.email}
@@ -86,7 +91,7 @@ export default function Signup(props) {
               </div>
               <div className="mb-2">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
+                  {t("password")}
                 </label>
                 <input
                   type="password"
@@ -99,7 +104,7 @@ export default function Signup(props) {
               </div>
               <div>
                 <label htmlFor="passwordcheck" className="block text-sm font-medium text-gray-700">
-                  Confirm password
+                  {t("confirm_password")}
                 </label>
                 <input
                   type="password"
@@ -114,13 +119,13 @@ export default function Signup(props) {
             <div className="mt-3 sm:mt-4 flex">
               <input
                 type="submit"
-                value="Create Account"
+                value={t("create_account")}
                 className="btn btn-primary w-7/12 mr-2 inline-flex justify-center rounded-md border border-transparent cursor-pointer shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm"
               />
               <a
                 onClick={() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })}
                 className="w-5/12 inline-flex justify-center text-sm text-gray-500 font-medium  border px-4 py-2 rounded btn cursor-pointer">
-                Login instead
+                {t("login_instead")}
               </a>
             </div>
           </form>
@@ -128,7 +133,7 @@ export default function Signup(props) {
             <button
               onClick={async () => await signIn("google")}
               className="w-full mt-6 flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              Sign in with Google
+              {t("signin_with_google")}
             </button>
           )}
         </div>

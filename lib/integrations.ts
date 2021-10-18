@@ -12,8 +12,8 @@ export function getIntegrationName(name: string) {
       return "Stripe";
     case "apple_calendar":
       return "Apple Calendar";
-    default:
-      return "Unknown";
+    case "daily_video":
+      return "Daily";
   }
 }
 

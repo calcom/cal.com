@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
 import Loader from "@components/Loader";
@@ -36,6 +37,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   users,
   schedulingType,
 }) => {
+  const { t } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
 
@@ -53,15 +55,22 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:-mb-5">
       <div className="text-gray-600 font-light text-lg mb-4 text-left">
         <span className="w-1/2 dark:text-white text-gray-600">
-          <strong>{date.format("dddd")}</strong>
-          <span className="text-gray-500">{date.format(", DD MMMM")}</span>
+          <strong>{t(date.format("dddd").toLowerCase())}</strong>
+          <span className="text-gray-500">
+            {date.format(", DD ")}
+            {t(date.format("MMMM").toLowerCase())}
+          </span>
         </span>
       </div>
       <div className="md:max-h-[364px] overflow-y-auto">
         {!loading &&
           slots?.length > 0 &&
           slots.map((slot) => {
-            const bookingUrl = {
+            type BookingURL = {
+              pathname: string;
+              query: Record<string, string | number | string[] | undefined>;
+            };
+            const bookingUrl: BookingURL = {
               pathname: "book",
               query: {
                 ...router.query,
@@ -71,7 +80,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             };
 
             if (rescheduleUid) {
-              bookingUrl.query.rescheduleUid = rescheduleUid;
+              bookingUrl.query.rescheduleUid = rescheduleUid as string;
             }
 
             if (schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -81,7 +90,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             return (
               <div key={slot.time.format()}>
                 <Link href={bookingUrl}>
-                  <a className="block font-medium mb-2 bg-white dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-transparent rounded-sm hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black">
+                  <a
+                    className="block font-medium mb-2 bg-white dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border border-primary-500 dark:border-transparent rounded-sm hover:text-white hover:bg-primary-500 dark:hover:border-black py-4 dark:hover:bg-black"
+                    data-testid="time">
                     {slot.time.format(timeFormat)}
                   </a>
                 </Link>
@@ -90,7 +101,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
           })}
         {!loading && !error && !slots.length && (
           <div className="w-full h-full flex flex-col justify-center content-center items-center -mt-4">
-            <h1 className="my-6 text-xl text-black dark:text-white">All booked today.</h1>
+            <h1 className="my-6 text-xl text-black dark:text-white">{t("all_booked_today")}</h1>
           </div>
         )}
 
@@ -103,7 +114,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-yellow-700">Could not load the available time slots.</p>
+                <p className="text-sm text-yellow-700">{t("slots_load_fail")}</p>
               </div>
             </div>
           </div>
