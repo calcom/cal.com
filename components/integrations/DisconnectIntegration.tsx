@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
@@ -12,6 +13,10 @@ export default function DisconnectIntegration(props: {
   id: number;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
 }) {
+  const router = useRouter();
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
   const utils = trpc.useContext();
   const [modalOpen, setModalOpen] = useState(false);
   const mutation = useMutation(
@@ -29,7 +34,12 @@ export default function DisconnectIntegration(props: {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
+        // FIXME Find a better way to refresh data on onboarding (or migrate to tRPC)
+        if (router.pathname === "/getting-started") {
+          refreshData();
+        } else {
+          await utils.invalidateQueries(["viewer.integrations"]);
+        }
       },
       onSuccess() {
         setModalOpen(false);

@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
@@ -12,6 +13,10 @@ export default function ConnectIntegration(props: {
   render: (renderProps: ButtonBaseProps) => JSX.Element;
 }) {
   const { type } = props;
+  const router = useRouter();
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
   const [isLoading, setIsLoading] = useState(false);
   const mutation = useMutation(async () => {
     const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
@@ -29,7 +34,12 @@ export default function ConnectIntegration(props: {
     _setIsModalOpen(v);
     // refetch intergrations on modal toggles
 
-    utils.invalidateQueries(["viewer.integrations"]);
+    // FIXME Find a better way to refresh data on onboarding (or migrate to tRPC)
+    if (router.pathname === "/getting-started") {
+      refreshData();
+    } else {
+      utils.invalidateQueries(["viewer.integrations"]);
+    }
   };
 
   return (
