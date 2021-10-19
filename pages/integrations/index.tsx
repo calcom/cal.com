@@ -1,4 +1,5 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
+import { ClipboardIcon } from "@heroicons/react/solid";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
 import { useState } from "react";
@@ -280,40 +281,68 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
         </div>
       </div>
 
-      <ShellSubHeading className="mt-10" title={t("iframe_embed")} subtitle={t("embed_calcom")} />
-      <div className="py-6 lg:pb-8 lg:col-span-9">
-        <div className="mb-6">
-          <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal"></h2>
-          <p className="mt-1 text-sm text-gray-500"></p>
-        </div>
+      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} />
+      <div className="lg:pb-8 lg:col-span-9">
+        <List>
+          <ListItem className={classNames("flex-col")}>
+            <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+              <div className="flex-grow pl-2 truncate">
+                <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
+                <ListItemText component="p">Embed your calendar within your webpage</ListItemText>
+              </div>
+              <div>
+                <input
+                  id="iframe"
+                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-black"
+                  placeholder={t("loading")}
+                  defaultValue={iframeTemplate}
+                  readOnly
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(iframeTemplate);
+                    showToast("Copied to clipboard", "success");
+                  }}>
+                  <ClipboardIcon className="w-4 h-4 -mb-0.5 mr-2 text-gray-800" />
+                </button>
+              </div>
+            </div>
+          </ListItem>
+          <ListItem className={classNames("flex-col")}>
+            <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+              <div className="flex-grow pl-2 truncate">
+                <ListItemTitle component="h3">{t("responsive_fullscreen_iframe")}</ListItemTitle>
+                <ListItemText component="p">A fullscreen scheduling experience on your website</ListItemText>
+              </div>
+              <div>
+                <input
+                  id="fullscreen"
+                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-black"
+                  placeholder={t("loading")}
+                  defaultValue={htmlTemplate}
+                  readOnly
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(htmlTemplate);
+                    showToast("Copied to clipboard", "success");
+                  }}>
+                  <ClipboardIcon className="w-4 h-4 -mb-0.5 mr-2 text-gray-800" />
+                </button>
+              </div>
+            </div>
+          </ListItem>
+        </List>
         <div className="grid grid-cols-2 space-x-4">
           <div>
-            <label htmlFor="iframe" className="block text-sm font-medium text-gray-700">
-              {t("standard_iframe")}
-            </label>
-            <div className="mt-1">
-              <textarea
-                id="iframe"
-                className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                placeholder={t("loading")}
-                defaultValue={iframeTemplate}
-                readOnly
-              />
-            </div>
+            <label htmlFor="iframe" className="block text-sm font-medium text-gray-700"></label>
+            <div className="mt-1"></div>
           </div>
           <div>
-            <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700">
-              {t("responsive_fullscreen_iframe")}
-            </label>
-            <div className="mt-1">
-              <textarea
-                id="fullscreen"
-                className="block w-full h-32 border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                placeholder={t("loading")}
-                defaultValue={htmlTemplate}
-                readOnly
-              />
-            </div>
+            <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700"></label>
+            <div className="mt-1"></div>
           </div>
         </div>
 
