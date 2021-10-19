@@ -10,11 +10,17 @@ export const webhookRouter = createProtectedRouter().mutation("testTrigger", {
   async resolve({ input }) {
     const { url, type } = input;
 
+    const responseBodyMocks: Record<typeof type, unknown> = {
+      BOOKING_CREATED: {},
+      BOOKING_CANCELLED: {},
+      BOOKING_RESCHEDULED: {},
+    };
+
     console.log({ url, type });
 
     const res = await fetch(url, {
       method: "POST",
-      // [...]
+      body: JSON.stringify(responseBodyMocks[type]),
     });
     const text = await res.text();
     return {
