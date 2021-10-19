@@ -1,4 +1,6 @@
 import { BookingStatus, Prisma } from "@prisma/client";
+import _ from "lodash";
+import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
@@ -11,6 +13,7 @@ import getCalendarCredentials from "@server/integrations/getCalendarCredentials"
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
+import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 import { webhookRouter } from "./viewer/webhook";
