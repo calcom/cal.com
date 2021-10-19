@@ -9,7 +9,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { HeadSeo } from "@components/seo/head-seo";
 
 export default function ForgotPassword({ csrfToken }) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(false);
@@ -23,7 +23,7 @@ export default function ForgotPassword({ csrfToken }) {
     try {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
-        body: JSON.stringify({ email: email }),
+        body: JSON.stringify({ email: email, language: i18n.language }),
         headers: {
           "Content-Type": "application/json",
         },

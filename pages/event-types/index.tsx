@@ -2,7 +2,6 @@
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { Fragment, useRef } from "react";
@@ -11,7 +10,6 @@ import { useMutation } from "react-query";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { ONBOARDING_NEXT_REDIRECT, shouldShowOnboarding } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -116,7 +114,7 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types/" + eventType.id);
-      showToast(`${eventType.title} event type created successfully`, "success");
+      showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err: HttpError) => {
       const message = `${err.statusCode}: ${err.message}`;
@@ -327,7 +325,6 @@ const CreateNewEventDialog = ({ profiles, canAddEvents }: { profiles: Profile[];
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
@@ -493,7 +490,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       session,
-      localeProp: locale,
       canAddEvents,
       user: userObj,
       // don't display event teams without event types,
@@ -504,7 +500,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ...group.profile,
         ...group.metadata,
       })),
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 }
