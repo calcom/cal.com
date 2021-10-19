@@ -25,7 +25,7 @@ interface Props {
       title: string;
       children?: ReactNode;
     };
-    primary?: { externalId: string } | undefined;
+    primary?: { externalId: string } | undefined | null;
   }[];
 }
 
