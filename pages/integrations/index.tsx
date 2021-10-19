@@ -21,10 +21,11 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
 import CalendarsList from "@components/integrations/CalendarsList";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
+import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
-import Button, { ButtonBaseProps } from "@components/ui/Button";
+import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
@@ -364,62 +365,6 @@ function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnection
           })}
         </Badge>
       ) : null}
-    </>
-  );
-}
-
-function DisconnectIntegration(props: {
-  /**
-   * Integration credential id
-   */
-  id: number;
-  render: (renderProps: ButtonBaseProps) => JSX.Element;
-}) {
-  const utils = trpc.useContext();
-  const [modalOpen, setModalOpen] = useState(false);
-  const mutation = useMutation(
-    async () => {
-      const res = await fetch("/api/integrations", {
-        method: "DELETE",
-        body: JSON.stringify({ id: props.id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Something went wrong");
-      }
-    },
-    {
-      async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
-      },
-      onSuccess() {
-        setModalOpen(false);
-      },
-    }
-  );
-  return (
-    <>
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title="Disconnect Integration"
-          confirmBtnText="Yes, disconnect integration"
-          cancelBtnText="Cancel"
-          onConfirm={() => {
-            mutation.mutate();
-          }}>
-          Are you sure you want to disconnect this integration?
-        </ConfirmationDialogContent>
-      </Dialog>
-      {props.render({
-        onClick() {
-          setModalOpen(true);
-        },
-        disabled: modalOpen,
-        loading: mutation.isLoading,
-      })}
     </>
   );
 }
