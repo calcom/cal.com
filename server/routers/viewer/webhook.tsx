@@ -1,3 +1,4 @@
+import { WebhookTriggerEvents } from "@prisma/client";
 import { z } from "zod";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -5,22 +6,28 @@ import { createProtectedRouter } from "@server/createRouter";
 export const webhookRouter = createProtectedRouter().mutation("testTrigger", {
   input: z.object({
     url: z.string().url(),
-    type: z.enum(["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"]),
+    type: z.string(),
   }),
   async resolve({ input }) {
     const { url, type } = input;
 
-    const responseBodyMocks: Record<typeof type, unknown> = {
-      BOOKING_CREATED: {},
+    const responseBodyMocks: Record<WebhookTriggerEvents, unknown> = {
       BOOKING_CANCELLED: {},
+      BOOKING_CREATED: {},
       BOOKING_RESCHEDULED: {},
     };
+
+    const body = responseBodyMocks[type as WebhookTriggerEvents];
+    if (!body) {
+      throw new Error(`Unknown type '${type}'`);
+    }
 
     console.log({ url, type });
 
     const res = await fetch(url, {
       method: "POST",
-      body: JSON.stringify(responseBodyMocks[type]),
+      // [...]
+      body: JSON.stringify(body),
     });
     const text = await res.text();
     return {
