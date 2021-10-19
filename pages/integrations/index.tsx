@@ -1,7 +1,7 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 
@@ -24,17 +24,10 @@ import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
+import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import { Alert } from "@components/ui/Alert";
-import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-
-function pluralize(opts: { num: number; plural: string; singular: string }) {
-  if (opts.num === 0) {
-    return opts.singular;
-  }
-  return opts.singular;
-}
 
 type TIntegrations = inferQueryOutput<"viewer.integrations">;
 type TWebhook = TIntegrations["webhooks"][number];
@@ -347,25 +340,6 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
           )}
         </DialogContent>
       </Dialog>
-    </>
-  );
-}
-
-function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnections?: number }) {
-  const num = props.numConnections;
-  return (
-    <>
-      <span>{props.title}</span>
-      {num ? (
-        <Badge variant="success">
-          {num}{" "}
-          {pluralize({
-            num,
-            singular: "connection",
-            plural: "connections",
-          })}
-        </Badge>
-      ) : null}
     </>
   );
 }
