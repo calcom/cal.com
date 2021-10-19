@@ -40,6 +40,7 @@ import * as RadioArea from "@components/ui/form/radio-area";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
+type Profile = inferQueryOutput<"viewer.eventTypes">["profile"];
 
 interface CreateEventTypeProps {
   canAddEvents: boolean;
