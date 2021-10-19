@@ -134,6 +134,7 @@ function WebhookDialogForm(props: {
   });
   return (
     <Form
+      data-testid="WebhookDialogForm"
       form={form}
       onSubmit={(event) => {
         form
@@ -244,7 +245,7 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
               <ListItemText component="p">Automation</ListItemText>
             </div>
             <div>
-              <Button color="secondary" onClick={() => setNewWebhookModal(true)}>
+              <Button color="secondary" onClick={() => setNewWebhookModal(true)} data-testid="new_webhook">
                 {t("new_webhook")}
               </Button>
             </div>
