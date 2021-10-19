@@ -359,10 +359,6 @@ nav#nav--settings > a.active svg {
   @apply text-neutral-500;
 }
 
-table tbody tr:nth-child(odd) {
-  @apply bg-gray-50;
-}
-
 body {
   background-color: #f3f4f6;
 }
