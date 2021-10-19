@@ -19,6 +19,7 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
+import CalendarSwitch from "@components/integrations/CalendarSwitch";
 import CalendarsList from "@components/integrations/CalendarsList";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
@@ -412,75 +413,6 @@ function ConnectOrDisconnectIntegrationButton(props: {
         </Button>
       )}
     />
-  );
-}
-
-export function CalendarSwitch(props: {
-  type: string;
-  externalId: string;
-  title: string;
-  defaultSelected: boolean;
-}) {
-  const utils = trpc.useContext();
-
-  const mutation = useMutation<
-    unknown,
-    unknown,
-    {
-      isOn: boolean;
-    }
-  >(
-    async ({ isOn }) => {
-      const body = {
-        integration: props.type,
-        externalId: props.externalId,
-      };
-      if (isOn) {
-        const res = await fetch("/api/availability/calendar", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      } else {
-        const res = await fetch("/api/availability/calendar", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      }
-    },
-    {
-      async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
-      },
-      onError() {
-        showToast(`Something went wrong when toggling "${props.title}""`, "error");
-      },
-    }
-  );
-  return (
-    <div className="py-1">
-      <Switch
-        key={props.externalId}
-        name="enabled"
-        label={props.title}
-        defaultChecked={props.defaultSelected}
-        onCheckedChange={(isOn: boolean) => {
-          mutation.mutate({ isOn });
-        }}
-      />
-    </div>
   );
 }
 
