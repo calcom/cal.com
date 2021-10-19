@@ -1,6 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import dayjs, { Dayjs } from "dayjs";
-import dayjsBusinessDays from "dayjs-business-days";
+// Then, include dayjs-business-time
+import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useEffect, useState } from "react";
@@ -9,11 +10,12 @@ import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 
-dayjs.extend(dayjsBusinessDays);
+dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const DatePicker = ({
+// FIXME prop types
+function DatePicker({
   weekStart,
   onDatePicked,
   workingHours,
@@ -26,7 +28,7 @@ const DatePicker = ({
   periodDays,
   periodCountCalendarDays,
   minimumBookingNotice,
-}) => {
+}: any): JSX.Element {
   const { t } = useLocale();
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
 
@@ -47,11 +49,11 @@ const DatePicker = ({
 
   // Handle month changes
   const incrementMonth = () => {
-    setSelectedMonth(selectedMonth + 1);
+    setSelectedMonth((selectedMonth ?? 0) + 1);
   };
 
   const decrementMonth = () => {
-    setSelectedMonth(selectedMonth - 1);
+    setSelectedMonth((selectedMonth ?? 0) - 1);
   };
 
   const inviteeDate = (): Dayjs => (date || dayjs()).month(selectedMonth);
@@ -72,7 +74,7 @@ const DatePicker = ({
         case "rolling": {
           const periodRollingEndDay = periodCountCalendarDays
             ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
-            : dayjs().tz(organizerTimeZone).businessDaysAdd(periodDays, "days").endOf("day");
+            : dayjs().tz(organizerTimeZone).addBusinessTime(periodDays, "days").endOf("day");
           return (
             date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
@@ -145,10 +147,13 @@ const DatePicker = ({
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
-            className={
-              "group mr-2 p-1" + (selectedMonth <= dayjs().month() && "text-gray-400 dark:text-gray-600")
-            }
-            disabled={selectedMonth <= dayjs().month()}>
+            className={classNames(
+              "group mr-2 p-1",
+              typeof selectedMonth === "number" &&
+                selectedMonth <= dayjs().month() &&
+                "text-gray-400 dark:text-gray-600"
+            )}
+            disabled={typeof selectedMonth === "number" && selectedMonth <= dayjs().month()}>
             <ChevronLeftIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
           <button className="group p-1" onClick={incrementMonth}>
@@ -190,7 +195,9 @@ const DatePicker = ({
                     : !day.disabled
                     ? " bg-gray-100 dark:bg-gray-600"
                     : ""
-                )}>
+                )}
+                data-testid="day"
+                data-disabled={day.disabled}>
                 {day.date}
               </button>
             )}
@@ -199,6 +206,6 @@ const DatePicker = ({
       </div>
     </div>
   );
-};
+}
 
 export default DatePicker;

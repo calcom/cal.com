@@ -1,11 +1,12 @@
-import { SchedulingType, Prisma, Credential } from "@prisma/client";
+import { Credential, Prisma, SchedulingType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
-import dayjsBusinessDays from "dayjs-business-days";
+import dayjsBusinessTime from "dayjs-business-time";
 import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getErrorFromUnknown } from "pages/_error";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -29,7 +30,7 @@ export interface DailyReturnType {
   created_at: string;
 }
 
-dayjs.extend(dayjsBusinessDays);
+dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
 dayjs.extend(timezone);
@@ -98,7 +99,7 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number)
 
 function isOutOfBounds(
   time: dayjs.ConfigType,
-  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }
+  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
 ): boolean {
   const date = dayjs(time);
 
@@ -106,7 +107,7 @@ function isOutOfBounds(
     case "rolling": {
       const periodRollingEndDay = periodCountCalendarDays
         ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
-        : dayjs().tz(timeZone).businessDaysAdd(periodDays, "days").endOf("day");
+        : dayjs().tz(timeZone).addBusinessTime(periodDays, "days").endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
@@ -298,7 +299,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
         description: evt.description,
-        confirmed: !eventType.requiresConfirmation || !!rescheduleUid,
+        confirmed: !eventType?.requiresConfirmation || !!rescheduleUid,
         location: evt.location,
         eventType: {
           connect: {
@@ -323,9 +324,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
-  } catch (e) {
-    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", e.message);
-    if (e.code === "P2002") {
+  } catch (_err) {
+    const err = getErrorFromUnknown(_err);
+    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
+    if (err.code === "P2002") {
       res.status(409).json({ message: "booking.conflict" });
       return;
     }
@@ -361,7 +363,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
 
       const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter((time) => time);
-      calendarBusyTimes.push(...videoBusyTimes);
+      calendarBusyTimes.push(...(videoBusyTimes as any[])); // FIXME add types
       console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
       const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
