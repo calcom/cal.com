@@ -25,7 +25,12 @@ type AugmentedNextPageContext = Omit<NextPageContext, "err"> & {
 
 const log = logger.getChildLogger({ prefix: ["[error]"] });
 
-export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: number } {
+export function getErrorFromUnknown(cause: unknown): Error & {
+  // status code error
+  statusCode?: number;
+  // prisma error
+  code?: unknown;
+} {
   if (cause instanceof Error) {
     return cause;
   }

@@ -50,7 +50,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
+import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
 import Switch from "@components/ui/Switch";
