@@ -13,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
+import { webhookRouter } from "./viewer/webhook";
 
 const checkUsername =
   process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
@@ -383,4 +384,7 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   });
 
-export const viewerRouter = createRouter().merge(publicViewerRouter).merge(loggedInViewerRouter);
+export const viewerRouter = createRouter()
+  .merge(publicViewerRouter)
+  .merge(loggedInViewerRouter)
+  .merge("webhook.", webhookRouter);
