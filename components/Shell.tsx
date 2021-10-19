@@ -214,7 +214,7 @@ export default function Shell(props: {
                   ))}
                 </nav>
               </div>
-              <div className="p-4 pt-2 pr-2">
+              <div className="p-2 pt-2 pr-2 hover:bg-gray-100 rounded-sm m-2">
                 <UserDropdown />
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function Shell(props: {
         <div className="flex flex-col flex-1 w-0 overflow-hidden">
           <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]">
             {/* show top navigation for md and smaller (tablet and phones) */}
-            <nav className="flex items-center justify-between p-4 bg-white shadow md:hidden">
+            <nav className="flex items-center justify-between p-4 bg-white border-b border-gray-200 md:hidden">
               <Link href="/event-types">
                 <a>
                   <Logo />
@@ -311,7 +311,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             <>
               <span className="flex-grow text-sm">
                 <span className="block font-medium text-gray-900 truncate">{user.name}</span>
-                <span className="block font-normal truncate text-neutral-500">/{user.username}</span>
+                <span className="block font-normal truncate text-neutral-500">cal.com/{user.username}</span>
               </span>
               <SelectorIcon
                 className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500"
@@ -327,8 +327,8 @@ function UserDropdown({ small }: { small?: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
             href={`${process.env.NEXT_PUBLIC_APP_URL}/${user?.username || ""}`}
-            className="flex px-4 py-2 text-sm text-neutral-500">
-            {t("view_public_page")} <ExternalLinkIcon className="w-3 h-3 mt-1 ml-1 text-neutral-400" />
+            className="flex px-4 py-2 text-sm text-gray-700 items-center">
+            <ExternalLinkIcon className="w-5 h-5 mr-3 text-gray-500" /> {t("view_public_page")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator className="h-px bg-gray-200" />
@@ -337,11 +337,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             href="https://cal.com/slack"
             target="_blank"
             rel="noreferrer"
-            className="flex px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
+            className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
             <svg
               viewBox="0 0 2447.6 2452.5"
               className={classNames(
-                "text-neutral-400 group-hover:text-neutral-500",
+                "text-gray-500 group-hover:text-gray-700",
                 "mt-0.5 mr-3 flex-shrink-0 h-4 w-4"
               )}
               xmlns="http://www.w3.org/2000/svg">
@@ -368,12 +368,9 @@ function UserDropdown({ small }: { small?: boolean }) {
         <DropdownMenuItem>
           <a
             onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-            className="flex px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100 hover:text-gray-900">
+            className="flex px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-gray-900">
             <LogoutIcon
-              className={classNames(
-                "text-neutral-400 group-hover:text-neutral-500",
-                "mr-2 flex-shrink-0 h-5 w-5"
-              )}
+              className={classNames("text-gray-500 group-hover:text-gray-700", "mr-2 flex-shrink-0 h-5 w-5")}
               aria-hidden="true"
             />
             {t("sign_out")}
