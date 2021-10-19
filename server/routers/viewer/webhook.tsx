@@ -1,4 +1,5 @@
 import { WebhookTriggerEvents } from "@prisma/client";
+import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -23,16 +24,22 @@ export const webhookRouter = createProtectedRouter().mutation("testTrigger", {
     }
 
     console.log({ url, type });
-
-    const res = await fetch(url, {
-      method: "POST",
-      // [...]
-      body: JSON.stringify(body),
-    });
-    const text = await res.text();
-    return {
-      status: res.status,
-      text,
-    };
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        // [...]
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      return {
+        status: res.status,
+        text,
+      };
+    } catch (_err) {
+      const err = getErrorFromUnknown(_err);
+      return {
+        message: err.message,
+      };
+    }
   },
 });
