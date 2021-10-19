@@ -16,7 +16,11 @@ const RadioArea = (props: RadioAreaProps) => {
         props.className
       )}>
       <input
-        onChange={(e) => props.onChange(e.target.value)}
+        onChange={(e) => {
+          if (typeof props.onChange === "function") {
+            props.onChange(e.target.value);
+          }
+        }}
         checked={props.checked}
         className="float-right ml-3 text-neutral-900 focus:ring-neutral-500"
         name={props.name}

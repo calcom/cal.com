@@ -32,6 +32,9 @@ type Props = inferSSRProps<typeof getServerSideProps>;
 const getLocaleOptions = (displayLocale: string | string[]): OptionTypeBase[] => {
   return i18n.locales.map((locale) => ({
     value: locale,
+    // FIXME
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     label: new Intl.DisplayNames(displayLocale, { type: "language" }).of(locale),
   }));
 };
@@ -274,7 +277,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     nativeInputValueSetter?.call(avatarRef.current, newAvatar);
                     const ev2 = new Event("input", { bubbles: true });
                     avatarRef.current.dispatchEvent(ev2);
-                    updateProfileHandler(ev2);
+                    updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
                     setImageSrc(newAvatar);
                   }}
                   imageSrc={imageSrc}
