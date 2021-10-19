@@ -1,7 +1,7 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
-import { Fragment, ReactNode, useState } from "react";
+import { ReactNode, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 
@@ -19,9 +19,9 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
-import CalendarSwitch from "@components/integrations/CalendarSwitch";
 import CalendarsList from "@components/integrations/CalendarsList";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
+import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import { Alert } from "@components/ui/Alert";
@@ -479,55 +479,7 @@ export default function IntegrationsPage() {
 
               {data.connectedCalendars.length > 0 && (
                 <>
-                  <List>
-                    {data.connectedCalendars.map((item) => (
-                      <Fragment key={item.credentialId}>
-                        {item.calendars ? (
-                          <IntegrationListItem
-                            {...item.integration}
-                            description={item.primary.externalId}
-                            actions={
-                              <DisconnectIntegration
-                                id={item.credentialId}
-                                render={(btnProps) => (
-                                  <Button {...btnProps} color="warn">
-                                    Disconnect
-                                  </Button>
-                                )}
-                              />
-                            }>
-                            <ul className="p-4 space-y-2">
-                              {item.calendars.map((cal) => (
-                                <CalendarSwitch
-                                  key={cal.externalId}
-                                  externalId={cal.externalId}
-                                  title={cal.name}
-                                  type={item.integration.type}
-                                  defaultSelected={cal.isSelected}
-                                />
-                              ))}
-                            </ul>
-                          </IntegrationListItem>
-                        ) : (
-                          <Alert
-                            severity="warning"
-                            title="Something went wrong"
-                            message={item.error.message}
-                            actions={
-                              <DisconnectIntegration
-                                id={item.credentialId}
-                                render={(btnProps) => (
-                                  <Button {...btnProps} color="warn">
-                                    Disconnect
-                                  </Button>
-                                )}
-                              />
-                            }
-                          />
-                        )}
-                      </Fragment>
-                    ))}
-                  </List>
+                  <ConnectedCalendarsList connectedCalendars={data.connectedCalendars} />
                   <ShellSubHeading
                     className="mt-6"
                     title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
