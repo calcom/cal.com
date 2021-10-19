@@ -147,8 +147,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       step = 3;
     }
 
-    step = 1;
-
     setCurrentStep(step);
   };
 
