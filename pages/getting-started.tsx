@@ -20,11 +20,17 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Loader from "@components/Loader";
+import { ShellSubHeading } from "@components/Shell";
 import CalendarsList from "@components/integrations/CalendarsList";
+import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
+import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import Text from "@components/ui/Text";
+
+import getCalendarCredentials from "@server/lib/getCalendarCredentials";
+import getConnectedCalendars from "@server/lib/getConnectedCalendars";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -293,6 +299,15 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       description: t("connect_your_calendar_instructions"),
       Component: (
         <>
+          {props.connectedCalendars.length > 0 && (
+            <>
+              <ConnectedCalendarsList connectedCalendars={props.connectedCalendars} />
+              <ShellSubHeading
+                className="mt-6"
+                title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
+              />
+            </>
+          )}
           <CalendarsList calendars={props.integrations} />
         </>
       ),
@@ -490,6 +505,7 @@ export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
 
   let integrations = [];
+  let connectedCalendars = [];
   let credentials = [];
   let eventTypes = [];
   let schedules = [];
@@ -516,6 +532,12 @@ export async function getServerSideProps(context: NextPageContext) {
       avatar: true,
       timeZone: true,
       completedOnboarding: true,
+      selectedCalendars: {
+        select: {
+          externalId: true,
+          integration: true,
+        },
+      },
     },
   });
   if (!user) {
@@ -546,6 +568,11 @@ export async function getServerSideProps(context: NextPageContext) {
     .filter((item) => item.type.endsWith("_calendar"))
     .map((item) => omit(item, "key"));
 
+  // get user's credentials + their connected integrations
+  const calendarCredentials = getCalendarCredentials(credentials, user.id);
+  // get all the connected integrations' calendars (from third party)
+  connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+
   eventTypes = await prisma.eventType.findMany({
     where: {
       userId: user.id,
@@ -574,6 +601,7 @@ export async function getServerSideProps(context: NextPageContext) {
       session,
       user,
       integrations,
+      connectedCalendars,
       eventTypes,
       schedules,
     },
