@@ -1,9 +1,12 @@
+import { Disclosure } from "@headlessui/react";
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { getErrorFromUnknown } from "pages/_error";
+import { Fragment, ReactNode, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -113,6 +116,50 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   );
 }
 
+function WebhookTestDisclosure() {
+  const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
+  const { t } = useLocale();
+  const mutation = trpc.useMutation("viewer.webhook.testTrigger", {
+    onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  return (
+    <Disclosure>
+      {({ open }) => (
+        <>
+          <Disclosure.Button className="flex w-full">
+            {open ? "Close" : "Open"} Webhook test
+          </Disclosure.Button>
+          <Disclosure.Panel className="space-y-6">
+            We are testing <code>{subscriberUrl}</code>
+            <InputGroupBox>
+              {ALL_TRIGGERS.map((type) => (
+                <div key={type}>
+                  <Button
+                    type="button"
+                    color="minimal"
+                    disabled={mutation.isLoading}
+                    loading={mutation.isLoading && mutation.variables?.type === type}
+                    onClick={() => mutation.mutate({ url: subscriberUrl, type })}>
+                    Trigger {t(type.toLowerCase())}
+                  </Button>
+                </div>
+              ))}
+
+              <hr />
+              <h3>Webhook responses</h3>
+              {!mutation.data && <em>No data yet</em>}
+              {mutation.status === "success" && <pre>{JSON.stringify(mutation.data, null, 4)}</pre>}
+            </InputGroupBox>
+          </Disclosure.Panel>
+        </>
+      )}
+    </Disclosure>
+  );
+}
+
 function WebhookDialogForm(props: {
   //
   defaultValues?: TWebhook;
@@ -133,6 +180,7 @@ function WebhookDialogForm(props: {
   const form = useForm({
     defaultValues,
   });
+
   return (
     <Form
       data-testid="WebhookDialogForm"
@@ -209,6 +257,25 @@ function WebhookDialogForm(props: {
           ))}
         </InputGroupBox>
       </fieldset>
+      <fieldset className="space-y-2">
+        <FieldsetLegend>{t("webhook_status")}</FieldsetLegend>
+        <InputGroupBox>
+          <Controller
+            control={form.control}
+            name="active"
+            render={({ field }) => (
+              <Switch
+                label={t("webhook_enabled")}
+                defaultChecked={field.value}
+                onCheckedChange={(isChecked) => {
+                  form.setValue("active", isChecked);
+                }}
+              />
+            )}
+          />
+        </InputGroupBox>
+      </fieldset>
+      <WebhookTestDisclosure />
       <DialogFooter>
         <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
           {t("cancel")}
