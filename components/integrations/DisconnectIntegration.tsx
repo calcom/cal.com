@@ -1,8 +1,5 @@
-import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
-
-import { trpc } from "@lib/trpc";
 
 import { Dialog } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -12,12 +9,8 @@ export default function DisconnectIntegration(props: {
   /** Integration credential id */
   id: number;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
+  onOpenChange: (isOpen: boolean) => void | Promise<void>;
 }) {
-  const router = useRouter();
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
-  const utils = trpc.useContext();
   const [modalOpen, setModalOpen] = useState(false);
   const mutation = useMutation(
     async () => {
@@ -34,12 +27,7 @@ export default function DisconnectIntegration(props: {
     },
     {
       async onSettled() {
-        // FIXME Find a better way to refresh data on onboarding (or migrate to tRPC)
-        if (router.pathname === "/getting-started") {
-          refreshData();
-        } else {
-          await utils.invalidateQueries(["viewer.integrations"]);
-        }
+        props.onOpenChange(modalOpen);
       },
       onSuccess() {
         setModalOpen(false);

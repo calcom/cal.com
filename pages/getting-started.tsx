@@ -41,6 +41,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const { t } = useLocale();
   const router = useRouter();
 
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
+
   const DEFAULT_EVENT_TYPES = [
     {
       title: t("15min_meeting"),
@@ -299,14 +303,24 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         <>
           {props.connectedCalendars.length > 0 && (
             <>
-              <ConnectedCalendarsList connectedCalendars={props.connectedCalendars} />
+              <ConnectedCalendarsList
+                connectedCalendars={props.connectedCalendars}
+                onChanged={() => {
+                  refreshData();
+                }}
+              />
               <ShellSubHeading
                 className="mt-6"
                 title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
               />
             </>
           )}
-          <CalendarsList calendars={props.integrations} />
+          <CalendarsList
+            calendars={props.integrations}
+            onChanged={() => {
+              refreshData();
+            }}
+          />
         </>
       ),
       hideConfirm: true,

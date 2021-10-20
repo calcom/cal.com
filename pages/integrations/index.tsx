@@ -119,8 +119,8 @@ function WebhookDialogForm(props: {
   handleClose: () => void;
 }) {
   const { t } = useLocale();
-
   const utils = trpc.useContext();
+
   const {
     defaultValues = {
       id: "",
@@ -381,6 +381,11 @@ function ConnectOrDisconnectIntegrationButton(props: {
   installed: boolean;
 }) {
   const [credentialId] = props.credentialIds;
+  const utils = trpc.useContext();
+  const handleOpenChange = () => {
+    utils.invalidateQueries(["viewer.integrations"]);
+  };
+
   if (credentialId) {
     return (
       <DisconnectIntegration
@@ -390,6 +395,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
             Disconnect
           </Button>
         )}
+        onOpenChange={handleOpenChange}
       />
     );
   }
@@ -416,12 +422,17 @@ function ConnectOrDisconnectIntegrationButton(props: {
           Connect
         </Button>
       )}
+      onOpenChange={handleOpenChange}
     />
   );
 }
 
 export default function IntegrationsPage() {
   const query = trpc.useQuery(["viewer.integrations"]);
+  const utils = trpc.useContext();
+  const handleOpenChange = () => {
+    utils.invalidateQueries(["viewer.integrations"]);
+  };
 
   return (
     <Shell heading="Integrations" subtitle="Connect your favourite apps.">
@@ -483,14 +494,17 @@ export default function IntegrationsPage() {
 
               {data.connectedCalendars.length > 0 && (
                 <>
-                  <ConnectedCalendarsList connectedCalendars={data.connectedCalendars} />
+                  <ConnectedCalendarsList
+                    connectedCalendars={data.connectedCalendars}
+                    onOpenChange={handleOpenChange}
+                  />
                   <ShellSubHeading
                     className="mt-6"
                     title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
                   />
                 </>
               )}
-              <CalendarsList calendars={data.calendar.items} />
+              <CalendarsList calendars={data.calendar.items} onChanged={handleOpenChange} />
               <WebhookEmbed webhooks={data.webhooks} />
             </>
           );

@@ -8,17 +8,26 @@ import CalendarSwitch from "./CalendarSwitch";
 import DisconnectIntegration from "./DisconnectIntegration";
 import IntegrationListItem from "./IntegrationListItem";
 
-interface Props {
-  connectedCalendars: {
-    credentialId: number;
-    calendars?: {
-      externalId: string;
-      name: string;
-      isSelected: boolean;
-    }[];
-    error?: {
-      message: string;
+type CalIntersection =
+  | {
+      calendars: {
+        externalId: string;
+        name: string;
+        isSelected: boolean;
+      }[];
+      error?: never;
+    }
+  | {
+      calendars?: never;
+      error: {
+        message: string;
+      };
     };
+
+type Props = {
+  onChanged: (isOpen: boolean) => void | Promise<void>;
+  connectedCalendars: (CalIntersection & {
+    credentialId: number;
     integration: {
       type: string;
       imageSrc: string;
@@ -26,11 +35,11 @@ interface Props {
       children?: ReactNode;
     };
     primary?: { externalId: string } | undefined | null;
-  }[];
-}
+  })[];
+};
 
 const ConnectedCalendarsList = (props: Props): JSX.Element => {
-  const { connectedCalendars } = props;
+  const { connectedCalendars, onChanged } = props;
   return (
     <List>
       {connectedCalendars.map((item) => (
@@ -47,6 +56,7 @@ const ConnectedCalendarsList = (props: Props): JSX.Element => {
                       Disconnect
                     </Button>
                   )}
+                  onOpenChange={onChanged}
                 />
               }>
               <ul className="p-4 space-y-2">
@@ -74,6 +84,7 @@ const ConnectedCalendarsList = (props: Props): JSX.Element => {
                       Disconnect
                     </Button>
                   )}
+                  onOpenChange={onChanged}
                 />
               }
             />

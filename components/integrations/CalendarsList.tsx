@@ -14,10 +14,11 @@ interface Props {
     title: string;
     type: string;
   }[];
+  onChanged: () => void | Promise<void>;
 }
 
 const CalendarsList = (props: Props): JSX.Element => {
-  const { calendars } = props;
+  const { calendars, onChanged } = props;
   return (
     <List>
       {calendars.map((item) => (
@@ -32,6 +33,7 @@ const CalendarsList = (props: Props): JSX.Element => {
                   Connect
                 </Button>
               )}
+              onOpenChange={onChanged}
             />
           }
         />

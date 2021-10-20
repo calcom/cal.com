@@ -1,22 +1,17 @@
-import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
 import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
-import { trpc } from "@lib/trpc";
 
 import { ButtonBaseProps } from "@components/ui/Button";
 
 export default function ConnectIntegration(props: {
   type: string;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
+  onOpenChange: (isOpen: boolean) => void | Promise<void>;
 }) {
   const { type } = props;
-  const router = useRouter();
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
   const [isLoading, setIsLoading] = useState(false);
   const mutation = useMutation(async () => {
     const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
@@ -28,18 +23,10 @@ export default function ConnectIntegration(props: {
     setIsLoading(true);
   });
   const [isModalOpen, _setIsModalOpen] = useState(false);
-  const utils = trpc.useContext();
 
-  const setIsModalOpen: typeof _setIsModalOpen = (v) => {
+  const setIsModalOpen = (v: boolean) => {
     _setIsModalOpen(v);
-    // refetch intergrations on modal toggles
-
-    // FIXME Find a better way to refresh data on onboarding (or migrate to tRPC)
-    if (router.pathname === "/getting-started") {
-      refreshData();
-    } else {
-      utils.invalidateQueries(["viewer.integrations"]);
-    }
+    props.onOpenChange(v);
   };
 
   return (

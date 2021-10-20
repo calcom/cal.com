@@ -16,8 +16,7 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
     props.onSelect(activeDays.map((v, idx) => (v ? idx : -1)).filter((v) => v !== -1));
   }, [activeDays]);
 
-  const toggleDay = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, idx: number) => {
-    e.preventDefault();
+  const toggleDay = (idx: number) => {
     activeDays[idx] = !activeDays[idx];
     setActiveDays(([] as boolean[]).concat(activeDays));
   };
@@ -29,7 +28,10 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
           activeDays[idx] ? (
             <button
               key={idx}
-              onClick={(e) => toggleDay(e, idx)}
+              onClick={(e) => {
+                e.preventDefault();
+                toggleDay(idx);
+              }}
               className={`
               w-10 h-10
                       bg-black text-white focus:outline-none px-3 py-1 rounded 
@@ -43,7 +45,10 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
           ) : (
             <button
               key={idx}
-              onClick={(e) => toggleDay(e, idx)}
+              onClick={(e) => {
+                e.preventDefault();
+                toggleDay(idx);
+              }}
               style={{ marginTop: "1px", marginBottom: "1px" }}
               className={`w-10 h-10 bg-gray-50 focus:outline-none px-3 py-1 rounded-none ${
                 idx === 0 ? "rounded-l" : "border-l-0"
