@@ -4,7 +4,8 @@ import { FormProvider, UseFormReturn } from "react-hook-form";
 
 import classNames from "@lib/classNames";
 
-export const Input = forwardRef<HTMLInputElement, JSX.IntrinsicElements["input"]>(function Input(props, ref) {
+type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
   return (
     <input
       {...props}
@@ -61,3 +62,21 @@ export const Form = forwardRef<HTMLFormElement, { form: UseFormReturn<any> } & J
     );
   }
 );
+
+export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
+  return (
+    <legend {...props} className={classNames("text-sm font-medium text-gray-700", props.className)}>
+      {props.children}
+    </legend>
+  );
+}
+
+export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
+  return (
+    <div
+      {...props}
+      className={classNames("p-2 bg-white border border-gray-300 rounded-sm space-y-2", props.className)}>
+      {props.children}
+    </div>
+  );
+}

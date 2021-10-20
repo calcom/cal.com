@@ -4,10 +4,12 @@ import Link from "next/link";
 import React from "react";
 
 import { getSession } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
 export default function ForgotPassword({ csrfToken }) {
+  const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(false);
@@ -36,7 +38,7 @@ export default function ForgotPassword({ csrfToken }) {
 
       return json;
     } catch (reason) {
-      setError({ message: "An unexpected error occurred. Try again." });
+      setError({ message: t("unexpected_error_try_again") });
     } finally {
       setLoading(false);
     }
@@ -65,8 +67,8 @@ export default function ForgotPassword({ csrfToken }) {
   const Success = () => {
     return (
       <div className="space-y-6">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Done</h2>
-        <p>Check your email. We sent you a link to reset your password.</p>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">{t("done")}</h2>
+        <p>{t("check_email_reset_password")}</p>
         {error && <p className="text-red-600">{error.message}</p>}
       </div>
     );
@@ -74,7 +76,7 @@ export default function ForgotPassword({ csrfToken }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <HeadSeo title="Forgot Password" description="Forgot Password" />
+      <HeadSeo title={t("forgot_password")} description={t("forgot_password")} />
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 mx-2 shadow rounded-lg sm:px-10 space-y-6">
           {success && <Success />}
@@ -82,19 +84,16 @@ export default function ForgotPassword({ csrfToken }) {
             <>
               <div className="space-y-6">
                 <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
-                  Forgot Password
+                  {t("forgot_password")}
                 </h2>
-                <p>
-                  Enter the email address associated with your account and we will send you a link to reset
-                  your password.
-                </p>
+                <p>{t("reset_instructions")}</p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
               <form className="space-y-6" onSubmit={handleSubmit} action="#">
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email address
+                    {t("email_address")}
                   </label>
                   <div className="mt-1">
                     <input
@@ -137,7 +136,7 @@ export default function ForgotPassword({ csrfToken }) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
-                    Request Password Reset
+                    {t("request_password_reset")}
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -145,7 +144,7 @@ export default function ForgotPassword({ csrfToken }) {
                     <button
                       type="button"
                       className="w-full flex justify-center py-2 px-4 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                      Login
+                      {t("login")}
                     </button>
                   </Link>
                 </div>

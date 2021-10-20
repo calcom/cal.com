@@ -1,16 +1,20 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import { HeadSeo } from "@components/seo/head-seo";
 
 export default function Logout() {
+  const { t } = useLocale();
+
   return (
     <div
       className="fixed z-50 inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <HeadSeo title="Logged out" description="Logged out" />
+      <HeadSeo title={t("logged_out")} description={t("logged_out")} />
       <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
@@ -22,17 +26,17 @@ export default function Logout() {
             </div>
             <div className="mt-3 text-center sm:mt-5">
               <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                You&apos;ve been logged out
+                {t("youve_been_logged_out")}
               </h3>
               <div className="mt-2">
-                <p className="text-sm text-gray-500">We hope to see you again soon!</p>
+                <p className="text-sm text-gray-500">{t("hope_to_see_you_soon")}</p>
               </div>
             </div>
           </div>
           <div className="mt-5 sm:mt-6">
             <Link href="/auth/login">
               <a className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm">
-                Go back to the login page
+                {t("go_back_login")}
               </a>
             </Link>
           </div>
