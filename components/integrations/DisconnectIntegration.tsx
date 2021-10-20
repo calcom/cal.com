@@ -27,7 +27,7 @@ export default function DisconnectIntegration(props: {
     },
     {
       async onSettled() {
-        props.onOpenChange(modalOpen);
+        await props.onOpenChange(modalOpen);
       },
       onSuccess() {
         setModalOpen(false);
