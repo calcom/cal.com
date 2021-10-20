@@ -7,6 +7,7 @@ import NextError, { ErrorProps } from "next/error";
 import React from "react";
 
 import { HttpError } from "@lib/core/http/error";
+import { getErrorFromUnknown } from "@lib/errors";
 import logger from "@lib/logger";
 
 import { ErrorPage } from "@components/error/error-page";
@@ -24,23 +25,6 @@ type AugmentedNextPageContext = Omit<NextPageContext, "err"> & {
 };
 
 const log = logger.getChildLogger({ prefix: ["[error]"] });
-
-export function getErrorFromUnknown(cause: unknown): Error & {
-  // status code error
-  statusCode?: number;
-  // prisma error
-  code?: unknown;
-} {
-  if (cause instanceof Error) {
-    return cause;
-  }
-  if (typeof cause === "string") {
-    // @ts-expect-error https://github.com/tc39/proposal-error-cause
-    return new Error(cause, { cause });
-  }
-
-  return new Error(`Unhandled error of type '${typeof cause}''`);
-}
 
 const CustomError: NextPage<CustomErrorProps> = (props) => {
   const { statusCode, err, message, hasGetInitialPropsRun } = props;

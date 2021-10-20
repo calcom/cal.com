@@ -2,17 +2,15 @@ import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { WebhookTriggerEvents } from "@prisma/client";
 import Image from "next/image";
-import { getErrorFromUnknown } from "pages/_error";
-import { Fragment, ReactNode, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import * as fetcher from "@lib/core/http/fetch-wrapper";
+import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
-import { AddAppleIntegrationModal } from "@lib/integrations/Apple/components/AddAppleIntegration";
-import { AddCalDavIntegrationModal } from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
@@ -22,17 +20,15 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
+import CalendarsList from "@components/integrations/CalendarsList";
+import ConnectIntegration from "@components/integrations/ConnectIntegrations";
+import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
+import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
+import IntegrationListItem from "@components/integrations/IntegrationListItem";
+import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import { Alert } from "@components/ui/Alert";
-import Badge from "@components/ui/Badge";
-import Button, { ButtonBaseProps } from "@components/ui/Button";
+import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-
-function pluralize(opts: { num: number; plural: string; singular: string }) {
-  if (opts.num === 0) {
-    return opts.singular;
-  }
-  return opts.singular;
-}
 
 type TIntegrations = inferQueryOutput<"viewer.integrations">;
 type TWebhook = TIntegrations["webhooks"][number];
@@ -54,33 +50,33 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
 
   return (
     <ListItem className="flex w-full p-4">
-      <div className="flex justify-between w-full my-4">
-        <div className="flex pr-2 border-r border-gray-100">
-          <span className="flex flex-col space-y-2 text-xs">
-            {props.webhook.eventTriggers.map((eventTrigger, ind) => (
-              <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
-                {t(`${eventTrigger.toLowerCase()}`)}
-              </span>
-            ))}
-          </span>
-        </div>
-        <div className="flex w-full">
-          <div className="self-center inline-block ml-3 space-y-1">
-            <span className="flex text-sm text-neutral-700">{props.webhook.subscriberUrl}</span>
+      <div className="flex justify-between w-full">
+        <div className="flex flex-col">
+          <div className="inline-block space-y-1">
+            <span
+              className={classNames(
+                "flex text-sm ",
+                props.webhook.active ? "text-neutral-700" : "text-neutral-200"
+              )}>
+              {props.webhook.subscriberUrl}
+            </span>
+          </div>
+          <div className="flex mt-2">
+            <span className="flex space-x-2 text-xs">
+              {props.webhook.eventTriggers.map((eventTrigger, ind) => (
+                <span
+                  key={ind}
+                  className={classNames(
+                    "px-1 text-xs rounded-sm w-max ",
+                    props.webhook.active ? "text-blue-700 bg-blue-100" : "text-blue-200 bg-blue-50"
+                  )}>
+                  {t(`${eventTrigger.toLowerCase()}`)}
+                </span>
+              ))}
+            </span>
           </div>
         </div>
         <div className="flex">
-          {!props.webhook.active && (
-            <span className="self-center h-6 px-3 py-1 text-xs text-red-700 capitalize rounded-md bg-red-50">
-              {t("disabled")}
-            </span>
-          )}
-          {!!props.webhook.active && (
-            <span className="self-center h-6 px-3 py-1 text-xs text-green-700 capitalize rounded-md bg-green-50">
-              {t("enabled")}
-            </span>
-          )}
-
           <Tooltip content={t("edit_webhook")}>
             <Button
               onClick={() => props.onEditWebhook()}
@@ -123,8 +119,8 @@ function WebhookDialogForm(props: {
   handleClose: () => void;
 }) {
   const { t } = useLocale();
-
   const utils = trpc.useContext();
+
   const {
     defaultValues = {
       id: "",
@@ -168,11 +164,28 @@ function WebhookDialogForm(props: {
       }}
       className="space-y-4">
       <input type="hidden" {...form.register("id")} />
+      <fieldset className="space-y-2">
+        <InputGroupBox className="border-0 bg-gray-50">
+          <Controller
+            control={form.control}
+            name="active"
+            render={({ field }) => (
+              <Switch
+                label={field.value ? t("webhook_enabled") : t("webhook_disabled")}
+                defaultChecked={field.value}
+                onCheckedChange={(isChecked) => {
+                  form.setValue("active", isChecked);
+                }}
+              />
+            )}
+          />
+        </InputGroupBox>
+      </fieldset>
       <TextField label={t("subscriber_url")} {...form.register("subscriberUrl")} required type="url" />
 
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
-        <InputGroupBox>
+        <InputGroupBox className="border-0 bg-gray-50">
           {ALL_TRIGGERS.map((key) => (
             <Controller
               key={key}
@@ -194,24 +207,6 @@ function WebhookDialogForm(props: {
               )}
             />
           ))}
-        </InputGroupBox>
-      </fieldset>
-      <fieldset className="space-y-2">
-        <FieldsetLegend>{t("webhook_status")}</FieldsetLegend>
-        <InputGroupBox>
-          <Controller
-            control={form.control}
-            name="active"
-            render={({ field }) => (
-              <Switch
-                label={t("webhook_enabled")}
-                defaultChecked={field.value}
-                onCheckedChange={(isChecked) => {
-                  form.setValue("active", isChecked);
-                }}
-              />
-            )}
-          />
         </InputGroupBox>
       </fieldset>
       <DialogFooter>
@@ -378,129 +373,6 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
   );
 }
 
-function SubHeadingTitleWithConnections(props: { title: ReactNode; numConnections?: number }) {
-  const num = props.numConnections;
-  return (
-    <>
-      <span>{props.title}</span>
-      {num ? (
-        <Badge variant="success">
-          {num}{" "}
-          {pluralize({
-            num,
-            singular: "connection",
-            plural: "connections",
-          })}
-        </Badge>
-      ) : null}
-    </>
-  );
-}
-
-function ConnectIntegration(props: { type: string; render: (renderProps: ButtonBaseProps) => JSX.Element }) {
-  const { type } = props;
-  const [isLoading, setIsLoading] = useState(false);
-  const mutation = useMutation(async () => {
-    const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
-    if (!res.ok) {
-      throw new Error("Something went wrong");
-    }
-    const json = await res.json();
-    window.location.href = json.url;
-    setIsLoading(true);
-  });
-  const [isModalOpen, _setIsModalOpen] = useState(false);
-  const utils = trpc.useContext();
-
-  const setIsModalOpen: typeof _setIsModalOpen = (v) => {
-    _setIsModalOpen(v);
-    // refetch intergrations on modal toggles
-
-    utils.invalidateQueries(["viewer.integrations"]);
-  };
-
-  return (
-    <>
-      {props.render({
-        onClick() {
-          if (["caldav_calendar", "apple_calendar"].includes(type)) {
-            // special handlers
-            setIsModalOpen(true);
-            return;
-          }
-
-          mutation.mutate();
-        },
-        loading: mutation.isLoading || isLoading,
-        disabled: isModalOpen,
-      })}
-      {type === "caldav_calendar" && (
-        <AddCalDavIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      )}
-
-      {type === "apple_calendar" && (
-        <AddAppleIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      )}
-    </>
-  );
-}
-
-function DisconnectIntegration(props: {
-  /**
-   * Integration credential id
-   */
-  id: number;
-  render: (renderProps: ButtonBaseProps) => JSX.Element;
-}) {
-  const utils = trpc.useContext();
-  const [modalOpen, setModalOpen] = useState(false);
-  const mutation = useMutation(
-    async () => {
-      const res = await fetch("/api/integrations", {
-        method: "DELETE",
-        body: JSON.stringify({ id: props.id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Something went wrong");
-      }
-    },
-    {
-      async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
-      },
-      onSuccess() {
-        setModalOpen(false);
-      },
-    }
-  );
-  return (
-    <>
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title="Disconnect Integration"
-          confirmBtnText="Yes, disconnect integration"
-          cancelBtnText="Cancel"
-          onConfirm={() => {
-            mutation.mutate();
-          }}>
-          Are you sure you want to disconnect this integration?
-        </ConfirmationDialogContent>
-      </Dialog>
-      {props.render({
-        onClick() {
-          setModalOpen(true);
-        },
-        disabled: modalOpen,
-        loading: mutation.isLoading,
-      })}
-    </>
-  );
-}
-
 function ConnectOrDisconnectIntegrationButton(props: {
   //
   credentialIds: number[];
@@ -508,6 +380,11 @@ function ConnectOrDisconnectIntegrationButton(props: {
   installed: boolean;
 }) {
   const [credentialId] = props.credentialIds;
+  const utils = trpc.useContext();
+  const handleOpenChange = () => {
+    utils.invalidateQueries(["viewer.integrations"]);
+  };
+
   if (credentialId) {
     return (
       <DisconnectIntegration
@@ -517,6 +394,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
             Disconnect
           </Button>
         )}
+        onOpenChange={handleOpenChange}
       />
     );
   }
@@ -543,103 +421,17 @@ function ConnectOrDisconnectIntegrationButton(props: {
           Connect
         </Button>
       )}
+      onOpenChange={handleOpenChange}
     />
-  );
-}
-
-function IntegrationListItem(props: {
-  imageSrc: string;
-  title: string;
-  description: string;
-  actions?: ReactNode;
-  children?: ReactNode;
-}) {
-  return (
-    <ListItem expanded={!!props.children} className={classNames("flex-col")}>
-      <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-        <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
-        <div className="flex-grow pl-2 truncate">
-          <ListItemTitle component="h3">{props.title}</ListItemTitle>
-          <ListItemText component="p">{props.description}</ListItemText>
-        </div>
-        <div>{props.actions}</div>
-      </div>
-      {props.children && <div className="w-full border-t border-gray-200">{props.children}</div>}
-    </ListItem>
-  );
-}
-
-export function CalendarSwitch(props: {
-  type: string;
-  externalId: string;
-  title: string;
-  defaultSelected: boolean;
-}) {
-  const utils = trpc.useContext();
-
-  const mutation = useMutation<
-    unknown,
-    unknown,
-    {
-      isOn: boolean;
-    }
-  >(
-    async ({ isOn }) => {
-      const body = {
-        integration: props.type,
-        externalId: props.externalId,
-      };
-      if (isOn) {
-        const res = await fetch("/api/availability/calendar", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      } else {
-        const res = await fetch("/api/availability/calendar", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-      }
-    },
-    {
-      async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
-      },
-      onError() {
-        showToast(`Something went wrong when toggling "${props.title}""`, "error");
-      },
-    }
-  );
-  return (
-    <div className="py-1">
-      <Switch
-        key={props.externalId}
-        name="enabled"
-        label={props.title}
-        defaultChecked={props.defaultSelected}
-        onCheckedChange={(isOn: boolean) => {
-          mutation.mutate({ isOn });
-        }}
-      />
-    </div>
   );
 }
 
 export default function IntegrationsPage() {
   const query = trpc.useQuery(["viewer.integrations"]);
+  const utils = trpc.useContext();
+  const handleOpenChange = () => {
+    utils.invalidateQueries(["viewer.integrations"]);
+  };
 
   return (
     <Shell heading="Integrations" subtitle="Connect your favourite apps.">
@@ -701,79 +493,17 @@ export default function IntegrationsPage() {
 
               {data.connectedCalendars.length > 0 && (
                 <>
-                  <List>
-                    {data.connectedCalendars.map((item) => (
-                      <Fragment key={item.credentialId}>
-                        {item.calendars ? (
-                          <IntegrationListItem
-                            {...item.integration}
-                            description={item.primary.externalId}
-                            actions={
-                              <DisconnectIntegration
-                                id={item.credentialId}
-                                render={(btnProps) => (
-                                  <Button {...btnProps} color="warn">
-                                    Disconnect
-                                  </Button>
-                                )}
-                              />
-                            }>
-                            <ul className="p-4 space-y-2">
-                              {item.calendars.map((cal) => (
-                                <CalendarSwitch
-                                  key={cal.externalId}
-                                  externalId={cal.externalId}
-                                  title={cal.name}
-                                  type={item.integration.type}
-                                  defaultSelected={cal.isSelected}
-                                />
-                              ))}
-                            </ul>
-                          </IntegrationListItem>
-                        ) : (
-                          <Alert
-                            severity="warning"
-                            title="Something went wrong"
-                            message={item.error.message}
-                            actions={
-                              <DisconnectIntegration
-                                id={item.credentialId}
-                                render={(btnProps) => (
-                                  <Button {...btnProps} color="warn">
-                                    Disconnect
-                                  </Button>
-                                )}
-                              />
-                            }
-                          />
-                        )}
-                      </Fragment>
-                    ))}
-                  </List>
+                  <ConnectedCalendarsList
+                    connectedCalendars={data.connectedCalendars}
+                    onChanged={handleOpenChange}
+                  />
                   <ShellSubHeading
                     className="mt-6"
                     title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
                   />
                 </>
               )}
-              <List>
-                {data.calendar.items.map((item) => (
-                  <IntegrationListItem
-                    key={item.title}
-                    {...item}
-                    actions={
-                      <ConnectIntegration
-                        type={item.type}
-                        render={(btnProps) => (
-                          <Button color="secondary" {...btnProps}>
-                            Connect
-                          </Button>
-                        )}
-                      />
-                    }
-                  />
-                ))}
-              </List>
+              <CalendarsList calendars={data.calendar.items} onChanged={handleOpenChange} />
               <WebhookEmbed webhooks={data.webhooks} />
             </>
           );

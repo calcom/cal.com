@@ -9,8 +9,10 @@ import { Maybe } from "@trpc/server";
 import { i18n } from "../../../next-i18next.config";
 
 export function getLocaleFromHeaders(req: IncomingMessage): string {
-  const preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]) as Maybe<string>;
-
+  let preferredLocale: string | null | undefined;
+  if (req.headers["accept-language"]) {
+    preferredLocale = parser.pick(i18n.locales, req.headers["accept-language"]) as Maybe<string>;
+  }
   return preferredLocale ?? i18n.defaultLocale;
 }
 
