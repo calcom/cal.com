@@ -29,8 +29,8 @@ import Button from "@components/ui/Button";
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import Text from "@components/ui/Text";
 
-import getCalendarCredentials from "@server/lib/getCalendarCredentials";
-import getConnectedCalendars from "@server/lib/getConnectedCalendars";
+import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
+import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 

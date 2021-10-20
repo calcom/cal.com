@@ -7,8 +7,8 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
-import getCalendarCredentials from "@server/lib/getCalendarCredentials";
-import getConnectedCalendars from "@server/lib/getConnectedCalendars";
+import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
+import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
