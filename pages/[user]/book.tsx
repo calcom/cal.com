@@ -2,14 +2,14 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
+
+import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -21,7 +21,7 @@ export default function Book(props: BookPageProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
+  const ssr = await ssrInit(context);
 
   const user = await prisma.user.findUnique({
     where: {
@@ -103,7 +103,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      localeProp: locale,
       profile: {
         slug: user.username,
         name: user.name,
@@ -112,7 +111,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       eventType: eventTypeObject,
       booking,
-      ...(await serverSideTranslations(locale, ["common"])),
+      trpcState: ssr.dehydrate(),
     },
   };
 }

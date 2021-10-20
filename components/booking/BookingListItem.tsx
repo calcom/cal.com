@@ -4,13 +4,15 @@ import dayjs from "dayjs";
 import { useMutation } from "react-query";
 
 import { HttpError } from "@lib/core/http/error";
+import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import TableActions from "@components/ui/TableActions";
+import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">[number];
 
 function BookingListItem(booking: BookingItem) {
+  const { t } = useLocale();
   const utils = trpc.useContext();
   const mutation = useMutation(
     async (confirm: boolean) => {
@@ -27,24 +29,24 @@ function BookingListItem(booking: BookingItem) {
     },
     {
       async onSettled() {
-        await utils.invalidateQuery(["viewer.bookings"]);
+        await utils.invalidateQueries(["viewer.bookings"]);
       },
     }
   );
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
 
-  const pendingActions = [
+  const pendingActions: ActionType[] = [
     {
       id: "reject",
-      label: "Reject",
+      label: t("reject"),
       onClick: () => mutation.mutate(false),
       icon: BanIcon,
       disabled: mutation.isLoading,
     },
     {
       id: "confirm",
-      label: "Confirm",
+      label: t("confirm"),
       onClick: () => mutation.mutate(true),
       icon: CheckIcon,
       disabled: mutation.isLoading,
@@ -52,16 +54,16 @@ function BookingListItem(booking: BookingItem) {
     },
   ];
 
-  const bookedActions = [
+  const bookedActions: ActionType[] = [
     {
       id: "cancel",
-      label: "Cancel",
+      label: t("cancel"),
       href: `/cancel/${booking.uid}`,
       icon: XIcon,
     },
     {
       id: "reschedule",
-      label: "Reschedule",
+      label: t("reschedule"),
       href: `/reschedule/${booking.uid}`,
       icon: ClockIcon,
     },
@@ -71,22 +73,17 @@ function BookingListItem(booking: BookingItem) {
 
   return (
     <tr>
-      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900">{startTime}</div>
+      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap align-top">
+        <div className="text-sm text-gray-900 leading-6">{startTime}</div>
         <div className="text-sm text-gray-500">
           {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
-        {!booking.confirmed && !booking.rejected && (
-          <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-            Unconfirmed
-          </span>
-        )}
       </td>
       <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
         <div className="sm:hidden">
           {!booking.confirmed && !booking.rejected && (
             <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-              Unconfirmed
+              {t("unconfirmed")}
             </span>
           )}
           <div className="text-sm text-gray-900 font-medium">
@@ -96,17 +93,22 @@ function BookingListItem(booking: BookingItem) {
             </small>
           </div>
         </div>
-        <div className="text-sm text-neutral-900 font-medium  truncate max-w-60 md:max-w-96">
+        <div className="text-sm text-neutral-900 font-medium leading-6 truncate max-w-60 md:max-w-96">
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
+          {!booking.confirmed && !booking.rejected && (
+            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+              {t("unconfirmed")}
+            </span>
+          )}
         </div>
         {booking.description && (
-          <div className="text-sm text-neutral-600 truncate max-w-60 md:max-w-96">
+          <div className="text-sm text-gray-500 truncate max-w-60 md:max-w-96" title={booking.description}>
             &quot;{booking.description}&quot;
           </div>
         )}
         {booking.attendees.length !== 0 && (
-          <div className="text-sm text-blue-500">
+          <div className="text-sm text-gray-900 hover:text-blue-500">
             <a href={"mailto:" + booking.attendees[0].email}>{booking.attendees[0].email}</a>
           </div>
         )}
@@ -117,7 +119,9 @@ function BookingListItem(booking: BookingItem) {
           <>
             {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}
             {booking.confirmed && !booking.rejected && <TableActions actions={bookedActions} />}
-            {!booking.confirmed && booking.rejected && <div className="text-sm text-gray-500">Rejected</div>}
+            {!booking.confirmed && booking.rejected && (
+              <div className="text-sm text-gray-500">{t("rejected")}</div>
+            )}
           </>
         ) : null}
       </td>

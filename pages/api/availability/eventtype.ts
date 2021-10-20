@@ -5,7 +5,7 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
-  if (!customInputs || customInputs?.length) return undefined;
+  if (!customInputs || !customInputs?.length) return undefined;
   const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
   const cInputsToCreate = customInputs
     .filter((input) => input.id < 0)
@@ -132,7 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (req.body.users) {
         data.users = {
           set: [],
-          connect: req.body.users.map((id: number) => ({ id })),
+          connect: req.body.users.map((id: string) => ({ id: parseInt(id) })),
         };
       }
 
@@ -143,6 +143,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (req.body.availability) {
         const openingHours = req.body.availability.openingHours || [];
         // const overrides = req.body.availability.dateOverrides || [];
+
+        const eventTypeId = +req.body.id;
+        if (eventTypeId) {
+          await prisma.availability.deleteMany({
+            where: {
+              eventTypeId,
+            },
+          });
+        }
 
         Promise.all(
           openingHours.map((schedule) =>
@@ -172,12 +181,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method == "DELETE") {
     await prisma.eventTypeCustomInput.deleteMany({
-      where: {
-        eventTypeId: req.body.id,
-      },
-    });
-
-    await prisma.webhookEventTypes.deleteMany({
       where: {
         eventTypeId: req.body.id,
       },

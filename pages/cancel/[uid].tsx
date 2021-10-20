@@ -5,6 +5,7 @@ import { getSession } from "next-auth/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
@@ -14,6 +15,7 @@ import { Button } from "@components/ui/Button";
 dayjs.extend(utc);
 
 export default function Type(props) {
+  const { t } = useLocale();
   // Get router variables
   const router = useRouter();
   const { uid } = router.query;
@@ -21,7 +23,7 @@ export default function Type(props) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [is24h, setIs24h] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(props.booking ? null : "This booking was already cancelled");
+  const [error, setError] = useState(props.booking ? null : t("booking_already_cancelled"));
   const telemetry = useTelemetry();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,15 +54,15 @@ export default function Type(props) {
       );
     } else {
       setLoading(false);
-      setError("An error with status code " + res.status + " occurred. Please try again later.");
+      setError(`${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`);
     }
   };
 
   return (
     <div>
       <HeadSeo
-        title={`Cancel ${props.booking && props.booking.title} | ${props.profile.name}`}
-        description={`Cancel ${props.booking && props.booking.title} | ${props.profile.name}`}
+        title={`${t("cancel")} ${props.booking && props.booking.title} | ${props.profile.name}`}
+        description={`${t("cancel")} ${props.booking && props.booking.title} | ${props.profile.name}`}
       />
       <main className="max-w-3xl mx-auto my-24">
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -95,14 +97,12 @@ export default function Type(props) {
                       <div className="mt-3 text-center sm:mt-5">
                         <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
                           {props.cancellationAllowed
-                            ? "Really cancel your booking?"
-                            : "You cannot cancel this booking"}
+                            ? t("really_cancel_booking")
+                            : t("cannot_cancel_booking")}
                         </h3>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
-                            {props.cancellationAllowed
-                              ? "Instead, you could also reschedule it."
-                              : "The event is in the past"}
+                            {props.cancellationAllowed ? t("reschedule_instead") : t("event_is_in_the_past")}
                           </p>
                         </div>
                         <div className="py-4 mt-4 border-t border-b">
@@ -125,9 +125,9 @@ export default function Type(props) {
                           data-testid="cancel"
                           onClick={cancellationHandler}
                           loading={loading}>
-                          Cancel
+                          {t("cancel")}
                         </Button>
-                        <Button onClick={() => router.push("/reschedule/" + uid)}>Reschedule</Button>
+                        <Button onClick={() => router.push("/reschedule/" + uid)}>{t("reschedule")}</Button>
                       </div>
                     )}
                   </>

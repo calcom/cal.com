@@ -1,10 +1,8 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
@@ -14,18 +12,22 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme(props.user.theme);
-  const { user, localeProp, eventTypes } = props;
-  const { t, locale } = useLocale({ localeProp });
+  const { user, eventTypes } = props;
+  const { t } = useLocale();
+
+  const nameOrUsername = user.name || user.username || "";
 
   return (
     <>
       <HeadSeo
-        title={user.name || user.username}
-        description={user.name || user.username}
-        name={user.name || user.username}
-        avatar={user.avatar}
+        title={nameOrUsername}
+        description={nameOrUsername}
+        name={nameOrUsername}
+        avatar={user.avatar || undefined}
       />
       {isReady && (
         <div className="bg-neutral-50 dark:bg-black h-screen">
@@ -33,11 +35,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             <div className="mb-8 text-center">
               <Avatar
                 imageSrc={user.avatar}
-                displayName={user.name}
                 className="mx-auto w-24 h-24 rounded-full mb-4"
+                alt={nameOrUsername}
               />
               <h1 className="font-cal text-3xl font-bold text-neutral-900 dark:text-white mb-1">
-                {user.name || user.username}
+                {nameOrUsername}
               </h1>
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
@@ -50,7 +52,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <Link href={`/${user.username}/${type.slug}`}>
                     <a className="block px-6 py-4">
                       <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                      <EventTypeDescription localeProp={locale} eventType={type} />
+                      <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
                 </div>
@@ -74,8 +76,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
   const username = (context.query.user as string).toLowerCase();
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
 
   const user = await prisma.user.findUnique({
     where: {
@@ -139,10 +142,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      localeProp: locale,
       user,
       eventTypes,
-      ...(await serverSideTranslations(locale, ["common"])),
+      trpcState: ssr.dehydrate(),
     },
   };
 };

@@ -6,13 +6,9 @@ import { Team } from "@lib/team";
 
 import Button from "@components/ui/Button";
 
-export default function MemberInvitationModal(props: {
-  localeProp: string;
-  team: Team | undefined | null;
-  onExit: () => void;
-}) {
+export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");
-  const { t } = useLocale({ localeProp: props.localeProp });
+  const { t } = useLocale();
 
   const handleError = async (res: Response) => {
     const responseData = await res.json();
