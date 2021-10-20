@@ -7,9 +7,14 @@ import EventOrganizerRequestReminderMail from "@lib/emails/EventOrganizerRequest
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const apiKey = req.query.apiKey;
-  if (process.env.CRON_API_KEY != apiKey) {
-    return res.status(401).json({ message: "Not authenticated" });
+  const apiKey = req.headers.authorization || req.query.apiKey;
+  if (process.env.CRON_API_KEY !== apiKey) {
+    res.status(401).json({ message: "Not authenticated" });
+    return;
+  }
+  if (req.method !== "POST") {
+    res.status(405).json({ message: "Invalid method" });
+    return;
   }
 
   if (req.method == "POST") {
