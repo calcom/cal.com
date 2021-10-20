@@ -36,8 +36,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             <div className="mb-8 text-center">
               <Avatar
                 imageSrc={user.avatar}
-                displayName={nameOrUsername}
                 className="mx-auto w-24 h-24 rounded-full mb-4"
+                alt={nameOrUsername}
               />
               <h1 className="font-cal text-3xl font-bold text-neutral-900 dark:text-white mb-1">
                 {nameOrUsername}
