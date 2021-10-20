@@ -37,6 +37,7 @@
     "@hookform/resolvers": "^2.8.1",
     "@jitsu/sdk-js": "^2.2.4",
     "@prisma/client": "^2.30.2",
+    "@next/bundle-analyzer": "11.1.2",
     "@radix-ui/react-avatar": "^0.1.0",
     "@radix-ui/react-collapsible": "^0.1.0",
     "@radix-ui/react-dialog": "^0.1.0",
@@ -47,7 +48,7 @@
     "@radix-ui/react-tooltip": "^0.1.0",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.16.0",
-    "@tailwindcss/forms": "^0.3.3",
+    "@tailwindcss/forms": "^0.3.4",
     "@trpc/client": "^9.9.1",
     "@trpc/next": "^9.9.1",
     "@trpc/react": "^9.9.1",
@@ -97,7 +98,6 @@
     "zod": "^3.8.2"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "11.1.2",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/accept-language-parser": "^1.5.2",
     "@types/async": "^3.2.7",
