@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
-import { getT } from "@lib/core/i18n/i18n.utils";
 
+import { getT } from "@lib/core/i18n/i18n.utils";
 import { html, text, Invitation } from "@lib/emails/invitation";
 
 it("email text rendering should strip tags and add new lines", () => {
@@ -18,9 +18,9 @@ it("email html should render invite email", async () => {
     token: "invite-token",
   } as Invitation;
   const result = html(invitation);
-  expect(result).toContain(`<br />${t("user_invited_you", { user: invitation.from, teamName: invitation.teamName })}<br />`);
-  expect(result).toContain("/auth/signup?token=invite-token&");
   expect(result).toContain(
-    `${t("request_another_invitation_email", { toEmail: invitation.toEmail })}`
+    `<br />${t("user_invited_you", { user: invitation.from, teamName: invitation.teamName })}<br />`
   );
+  expect(result).toContain("/auth/signup?token=invite-token&");
+  expect(result).toContain(`${t("request_another_invitation_email", { toEmail: invitation.toEmail })}`);
 });
