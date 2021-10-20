@@ -2,10 +2,6 @@
 const withTM = require("next-transpile-modules")(["react-timezone-select"]);
 const { i18n } = require("./next-i18next.config");
 
-const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  enabled: process.env.ANALYZE === "true",
-});
-
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.BASE_URL) {
   process.env.BASE_URL = "https://" + process.env.VERCEL_URL;
@@ -46,7 +42,16 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
   );
 }
 
-const plugins = [withBundleAnalyzer, withTM];
+const plugins = [];
+if (process.env.ANALYZE === "true") {
+  // only load dependency if env `ANALYZE` was set
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  plugins.push(withBundleAnalyzer);
+}
+
+plugins.push(withTM);
 
 // prettier-ignore
 module.exports = () => plugins.reduce((acc, next) => next(acc), {
