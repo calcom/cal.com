@@ -9,6 +9,8 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
+import { ssrInit } from "@server/lib/ssr";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -19,6 +21,8 @@ export default function Book(props: BookPageProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+
   const user = await prisma.user.findUnique({
     where: {
       username: asStringOrThrow(context.query.user),
@@ -107,6 +111,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       eventType: eventTypeObject,
       booking,
+      trpcState: ssr.dehydrate(),
     },
   };
 }
