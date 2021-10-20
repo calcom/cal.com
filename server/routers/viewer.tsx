@@ -1,6 +1,4 @@
 import { BookingStatus, Prisma } from "@prisma/client";
-import _ from "lodash";
-import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
@@ -9,9 +7,10 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 
+import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
+import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
-import { getCalendarAdapterOrNull } from "../../lib/calendarClient";
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 
@@ -139,7 +138,9 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
 
-      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
 
       // backwards compatibility, TMP:
       const typesRaw = await prisma.eventType.findMany({
@@ -312,57 +313,16 @@ const loggedInViewerRouter = createProtectedRouter()
       const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
       // get user's credentials + their connected integrations
-      const calendarCredentials = user.credentials
-        .filter((credential) => credential.type.endsWith("_calendar"))
-        .flatMap((credential) => {
-          const integration = ALL_INTEGRATIONS.find((integration) => integration.type === credential.type);
-
-          const adapter = getCalendarAdapterOrNull({
-            ...credential,
-            userId: user.id,
-          });
-          return integration && adapter && integration.variant === "calendar"
-            ? [{ integration, credential, adapter }]
-            : [];
-        });
+      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
 
       // get all the connected integrations' calendars (from third party)
-      const connectedCalendars = await Promise.all(
-        calendarCredentials.map(async (item) => {
-          const { adapter, integration, credential } = item;
+      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
-          const credentialId = credential.id;
-          try {
-            const cals = await adapter.listCalendars();
-            const calendars = _(cals)
-              .map((cal) => ({
-                ...cal,
-                isSelected: user.selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-              }))
-              .sortBy(["primary"])
-              .value();
-            const primary = calendars.find((item) => item.primary) ?? calendars[0];
-            if (!primary) {
-              throw new Error("No primary calendar found");
-            }
-            return {
-              integration,
-              credentialId,
-              primary,
-              calendars,
-            };
-          } catch (_error) {
-            const error = getErrorFromUnknown(_error);
-            return {
-              integration,
-              credentialId,
-              error: {
-                message: error.message,
-              },
-            };
-          }
-        })
-      );
+      const webhooks = await ctx.prisma.webhook.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
       return {
         conferencing: {
           items: conferencing,
@@ -377,6 +337,7 @@ const loggedInViewerRouter = createProtectedRouter()
           numActive: countActive(payment),
         },
         connectedCalendars,
+        webhooks,
       };
     },
   })

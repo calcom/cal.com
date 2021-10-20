@@ -39,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: session.user.id,
         subscriberUrl: req.body.subscriberUrl,
         eventTriggers: req.body.eventTriggers,
+        active: req.body.enabled,
       },
     });
 

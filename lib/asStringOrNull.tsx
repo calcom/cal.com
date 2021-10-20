@@ -15,9 +15,8 @@ export function asNumberOrThrow(str: unknown) {
 }
 
 export function asStringOrThrow(str: unknown): string {
-  const type = typeof str;
-  if (type !== "string") {
-    throw new Error(`Expected "string" - got ${type}`);
+  if (typeof str !== "string") {
+    throw new Error(`Expected "string" - got ${typeof str}`);
   }
   return str;
 }

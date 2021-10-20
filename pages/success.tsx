@@ -5,6 +5,7 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -41,9 +42,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const eventName = getEventName(name, props.eventType.title, props.eventType.eventName);
 
   function eventLink(): string {
-    const optional: { location?: string | string[] } = {};
+    const optional: { location?: string } = {};
     if (location) {
-      optional["location"] = location;
+      optional["location"] = Array.isArray(location) ? location[0] : location;
     }
 
     const event = createEvent({
@@ -51,7 +52,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         .utc()
         .toArray()
         .slice(0, 6)
-        .map((v, i) => (i === 1 ? v + 1 : v)),
+        .map((v, i) => (i === 1 ? v + 1 : v)) as any, // <-- FIXME fix types, not sure what's going on here
       startInputType: "utc",
       title: eventName,
       description: props.eventType.description ? props.eventType.description : undefined,
@@ -71,7 +72,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   return (
     (isReady && (
-      <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
+      <div className="h-screen bg-neutral-50 dark:bg-neutral-900" data-testid="success-page">
         <HeadSeo
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
@@ -306,21 +307,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
-
   if (!eventType.users.length && eventType.userId) {
-    eventType.users.push(
-      await prisma.user.findUnique({
-        where: {
-          id: eventType.userId,
-        },
-        select: {
-          theme: true,
-          hideBranding: true,
-          name: true,
-          plan: true,
-        },
-      })
-    );
+    // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
+    const user = await prisma.user.findUnique({
+      where: {
+        id: eventType.userId,
+      },
+      select: {
+        name: true,
+        hideBranding: true,
+        plan: true,
+        theme: true,
+      },
+    });
+    if (user) {
+      eventType.users.push(user);
+    }
   }
 
   if (!eventType.users.length) {
