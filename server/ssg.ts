@@ -1,8 +1,9 @@
-import { createSSGHelpers } from "@trpc/react/ssg";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import prisma from "@lib/prisma";
+
+import { createSSGHelpers } from "@trpc/react/ssg";
 
 import { appRouter } from "./routers/_app";
 
