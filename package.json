@@ -53,7 +53,6 @@
     "@trpc/next": "^9.9.1",
     "@trpc/react": "^9.9.1",
     "@trpc/server": "^9.9.1",
-    "@types/stripe": "^8.0.417",
     "@wojtekmaj/react-daterange-picker": "^3.3.1",
     "accept-language-parser": "^1.5.0",
     "async": "^3.2.1",
@@ -99,6 +98,7 @@
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
+    "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.7",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
@@ -110,6 +110,7 @@
     "@types/react": "^17.0.18",
     "@types/react-phone-number-input": "^3.0.13",
     "@types/react-select": "^4.0.17",
+    "@types/stripe": "^8.0.417",
     "@types/uuid": "8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.29.2",
