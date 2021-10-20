@@ -1,8 +1,10 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
+import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
@@ -134,10 +136,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
+  const locale = getLocaleFromHeaders(context.req);
   return {
     props: {
       user,
       eventTypes,
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };
