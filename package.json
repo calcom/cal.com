@@ -48,7 +48,7 @@
     "@radix-ui/react-tooltip": "^0.1.0",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.16.0",
-    "@tailwindcss/forms": "^0.3.3",
+    "@tailwindcss/forms": "^0.3.4",
     "@trpc/client": "^9.9.1",
     "@trpc/next": "^9.9.1",
     "@trpc/react": "^9.9.1",
