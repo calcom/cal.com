@@ -76,6 +76,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
   const username = (context.query.user as string).toLowerCase();
 
   const user = await prisma.user.findUnique({
@@ -137,8 +139,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
-
-  const ssr = await ssrInit(context);
 
   return {
     props: {
