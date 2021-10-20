@@ -19,13 +19,15 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { user, eventTypes } = props;
   const { t } = useLocale();
 
+  const nameOrUsername = user.name || user.username || "";
+
   return (
     <>
       <HeadSeo
-        title={user.name || user.username}
-        description={user.name || user.username}
-        name={user.name || user.username}
-        avatar={user.avatar}
+        title={nameOrUsername}
+        description={nameOrUsername}
+        name={nameOrUsername}
+        avatar={user.avatar || undefined}
       />
       {isReady && (
         <div className="bg-neutral-50 dark:bg-black h-screen">
@@ -33,11 +35,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             <div className="mb-8 text-center">
               <Avatar
                 imageSrc={user.avatar}
-                displayName={user.name}
+                displayName={nameOrUsername}
                 className="mx-auto w-24 h-24 rounded-full mb-4"
               />
               <h1 className="font-cal text-3xl font-bold text-neutral-900 dark:text-white mb-1">
-                {user.name || user.username}
+                {nameOrUsername}
               </h1>
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
