@@ -1,4 +1,4 @@
-name: Downgrade Users
+name: cron-downgrade
 
 on:
   # "Scheduled workflows run on the latest commit on the default or base branch."
@@ -8,10 +8,13 @@ on:
     - cron: "0,15,30,45 * * * *"
 jobs:
   downgrade:
-    env:
-      APP_URL: ${{ secrets.APP_URL }}
-      CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
     runs-on: ubuntu-latest
     steps:
       - name: cURL request
-        run: curl -X POST -d {} ${{ env.APP_URL }}?apiKey=${{ env.CRON_API_KEY }}
+        if: ${{ secrets.APP_URL && secrets.CRON_API_KEY }}
+        run: |
+          curl ${{ secrets.APP_URL }} \
+            -X POST
+            -H 'content-type: application/json' \
+            -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
+            --fail
