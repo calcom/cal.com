@@ -71,7 +71,7 @@ export function html(invitation: Invitation): string {
     (invitation.from
       ? t("user_invited_you", { user: invitation.from, teamName: invitation.teamName })
       : t("you_have_been_invited", { teamName: invitation.teamName })) +
-    ` <br />
+    `<br />
       <br />
       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
         <tr>
