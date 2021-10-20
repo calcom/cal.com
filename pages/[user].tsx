@@ -1,6 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
@@ -13,6 +12,8 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
+
+import { ssgInit } from "@server/ssg";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme(props.user.theme);
@@ -139,11 +140,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
   const locale = getLocaleFromHeaders(context.req);
+  const ssg = await ssgInit({ locale });
+
   return {
     props: {
       user,
       eventTypes,
-      ...(await serverSideTranslations(locale, ["common"])),
+      trpcState: ssg.dehydrate(),
     },
   };
 };
