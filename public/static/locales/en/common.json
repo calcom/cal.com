@@ -143,6 +143,7 @@
   "booking_already_cancelled": "This booking was already cancelled",
   "go_back_home": "Go back home",
   "or_go_back_home": "Or go back home",
+  "no_availability": "Unavailable",
   "no_meeting_found": "No Meeting Found",
   "no_meeting_found_description": "This meeting does not exist. Contact the meeting owner for an updated link.",
   "no_status_bookings_yet": "No {{status}} bookings, yet",
@@ -437,5 +438,7 @@
   "delete_event_type": "Delete Event Type",
   "confirm_delete_event_type": "Yes, delete event type",
   "integrations": "Integrations",
-  "settings": "Settings"
+  "settings": "Settings",
+  "next_step": "Prev step",
+  "prev_step": "Skip step"
 }

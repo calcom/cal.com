@@ -2,7 +2,10 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import React, { useCallback, useState, useEffect } from "react";
-import { useFormContext, Controller, useFieldArray, UseFieldArrayReturn } from "react-hook-form";
+import { useFormContext, Controller, useFieldArray } from "react-hook-form";
+
+import { weekdayNames } from "@lib/core/i18n/weekday";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
@@ -50,10 +53,6 @@ export type TimeRange = {
   end: Dayjs;
 };
 
-function dayOfWeekAsString(day: number, weekday: "long" | "short" = "long") {
-  return new Date(1970, 0, day + 4).toLocaleString("en", { weekday });
-}
-
 export type FreeBusyTime = TimeRange[];
 export type Schedule = TimeRange[][];
 
@@ -64,7 +63,7 @@ type TimeRangeFieldProps = {
 
 const TimeRangeField = ({ name, defaultValue }: TimeRangeFieldProps) => {
   const { control } = useFormContext();
-  const [range, setRange] = useState<TimeRange>(defaultValue);
+  const [range, setRange] = useState<TimeRange | null>(defaultValue || null);
 
   const timeOptions = useCallback((offsetOrLimit: { offset?: Dayjs; limit?: Dayjs } = {}) => {
     const { limit, offset } = offsetOrLimit;
@@ -76,7 +75,7 @@ const TimeRangeField = ({ name, defaultValue }: TimeRangeFieldProps) => {
     );
   }, []);
 
-  const handleOnChange = (onChangeCallback, value) => {
+  const handleOnChange = (onChangeCallback: (...event: unknown[]) => void, value: TimeRange) => {
     setRange(value);
     onChangeCallback(value);
   };
@@ -87,30 +86,38 @@ const TimeRangeField = ({ name, defaultValue }: TimeRangeFieldProps) => {
         name={name}
         control={control}
         defaultValue={range}
-        render={({ field: { onChange, value } }) => (
+        render={({ field }) => (
           <>
             <Select
               className="w-[5.5rem]"
               name={`${name}.start`}
-              options={timeOptions({ limit: value?.end })}
+              options={timeOptions({ limit: field.value?.end })}
               defaultValue={timeOptions().find(
-                (option) => option.value === value?.start.format(_24_HOUR_TIME_FORMAT)
+                (option) => option.value === dayjs(field.value?.start).format(_24_HOUR_TIME_FORMAT)
               )}
-              onChange={(e) =>
-                handleOnChange(onChange, { ...value, start: dayjs(e.value, _24_HOUR_TIME_FORMAT, true) })
-              }
+              onChange={(e) => {
+                if (!e?.value) return;
+                return handleOnChange(field.onChange, {
+                  ...field.value,
+                  start: dayjs(e.value, _24_HOUR_TIME_FORMAT, true),
+                });
+              }}
             />
             <span>-</span>
             <Select
               className="w-[5.5rem]"
               name={`${name}.end`}
-              options={timeOptions({ offset: value?.start })}
+              options={timeOptions({ offset: field.value?.start })}
               defaultValue={timeOptions().find(
-                (option) => option.value === value?.end.format(_24_HOUR_TIME_FORMAT)
+                (option) => option.value === dayjs(field.value?.end).format(_24_HOUR_TIME_FORMAT)
               )}
-              onChange={(e) =>
-                handleOnChange(onChange, { ...value, end: dayjs(e.value, _24_HOUR_TIME_FORMAT, true) })
-              }
+              onChange={(e) => {
+                if (!e?.value) return;
+                return handleOnChange(field.onChange, {
+                  ...field.value,
+                  end: dayjs(e.value, _24_HOUR_TIME_FORMAT, true),
+                });
+              }}
             />
           </>
         )}
@@ -121,11 +128,19 @@ const TimeRangeField = ({ name, defaultValue }: TimeRangeFieldProps) => {
 
 TimeRangeField.displayName = "TimeRangeField";
 
-const ScheduleBlock = ({ name, day, dayRanges }) => {
-  const [lastRange, setLastRange] = useState<TimeRange>(null);
+type ScheduleBlockProps = {
+  day: number;
+  weekday: string;
+  name: string;
+  dayRanges: TimeRange[];
+};
+
+const ScheduleBlock = ({ name, day, weekday, dayRanges }: ScheduleBlockProps) => {
+  const [lastRange, setLastRange] = useState<TimeRange>();
+  const { t } = useLocale();
 
   const handleAppend = () => {
-    const nextRange = {
+    const nextRange: TimeRange = {
       start: lastRange.end,
       end: lastRange.end.add(1, "hour"),
     };
@@ -139,20 +154,25 @@ const ScheduleBlock = ({ name, day, dayRanges }) => {
     return append(nextRange);
   };
 
-  const { register, setValue } = useFormContext();
+  const { register, setValue, control } = useFormContext();
 
   useEffect(() => {
-    setValue(`${name}.${day}`, dayRanges);
+    if (dayRanges) {
+      setValue(`${name}.${day}`, dayRanges);
+    }
   }, [setValue, name, day, dayRanges]);
 
-  // const [ranges, dispatch] = useReducer(reducer, dayRanges);
-  const { fields, append, remove, replace } = useFieldArray<UseFieldArrayReturn>({
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
     name: `${name}.${day}`,
   });
 
   // make sure the last range always points to the last range
-  if (fields.length && (!lastRange || !fields[fields.length - 1].start.isSame(lastRange.start))) {
-    setLastRange(fields[fields.length - 1]);
+  if (fields.length && (!lastRange || !dayjs(fields[fields.length - 1].start).isSame(lastRange.start))) {
+    setLastRange({
+      start: dayjs(fields[fields.length - 1].start),
+      end: dayjs(fields[fields.length - 1].end),
+    });
   }
 
   return (
@@ -165,13 +185,17 @@ const ScheduleBlock = ({ name, day, dayRanges }) => {
             onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
             className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
           />
-          <span className="inline-block">{dayOfWeekAsString(day)}</span>
+          <span className="inline-block capitalize">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
         {fields.map((field, index) => (
           <div className="flex justify-between mb-2" key={index}>
-            <TimeRangeField key={field.id} {...register(`${name}.${day}.${index}` as const)} />
+            <TimeRangeField
+              key={field.id}
+              defaultValue={field}
+              {...register(`${name}.${day}.${index}` as const)}
+            />
             <Button
               size="icon"
               color="minimal"
@@ -181,7 +205,7 @@ const ScheduleBlock = ({ name, day, dayRanges }) => {
             />
           </div>
         ))}
-        {!fields.length && "Unavailable"}
+        {!fields.length && t("no_availability")}
       </div>
       <div>
         <Button
@@ -197,11 +221,17 @@ const ScheduleBlock = ({ name, day, dayRanges }) => {
   );
 };
 
-const Schedule = ({ name, defaultValue = DEFAULT_SCHEDULE }: { name: string; defaultValue?: Schedule }) => {
+type ScheduleProps = {
+  name: string;
+  defaultValue?: Schedule;
+};
+
+const Schedule = ({ name, defaultValue = DEFAULT_SCHEDULE }: ScheduleProps) => {
+  const { i18n } = useLocale();
   return (
     <fieldset className="divide-y divide-gray-200">
-      {[...Array(7).keys()].map((day) => (
-        <ScheduleBlock name={name} key={day} day={day} dayRanges={defaultValue[day]} />
+      {weekdayNames(i18n.language).map((weekday, num) => (
+        <ScheduleBlock key={num} name={name} weekday={weekday} day={num} dayRanges={defaultValue[num]} />
       ))}
     </fieldset>
   );

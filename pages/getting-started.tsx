@@ -26,8 +26,9 @@ import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsL
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
-import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import Text from "@components/ui/Text";
+import Form from "@components/ui/form/Form";
+import Schedule, { TimeRange } from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -36,6 +37,10 @@ import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+type ScheduleFormValues = {
+  schedule: TimeRange[][];
+};
 
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
@@ -102,10 +107,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return responseData.data;
   };
 
-  const createSchedule = async (data: Prisma.ScheduleCreateInput) => {
+  const createSchedule = async (schedule: TimeRange[][]) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
-      body: JSON.stringify({ data: { ...data } }),
+      body: JSON.stringify({ data: { ...schedule } }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -136,7 +141,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
     let step = 0;
-    const hasSetUserNameOrTimeZone = props.user.name && props.user.timeZone;
+    const hasSetUserNameOrTimeZone = props.user?.name && props.user?.timeZone;
     if (hasSetUserNameOrTimeZone) {
       step = 1;
     }
@@ -162,6 +167,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         steps[currentStep].onComplete &&
         typeof steps[currentStep].onComplete === "function"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await steps[currentStep].onComplete!();
       }
       incrementStep();
@@ -333,29 +339,29 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("set_availability"),
       description: t("set_availability_instructions"),
       Component: (
-        <>
-          <section className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white">
-            <SchedulerForm
-              onSubmit={async (data) => {
-                try {
-                  setSubmitting(true);
-                  await createSchedule({
-                    freeBusyTimes: data,
-                  });
-                  debouncedHandleConfirmStep();
-                  setSubmitting(false);
-                } catch (error) {
-                  setError(error as Error);
-                }
-              }}
-            />
-          </section>
-          <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
-            <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
-              {t("continue")}
-            </Button>
-          </footer>
-        </>
+        <Form<ScheduleFormValues>
+          className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white"
+          onSubmit={async ({ schedule }: ScheduleFormValues) => {
+            try {
+              setSubmitting(true);
+              await createSchedule(schedule);
+              debouncedHandleConfirmStep();
+              setSubmitting(false);
+            } catch (error) {
+              if (error instanceof Error) {
+                setError(error);
+              }
+            }
+          }}>
+          <>
+            <Schedule name="schedule" />
+            <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
+              <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
+                {t("continue")}
+              </Button>
+            </footer>
+          </>
+        </Form>
       ),
       hideConfirm: true,
       showCancel: false,
@@ -427,6 +433,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   useEffect(() => {
     detectStep();
     setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (Sess[1] || !ready) {
@@ -497,12 +504,18 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </section>
           <section className="max-w-xl py-8 mx-auto">
             <div className="flex flex-row-reverse justify-between">
-              <button disabled={isSubmitting} onClick={handleSkipStep}>
-                <Text variant="caption">Skip Step</Text>
+              <button
+                disabled={isSubmitting}
+                onClick={handleSkipStep}
+                className="text-sm leading-tight text-gray-500 dark:text-white">
+                {t("next_step")}
               </button>
               {currentStep !== 0 && (
-                <button disabled={isSubmitting} onClick={decrementStep}>
-                  <Text variant="caption">Prev Step</Text>
+                <button
+                  disabled={isSubmitting}
+                  onClick={decrementStep}
+                  className="text-sm leading-tight text-gray-500 dark:text-white">
+                  {t("prev_step")}
                 </button>
               )}
             </div>

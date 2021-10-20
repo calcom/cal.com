@@ -1,9 +1,6 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "editor.formatOnSave": true,
-  // Auto-fix issues with ESLint when you save code changes
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+  "files.watcherExclude": {
+    "**/.next/**": true
   },
-  "eslint.run": "onSave"
+  "typescript.tsserver.log": "verbose"
 }

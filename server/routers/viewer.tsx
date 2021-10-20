@@ -341,6 +341,41 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("availability", {
+    async resolve({ ctx }) {
+      const { prisma, user } = ctx;
+      const availabilityQuery = await prisma.availability.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
+      const schedule = availabilityQuery.reduce(
+        (schedule, availability) => {
+          availability.days.forEach((day) => {
+            schedule[day].push({
+              start: new Date().setUTCHours(
+                Math.floor(availability.startTime / 60),
+                availability.startTime % 60,
+                0,
+                0
+              ),
+              end: new Date().setUTCHours(
+                Math.floor(availability.endTime / 60),
+                availability.endTime % 60,
+                0,
+                0
+              ),
+            });
+          });
+          return schedule;
+        },
+        Array.from([...Array(7)]).map(() => [])
+      );
+      return {
+        schedule,
+      };
+    },
+  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
