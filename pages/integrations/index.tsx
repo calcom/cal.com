@@ -496,7 +496,7 @@ export default function IntegrationsPage() {
                 <>
                   <ConnectedCalendarsList
                     connectedCalendars={data.connectedCalendars}
-                    onOpenChange={handleOpenChange}
+                    onChanged={handleOpenChange}
                   />
                   <ShellSubHeading
                     className="mt-6"
