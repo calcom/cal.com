@@ -79,7 +79,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-easy-crop": "^3.5.2",
-    "react-hook-form": "^7.17.4",
+    "react-hook-form": "^7.17.5",
     "react-hot-toast": "^2.1.0",
     "react-intl": "^5.20.7",
     "react-multi-email": "^0.5.3",
