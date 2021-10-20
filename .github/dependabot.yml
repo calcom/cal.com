@@ -6,4 +6,4 @@ updates:
       interval: daily
     commit-message:
       prefix: "⬆️"
-    open-pull-requests-limit: 1
+    open-pull-requests-limit: 4
