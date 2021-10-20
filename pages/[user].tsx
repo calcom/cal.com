@@ -3,7 +3,6 @@ import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
 
-import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
@@ -13,7 +12,7 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
-import { ssgInit } from "@server/ssg";
+import { ssrInit } from "@server/lib/ssr";
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme(props.user.theme);
@@ -139,14 +138,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
-  const locale = getLocaleFromHeaders(context.req);
-  const ssg = await ssgInit({ locale });
+  const ssr = await ssrInit(context);
 
   return {
     props: {
       user,
       eventTypes,
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 };
