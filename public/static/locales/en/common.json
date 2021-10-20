@@ -1,4 +1,9 @@
 {
+  "hi": "Hi",
+  "join_team": "Join team",
+  "request_another_invitation_email": "If you prefer not to use {{toEmail}} as your Cal.com email or already have a Cal.com account, please request another invitation to that email.",
+  "you_have_been_invited": "You have been invited to join the team {{teamName}}",
+  "user_invited_you": "{{user}} invited you to join the team {{teamName}}",
   "link_expires": "p.s. It expires in {{expiresIn}} hours.",
   "use_link_to_reset_password": "Use the link below to reset your password",
   "hey_there": "Hey there,",
