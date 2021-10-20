@@ -1,12 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import {
-  EventType,
-  EventTypeCreateInput,
-  Schedule,
-  ScheduleCreateInput,
-  User,
-  UserUpdateInput,
-} from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -22,35 +15,35 @@ import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-import AddCalDavIntegration, {
-  ADD_CALDAV_INTEGRATION_FORM_TITLE,
-} from "@lib/integrations/CalDav/components/AddCalDavIntegration";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogClose, DialogContent, DialogHeader } from "@components/Dialog";
 import Loader from "@components/Loader";
+import { ShellSubHeading } from "@components/Shell";
+import CalendarsList from "@components/integrations/CalendarsList";
+import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
+import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import Text from "@components/ui/Text";
-import ErrorAlert from "@components/ui/alerts/Error";
 
-import { AddCalDavIntegrationRequest } from "../lib/integrations/CalDav/components/AddCalDavIntegration";
+import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
+import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
+
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-type OnboardingProps = {
-  user: User;
-  integrations?: Record<string, string>[];
-  eventTypes?: EventType[];
-  schedules?: Schedule[];
-};
-
-export default function Onboarding(props: OnboardingProps) {
+export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
+
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
 
   const DEFAULT_EVENT_TYPES = [
     {
@@ -72,12 +65,12 @@ export default function Onboarding(props: OnboardingProps) {
   ];
 
   const [isSubmitting, setSubmitting] = React.useState(false);
-  const [enteredName, setEnteredName] = React.useState();
+  const [enteredName, setEnteredName] = React.useState("");
   const Sess = useSession();
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
 
-  const updateUser = async (data: UserUpdateInput) => {
+  const updateUser = async (data: Prisma.UserUpdateInput) => {
     const res = await fetch(`/api/user/${props.user.id}`, {
       method: "PATCH",
       body: JSON.stringify({ data: { ...data } }),
@@ -93,7 +86,7 @@ export default function Onboarding(props: OnboardingProps) {
     return responseData.data;
   };
 
-  const createEventType = async (data: EventTypeCreateInput) => {
+  const createEventType = async (data: Prisma.EventTypeCreateInput) => {
     const res = await fetch(`/api/availability/eventtype`, {
       method: "POST",
       body: JSON.stringify(data),
@@ -109,7 +102,7 @@ export default function Onboarding(props: OnboardingProps) {
     return responseData.data;
   };
 
-  const createSchedule = async (data: ScheduleCreateInput) => {
+  const createSchedule = async (data: Prisma.ScheduleCreateInput) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
       body: JSON.stringify({ data: { ...data } }),
@@ -125,53 +118,9 @@ export default function Onboarding(props: OnboardingProps) {
     return responseData.data;
   };
 
-  const handleAddIntegration = (type: string) => {
-    if (type === "caldav_calendar") {
-      setAddCalDavError(null);
-      setIsAddCalDavIntegrationDialogOpen(true);
-      return;
-    }
-
-    fetch("/api/integrations/" + type.replace("_", "") + "/add")
-      .then((response) => response.json())
-      .then((data) => {
-        window.location.href = data.url;
-      });
-  };
-
-  /** Internal Components */
-  const IntegrationGridListItem = ({ integration }: { integration: Integration }) => {
-    if (!integration || !integration.installed) {
-      return null;
-    }
-
-    return (
-      <li
-        onClick={() => handleAddIntegration(integration.type)}
-        key={integration.type}
-        className="flex px-4 py-3 items-center">
-        <div className="w-1/12 mr-4">
-          <img className="h-8 w-8 mr-2" src={integration.imageSrc} alt={integration.title} />
-        </div>
-        <div className="w-10/12">
-          <Text className="text-gray-900 text-sm font-medium">{integration.title}</Text>
-          <Text className="text-gray-400" variant="subtitle">
-            {integration.description}
-          </Text>
-        </div>
-        <div className="w-2/12 text-right">
-          <Button className="btn-sm" color="secondary" onClick={() => handleAddIntegration(integration.type)}>
-            {t("connect")}
-          </Button>
-        </div>
-      </li>
-    );
-  };
-  /** End Internal Components */
-
   /** Name */
-  const nameRef = useRef(null);
-  const bioRef = useRef(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
   const [selectedTimeZone, setSelectedTimeZone] = useState({
@@ -183,88 +132,6 @@ export default function Onboarding(props: OnboardingProps) {
   }, [selectedTimeZone]);
   /** End TimeZone */
 
-  /** CalDav Form */
-  const addCalDavIntegrationRef = useRef<HTMLFormElement>(null);
-  const [isAddCalDavIntegrationDialogOpen, setIsAddCalDavIntegrationDialogOpen] = useState(false);
-  const [addCalDavError, setAddCalDavError] = useState<{ message: string } | null>(null);
-
-  const handleAddCalDavIntegration = async ({ url, username, password }: AddCalDavIntegrationRequest) => {
-    const requestBody = JSON.stringify({
-      url,
-      username,
-      password,
-    });
-
-    return await fetch("/api/integrations/caldav/add", {
-      method: "POST",
-      body: requestBody,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  };
-
-  const handleAddCalDavIntegrationSaveButtonPress = async () => {
-    const form = addCalDavIntegrationRef.current.elements;
-    const url = form.url.value;
-    const password = form.password.value;
-    const username = form.username.value;
-
-    try {
-      setAddCalDavError(null);
-      const addCalDavIntegrationResponse = await handleAddCalDavIntegration({ username, password, url });
-      if (addCalDavIntegrationResponse.ok) {
-        setIsAddCalDavIntegrationDialogOpen(false);
-        incrementStep();
-      } else {
-        const j = await addCalDavIntegrationResponse.json();
-        setAddCalDavError({ message: j.message });
-      }
-    } catch (reason) {
-      console.error(reason);
-    }
-  };
-
-  const ConnectCalDavServerDialog = () => {
-    return (
-      <Dialog
-        open={isAddCalDavIntegrationDialogOpen}
-        onOpenChange={(isOpen) => setIsAddCalDavIntegrationDialogOpen(isOpen)}>
-        <DialogContent>
-          <DialogHeader title={t("connect_caldav")} subtitle={t("credentials_stored_and_encrypted")} />
-          <div className="my-4">
-            {addCalDavError && (
-              <p className="text-red-700 text-sm">
-                <span className="font-bold">{t("error")}: </span>
-                {addCalDavError.message}
-              </p>
-            )}
-            <AddCalDavIntegration
-              ref={addCalDavIntegrationRef}
-              onSubmit={handleAddCalDavIntegrationSaveButtonPress}
-            />
-          </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button
-              type="submit"
-              form={ADD_CALDAV_INTEGRATION_FORM_TITLE}
-              className="flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-900">
-              {t("save")}
-            </button>
-            <DialogClose
-              onClick={() => {
-                setIsAddCalDavIntegrationDialogOpen(false);
-              }}
-              asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-  /**End CalDav Form */
-
   /** Onboarding Steps */
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
@@ -274,7 +141,7 @@ export default function Onboarding(props: OnboardingProps) {
       step = 1;
     }
 
-    const hasConfigureCalendar = props.integrations.some((integration) => integration.credential != null);
+    const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
     if (hasConfigureCalendar) {
       step = 2;
     }
@@ -292,17 +159,17 @@ export default function Onboarding(props: OnboardingProps) {
       setSubmitting(true);
       if (
         steps[currentStep] &&
-        steps[currentStep]?.onComplete &&
-        typeof steps[currentStep]?.onComplete === "function"
+        steps[currentStep].onComplete &&
+        typeof steps[currentStep].onComplete === "function"
       ) {
-        await steps[currentStep].onComplete();
+        await steps[currentStep].onComplete!();
       }
       incrementStep();
       setSubmitting(false);
     } catch (error) {
       console.log("handleConfirmStep", error);
       setSubmitting(false);
-      setError(error);
+      setError(error as Error);
     }
   };
 
@@ -385,7 +252,7 @@ export default function Onboarding(props: OnboardingProps) {
                 placeholder={t("your_name")}
                 defaultValue={props.user.name ?? enteredName}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
             </fieldset>
 
@@ -403,7 +270,7 @@ export default function Onboarding(props: OnboardingProps) {
                 id="timeZone"
                 value={selectedTimeZone}
                 onChange={setSelectedTimeZone}
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </fieldset>
           </section>
@@ -417,13 +284,13 @@ export default function Onboarding(props: OnboardingProps) {
         try {
           setSubmitting(true);
           await updateUser({
-            name: nameRef.current.value,
+            name: nameRef.current?.value,
             timeZone: selectedTimeZone.value,
           });
-          setEnteredName(nameRef.current.value);
+          setEnteredName(nameRef.current?.value || "");
           setSubmitting(true);
         } catch (error) {
-          setError(error);
+          setError(error as Error);
           setSubmitting(false);
         }
       },
@@ -433,11 +300,28 @@ export default function Onboarding(props: OnboardingProps) {
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <ul className="divide-y divide-gray-200 sm:mx-auto sm:w-full border border-gray-200 rounded-sm">
-          {props.integrations.map((integration) => {
-            return <IntegrationGridListItem key={integration.type} integration={integration} />;
-          })}
-        </ul>
+        <>
+          {props.connectedCalendars.length > 0 && (
+            <>
+              <ConnectedCalendarsList
+                connectedCalendars={props.connectedCalendars}
+                onChanged={() => {
+                  refreshData();
+                }}
+              />
+              <ShellSubHeading
+                className="mt-6"
+                title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
+              />
+            </>
+          )}
+          <CalendarsList
+            calendars={props.integrations}
+            onChanged={() => {
+              refreshData();
+            }}
+          />
+        </>
       ),
       hideConfirm: true,
       confirmText: t("continue"),
@@ -450,7 +334,7 @@ export default function Onboarding(props: OnboardingProps) {
       description: t("set_availability_instructions"),
       Component: (
         <>
-          <section className="bg-white dark:bg-opacity-5 text-black dark:text-white mx-auto max-w-lg">
+          <section className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white">
             <SchedulerForm
               onSubmit={async (data) => {
                 try {
@@ -461,12 +345,12 @@ export default function Onboarding(props: OnboardingProps) {
                   debouncedHandleConfirmStep();
                   setSubmitting(false);
                 } catch (error) {
-                  setError(error);
+                  setError(error as Error);
                 }
               }}
             />
           </section>
-          <footer className="py-6 sm:mx-auto sm:w-full flex flex-col space-y-6">
+          <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
             <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
               {t("continue")}
             </Button>
@@ -496,7 +380,7 @@ export default function Onboarding(props: OnboardingProps) {
                 placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
             </fieldset>
             <fieldset>
@@ -509,8 +393,8 @@ export default function Onboarding(props: OnboardingProps) {
                 name="bio"
                 id="bio"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                defaultValue={props.user.bio}
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                defaultValue={props.user.bio || undefined}
               />
               <Text variant="caption" className="mt-2">
                 {t("few_sentences_about_yourself")}
@@ -528,11 +412,11 @@ export default function Onboarding(props: OnboardingProps) {
           setSubmitting(true);
           console.log("updating");
           await updateUser({
-            description: bioRef.current.value,
+            bio: bioRef.current?.value,
           });
           setSubmitting(false);
         } catch (error) {
-          setError(error);
+          setError(error as Error);
           setSubmitting(false);
         }
       },
@@ -550,20 +434,20 @@ export default function Onboarding(props: OnboardingProps) {
   }
 
   return (
-    <div className="bg-black min-h-screen">
+    <div className="min-h-screen bg-black">
       <Head>
         <title>Cal.com - {t("getting_started")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       {isSubmitting && (
-        <div className="fixed w-full h-full bg-white bg-opacity-25 flex flex-col justify-center items-center content-center z-10">
+        <div className="fixed z-10 flex flex-col items-center content-center justify-center w-full h-full bg-white bg-opacity-25">
           <Loader />
         </div>
       )}
-      <div className="mx-auto py-24 px-4">
+      <div className="px-4 py-24 mx-auto">
         <article className="relative">
-          <section className="sm:mx-auto sm:w-full sm:max-w-lg space-y-4">
+          <section className="space-y-4 sm:mx-auto sm:w-full sm:max-w-lg">
             <header>
               <Text className="text-white" variant="largetitle">
                 {steps[currentStep].title}
@@ -572,14 +456,14 @@ export default function Onboarding(props: OnboardingProps) {
                 {steps[currentStep].description}
               </Text>
             </header>
-            <section className="space-y-2 pt-4">
+            <section className="pt-4 space-y-2">
               <Text variant="footnote">
                 Step {currentStep + 1} of {steps.length}
               </Text>
 
-              {error && <ErrorAlert {...error} />}
+              {error && <Alert severity="error" {...error} />}
 
-              <section className="w-full space-x-2 flex">
+              <section className="flex w-full space-x-2">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
                     <div
@@ -590,17 +474,17 @@ export default function Onboarding(props: OnboardingProps) {
                         index < currentStep ? "cursor-pointer" : ""
                       )}></div>
                   ) : (
-                    <div key={`step-${index}`} className="h-1 bg-white bg-opacity-25 w-1/4"></div>
+                    <div key={`step-${index}`} className="w-1/4 h-1 bg-white bg-opacity-25"></div>
                   );
                 })}
               </section>
             </section>
           </section>
-          <section className="mt-10 mx-auto max-w-xl bg-white p-10 rounded-sm">
+          <section className="max-w-xl p-10 mx-auto mt-10 bg-white rounded-sm">
             {steps[currentStep].Component}
 
             {!steps[currentStep].hideConfirm && (
-              <footer className="sm:mx-auto sm:w-full flex flex-col space-y-6 mt-8">
+              <footer className="flex flex-col mt-8 space-y-6 sm:mx-auto sm:w-full">
                 <Button
                   className="justify-center"
                   disabled={isSubmitting}
@@ -611,8 +495,8 @@ export default function Onboarding(props: OnboardingProps) {
               </footer>
             )}
           </section>
-          <section className="py-8 mx-auto max-w-xl">
-            <div className="flex justify-between flex-row-reverse">
+          <section className="max-w-xl py-8 mx-auto">
+            <div className="flex flex-row-reverse justify-between">
               <button disabled={isSubmitting} onClick={handleSkipStep}>
                 <Text variant="caption">Skip Step</Text>
               </button>
@@ -625,7 +509,6 @@ export default function Onboarding(props: OnboardingProps) {
           </section>
         </article>
       </div>
-      <ConnectCalDavServerDialog />
     </div>
   );
 }
@@ -634,6 +517,7 @@ export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
 
   let integrations = [];
+  let connectedCalendars = [];
   let credentials = [];
   let eventTypes = [];
   let schedules = [];
@@ -660,6 +544,12 @@ export async function getServerSideProps(context: NextPageContext) {
       avatar: true,
       timeZone: true,
       completedOnboarding: true,
+      selectedCalendars: {
+        select: {
+          externalId: true,
+          integration: true,
+        },
+      },
     },
   });
   if (!user) {
@@ -686,7 +576,14 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  integrations = getIntegrations(credentials).map((item) => omit(item, "key"));
+  integrations = getIntegrations(credentials)
+    .filter((item) => item.type.endsWith("_calendar"))
+    .map((item) => omit(item, "key"));
+
+  // get user's credentials + their connected integrations
+  const calendarCredentials = getCalendarCredentials(credentials, user.id);
+  // get all the connected integrations' calendars (from third party)
+  connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
   eventTypes = await prisma.eventType.findMany({
     where: {
@@ -716,6 +613,7 @@ export async function getServerSideProps(context: NextPageContext) {
       session,
       user,
       integrations,
+      connectedCalendars,
       eventTypes,
       schedules,
     },
