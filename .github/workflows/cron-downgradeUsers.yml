@@ -1,4 +1,4 @@
-name: Downgrade Users
+name: Cron - downgradeUsers
 
 on:
   # "Scheduled workflows run on the latest commit on the default or base branch."
@@ -13,7 +13,7 @@ jobs:
       - name: cURL request
         if: ${{ secrets.APP_URL && secrets.CRON_API_KEY }}
         run: |
-          curl ${{ secrets.APP_URL }} \
+          curl ${{ secrets.APP_URL }}/api/cron/downgradeUsers \
             -X POST
             -H 'content-type: application/json' \
             -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
