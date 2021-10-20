@@ -53,13 +53,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     for (const booking of bookings.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
+      const { user } = booking;
+      const name = user?.name || user?.username;
+      if (!user || !name || !user.timeZone) {
+        console.error(`Booking ${booking.id} is missing required properties for booking reminder`, { user });
+        continue;
+      }
       const evt: CalendarEvent = {
         type: booking.title,
         title: booking.title,
-        description: booking.description,
+        description: booking.description || undefined,
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
-        organizer: { email: booking.user.email, name: booking.user.name, timeZone: booking.user.timeZone },
+        organizer: {
+          email: user.email,
+          name,
+          timeZone: user.timeZone,
+        },
         attendees: booking.attendees,
       };
 
