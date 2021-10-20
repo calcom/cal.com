@@ -54,19 +54,30 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
 
   return (
     <ListItem className="flex w-full p-4">
-      <div className="flex justify-between w-full my-4">
-        <div className="flex pr-2 border-r border-gray-100">
-          <span className="flex flex-col space-y-2 text-xs">
-            {props.webhook.eventTriggers.map((eventTrigger, ind) => (
-              <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
-                {t(`${eventTrigger.toLowerCase()}`)}
-              </span>
-            ))}
-          </span>
-        </div>
-        <div className="flex w-full">
-          <div className="self-center inline-block ml-3 space-y-1">
-            <span className="flex text-sm text-neutral-700">{props.webhook.subscriberUrl}</span>
+      <div className="flex justify-between w-full">
+        <div className="flex flex-col">
+          <div className="inline-block space-y-1">
+            <span
+              className={classNames(
+                "flex text-sm ",
+                props.webhook.active ? "text-neutral-700" : "text-neutral-200"
+              )}>
+              {props.webhook.subscriberUrl}
+            </span>
+          </div>
+          <div className="flex mt-2">
+            <span className="flex space-x-2 text-xs">
+              {props.webhook.eventTriggers.map((eventTrigger, ind) => (
+                <span
+                  key={ind}
+                  className={classNames(
+                    "px-1 text-xs rounded-sm w-max ",
+                    props.webhook.active ? "text-blue-700 bg-blue-100" : "text-blue-200 bg-blue-50"
+                  )}>
+                  {t(`${eventTrigger.toLowerCase()}`)}
+                </span>
+              ))}
+            </span>
           </div>
         </div>
         <div className="flex">
@@ -157,11 +168,28 @@ function WebhookDialogForm(props: {
       }}
       className="space-y-4">
       <input type="hidden" {...form.register("id")} />
+      <fieldset className="space-y-2">
+        <InputGroupBox className="border-0 bg-gray-50">
+          <Controller
+            control={form.control}
+            name="active"
+            render={({ field }) => (
+              <Switch
+                label={field.value ? t("webhook_enabled") : t("webhook_disabled")}
+                defaultChecked={field.value}
+                onCheckedChange={(isChecked) => {
+                  form.setValue("active", isChecked);
+                }}
+              />
+            )}
+          />
+        </InputGroupBox>
+      </fieldset>
       <TextField label={t("subscriber_url")} {...form.register("subscriberUrl")} required type="url" />
 
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
-        <InputGroupBox>
+        <InputGroupBox className="border-0 bg-gray-50">
           {ALL_TRIGGERS.map((key) => (
             <Controller
               key={key}
@@ -183,24 +211,6 @@ function WebhookDialogForm(props: {
               )}
             />
           ))}
-        </InputGroupBox>
-      </fieldset>
-      <fieldset className="space-y-2">
-        <FieldsetLegend>{t("webhook_status")}</FieldsetLegend>
-        <InputGroupBox>
-          <Controller
-            control={form.control}
-            name="active"
-            render={({ field }) => (
-              <Switch
-                label={t("webhook_enabled")}
-                defaultChecked={field.value}
-                onCheckedChange={(isChecked) => {
-                  form.setValue("active", isChecked);
-                }}
-              />
-            )}
-          />
         </InputGroupBox>
       </fieldset>
       <DialogFooter>

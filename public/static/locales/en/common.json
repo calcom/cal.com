@@ -5,6 +5,7 @@
   "delete_webhook": "Delete Webhook",
   "webhook_status": "Webhook Status",
   "webhook_enabled": "Webhook Enabled",
+  "webhook_disabled": "Webhook Disabled",
   "manage_your_webhook": "Manage your webhook",
   "webhook_created_successfully": "Webhook created successfully!",
   "webhook_updated_successfully": "Webhook updated successfully!",
