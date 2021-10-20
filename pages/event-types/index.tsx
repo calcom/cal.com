@@ -40,6 +40,8 @@ import * as RadioArea from "@components/ui/form/radio-area";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
+type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
+type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
 interface CreateEventTypeProps {
   canAddEvents: boolean;
@@ -223,7 +225,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
 };
 
 interface EventTypeListHeadingProps {
-  profile: Profile;
+  profile: EventTypeGroupProfile;
   membershipCount: number;
 }
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => (

@@ -2,7 +2,7 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { i18n } from "next-i18next.config";
-import { ComponentProps, RefObject, useEffect, useRef, useState } from "react";
+import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState } from "react";
 import Select, { OptionTypeBase } from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
@@ -32,6 +32,9 @@ type Props = inferSSRProps<typeof getServerSideProps>;
 const getLocaleOptions = (displayLocale: string | string[]): OptionTypeBase[] => {
   return i18n.locales.map((locale) => ({
     value: locale,
+    // FIXME
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     label: new Intl.DisplayNames(displayLocale, { type: "language" }).of(locale),
   }));
 };
@@ -151,7 +154,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     );
   }, []);
 
-  async function updateProfileHandler(event) {
+  async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const enteredUsername = usernameRef.current.value.toLowerCase();
@@ -186,7 +189,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
           <div className="flex-grow space-y-6">
             <div className="block sm:flex">
               <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
-                <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
+                <UsernameInput ref={usernameRef} defaultValue={props.user.username || undefined} />
               </div>
               <div className="w-full sm:w-1/2 sm:ml-2">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -201,7 +204,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   placeholder={t("your_name")}
                   required
                   className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                  defaultValue={props.user.name}
+                  defaultValue={props.user.name || undefined}
                 />
               </div>
             </div>
@@ -247,7 +250,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
             <div>
               <div className="flex mt-1">
                 <Avatar
-                  displayName={props.user.name}
+                  alt={props.user.name || ""}
                   className="relative w-10 h-10 rounded-full"
                   gravatarFallbackMd5={props.user.emailMd5}
                   imageSrc={imageSrc}
@@ -270,11 +273,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                       window.HTMLInputElement.prototype,
                       "value"
-                    ).set;
-                    nativeInputValueSetter.call(avatarRef.current, newAvatar);
+                    )?.set;
+                    nativeInputValueSetter?.call(avatarRef.current, newAvatar);
                     const ev2 = new Event("input", { bubbles: true });
                     avatarRef.current.dispatchEvent(ev2);
-                    updateProfileHandler(ev2);
+                    updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
                     setImageSrc(newAvatar);
                   }}
                   imageSrc={imageSrc}
@@ -350,7 +353,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="theme-adjust-os"
                     name="theme-adjust-os"
                     type="checkbox"
-                    onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
+                    onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
                     checked={!selectedTheme}
                     className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
                   />

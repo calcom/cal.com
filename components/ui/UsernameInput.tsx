@@ -1,6 +1,10 @@
 import React from "react";
 
-const UsernameInput = React.forwardRef((props, ref) => (
+interface UsernameInputProps extends React.ComponentPropsWithRef<"input"> {
+  label?: string;
+}
+
+const UsernameInput = React.forwardRef<HTMLInputElement, UsernameInputProps>((props, ref) => (
   // todo, check if username is already taken here?
   <div>
     <label htmlFor="username" className="block text-sm font-medium text-gray-700">
