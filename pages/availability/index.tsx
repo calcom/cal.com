@@ -7,16 +7,16 @@ import { trpc } from "@lib/trpc";
 import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
 import Form from "@components/ui/form/Form";
-import Schedule, { TimeRange } from "@components/ui/form/Schedule";
+import Schedule, { TimeRange, DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
 
 type FormValues = {
   schedule: TimeRange[][];
 };
 
-const createSchedule = async (schedule: TimeRange[][]) => {
+const createSchedule = async ({ schedule }: TimeRange[][]) => {
   const res = await fetch(`/api/schedule`, {
     method: "POST",
-    body: JSON.stringify({ data: { ...schedule } }),
+    body: JSON.stringify({ schedule }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -44,15 +44,18 @@ export default function Availability() {
           query={query}
           success={({ data }) => (
             <div className="grid grid-cols-3 gap-2">
-              <Form<FormValues> onSubmit={onSubmit} className="col-span-3 space-y-2 lg:col-span-2">
+              <Form<FormValues>
+                onSubmit={onSubmit}
+                defaultValues={{ schedule: data.schedule || DEFAULT_SCHEDULE }}
+                className="col-span-3 space-y-2 lg:col-span-2">
                 <div className="px-4 py-5 bg-white border border-gray-200 divide-y rounded-sm sm:p-6">
                   <h3 className="mb-4 text-lg font-semibold leading-6 text-gray-900">
                     {t("change_start_end")}
                   </h3>
-                  <Schedule name="schedule" defaultValue={data.schedule} />
+                  <Schedule name="schedule" />
                 </div>
                 <div className="text-right">
-                  <Button>Save</Button>
+                  <Button>{t("save")}</Button>
                 </div>
               </Form>
               <div className="col-span-3 ml-2 lg:col-span-1 min-w-40">

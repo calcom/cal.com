@@ -1,8 +1,9 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import React, { useCallback, useState, useEffect } from "react";
-import { useFormContext, Controller, useFieldArray } from "react-hook-form";
+import React, { useCallback, useState } from "react";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { OnChangeValue } from "react-select";
 
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -38,7 +39,7 @@ const defaultDayRange: TimeRange = {
   end: dayjs("17:00:00", _24_HOUR_TIME_FORMAT, true),
 };
 
-const DEFAULT_SCHEDULE: Schedule = [
+export const DEFAULT_SCHEDULE: Schedule = [
   [],
   [defaultDayRange],
   [defaultDayRange],
@@ -48,132 +49,102 @@ const DEFAULT_SCHEDULE: Schedule = [
   [],
 ];
 
+type Option = {
+  readonly label: string;
+  readonly value: string;
+};
+
 export type TimeRange = {
   start: Dayjs;
   end: Dayjs;
 };
 
-export type FreeBusyTime = TimeRange[];
 export type Schedule = TimeRange[][];
 
 type TimeRangeFieldProps = {
   name: string;
-  defaultValue?: TimeRange;
 };
 
-const TimeRangeField = ({ name, defaultValue }: TimeRangeFieldProps) => {
-  const { control } = useFormContext();
-  const [range, setRange] = useState<TimeRange | null>(defaultValue || null);
+const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
+  // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
+  const [options, setOptions] = useState<Option[]>([]);
+
+  const getOption = (time: Dayjs) => ({
+    value: dayjs(time).format(_24_HOUR_TIME_FORMAT),
+    label: dayjs(time).toDate().toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
+  });
 
   const timeOptions = useCallback((offsetOrLimit: { offset?: Dayjs; limit?: Dayjs } = {}) => {
     const { limit, offset } = offsetOrLimit;
     return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (time) => ({
-        value: time.format(_24_HOUR_TIME_FORMAT),
-        label: time.toDate().toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
-      })
+      getOption
     );
   }, []);
 
-  const handleOnChange = (onChangeCallback: (...event: unknown[]) => void, value: TimeRange) => {
-    setRange(value);
-    onChangeCallback(value);
-  };
-
   return (
-    <div className="flex items-center space-x-2">
+    <>
       <Controller
-        name={name}
-        control={control}
-        defaultValue={range}
-        render={({ field }) => (
-          <>
-            <Select
-              className="w-[5.5rem]"
-              name={`${name}.start`}
-              options={timeOptions({ limit: field.value?.end })}
-              defaultValue={timeOptions().find(
-                (option) => option.value === dayjs(field.value?.start).format(_24_HOUR_TIME_FORMAT)
-              )}
-              onChange={(e) => {
-                if (!e?.value) return;
-                return handleOnChange(field.onChange, {
-                  ...field.value,
-                  start: dayjs(e.value, _24_HOUR_TIME_FORMAT, true),
-                });
-              }}
-            />
-            <span>-</span>
-            <Select
-              className="w-[5.5rem]"
-              name={`${name}.end`}
-              options={timeOptions({ offset: field.value?.start })}
-              defaultValue={timeOptions().find(
-                (option) => option.value === dayjs(field.value?.end).format(_24_HOUR_TIME_FORMAT)
-              )}
-              onChange={(e) => {
-                if (!e?.value) return;
-                return handleOnChange(field.onChange, {
-                  ...field.value,
-                  end: dayjs(e.value, _24_HOUR_TIME_FORMAT, true),
-                });
-              }}
-            />
-          </>
+        name={`${name}.start`}
+        render={({ field: { onChange, value } }) => (
+          <Select
+            className="w-[6rem]"
+            options={options}
+            onFocus={() => setOptions(timeOptions({ offset: value }))}
+            onBlur={() => setOptions([])}
+            defaultValue={getOption(value)}
+            onChange={(option: OnChangeValue<Option, false>) =>
+              option && onChange(dayjs(option.value, _24_HOUR_TIME_FORMAT, true))
+            }
+          />
         )}
       />
-    </div>
+      <span>-</span>
+      <Controller
+        name={`${name}.end`}
+        render={({ field: { onChange, value } }) => (
+          <Select
+            className="w-[6rem]"
+            options={options}
+            onFocus={() => setOptions(timeOptions({ offset: value }))}
+            onBlur={() => setOptions([])}
+            defaultValue={getOption(value)}
+            onChange={(option: OnChangeValue<Option, false>) =>
+              option && onChange(dayjs(option.value, _24_HOUR_TIME_FORMAT, true))
+            }
+          />
+        )}
+      />
+    </>
   );
 };
-
-TimeRangeField.displayName = "TimeRangeField";
 
 type ScheduleBlockProps = {
   day: number;
   weekday: string;
   name: string;
-  dayRanges: TimeRange[];
 };
 
-const ScheduleBlock = ({ name, day, weekday, dayRanges }: ScheduleBlockProps) => {
-  const [lastRange, setLastRange] = useState<TimeRange>();
+const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const { t } = useLocale();
-
-  const handleAppend = () => {
-    const nextRange: TimeRange = {
-      start: lastRange.end,
-      end: lastRange.end.add(1, "hour"),
-    };
-    // Return if next range goes over into "tomorrow"
-    if (nextRange.start.isAfter(lastRange.start.endOf("day"))) {
-      return;
-    }
-    // update last range with nextRange
-    setLastRange(nextRange);
-
-    return append(nextRange);
-  };
-
-  const { register, setValue, control } = useFormContext();
-
-  useEffect(() => {
-    if (dayRanges) {
-      setValue(`${name}.${day}`, dayRanges);
-    }
-  }, [setValue, name, day, dayRanges]);
-
+  const { control } = useFormContext();
   const { fields, append, remove, replace } = useFieldArray({
-    control,
     name: `${name}.${day}`,
+    control,
   });
 
-  // make sure the last range always points to the last range
-  if (fields.length && (!lastRange || !dayjs(fields[fields.length - 1].start).isSame(lastRange.start))) {
-    setLastRange({
-      start: dayjs(fields[fields.length - 1].start),
-      end: dayjs(fields[fields.length - 1].end),
-    });
-  }
+  const handleAppend = () => {
+    // XXX: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
+    const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
+    const nextRange: TimeRange = {
+      start: nextRangeStart,
+      end: nextRangeStart.add(1, "hour"),
+    };
+    // Return if next range goes over into "tomorrow"
+    if (nextRange.end.isAfter(nextRangeStart.endOf("day"))) {
+      return;
+    }
+    return append(nextRange);
+  };
 
   return (
     <fieldset className="flex justify-between py-5">
@@ -190,12 +161,10 @@ const ScheduleBlock = ({ name, day, weekday, dayRanges }: ScheduleBlockProps) =>
       </div>
       <div className="flex-grow">
         {fields.map((field, index) => (
-          <div className="flex justify-between mb-2" key={index}>
-            <TimeRangeField
-              key={field.id}
-              defaultValue={field}
-              {...register(`${name}.${day}.${index}` as const)}
-            />
+          <div key={field.id} className="flex justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <TimeRangeField name={`${name}.${day}.${index}`} />
+            </div>
             <Button
               size="icon"
               color="minimal"
@@ -221,17 +190,12 @@ const ScheduleBlock = ({ name, day, weekday, dayRanges }: ScheduleBlockProps) =>
   );
 };
 
-type ScheduleProps = {
-  name: string;
-  defaultValue?: Schedule;
-};
-
-const Schedule = ({ name, defaultValue = DEFAULT_SCHEDULE }: ScheduleProps) => {
+const Schedule = ({ name }: { name: string }) => {
   const { i18n } = useLocale();
   return (
     <fieldset className="divide-y divide-gray-200">
       {weekdayNames(i18n.language).map((weekday, num) => (
-        <ScheduleBlock key={num} name={name} weekday={weekday} day={num} dayRanges={defaultValue[num]} />
+        <ScheduleBlock key={num} name={name} weekday={weekday} day={num} />
       ))}
     </fieldset>
   );

@@ -459,7 +459,7 @@
     "@emotion/weak-memoize" "^0.2.5"
     hoist-non-react-statics "^3.3.1"
 
-"@emotion/serialize@^1.0.0", "@emotion/serialize@^1.0.2":
+"@emotion/serialize@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@emotion/serialize/-/serialize-1.0.2.tgz#77cb21a0571c9f68eb66087754a65fa97bfcd965"
   dependencies:
@@ -1915,12 +1915,6 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-dom@*":
-  version "17.0.9"
-  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-17.0.9.tgz#441a981da9d7be117042e1a6fd3dac4b30f55add"
-  dependencies:
-    "@types/react" "*"
-
 "@types/react-phone-number-input@^3.0.13":
   version "3.0.13"
   resolved "https://registry.yarnpkg.com/@types/react-phone-number-input/-/react-phone-number-input-3.0.13.tgz#4eb7dcd278dcf9eb2a8d2ce2cb304657cbf1b4e5"
@@ -1928,16 +1922,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-select@^4.0.17":
-  version "4.0.18"
-  resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-4.0.18.tgz#f907f406411afa862217a9d86c54a301367a35c1"
-  dependencies:
-    "@emotion/serialize" "^1.0.0"
-    "@types/react" "*"
-    "@types/react-dom" "*"
-    "@types/react-transition-group" "*"
-
-"@types/react-transition-group@*", "@types/react-transition-group@^4.4.0":
+"@types/react-transition-group@^4.4.0":
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/@types/react-transition-group/-/react-transition-group-4.4.3.tgz#b0994da0a7023d67dbb4a8910a62112bc00d5688"
   dependencies:
@@ -6714,7 +6699,7 @@ prompts@^2.0.1, prompts@^2.4.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@^15.6.0, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   dependencies:
@@ -6922,12 +6907,6 @@ react-i18next@^11.8.13:
     "@babel/runtime" "^7.14.5"
     html-parse-stringify "^3.0.1"
 
-react-input-autosize@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/react-input-autosize/-/react-input-autosize-3.0.0.tgz#6b5898c790d4478d69420b55441fcc31d5c50a85"
-  dependencies:
-    prop-types "^15.5.8"
-
 react-intl@^5.20.7:
   version "5.20.12"
   resolved "https://registry.yarnpkg.com/react-intl/-/react-intl-5.20.12.tgz#1a4969d15c381378cae35912fa2ec7010e27b4f7"
@@ -7023,21 +7002,22 @@ react-router@5.2.1:
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
 
-react-select@^4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/react-select/-/react-select-4.3.1.tgz#389fc07c9bc7cf7d3c377b7a05ea18cd7399cb81"
+react-select@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.0.0.tgz#356c0bc20659445bc00104f3aba7350f544fef72"
   dependencies:
     "@babel/runtime" "^7.12.0"
     "@emotion/cache" "^11.4.0"
     "@emotion/react" "^11.1.1"
+    "@types/react-transition-group" "^4.4.0"
     memoize-one "^5.0.0"
     prop-types "^15.6.0"
-    react-input-autosize "^3.0.0"
     react-transition-group "^4.3.0"
 
-react-select@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.0.0.tgz#356c0bc20659445bc00104f3aba7350f544fef72"
+react-select@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.1.0.tgz#ac384c8e25ba6f03126026192b2bdad0f53fbf50"
+  integrity sha512-SkEBD1AYsSXrIdNj5HBt7+Ehe+jxdiB448J0atJqR6lE3l/GcFlRf4JYB3NlHe/02jrW4AnIQLo1t0IqWrxXOw==
   dependencies:
     "@babel/runtime" "^7.12.0"
     "@emotion/cache" "^11.4.0"

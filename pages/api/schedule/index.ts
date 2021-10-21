@@ -15,11 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  if (!req.body.data.schedule || req.body.data.schedule.length !== 7) {
+  if (!req.body.schedule || req.body.schedule.length !== 7) {
     return res.status(400).json({ message: "Bad Request." });
   }
 
-  const availability = req.body.data.schedule.reduce((availability, times, day) => {
+  const availability = req.body.schedule.reduce((availability, times, day) => {
     const startOfDay = dayjs.utc().startOf("day");
 
     const startAndEndTimesAsMinutes = (time) => ({

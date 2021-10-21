@@ -28,7 +28,7 @@ import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 import Form from "@components/ui/form/Form";
-import Schedule, { TimeRange } from "@components/ui/form/Schedule";
+import Schedule, { TimeRange, DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -43,7 +43,7 @@ type ScheduleFormValues = {
 };
 
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
 
   const refreshData = () => {
@@ -110,7 +110,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const createSchedule = async (schedule: TimeRange[][]) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
-      body: JSON.stringify({ data: { ...schedule } }),
+      body: JSON.stringify({ schedule }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -133,7 +133,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     label: null,
   });
   const currentTime = React.useMemo(() => {
-    return dayjs().tz(selectedTimeZone.value).format("H:mm A");
+    return dayjs()
+      .tz(selectedTimeZone.value)
+      .toDate()
+      .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" });
   }, [selectedTimeZone]);
   /** End TimeZone */
 
@@ -341,6 +344,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       Component: (
         <Form<ScheduleFormValues>
           className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white"
+          defaultValues={{ schedule: DEFAULT_SCHEDULE }}
           onSubmit={async ({ schedule }: ScheduleFormValues) => {
             try {
               setSubmitting(true);
@@ -353,14 +357,14 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               }
             }
           }}>
-          <>
+          <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
               <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
                 {t("continue")}
               </Button>
             </footer>
-          </>
+          </section>
         </Form>
       ),
       hideConfirm: true,
