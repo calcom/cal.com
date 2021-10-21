@@ -52,7 +52,7 @@
     "@trpc/client": "^9.9.1",
     "@trpc/next": "^9.9.1",
     "@trpc/react": "^9.9.1",
-    "@trpc/server": "^9.9.1",
+    "@trpc/server": "^9.10.1",
     "@wojtekmaj/react-daterange-picker": "^3.3.1",
     "accept-language-parser": "^1.5.0",
     "async": "^3.2.1",
