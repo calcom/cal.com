@@ -15,7 +15,7 @@ export default function Security() {
     <Shell heading={t("security")} subtitle={t("manage_account_security")}>
       <SettingsShell>
         <ChangePasswordSection />
-        <TwoFactorAuthSection twoFactorEnabled={user?.twoFactorEnabled} />
+        <TwoFactorAuthSection twoFactorEnabled={user?.twoFactorEnabled || false} />
       </SettingsShell>
     </Shell>
   );

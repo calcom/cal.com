@@ -44,7 +44,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = booking.eventType;
 
   const eventPage =
-    (eventType.team ? "team/" + eventType.team.slug : booking.user.username) + "/" + booking.eventType.slug;
+    (eventType.team
+      ? "team/" + eventType.team.slug
+      : booking.user?.username || "rick") /* This shouldn't happen */ +
+    "/" +
+    booking.eventType.slug;
 
   return {
     redirect: {
