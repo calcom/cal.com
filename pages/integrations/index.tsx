@@ -1,11 +1,23 @@
+<<<<<<< HEAD
 import { Disclosure } from "@headlessui/react";
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
+=======
+import {
+  PencilAltIcon,
+  SwitchHorizontalIcon,
+  TrashIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "@heroicons/react/outline";
+// import { ,  } from "@heroicons/react/solid";
+>>>>>>> c68fd65 (multiple fixes)
 import { WebhookTriggerEvents } from "@prisma/client";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
 import { useState } from "react";
 import { getErrorFromUnknown } from "pages/_error";
-import { Fragment, ReactNode, useState } from "react";
+import React, { Fragment, ReactNode, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useMutation } from "react-query";
 
@@ -53,6 +65,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
 
   return (
     <ListItem className="flex w-full p-4">
+<<<<<<< HEAD
       <div className="flex justify-between w-full">
         <div className="flex flex-col">
           <div className="inline-block space-y-1">
@@ -77,6 +90,21 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
                 </span>
               ))}
             </span>
+=======
+      <div className="flex justify-between w-full my-4">
+        <div className="flex pr-2 border-r border-gray-100">
+          <span className="flex flex-col space-y-2 text-xs">
+            {props.webhook.eventTriggers.map((eventTrigger, ind) => (
+              <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
+                {t(`${eventTrigger.toLowerCase()}`)}
+              </span>
+            ))}
+          </span>
+        </div>
+        <div className="flex w-full">
+          <div className="self-center inline-block ml-3 space-y-1">
+            <span className="flex text-sm text-neutral-700">{props.webhook.subscriberUrl}</span>
+>>>>>>> c68fd65 (multiple fixes)
           </div>
         </div>
         <div className="flex">
@@ -119,6 +147,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
 function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
   const { t } = useLocale();
+  const [open, setOpen] = useState(false);
   const mutation = trpc.useMutation("viewer.webhook.testTrigger", {
     onError(err) {
       showToast(err.message, "error");
@@ -126,37 +155,35 @@ function WebhookTestDisclosure() {
   });
 
   return (
-    <Disclosure>
-      {({ open }) => (
-        <>
-          <Disclosure.Button className="flex w-full">
-            {open ? "Close" : "Open"} Webhook test
-          </Disclosure.Button>
-          <Disclosure.Panel className="space-y-6">
-            We are testing <code>{subscriberUrl}</code>
-            <InputGroupBox>
-              {ALL_TRIGGERS.map((type) => (
-                <div key={type}>
-                  <Button
-                    type="button"
-                    color="minimal"
-                    disabled={mutation.isLoading}
-                    loading={mutation.isLoading && mutation.variables?.type === type}
-                    onClick={() => mutation.mutate({ url: subscriberUrl, type })}>
-                    Trigger {t(type.toLowerCase())}
-                  </Button>
-                </div>
-              ))}
-
-              <hr />
-              <h3>Webhook responses</h3>
-              {!mutation.data && <em>No data yet</em>}
-              {mutation.status === "success" && <pre>{JSON.stringify(mutation.data, null, 4)}</pre>}
-            </InputGroupBox>
-          </Disclosure.Panel>
-        </>
-      )}
-    </Disclosure>
+    <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
+      <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full text-sm"}>
+        Webhook test{" "}
+        {open ? (
+          <ChevronUpIcon className="w-5 h-5 text-gray-700" />
+        ) : (
+          <ChevronDownIcon className="w-5 h-5 text-gray-700" />
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <InputGroupBox className="px-0 space-y-0 border-0">
+          <div className="flex justify-between p-2 bg-gray-50">
+            <h3 className="self-center text-gray-700">Webhook responses</h3>
+            <Button
+              StartIcon={SwitchHorizontalIcon}
+              type="button"
+              color="minimal"
+              disabled={mutation.isLoading}
+              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING" })}>
+              Ping Test
+            </Button>
+          </div>
+          <div className="p-2 text-gray-500 border-8 border-gray-50">
+            {!mutation.data && <em>No data yet</em>}
+            {mutation.status === "success" && <pre>{JSON.stringify(mutation.data, null, 4)}</pre>}
+          </div>
+        </InputGroupBox>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
