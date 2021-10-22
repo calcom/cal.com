@@ -3,14 +3,15 @@ import Link from "next/link";
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
+import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import Shell from "@components/Shell";
 import Button from "@components/ui/Button";
 import Form from "@components/ui/form/Form";
-import Schedule, { TimeRange, DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
+import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
 
 type FormValues = {
-  schedule: TimeRange[][];
+  schedule: ScheduleType;
 };
 
 const createSchedule = async ({ schedule }: FormValues) => {

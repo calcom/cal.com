@@ -18,6 +18,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import Loader from "@components/Loader";
 import { ShellSubHeading } from "@components/Shell";
@@ -28,7 +29,7 @@ import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 import Form from "@components/ui/form/Form";
-import Schedule, { TimeRange, DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
+import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -39,7 +40,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 type ScheduleFormValues = {
-  schedule: TimeRange[][];
+  schedule: ScheduleType;
 };
 
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
