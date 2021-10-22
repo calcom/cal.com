@@ -6,12 +6,11 @@ import { getSession } from "@lib/auth";
 import { CalendarEvent } from "@lib/calendarClient";
 import EventRejectionMail from "@lib/emails/EventRejectionMail";
 import EventManager from "@lib/events/EventManager";
-
-import prisma from "../../../lib/prisma";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const session = await getSession({ req: req });
-  if (!session) {
+  if (!session?.user?.id) {
     return res.status(401).json({ message: "Not authenticated" });
   }
 
@@ -33,6 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  if (!currentUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
   if (req.method == "PATCH") {
     const booking = await prisma.booking.findFirst({
       where: {
@@ -53,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (!booking || booking.userId != currentUser.id) {
+    if (!booking || booking.userId !== currentUser.id) {
       return res.status(404).json({ message: "booking not found" });
     }
     if (booking.confirmed) {

@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { Credential, SelectedCalendar } from "@prisma/client";
 
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
@@ -117,25 +117,23 @@ export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
-  description?: string;
+  description?: string | null;
   team?: {
     name: string;
     members: string[];
   };
-  location?: string;
+  location: string;
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
+  bookingUid?: string;
 }
 
 export interface ConferenceData {
   createRequest: unknown;
 }
-
-export interface IntegrationCalendar {
-  integration: string;
+export interface IntegrationCalendar extends SelectedCalendar {
   primary: boolean;
-  externalId: string;
   name: string;
 }
 
@@ -554,7 +552,12 @@ const calendars = (withCredentials: Credential[]): CalendarApiAdapter[] =>
     })
     .flatMap((item) => (item ? [item as CalendarApiAdapter] : []));
 
-const getBusyCalendarTimes = (withCredentials, dateFrom, dateTo, selectedCalendars) =>
+const getBusyCalendarTimes = (
+  withCredentials: Credential[],
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[]
+) =>
   Promise.all(
     calendars(withCredentials).map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
   ).then((results) => {
