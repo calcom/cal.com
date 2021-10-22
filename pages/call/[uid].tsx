@@ -44,6 +44,20 @@ export default function JoinCall(props, session) {
   useEffect(() => {
     if (!meetingUnavailable && !emptyBooking && session.userid !== props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
+        theme: {
+          colors: {
+            accent: "#FFF",
+            accentText: "#111111",
+            background: "#111111",
+            backgroundAccent: "#111111",
+            baseText: "#FFF",
+            border: "#FFF",
+            mainAreaBg: "#111111",
+            mainAreaBgAccent: "#111111",
+            mainAreaText: "#FFF",
+            supportiveText: "#FFF",
+          },
+        },
         showLeaveButton: true,
         iframeStyle: {
           position: "fixed",
@@ -58,6 +72,20 @@ export default function JoinCall(props, session) {
     }
     if (!meetingUnavailable && !emptyBooking && session.userid === props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
+        theme: {
+          colors: {
+            accent: "#FFF",
+            accentText: "#111111",
+            background: "#111111",
+            backgroundAccent: "#111111",
+            baseText: "#FFF",
+            border: "#FFF",
+            mainAreaBg: "#111111",
+            mainAreaBgAccent: "#111111",
+            mainAreaText: "#FFF",
+            supportiveText: "#FFF",
+          },
+        },
         showLeaveButton: true,
         iframeStyle: {
           position: "fixed",
@@ -85,7 +113,7 @@ export default function JoinCall(props, session) {
       <div style={{ zIndex: 2, position: "relative" }}>
         <Link href="/">
           <img
-            className="hidden sm:inline-block z-10 fixed w-auto h-5"
+            className="fixed z-10 hidden w-auto h-5 sm:inline-block"
             src="https://cal.com/logo-white.svg"
             alt="Cal.com Logo"
             style={{
