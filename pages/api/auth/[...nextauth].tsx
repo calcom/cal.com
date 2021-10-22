@@ -195,7 +195,7 @@ export default NextAuth({
       };
       return calendsoSession;
     },
-    async signIn(user, account) {
+    async signIn(user, account, profile) {
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
@@ -211,6 +211,7 @@ export default NextAuth({
         if (account.provider === "boxyhq") {
           idP = IdentityProvider.SAML;
         }
+        user.verified_email = user.verified_email || profile.verified_email;
 
         if (!user.verified_email) {
           return "/auth/error?error=unverified-email";
