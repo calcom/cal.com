@@ -6,6 +6,7 @@ import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
+import { Schedule } from "@lib/types/schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -350,7 +351,7 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
       const schedule = availabilityQuery.reduce(
-        (schedule, availability) => {
+        (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
             schedule[day].push({
               start: new Date().setUTCHours(

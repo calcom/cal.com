@@ -5,6 +5,7 @@ import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
+import { TimeRange, Schedule as ScheduleType } from "@lib/types/schedule";
 
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
@@ -34,7 +35,7 @@ const defaultDayRange: TimeRange = {
   end: dayjs("1970-01-01T17:00:00").valueOf(),
 };
 
-export const DEFAULT_SCHEDULE: Schedule = [
+export const DEFAULT_SCHEDULE: ScheduleType = [
   [],
   [defaultDayRange],
   [defaultDayRange],
@@ -48,13 +49,6 @@ type Option = {
   readonly label: string;
   readonly value: number;
 };
-
-export type TimeRange = {
-  start: number;
-  end: number;
-};
-
-export type Schedule = TimeRange[][];
 
 type TimeRangeFieldProps = {
   name: string;

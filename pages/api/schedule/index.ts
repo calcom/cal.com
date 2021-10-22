@@ -1,16 +1,18 @@
+import { Availability } from "@prisma/client";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
+import { TimeRange } from "@lib/types/schedule";
 
 dayjs.extend(utc);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
-
-  if (!session) {
+  const userId = session?.user?.id;
+  if (!userId) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
@@ -19,63 +21,69 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "Bad Request." });
   }
 
-  const availability = req.body.schedule.reduce((availability, times, day) => {
-    const startOfDay = dayjs.utc().startOf("day");
+  const availability = req.body.schedule.reduce(
+    (availability: Availability[], times: TimeRange[], day: number) => {
+      const startOfDay = dayjs.utc().startOf("day");
 
-    const startAndEndTimesAsMinutes = (time) => ({
-      ...time,
-      start: -startOfDay.diff(time.start, "minute"),
-      end: -startOfDay.diff(time.end, "minute"),
-    });
+      const startAndEndTimesAsMinutes = (time: TimeRange) => ({
+        ...time,
+        start: -startOfDay.diff(time.start, "minute"),
+        end: -startOfDay.diff(time.end, "minute"),
+      });
 
-    const addNewTime = (time) => ({
-      days: [day],
-      startTime: time.start,
-      endTime: time.end,
-    });
-    if (!availability.length) {
-      return times.map(startAndEndTimesAsMinutes).map(addNewTime);
-    }
-    const filteredTimes = times.map(startAndEndTimesAsMinutes).filter((time) => {
-      let idx;
-      if (
-        (idx = availability.findIndex(
-          (available) => available.startTime === time.start && available.endTime === time.end
-        )) !== -1
-      ) {
-        availability[idx].days.push(day);
-        return false;
+      const addNewTime = (time: TimeRange) =>
+        ({
+          days: [day],
+          startTime: time.start,
+          endTime: time.end,
+        } as Availability);
+
+      if (!availability.length) {
+        return times.map(startAndEndTimesAsMinutes).map(addNewTime);
       }
-      return true;
-    });
-    filteredTimes.forEach((time) => {
-      availability.push(addNewTime(time));
-    });
-    return availability;
-  }, []);
+      const filteredTimes = times.map(startAndEndTimesAsMinutes).filter((time) => {
+        let idx;
+        if (
+          (idx = availability.findIndex(
+            (schedule) => schedule.startTime === time.start && schedule.endTime === time.end
+          )) !== -1
+        ) {
+          availability[idx].days.push(day);
+          return false;
+        }
+        return true;
+      });
+      filteredTimes.forEach((time) => {
+        availability.push(addNewTime(time));
+      });
+      return availability;
+    },
+    [] as Availability[]
+  );
 
   if (req.method === "POST") {
     try {
       await prisma.availability.deleteMany({
         where: {
-          userId: session.user.id,
+          userId,
         },
       });
       await Promise.all(
-        availability.map((schedule) =>
+        availability.map((schedule: Availability) =>
           prisma.availability.create({
             data: {
-              ...schedule,
+              days: schedule.days,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
               user: {
                 connect: {
-                  id: session.user.id,
+                  id: userId,
                 },
               },
             },
           })
         )
       );
-
       return res.status(200).json({
         message: "created",
       });
