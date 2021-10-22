@@ -11,8 +11,8 @@ generator client {
 }
 
 enum SchedulingType {
-  ROUND_ROBIN @map("roundRobin")
-  COLLECTIVE  @map("collective")
+  ROUND_ROBIN  @map("roundRobin")
+  COLLECTIVE   @map("collective")
 }
 
 model EventType {
@@ -25,14 +25,14 @@ model EventType {
   hidden                  Boolean                @default(false)
   users                   User[]                 @relation("user_eventtype")
   userId                  Int?
-  team                    Team?                  @relation(fields: [teamId], references: [id])
+  team                    Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              String                @default("unlimited") // unlimited | rolling | range
+  periodType              String                 @default("unlimited") // unlimited | rolling | range
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
@@ -44,6 +44,7 @@ model EventType {
   Schedule                Schedule[]
   price                   Int                    @default(0)
   currency                String                 @default("usd")
+
   @@unique([userId, slug])
 }
 
@@ -51,7 +52,7 @@ model Credential {
   id     Int    @id @default(autoincrement())
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId Int?
 }
 
@@ -85,7 +86,7 @@ model User {
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean            @default(false)
-  locale String?
+  locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
 
@@ -97,14 +98,14 @@ model User {
 }
 
 model Team {
-  id            Int          @id @default(autoincrement())
-  name          String?
-  slug          String?      @unique
-  logo          String?
-  bio           String?
-  hideBranding  Boolean      @default(false)
-  members       Membership[]
-  eventTypes    EventType[]
+  id           Int          @id @default(autoincrement())
+  name         String?
+  slug         String?      @unique
+  logo         String?
+  bio          String?
+  hideBranding Boolean      @default(false)
+  members      Membership[]
+  eventTypes   EventType[]
 }
 
 enum MembershipRole {
@@ -117,8 +118,8 @@ model Membership {
   userId   Int
   accepted Boolean        @default(false)
   role     MembershipRole
-  team     Team           @relation(fields: [teamId], references: [id])
-  user     User           @relation(fields: [userId], references: [id])
+  team     Team           @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([userId, teamId])
 }
@@ -141,7 +142,7 @@ model BookingReference {
   meetingId       String?
   meetingPassword String?
   meetingUrl      String?
-  booking         Booking? @relation(fields: [bookingId], references: [id])
+  booking         Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   bookingId       Int?
 }
 
@@ -150,32 +151,32 @@ model Attendee {
   email     String
   name      String
   timeZone  String
-  booking   Booking? @relation(fields: [bookingId], references: [id])
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   bookingId Int?
 }
 
 enum BookingStatus {
-  CANCELLED @map("cancelled")
-  ACCEPTED  @map("accepted")
-  REJECTED  @map("rejected")
-  PENDING   @map("pending")
+  CANCELLED  @map("cancelled")
+  ACCEPTED   @map("accepted")
+  REJECTED   @map("rejected")
+  PENDING    @map("pending")
 }
 
 model DailyEventReference {
-  id         Int         @id @default(autoincrement())
-  dailyurl   String      @default("dailycallurl")
-  dailytoken String      @default("dailytoken")
-  booking    Booking?    @relation(fields: [bookingId], references: [id])
-  bookingId  Int?
+  id         Int      @id @default(autoincrement())
+  dailyurl   String   @default("dailycallurl")
+  dailytoken String   @default("dailytoken")
+  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  bookingId  Int?     @unique
 }
 
 model Booking {
   id          Int                @id @default(autoincrement())
   uid         String             @unique
-  user        User?              @relation(fields: [userId], references: [id])
+  user        User?              @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId      Int?
   references  BookingReference[]
-  eventType   EventType?         @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType?         @relation(fields: [eventTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   eventTypeId Int?
 
   title       String
@@ -186,22 +187,22 @@ model Booking {
   attendees Attendee[]
   location  String?
 
-  dailyRef  DailyEventReference?
+  dailyRef DailyEventReference?
 
-  createdAt DateTime  @default(now())
+  createdAt DateTime      @default(now())
   updatedAt DateTime?
-  confirmed Boolean   @default(true)
-  rejected  Boolean   @default(false)
+  confirmed Boolean       @default(true)
+  rejected  Boolean       @default(false)
   status    BookingStatus @default(ACCEPTED)
-  paid      Boolean @default(false)
+  paid      Boolean       @default(false)
   payment   Payment[]
 }
 
 model Schedule {
   id            Int        @id @default(autoincrement())
-  user          User?      @relation(fields: [userId], references: [id])
+  user          User?      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId        Int?
-  eventType     EventType? @relation(fields: [eventTypeId], references: [id])
+  eventType     EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   eventTypeId   Int?
   title         String?
   freeBusyTimes Json?
@@ -210,9 +211,9 @@ model Schedule {
 model Availability {
   id          Int        @id @default(autoincrement())
   label       String?
-  user        User?      @relation(fields: [userId], references: [id])
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId      Int?
-  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   eventTypeId Int?
   days        Int[]
   startTime   Int
@@ -221,7 +222,7 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user        User   @relation(fields: [userId], references: [id])
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId      Int
   integration String
   externalId  String
@@ -239,7 +240,7 @@ enum EventTypeCustomInputType {
 model EventTypeCustomInput {
   id          Int                      @id @default(autoincrement())
   eventTypeId Int
-  eventType   EventType                @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   label       String
   type        EventTypeCustomInputType
   required    Boolean
@@ -271,18 +272,18 @@ enum PaymentType {
 }
 
 model Payment {
-  id             Int      @id @default(autoincrement())
-  uid            String   @unique
-  type           PaymentType
-  bookingId      Int
-  booking        Booking?  @relation(fields: [bookingId], references: [id])
-  amount         Int
-  fee            Int
-  currency       String
-  success        Boolean
-  refunded       Boolean
-  data           Json
-  externalId     String   @unique
+  id         Int         @id @default(autoincrement())
+  uid        String      @unique
+  type       PaymentType
+  bookingId  Int
+  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: Cascade)
+  amount     Int
+  fee        Int
+  currency   String
+  success    Boolean
+  refunded   Boolean
+  data       Json
+  externalId String      @unique
 }
 
 enum WebhookTriggerEvents {
@@ -292,10 +293,10 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String      @unique @id
+  id            String                 @id @unique
   userId        Int
   subscriberUrl String
-  createdAt     DateTime  @default(now())
-  active        Boolean   @default(true)
+  createdAt     DateTime               @default(now())
+  active        Boolean                @default(true)
   eventTriggers WebhookTriggerEvents[]
 }
