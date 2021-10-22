@@ -64,12 +64,6 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
     ignoreBuildErrors: true,
   },
   webpack: (config) => {
-
-    config.watchOptions = {
-      ...config.watchOptions,
-      ignored: "**/node_modules",
-    };
-
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
