@@ -1,4 +1,3 @@
-import { WebhookTriggerEvents } from "@prisma/client";
 import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
 
@@ -12,13 +11,26 @@ export const webhookRouter = createProtectedRouter().mutation("testTrigger", {
   async resolve({ input }) {
     const { url, type } = input;
 
-    const responseBodyMocks: Record<WebhookTriggerEvents, unknown> = {
-      BOOKING_CANCELLED: {},
-      BOOKING_CREATED: {},
-      BOOKING_RESCHEDULED: {},
+    const responseBodyMocks: Record<"PING", unknown> = {
+      PING: {
+        triggerEvent: "PING",
+        createdAt: new Date().toISOString(),
+        payload: {
+          type: "Test",
+          title: "Test trigger event",
+          description: "",
+          startTime: new Date().toISOString(),
+          endTime: new Date().toISOString(),
+          organizer: {
+            name: "Cal",
+            email: "",
+            timeZone: "Europe/London",
+          },
+        },
+      },
     };
 
-    const body = responseBodyMocks[type as WebhookTriggerEvents];
+    const body = responseBodyMocks[type as "PING"];
     if (!body) {
       throw new Error(`Unknown type '${type}'`);
     }
