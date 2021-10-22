@@ -1,6 +1,8 @@
 import { TFunction } from "next-i18next";
 import nodemailer from "nodemailer";
 
+import { getErrorFromUnknown } from "@lib/errors";
+
 import { serverConfig } from "../serverConfig";
 
 export type Invitation = {
@@ -40,10 +42,12 @@ const sendEmail = (invitation: Invitation, provider: EmailProvider): Promise<voi
         html: invitationHtml,
         text: text(invitationHtml),
       },
-      (error) => {
-        if (error) {
-          console.error("SEND_INVITATION_NOTIFICATION_ERROR", invitation.toEmail, error);
-          return reject(new Error(error.message));
+      (_err) => {
+        if (_err) {
+          const err = getErrorFromUnknown(_err);
+          console.error("SEND_INVITATION_NOTIFICATION_ERROR", invitation.toEmail, err);
+          reject(err);
+          return;
         }
         return resolve();
       }

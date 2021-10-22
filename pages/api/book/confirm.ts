@@ -6,12 +6,15 @@ import { getSession } from "@lib/auth";
 import { CalendarEvent } from "@lib/calendarClient";
 import EventRejectionMail from "@lib/emails/EventRejectionMail";
 import EventManager from "@lib/events/EventManager";
+import prisma from "@lib/prisma";
 
-import prisma from "../../../lib/prisma";
+import { getTranslation } from "@server/lib/i18n";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  const t = await getTranslation(req.body.language ?? "en", "common");
+
   const session = await getSession({ req: req });
-  if (!session) {
+  if (!session?.user?.id) {
     return res.status(401).json({ message: "Not authenticated" });
   }
 
@@ -32,6 +35,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: true,
     },
   });
+
+  if (!currentUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
   if (req.method == "PATCH") {
     const booking = await prisma.booking.findFirst({
@@ -66,14 +73,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       description: booking.description,
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
-      organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
+      organizer: { email: currentUser.email, name: currentUser.name!, timeZone: currentUser.timeZone },
       attendees: booking.attendees,
       location: booking.location,
+      uid: booking.uid,
+      language: t,
     };
 
     if (req.body.confirmed) {
       const eventManager = new EventManager(currentUser.credentials);
-      const scheduleResult = await eventManager.create(evt, booking.uid);
+      const scheduleResult = await eventManager.create(evt);
 
       await prisma.booking.update({
         where: {
@@ -99,8 +108,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           rejected: true,
         },
       });
-      const attendeeMail = new EventRejectionMail(evt, booking.uid);
+      const attendeeMail = new EventRejectionMail(evt);
       await attendeeMail.sendEmail();
+
       res.status(204).json({ message: "ok" });
     }
   }

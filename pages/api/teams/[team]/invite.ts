@@ -2,12 +2,13 @@ import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
-import { getT } from "@lib/core/i18n/i18n.utils";
 import { createInvitationEmail } from "@lib/emails/invitation";
 import prisma from "@lib/prisma";
 
+import { getTranslation } from "@server/lib/i18n";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const t = await getT(req.body.language ?? "en", "common");
+  const t = await getTranslation(req.body.language ?? "en", "common");
 
   if (req.method !== "POST") {
     return res.status(400).json({ message: "Bad request" });

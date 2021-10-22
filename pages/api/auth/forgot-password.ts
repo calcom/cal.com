@@ -4,16 +4,17 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { getT } from "@lib/core/i18n/i18n.utils";
 import sendEmail from "@lib/emails/sendMail";
 import { buildForgotPasswordMessage } from "@lib/forgot-password/messaging/forgot-password";
 import prisma from "@lib/prisma";
+
+import { getTranslation } from "@server/lib/i18n";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const t = await getT(req.body.language ?? "en", "common");
+  const t = await getTranslation(req.body.language ?? "en", "common");
 
   if (req.method !== "POST") {
     return res.status(405).json({ message: "" });

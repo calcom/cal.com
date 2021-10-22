@@ -1,7 +1,8 @@
 import { expect, it } from "@jest/globals";
 
-import { getT } from "@lib/core/i18n/i18n.utils";
 import { html, text, Invitation } from "@lib/emails/invitation";
+
+import { getTranslation } from "@server/lib/i18n";
 
 it("email text rendering should strip tags and add new lines", () => {
   const result = text("<p>hello world</p><br /><div>welcome to the brave <span>new</span> world");
@@ -9,7 +10,7 @@ it("email text rendering should strip tags and add new lines", () => {
 });
 
 it("email html should render invite email", async () => {
-  const t = await getT("en", "common");
+  const t = await getTranslation("en", "common");
   const invitation = {
     language: t,
     from: "Huxley",

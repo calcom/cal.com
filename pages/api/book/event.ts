@@ -6,7 +6,6 @@ import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getErrorFromUnknown } from "pages/_error";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -14,6 +13,7 @@ import { handlePayment } from "@ee/lib/stripe/server";
 
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
+import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { CreateUpdateResult, EventResult, PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
@@ -22,6 +22,8 @@ import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
+
+import { getTranslation } from "@server/lib/i18n";
 
 export interface DailyReturnType {
   name: string;
@@ -126,6 +128,7 @@ function isOutOfBounds(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
+  const t = await getTranslation(reqBody.language ?? "en", "common");
 
   log.debug(`Booking eventType ${eventTypeId} started`);
 
@@ -273,6 +276,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
+    language: t,
+    uid,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -425,7 +430,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateResults: CreateUpdateResult = await eventManager.update(evt, rescheduleUid);
+    const eventManagerCalendarEvent = { ...evt, uid: rescheduleUid };
+    const updateResults: CreateUpdateResult = await eventManager.update(eventManagerCalendarEvent);
 
     results = updateResults.results;
     referencesToCreate = updateResults.referencesToCreate;
@@ -440,7 +446,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } else if (!eventType.requiresConfirmation && !eventType.price) {
     // Use EventManager to conditionally use all needed integrations.
-    const createResults: CreateUpdateResult = await eventManager.create(evt, uid);
+    const createResults: CreateUpdateResult = await eventManager.create(evt);
 
     results = createResults.results;
     referencesToCreate = createResults.referencesToCreate;
@@ -496,7 +502,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await new EventOrganizerRequestMail(evt, uid).sendEmail();
+    await new EventOrganizerRequestMail({ ...evt, uid }).sendEmail();
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {
