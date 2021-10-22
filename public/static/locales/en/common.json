@@ -516,6 +516,7 @@
   "settings": "Settings",
   "google_account": "Your account was created using Google.",
   "signin_with_google": "Sign in with Google",
+  "signin_with_saml": "Sign in with SAML",
   "next_step": "Skip step",
   "prev_step": "Prev step",
   "installed": "Installed",

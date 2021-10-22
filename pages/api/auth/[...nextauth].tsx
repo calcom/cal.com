@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Providers, { AppProviders } from "next-auth/providers";
 import { authenticator } from "otplib";
 
-import { ErrorCode, isGoogleLoginEnabled, Session, verifyPassword } from "@lib/auth";
+import { ErrorCode, isGoogleLoginEnabled, isSAMLLoginEnabled, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
@@ -89,6 +89,29 @@ if (isGoogleLoginEnabled) {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     })
   );
+}
+
+if (isSAMLLoginEnabled) {
+  providers.push({
+    id: "boxyhq",
+    name: "BoxyHQ",
+    type: "oauth",
+    version: "2.0",
+    params: {
+      grant_type: "authorization_code",
+    },
+    accessTokenUrl: `${process.env.SAML_LOGIN_URL}/oauth/token`,
+    authorizationUrl: `${process.env.SAML_LOGIN_URL}/oauth/authorize?response_type=code&provider=saml`,
+    profileUrl: `${process.env.SAML_LOGIN_URL}/oauth/userinfo`,
+    profile: (profile) => {
+      return {
+        ...profile,
+        name: `${profile.firstName} ${profile.lastName}`,
+      };
+    },
+    clientId: "tenant=boxyhq.com&product=demo",
+    clientSecret: "dummy",
+  });
 }
 
 export default NextAuth({

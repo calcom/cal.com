@@ -66,6 +66,7 @@ enum UserPlan {
 enum IdentityProvider {
   CAL
   GOOGLE
+  SAML
 }
 
 model User {

@@ -2,7 +2,7 @@ import { signIn } from "next-auth/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { getSession, isGoogleLoginEnabled } from "@lib/auth";
+import { getSession, isGoogleLoginEnabled, isSAMLLoginEnabled } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 
@@ -136,6 +136,13 @@ export default function Signup(props) {
               {t("signin_with_google")}
             </button>
           )}
+          {props.isSAMLLoginEnabled && (
+            <button
+              onClick={async () => await signIn("boxyhq")}
+              className="w-full mt-6 flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              {t("signin_with_saml")}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -187,5 +194,5 @@ export async function getServerSideProps(ctx) {
     };
   }
 
-  return { props: { isGoogleLoginEnabled, email: verificationRequest.identifier } };
+  return { props: { isGoogleLoginEnabled, isSAMLLoginEnabled, email: verificationRequest.identifier } };
 }

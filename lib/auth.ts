@@ -46,6 +46,9 @@ export enum ErrorCode {
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
   [IdentityProvider.CAL]: "Cal",
   [IdentityProvider.GOOGLE]: "Google",
+  [IdentityProvider.SAML]: "SAML",
 };
 
 export const isGoogleLoginEnabled = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+
+export const isSAMLLoginEnabled = process.env.SAML_LOGIN_URL;
