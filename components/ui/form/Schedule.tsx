@@ -1,9 +1,7 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import dayjs, { Dayjs } from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import dayjs, { Dayjs, ConfigType } from "dayjs";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import { OnChangeValue } from "react-select";
 
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -11,9 +9,6 @@ import { useLocale } from "@lib/hooks/useLocale";
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
 
-dayjs.extend(customParseFormat);
-
-export const _24_HOUR_TIME_FORMAT = `HH:mm:ss`;
 /** Begin Time Increments For Select */
 const increment = 15;
 /**
@@ -35,8 +30,8 @@ const TIMES = (() => {
 /** End Time Increments For Select */
 
 const defaultDayRange: TimeRange = {
-  start: dayjs("09:00:00", _24_HOUR_TIME_FORMAT, true),
-  end: dayjs("17:00:00", _24_HOUR_TIME_FORMAT, true),
+  start: dayjs("1970-01-01T09:00:00").valueOf(),
+  end: dayjs("1970-01-01T17:00:00").valueOf(),
 };
 
 export const DEFAULT_SCHEDULE: Schedule = [
@@ -51,12 +46,12 @@ export const DEFAULT_SCHEDULE: Schedule = [
 
 type Option = {
   readonly label: string;
-  readonly value: string;
+  readonly value: number;
 };
 
 export type TimeRange = {
-  start: Dayjs;
-  end: Dayjs;
+  start: number;
+  end: number;
 };
 
 export type Schedule = TimeRange[][];
@@ -69,12 +64,12 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
 
-  const getOption = (time: Dayjs) => ({
-    value: dayjs(time).format(_24_HOUR_TIME_FORMAT),
+  const getOption = (time: ConfigType) => ({
+    value: dayjs(time).valueOf(),
     label: dayjs(time).toDate().toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
   });
 
-  const timeOptions = useCallback((offsetOrLimit: { offset?: Dayjs; limit?: Dayjs } = {}) => {
+  const timeOptions = useCallback((offsetOrLimit: { offset?: ConfigType; limit?: ConfigType } = {}) => {
     const { limit, offset } = offsetOrLimit;
     return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
       getOption
@@ -92,9 +87,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
             onFocus={() => setOptions(timeOptions({ offset: value }))}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={(option: OnChangeValue<Option, false>) =>
-              option && onChange(dayjs(option.value, _24_HOUR_TIME_FORMAT, true))
-            }
+            onChange={onChange}
           />
         )}
       />
@@ -108,9 +101,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
             onFocus={() => setOptions(timeOptions({ offset: value }))}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={(option: OnChangeValue<Option, false>) =>
-              option && onChange(dayjs(option.value, _24_HOUR_TIME_FORMAT, true))
-            }
+            onChange={onChange}
           />
         )}
       />
@@ -136,11 +127,11 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
     // XXX: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
     const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
     const nextRange: TimeRange = {
-      start: nextRangeStart,
-      end: nextRangeStart.add(1, "hour"),
+      start: nextRangeStart.valueOf(),
+      end: nextRangeStart.add(1, "hour").valueOf(),
     };
     // Return if next range goes over into "tomorrow"
-    if (nextRange.end.isAfter(nextRangeStart.endOf("day"))) {
+    if (nextRangeStart.add(1, "hour").isAfter(nextRangeStart.endOf("day"))) {
       return;
     }
     return append(nextRange);

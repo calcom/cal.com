@@ -107,7 +107,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return responseData.data;
   };
 
-  const createSchedule = async (schedule: TimeRange[][]) => {
+  const createSchedule = async ({ schedule }: ScheduleFormValues) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
       body: JSON.stringify({ schedule }),
@@ -130,7 +130,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** TimeZone */
   const [selectedTimeZone, setSelectedTimeZone] = useState({
     value: props.user.timeZone ?? dayjs.tz.guess(),
-    label: null,
+    label: "",
   });
   const currentTime = React.useMemo(() => {
     return dayjs()
@@ -345,10 +345,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         <Form<ScheduleFormValues>
           className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white"
           defaultValues={{ schedule: DEFAULT_SCHEDULE }}
-          onSubmit={async ({ schedule }: ScheduleFormValues) => {
+          onSubmit={async (data: ScheduleFormValues) => {
             try {
               setSubmitting(true);
-              await createSchedule(schedule);
+              await createSchedule({ ...data });
               debouncedHandleConfirmStep();
               setSubmitting(false);
             } catch (error) {

@@ -13,7 +13,7 @@ type FormValues = {
   schedule: TimeRange[][];
 };
 
-const createSchedule = async ({ schedule }: TimeRange[][]) => {
+const createSchedule = async ({ schedule }: FormValues) => {
   const res = await fetch(`/api/schedule`, {
     method: "POST",
     body: JSON.stringify({ schedule }),
@@ -31,9 +31,9 @@ const createSchedule = async ({ schedule }: TimeRange[][]) => {
 
 export default function Availability() {
   const { t } = useLocale();
-  const onSubmit = async ({ schedule }: FormValues) =>
+  const onSubmit = async (data: FormValues) =>
     await createSchedule({
-      schedule,
+      ...data,
     });
 
   const query = trpc.useQuery(["viewer.availability"]);
