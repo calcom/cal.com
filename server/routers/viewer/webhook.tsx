@@ -46,11 +46,12 @@ export const webhookRouter = createProtectedRouter().mutation("testTrigger", {
       const text = await res.text();
       return {
         status: res.status,
-        text,
+        message: text,
       };
     } catch (_err) {
       const err = getErrorFromUnknown(_err);
       return {
+        status: 500,
         message: err.message,
       };
     }

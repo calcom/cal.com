@@ -155,7 +155,18 @@ function WebhookTestDisclosure() {
           </div>
           <div className="p-2 text-gray-500 border-8 border-gray-50">
             {!mutation.data && <em>No data yet</em>}
-            {mutation.status === "success" && <pre>{JSON.stringify(mutation.data, null, 4)}</pre>}
+            {mutation.status === "success" && (
+              <>
+                <div
+                  className={classNames(
+                    "px-2 py-1 w-max text-xs ml-auto",
+                    mutation.data.status === 200 ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
+                  )}>
+                  {mutation.data.status === 200 ? "Success" : "Failed"}
+                </div>
+                <pre className="overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</pre>
+              </>
+            )}
           </div>
         </InputGroupBox>
       </CollapsibleContent>
