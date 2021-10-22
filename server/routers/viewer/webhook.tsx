@@ -1,5 +1,6 @@
-import { getErrorFromUnknown } from "pages/_error";
 import { z } from "zod";
+
+import { getErrorFromUnknown } from "@lib/errors";
 
 import { createProtectedRouter } from "@server/createRouter";
 
