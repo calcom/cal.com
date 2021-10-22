@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import { Disclosure } from "@headlessui/react";
-import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
-import { ClipboardIcon } from "@heroicons/react/solid";
-=======
 import {
   PencilAltIcon,
   SwitchHorizontalIcon,
@@ -10,14 +5,11 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
 } from "@heroicons/react/outline";
-// import { ,  } from "@heroicons/react/solid";
->>>>>>> c68fd65 (multiple fixes)
+import { ClipboardIcon } from "@heroicons/react/solid";
 import { WebhookTriggerEvents } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import { useState } from "react";
-import { getErrorFromUnknown } from "pages/_error";
-import React, { Fragment, ReactNode, useState } from "react";
+import React, { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useMutation } from "react-query";
 
@@ -65,7 +57,6 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
 
   return (
     <ListItem className="flex w-full p-4">
-<<<<<<< HEAD
       <div className="flex justify-between w-full">
         <div className="flex flex-col">
           <div className="inline-block space-y-1">
@@ -79,7 +70,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
           </div>
           <div className="flex mt-2">
             <span className="flex space-x-2 text-xs">
-              {props.webhook.eventTriggers.map((eventTrigger, ind) => (
+              {props.webhook.eventTriggers.map((eventTrigger: string, ind: number) => (
                 <span
                   key={ind}
                   className={classNames(
@@ -90,21 +81,6 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
                 </span>
               ))}
             </span>
-=======
-      <div className="flex justify-between w-full my-4">
-        <div className="flex pr-2 border-r border-gray-100">
-          <span className="flex flex-col space-y-2 text-xs">
-            {props.webhook.eventTriggers.map((eventTrigger, ind) => (
-              <span key={ind} className="px-1 text-xs text-blue-700 rounded-md w-max bg-blue-50">
-                {t(`${eventTrigger.toLowerCase()}`)}
-              </span>
-            ))}
-          </span>
-        </div>
-        <div className="flex w-full">
-          <div className="self-center inline-block ml-3 space-y-1">
-            <span className="flex text-sm text-neutral-700">{props.webhook.subscriberUrl}</span>
->>>>>>> c68fd65 (multiple fixes)
           </div>
         </div>
         <div className="flex">
