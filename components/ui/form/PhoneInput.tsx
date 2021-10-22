@@ -1,10 +1,10 @@
 import React from "react";
-import { default as BasePhoneInput } from "react-phone-number-input";
+import { default as BasePhoneInput, PhoneInputProps } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 import classNames from "@lib/classNames";
 
-export const PhoneInput = (props: any /* FIXME */) => (
+export const PhoneInput = (props: PhoneInputProps) => (
   <BasePhoneInput
     {...props}
     className={classNames(

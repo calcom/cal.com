@@ -28,7 +28,9 @@
       "files": ["playwright/**/*.{js,jsx,tsx,ts}"],
       "rules": {
         "no-undef": "off",
-        "@typescript-eslint/no-non-null-assertion": "off"
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-implicit-any": "off"
       }
     }
   ],

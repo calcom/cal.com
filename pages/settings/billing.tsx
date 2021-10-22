@@ -1,11 +1,6 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
-import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getSession } from "@lib/auth";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
 
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
@@ -54,37 +49,4 @@ export default function Billing() {
       </SettingsShell>
     </Shell>
   );
-}
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getSession(context);
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
-
-  if (!session) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      timeZone: true,
-      weekStart: true,
-    },
-  });
-
-  return {
-    props: {
-      session,
-      user,
-      ...(await serverSideTranslations(locale, ["common"])),
-    },
-  };
 }

@@ -1,15 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import * as trpc from "@trpc/server";
-import { Maybe } from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
-import { NextApiRequest } from "next";
+import { GetServerSidePropsContext, NextApiRequest } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession, Session } from "@lib/auth";
 import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 
-async function getUserFromSession({ session, req }: { session: Maybe<Session>; req: NextApiRequest }) {
+import * as trpc from "@trpc/server";
+import { Maybe } from "@trpc/server";
+import * as trpcNext from "@trpc/server/adapters/next";
+
+type CreateContextOptions = trpcNext.CreateNextContextOptions | GetServerSidePropsContext;
+
+async function getUserFromSession({
+  session,
+  req,
+}: {
+  session: Maybe<Session>;
+  req: CreateContextOptions["req"];
+}) {
   if (!session?.user?.id) {
     return null;
   }
@@ -32,6 +42,7 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
       createdDate: true,
       hideBranding: true,
       avatar: true,
+      twoFactorEnabled: true,
       credentials: {
         select: {
           id: true,
@@ -77,13 +88,15 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: trpcNext.CreateNextContextOptions) => {
+export const createContext = async ({ req, res }: CreateContextOptions) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
+  const i18n = await serverSideTranslations(locale, ["common"]);
   return {
+    i18n,
     prisma,
     session,
     user,

@@ -11,13 +11,14 @@ export function createRouter() {
 
 export function createProtectedRouter() {
   return createRouter().middleware(({ ctx, next }) => {
-    if (!ctx.user) {
+    if (!ctx.user || !ctx.session) {
       throw new trpc.TRPCError({ code: "UNAUTHORIZED" });
     }
     return next({
       ctx: {
         ...ctx,
-        // infers that `user` is non-nullable to downstream procedures
+        // infers that `user` and `session` are non-nullable to downstream procedures
+        session: ctx.session,
         user: ctx.user,
       },
     });

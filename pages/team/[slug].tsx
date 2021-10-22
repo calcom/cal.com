@@ -1,11 +1,9 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React from "react";
 
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -102,7 +100,6 @@ function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -165,9 +162,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      localeProp: locale,
       team,
-      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

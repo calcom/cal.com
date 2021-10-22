@@ -15,10 +15,10 @@ export function Alert(props: AlertProps) {
   return (
     <div
       className={classNames(
-        "rounded-md p-4",
+        "rounded-sm p-2",
         props.className,
         severity === "error" && "bg-red-50 text-red-800",
-        severity === "warning" && "bg-yellow-50 text-yellow-800",
+        severity === "warning" && "bg-yellow-50 text-yellow-700",
         severity === "success" && "bg-gray-900 text-white"
       )}>
       <div className="flex">

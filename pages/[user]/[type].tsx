@@ -1,13 +1,13 @@
 import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { getOrSetUserLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -16,7 +16,7 @@ export default function Type(props: AvailabilityPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const locale = await getOrSetUserLocaleFromHeaders(context.req);
+  const ssr = await ssrInit(context);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const userParam = asStringOrNull(context.query.user);
@@ -178,7 +178,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      localeProp: locale,
       profile: {
         name: user.name,
         image: user.avatar,
@@ -189,7 +188,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
-      ...(await serverSideTranslations(locale, ["common"])),
+      trpcState: ssr.dehydrate(),
     },
   };
 };

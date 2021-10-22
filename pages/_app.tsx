@@ -1,34 +1,26 @@
-import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
-import { loggerLink } from "@trpc/client/links/loggerLink";
-import { withTRPC } from "@trpc/next";
-import type { TRPCClientErrorLike } from "@trpc/react";
-import { Maybe } from "@trpc/server";
-import { appWithTranslation } from "next-i18next";
 import { DefaultSeo } from "next-seo";
-import type { AppProps as NextAppProps } from "next/app";
 import superjson from "superjson";
 
-import AppProviders from "@lib/app-providers";
+import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 import type { AppRouter } from "@server/routers/_app";
+import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
+import { loggerLink } from "@trpc/client/links/loggerLink";
+import { withTRPC } from "@trpc/next";
+import type { TRPCClientErrorLike } from "@trpc/react";
+import { Maybe } from "@trpc/server";
 
 import "../styles/globals.css";
-
-// Workaround for https://github.com/vercel/next.js/issues/8592
-export type AppProps = NextAppProps & {
-  /** Will be defined only is there was an error */
-  err?: Error;
-};
 
 function MyApp(props: AppProps) {
   const { Component, pageProps, err } = props;
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
-      <I18nLanguageHandler localeProp={pageProps.localeProp} />
+      <I18nLanguageHandler />
       <Component {...pageProps} err={err} />
     </AppProviders>
   );
@@ -92,4 +84,4 @@ export default withTRPC<AppRouter>({
    * @link https://trpc.io/docs/ssr
    */
   ssr: false,
-})(appWithTranslation(MyApp));
+})(MyApp);
