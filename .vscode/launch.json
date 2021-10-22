@@ -5,16 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "command": "yarn dev",
-            "name": "Run yarn dev",
-            "request": "launch",
-            "type": "node-terminal"
-        },
-        {
             "type": "pwa-chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "http://cal.alexvanandel.com",
+            "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}"
         }
     ]
