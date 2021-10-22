@@ -260,24 +260,6 @@ function WebhookDialogForm(props: {
           ))}
         </InputGroupBox>
       </fieldset>
-      <fieldset className="space-y-2">
-        <FieldsetLegend>{t("webhook_status")}</FieldsetLegend>
-        <InputGroupBox>
-          <Controller
-            control={form.control}
-            name="active"
-            render={({ field }) => (
-              <Switch
-                label={t("webhook_enabled")}
-                defaultChecked={field.value}
-                onCheckedChange={(isChecked) => {
-                  form.setValue("active", isChecked);
-                }}
-              />
-            )}
-          />
-        </InputGroupBox>
-      </fieldset>
       <WebhookTestDisclosure />
       <DialogFooter>
         <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
