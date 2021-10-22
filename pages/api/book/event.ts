@@ -6,7 +6,6 @@ import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getErrorFromUnknown } from "pages/_error";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -14,6 +13,7 @@ import { handlePayment } from "@ee/lib/stripe/server";
 
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
+import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { CreateUpdateResult, EventResult, PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
