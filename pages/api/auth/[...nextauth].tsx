@@ -9,6 +9,16 @@ import slugify from "@lib/slugify";
 
 import { IdentityProvider } from ".prisma/client";
 
+function randomString(length = 12) {
+  let result = "";
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 async function authorize(credentials) {
   const user = await prisma.user.findUnique({
     where: {
@@ -107,6 +117,7 @@ if (isSAMLLoginEnabled) {
       return {
         ...profile,
         name: `${profile.firstName} ${profile.lastName}`,
+        verified_email: true,
       };
     },
     clientId: "tenant=boxyhq.com&product=demo",
@@ -143,12 +154,17 @@ export default NextAuth({
 
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
-      if (account.type === "oauth" && account.provider === "google") {
+      if (account.type === "oauth" && account.provider) {
+        let idP = IdentityProvider.GOOGLE;
+        if (account.provider === "boxyhq") {
+          idP = IdentityProvider.SAML;
+        }
+
         const existingUser = await prisma.user.findFirst({
           where: {
             AND: [
               {
-                identityProvider: IdentityProvider.GOOGLE,
+                identityProvider: idP,
               },
               {
                 identityProviderId: profile.id as string,
@@ -179,7 +195,7 @@ export default NextAuth({
       };
       return calendsoSession;
     },
-    async signIn(user, account, profile) {
+    async signIn(user, account) {
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
@@ -190,24 +206,26 @@ export default NextAuth({
         return false;
       }
 
-      if (account.provider === "google") {
-        if (!profile.verified_email) {
+      if (account.provider) {
+        let idP = IdentityProvider.GOOGLE;
+        if (account.provider === "boxyhq") {
+          idP = IdentityProvider.SAML;
+        }
+
+        if (!user.verified_email) {
           return "/auth/error?error=unverified-email";
         }
 
         const existingUser = await prisma.user.findFirst({
           where: {
-            AND: [
-              { identityProvider: IdentityProvider.GOOGLE },
-              { identityProviderId: profile.id as string },
-            ],
+            AND: [{ identityProvider: idP }, { identityProviderId: user.id as string }],
           },
         });
 
         if (existingUser) {
           // In this case there's an existing user and their email address
           // hasn't changed since they last logged in.
-          if (existingUser.email === profile.email) {
+          if (existingUser.email === user.email) {
             return true;
           }
 
@@ -215,11 +233,11 @@ export default NextAuth({
           // with the new email address. If it does, for now we return an error. If
           // not, update the email of their account and log them in.
           const userWithNewEmail = await prisma.user.findFirst({
-            where: { email: profile.email },
+            where: { email: user.email },
           });
 
           if (!userWithNewEmail) {
-            await prisma.user.update({ where: { id: existingUser.id }, data: { email: profile.email } });
+            await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
             return true;
           } else {
             return "/auth/error?error=new-email-conflict";
@@ -230,21 +248,25 @@ export default NextAuth({
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
         const existingUserWithEmail = await prisma.user.findFirst({
-          where: { email: profile.email },
+          where: { email: user.email },
         });
 
         if (existingUserWithEmail) {
-          return "/auth/error?error=use-password-login";
+          if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+            return "/auth/error?error=use-password-login";
+          }
+
+          return "/auth/error?error=use-identity-login";
         }
 
         await prisma.user.create({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
-            username: slugify(profile.name) + "-" + randomString(6),
-            email: profile.email,
-            identityProvider: IdentityProvider.GOOGLE,
-            identityProviderId: profile.id as string,
+            username: slugify(user.name) + "-" + randomString(6),
+            email: user.email,
+            identityProvider: idP,
+            identityProviderId: user.id as string,
           },
         });
 
