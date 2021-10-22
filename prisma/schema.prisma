@@ -176,7 +176,7 @@ model Booking {
   user        User?              @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId      Int?
   references  BookingReference[]
-  eventType   EventType?         @relation(fields: [eventTypeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  eventType   EventType?         @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
 
   title       String
@@ -276,7 +276,7 @@ model Payment {
   uid        String      @unique
   type       PaymentType
   bookingId  Int
-  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: Cascade)
+  booking    Booking?    @relation(fields: [bookingId], references: [id])
   amount     Int
   fee        Int
   currency   String
