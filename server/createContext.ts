@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { NextApiRequest } from "next";
+import { GetServerSidePropsContext, NextApiRequest } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession, Session } from "@lib/auth";
@@ -11,7 +11,15 @@ import * as trpc from "@trpc/server";
 import { Maybe } from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
 
-async function getUserFromSession({ session, req }: { session: Maybe<Session>; req: NextApiRequest }) {
+type CreateContextOptions = trpcNext.CreateNextContextOptions | GetServerSidePropsContext;
+
+async function getUserFromSession({
+  session,
+  req,
+}: {
+  session: Maybe<Session>;
+  req: CreateContextOptions["req"];
+}) {
   if (!session?.user?.id) {
     return null;
   }
@@ -80,7 +88,7 @@ async function getUserFromSession({ session, req }: { session: Maybe<Session>; r
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: trpcNext.CreateNextContextOptions) => {
+export const createContext = async ({ req, res }: CreateContextOptions) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
 

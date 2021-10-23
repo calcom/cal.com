@@ -132,7 +132,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   </div>
                   {!needsConfirmation && (
                     <div className="flex pt-2 mt-5 text-center sm:mt-0 sm:pt-4">
-                      <span className="flex self-center mr-6 font-medium text-gray-700 dark:text-gray-50">
+                      <span className="flex self-center mr-2 font-medium text-gray-700 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
                       <div className="flex">
@@ -147,7 +147,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               props.eventType.description
                             }` + (typeof location === "string" ? encodeURIComponent(location) : "")
                           }>
-                          <a className="px-3 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white">
+                          <a className="px-3 w-10 h-10 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white">
                             <svg
                               className="inline-block -mt-1 w-4 h-4"
                               fill="currentColor"
@@ -172,7 +172,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="px-3 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="px-3 w-10 h-10 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="inline-block -mt-1 mr-1 w-4 h-4"
@@ -198,7 +198,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="px-3 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="px-3 w-10 h-10 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="inline-block -mt-1 mr-1 w-4 h-4"
@@ -212,7 +212,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
                           <a
-                            className="px-3 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="px-3 w-10 h-10 py-2 mx-2 rounded-sm border border-neutral-200 dark:border-neutral-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
