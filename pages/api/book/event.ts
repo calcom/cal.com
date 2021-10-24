@@ -15,20 +15,13 @@ import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
-import EventManager, { CreateUpdateResult, EventResult, PartialReference } from "@lib/events/EventManager";
+import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
-
-export interface DailyReturnType {
-  name: string;
-  url: string;
-  id: string;
-  created_at: string;
-}
 
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
@@ -273,6 +266,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
+    bookingUid: undefined, // Optional but needed for Daily.co integration
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -324,6 +318,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
+    evt.bookingUid = booking.uid;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
@@ -425,7 +420,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateResults: CreateUpdateResult = await eventManager.update(evt, rescheduleUid);
+    const updateResults = await eventManager.update(evt, rescheduleUid);
 
     results = updateResults.results;
     referencesToCreate = updateResults.referencesToCreate;
@@ -438,9 +433,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.name} failed`, error, results);
     }
+    // If it's not a reschedule, doesn't require confirmation and there's no price,
+    // Create a booking
   } else if (!eventType.requiresConfirmation && !eventType.price) {
     // Use EventManager to conditionally use all needed integrations.
-    const createResults: CreateUpdateResult = await eventManager.create(evt, uid);
+    const createResults = await eventManager.create(evt, uid);
 
     results = createResults.results;
     referencesToCreate = createResults.referencesToCreate;
@@ -453,46 +450,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.username} failed`, error, results);
     }
-  }
-
-  //for Daily.co video calls will grab the meeting token for the call
-  const isDaily = evt.location === "integrations:daily";
-
-  let dailyEvent: DailyReturnType;
-
-  if (!rescheduleUid) {
-    dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent as DailyReturnType;
-  } else {
-    dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent as DailyReturnType;
-  }
-
-  let meetingToken;
-  if (isDaily) {
-    const response = await fetch("https://api.daily.co/v1/meeting-tokens", {
-      method: "POST",
-      body: JSON.stringify({ properties: { room_name: dailyEvent.name, is_owner: true } }),
-      headers: {
-        Authorization: "Bearer " + process.env.DAILY_API_KEY,
-        "Content-Type": "application/json",
-      },
-    });
-    meetingToken = await response.json();
-  }
-
-  //for Daily.co video calls will update the dailyEventReference table
-
-  if (isDaily) {
-    await prisma.dailyEventReference.create({
-      data: {
-        dailyurl: dailyEvent.url,
-        dailytoken: meetingToken.token,
-        booking: {
-          connect: {
-            uid: booking.uid,
-          },
-        },
-      },
-    });
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {

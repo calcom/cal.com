@@ -57,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           endTime: booking.endTime.toISOString(),
           organizer: { email: booking.user.email, name: booking.user.name, timeZone: booking.user.timeZone },
           attendees: booking.attendees,
+          bookingUid: booking.uid,
         };
 
         await new EventOrganizerRequestReminderMail(evt, booking.uid).sendEmail();

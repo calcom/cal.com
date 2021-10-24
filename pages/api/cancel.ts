@@ -1,19 +1,19 @@
 import { BookingStatus } from "@prisma/client";
 import async from "async";
+import { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
+import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
-import { dailyDeleteMeeting } from "../../lib/dailyVideoClient";
-
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // just bail if it not a DELETE
   if (req.method !== "DELETE" && req.method !== "POST") {
     return res.status(405).end();
@@ -48,7 +48,6 @@ export default async function handler(req, res) {
       },
       payment: true,
       paid: true,
-      location: true,
       title: true,
       description: true,
       startTime: true,
@@ -88,6 +87,7 @@ export default async function handler(req, res) {
       const retObj = { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
       return retObj;
     }),
+    bookingUid: bookingToDelete?.uid,
   };
 
   // Hook up the webhook logic here
@@ -112,6 +112,10 @@ export default async function handler(req, res) {
     },
   });
 
+  if (bookingToDelete.location === "integrations:daily") {
+    bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
+  }
+
   const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
     if (bookingRefUid) {
@@ -120,13 +124,6 @@ export default async function handler(req, res) {
       } else if (credential.type.endsWith("_video")) {
         return await deleteMeeting(credential, bookingRefUid);
       }
-    }
-    //deleting a Daily meeting
-
-    const isDaily = bookingToDelete.location === "integrations:daily";
-    const bookingUID = bookingToDelete.references.filter((ref) => ref.type === "daily")[0]?.uid;
-    if (isDaily) {
-      return await dailyDeleteMeeting(credential, bookingUID);
     }
   });
 
@@ -144,6 +141,7 @@ export default async function handler(req, res) {
       },
       attendees: bookingToDelete.attendees,
       location: bookingToDelete.location ?? "",
+      bookingUid: bookingToDelete.uid ?? "",
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({

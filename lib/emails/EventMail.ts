@@ -25,7 +25,7 @@ export interface AdditionInformation {
 export default abstract class EventMail {
   calEvent: CalendarEvent;
   parser: CalEventParser;
-  uid: string;
+  uid?: string;
   additionInformation?: AdditionInformation;
 
   /**
@@ -37,7 +37,7 @@ export default abstract class EventMail {
    * @param uid
    * @param additionInformation
    */
-  constructor(calEvent: CalendarEvent, uid: string, additionInformation?: AdditionInformation) {
+  constructor(calEvent: CalendarEvent, uid?: string, additionInformation?: AdditionInformation) {
     this.calEvent = calEvent;
     this.uid = uid;
     this.parser = new CalEventParser(calEvent, uid);

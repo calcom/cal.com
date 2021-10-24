@@ -4,9 +4,10 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import { CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
-import { dailyCreateMeeting, dailyUpdateMeeting } from "@lib/dailyVideoClient";
 import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
 import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
+import { DailyEventResult, FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
+import { ZoomEventResult } from "@lib/integrations/Zoom/ZoomVideoApiAdapter";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
@@ -15,8 +16,8 @@ export interface EventResult {
   type: string;
   success: boolean;
   uid: string;
-  createdEvent?: unknown;
-  updatedEvent?: unknown;
+  createdEvent?: ZoomEventResult | DailyEventResult;
+  updatedEvent?: ZoomEventResult | DailyEventResult;
   originalEvent: CalendarEvent;
   videoCallData?: VideoCallData;
 }
@@ -44,9 +45,6 @@ interface GetLocationRequestFromIntegrationRequest {
   location: string;
 }
 
-//const to idenfity a daily event location
-const dailyLocation = "integrations:daily";
-
 export default class EventManager {
   calendarCredentials: Array<Credential>;
   videoCredentials: Array<Credential>;
@@ -61,16 +59,9 @@ export default class EventManager {
     this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
 
     //for  Daily.co video, temporarily pushes a credential for the daily-video-client
-
     const hasDailyIntegration = process.env.DAILY_API_KEY;
-    const dailyCredential: Credential = {
-      id: +new Date().getTime(),
-      type: "daily_video",
-      key: { apikey: process.env.DAILY_API_KEY },
-      userId: +new Date().getTime(),
-    };
     if (hasDailyIntegration) {
-      this.videoCredentials.push(dailyCredential);
+      this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
     }
   }
 
@@ -108,25 +99,17 @@ export default class EventManager {
     );
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
-      const isDailyResult = result.type === "daily";
-      if (isDailyResult) {
-        return {
-          type: result.type,
-          uid: result.createdEvent.name.toString(),
-          meetingId: result.videoCallData?.id.toString(),
-          meetingPassword: result.videoCallData?.password,
-          meetingUrl: result.videoCallData?.url,
-        };
-      }
-      if (!isDailyResult) {
-        return {
-          type: result.type,
-          uid: result.createdEvent.id.toString(),
-          meetingId: result.videoCallData?.id.toString(),
-          meetingPassword: result.videoCallData?.password,
-          meetingUrl: result.videoCallData?.url,
-        };
-      }
+      console.log(`result`, result);
+      return {
+        type: result.type,
+        uid:
+          result.type === "daily_video"
+            ? (result.createdEvent as DailyEventResult).name.toString()
+            : (result.createdEvent as ZoomEventResult).id.toString(),
+        meetingId: result.videoCallData?.id.toString(),
+        meetingPassword: result.videoCallData?.password,
+        meetingUrl: result.videoCallData?.url,
+      };
     });
 
     return {
@@ -165,8 +148,7 @@ export default class EventManager {
       },
     });
 
-    const isDedicated =
-      EventManager.isDedicatedIntegration(event.location) || event.location === dailyLocation;
+    const isDedicated = EventManager.isDedicatedIntegration(event.location);
 
     let results: Array<EventResult> = [];
     let optionalVideoCallData: VideoCallData | undefined = undefined;
@@ -248,7 +230,9 @@ export default class EventManager {
    */
 
   private getVideoCredential(event: CalendarEvent): Credential | undefined {
-    const integrationName = event.location.replace("integrations:", "");
+    const integrationName = event.location?.replace("integrations:", "");
+
+    if (!integrationName) throw new Error("No integration name found.");
 
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
   }
@@ -265,12 +249,8 @@ export default class EventManager {
   private createVideoEvent(event: CalendarEvent, maybeUid?: string): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
-    const isDaily = event.location === dailyLocation;
-
-    if (credential && !isDaily) {
+    if (credential) {
       return createMeeting(credential, event, maybeUid);
-    } else if (isDaily) {
-      return dailyCreateMeeting(credential, event, maybeUid);
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
@@ -308,10 +288,9 @@ export default class EventManager {
    */
   private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
     const credential = this.getVideoCredential(event);
-    const isDaily = event.location === dailyLocation;
 
-    if (credential && !isDaily) {
-      const bookingRef = booking.references.filter((ref) => ref.type === credential.type)[0];
+    if (credential) {
+      const [bookingRef] = booking.references.filter((ref) => ref.type === credential.type);
 
       return updateMeeting(credential, bookingRef.uid, event).then((returnVal: EventResult) => {
         // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
@@ -321,10 +300,6 @@ export default class EventManager {
         return returnVal;
       });
     } else {
-      if (isDaily) {
-        const bookingRefUid = booking.references.filter((ref) => ref.type === "daily")[0].uid;
-        return dailyUpdateMeeting(credential, bookingRefUid, event);
-      }
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
   }
@@ -343,7 +318,7 @@ export default class EventManager {
   private static isDedicatedIntegration(location: string): boolean {
     // Hard-coded for now, because Zoom and Google Meet are both integrations, but one is dedicated, the other one isn't.
 
-    return location === "integrations:zoom" || location === dailyLocation;
+    return location === "integrations:zoom" || location === "integrations:daily";
   }
 
   /**
@@ -414,9 +389,9 @@ export default class EventManager {
         // future, it might happen that we consider making passwords for Zoom meetings optional.
         // Then, this part below (where the password existence is checked) needs to be adapted.
         isComplete =
-          reference.meetingId != undefined &&
-          reference.meetingPassword != undefined &&
-          reference.meetingUrl != undefined;
+          reference.meetingId !== undefined &&
+          reference.meetingPassword !== undefined &&
+          reference.meetingUrl !== undefined;
         break;
       default:
         isComplete = true;

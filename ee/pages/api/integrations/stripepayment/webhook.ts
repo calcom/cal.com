@@ -77,6 +77,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     endTime: booking.endTime.toISOString(),
     organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone },
     attendees: booking.attendees,
+    bookingUid: booking.uid,
   };
   if (booking.location) evt.location = booking.location;
 

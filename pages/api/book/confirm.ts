@@ -7,6 +7,7 @@ import { CalendarEvent } from "@lib/calendarClient";
 import EventRejectionMail from "@lib/emails/EventRejectionMail";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
+import { BookingConfirmBody } from "@lib/types/booking";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const session = await getSession({ req: req });
@@ -14,7 +15,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  const bookingId = req.body.id;
+  const reqBody = req.body as BookingConfirmBody;
+  const bookingId = reqBody.id;
+
   if (!bookingId) {
     return res.status(400).json({ message: "bookingId missing" });
   }
@@ -64,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const evt: CalendarEvent = {
-      type: booking.title,
+      type: booking.location,
       title: booking.title,
       description: booking.description,
       startTime: booking.startTime.toISOString(),
@@ -72,9 +75,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       organizer: { email: currentUser.email, name: currentUser.name, timeZone: currentUser.timeZone },
       attendees: booking.attendees,
       location: booking.location,
+      bookingUid: booking.uid,
     };
 
-    if (req.body.confirmed) {
+    if (reqBody.confirmed) {
       const eventManager = new EventManager(currentUser.credentials);
       const scheduleResult = await eventManager.create(evt, booking.uid);
 
