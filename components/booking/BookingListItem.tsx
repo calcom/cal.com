@@ -12,13 +12,14 @@ import TableActions, { ActionType } from "@components/ui/TableActions";
 type BookingItem = inferQueryOutput<"viewer.bookings">[number];
 
 function BookingListItem(booking: BookingItem) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
   const mutation = useMutation(
     async (confirm: boolean) => {
       const res = await fetch("/api/book/confirm", {
         method: "PATCH",
-        body: JSON.stringify({ id: booking.id, confirmed: confirm }),
+        body: JSON.stringify({ id: booking.id, confirmed: confirm, language: i18n.language }),
         headers: {
           "Content-Type": "application/json",
         },

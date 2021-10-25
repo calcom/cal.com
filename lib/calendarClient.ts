@@ -1,4 +1,5 @@
 import { Credential } from "@prisma/client";
+import { TFunction } from "next-i18next";
 
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
@@ -54,7 +55,7 @@ const googleAuth = (credential) => {
   };
 };
 
-function handleErrorsJson(response) {
+function handleErrorsJson(response: Response) {
   if (!response.ok) {
     response.json().then((e) => console.error("O365 Error", e));
     throw Error(response.statusText);
@@ -62,7 +63,7 @@ function handleErrorsJson(response) {
   return response.json();
 }
 
-function handleErrorsRaw(response) {
+function handleErrorsRaw(response: Response) {
   if (!response.ok) {
     response.text().then((e) => console.error("O365 Error", e));
     throw Error(response.statusText);
@@ -112,20 +113,41 @@ const o365Auth = (credential) => {
 
 export type Person = { name: string; email: string; timeZone: string };
 
+export interface EntryPoint {
+  entryPointType?: string;
+  uri?: string;
+  label?: string;
+  pin?: string;
+  accessCode?: string;
+  meetingCode?: string;
+  passcode?: string;
+  password?: string;
+}
+
+export interface AdditionInformation {
+  conferenceData?: ConferenceData;
+  entryPoints?: EntryPoint[];
+  hangoutLink?: string;
+}
+
 export interface CalendarEvent {
   type: string;
   title: string;
   startTime: string;
   endTime: string;
-  description?: string;
+  description?: string | null;
   team?: {
     name: string;
     members: string[];
   };
-  location?: string;
+  location?: string | null;
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
+  language: TFunction;
+  additionInformation?: AdditionInformation;
+  uid?: string | null;
+  videoCallData?: VideoCallData;
 }
 
 export interface ConferenceData {
@@ -143,9 +165,9 @@ type BufferedBusyTime = { start: string; end: string };
 export interface CalendarApiAdapter {
   createEvent(event: CalendarEvent): Promise<unknown>;
 
-  updateEvent(uid: string, event: CalendarEvent);
+  updateEvent(uid: string, event: CalendarEvent): Promise<any>;
 
-  deleteEvent(uid: string);
+  deleteEvent(uid: string): Promise<unknown>;
 
   getAvailability(
     dateFrom: string,
@@ -574,11 +596,9 @@ const listCalendars = (withCredentials) =>
 const createEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  noMail = false,
-  maybeUid?: string,
-  optionalVideoCallData?: VideoCallData
+  noMail: boolean | null = false
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid, optionalVideoCallData);
+  const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   /*
    * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
@@ -589,7 +609,7 @@ const createEvent = async (
 
   let success = true;
 
-  const creationResult = credential
+  const creationResult: any = credential
     ? await calendars([credential])[0]
         .createEvent(richEvent)
         .catch((e) => {
@@ -598,16 +618,18 @@ const createEvent = async (
         })
     : null;
 
-  const maybeHangoutLink = creationResult?.hangoutLink;
-  const maybeEntryPoints = creationResult?.entryPoints;
-  const maybeConferenceData = creationResult?.conferenceData;
+  const metadata: AdditionInformation = {};
+  if (creationResult) {
+    // TODO: Handle created event metadata more elegantly
+    metadata.hangoutLink = creationResult.hangoutLink;
+    metadata.conferenceData = creationResult.conferenceData;
+    metadata.entryPoints = creationResult.entryPoints;
+  }
+
+  const emailEvent = { ...calEvent, additionInformation: metadata };
 
   if (!noMail) {
-    const organizerMail = new EventOrganizerMail(calEvent, uid, {
-      hangoutLink: maybeHangoutLink,
-      conferenceData: maybeConferenceData,
-      entryPoints: maybeEntryPoints,
-    });
+    const organizerMail = new EventOrganizerMail(emailEvent);
 
     try {
       await organizerMail.sendEmail();
@@ -627,28 +649,28 @@ const createEvent = async (
 
 const updateEvent = async (
   credential: Credential,
-  uidToUpdate: string,
   calEvent: CalendarEvent,
-  noMail = false,
-  optionalVideoCallData?: VideoCallData
+  noMail: boolean | null = false
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent, undefined, optionalVideoCallData);
+  const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   let success = true;
 
-  const updateResult = credential
-    ? await calendars([credential])[0]
-        .updateEvent(uidToUpdate, richEvent)
-        .catch((e) => {
-          log.error("updateEvent failed", e, calEvent);
-          success = false;
-        })
-    : null;
+  const updateResult =
+    credential && calEvent.uid
+      ? await calendars([credential])[0]
+          .updateEvent(calEvent.uid, richEvent)
+          .catch((e) => {
+            log.error("updateEvent failed", e, calEvent);
+            success = false;
+          })
+      : null;
 
   if (!noMail) {
-    const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
+    const emailEvent = { ...calEvent, uid: newUid };
+    const organizerMail = new EventOrganizerRescheduledMail(emailEvent);
     try {
       await organizerMail.sendEmail();
     } catch (e) {
