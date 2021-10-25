@@ -75,7 +75,7 @@ const o365Auth = (credential) => {
   const isExpired = (expiryDate) => expiryDate < Math.round(+new Date() / 1000);
 
   const refreshAccessToken = (refreshToken) => {
-    return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+    return fetch(process.env.MS_TOKEN_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -216,7 +216,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
 
   function listCalendars(): Promise<IntegrationCalendar[]> {
     return auth.getToken().then((accessToken) =>
-      fetch("https://graph.microsoft.com/v1.0/me/calendars", {
+      fetch(process.env.MS_GRAPH_ENDPOINT + "/v1.0/me/calendars", {
         method: "get",
         headers: {
           Authorization: "Bearer " + accessToken,
@@ -268,7 +268,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
               url: `/me/calendars/${calendarId}/calendarView${filter}`,
             }));
 
-            return fetch("https://graph.microsoft.com/v1.0/$batch", {
+            return fetch(process.env.MS_GRAPH_ENDPOINT + "/v1.0/$batch", {
               method: "POST",
               headers: {
                 Authorization: "Bearer " + accessToken,
@@ -299,7 +299,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
     },
     createEvent: (event: CalendarEvent) =>
       auth.getToken().then((accessToken) =>
-        fetch("https://graph.microsoft.com/v1.0/me/calendar/events", {
+        fetch(process.env.MS_GRAPH_ENDPOINT + "/v1.0/me/calendar/events", {
           method: "POST",
           headers: {
             Authorization: "Bearer " + accessToken,
@@ -315,7 +315,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
       ),
     deleteEvent: (uid: string) =>
       auth.getToken().then((accessToken) =>
-        fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
+        fetch(process.env.MS_GRAPH_ENDPOINT + "/v1.0/me/calendar/events/" + uid, {
           method: "DELETE",
           headers: {
             Authorization: "Bearer " + accessToken,
@@ -324,7 +324,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
       ),
     updateEvent: (uid: string, event: CalendarEvent) =>
       auth.getToken().then((accessToken) =>
-        fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
+        fetch(process.env.MS_GRAPH_ENDPOINT + "/v1.0/me/calendar/events/" + uid, {
           method: "PATCH",
           headers: {
             Authorization: "Bearer " + accessToken,
