@@ -3,12 +3,11 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import CalEventParser from "@lib/CalEventParser";
-import { AdditionInformation, EntryPoint } from "@lib/emails/EventMail";
 import { getIntegrationName } from "@lib/emails/helpers";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
-import { CalendarEvent } from "./calendarClient";
+import { CalendarEvent, AdditionInformation, EntryPoint } from "./calendarClient";
 import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
@@ -34,7 +33,7 @@ export interface VideoCallData {
   url: string;
 }
 
-function handleErrorsJson(response) {
+function handleErrorsJson(response: Response) {
   if (!response.ok) {
     response.json().then(console.log);
     throw Error(response.statusText);
@@ -42,7 +41,7 @@ function handleErrorsJson(response) {
   return response.json();
 }
 
-function handleErrorsRaw(response) {
+function handleErrorsRaw(response: Response) {
   if (!response.ok) {
     response.text().then(console.log);
     throw Error(response.statusText);
@@ -216,12 +215,8 @@ const getBusyVideoTimes: (withCredentials: Credential[]) => Promise<unknown[]> =
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-const createMeeting = async (
-  credential: Credential,
-  calEvent: CalendarEvent,
-  maybeUid?: string
-): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent, maybeUid);
+const createMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
+  const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
 
   if (!credential) {
@@ -249,7 +244,7 @@ const createMeeting = async (
   const entryPoint: EntryPoint = {
     entryPointType: getIntegrationName(videoCallData),
     uri: videoCallData.url,
-    label: "Enter Meeting",
+    label: calEvent.language("enter_meeting"),
     pin: videoCallData.password,
   };
 
@@ -257,9 +252,10 @@ const createMeeting = async (
     entryPoints: [entryPoint],
   };
 
-  const organizerMail = new VideoEventOrganizerMail(calEvent, uid, videoCallData, additionInformation);
-  const attendeeMail = new VideoEventAttendeeMail(calEvent, uid, videoCallData, additionInformation);
+  const emailEvent = { ...calEvent, uid, additionInformation, videoCallData };
+
   try {
+    const organizerMail = new VideoEventOrganizerMail(emailEvent);
     await organizerMail.sendEmail();
   } catch (e) {
     console.error("organizerMail.sendEmail failed", e);
@@ -267,6 +263,7 @@ const createMeeting = async (
 
   if (!creationResult || !creationResult.disableConfirmationEmail) {
     try {
+      const attendeeMail = new VideoEventAttendeeMail(emailEvent);
       await attendeeMail.sendEmail();
     } catch (e) {
       console.error("attendeeMail.sendEmail failed", e);
@@ -283,11 +280,7 @@ const createMeeting = async (
   };
 };
 
-const updateMeeting = async (
-  credential: Credential,
-  uidToUpdate: string,
-  calEvent: CalendarEvent
-): Promise<EventResult> => {
+const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
   const newUid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
   if (!credential) {
@@ -298,18 +291,20 @@ const updateMeeting = async (
 
   let success = true;
 
-  const updateResult = credential
-    ? await videoIntegrations([credential])[0]
-        .updateMeeting(uidToUpdate, calEvent)
-        .catch((e) => {
-          log.error("updateMeeting failed", e, calEvent);
-          success = false;
-        })
-    : null;
+  const updateResult =
+    credential && calEvent.uid
+      ? await videoIntegrations([credential])[0]
+          .updateMeeting(calEvent.uid, calEvent)
+          .catch((e) => {
+            log.error("updateMeeting failed", e, calEvent);
+            success = false;
+          })
+      : null;
 
-  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
+  const emailEvent = { ...calEvent, uid: newUid };
+
   try {
+    const organizerMail = new EventOrganizerRescheduledMail(emailEvent);
     await organizerMail.sendEmail();
   } catch (e) {
     console.error("organizerMail.sendEmail failed", e);
@@ -317,6 +312,7 @@ const updateMeeting = async (
 
   if (!updateResult || !updateResult.disableConfirmationEmail) {
     try {
+      const attendeeMail = new EventAttendeeRescheduledMail(emailEvent);
       await attendeeMail.sendEmail();
     } catch (e) {
       console.error("attendeeMail.sendEmail failed", e);

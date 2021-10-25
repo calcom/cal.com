@@ -1,5 +1,6 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
+import React, { SyntheticEvent } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { Team } from "@lib/team";
@@ -8,7 +9,7 @@ import Button from "@components/ui/Button";
 
 export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const handleError = async (res: Response) => {
     const responseData = await res.json();
@@ -21,13 +22,22 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
     return responseData;
   };
 
-  const inviteMember = (e) => {
+  const inviteMember = (e: SyntheticEvent) => {
     e.preventDefault();
 
+    const target = e.target as typeof e.target & {
+      elements: {
+        role: { value: string };
+        inviteUser: { value: string };
+        sendInviteEmail: { checked: boolean };
+      };
+    };
+
     const payload = {
-      role: e.target.elements["role"].value,
-      usernameOrEmail: e.target.elements["inviteUser"].value,
-      sendEmailInvitation: e.target.elements["sendInviteEmail"].checked,
+      language: i18n.language,
+      role: target.elements["role"].value,
+      usernameOrEmail: target.elements["inviteUser"].value,
+      sendEmailInvitation: target.elements["sendInviteEmail"].checked,
     };
 
     return fetch("/api/teams/" + props?.team?.id + "/invite", {
