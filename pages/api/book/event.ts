@@ -276,7 +276,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
-    bookingUid: undefined, // Optional but needed for Daily.co integration
     language: t,
     uid,
   };
@@ -330,7 +329,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
-    evt.bookingUid = booking.uid;
+    evt.uid = booking.uid;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
@@ -450,7 +449,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Create a booking
   } else if (!eventType.requiresConfirmation && !eventType.price) {
     // Use EventManager to conditionally use all needed integrations.
-    const createResults = await eventManager.create(evt, uid);
+    const createResults = await eventManager.create(evt);
 
     results = createResults.results;
     referencesToCreate = createResults.referencesToCreate;

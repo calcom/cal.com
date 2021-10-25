@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const retObj = { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
       return retObj;
     }),
-    bookingUid: bookingToDelete?.uid,
+    uid: bookingToDelete?.uid,
   };
 
   // Hook up the webhook logic here
@@ -141,7 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       attendees: bookingToDelete.attendees,
       location: bookingToDelete.location ?? "",
-      bookingUid: bookingToDelete.uid ?? "",
+      uid: bookingToDelete.uid ?? "",
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({

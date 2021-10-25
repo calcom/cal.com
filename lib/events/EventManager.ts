@@ -12,7 +12,7 @@ import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
-type Event = AdditionInformation & { name: string; id: string; disableConfirmationEmail?: boolean } & (
+export type Event = AdditionInformation & { name: string; id: string; disableConfirmationEmail?: boolean } & (
     | ZoomEventResult
     | DailyEventResult
   );
@@ -129,11 +129,13 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(event: CalendarEvent): Promise<CreateUpdateResult> {
+  public async update(
+    event: Omit<CalendarEvent, "uid"> & NonNullable<Pick<CalendarEvent, "uid">>
+  ): Promise<CreateUpdateResult> {
     let evt = EventManager.processLocation(event);
 
     if (!evt.uid) {
-      throw new Error("missing uid");
+      throw new Error("You called eventManager.update without an `uid`. This should never happen.");
     }
 
     // Get details of existing booking.
@@ -368,7 +370,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private static processLocation(event: CalendarEvent): CalendarEvent {
+  private static processLocation<T extends CalendarEvent>(event: T): T {
     // If location is set to an integration location
     // Build proper transforms for evt object
     // Extend evt object with those transformations

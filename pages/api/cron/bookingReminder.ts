@@ -73,10 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           timeZone: user.timeZone,
         },
         attendees: booking.attendees,
-        bookingUid: booking.uid,
+        uid: booking.uid,
       };
 
-      await new EventOrganizerRequestReminderMail(evt, booking.uid).sendEmail();
+      await new EventOrganizerRequestReminderMail(evt).sendEmail();
       await prisma.reminderMail.create({
         data: {
           referenceId: booking.id,

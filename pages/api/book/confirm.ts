@@ -79,7 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       organizer: { email: currentUser.email, name: currentUser.name!, timeZone: currentUser.timeZone },
       attendees: booking.attendees,
       location: booking.location ?? "",
-      bookingUid: booking.uid,
       uid: booking.uid,
       language: t,
     };

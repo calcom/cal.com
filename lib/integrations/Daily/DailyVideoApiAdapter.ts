@@ -80,7 +80,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         dailytoken: meetingToken.token,
         booking: {
           connect: {
-            uid: event.bookingUid,
+            uid: event.uid,
           },
         },
       },

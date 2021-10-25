@@ -77,13 +77,13 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     endTime: booking.endTime.toISOString(),
     organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone },
     attendees: booking.attendees,
-    bookingUid: booking.uid,
+    uid: booking.uid,
   };
   if (booking.location) evt.location = booking.location;
 
   if (booking.confirmed) {
     const eventManager = new EventManager(user.credentials);
-    const scheduleResult = await eventManager.create(evt, booking.uid);
+    const scheduleResult = await eventManager.create(evt);
 
     await prisma.booking.update({
       where: {
