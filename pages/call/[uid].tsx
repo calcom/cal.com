@@ -23,6 +23,16 @@ export default function JoinCall(props, session) {
   useEffect(() => {
     if (!emptyBooking && session.userid !== props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
+        theme: {
+          colors: {
+            accent: "#ffffff",
+            background: "#000000",
+            backgroundAccent: "#292929",
+            border: "#000000",
+            mainAreaBg: "#292929",
+            mainAreaBgAccent: "#000000",
+          },
+        },
         showLeaveButton: true,
         iframeStyle: {
           position: "fixed",
