@@ -15,6 +15,7 @@ import {
   UsersIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -615,341 +616,332 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                   </div>
                 )}
-
-                <Disclosure>
-                  {({ open }) => (
-                    <>
-                      <div onClick={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
-                        <Disclosure.Button className="flex w-full">
-                          <ChevronRightIcon
-                            className={`${
-                              open ? "transform rotate-90" : ""
-                            } w-5 h-5 text-neutral-500 ml-auto`}
-                          />
-                          <span className="text-sm font-medium text-neutral-700">
-                            {t("show_advanced_settings")}
-                          </span>
-                        </Disclosure.Button>
-                      </div>
-                      <Disclosure.Panel className="space-y-6">
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-48 sm:mb-0">
-                            <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
-                              {t("event_name")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <div className="relative mt-1 rounded-sm shadow-sm">
-                              <input
-                                ref={eventNameRef}
-                                type="text"
-                                name="title"
-                                id="title"
-                                className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                placeholder={t("meeting_with_user")}
-                                defaultValue={eventType.eventName}
-                              />
-                            </div>
-                          </div>
+                <Collapsible
+                  open={advancedSettingsVisible}
+                  onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
+                  {/* {({ open }) => ( */}
+                  <>
+                    <CollapsibleTrigger type="button" className="flex w-full">
+                      <ChevronRightIcon
+                        className={`${
+                          advancedSettingsVisible ? "transform rotate-90" : ""
+                        } w-5 h-5 text-neutral-500 ml-auto`}
+                      />
+                      <span className="text-sm font-medium text-neutral-700">
+                        {t("show_advanced_settings")}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-6">
+                      <div className="items-center block sm:flex">
+                        <div className="mb-4 min-w-48 sm:mb-0">
+                          <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
+                            {t("event_name")}
+                          </label>
                         </div>
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-48 sm:mb-0">
-                            <label
-                              htmlFor="additionalFields"
-                              className="mt-2 text-sm font-medium flexflex text-neutral-700">
-                              {t("additional_inputs")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <ul className="mt-1">
-                              {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
-                                <li key={idx} className="p-2 mb-2 border bg-secondary-50">
-                                  <div className="flex justify-between">
-                                    <div className="flex-1 w-0">
-                                      <div className="truncate">
-                                        <span
-                                          className="ml-2 text-sm"
-                                          title={`${t("label")}: ${customInput.label}`}>
-                                          {t("label")}: {customInput.label}
-                                        </span>
-                                      </div>
-                                      {customInput.placeholder && (
-                                        <div className="truncate">
-                                          <span
-                                            className="ml-2 text-sm"
-                                            title={`${t("placeholder")}: ${customInput.placeholder}`}>
-                                            {t("placeholder")}: {customInput.placeholder}
-                                          </span>
-                                        </div>
-                                      )}
-                                      <div>
-                                        <span className="ml-2 text-sm">
-                                          {t("type")}: {customInput.type}
-                                        </span>
-                                      </div>
-                                      <div>
-                                        <span className="ml-2 text-sm">
-                                          {customInput.required ? t("required") : t("optional")}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <div className="flex">
-                                      <Button
-                                        onClick={() => {
-                                          setSelectedCustomInput(customInput);
-                                          setSelectedCustomInputModalOpen(true);
-                                        }}
-                                        color="minimal"
-                                        type="button">
-                                        {t("edit")}
-                                      </Button>
-                                      <button type="button" onClick={() => removeCustom(idx)}>
-                                        <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </li>
-                              ))}
-                              <li>
-                                <Button
-                                  onClick={() => {
-                                    setSelectedCustomInput(undefined);
-                                    setSelectedCustomInputModalOpen(true);
-                                  }}
-                                  color="secondary"
-                                  type="button"
-                                  StartIcon={PlusIcon}>
-                                  {t("add_input")}
-                                </Button>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        <CheckboxField
-                          id="requiresConfirmation"
-                          name="requiresConfirmation"
-                          label={t("opt_in_booking")}
-                          description={t("opt_in_booking_description")}
-                          defaultChecked={eventType.requiresConfirmation}
-                        />
-
-                        <CheckboxField
-                          id="disableGuests"
-                          name="disableGuests"
-                          label={t("disable_guests")}
-                          description={t("disable_guests_description")}
-                          defaultChecked={eventType.disableGuests}
-                        />
-
-                        <hr className="my-2 border-neutral-200" />
-
-                        <MinutesField
-                          label={t("minimum_booking_notice")}
-                          name="minimumBookingNotice"
-                          id="minimumBookingNotice"
-                          required
-                          placeholder="120"
-                          defaultValue={eventType.minimumBookingNotice}
-                        />
-
-                        <div className="block sm:flex">
-                          <div className="mb-4 min-w-48 sm:mb-0">
-                            <label
-                              htmlFor="inviteesCanSchedule"
-                              className="flex text-sm font-medium text-neutral-700 mt-2.5">
-                              {t("invitees_can_schedule")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <RadioGroup value={periodType} onChange={setPeriodType}>
-                              <RadioGroup.Label className="sr-only">{t("date_range")}</RadioGroup.Label>
-                              <div>
-                                {PERIOD_TYPES.map((period) => (
-                                  <RadioGroup.Option
-                                    key={period.type}
-                                    value={period}
-                                    className={({ checked }) =>
-                                      classNames(
-                                        checked ? "border-secondary-200 z-10" : "border-gray-200",
-                                        "relative min-h-12 flex items-center cursor-pointer focus:outline-none"
-                                      )
-                                    }>
-                                    {({ active, checked }) => (
-                                      <>
-                                        <div
-                                          className={classNames(
-                                            checked
-                                              ? "bg-primary-600 border-transparent"
-                                              : "bg-white border-gray-300",
-                                            active ? "ring-2 ring-offset-2 ring-primary-500" : "",
-                                            "h-4 w-4 mt-0.5 mr-2 cursor-pointer rounded-full border items-center justify-center"
-                                          )}
-                                          aria-hidden="true">
-                                          <span className="rounded-full bg-white w-1.5 h-1.5" />
-                                        </div>
-                                        <div className="flex flex-col lg:ml-3">
-                                          <RadioGroup.Label
-                                            as="span"
-                                            className={classNames(
-                                              checked ? "text-secondary-900" : "text-gray-900",
-                                              "block text-sm space-y-2 lg:space-y-0"
-                                            )}>
-                                            {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
-                                            {period.type === "rolling" && (
-                                              <div className="inline-flex">
-                                                <input
-                                                  type="text"
-                                                  name="periodDays"
-                                                  id=""
-                                                  className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                                  placeholder="30"
-                                                  defaultValue={eventType.periodDays || 30}
-                                                />
-                                                <select
-                                                  id=""
-                                                  name="periodDaysType"
-                                                  className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                                  defaultValue={
-                                                    eventType.periodCountCalendarDays ? "1" : "0"
-                                                  }>
-                                                  <option value="1">{t("calendar_days")}</option>
-                                                  <option value="0">{t("business_days")}</option>
-                                                </select>
-                                              </div>
-                                            )}
-
-                                            {checked && period.type === "range" && (
-                                              <div className="inline-flex space-x-2">
-                                                <DateRangePicker
-                                                  startDate={periodDates.startDate}
-                                                  endDate={periodDates.endDate}
-                                                  onDatesChange={setPeriodDates}
-                                                />
-                                              </div>
-                                            )}
-                                            {period.suffix ? <span>&nbsp;{period.suffix}</span> : null}
-                                          </RadioGroup.Label>
-                                        </div>
-                                      </>
-                                    )}
-                                  </RadioGroup.Option>
-                                ))}
-                              </div>
-                            </RadioGroup>
-                          </div>
-                        </div>
-
-                        <hr className="border-neutral-200" />
-
-                        <div className="block sm:flex">
-                          <div className="mb-4 min-w-48 sm:mb-0">
-                            <label
-                              htmlFor="availability"
-                              className="flex text-sm font-medium text-neutral-700">
-                              {t("availability")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <Scheduler
-                              setAvailability={setEnteredAvailability}
-                              setTimeZone={setSelectedTimeZone}
-                              timeZone={selectedTimeZone}
-                              availability={availability.map((schedule) => ({
-                                ...schedule,
-                                startTime: new Date(schedule.startTime),
-                                endTime: new Date(schedule.endTime),
-                              }))}
+                        <div className="w-full">
+                          <div className="relative mt-1 rounded-sm shadow-sm">
+                            <input
+                              ref={eventNameRef}
+                              type="text"
+                              name="title"
+                              id="title"
+                              className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                              placeholder={t("meeting_with_user")}
+                              defaultValue={eventType.eventName}
                             />
                           </div>
                         </div>
+                      </div>
+                      <div className="items-center block sm:flex">
+                        <div className="mb-4 min-w-48 sm:mb-0">
+                          <label
+                            htmlFor="additionalFields"
+                            className="mt-2 text-sm font-medium flexflex text-neutral-700">
+                            {t("additional_inputs")}
+                          </label>
+                        </div>
+                        <div className="w-full">
+                          <ul className="mt-1">
+                            {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+                              <li key={idx} className="p-2 mb-2 border bg-secondary-50">
+                                <div className="flex justify-between">
+                                  <div className="flex-1 w-0">
+                                    <div className="truncate">
+                                      <span
+                                        className="ml-2 text-sm"
+                                        title={`${t("label")}: ${customInput.label}`}>
+                                        {t("label")}: {customInput.label}
+                                      </span>
+                                    </div>
+                                    {customInput.placeholder && (
+                                      <div className="truncate">
+                                        <span
+                                          className="ml-2 text-sm"
+                                          title={`${t("placeholder")}: ${customInput.placeholder}`}>
+                                          {t("placeholder")}: {customInput.placeholder}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <span className="ml-2 text-sm">
+                                        {t("type")}: {customInput.type}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="ml-2 text-sm">
+                                        {customInput.required ? t("required") : t("optional")}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex">
+                                    <Button
+                                      onClick={() => {
+                                        setSelectedCustomInput(customInput);
+                                        setSelectedCustomInputModalOpen(true);
+                                      }}
+                                      color="minimal"
+                                      type="button">
+                                      {t("edit")}
+                                    </Button>
+                                    <button type="button" onClick={() => removeCustom(idx)}>
+                                      <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
+                                    </button>
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                            <li>
+                              <Button
+                                onClick={() => {
+                                  setSelectedCustomInput(undefined);
+                                  setSelectedCustomInputModalOpen(true);
+                                }}
+                                color="secondary"
+                                type="button"
+                                StartIcon={PlusIcon}>
+                                {t("add_input")}
+                              </Button>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
 
-                        {hasPaymentIntegration && (
-                          <>
-                            <hr className="border-neutral-200" />
-                            <div className="block sm:flex">
-                              <div className="mb-4 min-w-48 sm:mb-0">
-                                <label
-                                  htmlFor="payment"
-                                  className="flex mt-2 text-sm font-medium text-neutral-700">
-                                  {t("payment")}
-                                </label>
+                      <CheckboxField
+                        id="requiresConfirmation"
+                        name="requiresConfirmation"
+                        label={t("opt_in_booking")}
+                        description={t("opt_in_booking_description")}
+                        defaultChecked={eventType.requiresConfirmation}
+                      />
+
+                      <CheckboxField
+                        id="disableGuests"
+                        name="disableGuests"
+                        label={t("disable_guests")}
+                        description={t("disable_guests_description")}
+                        defaultChecked={eventType.disableGuests}
+                      />
+
+                      <hr className="my-2 border-neutral-200" />
+
+                      <MinutesField
+                        label={t("minimum_booking_notice")}
+                        name="minimumBookingNotice"
+                        id="minimumBookingNotice"
+                        required
+                        placeholder="120"
+                        defaultValue={eventType.minimumBookingNotice}
+                      />
+
+                      <div className="block sm:flex">
+                        <div className="mb-4 min-w-48 sm:mb-0">
+                          <label
+                            htmlFor="inviteesCanSchedule"
+                            className="flex text-sm font-medium text-neutral-700 mt-2.5">
+                            {t("invitees_can_schedule")}
+                          </label>
+                        </div>
+                        <div className="w-full">
+                          <RadioGroup value={periodType} onChange={setPeriodType}>
+                            <RadioGroup.Label className="sr-only">{t("date_range")}</RadioGroup.Label>
+                            <div>
+                              {PERIOD_TYPES.map((period) => (
+                                <RadioGroup.Option
+                                  key={period.type}
+                                  value={period}
+                                  className={({ checked }) =>
+                                    classNames(
+                                      checked ? "border-secondary-200 z-10" : "border-gray-200",
+                                      "relative min-h-12 flex items-center cursor-pointer focus:outline-none"
+                                    )
+                                  }>
+                                  {({ active, checked }) => (
+                                    <>
+                                      <div
+                                        className={classNames(
+                                          checked
+                                            ? "bg-primary-600 border-transparent"
+                                            : "bg-white border-gray-300",
+                                          active ? "ring-2 ring-offset-2 ring-primary-500" : "",
+                                          "h-4 w-4 mt-0.5 mr-2 cursor-pointer rounded-full border items-center justify-center"
+                                        )}
+                                        aria-hidden="true">
+                                        <span className="rounded-full bg-white w-1.5 h-1.5" />
+                                      </div>
+                                      <div className="flex flex-col lg:ml-3">
+                                        <RadioGroup.Label
+                                          as="span"
+                                          className={classNames(
+                                            checked ? "text-secondary-900" : "text-gray-900",
+                                            "block text-sm space-y-2 lg:space-y-0"
+                                          )}>
+                                          {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
+                                          {period.type === "rolling" && (
+                                            <div className="inline-flex">
+                                              <input
+                                                type="text"
+                                                name="periodDays"
+                                                id=""
+                                                className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                placeholder="30"
+                                                defaultValue={eventType.periodDays || 30}
+                                              />
+                                              <select
+                                                id=""
+                                                name="periodDaysType"
+                                                className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
+                                                <option value="1">{t("calendar_days")}</option>
+                                                <option value="0">{t("business_days")}</option>
+                                              </select>
+                                            </div>
+                                          )}
+
+                                          {checked && period.type === "range" && (
+                                            <div className="inline-flex space-x-2">
+                                              <DateRangePicker
+                                                startDate={periodDates.startDate}
+                                                endDate={periodDates.endDate}
+                                                onDatesChange={setPeriodDates}
+                                              />
+                                            </div>
+                                          )}
+                                          {period.suffix ? <span>&nbsp;{period.suffix}</span> : null}
+                                        </RadioGroup.Label>
+                                      </div>
+                                    </>
+                                  )}
+                                </RadioGroup.Option>
+                              ))}
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+
+                      <hr className="border-neutral-200" />
+
+                      <div className="block sm:flex">
+                        <div className="mb-4 min-w-48 sm:mb-0">
+                          <label htmlFor="availability" className="flex text-sm font-medium text-neutral-700">
+                            {t("availability")}
+                          </label>
+                        </div>
+                        <div className="w-full">
+                          <Scheduler
+                            setAvailability={setEnteredAvailability}
+                            setTimeZone={setSelectedTimeZone}
+                            timeZone={selectedTimeZone}
+                            availability={availability}
+                          />
+                        </div>
+                      </div>
+
+                      {hasPaymentIntegration && (
+                        <>
+                          <hr className="border-neutral-200" />
+                          <div className="block sm:flex">
+                            <div className="mb-4 min-w-48 sm:mb-0">
+                              <label
+                                htmlFor="payment"
+                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                {t("payment")}
+                              </label>
+                            </div>
+
+                            <div className="flex flex-col">
+                              <div className="w-full">
+                                <div className="items-center block sm:flex">
+                                  <div className="w-full">
+                                    <div className="relative flex items-start">
+                                      <div className="flex items-center h-5">
+                                        <input
+                                          onChange={(event) => setRequirePayment(event.target.checked)}
+                                          id="requirePayment"
+                                          name="requirePayment"
+                                          type="checkbox"
+                                          className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
+                                          defaultChecked={requirePayment}
+                                        />
+                                      </div>
+                                      <div className="ml-3 text-sm">
+                                        <p className="text-neutral-900">
+                                          {t("require_payment")} (0.5% +{" "}
+                                          <IntlProvider locale="en">
+                                            <FormattedNumber
+                                              value={0.1}
+                                              style="currency"
+                                              currency={currency}
+                                            />
+                                          </IntlProvider>{" "}
+                                          {t("commission_per_transaction")})
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-
-                              <div className="flex flex-col">
+                              {requirePayment && (
                                 <div className="w-full">
                                   <div className="items-center block sm:flex">
                                     <div className="w-full">
-                                      <div className="relative flex items-start">
-                                        <div className="flex items-center h-5">
-                                          <input
-                                            onChange={(event) => setRequirePayment(event.target.checked)}
-                                            id="requirePayment"
-                                            name="requirePayment"
-                                            type="checkbox"
-                                            className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
-                                            defaultChecked={requirePayment}
-                                          />
-                                        </div>
-                                        <div className="ml-3 text-sm">
-                                          <p className="text-neutral-900">
-                                            {t("require_payment")} (0.5% +{" "}
-                                            <IntlProvider locale="en">
-                                              <FormattedNumber
-                                                value={0.1}
-                                                style="currency"
-                                                currency={currency}
-                                              />
-                                            </IntlProvider>{" "}
-                                            {t("commission_per_transaction")})
-                                          </p>
+                                      <div className="relative mt-1 rounded-sm shadow-sm">
+                                        <input
+                                          type="number"
+                                          name="price"
+                                          id="price"
+                                          step="0.01"
+                                          required
+                                          className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                          placeholder="Price"
+                                          defaultValue={
+                                            eventType.price > 0 ? eventType.price / 100.0 : undefined
+                                          }
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                          <span className="text-gray-500 sm:text-sm" id="duration">
+                                            {new Intl.NumberFormat("en", {
+                                              style: "currency",
+                                              currency: currency,
+                                              maximumSignificantDigits: 1,
+                                              maximumFractionDigits: 0,
+                                            })
+                                              .format(0)
+                                              .replace("0", "")}
+                                          </span>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
-                                {requirePayment && (
-                                  <div className="w-full">
-                                    <div className="items-center block sm:flex">
-                                      <div className="w-full">
-                                        <div className="relative mt-1 rounded-sm shadow-sm">
-                                          <input
-                                            type="number"
-                                            name="price"
-                                            id="price"
-                                            step="0.01"
-                                            required
-                                            className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                            placeholder="Price"
-                                            defaultValue={
-                                              eventType.price > 0 ? eventType.price / 100.0 : undefined
-                                            }
-                                          />
-                                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <span className="text-gray-500 sm:text-sm" id="duration">
-                                              {new Intl.NumberFormat("en", {
-                                                style: "currency",
-                                                currency: currency,
-                                                maximumSignificantDigits: 1,
-                                                maximumFractionDigits: 0,
-                                              })
-                                                .format(0)
-                                                .replace("0", "")}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                              )}
                             </div>
-                          </>
-                        )}
-                      </Disclosure.Panel>
-                    </>
-                  )}
-                </Disclosure>
+                          </div>
+                        </>
+                      )}
+                    </CollapsibleContent>
+                  </>
+                  {/* )} */}
+                </Collapsible>
                 <div className="flex justify-end mt-4 space-x-2">
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
                     {t("cancel")}
