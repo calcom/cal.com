@@ -123,7 +123,7 @@ const o365Auth = (credential: Credential) => {
   };
 };
 
-export type Person = { name: string | null; email: string; timeZone: string };
+export type Person = { name: string; email: string; timeZone: string };
 
 export interface EntryPoint {
   entryPointType?: string;

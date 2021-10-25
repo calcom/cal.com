@@ -78,7 +78,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+  public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
     let evt = EventManager.processLocation(event);
     const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
 
@@ -255,7 +255,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: CalendarEvent): Promise<EventResult> {
+  private createVideoEvent(event: Ensure<CalendarEvent, "language">): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
