@@ -133,7 +133,7 @@ function WebhookTestDisclosure() {
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
       <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full text-sm"}>
-        Webhook test{" "}
+        {t("webhook_test")}{" "}
         {open ? (
           <ChevronUpIcon className="w-5 h-5 text-gray-700" />
         ) : (
@@ -143,18 +143,18 @@ function WebhookTestDisclosure() {
       <CollapsibleContent>
         <InputGroupBox className="px-0 space-y-0 border-0">
           <div className="flex justify-between p-2 bg-gray-50">
-            <h3 className="self-center text-gray-700">Webhook responses</h3>
+            <h3 className="self-center text-gray-700">{t("webhook_response")}</h3>
             <Button
               StartIcon={SwitchHorizontalIcon}
               type="button"
               color="minimal"
               disabled={mutation.isLoading}
               onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING" })}>
-              Ping Test
+              {t("ping_test")}
             </Button>
           </div>
           <div className="p-2 text-gray-500 border-8 border-gray-50">
-            {!mutation.data && <em>No data yet</em>}
+            {!mutation.data && <em>{t("no_data_yet")}</em>}
             {mutation.status === "success" && (
               <>
                 <div
@@ -162,7 +162,7 @@ function WebhookTestDisclosure() {
                     "px-2 py-1 w-max text-xs ml-auto",
                     mutation.data.status === 200 ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
                   )}>
-                  {mutation.data.status === 200 ? "Success" : "Failed"}
+                  {mutation.data.status === 200 ? t("success") : t("failed")}
                 </div>
                 <pre className="overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</pre>
               </>
