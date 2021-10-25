@@ -23,6 +23,15 @@ import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
+import { getTranslation } from "@server/lib/i18n";
+
+export interface DailyReturnType {
+  name: string;
+  url: string;
+  id: string;
+  created_at: string;
+}
+
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -119,6 +128,7 @@ function isOutOfBounds(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
+  const t = await getTranslation(reqBody.language ?? "en", "common");
 
   log.debug(`Booking eventType ${eventTypeId} started`);
 
@@ -267,6 +277,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
     bookingUid: undefined, // Optional but needed for Daily.co integration
+    language: t,
+    uid,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -420,7 +432,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateResults = await eventManager.update(evt, rescheduleUid);
+    const eventManagerCalendarEvent = { ...evt, uid: rescheduleUid };
+    const updateResults = await eventManager.update(eventManagerCalendarEvent);
 
     results = updateResults.results;
     referencesToCreate = updateResults.referencesToCreate;
@@ -453,7 +466,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await new EventOrganizerRequestMail(evt, uid).sendEmail();
+    await new EventOrganizerRequestMail({ ...evt, uid }).sendEmail();
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {

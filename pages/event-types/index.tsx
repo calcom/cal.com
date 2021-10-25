@@ -344,7 +344,7 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types/" + eventType.id);
-      showToast(`${eventType.title} event type created successfully`, "success");
+      showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err: HttpError) => {
       const message = `${err.statusCode}: ${err.message}`;
