@@ -10,6 +10,7 @@ import { DailyEventResult, FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily
 import { ZoomEventResult } from "@lib/integrations/Zoom/ZoomVideoApiAdapter";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
+import { Ensure } from "@lib/types/utils";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
 export type Event = AdditionInformation & { name: string; id: string; disableConfirmationEmail?: boolean } & (
@@ -129,9 +130,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(
-    event: Omit<CalendarEvent, "uid"> & NonNullable<Pick<CalendarEvent, "uid">>
-  ): Promise<CreateUpdateResult> {
+  public async update(event: Ensure<CalendarEvent, "uid">): Promise<CreateUpdateResult> {
     let evt = EventManager.processLocation(event);
 
     if (!evt.uid) {
@@ -260,7 +259,7 @@ export default class EventManager {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
-      return createMeeting(credential, event, maybeUid);
+      return createMeeting(credential, event);
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }

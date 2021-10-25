@@ -15,6 +15,7 @@ import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
 import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
 import ZoomVideoApiAdapter from "./integrations/Zoom/ZoomVideoApiAdapter";
+import { Ensure } from "./types/utils";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -60,7 +61,10 @@ const getBusyVideoTimes: (withCredentials: Credential[]) => Promise<unknown[]> =
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-const createMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
+const createMeeting = async (
+  credential: Credential,
+  calEvent: Ensure<CalendarEvent, "language">
+): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
 

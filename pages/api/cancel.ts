@@ -61,19 +61,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).end();
   }
 
-  if ((!session || session.user?.id != bookingToDelete.user?.id) && bookingToDelete.startTime < new Date()) {
+  if ((!session || session.user?.id !== bookingToDelete.user?.id) && bookingToDelete.startTime < new Date()) {
     return res.status(403).json({ message: "Cannot cancel past events" });
+  }
+
+  if (!bookingToDelete.userId) {
+    return res.status(404).json({ message: "User not found" });
   }
 
   const organizer = await prisma.user.findFirst({
     where: {
-      id: bookingToDelete.userId as number,
+      id: bookingToDelete.userId,
     },
     select: {
       name: true,
       email: true,
       timeZone: true,
     },
+    rejectOnNotFound: true,
   });
 
   const evt: CalendarEvent = {
@@ -82,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     description: bookingToDelete?.description || "",
     startTime: bookingToDelete?.startTime.toString(),
     endTime: bookingToDelete?.endTime.toString(),
-    organizer: organizer,
+    organizer,
     attendees: bookingToDelete?.attendees.map((attendee) => {
       const retObj = { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
       return retObj;
