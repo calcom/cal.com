@@ -36,7 +36,6 @@ export const webhookRouter = createProtectedRouter().mutation("testTrigger", {
       throw new Error(`Unknown type '${type}'`);
     }
 
-    console.log({ url, type });
     try {
       const res = await fetch(url, {
         method: "POST",
