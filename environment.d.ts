@@ -10,6 +10,8 @@ declare namespace NodeJS {
     readonly NEXT_PUBLIC_TELEMETRY_KEY: string | undefined;
     readonly MS_GRAPH_CLIENT_ID: string | undefined;
     readonly MS_GRAPH_CLIENT_SECRET: string | undefined;
+    readonly MS_GRAPH_ENDPOINT: string | undefined;
+    readonly MS_TOKEN_ENDPOINT: string | undefined;
     readonly ZOOM_CLIENT_ID: string | undefined;
     readonly ZOOM_CLIENT_SECRET: string | undefined;
     readonly EMAIL_FROM: string | undefined;
