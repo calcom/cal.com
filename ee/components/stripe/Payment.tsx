@@ -1,11 +1,14 @@
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { StripeCardElementChangeEvent } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import React, { useState } from "react";
+import { SyntheticEvent } from "react";
 
 import { PaymentData } from "@ee/lib/stripe/server";
 
 import useDarkMode from "@lib/core/browser/useDarkMode";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
 
@@ -43,6 +46,7 @@ type States =
   | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
+  const { t } = useLocale();
   const router = useRouter();
   const { name, date } = router.query;
   const [state, setState] = useState<States>({ status: "idle" });
@@ -56,15 +60,17 @@ export default function PaymentComponent(props: Props) {
     CARD_OPTIONS.style.base["::placeholder"].color = "#fff";
   }
 
-  const handleChange = async (event) => {
+  const handleChange = async (event: StripeCardElementChangeEvent) => {
     // Listen for changes in the CardElement
     // and display any errors as the customer types their card details
     setState({ status: "idle" });
-    if (event.emtpy || event.error)
-      setState({ status: "error", error: new Error(event.error?.message || "Missing card fields") });
+    if (event.error)
+      setState({ status: "error", error: new Error(event.error?.message || t("missing_card_fields")) });
   };
-  const handleSubmit = async (ev) => {
+
+  const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
+
     if (!stripe || !elements) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
@@ -87,9 +93,10 @@ export default function PaymentComponent(props: Props) {
         name,
       };
 
+      // TODO: this block will never be executed due to the type @zomars
       if (payload["location"]) {
         if (payload["location"].includes("integration")) {
-          params.location = "Web conferencing details to follow.";
+          params.location = t("web_conferencing_details_to_follow");
         } else {
           params.location = payload["location"];
         }
@@ -111,7 +118,7 @@ export default function PaymentComponent(props: Props) {
           loading={state.status === "processing"}
           id="submit">
           <span id="button-text">
-            {state.status === "processing" ? <div className="spinner" id="spinner" /> : "Pay now"}
+            {state.status === "processing" ? <div className="spinner" id="spinner" /> : t("pay_now")}
           </span>
         </Button>
       </div>

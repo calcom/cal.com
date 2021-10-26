@@ -10,6 +10,8 @@ import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 
+import { getTranslation } from "@server/lib/i18n";
+
 export const config = {
   api: {
     bodyParser: false,
@@ -52,6 +54,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
               timeZone: true,
               email: true,
               name: true,
+              locale: true,
             },
           },
         },
@@ -69,6 +72,8 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (!user) throw new Error("No user found");
 
+  const t = await getTranslation(user.locale ?? "en", "common");
+
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -77,12 +82,15 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     endTime: booking.endTime.toISOString(),
     organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone },
     attendees: booking.attendees,
+    uid: booking.uid,
+    language: t,
   };
+
   if (booking.location) evt.location = booking.location;
 
   if (booking.confirmed) {
     const eventManager = new EventManager(user.credentials);
-    const scheduleResult = await eventManager.create(evt, booking.uid);
+    const scheduleResult = await eventManager.create(evt);
 
     await prisma.booking.update({
       where: {

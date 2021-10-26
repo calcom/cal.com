@@ -12,6 +12,7 @@ import PaymentComponent from "@ee/components/stripe/Payment";
 import getStripe from "@ee/lib/stripe/client";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 
 dayjs.extend(utc);
@@ -19,6 +20,7 @@ dayjs.extend(toArray);
 dayjs.extend(timezone);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
+  const { t } = useLocale();
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const { isReady } = useTheme(props.profile.theme);
@@ -33,7 +35,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   return isReady ? (
     <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
       <Head>
-        <title>Payment | {eventName} | Calendso</title>
+        <title>
+          {t("payment")} | {eventName} | Cal.com
+        </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="max-w-3xl mx-auto py-24">
@@ -56,17 +60,17 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     <h3
                       className="text-2xl leading-6 font-semibold dark:text-white text-neutral-900"
                       id="modal-headline">
-                      Payment
+                      {t("payment")}
                     </h3>
                     <div className="mt-3">
                       <p className="text-sm text-neutral-600 dark:text-gray-300">
-                        You have also received an email with this link, if you want to pay later.
+                        {t("pay_later_instructions")}
                       </p>
                     </div>
                     <div className="mt-4 text-gray-700 dark:text-gray-300 border-t border-b dark:border-gray-900 py-4 grid grid-cols-3 text-left">
-                      <div className="font-medium">What</div>
+                      <div className="font-medium">{t("what")}</div>
                       <div className="mb-6 col-span-2">{eventName}</div>
-                      <div className="font-medium">When</div>
+                      <div className="font-medium">{t("when")}</div>
                       <div className="mb-6 col-span-2">
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
@@ -77,11 +81,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       </div>
                       {props.booking.location && (
                         <>
-                          <div className="font-medium">Where</div>
+                          <div className="font-medium">{t("where")}</div>
                           <div className="mb-6 col-span-2">{props.booking.location}</div>
                         </>
                       )}
-                      <div className="font-medium">Price</div>
+                      <div className="font-medium">{t("price")}</div>
                       <div className="mb-6 col-span-2">
                         <IntlProvider locale="en">
                           <FormattedNumber
@@ -96,7 +100,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 </div>
                 <div>
                   {props.payment.success && !props.payment.refunded && (
-                    <div className="mt-4 text-gray-700 dark:text-gray-300 text-center">Paid</div>
+                    <div className="mt-4 text-gray-700 dark:text-gray-300 text-center">{t("paid")}</div>
                   )}
                   {!props.payment.success && (
                     <Elements stripe={getStripe(props.payment.data.stripe_publishable_key)}>
@@ -108,12 +112,12 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     </Elements>
                   )}
                   {props.payment.refunded && (
-                    <div className="mt-4 text-gray-700 dark:text-gray-300 text-center">Refunded</div>
+                    <div className="mt-4 text-gray-700 dark:text-gray-300 text-center">{t("refunded")}</div>
                   )}
                 </div>
                 {!props.profile.hideBranding && (
                   <div className="mt-4 pt-4 border-t dark:border-gray-900  text-gray-400 text-center text-xs dark:text-white">
-                    <a href="https://cal.com/signup">Create your own booking link with Cal.com</a>
+                    <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
                   </div>
                 )}
               </div>
