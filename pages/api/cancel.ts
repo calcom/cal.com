@@ -13,6 +13,8 @@ import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
+import { getTranslation } from "@server/lib/i18n";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // just bail if it not a DELETE
   if (req.method !== "DELETE" && req.method !== "POST") {
@@ -81,18 +83,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     rejectOnNotFound: true,
   });
 
+  const t = await getTranslation(req.body.language ?? "en", "common");
+
   const evt: CalendarEvent = {
     type: bookingToDelete?.title,
     title: bookingToDelete?.title,
     description: bookingToDelete?.description || "",
     startTime: bookingToDelete?.startTime.toString(),
     endTime: bookingToDelete?.endTime.toString(),
-    organizer,
+    organizer: {
+      email: organizer.email,
+      name: organizer.name ?? "Nameless",
+      timeZone: organizer.timeZone,
+    },
     attendees: bookingToDelete?.attendees.map((attendee) => {
       const retObj = { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
       return retObj;
     }),
     uid: bookingToDelete?.uid,
+    language: t,
   };
 
   // Hook up the webhook logic here
@@ -147,6 +156,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       attendees: bookingToDelete.attendees,
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
+      language: t,
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({
