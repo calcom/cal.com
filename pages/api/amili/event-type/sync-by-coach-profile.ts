@@ -27,11 +27,22 @@ type CoachProfileProgram = {
   program?: HealthCoachProgram;
 };
 
+type CoachProfileAvailability = {
+  coachProfileId: string;
+  days: number[];
+  startTime: number;
+  endTime: number;
+  customizedWeek: number;
+  customizedYear: number;
+  type: string;
+};
+
 type ReqPayload = {
   assUserId: number;
   insertedCoachProfileProgram?: CoachProfileProgram[];
   removedCoachProfileProgram?: CoachProfileProgram[];
   updatedCoachProfileProgram?: CoachProfileProgram[];
+  profileAvailability?: CoachProfileAvailability[];
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -40,8 +51,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const { assUserId, insertedCoachProfileProgram, removedCoachProfileProgram, updatedCoachProfileProgram } =
-    body as ReqPayload;
+  const {
+    assUserId,
+    insertedCoachProfileProgram,
+    removedCoachProfileProgram,
+    updatedCoachProfileProgram,
+    profileAvailability,
+  } = body as ReqPayload;
 
   await runMiddleware(req, res, checkAmiliAuth);
 
@@ -119,6 +135,25 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return { coachProgramId: id, assEventTypeId: newProgramCreated.id };
     })
   );
+
+  // remove coach profile availability
+  const coachProfileAvailabilityDeleted = prisma.coachProfileAvailability.deleteMany({
+    where: { coachProfileId: +assUserId },
+  });
+
+  await prisma.$transaction([coachProfileAvailabilityDeleted]);
+
+  // insert coach profile availability
+  const newCoachProfileAvailability = profileAvailability.map((item) => ({
+    ...item,
+    coachProfileId: +assUserId,
+  }));
+
+  const coachProfileAvailabilityCreated = prisma.coachProfileAvailability.createMany({
+    data: newCoachProfileAvailability,
+  });
+
+  await prisma.$transaction([coachProfileAvailabilityCreated]);
 
   res.status(200).json({ assMapping });
 };
