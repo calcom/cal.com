@@ -156,7 +156,7 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
-  language?: TFunction;
+  language: TFunction;
   additionInformation?: AdditionInformation;
   /** If this property exist it we can assume it's a reschedule/update */
   uid?: string | null;
