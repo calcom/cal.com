@@ -22,7 +22,7 @@ import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
-import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
+import { AvailabilityPageProps } from "../../../pages/[locale]/[user]/[type]";
 import { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 dayjs.extend(utc);

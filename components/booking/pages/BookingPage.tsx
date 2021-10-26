@@ -30,7 +30,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
 import PhoneInput from "@components/ui/form/PhoneInput";
 
-import { BookPageProps } from "../../../pages/[user]/book";
+import { BookPageProps } from "../../../pages/[locale]/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;

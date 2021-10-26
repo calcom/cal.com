@@ -1,33 +1,55 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPaths, GetStaticPropsContext } from "next";
+import { i18n } from "next-i18next.config";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import Loader from "@components/Loader";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
-import { ssrInit } from "@server/lib/ssr";
+import { ssgInit } from "@server/ssg";
 
-export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { isReady } = useTheme(props.user.theme);
-  const { user, eventTypes } = props;
+export default function User(props: inferSSRProps<typeof getStaticProps>) {
+  const { username } = props;
+  const utils = trpc.useContext();
+
+  // data of query below will be will be prepopulated b/c of `getStaticProps`
+  const query = trpc.useQuery(["booking.userEventTypes", { username }]);
+
   const { t } = useLocale();
+  const { isReady } = useTheme(query.data?.user.theme);
+  useEffect(() => {
+    if (!query.data) {
+      return;
+    }
+    for (const { slug } of query.data.eventTypes) {
+      utils.prefetchQuery(["booking.eventTypeByUsername", { slug, username }]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username]);
+  if (!query.data) {
+    // this shold never happen as we do `blocking: true`
+    // TODO check 404 pages
+    return <Loader />;
+  }
+  const { user, eventTypes } = query.data;
 
   const nameOrUsername = user.name || user.username || "";
-
   return (
     <>
       <HeadSeo
         title={nameOrUsername}
         description={nameOrUsername}
         name={nameOrUsername}
-        avatar={user.avatar || undefined}
+        avatar={user.avatar || ""}
       />
       {isReady && (
         <div className="bg-neutral-50 dark:bg-black h-screen">
@@ -39,7 +61,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 alt={nameOrUsername}
               />
               <h1 className="font-cal text-3xl font-bold text-neutral-900 dark:text-white mb-1">
-                {nameOrUsername}
+                {user.name || user.username}
               </h1>
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
@@ -75,76 +97,68 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  const username = (context.query.user as string).toLowerCase();
-
-  const user = await prisma.user.findUnique({
-    where: {
-      username: username.toLowerCase(),
-    },
+export const getStaticPaths: GetStaticPaths = async () => {
+  const users = await prisma.user.findMany({
     select: {
-      id: true,
       username: true,
-      email: true,
-      name: true,
-      bio: true,
-      avatar: true,
-      theme: true,
-      plan: true,
+      locale: true,
+    },
+    where: {
+      // will statically render everyone on the PRO plan
+      // the rest will be statically rendered on first visit
+      plan: "PRO",
     },
   });
+  const { defaultLocale } = i18n;
+  return {
+    paths: users.flatMap((user) => {
+      if (!user.username) {
+        return [];
+      }
+      // statically render english
+      const paths = [
+        {
+          params: {
+            user: user.username,
+            locale: defaultLocale,
+          },
+        },
+      ];
+      // statically render user's preferred language
+      if (user.locale && user.locale !== defaultLocale) {
+        const locale = user.locale;
+        paths.push({
+          params: {
+            user: user.username,
+            locale,
+          },
+        });
+      }
+      return paths;
+    }),
 
-  if (!user) {
+    // https://nextjs.org/docs/basic-features/data-fetching#fallback-blocking
+    fallback: "blocking",
+  };
+};
+
+export async function getStaticProps(context: GetStaticPropsContext<{ user: string; locale: string }>) {
+  const ssg = await ssgInit(context);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const username = context.params!.user;
+  const data = await ssg.fetchQuery("booking.userEventTypes", { username });
+
+  if (!data) {
     return {
       notFound: true,
     };
   }
 
-  const eventTypesWithHidden = await prisma.eventType.findMany({
-    where: {
-      AND: [
-        {
-          teamId: null,
-        },
-        {
-          OR: [
-            {
-              userId: user.id,
-            },
-            {
-              users: {
-                some: {
-                  id: user.id,
-                },
-              },
-            },
-          ],
-        },
-      ],
-    },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      length: true,
-      description: true,
-      hidden: true,
-      schedulingType: true,
-      price: true,
-      currency: true,
-    },
-    take: user.plan === "FREE" ? 1 : undefined,
-  });
-
-  const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
-
   return {
     props: {
-      user,
-      eventTypes,
-      trpcState: ssr.dehydrate(),
+      trpcState: ssg.dehydrate(),
+      username,
     },
+    revalidate: 1,
   };
-};
+}

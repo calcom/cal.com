@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const withTM = require("next-transpile-modules")(["react-timezone-select"]);
-const { i18n } = require("./next-i18next.config");
+const withTM = require("@vercel/edge-functions-ui/transpile")(["react-timezone-select"]);
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.BASE_URL) {
@@ -55,7 +54,6 @@ plugins.push(withTM);
 
 // prettier-ignore
 module.exports = () => plugins.reduce((acc, next) => next(acc), {
-  i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
     ignoreDuringBuilds: true,
