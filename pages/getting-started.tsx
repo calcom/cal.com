@@ -11,6 +11,7 @@ import { useSession } from "next-auth/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
@@ -22,13 +23,13 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import Loader from "@components/Loader";
 import { ShellSubHeading } from "@components/Shell";
+import { Form } from "@components/form/fields";
 import CalendarsList from "@components/integrations/CalendarsList";
 import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
-import Form from "@components/ui/form/Form";
 import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
@@ -241,6 +242,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     router.push("/event-types");
   };
 
+  const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [
     {
       id: t("welcome"),
@@ -343,13 +345,13 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("set_availability"),
       description: t("set_availability_instructions"),
       Component: (
-        <Form<ScheduleFormValues>
+        <Form
           className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white"
-          defaultValues={{ schedule: DEFAULT_SCHEDULE }}
-          onSubmit={async (data: ScheduleFormValues) => {
+          form={availabilityForm}
+          handleSubmit={async (values) => {
             try {
               setSubmitting(true);
-              await createSchedule({ ...data });
+              await createSchedule({ ...values });
               debouncedHandleConfirmStep();
               setSubmitting(false);
             } catch (error) {
