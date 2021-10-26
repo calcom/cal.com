@@ -24,12 +24,12 @@ const googleAuth = (credential: Credential) => {
   const googleCredentials = credential.key as Auth.Credentials;
   myGoogleAuth.setCredentials(googleCredentials);
 
-  // @ts-ignore IDK Why this is a protected method ¯\_(ツ)_/¯
+  // FIXME - type errors IDK Why this is a protected method ¯\_(ツ)_/¯
   const isExpired = () => myGoogleAuth.isTokenExpiring();
 
   const refreshAccessToken = () =>
     myGoogleAuth
-      // @ts-ignore IDK Why this is a protected method ¯\_(ツ)_/¯
+      // FIXME - type errors IDK Why this is a protected method ¯\_(ツ)_/¯
       .refreshToken(googleCredentials.refresh_token)
       .then((res: GetTokenResponse) => {
         const token = res.res?.data;
@@ -89,7 +89,7 @@ const o365Auth = (credential: Credential) => {
     return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      // @ts-ignore FIXME
+      // FIXME types - IDK how to type this TBH
       body: new URLSearchParams({
         scope: "User.Read Calendars.Read Calendars.ReadWrite",
         client_id: process.env.MS_GRAPH_CLIENT_ID,
