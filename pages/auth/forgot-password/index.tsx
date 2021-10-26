@@ -1,29 +1,31 @@
 import debounce from "lodash/debounce";
+import { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/client";
 import Link from "next/link";
-import React from "react";
+import React, { SyntheticEvent } from "react";
 
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
-export default function ForgotPassword({ csrfToken }) {
-  const { t } = useLocale();
+export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
+  const { t, i18n } = useLocale();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState(null);
+  const [error, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
   const [email, setEmail] = React.useState("");
 
-  const handleChange = (e) => {
-    setEmail(e.target.value);
+  const handleChange = (e: SyntheticEvent) => {
+    const target = e.target as typeof e.target & { value: string };
+    setEmail(target.value);
   };
 
-  const submitForgotPasswordRequest = async ({ email }) => {
+  const submitForgotPasswordRequest = async ({ email }: { email: string }) => {
     try {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
-        body: JSON.stringify({ email: email }),
+        body: JSON.stringify({ email: email, language: i18n.language }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -46,7 +48,7 @@ export default function ForgotPassword({ csrfToken }) {
 
   const debouncedHandleSubmitPasswordRequest = debounce(submitForgotPasswordRequest, 250);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
 
     if (!email) {
@@ -157,7 +159,7 @@ export default function ForgotPassword({ csrfToken }) {
   );
 }
 
-ForgotPassword.getInitialProps = async (context) => {
+ForgotPassword.getInitialProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
   const session = await getSession({ req });
 
