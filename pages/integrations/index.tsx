@@ -1,9 +1,16 @@
-import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
+import {
+  PencilAltIcon,
+  SwitchHorizontalIcon,
+  TrashIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { WebhookTriggerEvents } from "@prisma/client";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import React, { useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -113,6 +120,60 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   );
 }
 
+function WebhookTestDisclosure() {
+  const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
+  const { t } = useLocale();
+  const [open, setOpen] = useState(false);
+  const mutation = trpc.useMutation("viewer.webhook.testTrigger", {
+    onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  return (
+    <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
+      <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full text-sm"}>
+        {t("webhook_test")}{" "}
+        {open ? (
+          <ChevronUpIcon className="w-5 h-5 text-gray-700" />
+        ) : (
+          <ChevronDownIcon className="w-5 h-5 text-gray-700" />
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <InputGroupBox className="px-0 space-y-0 border-0">
+          <div className="flex justify-between p-2 bg-gray-50">
+            <h3 className="self-center text-gray-700">{t("webhook_response")}</h3>
+            <Button
+              StartIcon={SwitchHorizontalIcon}
+              type="button"
+              color="minimal"
+              disabled={mutation.isLoading}
+              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING" })}>
+              {t("ping_test")}
+            </Button>
+          </div>
+          <div className="p-2 text-gray-500 border-8 border-gray-50">
+            {!mutation.data && <em>{t("no_data_yet")}</em>}
+            {mutation.status === "success" && (
+              <>
+                <div
+                  className={classNames(
+                    "px-2 py-1 w-max text-xs ml-auto",
+                    mutation.data.status === 200 ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
+                  )}>
+                  {mutation.data.status === 200 ? t("success") : t("failed")}
+                </div>
+                <pre className="overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</pre>
+              </>
+            )}
+          </div>
+        </InputGroupBox>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 function WebhookDialogForm(props: {
   //
   defaultValues?: TWebhook;
@@ -133,6 +194,7 @@ function WebhookDialogForm(props: {
   const form = useForm({
     defaultValues,
   });
+
   return (
     <Form
       data-testid="WebhookDialogForm"
@@ -209,6 +271,7 @@ function WebhookDialogForm(props: {
           ))}
         </InputGroupBox>
       </fieldset>
+      <WebhookTestDisclosure />
       <DialogFooter>
         <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
           {t("cancel")}
