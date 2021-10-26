@@ -6,6 +6,8 @@ import { CalendarEvent } from "@lib/calendarClient";
 import EventOrganizerRequestReminderMail from "@lib/emails/EventOrganizerRequestReminderMail";
 import prisma from "@lib/prisma";
 
+import { getTranslation } from "@server/lib/i18n";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -31,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         title: true,
         description: true,
+        location: true,
         startTime: true,
         endTime: true,
         attendees: true,
@@ -59,10 +62,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.error(`Booking ${booking.id} is missing required properties for booking reminder`, { user });
         continue;
       }
+      const t = await getTranslation(req.body.language ?? "en", "common");
       const evt: CalendarEvent = {
         type: booking.title,
         title: booking.title,
         description: booking.description || undefined,
+        location: booking.location ?? "",
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         organizer: {
@@ -71,9 +76,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           timeZone: user.timeZone,
         },
         attendees: booking.attendees,
+        uid: booking.uid,
+        language: t,
       };
 
-      await new EventOrganizerRequestReminderMail(evt, booking.uid).sendEmail();
+      await new EventOrganizerRequestReminderMail(evt).sendEmail();
       await prisma.reminderMail.create({
         data: {
           referenceId: booking.id,

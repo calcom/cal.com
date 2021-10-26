@@ -37,6 +37,7 @@ export default async function handler(req, res) {
     await prisma.credential.delete({
       where: {
         id: id,
+        userId: session.user.id,
       },
     });
 
