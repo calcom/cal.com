@@ -1,4 +1,4 @@
-import { Prisma } from ".prisma/client";
+import { Prisma } from "@prisma/client";
 
 export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: number; code?: string } {
   if (cause instanceof Prisma.PrismaClientKnownRequestError) {

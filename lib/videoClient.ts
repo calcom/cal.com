@@ -159,14 +159,20 @@ const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): P
 
   let success = true;
 
-  const updatedMeeting = credential
-    ? await getVideoAdapters([credential])[0]
-        .updateMeeting(calEvent.uid, calEvent)
-        .catch((e) => {
-          log.error("updateMeeting failed", e, calEvent);
-          success = false;
-        })
-    : null;
+  const [firstVideoAdapter] = getVideoAdapters([credential]);
+  const updatedMeeting = await firstVideoAdapter.updateMeeting(calEvent.uid, calEvent).catch((e) => {
+    log.error("updateMeeting failed", e, calEvent);
+    success = false;
+  });
+
+  if (!updatedMeeting) {
+    return {
+      type: credential.type,
+      success,
+      uid: calEvent.uid,
+      originalEvent: calEvent,
+    };
+  }
 
   const emailEvent = { ...calEvent, uid: newUid };
 
@@ -177,7 +183,7 @@ const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): P
     console.error("organizerMail.sendEmail failed", e);
   }
 
-  if (!updatedMeeting || !updatedMeeting.disableConfirmationEmail) {
+  if (!updatedMeeting.disableConfirmationEmail) {
     try {
       const attendeeMail = new EventAttendeeRescheduledMail(emailEvent);
       await attendeeMail.sendEmail();
