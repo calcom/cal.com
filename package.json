@@ -97,6 +97,7 @@
     "zod": "^3.8.2"
   },
   "devDependencies": {
+    "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.7",
