@@ -50,11 +50,23 @@ export const TextField = forwardRef<
   );
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/**
+ * Form helper that creates a rect-hook-form Provider and helps with submission handling & default error handling
+ */
 export function Form<TFieldValues>(
   props: {
+    /**
+     * Pass in the return from `react-hook-form`s `useForm()`
+     */
     form: UseFormReturn<TFieldValues>;
+    /**
+     * Submit handler - you'll get the typed form values back
+     */
     handleSubmit?: SubmitHandler<TFieldValues>;
+    /**
+     * Optional - Override the default error handling
+     * By default it shows a toast with the error
+     */
     handleError?: (err: ReturnType<typeof getErrorFromUnknown>) => void;
   } & Omit<JSX.IntrinsicElements["form"], "ref">
 ) {
