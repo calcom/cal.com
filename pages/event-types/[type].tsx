@@ -1,5 +1,5 @@
 // TODO: replace headlessui with radix-ui
-import { Disclosure, RadioGroup } from "@headlessui/react";
+import { RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
@@ -207,11 +207,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const openLocationModal = (type: LocationType) => {
     setSelectedLocation(locationOptions.find((option) => option.value === type));
     setShowLocationModal(true);
-  };
-
-  const closeLocationModal = () => {
-    setSelectedLocation(undefined);
-    setShowLocationModal(false);
   };
 
   const updateLocations = (e: React.FormEvent<HTMLFormElement>) => {
@@ -995,56 +990,48 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         </div>
-        {showLocationModal && (
-          <div
-            className="fixed inset-0 z-50 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
-                aria-hidden="true"></div>
-
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-                &#8203;
-              </span>
-
-              <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="mb-4 sm:flex sm:items-start">
-                  <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <LocationMarkerIcon className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                      {t("edit_location")}
-                    </h3>
+        <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
+          <DialogContent asChild>
+            <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="mb-4 sm:flex sm:items-start">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <LocationMarkerIcon className="w-6 h-6 text-primary-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                    {t("edit_location")}
+                  </h3>
+                  <div>
+                    <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
                   </div>
                 </div>
-                <form onSubmit={updateLocations}>
-                  <Select
-                    name="location"
-                    defaultValue={selectedLocation}
-                    options={locationOptions}
-                    isSearchable={false}
-                    classNamePrefix="react-select"
-                    className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    onChange={setSelectedLocation}
-                  />
-                  <LocationOptions />
-                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      {t("update")}
-                    </button>
-                    <button onClick={closeLocationModal} type="button" className="mr-2 btn btn-white">
-                      {t("cancel")}
-                    </button>
-                  </div>
-                </form>
               </div>
+              <form onSubmit={updateLocations}>
+                <Select
+                  name="location"
+                  defaultValue={selectedLocation}
+                  options={locationOptions}
+                  isSearchable={false}
+                  classNamePrefix="react-select"
+                  className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  onChange={setSelectedLocation}
+                />
+                <LocationOptions />
+                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                  <button type="submit" className="btn btn-primary">
+                    {t("update")}
+                  </button>
+                  <button
+                    onClick={() => setShowLocationModal(false)}
+                    type="button"
+                    className="mr-2 btn btn-white">
+                    {t("cancel")}
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
         <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
           <DialogContent asChild>
             <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
