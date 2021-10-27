@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         title: true,
         description: true,
+        location: true,
         startTime: true,
         endTime: true,
         attendees: true,
@@ -76,6 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type: booking.title,
         title: booking.title,
         description: booking.description || undefined,
+        location: booking.location ?? "",
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         organizer: {

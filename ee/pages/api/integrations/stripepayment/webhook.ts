@@ -9,6 +9,7 @@ import { HttpError } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
+import { Ensure } from "@lib/types/utils";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -74,7 +75,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const t = await getTranslation(user.locale ?? "en", "common");
 
-  const evt: CalendarEvent = {
+  const evt: Ensure<CalendarEvent, "language"> = {
     type: booking.title,
     title: booking.title,
     description: booking.description || undefined,
