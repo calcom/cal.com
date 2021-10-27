@@ -47,5 +47,7 @@ export async function middleware(req: NextRequest) {
 
   console.log("redirect", { pathname, newPathname });
 
-  return NextResponse.rewrite(newPathname);
+  req.nextUrl.pathname = newPathname;
+
+  return NextResponse.rewrite(req.nextUrl);
 }
