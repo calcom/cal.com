@@ -180,7 +180,7 @@ async function main() {
       },
     ],
   });
-  const proUser = await createUserAndEventType({
+  await createUserAndEventType({
     user: {
       email: "pro@example.com",
       name: "Pro Example",
@@ -240,7 +240,7 @@ async function main() {
     ],
   });
 
-  const freeUser = await createUserAndEventType({
+  await createUserAndEventType({
     user: {
       email: "free@example.com",
       password: "free",
@@ -262,6 +262,28 @@ async function main() {
     ],
   });
 
+  const freeUserTeam = await createUserAndEventType({
+    user: {
+      email: "teamfree@example.com",
+      password: "teamfree",
+      username: "teamfree",
+      name: "Team Free Example",
+      plan: "FREE",
+    },
+    eventTypes: [],
+  });
+
+  const proUserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro@example.com",
+      password: "teampro",
+      username: "teampro",
+      name: "Team Pro Example",
+      plan: "PRO",
+    },
+    eventTypes: [],
+  });
+
   await createTeamAndAddUsers(
     {
       name: "Seeded Team",
@@ -269,12 +291,12 @@ async function main() {
     },
     [
       {
-        id: proUser.id,
-        username: proUser.name || "Unknown",
+        id: proUserTeam.id,
+        username: proUserTeam.name || "Unknown",
       },
       {
-        id: freeUser.id,
-        username: freeUser.name || "Unknown",
+        id: freeUserTeam.id,
+        username: freeUserTeam.name || "Unknown",
       },
     ]
   );
