@@ -193,7 +193,7 @@ model CoachProfileAvailability {
   days           Int[]
   startTime      Int
   endTime        Int
-  customizedWeek Int
-  customizedYear Int
+  customizedWeek Int?
+  customizedYear Int?
   type           String
 }

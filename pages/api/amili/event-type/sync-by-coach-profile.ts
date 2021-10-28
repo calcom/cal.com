@@ -28,12 +28,12 @@ type CoachProfileProgram = {
 };
 
 type CoachProfileAvailability = {
-  coachProfileId: string;
+  coachProfileId?: string;
   days: number[];
   startTime: number;
   endTime: number;
-  customizedWeek: number;
-  customizedYear: number;
+  customizedWeek?: number;
+  customizedYear?: number;
   type: string;
 };
 
@@ -59,11 +59,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     profileAvailability,
   } = body as ReqPayload;
 
+  console.log({ body });
+
   await runMiddleware(req, res, checkAmiliAuth);
 
   // delete event type
   await Promise.all(
-    removedCoachProfileProgram.map(async ({ assEventTypeId }) => {
+    (removedCoachProfileProgram || [])?.map(async ({ assEventTypeId }) => {
       const availabilityDeleted = prisma.availability.deleteMany({
         where: { eventTypeId: assEventTypeId },
       });
@@ -80,14 +82,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   // update event type
   await Promise.all(
-    (updatedCoachProfileProgram || []).map(async ({ assEventTypeId, availability }) => {
+    (updatedCoachProfileProgram || [])?.map(async ({ assEventTypeId, availability }) => {
       const availabilityDeleted = prisma.availability.deleteMany({
         where: {
           eventTypeId: assEventTypeId,
         },
       });
 
-      const newAvailability = availability.map(({ days, startTime, endTime }) => ({
+      const newAvailability = (availability || [])?.map(({ days, startTime, endTime }) => ({
         days,
         startTime,
         endTime: endTime,
@@ -105,35 +107,37 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   // create event type
   const assMapping = await Promise.all(
-    (insertedCoachProfileProgram || []).map(async ({ id, programId, coachUserId, program, availability }) => {
-      const newAvailability = availability.map(({ days, startTime, endTime }) => ({
-        days,
-        startTime,
-        endTime: endTime,
-        userId: +assUserId,
-      }));
+    (insertedCoachProfileProgram || [])?.map(
+      async ({ id, programId, coachUserId, program, availability }) => {
+        const newAvailability = (availability || [])?.map(({ days, startTime, endTime }) => ({
+          days,
+          startTime,
+          endTime: endTime,
+          userId: +assUserId,
+        }));
 
-      const { name = "", description = "", duration = 0 } = program || {};
+        const { name = "", description = "", duration = 0 } = program || {};
 
-      const newCoachProgram = {
-        description,
-        title: name,
-        slug: coachUserId,
-        locations: [{ type: "integrations:zoom" }],
-        length: duration,
-        userId: +assUserId,
-        coachProgramId: programId,
-        availability: {
-          create: newAvailability,
-        },
-      };
+        const newCoachProgram = {
+          description,
+          title: name,
+          slug: coachUserId,
+          locations: [{ type: "integrations:zoom" }],
+          length: duration,
+          userId: +assUserId,
+          coachProgramId: programId,
+          availability: {
+            create: newAvailability,
+          },
+        };
 
-      const newProgramCreated = await prisma.eventType.create({
-        data: newCoachProgram,
-      });
+        const newProgramCreated = await prisma.eventType.create({
+          data: newCoachProgram,
+        });
 
-      return { coachProgramId: id, assEventTypeId: newProgramCreated.id };
-    })
+        return { coachProgramId: id, assEventTypeId: newProgramCreated.id };
+      }
+    )
   );
 
   // remove coach profile availability
@@ -144,7 +148,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   await prisma.$transaction([coachProfileAvailabilityDeleted]);
 
   // insert coach profile availability
-  const newCoachProfileAvailability = profileAvailability.map((item) => ({
+  const newCoachProfileAvailability = (profileAvailability || [])?.map((item) => ({
     ...item,
     coachProfileId: +assUserId,
   }));
