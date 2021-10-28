@@ -50,7 +50,7 @@ export default function Bookings() {
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
               {query.status === "loading" || (query.status === "idle" && <Loader />)}
-              {query.status === "success" && query.data.pages[0].bookings.length > 0 ? (
+              {query.status === "success" && query.data.pages[0].bookings.length > 0 && (
                 <>
                   <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -74,7 +74,8 @@ export default function Bookings() {
                     </Button>
                   </div>
                 </>
-              ) : (
+              )}
+              {query.status === "success" && query.data.pages[0].bookings.length === 0 && (
                 <EmptyScreen
                   Icon={CalendarIcon}
                   headline={t("no_status_bookings_yet", { status: status })}
