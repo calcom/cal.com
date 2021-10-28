@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, UserPlan } from "@prisma/client";
+import { MembershipRole, Prisma, PrismaClient, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
@@ -34,8 +34,9 @@ async function createUserAndEventType(opts: {
   });
 
   console.log(
-    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 http://localhost:3000/${opts.user.username}`
+    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 ${process.env.BASE_URL}/${opts.user.username}`
   );
+
   for (const eventTypeInput of opts.eventTypes) {
     const { _bookings: bookingInputs = [], ...eventTypeData } = eventTypeInput;
     eventTypeData.userId = user.id;
@@ -57,7 +58,7 @@ async function createUserAndEventType(opts: {
 
     if (eventType) {
       console.log(
-        `\t📆 Event type ${eventTypeData.slug} already seems seeded - http://localhost:3000/${user.username}/${eventTypeData.slug}`
+        `\t📆 Event type ${eventTypeData.slug} already seems seeded - ${process.env.BASE_URL}/${user.username}/${eventTypeData.slug}`
       );
       continue;
     }
@@ -66,7 +67,7 @@ async function createUserAndEventType(opts: {
     });
 
     console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - http://localhost:3000/${user.username}/${eventTypeData.slug}`
+      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - ${process.env.BASE_URL}/${user.username}/${eventTypeData.slug}`
     );
     for (const bookingInput of bookingInputs) {
       await prisma.booking.create({
@@ -98,6 +99,49 @@ async function createUserAndEventType(opts: {
         ).toLocaleDateString()}`
       );
     }
+  }
+
+  return user;
+}
+
+async function createTeamAndAddUsers(
+  teamInput: Prisma.TeamCreateInput,
+  users: { id: number; username: string; role?: MembershipRole }[]
+) {
+  const createTeam = async (team: Prisma.TeamCreateInput) => {
+    try {
+      return await prisma.team.create({
+        data: {
+          ...team,
+        },
+      });
+    } catch (_err) {
+      if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
+        console.log(`Team '${team.name}' already exists, skipping.`);
+        return;
+      }
+      throw _err;
+    }
+  };
+
+  const team = await createTeam(teamInput);
+  if (!team) {
+    return;
+  }
+
+  console.log(`🏢 Created team '${teamInput.name}' - ${process.env.BASE_URL}/team/${team.slug}`);
+
+  for (const user of users) {
+    const { role = MembershipRole.OWNER, id, username } = user;
+    await prisma.membership.create({
+      data: {
+        teamId: team.id,
+        userId: id,
+        role: role,
+        accepted: true,
+      },
+    });
+    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
   }
 }
 
@@ -136,7 +180,7 @@ async function main() {
       },
     ],
   });
-  await createUserAndEventType({
+  const proUser = await createUserAndEventType({
     user: {
       email: "pro@example.com",
       name: "Pro Example",
@@ -196,7 +240,7 @@ async function main() {
     ],
   });
 
-  await createUserAndEventType({
+  const freeUser = await createUserAndEventType({
     user: {
       email: "free@example.com",
       password: "free",
@@ -217,6 +261,23 @@ async function main() {
       },
     ],
   });
+
+  await createTeamAndAddUsers(
+    {
+      name: "Seeded Team",
+      slug: "seeded-team",
+    },
+    [
+      {
+        id: proUser.id,
+        username: proUser.name || "Unknown",
+      },
+      {
+        id: freeUser.id,
+        username: freeUser.name || "Unknown",
+      },
+    ]
+  );
 
   await prisma.$disconnect();
 }
