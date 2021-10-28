@@ -77,9 +77,6 @@ export const webhookRouter = createProtectedRouter()
             },
           },
         },
-        select: {
-          webhooks: true,
-        },
       });
 
       return {
