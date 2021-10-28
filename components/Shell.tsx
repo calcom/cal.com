@@ -20,7 +20,6 @@ import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
-import { useScrollToBottom } from "@lib/hooks/useScrollToBottom";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -107,9 +106,6 @@ export default function Shell(props: {
   subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
-  isFetchingNextPage?: boolean;
-  hasNextPage?: boolean;
-  fetchNextPage?: () => void;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -160,14 +156,6 @@ export default function Shell(props: {
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
   const i18n = useViewerI18n();
-
-  const [setBottomRef, isBottom] = useScrollToBottom();
-
-  useEffect(() => {
-    if (isBottom && props.fetchNextPage) {
-      props.fetchNextPage();
-    }
-  }, [isBottom]);
 
   if (i18n.status === "loading") {
     // show spinner whilst i18n is loading to avoid language flicker

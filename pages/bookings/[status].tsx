@@ -11,6 +11,7 @@ import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import { Alert } from "@components/ui/Alert";
+import Button from "@components/ui/Button";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 
@@ -31,6 +32,7 @@ export default function Bookings() {
     enabled: !!status,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
+  console.log({ query });
 
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
@@ -43,19 +45,29 @@ export default function Bookings() {
               )}
               {query.status === "loading" || (query.status === "idle" && <Loader />)}
               {query.status === "success" && query.data.pages[0].bookings.length > 0 ? (
-                <div className="my-6 overflow-hidden border border-b border-gray-200 rounded-sm">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
-                      {query.data.pages.map((page, index) => (
-                        <Fragment key={index}>
-                          {page.bookings.map((booking) => (
-                            <BookingListItem key={booking.id} {...booking} />
-                          ))}
-                        </Fragment>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <>
+                  <div className="my-6 overflow-hidden border border-b border-gray-200 rounded-sm">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
+                        {query.data.pages.map((page, index) => (
+                          <Fragment key={index}>
+                            {page.bookings.map((booking) => (
+                              <BookingListItem key={booking.id} {...booking} />
+                            ))}
+                          </Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="text-center p-2">
+                    <Button
+                      loading={query.isFetchingNextPage}
+                      disabled={!query.hasNextPage}
+                      onClick={() => query.fetchNextPage()}>
+                      {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <EmptyScreen
                   Icon={CalendarIcon}
