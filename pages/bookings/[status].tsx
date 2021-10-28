@@ -49,7 +49,7 @@ export default function Bookings() {
               {query.status === "error" && (
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
-              {query.status === "loading" || (query.status === "idle" && <Loader />)}
+              {(query.status === "loading" || query.status === "idle") && <Loader />}
               {query.status === "success" && query.data.pages[0].bookings.length > 0 && (
                 <>
                   <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
