@@ -39,7 +39,7 @@ export default function Bookings() {
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               {query.status === "error" && (
-                <Alert severity="error" title="Something went wrong" message={query.error.message} />
+                <Alert severity="error" title={t('something_went_wrong')} message={query.error.message} />
               )}
               {query.status === "loading" || (query.status === "idle" && <Loader />)}
               {query.status === "success" && query.data.pages[0].bookings.length > 0 ? (
