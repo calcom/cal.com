@@ -1,5 +1,6 @@
 import { XIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
+import { Trans } from "react-i18next";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -33,9 +34,11 @@ export default function LicenseBanner() {
               </span>
               <p className="ml-3 font-medium text-white truncate">
                 <span className="inline">
-                  {t("accept_our_license")}{" "}
-                  <span className="bg-gray-50 bg-opacity-20 px-1">NEXT_PUBLIC_LICENSE_CONSENT</span> {t("to")}
-                  &apos;{t("agree")}&apos;.
+                  <Trans i18nKey="accept_our_license" values={{ agree: "agree" }}>
+                    Accept our license by changing the .env variable{" "}
+                    <span className="bg-gray-50 bg-opacity-20 px-1">NEXT_PUBLIC_LICENSE_CONSENT</span> to
+                    &apos;agree&apos;.
+                  </Trans>
                 </span>
               </p>
             </div>
@@ -73,9 +76,13 @@ export default function LicenseBanner() {
         title={t("open_env")}
         confirmBtnText={t("env_changed")}
         cancelBtnText={t("cancel")}>
-        {t("remove_banner")}{" "}
-        <span className="bg-green-400 text-green-500 bg-opacity-20 p-[2px]">NEXT_PUBLIC_LICENSE_CONSENT</span>{" "}
-        {t("variable")} {t("to")} &apos;{t("agree")}&apos;.
+        <Trans i18nKey="remove_banner_instructions" values={{ agree: "agree" }}>
+          To remove this banner, please open your .env file and change the{" "}
+          <span className="bg-green-400 text-green-500 bg-opacity-20 p-[2px]">
+            NEXT_PUBLIC_LICENSE_CONSENT
+          </span>{" "}
+          variable to &apos;agreeapos;.
+        </Trans>
         <h2 className="mt-8 mb-2 text-black font-cal">{t("terms_summary")}:</h2>
         <ul className="ml-5 list-disc">
           <li>{t("codebase_has_to_stay_opensource")}</li>
