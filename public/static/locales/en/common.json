@@ -1,4 +1,6 @@
 {
+  "no_more_results": "No more results",
+  "load_more_results": "Load more results",
   "integration_meeting_id": "{{integrationName}} meeting ID: {{meetingId}}",
   "confirmed_event_type_subject": "Confirmed: {{eventType}} with {{name}} on {{date}}",
   "new_event_request": "New event request: {{attendeeName}} - {{date}} - {{eventType}}",

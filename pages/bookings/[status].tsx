@@ -1,18 +1,25 @@
 import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
+import { Fragment } from "react";
 
-import { QueryCell } from "@lib/QueryCell";
+import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryInput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
 import EmptyScreen from "@components/EmptyScreen";
+import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
+import { Alert } from "@components/ui/Alert";
+import Button from "@components/ui/Button";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 
 export default function Bookings() {
+  const router = useRouter();
+  const status = router.query?.status as BookingListingStatus;
+
   const { t } = useLocale();
 
   const descriptionByStatus: Record<BookingListingStatus, string> = {
@@ -21,44 +28,63 @@ export default function Bookings() {
     cancelled: t("cancelled_bookings"),
   };
 
-  const router = useRouter();
-  const status = router.query?.status as BookingListingStatus;
-
-  const query = trpc.useQuery(["viewer.bookings", { status }], {
+  const query = trpc.useInfiniteQuery(["viewer.bookings", { status, limit: 10 }], {
     // first render has status `undefined`
     enabled: !!status,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
+
+  const buttonInView = useInViewObserver(() => {
+    if (!query.isFetching && query.hasNextPage && query.status === "success") {
+      query.fetchNextPage();
+    }
   });
 
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <BookingsShell>
-        <div className="-mx-4 sm:mx-auto flex flex-col">
+        <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              <QueryCell
-                query={query}
-                success={({ data }) => (
-                  <div className="my-6 border border-gray-200 overflow-hidden border-b rounded-sm">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              {query.status === "error" && (
+                <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+              )}
+              {query.status === "loading" || (query.status === "idle" && <Loader />)}
+              {query.status === "success" && query.data.pages[0].bookings.length > 0 && (
+                <>
+                  <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
                     <table className="min-w-full divide-y divide-gray-200">
                       <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
-                        {data.map((booking) => (
-                          <BookingListItem key={booking.id} {...booking} />
+                        {query.data.pages.map((page, index) => (
+                          <Fragment key={index}>
+                            {page.bookings.map((booking) => (
+                              <BookingListItem key={booking.id} {...booking} />
+                            ))}
+                          </Fragment>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                )}
-                empty={() => (
-                  <EmptyScreen
-                    Icon={CalendarIcon}
-                    headline={t("no_status_bookings_yet", { status: status })}
-                    description={t("no_status_bookings_yet_description", {
-                      status: status,
-                      description: descriptionByStatus[status],
-                    })}
-                  />
-                )}
-              />
+                  <div className="text-center p-4" ref={buttonInView.ref}>
+                    <Button
+                      loading={query.isFetchingNextPage}
+                      disabled={!query.hasNextPage}
+                      onClick={() => query.fetchNextPage()}>
+                      {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                    </Button>
+                  </div>
+                </>
+              )}
+              {query.status === "success" && query.data.pages[0].bookings.length === 0 && (
+                <EmptyScreen
+                  Icon={CalendarIcon}
+                  headline={t("no_status_bookings_yet", { status: status })}
+                  description={t("no_status_bookings_yet_description", {
+                    status: status,
+                    description: descriptionByStatus[status],
+                  })}
+                />
+              )}
             </div>
           </div>
         </div>
