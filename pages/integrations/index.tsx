@@ -1,25 +1,23 @@
 import {
+  ChevronDownIcon,
+  ChevronUpIcon,
   PencilAltIcon,
   SwitchHorizontalIcon,
   TrashIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
 } from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
-import { WebhookTriggerEvents } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
 import React, { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
-import * as fetcher from "@lib/core/http/fetch-wrapper";
 import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
+import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -40,16 +38,10 @@ import Switch from "@components/ui/Switch";
 type TIntegrations = inferQueryOutput<"viewer.integrations">;
 type TWebhook = TIntegrations["webhooks"][number];
 
-const ALL_TRIGGERS: WebhookTriggerEvents[] = [
-  //
-  "BOOKING_CREATED",
-  "BOOKING_RESCHEDULED",
-  "BOOKING_CANCELLED",
-];
 function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const deleteWebhook = useMutation(async () => fetcher.remove(`/api/webhooks/${props.webhook.id}`, null), {
+  const deleteWebhook = trpc.useMutation("viewer.webhook.delete", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.integrations"]);
     },
@@ -110,7 +102,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
               title={t("delete_webhook")}
               confirmBtnText={t("confirm_delete_webhook")}
               cancelBtnText={t("cancel")}
-              onConfirm={() => deleteWebhook.mutate()}>
+              onConfirm={() => deleteWebhook.mutate({ id: props.webhook.id })}>
               {t("delete_webhook_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>
@@ -185,7 +177,7 @@ function WebhookDialogForm(props: {
   const {
     defaultValues = {
       id: "",
-      eventTriggers: ALL_TRIGGERS,
+      eventTriggers: WEBHOOK_TRIGGER_EVENTS,
       subscriberUrl: "",
       active: true,
     },
@@ -194,7 +186,6 @@ function WebhookDialogForm(props: {
   const form = useForm({
     defaultValues,
   });
-
   return (
     <Form
       data-testid="WebhookDialogForm"
@@ -202,18 +193,12 @@ function WebhookDialogForm(props: {
       onSubmit={(event) => {
         form
           .handleSubmit(async (values) => {
-            const { id } = values;
-            const body = {
-              subscriberUrl: values.subscriberUrl,
-              enabled: values.active,
-              eventTriggers: values.eventTriggers,
-            };
-            if (id) {
-              await fetcher.patch(`/api/webhooks/${id}`, body);
+            if (values.id) {
+              await utils.client.mutation("viewer.webhook.edit", values);
               await utils.invalidateQueries(["viewer.integrations"]);
               showToast(t("webhook_updated_successfully"), "success");
             } else {
-              await fetcher.post("/api/webhook", body);
+              await utils.client.mutation("viewer.webhook.create", values);
               await utils.invalidateQueries(["viewer.integrations"]);
               showToast(t("webhook_created_successfully"), "success");
             }
@@ -248,7 +233,7 @@ function WebhookDialogForm(props: {
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
         <InputGroupBox className="border-0 bg-gray-50">
-          {ALL_TRIGGERS.map((key) => (
+          {WEBHOOK_TRIGGER_EVENTS.map((key) => (
             <Controller
               key={key}
               control={form.control}
