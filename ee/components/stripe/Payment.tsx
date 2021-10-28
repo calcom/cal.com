@@ -37,6 +37,7 @@ type Props = {
   };
   eventType: { id: number };
   user: { username: string | null };
+  location: string;
 };
 
 type States =
@@ -93,12 +94,11 @@ export default function PaymentComponent(props: Props) {
         name,
       };
 
-      // TODO: this block will never be executed due to the type @zomars
-      if (payload["location"]) {
-        if (payload["location"].includes("integration")) {
+      if (props.location) {
+        if (props.location.includes("integration")) {
           params.location = t("web_conferencing_details_to_follow");
         } else {
-          params.location = payload["location"];
+          params.location = props.location;
         }
       }
 
@@ -111,7 +111,7 @@ export default function PaymentComponent(props: Props) {
   return (
     <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
       <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
-      <div className="flex mt-2 justify-center">
+      <div className="flex justify-center mt-2">
         <Button
           type="submit"
           disabled={["processing", "error"].includes(state.status)}
@@ -123,7 +123,7 @@ export default function PaymentComponent(props: Props) {
         </Button>
       </div>
       {state.status === "error" && (
-        <div className="mt-4 text-gray-700 dark:text-gray-300 text-center" role="alert">
+        <div className="mt-4 text-center text-gray-700 dark:text-gray-300" role="alert">
           {state.error.message}
         </div>
       )}
