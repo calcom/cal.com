@@ -40,6 +40,8 @@ export default function Bookings() {
     }
   });
 
+  const isEmpty = !query.data?.pages[0]?.bookings.length;
+
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <BookingsShell>
@@ -49,8 +51,8 @@ export default function Bookings() {
               {query.status === "error" && (
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
-              {query.status === "loading" || (query.status === "idle" && <Loader />)}
-              {query.status === "success" && query.data.pages[0].bookings.length > 0 && (
+              {(query.status === "loading" || query.status === "idle") && <Loader />}
+              {query.status === "success" && !isEmpty && (
                 <>
                   <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -75,7 +77,7 @@ export default function Bookings() {
                   </div>
                 </>
               )}
-              {query.status === "success" && query.data.pages[0].bookings.length === 0 && (
+              {query.status === "success" && isEmpty && (
                 <EmptyScreen
                   Icon={CalendarIcon}
                   headline={t("no_status_bookings_yet", { status: status })}
