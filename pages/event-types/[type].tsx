@@ -764,7 +764,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 {PERIOD_TYPES.map((period) => (
                                   <RadioGroup.Option
                                     key={period.type}
-                                    value={period}
+                                    value={period.type}
                                     className={({ checked }) =>
                                       classNames(
                                         checked ? "border-secondary-200 z-10" : "border-gray-200",
