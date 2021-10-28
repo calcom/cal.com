@@ -1,8 +1,8 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
-import { i18n } from "next-i18next.config";
-import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState, useMemo } from "react";
 import Select, { OptionTypeBase } from "react-select";
 import TimezoneSelect from "react-timezone-select";
 
@@ -29,19 +29,10 @@ import { UsernameInput } from "@components/ui/UsernameInput";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
-const getLocaleOptions = (displayLocale: string | string[]): OptionTypeBase[] => {
-  return i18n.locales.map((locale) => ({
-    value: locale,
-    // FIXME
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    label: new Intl.DisplayNames(displayLocale, { type: "language" }).of(locale),
-  }));
-};
-
 function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
   const { t } = useLocale();
   const [modelOpen, setModalOpen] = useState(false);
+
   return (
     <>
       <input
@@ -106,6 +97,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const router = useRouter();
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
@@ -121,7 +113,15 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     },
   });
 
-  const localeOptions = getLocaleOptions(props.localeProp);
+  const localeOptions = useMemo(() => {
+    return (router.locales || []).map((locale) => ({
+      value: locale,
+      // FIXME
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale),
+    }));
+  }, [props.localeProp, router.locales]);
 
   const themeOptions = [
     { value: "light", label: t("light") },
