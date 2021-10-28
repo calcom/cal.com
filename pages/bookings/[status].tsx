@@ -52,7 +52,7 @@ export default function Bookings() {
               {query.status === "loading" || (query.status === "idle" && <Loader />)}
               {query.status === "success" && query.data.pages[0].bookings.length > 0 ? (
                 <>
-                  <div className="my-6 overflow-hidden border border-b border-gray-200 rounded-sm">
+                  <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
                     <table className="min-w-full divide-y divide-gray-200">
                       <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
                         {query.data.pages.map((page, index) => (
@@ -65,7 +65,7 @@ export default function Bookings() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="text-center p-2" ref={buttonInView.ref}>
+                  <div className="text-center p-4" ref={buttonInView.ref}>
                     <Button
                       loading={query.isFetchingNextPage}
                       disabled={!query.hasNextPage}
