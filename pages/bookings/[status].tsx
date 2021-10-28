@@ -2,6 +2,7 @@ import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryInput, trpc } from "@lib/trpc";
 
@@ -32,7 +33,12 @@ export default function Bookings() {
     enabled: !!status,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
-  console.log({ query });
+
+  const buttonInView = useInViewObserver(() => {
+    if (!query.isFetching && query.hasNextPage && query.status === "success") {
+      query.fetchNextPage();
+    }
+  });
 
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
@@ -41,7 +47,7 @@ export default function Bookings() {
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               {query.status === "error" && (
-                <Alert severity="error" title={t('something_went_wrong')} message={query.error.message} />
+                <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
               {query.status === "loading" || (query.status === "idle" && <Loader />)}
               {query.status === "success" && query.data.pages[0].bookings.length > 0 ? (
@@ -59,7 +65,7 @@ export default function Bookings() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="text-center p-2">
+                  <div className="text-center p-2" ref={buttonInView.ref}>
                     <Button
                       loading={query.isFetchingNextPage}
                       disabled={!query.hasNextPage}

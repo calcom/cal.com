@@ -2,24 +2,31 @@ import React from "react";
 
 const isInteractionObserverSupported = typeof window !== "undefined" && "IntersectionObserver" in window;
 
-export const useScrollToBottom = <T extends Element>(): [React.RefCallback<T>, boolean] => {
-  const [isBottom, setIsBottom] = React.useState(false);
+export const useInViewObserver = (onInViewCallback: () => void) => {
   const [node, setRef] = React.useState<any>(null);
 
+  const onInViewCallbackRef = React.useRef(onInViewCallback);
+  onInViewCallbackRef.current = onInViewCallback;
+
   React.useEffect(() => {
-    let observer: IntersectionObserver;
     if (!isInteractionObserverSupported) {
       // Skip interaction check if not supported in browser
       return;
     }
 
+    let observer: IntersectionObserver;
     if (node && node.parentElement) {
-      observer = new IntersectionObserver(([entry]) => setIsBottom(entry.isIntersecting), {
-        root: node.parentElement,
-      });
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            onInViewCallbackRef.current();
+          }
+        },
+        {
+          root: document.body,
+        }
+      );
       observer.observe(node);
-    } else {
-      setIsBottom(false);
     }
 
     return () => {
@@ -29,5 +36,7 @@ export const useScrollToBottom = <T extends Element>(): [React.RefCallback<T>, b
     };
   }, [node]);
 
-  return [setRef, isBottom];
+  return {
+    ref: setRef,
+  };
 };
