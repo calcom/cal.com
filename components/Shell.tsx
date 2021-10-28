@@ -285,11 +285,6 @@ export default function Shell(props: {
               {/* add padding to content for mobile navigation*/}
               <div className="block pt-12 md:hidden" />
             </div>
-            {props.hasNextPage && (
-              <div ref={setBottomRef}>
-                <Loader />
-              </div>
-            )}
             <LicenseBanner />
           </main>
         </div>
