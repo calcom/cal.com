@@ -14,11 +14,7 @@ type ErrorLike = {
   message: string;
 };
 
-type Pages = {
-  pages?: unknown[];
-};
-
-interface QueryCellOptionsBase<TData extends Pages, TError extends ErrorLike> {
+interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
   query: UseQueryResult<TData, TError>;
   error?: (
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
@@ -27,12 +23,12 @@ interface QueryCellOptionsBase<TData extends Pages, TError extends ErrorLike> {
   idle?: (query: QueryObserverIdleResult<TData, TError>) => JSX.Element;
 }
 
-interface QueryCellOptionsNoEmpty<TData extends Pages, TError extends ErrorLike>
+interface QueryCellOptionsNoEmpty<TData, TError extends ErrorLike>
   extends QueryCellOptionsBase<TData, TError> {
   success: (query: QueryObserverSuccessResult<TData, TError>) => JSX.Element;
 }
 
-interface QueryCellOptionsWithEmpty<TData extends Pages, TError extends ErrorLike>
+interface QueryCellOptionsWithEmpty<TData, TError extends ErrorLike>
   extends QueryCellOptionsBase<TData, TError> {
   success: (query: QueryObserverSuccessResult<NonNullable<TData>, TError>) => JSX.Element;
   /**
@@ -41,27 +37,19 @@ interface QueryCellOptionsWithEmpty<TData extends Pages, TError extends ErrorLik
   empty: (query: QueryObserverSuccessResult<TData, TError>) => JSX.Element;
 }
 
-export function QueryCell<TData extends Pages, TError extends ErrorLike>(
+export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsWithEmpty<TData, TError>
 ): JSX.Element;
-export function QueryCell<TData extends Pages, TError extends ErrorLike>(
+export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError>
 ): JSX.Element;
-export function QueryCell<TData extends Pages, TError extends ErrorLike>(
+export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
   const { query } = opts;
 
   if (query.status === "success") {
     if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
-      return opts.empty(query);
-    }
-    if (
-      "empty" in opts &&
-      query.data.pages &&
-      Array.isArray(query.data.pages) &&
-      query.data.pages.length === 1
-    ) {
       return opts.empty(query);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
