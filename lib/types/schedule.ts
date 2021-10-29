@@ -1,8 +1,6 @@
-import { ConfigType } from "dayjs";
-
 export type TimeRange = {
-  start: ConfigType;
-  end: ConfigType;
+  start: number;
+  end: number;
 };
 
 export type Schedule = TimeRange[][];

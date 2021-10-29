@@ -1,7 +1,7 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import dayjs, { Dayjs, ConfigType } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import React, { useCallback, useState } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
 
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -18,8 +18,8 @@ const increment = 15;
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
 const TIMES = (() => {
-  const end = dayjs().endOf("day");
-  let t: Dayjs = dayjs().startOf("day");
+  const end = dayjs("1970-01-01").endOf("day");
+  let t: Dayjs = dayjs("1970-01-01").startOf("day");
 
   const times = [];
   while (t.isBefore(end)) {
@@ -31,8 +31,8 @@ const TIMES = (() => {
 /** End Time Increments For Select */
 
 const defaultDayRange: TimeRange = {
-  start: dayjs("1970-01-01T09:00:00").valueOf(),
-  end: dayjs("1970-01-01T17:00:00").valueOf(),
+  start: new Date("1970-01-01T09:00:00").valueOf(),
+  end: new Date("1970-01-01T17:00:00").valueOf(),
 };
 
 export const DEFAULT_SCHEDULE: ScheduleType = [
@@ -58,15 +58,15 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
 
-  const getOption = (time: ConfigType) => ({
-    value: dayjs(time).valueOf(),
-    label: dayjs(time).toDate().toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
+  const getOption = (time: number) => ({
+    value: time,
+    label: new Date(time).toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
   });
 
-  const timeOptions = useCallback((offsetOrLimit: { offset?: ConfigType; limit?: ConfigType } = {}) => {
+  const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
     const { limit, offset } = offsetOrLimit;
     return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      getOption
+      (t) => getOption(t.valueOf())
     );
   }, []);
 
@@ -78,10 +78,10 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           <Select
             className="w-[6rem]"
             options={options}
-            onFocus={() => setOptions(timeOptions({ offset: value }))}
+            onFocus={() => setOptions(timeOptions())}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={onChange}
+            onChange={(option) => onChange(option?.value)}
           />
         )}
       />
@@ -92,10 +92,10 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           <Select
             className="w-[6rem]"
             options={options}
-            onFocus={() => setOptions(timeOptions({ offset: value }))}
+            onFocus={() => setOptions(timeOptions())}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={onChange}
+            onChange={(option) => onChange(option?.value)}
           />
         )}
       />
@@ -111,24 +111,21 @@ type ScheduleBlockProps = {
 
 const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const { t } = useLocale();
-  const { control } = useFormContext();
   const { fields, append, remove, replace } = useFieldArray({
     name: `${name}.${day}`,
-    control,
   });
 
   const handleAppend = () => {
     // XXX: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
     const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
-    const nextRange: TimeRange = {
-      start: nextRangeStart.valueOf(),
-      end: nextRangeStart.add(1, "hour").valueOf(),
-    };
-    // Return if next range goes over into "tomorrow"
-    if (nextRangeStart.add(1, "hour").isAfter(nextRangeStart.endOf("day"))) {
-      return;
+    const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
+
+    if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
+      return append({
+        start: nextRangeStart.toDate().valueOf(),
+        end: nextRangeEnd.toDate().valueOf(),
+      });
     }
-    return append(nextRange);
   };
 
   return (
