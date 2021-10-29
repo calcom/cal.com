@@ -69,7 +69,7 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
     };
-    
+
     return config;
   },
   async redirects() {
