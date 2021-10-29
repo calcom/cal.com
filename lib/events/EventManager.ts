@@ -82,8 +82,8 @@ export default class EventManager {
     let evt = EventManager.processLocation(event);
     const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
 
-    let results: Array<EventResult> = [];
-
+    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
+    const results: Array<EventResult> = await this.createAllCalendarEvents(evt, isDedicated);
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
@@ -94,10 +94,6 @@ export default class EventManager {
     } else {
       await EventManager.sendAttendeeMail("new", results, evt);
     }
-
-    // Now create all calendar events. If this is a dedicated integration event,
-    // don't send a mail right here, because it has already been sent.
-    results = results.concat(await this.createAllCalendarEvents(evt, isDedicated));
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       let uid = "";
@@ -162,9 +158,8 @@ export default class EventManager {
     }
 
     const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
-
-    let results: Array<EventResult> = [];
-
+    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
+    const results: Array<EventResult> = await this.updateAllCalendarEvents(evt, booking, isDedicated);
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
@@ -175,11 +170,6 @@ export default class EventManager {
     } else {
       await EventManager.sendAttendeeMail("reschedule", results, evt);
     }
-
-    // Now update all calendar events. If this is a dedicated integration event,
-    // don't send a mail right here, because it has already been sent.
-    results = results.concat(await this.updateAllCalendarEvents(evt, booking, isDedicated));
-
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
       where: {
