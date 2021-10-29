@@ -1,18 +1,23 @@
-import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  PencilAltIcon,
+  SwitchHorizontalIcon,
+  TrashIcon,
+} from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
-import { WebhookTriggerEvents } from "@prisma/client";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { useMutation } from "react-query";
+import React, { useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
-import * as fetcher from "@lib/core/http/fetch-wrapper";
 import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
+import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -33,16 +38,10 @@ import Switch from "@components/ui/Switch";
 type TIntegrations = inferQueryOutput<"viewer.integrations">;
 type TWebhook = TIntegrations["webhooks"][number];
 
-const ALL_TRIGGERS: WebhookTriggerEvents[] = [
-  //
-  "BOOKING_CREATED",
-  "BOOKING_RESCHEDULED",
-  "BOOKING_CANCELLED",
-];
 function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const deleteWebhook = useMutation(async () => fetcher.remove(`/api/webhooks/${props.webhook.id}`, null), {
+  const deleteWebhook = trpc.useMutation("viewer.webhook.delete", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.integrations"]);
     },
@@ -103,13 +102,67 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
               title={t("delete_webhook")}
               confirmBtnText={t("confirm_delete_webhook")}
               cancelBtnText={t("cancel")}
-              onConfirm={() => deleteWebhook.mutate()}>
+              onConfirm={() => deleteWebhook.mutate({ id: props.webhook.id })}>
               {t("delete_webhook_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>
         </div>
       </div>
     </ListItem>
+  );
+}
+
+function WebhookTestDisclosure() {
+  const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
+  const { t } = useLocale();
+  const [open, setOpen] = useState(false);
+  const mutation = trpc.useMutation("viewer.webhook.testTrigger", {
+    onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  return (
+    <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
+      <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full text-sm"}>
+        {t("webhook_test")}{" "}
+        {open ? (
+          <ChevronUpIcon className="w-5 h-5 text-gray-700" />
+        ) : (
+          <ChevronDownIcon className="w-5 h-5 text-gray-700" />
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <InputGroupBox className="px-0 space-y-0 border-0">
+          <div className="flex justify-between p-2 bg-gray-50">
+            <h3 className="self-center text-gray-700">{t("webhook_response")}</h3>
+            <Button
+              StartIcon={SwitchHorizontalIcon}
+              type="button"
+              color="minimal"
+              disabled={mutation.isLoading}
+              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING" })}>
+              {t("ping_test")}
+            </Button>
+          </div>
+          <div className="p-2 text-gray-500 border-8 border-gray-50">
+            {!mutation.data && <em>{t("no_data_yet")}</em>}
+            {mutation.status === "success" && (
+              <>
+                <div
+                  className={classNames(
+                    "px-2 py-1 w-max text-xs ml-auto",
+                    mutation.data.status === 200 ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
+                  )}>
+                  {mutation.data.status === 200 ? t("success") : t("failed")}
+                </div>
+                <pre className="overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</pre>
+              </>
+            )}
+          </div>
+        </InputGroupBox>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -124,7 +177,7 @@ function WebhookDialogForm(props: {
   const {
     defaultValues = {
       id: "",
-      eventTriggers: ALL_TRIGGERS,
+      eventTriggers: WEBHOOK_TRIGGER_EVENTS,
       subscriberUrl: "",
       active: true,
     },
@@ -140,18 +193,12 @@ function WebhookDialogForm(props: {
       onSubmit={(event) => {
         form
           .handleSubmit(async (values) => {
-            const { id } = values;
-            const body = {
-              subscriberUrl: values.subscriberUrl,
-              enabled: values.active,
-              eventTriggers: values.eventTriggers,
-            };
-            if (id) {
-              await fetcher.patch(`/api/webhooks/${id}`, body);
+            if (values.id) {
+              await utils.client.mutation("viewer.webhook.edit", values);
               await utils.invalidateQueries(["viewer.integrations"]);
               showToast(t("webhook_updated_successfully"), "success");
             } else {
-              await fetcher.post("/api/webhook", body);
+              await utils.client.mutation("viewer.webhook.create", values);
               await utils.invalidateQueries(["viewer.integrations"]);
               showToast(t("webhook_created_successfully"), "success");
             }
@@ -186,7 +233,7 @@ function WebhookDialogForm(props: {
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
         <InputGroupBox className="border-0 bg-gray-50">
-          {ALL_TRIGGERS.map((key) => (
+          {WEBHOOK_TRIGGER_EVENTS.map((key) => (
             <Controller
               key={key}
               control={form.control}
@@ -209,6 +256,7 @@ function WebhookDialogForm(props: {
           ))}
         </InputGroupBox>
       </fieldset>
+      <WebhookTestDisclosure />
       <DialogFooter>
         <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
           {t("cancel")}

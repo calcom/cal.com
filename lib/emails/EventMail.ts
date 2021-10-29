@@ -1,47 +1,25 @@
 import nodemailer from "nodemailer";
 
+import { getErrorFromUnknown } from "@lib/errors";
+
 import CalEventParser from "../CalEventParser";
-import { CalendarEvent, ConferenceData } from "../calendarClient";
+import { CalendarEvent } from "../calendarClient";
 import { serverConfig } from "../serverConfig";
 import { stripHtml } from "./helpers";
-
-export interface EntryPoint {
-  entryPointType?: string;
-  uri?: string;
-  label?: string;
-  pin?: string;
-  accessCode?: string;
-  meetingCode?: string;
-  passcode?: string;
-  password?: string;
-}
-
-export interface AdditionInformation {
-  conferenceData?: ConferenceData;
-  entryPoints?: EntryPoint[];
-  hangoutLink?: string;
-}
 
 export default abstract class EventMail {
   calEvent: CalendarEvent;
   parser: CalEventParser;
-  uid: string;
-  additionInformation?: AdditionInformation;
 
   /**
    * An EventMail always consists of a CalendarEvent
-   * that stores the very basic data of the event (like date, title etc).
-   * It also needs the UID of the stored booking in our database.
+   * that stores the data of the event (like date, title, uid etc).
    *
    * @param calEvent
-   * @param uid
-   * @param additionInformation
    */
-  constructor(calEvent: CalendarEvent, uid: string, additionInformation?: AdditionInformation) {
+  constructor(calEvent: CalendarEvent) {
     this.calEvent = calEvent;
-    this.uid = uid;
-    this.parser = new CalEventParser(calEvent, uid);
-    this.additionInformation = additionInformation;
+    this.parser = new CalEventParser(calEvent);
   }
 
   /**
@@ -74,10 +52,11 @@ export default abstract class EventMail {
     new Promise((resolve, reject) =>
       nodemailer
         .createTransport(this.getMailerOptions().transport)
-        .sendMail(this.getNodeMailerPayload(), (error, info) => {
-          if (error) {
-            this.printNodeMailerError(error);
-            reject(new Error(error));
+        .sendMail(this.getNodeMailerPayload(), (_err, info) => {
+          if (_err) {
+            const err = getErrorFromUnknown(_err);
+            this.printNodeMailerError(err);
+            reject(err);
           } else {
             resolve(info);
           }
@@ -117,7 +96,7 @@ export default abstract class EventMail {
    * @param error
    * @protected
    */
-  protected abstract printNodeMailerError(error: string): void;
+  protected abstract printNodeMailerError(error: Error): void;
 
   /**
    * Returns a link to reschedule the given booking.

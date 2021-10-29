@@ -13,15 +13,17 @@ dayjs.extend(localizedFormat);
 
 export default class EventOrganizerRequestMail extends EventOrganizerMail {
   protected getBodyHeader(): string {
-    return "A new event is waiting for your approval.";
+    return this.calEvent.language("event_awaiting_approval");
   }
 
   protected getBodyText(): string {
-    return "Check your bookings page to confirm or reject the booking.";
+    return this.calEvent.language("check_bookings_page_to_confirm_or_reject");
   }
 
   protected getAdditionalBody(): string {
-    return `<a href="${process.env.BASE_URL}/bookings">Confirm or reject the booking</a>`;
+    return `<a href="${process.env.BASE_URL}/bookings">${this.calEvent.language(
+      "confirm_or_reject_booking"
+    )}</a>`;
   }
 
   protected getImage(): string {
@@ -43,8 +45,10 @@ export default class EventOrganizerRequestMail extends EventOrganizerMail {
 
   protected getSubject(): string {
     const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
-    return `New event request: ${this.calEvent.attendees[0].name} - ${organizerStart.format(
-      "LT dddd, LL"
-    )} - ${this.calEvent.type}`;
+    return this.calEvent.language("new_event_request", {
+      attendeeName: this.calEvent.attendees[0].name,
+      date: organizerStart.format("LT dddd, LL"),
+      eventType: this.calEvent.type,
+    });
   }
 }

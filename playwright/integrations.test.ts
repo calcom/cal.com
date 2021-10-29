@@ -66,8 +66,10 @@ describe("webhooks", () => {
       attendee.timeZone = dynamic;
     }
     body.payload.organizer.timeZone = dynamic;
+    body.payload.uid = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
+    console.log("BODY", body);
     expect(body).toMatchInlineSnapshot(`
     Object {
       "createdAt": "[redacted/dynamic]",
@@ -89,6 +91,7 @@ describe("webhooks", () => {
         "startTime": "[redacted/dynamic]",
         "title": "30min with Test Testson",
         "type": "30min",
+        "uid": "[redacted/dynamic]",
       },
       "triggerEvent": "BOOKING_CREATED",
     }

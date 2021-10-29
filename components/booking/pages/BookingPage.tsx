@@ -36,7 +36,7 @@ import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
 const BookingPage = (props: BookingPageProps) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(props.profile.theme);
@@ -109,6 +109,7 @@ const BookingPage = (props: BookingPageProps) => {
         guests: guestEmails,
         eventTypeId: props.eventType.id,
         timeZone: timeZone(),
+        language: i18n.language,
       };
       if (typeof rescheduleUid === "string") payload.rescheduleUid = rescheduleUid;
       if (typeof router.query.user === "string") payload.user = router.query.user;

@@ -97,6 +97,7 @@
     "zod": "^3.8.2"
   },
   "devDependencies": {
+    "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.7",
@@ -137,14 +138,17 @@
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
     "tailwindcss": "^2.2.16",
-    "ts-jest": "^27.0.5",
+    "ts-jest": "^27.0.7",
     "ts-node": "^10.2.1",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.4"
   },
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint"
+    ],
+    "./prisma/schema.prisma": [
+      "prisma format"
     ]
   }
 }

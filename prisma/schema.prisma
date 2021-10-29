@@ -90,10 +90,9 @@ model User {
   locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
-
-
-  plan     UserPlan   @default(PRO)
-  Schedule Schedule[]
+  plan                UserPlan           @default(PRO)
+  Schedule            Schedule[]
+  webhooks            Webhook[]
 
   @@map(name: "users")
 }
@@ -168,7 +167,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?     @unique
+  bookingId  Int?
 }
 
 model Booking {
@@ -300,4 +299,5 @@ model Webhook {
   createdAt     DateTime               @default(now())
   active        Boolean                @default(true)
   eventTriggers WebhookTriggerEvents[]
+  user          User                   @relation(fields: [userId], references: [id])
 }

@@ -14,6 +14,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
+import { webhookRouter } from "./viewer/webhook";
 
 const checkUsername =
   process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
@@ -226,8 +227,14 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("bookings", {
     input: z.object({
       status: z.enum(["upcoming", "past", "cancelled"]),
+      limit: z.number().min(1).max(100).nullish(),
+      cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
     }),
     async resolve({ ctx, input }) {
+      // using offset actually because cursor pagination requires a unique column
+      // for orderBy, but we don't use a unique column in our orderBy
+      const take = input.limit ?? 10;
+      const skip = input.cursor ?? 0;
       const { prisma, user } = ctx;
       const bookingListingByStatus = input.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
@@ -237,8 +244,8 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
         upcoming: { startTime: "desc" },
-        past: { startTime: "asc" },
-        cancelled: { startTime: "asc" },
+        past: { startTime: "desc" },
+        cancelled: { startTime: "desc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
@@ -281,6 +288,8 @@ const loggedInViewerRouter = createProtectedRouter()
           status: true,
         },
         orderBy,
+        take: take + 1,
+        skip,
       });
 
       const bookings = bookingsQuery.reverse().map((booking) => {
@@ -291,7 +300,18 @@ const loggedInViewerRouter = createProtectedRouter()
         };
       });
 
-      return bookings;
+      let nextCursor: typeof skip | null = skip;
+      if (bookings.length > take) {
+        bookings.shift();
+        nextCursor += bookings.length;
+      } else {
+        nextCursor = null;
+      }
+
+      return {
+        bookings,
+        nextCursor,
+      };
     },
   })
   .query("integrations", {
@@ -419,4 +439,7 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   });
 
-export const viewerRouter = createRouter().merge(publicViewerRouter).merge(loggedInViewerRouter);
+export const viewerRouter = createRouter()
+  .merge(publicViewerRouter)
+  .merge(loggedInViewerRouter)
+  .merge("webhook.", webhookRouter);
