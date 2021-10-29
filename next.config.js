@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const withTM = require("next-transpile-modules")();
+const withTM = require("next-transpile-modules")(["react-timezone-select"]);
 const { i18n } = require("./next-i18next.config");
 
 // So we can test deploy previews preview
@@ -69,7 +69,7 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
     };
-
+    
     return config;
   },
   async redirects() {
