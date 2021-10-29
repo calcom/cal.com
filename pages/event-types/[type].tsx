@@ -14,6 +14,7 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import dayjs from "dayjs";
@@ -22,9 +23,11 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
 import Select, { OptionTypeBase } from "react-select";
+import * as z from "zod";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -310,6 +313,51 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     avatar: `${avatar || ""}`,
   });
 
+  // const schema = z.object({
+  // username: z
+  //   .string()
+  //   .min(1)
+  //   .superRefine(async (val, ctx) => {
+  //     const response = await fetch("/api/username", {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         username: val.trim(),
+  //       }),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //     const res = await response.json();
+  //     if (response.status === 200) {
+  //       setUsernamePremium(false);
+  //     }
+  //     if (response.status === 418) {
+  //       ctx.addIssue({
+  //         code: "custom",
+  //         message: `${val.trim()} is taken. We've suggested an alternative.`,
+  //       });
+  //       setUsernameSuggestion(res.suggestion);
+  //       // setSuggestedUsername();
+  //       setForceSetUsername(true);
+  //     }
+  //     if (response.status === 402) {
+  //       setUsernamePremium(true);
+  //       setUsernameSuggestion(res.suggestion);
+  //     }
+  // }),
+  // email: z.string().email({ message: "Please enter a valid email ID" }),
+  // password: z.string().refine((val) => isPasswordValid(val.trim()), {
+  //   message:
+  //     "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
+  // }),
+  // });
+
+  // const formMethods = useForm<{
+  //   username: string;
+  //   email: string;
+  //   password: string;
+  // }>({ resolver: zodResolver(schema), mode: "onSubmit" });
+
   return (
     <div>
       <Shell
@@ -339,6 +387,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         <div className="block mx-auto sm:flex md:max-w-5xl">
           <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
+              {/* react-hook-formify  useform*/}
               <form onSubmit={updateEventTypeHandler} className="space-y-6">
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
@@ -1017,7 +1066,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   onChange={setSelectedLocation}
                 />
                 <LocationOptions />
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse ">
                   <button type="submit" className="btn btn-primary">
                     {t("update")}
                   </button>
