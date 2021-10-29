@@ -1,6 +1,6 @@
 {
-    "name": "Cal.com",
-    "short_name": "Cal.com",
+    "name": "Track Abilities",
+    "short_name": "Track Abilities",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
@@ -8,8 +8,8 @@
             "type": "image/png"
         },
         {
-            "src": "/android-chrome-256x256.png",
-            "sizes": "256x256",
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
             "type": "image/png"
         }
     ],
