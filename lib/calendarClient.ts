@@ -650,12 +650,9 @@ const createEvent = async (
     metadata.entryPoints = creationResult.entryPoints;
   }
 
-  const emailEvent = { ...calEvent, additionInformation: metadata };
-
   if (!noMail) {
-    const organizerMail = new EventOrganizerMail(emailEvent);
-
     try {
+      const organizerMail = new EventOrganizerMail({ ...calEvent, uid, additionInformation: metadata });
       await organizerMail.sendEmail();
     } catch (e) {
       console.error("organizerMail.sendEmail failed", e);
@@ -676,26 +673,31 @@ const updateEvent = async (
   calEvent: CalendarEvent,
   noMail: boolean | null = false
 ): Promise<EventResult> => {
+  // In order to generate a new uid after rescheduling
+  const oldUid = calEvent.uid;
+  calEvent.uid = undefined;
+
   const parser: CalEventParser = new CalEventParser(calEvent);
-  const newUid: string = parser.getUid();
+  const newUid = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   let success = true;
 
   const updateResult =
-    credential && calEvent.uid
+    credential && oldUid
       ? await calendars([credential])[0]
-          .updateEvent(calEvent.uid, richEvent)
+          .updateEvent(oldUid, richEvent)
           .catch((e) => {
-            log.error("updateEvent failed", e, calEvent);
+            log.error("updateEvent failed", e, { ...calEvent, uid: oldUid });
             success = false;
           })
       : null;
 
+  calEvent.uid = newUid;
+
   if (!noMail) {
-    const emailEvent = { ...calEvent, uid: newUid };
-    const organizerMail = new EventOrganizerRescheduledMail(emailEvent);
     try {
+      const organizerMail = new EventOrganizerRescheduledMail(calEvent);
       await organizerMail.sendEmail();
     } catch (e) {
       console.error("organizerMail.sendEmail failed", e);
@@ -707,7 +709,7 @@ const updateEvent = async (
     success,
     uid: newUid,
     updatedEvent: updateResult,
-    originalEvent: calEvent,
+    originalEvent: { ...calEvent, uid: oldUid },
   };
 };
 

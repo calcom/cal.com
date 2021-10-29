@@ -116,10 +116,13 @@ const createMeeting = async (
     entryPoints: [entryPoint],
   };
 
-  const emailEvent = { ...calEvent, uid, additionInformation, videoCallData };
-
   try {
-    const organizerMail = new VideoEventOrganizerMail(emailEvent);
+    const organizerMail = new VideoEventOrganizerMail({
+      ...calEvent,
+      uid,
+      additionInformation,
+      videoCallData,
+    });
     await organizerMail.sendEmail();
   } catch (e) {
     console.error("organizerMail.sendEmail failed", e);
@@ -127,7 +130,12 @@ const createMeeting = async (
 
   if (!createdMeeting || !createdMeeting.disableConfirmationEmail) {
     try {
-      const attendeeMail = new VideoEventAttendeeMail(emailEvent);
+      const attendeeMail = new VideoEventAttendeeMail({
+        ...calEvent,
+        uid,
+        additionInformation,
+        videoCallData,
+      });
       await attendeeMail.sendEmail();
     } catch (e) {
       console.error("attendeeMail.sendEmail failed", e);
@@ -145,8 +153,6 @@ const createMeeting = async (
 };
 
 const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
-  const newUid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
-
   if (!credential) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
@@ -157,10 +163,16 @@ const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): P
     throw new Error("You can't update an meeting without it's UID.");
   }
 
+  // To know which booking needs updating
+  const oldUid = calEvent.uid;
+  calEvent.uid = undefined;
+
+  const newUid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+
   let success = true;
 
   const [firstVideoAdapter] = getVideoAdapters([credential]);
-  const updatedMeeting = await firstVideoAdapter.updateMeeting(calEvent.uid, calEvent).catch((e) => {
+  const updatedMeeting = await firstVideoAdapter.updateMeeting(oldUid, calEvent).catch((e) => {
     log.error("updateMeeting failed", e, calEvent);
     success = false;
   });
@@ -169,15 +181,15 @@ const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): P
     return {
       type: credential.type,
       success,
-      uid: calEvent.uid,
+      uid: oldUid,
       originalEvent: calEvent,
     };
   }
 
-  const emailEvent = { ...calEvent, uid: newUid };
+  calEvent.uid = newUid;
 
   try {
-    const organizerMail = new EventOrganizerRescheduledMail(emailEvent);
+    const organizerMail = new EventOrganizerRescheduledMail(calEvent);
     await organizerMail.sendEmail();
   } catch (e) {
     console.error("organizerMail.sendEmail failed", e);
@@ -185,7 +197,7 @@ const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): P
 
   if (!updatedMeeting.disableConfirmationEmail) {
     try {
-      const attendeeMail = new EventAttendeeRescheduledMail(emailEvent);
+      const attendeeMail = new EventAttendeeRescheduledMail(calEvent);
       await attendeeMail.sendEmail();
     } catch (e) {
       console.error("attendeeMail.sendEmail failed", e);
@@ -197,7 +209,7 @@ const updateMeeting = async (credential: Credential, calEvent: CalendarEvent): P
     success,
     uid: newUid,
     updatedEvent: updatedMeeting,
-    originalEvent: calEvent,
+    originalEvent: { ...calEvent, uid: oldUid },
   };
 };
 

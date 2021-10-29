@@ -5,7 +5,6 @@ import { v5 as uuidv5 } from "uuid";
 
 import { AdditionInformation, CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
-import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
 import { DailyEventResult, FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { ZoomEventResult } from "@lib/integrations/Zoom/ZoomVideoApiAdapter";
 import { LocationType } from "@lib/location";
@@ -79,7 +78,7 @@ export default class EventManager {
    * @param event
    */
   public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
-    let evt = EventManager.processLocation(event);
+    const evt = EventManager.processLocation(event);
     const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
 
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
@@ -88,11 +87,11 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
       if (result.videoCallData) {
-        evt = { ...evt, videoCallData: result.videoCallData };
+        evt.videoCallData = result.videoCallData;
       }
       results.push(result);
     } else {
-      await EventManager.sendAttendeeMail("new", results, evt);
+      await EventManager.sendAttendeeNewMail(results, evt);
     }
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
@@ -126,8 +125,8 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(event: Ensure<CalendarEvent, "uid">): Promise<CreateUpdateResult> {
-    let evt = EventManager.processLocation(event);
+  public async update(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
+    const evt = EventManager.processLocation(event);
 
     if (!evt.uid) {
       throw new Error("You called eventManager.update without an `uid`. This should never happen.");
@@ -164,12 +163,11 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
       if (result.videoCallData) {
-        evt = { ...evt, videoCallData: result.videoCallData };
+        evt.videoCallData = result.videoCallData;
       }
       results.push(result);
-    } else {
-      await EventManager.sendAttendeeMail("reschedule", results, evt);
     }
+
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
       where: {
@@ -182,15 +180,11 @@ export default class EventManager {
       },
     });
 
-    let bookingDeletes = null;
-
-    if (evt.uid) {
-      bookingDeletes = prisma.booking.delete({
-        where: {
-          uid: evt.uid,
-        },
-      });
-    }
+    const bookingDeletes = prisma.booking.delete({
+      where: {
+        uid: evt.uid,
+      },
+    });
 
     // Wait for all deletions to be applied.
     await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
@@ -262,21 +256,20 @@ export default class EventManager {
    * more important than the mails created for these bare calendar events.
    *
    * @param event
-   * @param booking
    * @param noMail
    * @private
    */
   private updateAllCalendarEvents(
     event: CalendarEvent,
-    booking: PartialBooking | null,
+    booking: PartialBooking,
     noMail: boolean | null
   ): Promise<Array<EventResult>> {
-    return async.mapLimit(this.calendarCredentials, 5, async (credential) => {
+    return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
       const bookingRefUid = booking
         ? booking.references.filter((ref) => ref.type === credential.type)[0]?.uid
         : null;
-      const evt = { ...event, uid: bookingRefUid };
-      return updateEvent(credential, evt, noMail);
+      event.uid = bookingRefUid;
+      return updateEvent(credential, event, noMail);
     });
   }
 
@@ -292,8 +285,8 @@ export default class EventManager {
 
     if (credential) {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
-      const evt = { ...event, uid: bookingRef?.uid };
-      return updateMeeting(credential, evt).then((returnVal: EventResult) => {
+      event.uid = bookingRef?.uid;
+      return updateMeeting(credential, event).then((returnVal: EventResult) => {
         // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
         if (returnVal.videoCallData == undefined) {
           returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
@@ -420,20 +413,12 @@ export default class EventManager {
   /**
    * Conditionally sends an email to the attendee.
    *
-   * @param type
    * @param results
    * @param event
    * @private
    */
-  private static async sendAttendeeMail(
-    type: "new" | "reschedule",
-    results: Array<EventResult>,
-    event: CalendarEvent
-  ) {
-    if (
-      !results.length ||
-      !results.some((eRes) => (eRes.createdEvent || eRes.updatedEvent)?.disableConfirmationEmail)
-    ) {
+  private static async sendAttendeeNewMail(results: Array<EventResult>, event: CalendarEvent) {
+    if (!results.length || !results.some((eRes) => eRes.createdEvent?.disableConfirmationEmail)) {
       const metadata: AdditionInformation = {};
       if (results.length) {
         // TODO: Handle created event metadata more elegantly
@@ -441,18 +426,9 @@ export default class EventManager {
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      const emailEvent = { ...event, additionInformation: metadata };
 
-      let attendeeMail;
-      switch (type) {
-        case "reschedule":
-          attendeeMail = new EventAttendeeRescheduledMail(emailEvent);
-          break;
-        case "new":
-          attendeeMail = new EventAttendeeMail(emailEvent);
-          break;
-      }
       try {
+        const attendeeMail = new EventAttendeeMail({ ...event, additionInformation: metadata });
         await attendeeMail.sendEmail();
       } catch (e) {
         console.error("attendeeMail.sendEmail failed", e);
