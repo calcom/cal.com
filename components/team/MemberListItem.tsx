@@ -32,7 +32,7 @@ export default function MemberListItem(props: {
                     : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
                       encodeURIComponent(props.member.name || "")
                 }
-                displayName={props.member.name || ""}
+                alt={props.member.name || ""}
                 className="rounded-full w-9 h-9"
               />
               <div className="inline-block ml-3">
