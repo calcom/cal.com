@@ -366,6 +366,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         heading={
           <div className="relative -mb-2 group" onClick={() => setEditIcon(false)}>
             <input
+              {...useForm.register("title")}
               ref={titleRef}
               type="text"
               name="title"
@@ -388,7 +389,46 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
               {/* react-hook-formify  useform*/}
-              <form onSubmit={updateEventTypeHandler} className="space-y-6">
+              <form 
+              onSubmit={updateEventTypeHandler} 
+              onSubmit={formMethods.handleSubmit(async (values) => {
+                console.log("form submitted", { values });
+                // check if username premium and proceed accordingly
+                if (usernamePremium) {
+                  setLoading(true);
+                  // send to stripe payment page
+                  router.push("https://buy.stripe.com/bIY4irdzN2PJ5t68wA");
+                } else {
+                  setLoading(true);
+                  // complete signup
+                  const response = await fetch("/api/signup", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      username: values.username,
+                      email: values.email,
+                      password: values.password,
+                    }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  });
+                  if (response.status == 201) {
+                    setLoading(false);
+                    console.log("Sign up successful!");
+                    router.push("https://app.cal.com");
+                  } else {
+                    const data = await response.json().catch((e) => {
+                      console.log("Error: response.json invalid");
+                      setLoading(false);
+                    });
+                    setLoading(false);
+                    if (data) {
+                      console.log(data.message);
+                    }
+                  }
+                }
+              })}
+              className="space-y-6">
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
                     <div className="mb-4 min-w-48 sm:mb-0">
@@ -403,7 +443,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
-                        <input
+                        <input 
+                          {...userForm.register("slug")}
                           type="text"
                           name="slug"
                           id="slug"
@@ -416,6 +457,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </div>
 
                   <MinutesField
+                    {useForm.register("length")}
                     label={
                       <>
                         <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> {t("duration")}
@@ -441,6 +483,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       {locations.length === 0 && (
                         <div className="flex">
                           <Select
+                            {...useForm.register("location")}
                             name="location"
                             id="location"
                             options={locationOptions}
@@ -616,6 +659,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                     <div className="w-full">
                       <textarea
+                        {...useForm.register("description")}
                         name="description"
                         id="description"
                         className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -685,6 +729,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <div className="w-full">
                           <div className="relative mt-1 rounded-sm shadow-sm">
                             <input
+                              {...useForm.register("eventTitle")}
                               ref={eventNameRef}
                               type="text"
                               name="title"
