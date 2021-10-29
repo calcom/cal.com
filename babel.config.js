@@ -6,6 +6,11 @@ module.exports = function (api) {
     plugins.push("istanbul");
   }
 
+  // need this to suppress storybook warnings
+  plugins.push(["@babel/plugin-proposal-private-methods", { loose: true }]);
+  plugins.push(["@babel/plugin-proposal-private-property-in-object", { loose: true }]);
+  plugins.push(["@babel/plugin-proposal-class-properties", { loose: true }]);
+
   return {
     presets: ["next/babel"],
     plugins,

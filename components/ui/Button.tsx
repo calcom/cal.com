@@ -4,6 +4,8 @@ import React, { forwardRef } from "react";
 import classNames from "@lib/classNames";
 import { SVGComponent } from "@lib/types/SVGComponent";
 
+import styles from "./Button.module.scss";
+
 export type ButtonBaseProps = {
   color?: "primary" | "secondary" | "minimal" | "warn";
   size?: "base" | "sm" | "lg" | "fab" | "icon";
@@ -48,6 +50,9 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       disabled,
       ref: forwardedRef,
       className: classNames(
+        styles.button,
+        color && styles[color],
+
         // base styles independent what type of button it is
         "inline-flex items-center",
         // different styles depending on size

@@ -1,0 +1,152 @@
+// import css lib
+
+@import "styles/lib";
+
+.button {
+  --button-background-color: color(oceangreen, 100);
+  --button-text-color: color(raisinblack, 100);
+  --button-icon-color: #{color(oceangreen, 20)};
+  --button-background-color-disabled: #{color(oceangreen, 100)};
+
+  --button-background-color-hover: #{color(oceangreen, 80)};
+  --button-shadow-hover: #{rgba(color(oceangreen, 80), 0.24)};
+  --button-icon-color-hover: #{color(oceangreen, 20)};
+
+  --button-background-color-focus: #{color(oceangreen, 120)};
+  --button-shadow-focus: #{rgba(color(oceangreen, 80), 0)};
+  --button-color-focus: #{color(raisinblack, 120)};
+  --button-icon-color-focus: #{color(oceangreen, 80)};
+
+  display: flex;
+  align-items: center;
+  gap: rem(16px);
+  padding: rem(8px) rem(24px);
+  border-radius: rem(8px);
+  width: fit-content;
+  transition: 0.2s $ease-in-out;
+  @include ff("title");
+  @include fw(medium, "title");
+  outline: none;
+
+  color: var(--color);
+  background-color: var(--button-background-color);
+  color: var(--button-text-color);
+
+  :global .icon {
+    height: rem(24px);
+    color: var(--button-icon-color);
+    transition: 0.2s $ease-in-out;
+  }
+
+  &:disabled,
+  &.disabled {
+    opacity: 0.4;
+    cursor: default;
+    background-color: var(--button-background-color-disabled);
+
+    &:hover,
+    &:focus,
+    &:active {
+      transition: 0.2s $ease-in-out;
+      box-shadow: 0px 0px 0px transparent;
+    }
+  }
+
+  &:hover {
+    background-color: var(--button-background-color-hover);
+    transition: 0.2s $ease-in-out;
+    box-shadow: 0px 4px 16px var(--button-shadow-hover);
+
+    :global .icon {
+      color: var(--button-icon-color-hover);
+      transition: 0.2s $ease-in-out;
+    }
+  }
+
+  &:focus,
+  &:active {
+    color: var(--button-color-focus);
+    background-color: var(--button-background-color-focus);
+    transition: 0.2s $ease-in-out;
+    box-shadow: 0px 0px 0px var(--button-shadow-focus);
+
+    :global .icon {
+      color: var(--button-icon-color-focus);
+      transition: 0.2s $ease-in-out;
+    }
+  }
+
+  @include mq(md) {
+    @include fs("h6");
+    @include fw(semibold, "title");
+    padding: rem(16px) rem(24px);
+    border-radius: rem(12px);
+
+    &:hover {
+      box-shadow: 0px 4px 16px var(--button-shadow-hover);
+    }
+
+    &:focus,
+    &:active {
+      box-shadow: 0px 0px 0px var(--button-shadow-focus);
+    }
+  }
+}
+
+.primary {
+  --button-background-color: #{color(oceangreen, 100)};
+  --button-text-color: #{color(raisinblack, 100)};
+  --button-icon-color: #{color(oceangreen, 40)};
+  --button-background-color-disabled: #{color(oceangreen, 100)};
+
+  --button-background-color-hover: #{color(oceangreen, 80)};
+  --button-shadow-hover: #{rgba(color(oceangreen, 80), 0.24)};
+  --button-icon-color-hover: #{color(oceangreen, 20)};
+
+  --button-background-color-focus: #{color(oceangreen, 120)};
+  --button-shadow-focus: #{rgba(color(oceangreen, 80), 0)};
+  --button-color-focus: #{color(raisinblack, 120)};
+  --button-icon-color-focus: #{color(oceangreen, 80)};
+}
+
+.secondary {
+  --button-background-color: #{color(cadetblue, 100)};
+  --button-text-color: #{color(white)};
+  --button-icon-color: #{color(cadetblue, 40)};
+  --button-background-color-disabled: #{color(cadetblue, 100)};
+
+  --button-background-color-hover: #{color(cadetblue, 80)};
+  --button-shadow-hover: #{rgba(#40a0a9, 0.24)};
+  --button-icon-color-hover: #{color(cadetblue, 20)};
+
+  --button-background-color-focus: #{color(cadetblue, 120)};
+  --button-shadow-focus: #{rgba(#40a0a9, 0)};
+  --button-color-focus: #{color(cadetblue, 40)};
+  --button-icon-color-focus: #{color(cadetblue, 80)};
+}
+
+.tertiary {
+  --button-background-color: #{color(white)};
+  --button-text-color: #{color(raisinblack, 80)};
+  --button-icon-color: #{color(oceangreen, 100)};
+  --button-background-color-disabled: #{color(white)};
+
+  --button-background-color-hover: #{color(white)};
+  --button-shadow-hover: #{rgba(#292c34, 0.16)};
+  --button-icon-color-hover: #{color(oceangreen, 80)};
+
+  --button-background-color-focus: #{color(raisinblack, 10)};
+  --button-shadow-focus: #{rgba(#292c34, 0)};
+  --button-color-focus: #{color(raisinblack, 80)};
+  --button-icon-color-focus: #{color(oceangreen, 80)};
+
+  border: color(raisinblack, 20) rem(1px) solid;
+}
+
+.small {
+  padding: rem(8) rem(16) rem(8) rem(8);
+  height: rem(40);
+  @include fw(medium, "title");
+  font-size: rem(15px);
+  line-height: rem(24px);
+}
