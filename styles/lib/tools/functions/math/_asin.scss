@@ -1,0 +1,14 @@
+@charset 'UTF-8';
+
+/// Returns the arcsine of a number.
+/// @param {Number} $x A number between -1 and 1.
+/// @example
+///     asin(0.1) // 0.10017
+///     asin(-1)  // -1.5708
+@function asin($x) {
+  @if $x > 1 or $x < -1 {
+    @warn "Argument for `asin()` must be a number between -1 and 1";
+    @return null;
+  }
+  @return atan(math.div($x, sqrt(1 - $x * $x)));
+}

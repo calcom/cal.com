@@ -1,0 +1,20 @@
+@charset 'UTF-8';
+
+/// Returns the factorial of a non-negative integer.
+/// @param {Number} $x A non-negative integer.
+/// @return {Number}
+/// @example
+///     fact(0) // 1
+///     fact(8) // 40320
+@function fact($x) {
+  @if $x < 0 or  $x != floor($x) {
+    @warn "Argument for `fact()` must be a positive integer.";
+    @return null;
+  }
+  $ret: 1;
+  @while $x > 0 {
+    $ret: $ret * $x;
+    $x: $x - 1;
+  }
+  @return $ret;
+}

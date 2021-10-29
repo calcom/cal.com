@@ -1,0 +1,32 @@
+@use "sass:math";
+
+@charset 'UTF-8';
+
+// Returns base to the exponent power.
+// @param {Number} $base The base number
+// @param {Number} $exp The exponent to which to raise base
+// @return {Number}
+// @example
+//     pow(4, 2)   // 16
+//     pow(4, -2)  // 0.0625
+//     pow(4, 0.2) // 1.31951
+@function pow($base, $exp) {
+  @if $exp == floor($exp) {
+    $r: 1;
+    $s: 0;
+    @if $exp < 0 {
+      $exp: $exp * -1;
+      $s: 1;
+    }
+    @while $exp > 0 {
+      @if $exp % 2 == 1 {
+        $r: $r * $base;
+      }
+      $exp: floor($exp * 0.5);
+      $base: $base * $base;
+    }
+    @return if($s != 0, math.div(1, $r), $r);
+  } @else {
+    @return exp(log($base) * $exp);
+  }
+}

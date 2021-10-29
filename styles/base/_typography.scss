@@ -1,0 +1,242 @@
+// https://deploy-preview-15--upbeat-shirley-608546.netlify.app/perfect-ish-font-fallback/?font=Merriweather
+@font-face {
+  font-family: "Merriweather-fallback";
+  size-adjust: 122.8%;
+  ascent-override: 76%;
+  src: local("Times New Roman");
+}
+
+// font-face( $name, $path,  $weight: null,  $style: null,  $exts: eot woff2 woff ttf svg)
+//@include font-face('Merriweather', '/assets/fonts/merriweather-v25-latin-700', 400);
+
+// Default typography settings, to be included as soon as possible in the HTML
+// 1. Make type rendering look crisper
+// 2. The default font size is 16px
+// 3. Prevent iOS and IE text size adjust after device orientation change, without disabling user zoom.
+//
+// @requires {variable} $base-font-size
+html {
+  font-size: math.div(strip-unit($base-font-size), 16) * 100%; /* 2 */
+  -ms-text-size-adjust: 100%; /* 3 */ // scss-lint:disable VendorPrefix
+  -webkit-text-size-adjust: 100%; /* 3 */ // scss-lint:disable VendorPrefix
+}
+
+// set default type and font-size, color
+body {
+  @include font-family(body);
+  @include font-size(base);
+  color: color(body);
+
+  margin: 0;
+}
+
+p {
+  margin-top: space(sm);
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+a {
+  color: inherit;
+}
+
+//general styles
+
+// input
+input,
+textarea,
+select {
+  @include ff(body);
+  @include fw(normal);
+}
+
+// button
+button {
+  @include ff(body);
+  @include fw(normal);
+}
+
+// Headings. OpenType ligatures, discretionary ligatures and lining figures enabled if available.
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-feature-settings: "liga", "lnum", "kern";
+
+  @include font-family(title);
+  @include font-weight(regular, title);
+}
+
+// Heading level 1.
+h1,
+.h1,
+.alpha {
+  @include fs(h1);
+}
+
+// Heading level 2.
+h2,
+.h2,
+.beta {
+  @include fs(h2);
+}
+
+// Heading level 3.
+h3,
+.h3,
+.gamma {
+  @include fs(h3);
+}
+
+// Heading level 4.
+h4,
+.h4,
+.delta {
+  @include fs(h4);
+}
+
+// Heading level 5.
+h5,
+.h5,
+.epsilon {
+  @include fs(h5);
+}
+
+// Heading level 6.
+h6,
+.h6,
+.zeta {
+  @include fs(h6);
+}
+
+small {
+  @include fs(small);
+}
+
+// Bold.
+b,
+strong,
+.bold {
+  @include fw(bold);
+}
+
+.visually-hidden.visually-hidden,
+.js .js-hide {
+  display: none;
+}
+
+//content styles (inside body field)
+.prose {
+  //set margin
+  p,
+  .intro,
+  blockquote,
+  figure,
+  ul,
+  ol {
+    margin-top: space(2);
+    margin-bottom: space(2);
+  }
+
+  blockquote p {
+    margin-bottom: space(1);
+  }
+
+  // larger space above titles
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    margin-top: space(4);
+    margin-bottom: space(2);
+
+    //let title tags dictate margin
+    & + * {
+      margin-top: 0;
+    }
+  }
+
+  & > :first-child {
+    margin-top: 0;
+  }
+
+  p.no-margin {
+    margin-bottom: 0;
+  }
+
+  // undo list reset
+  ul:not(.tabs) {
+    list-style: none;
+    li {
+      list-style: disc;
+      &::marker {
+        color: color(primary);
+      }
+    }
+  }
+
+  ol:not(.tabs) {
+    list-style: decimal;
+    li {
+      list-style: decimal;
+      &::marker {
+        //content: "->";
+        color: color(primary);
+      }
+    }
+  }
+
+  // Lists.
+  ul:not(.tabs),
+  ol:not(.tabs) {
+    margin-top: space(2);
+    margin-bottom: space(2);
+
+    padding-left: 0;
+
+    li {
+      font-feature-settings: "kern", "onum", "liga";
+      margin-left: 1.5em;
+      margin-bottom: space(1);
+
+      ol,
+      ul {
+        margin-left: 2rem;
+      }
+    }
+  }
+
+  table {
+    border-collapse: collapse;
+    max-width: 100%;
+    margin-top: space(3);
+    margin-bottom: space(3);
+
+    th,
+    td {
+      padding: 1em;
+      background-color: rgba(color(dark-background), 0.05);
+      text-align: left;
+      vertical-align: top;
+      border: 1px solid white;
+    }
+  }
+
+  .background--primary &,
+  .background--secondary & {
+    ul:not(.tabs) li:before {
+      color: inherit;
+    }
+  }
+}

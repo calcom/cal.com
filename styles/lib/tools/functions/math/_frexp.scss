@@ -1,0 +1,23 @@
+@charset 'UTF-8';
+
+/// Returns a two-element list containing the normalized fraction and exponent of number.
+/// @param {Number} $x
+/// @return {List} fraction, exponent
+@function frexp($x) {
+  $exp: 0;
+  @if $x < 0 {
+    $x: $x * -1;
+  }
+  @if $x < 0.5 {
+    @while $x < 0.5 {
+      $x: $x * 2;
+      $exp: $exp - 1;
+    }
+  } @else if $x >= 1 {
+    @while $x >= 1 {
+      $x: math.div($x, 2);
+      $exp: $exp + 1;
+    }
+  }
+  @return $x, $exp;
+}

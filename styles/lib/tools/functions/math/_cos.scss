@@ -1,0 +1,15 @@
+@charset 'UTF-8';
+
+/// Returns the cosine of a number.
+/// @param {Number} $x A number in rad or deg. Assuming unitless number to be in rad.
+/// @example
+///     cos(0.7854) // 0.70711
+///     cos(45deg)  // 0.70711
+@function cos($x) {
+  $x: strip-unit(convert-angle($x, rad));
+  $ret: 0;
+  @for $n from 0 to 24 {
+    $ret: $ret + math.div(pow(-1, $n) * pow($x, 2 * $n), fact(2 * $n));
+  }
+  @return $ret;
+}

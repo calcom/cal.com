@@ -1,0 +1,116 @@
+$base-font-size: 16px;
+
+// set font faces
+$fontfaces: (
+  'body': (
+    font-family: 'Inter, sans-serif',
+    weights: (
+      normal: 400,
+      bold: 700,
+    ),
+  ),
+  'title': (
+    font-family: 'canada-type-gibson, sans-serif',
+    weights: (
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+    ),
+  ),
+);
+
+$fontsizes: (
+  base: (
+    null: (
+      16px,
+      1.6,
+    ),
+  ),
+  h1: (
+    null: (
+      36px,
+      1.15,
+    ),
+    xs: (
+      48px,
+    ),
+    lg: (
+      90px,
+    ),
+  ),
+  h2: (
+    null: (
+      32px,
+      1.1,
+    ),
+    md: (
+      48px,
+      1.1,
+    ),
+    lg: (
+      64px,
+      1.1,
+    ),
+  ),
+  h3: (
+    null: (
+      24px,
+      1.25,
+    ),
+    md: (
+      32px,
+      1.25,
+    ),
+    lg: (
+      40px,
+      1.25,
+    ),
+  ),
+  h4: (
+    null: (
+      19px,
+      1.33333,
+    ),
+    md: (
+      21px,
+      1.33333,
+    ),
+    lg: (
+      23px,
+      1.33333,
+    ),
+  ),
+  h5: (
+    null: (
+      18px,
+      1.33333,
+    ),
+    md: (
+      20px,
+      1.33333,
+    ),
+  ),
+  h6: (
+    null: (
+      16px,
+      1.33333,
+    ),
+    md: (
+      18px,
+      1.33333,
+    ),
+  ),
+  small: (
+    null: 12px,
+  ),
+  button: (
+    null: (
+      14px,
+      1.1,
+    ),
+    lg: (
+      16px,
+      1.1,
+    ),
+  ),
+);

@@ -1,0 +1,53 @@
+@use "sass:math";
+
+$columns: 12 !default;
+$gutter: 1vw !default;
+
+@mixin row($nr-of-columns: $columns, $gutter-width: $gutter) {
+  box-sizing: border-box;
+  display: grid;
+  gap: $gutter-width;
+  width: 100%;
+
+  @if $nr-of-columns == auto {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  } @else {
+    grid-template-columns: repeat($nr-of-columns, 1fr);
+  }
+}
+
+@mixin row-align($alignment) {
+  $justify: inherit;
+  $alignment: if($alignment == middle, center, $alignment);
+  $alignment: if($alignment == right, end, $alignment);
+  $alignment: if($alignment == left, start, $alignment);
+
+  @if ($alignment == center) {
+    $justify: center;
+  } @else if ($alignment == end) {
+    $justify: end;
+  } @else if ($alignment == start) {
+    $justify: start;
+  }
+
+  justify-items: $justify;
+  text-align: $alignment;
+}
+
+@mixin row-v-align($alignment) {
+  $alignment: if($alignment == middle, center, $alignment);
+  $alignment: if($alignment == top, start, $alignment);
+  $alignment: if($alignment == bottom, end, $alignment);
+
+  @if ($alignment == center) {
+    align-items: center;
+  } @else if ($alignment == end) {
+    align-items: end;
+  } @else {
+    align-items: start;
+  }
+}
+
+@mixin span($columns-to-span: 12) {
+  grid-column: span $columns-to-span;
+}

@@ -1,0 +1,135 @@
+/**
+ * Enter project based settings here, 
+ * these will overwrite lib default settings
+ */
+
+/**
+  * media query breakpoints
+  * 
+  $mq-breakpoints: (
+    xxs: 320px,
+    xs: 480px,
+    sm: 798px,
+    md: 1020px,
+    lg: 1325px,
+    xl: 1360px,
+    xxl: 1440px,
+  );
+  */
+
+$base-font-size: 16px;
+
+// set font faces
+$fontfaces: (
+  'body': (
+    font-family: 'Inter, sans-serif',
+    weights: (
+      normal: 400,
+      bold: 700,
+    ),
+  ),
+  'title': (
+    font-family: 'canada-type-gibson, sans-serif',
+    weights: (
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+    ),
+  ),
+);
+
+$fontsizes: (
+  base: (
+    null: (
+      16px,
+      1.6,
+    ),
+  ),
+  h1: (
+    null: (
+      36px,
+      1,
+    ),
+    xs: (
+      48px,
+    ),
+    lg: (
+      72px,
+    ),
+  ),
+  h2: (
+    null: (
+      132px,
+      1.1,
+    ),
+    md: (
+      48px,
+      1.1,
+    ),
+    lg: (
+      64px,
+      1,
+    ),
+  ),
+  h3: (
+    null: (
+      24px,
+      1.25,
+    ),
+    md: (
+      32px,
+      1.25,
+    ),
+    lg: (
+      48px,
+      1,
+    ),
+  ),
+  h4: (
+    null: (
+      19px,
+      1.33333,
+    ),
+    md: (
+      21px,
+      1.33333,
+    ),
+    lg: (
+      40px,
+      1,
+    ),
+  ),
+  h5: (
+    null: (
+      18px,
+      1.33333,
+    ),
+    md: (
+      32px,
+      1,
+    ),
+  ),
+  h6: (
+    null: (
+      16px,
+      1.33333,
+    ),
+    md: (
+      24px,
+      1.33333,
+    ),
+  ),
+  small: (
+    null: 12px,
+  ),
+  button: (
+    null: (
+      14px,
+      1.1,
+    ),
+    lg: (
+      16px,
+      1.1,
+    ),
+  ),
+);

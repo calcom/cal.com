@@ -1,0 +1,18 @@
+@charset 'UTF-8';
+
+/// Returns the square root of a number.
+/// @param {Number} $x
+/// @example
+///     sqrt(2) // 1.41421
+///     sqrt(5) // 2.23607
+@function sqrt($x) {
+  @if $x < 0 {
+    @warn "Argument for `sqrt()` must be a positive number.";
+    @return null;
+  }
+  $ret: 1;
+  @for $i from 1 through 24 {
+    $ret: $ret - math.div(pow($ret, 2) - $x, 2 * $ret);
+  }
+  @return $ret;
+}

@@ -1,0 +1,38 @@
+@use 'sass:math';
+@use 'sass:list';
+
+@import 'lib';
+
+// Utilities
+// // -----------------------------------------------------------------------------
+// @import "utils/variables";
+// @import "utils/mixins";
+// @import "utils/functions";
+// @import "utils/animations";
+
+// Utilities
+// -----------------------------------------------------------------------------
+@import 'utils/utilities';
+@import 'utils/grid';
+
+// Base
+// -----------------------------------------------------------------------------
+@import 'base/reset';
+@import 'base/base';
+@import 'base/typography';
+@import 'base/transitions';
+
+// set space var, used in space function
+:root {
+  --space: 4px;
+  @include mq(md) {
+    --space: 4px;
+  }
+}
+
+// font imports
+// -----------------------------------------------------------------------------
+// Gibson Medium - SemiBold - Regular - Italic
+@import url('https://use.typekit.net/mwa0ygv.css');
+// inter Regular - Medium
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');

@@ -1,0 +1,17 @@
+/*
+sprite
+
+use as @include sprite(twitter);<br>
+shows the correct part of the sprite as background image in the before pseudo element<br>
+can't change color this way<br>
+scale by font-size, to get the original size use 10px<br>
+
+Styleguide tools.mixins.sprite
+*/
+
+@mixin sprite($filename) {
+  @extend .sprite;
+  &:before {
+    @extend .#{$filename};
+  }
+}

@@ -1,0 +1,17 @@
+// multiple line clamp with ellipsis
+
+@mixin line-clamp($lines, $line-height, $fixed: true) {
+  @if $fixed {
+    height: $lines * $line-height;
+  } @else {
+    max-height: $lines * $line-height;
+  }
+  overflow: hidden;
+
+  @supports (-webkit-line-clamp: $lines) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: $lines;
+    text-overflow: ellipsis;
+  }
+}

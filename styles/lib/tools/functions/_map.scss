@@ -1,0 +1,91 @@
+// Map-fetch
+// ----------
+/// An easy way to fetch a deep value in a multi-level map.
+///   Works much like map-get() except that you pass multiple
+///   keys as the second parameter to go down multiple levels
+///   in the nested map.
+/// @access public
+/// @param {Map} $map - Map
+/// @param {List} $keys - Key chain.
+/// @return {*} - Desired value
+/// @link https://gist.github.com/jlong/8760275
+/// @group utils
+@function map-fetch($map, $keys) {
+  $key: nth($keys, 1);
+  $length: length($keys);
+  $value: map-get($map, $key);
+  @if $length > 1 {
+    $rest: ();
+    @for $i from 2 through $length {
+      $rest: append($rest, nth($keys, $i));
+    }
+    @return map-fetch($value, $rest);
+  } @else {
+    @return $value;
+  }
+}
+
+/// Map deep get
+/// @author Hugo Giraudel
+/// @access public
+/// @param {Map} $map - Map
+/// @param {Arglist} $keys - Key chain
+/// @return {*} - Desired value
+/// @group utils
+@function map-deep-get($map, $keys...) {
+    @each $key in $keys {
+        $map: map-get($map, $key);
+    }
+    @return $map;
+}
+
+
+/// Deep set function to set a value in nested maps
+/// @author Hugo Giraudel
+/// @access public
+/// @param {Map} $map - Map
+/// @param {List} $keys -  Key chaine
+/// @param {*} $value - Value to assign
+/// @return {Map}
+/// @group utils
+@function map-deep-set($map, $keys, $value) {
+  $maps: ($map,);
+  $result: null;
+
+  // If the last key is a map already
+  // Warn the user we will be overriding it with $value
+  @if type-of(nth($keys, -1)) == "map" {
+    @warn "The last key you specified is a map; it will be overrided with `#{$value}`.";
+  }
+
+  // If $keys is a single key
+  // Just merge and return
+  @if length($keys) == 1 {
+    @return map-merge($map, ($keys: $value));
+  }
+
+  // Loop from the first to the second to last key from $keys
+  // Store the associated map to this key in the $maps list
+  // If the key doesn't exist, throw an error
+  @for $i from 1 through length($keys) - 1 {
+    $current-key: nth($keys, $i);
+    $current-map: nth($maps, -1);
+    $current-get: map-get($current-map, $current-key);
+    @if $current-get == null {
+      @error "Key `#{$key}` doesn't exist at current level in map.";
+    }
+    $maps: append($maps, $current-get);
+  }
+
+  // Loop from the last map to the first one
+  // Merge it with the previous one
+  @for $i from length($maps) through 1 {
+    $current-map: nth($maps, $i);
+    $current-key: nth($keys, $i);
+    $current-val: if($i == length($maps), $value, $result);
+    $result: map-merge($current-map, ($current-key: $current-val));
+  }
+
+  // Return result
+  @return $result;
+}

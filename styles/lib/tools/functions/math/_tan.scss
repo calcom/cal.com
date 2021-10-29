@@ -1,0 +1,10 @@
+@charset 'UTF-8';
+
+/// Returns the tangent of a number.
+/// @param {Number} $x A number in rad or deg. Assuming unitless number to be in rad.
+/// @example
+///     tan(0.5236) // 0.57735
+///     tan(30deg)  // 0.57735
+@function tan($x) {
+  @return math.div(sin($x), cos($x));
+}

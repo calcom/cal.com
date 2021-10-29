@@ -1,0 +1,72 @@
+/* ==========================================================================
+   #MEDIA
+   ========================================================================== */
+
+/**
+ * Place any image- and text-like content side-by-side, as per:
+ * http://www.stubbornella.org/content/2010/06/25/the-media-object-saves-hundreds-of-lines-of-code
+ */
+
+@mixin o-media() {
+  @include clearfix();
+  display: block;
+}
+
+@mixin o-media__img() {
+  background: red;
+  float: left;
+  margin-right: gutter();
+
+  > img {
+    display: block;
+  }
+}
+
+@mixin o-media__img--right() {
+  float: right;
+  margin-left: gutter();
+}
+
+@mixin o-media__body() {
+  overflow: hidden;
+  display: block;
+
+  &,
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+// create default BEM classes using the mixins
+/*
+.o-media {
+  @include o-media();
+}
+
+
+  .o-media__img {
+    @include o-media__img();
+
+  }
+
+
+  .o-media__body {
+    @include o-media__body();
+  }
+
+*/
+
+/* Reversed media objects.
+   ========================================================================== */
+
+/*
+.o-media--reverse {
+
+  > .o-media__img {
+    float: right;
+    margin-right: 0;
+    margin-left: gutter();
+  }
+
+}
+*/

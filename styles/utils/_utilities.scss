@@ -1,0 +1,135 @@
+// Miscellaneous useful HTML classes
+// -----------------------------------------------------------------------------
+.u-pull-left {
+  float: left;
+}
+
+.u-pull-right {
+  float: right;
+}
+
+.u-text-left {
+  text-align: left;
+}
+
+.u-text-right {
+  text-align: right;
+}
+
+.u-text-center {
+  text-align: center;
+}
+
+.u-text-justify {
+  text-align: justify;
+}
+
+.u-uppercase {
+  text-transform: uppercase;
+}
+
+.u-lowercase {
+  text-transform: lowercase;
+}
+
+.u-clearfix {
+  @include clearfix;
+}
+
+.u-inline {
+  display: inline;
+}
+
+.u-inline-block {
+  display: inline-block;
+}
+
+.u-block {
+  display: block;
+}
+
+.u-table {
+  display: table;
+}
+
+.u-cell {
+  display: table-cell;
+}
+
+.u-va-top {
+  vertical-align: top;
+}
+
+.u-va-middle {
+  vertical-align: middle;
+}
+
+.u-va-bottom {
+  vertical-align: bottom;
+}
+
+// Hide visually and from screen readers:
+// -----------------------------------------------------------------------------
+.u-hidden {
+  display: none;
+}
+
+// Hide visually and from screen readers, but maintain layout
+// -----------------------------------------------------------------------------
+.u-invisible {
+  visibility: hidden;
+}
+
+// Hide text while making it readable for screen readers
+// 1. Needed in WebKit-based browsers because of an implementation bug;
+// See: https://code.google.com/p/chromium/issues/detail?id=457146
+.u-hide-text {
+  padding: 0; /* 1 */
+  overflow: hidden;
+  text-indent: 101%;
+  white-space: nowrap;
+}
+
+// Hide element only visually, but have it available for screen readers:
+// http://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+.u-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}
+
+// Break strings when their length exceeds the width of their container
+// and hyphenate words at the end of lines using the `hyphens` property.
+// Browser support for hyphenation: http://caniuse.com/#search=hyphenation
+.u-text-hyphenate {
+  -ms-word-break: break-all;
+  word-break: break-all;
+  word-break: break-word; /* Browser Support */ // scss-lint:disable DuplicateProperty
+  hyphens: auto;
+}
+
+// Reset button styles
+// -----------------------------------------------------------------------------
+.u-button-reset {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  &:focus {
+    outline: 0;
+  }
+}
+
+// Prevent line breaks
+// -----------------------------------------------------------------------------
+.u-nobr {
+  white-space: nowrap;
+}

@@ -1,0 +1,10 @@
+.o-site-container {
+  // susy container
+  @include container();
+  
+  // add some side gutters on smaller screens
+  margin: 0 gutter();
+  @include respond-to(lg) {
+    margin: 0 auto; 
+  }
+}

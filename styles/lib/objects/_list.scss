@@ -1,0 +1,75 @@
+/*
+ * show a list without the default margins and bullets
+ */
+
+@mixin o-list-bare() {
+  margin-left: 0;
+  list-style: none;
+}
+
+@mixin o-list-bare__item() {
+  margin-left: 0;
+}
+
+/*
+.o-list-bare {
+  @include o-list-bare();
+}
+
+.o-list-bare__item {
+  @include o-list-bare__item();
+}
+*/
+
+/*
+ * show a list as horizontal
+ */
+
+@mixin o-list-inline() {
+  margin-left: 0;
+  list-style: none;
+}
+
+@mixin o-list-inline__item() {
+  display: inline-block;
+}
+
+/*
+.o-list-inline {
+  @include o-list-inline();
+}
+
+.o-list-inline__item {
+  @include o-list-inline__item();
+}
+*/
+
+
+
+/*
+ * show a list as horizontal and justify the items
+ *
+ * 1. use space-around if you also want margin to left of first item and to right of last item
+ */
+
+@mixin o-list-justify() {
+  margin-left: 0;
+  list-style: none;
+
+  display: flex;
+  justify-content: space-between; /* [1] */
+}
+
+@mixin o-list-justify__item() {
+  display: inline-block;
+}
+
+/*
+.o-list-justify {
+  @include o-list-justify();
+}
+
+.o-list-justify__item {
+  @include o-list-justify__item();
+}
+*/

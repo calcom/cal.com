@@ -1,0 +1,14 @@
+/*
+text-overflow
+
+shows ... after single line text <br>
+Requires display inline-block or block to work, also needs a width to overflow
+
+Styleguide tools.mixins.text-overflow
+*/
+
+@mixin text-overflow() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

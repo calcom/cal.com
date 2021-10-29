@@ -1,0 +1,27 @@
+@charset 'UTF-8';
+
+//************************************************************************//
+// Helper function for angle unit conversion
+// Adapted from: http://hugogiraudel.com/2013/08/12/sass-functions/#unit-conversion
+//************************************************************************//
+@function convert-angle($angle, $unit) {
+  $conversion-factors: (
+    deg:  1deg,
+    grad: math.div(10grad, 9),
+    turn: math.div(1turn, 360),
+    rad:  math.div(3.141592653589793rad, 180)
+  );
+
+  @if not map-has-key($conversion-factors, unit($angle)) {
+    @warn 'angle `#{$angle}` has not a valid unit - please make sure it is either `deg`, `rad`, `grad` or `turn`';
+    @return false;
+  }
+
+  @if not map-has-key($conversion-factors, $unit) {
+    @warn 'unit `#{$unit}` is not a valid unit - please make sure it is either `deg`, `rad`, `grad` or `turn`';
+    @return false;
+  }
+
+  @return math.div($angle, map-get($conversion-factors, unit($angle)))
+            * map-get($conversion-factors, $unit);
+}

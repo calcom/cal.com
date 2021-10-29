@@ -1,0 +1,70 @@
+/*
+ * table with horizontal lines separating cells
+ */
+
+@mixin o-table() {
+  border-left-width: 0;
+  border-right-width: 0;
+}
+
+@mixin o-table__cell() {
+  padding: vr($table-padding);
+  border-left-width: 0;
+  border-right-width: 0;
+}
+
+/*
+.o-table {
+  @include o-table;
+}
+
+.o-table__cell {
+  @include o-table__cell;
+}
+*/
+
+/*
+ * table with vertical and horizontal borders separating cells
+ */
+@mixin o-table-bordered() {
+
+}
+
+@mixin o-table-bordered__cell() {
+  padding: vr($table-padding);
+}
+/*
+.o-table-bordered {
+  @include o-table-bordered;
+}
+
+.o-table-bordered__cell {
+  @include o-table-bordered__cell;
+}
+*/
+
+
+/*
+ * table with alternating row colors
+ */
+@mixin o-table-striped() {
+  border-width: 0;
+  tr:nth-of-type(odd){
+    background-color: color($table-striped-color);
+  }
+}
+
+@mixin o-table-striped__cell() {
+  padding: vr($table-padding);
+  border-width: 0;
+}
+
+/*
+.o-table-striped {
+  @include o-table-striped;
+}
+
+.o-table-striped__cell {
+  @include o-table-striped__cell;
+}
+*/

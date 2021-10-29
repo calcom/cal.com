@@ -1,0 +1,20 @@
+/**
+ * break out of the container and put block full width of the screen:
+ *
+ * 1. this does create a horizontal scrollbar, can be counter acted by using overflow-x on body
+ */
+
+@mixin o-full-width() {
+  width: 100vw /* [1] */;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+/*
+.o-full-width {
+  @include o-full-width();
+}
+*/

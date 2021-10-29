@@ -1,0 +1,30 @@
+@charset 'UTF-8';
+
+/// Returns the arctangent of a number.
+/// @param {Number} $x
+/// @example
+///     atan(0.1) // 0.09967
+///     atan(-1)  // -0.7854
+@function atan($x) {
+  $i:  24;
+  $sgn: 0;
+  $a:   0;
+  @if $x > 1 {
+    $sgn:  1;
+    $x:    math.div(1, $x);
+  } @else if $x < -1 {
+    $sgn: -1;
+    $x:    math.div(1, $x);
+  }
+  @while $i > 0 {
+    $a: math.div($i * $i * $x * $x, 2 * $i + 1 + $a);
+    $i: $i - 1;
+  }
+  @if $sgn > 0 {
+    @return  math.div($PI, 2) - math.div($x, 1 + $a);
+  } @else if $sgn < 0 {
+    @return math.div(-$PI, 2) - math.div($x, 1 + $a);
+  } @else {
+    @return math.div($x, 1 + $a);
+  }
+}

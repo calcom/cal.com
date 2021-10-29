@@ -1,0 +1,10 @@
+@charset 'UTF-8';
+
+/// Returns the cotangent of a number.
+/// @param {Number} $x A number in rad or deg. Assuming unitless number to be in rad.
+/// @example
+///     cot(0.5236) // 1.73205
+///     cot(30deg)  // 1.73205
+@function cot($x) {
+  @return math.div(1, tan($x));
+}

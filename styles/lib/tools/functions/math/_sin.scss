@@ -1,0 +1,10 @@
+@charset 'UTF-8';
+
+/// Returns the sine of a number.
+/// @param {Number} $x A number in rad or deg. Assuming unitless number to be in rad.
+/// @example
+///     sin(1.0472) // 0.86603
+///     sin(60deg)  // 0.86603
+@function sin($x) {
+  @return cos($x - math.div($PI, 2));
+}

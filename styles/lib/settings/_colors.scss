@@ -1,0 +1,73 @@
+@charset 'UTF-8';
+
+/**
+ * Default colors palette
+ *
+ * @type Map
+ */
+$colors: (
+  body: #111111,
+  muted: #7f7f7f,
+  primary: hsl(44, 100%, 50%),
+  secondary: #a0ffff,
+  light-background: #e7e6ea,
+  dark-background: #0e052b,
+  red: #dc0408,
+  disabled: #a6a8ab,
+  border: #d8d2bf,
+  selection: #0d0f11,
+  ok: green,
+  warning: orange,
+  error: #f96757,
+  raisinblack: (
+    140: #0a0b0d,
+    120: #14161a,
+    100: #292c34,
+    80: #53565c,
+    60: #7e8085,
+    40: #a9aaad,
+    20: #d4d4d6,
+    10: #f4f4f4,
+  ),
+  oceangreen: (
+    140: #306450,
+    120: #4ca080,
+    100: #60c9a1,
+    80: #7fd3b3,
+    60: #9fdec6,
+    40: #bfe9d9,
+    20: #dff4ec,
+    10: #eff9f5,
+  ),
+  cadetblue: (
+    140: #205054,
+    120: #337f87,
+    100: #40a0a9,
+    80: #66b3ba,
+    60: #8cc6cb,
+    40: #b2d9dc,
+    20: #d8eced,
+    10: #ebf5f6,
+  ),
+  yellowcrayola: (
+    140: #79692e,
+    120: #c2a749,
+    100: #f3d25c,
+    80: #f5db7c,
+    60: #f7e49d,
+    40: #faedbd,
+    20: #fcf6de,
+    10: #fdfaee,
+  ),
+  orangesoda: (
+    140: #783221,
+    120: #bf5035,
+    100: #f06543,
+    80: #f38368,
+    60: #f6a28e,
+    40: #f9c1b3,
+    20: #fce0d9,
+    10: #fdefec,
+  ),
+  white: #fff,
+) !default;

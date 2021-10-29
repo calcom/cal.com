@@ -1,0 +1,90 @@
+/*
+ * show a vertical form (label left and input right) with margin below each item
+ */
+
+@mixin o-form-item() {
+  margin-bottom: vr($form-item-margin);
+}
+
+@mixin o-form-item__label() {
+
+}
+
+@mixin o-form-item__input() {
+  padding: vr($form-item-input-padding);
+}
+/*
+.o-form-item {
+  @include o-form-item();
+}
+
+.o-form-item__label {
+  @include o-form-item__label();
+}
+
+.o-form-item__input {
+  @include o-form-item__input();
+}
+*/
+
+/*
+ * show a form item where the input is below the label
+ */
+
+@mixin o-form-item-stacked() {
+  margin-bottom: vr($form-item-margin);
+}
+
+@mixin o-form-item-stacked__label() {
+  display: block;
+}
+
+@mixin o-form-item-stacked__input() {
+  display: block;
+  padding: vr($form-item-input-padding);
+}
+/*
+.o-form-item-stacked {
+  @include o-form-item-stacked();
+}
+
+.o-form-item-stacked__label {
+  @include o-form-item-stacked__label();
+}
+
+.o-form-item-stacked__input {
+  @include o-form-item-stacked__input();
+}
+*/
+
+
+/*
+ * show a form item where the inputs and labels are next to each other
+ */
+
+@mixin o-form-item-inline() {
+  display: inline-block;
+  margin-bottom: 0;
+}
+
+@mixin o-form-item-inline__label() {
+  display: inline-block;
+}
+
+@mixin o-form-item-inline__input() {
+  display: inline-block;
+  padding: vr($form-item-input-padding);
+}
+/*
+.o-form-item-inline {
+  @include o-form-item-inline();
+}
+
+.o-form-item-inline__label {
+  @include o-form-item-inline__label();
+}
+
+.o-form-item-inline__input {
+  @include o-form-item-inline__input();
+}
+*/

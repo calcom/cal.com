@@ -1,0 +1,21 @@
+@mixin z-index($layer, $addition: 0) {
+  $START_FROM: 0;
+  $INCREMENT_BY: 1;
+
+  $zIndex: -1;
+  $customizedLayers: 1;
+  @for $index from 1 through length($z-layers) {
+    $currentItem: nth($z-layers, $index);
+    $currentLayer: $currentItem;
+
+    @if $index - $customizedLayers == 0 {
+      $zIndex: $START_FROM;
+    } @else {
+      $zIndex: max($zIndex + 1, $index - $customizedLayers) + $INCREMENT_BY - 1;
+    }
+
+    @if $currentLayer == $layer {
+      z-index: $zIndex + $addition;
+    }
+  }
+}

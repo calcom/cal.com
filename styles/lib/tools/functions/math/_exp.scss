@@ -1,0 +1,14 @@
+@charset 'UTF-8';
+
+/// Returns E^x, where x is the argument, and E is Euler's constant, the base of the natural logarithms.
+/// @param {Number} $x
+/// @example
+///     exp(1)  // 2.71828
+///     exp(-1) // 0.36788
+@function exp($x) {
+  $ret: 0;
+  @for $n from 0 to 24 {
+    $ret: $ret + math.div(pow($x, $n), fact($n));
+  }
+  @return $ret;
+}

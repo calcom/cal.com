@@ -1,0 +1,63 @@
+/*
+color($colorname)
+
+Takes a color key and returns the hex value, The $colors map is set in settings/variables.scss
+
+$colorname - name of a key in the $colors variable (options see below)
+
+Weight: -10
+
+Styleguide tools.functions.color.color
+*/
+
+@function color($color, $variant: null) {
+  @if $variant {
+    $mapped-color-variant: map-get($colors, $color, $variant);
+    @return $mapped-color-variant;
+  }
+
+  //not a key for the map, maybe hex color
+
+  $mapped-color: map-get($colors, $color);
+  @return $mapped-color;
+}
+
+// alternative name for get-color
+// @function color($color, $variant){
+//   @return map-get($colors, $color, $variant);
+// }
+
+/*
+color-contrast($color, $dark, $light)
+
+Compares contrast of a given color to the light/dark arguments and returns whichever is most "contrasty"
+
+$color  - color of the background to check the contrast against
+$dark   - color of the dark variant
+$light  - color of the light variant
+
+Weight: -11
+
+Styleguide tools.functions.color.color-contrast
+*/
+
+@function color-contrast($color, $dark: #000, $light: #fff) {
+  @if $color == null {
+    @return null;
+  } @else {
+    $color-brightness: brightness($color);
+    $light-text-brightness: brightness($light);
+    $dark-text-brightness: brightness($dark);
+
+    @return if(
+      abs($color-brightness - $light-text-brightness) > abs($color-brightness - $dark-text-brightness),
+      $light,
+      $dark
+    );
+  }
+}
+
+// Calculeate brightness of a given color.
+@function brightness($color) {
+  @return ((red($color) * 0.299) + (green($color) * 0.587) + (blue($color) * 0.114)) / 255 * 100%;
+}

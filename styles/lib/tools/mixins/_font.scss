@@ -1,0 +1,48 @@
+@mixin ff($font) {
+  // get the font-stack and remove surrounding quotes
+  $font-stack: map-fetch($fontfaces, ($font, "font-family"));
+  $font-stack: unquote($font-stack);
+
+  //set font-family
+  font-family: $font-stack;
+}
+@mixin font-family($font) {
+  @include ff($font);
+}
+
+@mixin fw($weight, $font: body) {
+  // get the font-stack and remove surrounding quotes
+  $font-weight: map-fetch($fontfaces, ($font, "weights", $weight));
+
+  //set font-family
+  font-weight: $font-weight;
+}
+@mixin font-weight($weight, $font) {
+  @include fw($weight, $font);
+}
+
+@mixin fs($fs) {
+  //get the map for this font-size name
+  $fm: null !default;
+  @if map-has-key($fontsizes, $fs) {
+    $fm: map-get($fontsizes, $fs);
+  }
+
+  // loop the breakpoints to set respective font-size
+  @each $breakpoint, $sizemap in $fm {
+    @include mq($breakpoint) {
+      // get font-size from first var
+      $fs: nth($sizemap, 1);
+      font-size: rem($fs);
+
+      // set line-height from second var
+      @if (length($sizemap) >1) {
+        $lh: nth($sizemap, 2);
+        line-height: $lh;
+      }
+    }
+  }
+}
+@mixin font-size($fs) {
+  @include fs($fs);
+}

@@ -1,0 +1,51 @@
+@use 'sass:math';
+
+// strip units
+@function strip-unit($num) {
+  @return math.div($num, ($num * 0 + 1));
+}
+
+// check for specific unit
+@function is-unit($value, $unit) {
+  @return index($unit, unit($value)) != null;
+}
+
+/*
+rem($value)
+
+converts px to rem
+
+$value  - value in px to convert to rem
+
+Styleguide tools.functions.unit.rem
+*/
+
+@function rem($value) {
+  $rootsize: $base-font-size;
+  $size: math.div(strip-unit($value), strip-unit($rootsize));
+  @return $size + 0rem;
+}
+
+/*
+vr($value:1)
+
+returns the size of x * vertical padding
+
+$value  - value of spacing, can be unitless to apply value * vertical padding, if not it converts the value to rem
+
+Styleguide tools.functions.unit.vr
+*/
+
+@function vr($value: 1) {
+  // if value is not in vr or unitless, just return the rem value
+  @if (unitless($value) ==false AND is-unit($value, "vr") ==false) {
+    @return rem($value);
+  }
+
+  // get gutter of baseline unit (in context of breakpoint)
+  $gutter: if($baseline-grid, get-rootsize(), get-gutter-vertical());
+
+  $value-gutter: strip-unit($value) * $gutter;
+
+  @return rem($value-gutter);
+}

@@ -1,0 +1,23 @@
+/*
+vr($property, $value)
+
+return the vr value for a css proporty for <b>all</b> breakpoints
+
+$property - css property to set e.g. padding-bottom
+$value    - amount of vr
+
+Styleguide tools.mixins.vr
+*/
+
+@mixin vr($property, $value:1) {
+  // for each vertical gutter return the correct value
+  @each $breakpoint, $target-value in $breakpoint-map {
+    $breakpoint-min-width: map-fetch($target-value, ('start'));
+    @include breakpoint($breakpoint-min-width){
+      // get vr value
+      $value-vr: vr($value);
+
+      #{$property}: $value-vr;
+    }
+  }
+}

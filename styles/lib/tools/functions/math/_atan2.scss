@@ -1,0 +1,39 @@
+@charset 'UTF-8';
+
+/// Returns the arctangent of the quotient of its arguments.
+/// @param {Number} $y
+/// @param {Number} $x
+/// @example
+///     atan2(0, 0)       // 0
+///     atan2(0, -0.0)    // 3.14159
+///     atan2(-0.0, 0)    // 0
+///     atan2(-0.0, -0.0) // -3.14159
+///     atan2(0, 1)       // 0
+///     atan2(0, -1)      // 3.14159
+@function atan2($y, $x) {
+  @if $x > 0 {
+    @return atan(math.div($y, $x));
+  } @else if $x < 0 {
+    @if $y < 0 {
+      @return atan(math.div($y, $x)) - $PI;
+    } @else {
+      @return atan(math.div($y, $x)) + $PI;
+    }
+  } @else {
+    @if $y < 0 {
+      @return math.div(- $PI, 2);
+    } @else if $y > 0 {
+      @return math.div($PI, 2);
+    } @else {
+      @if math.div(1, $x) == math.div(1, 0) {
+        @return 0;
+      } @else {
+        @if math.div(1, $y) == math.div(1, 0) {
+          @return $PI;
+        } @else {
+          @return -$PI;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+@function space($value: 1) {
+  $scale: $value;
+  // if value is not a number get the named spacing (from settings)
+  @if (type-of($value) == "string") {
+    $scale: map-get($spacings, $value);
+  }
+
+  @return calc(#{$scale} * var(--space));
+}

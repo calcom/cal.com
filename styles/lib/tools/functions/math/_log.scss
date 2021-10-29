@@ -1,0 +1,26 @@
+@charset 'UTF-8';
+
+/// Returns the natural logarithm of a number.
+/// @param {Number} $x
+/// @example
+///     log(2)  // 0.69315
+///     log(10) // 2.30259
+@function log($x) {
+  @if $x <= 0 {
+    @return math.div(0, 0);
+  }
+  $k: nth(frexp(math.div($x, $SQRT2)), 2);
+  $x: math.div($x, ldexp(1, $k));
+  $x: math.div($x - 1, $x + 1);
+  $x2: $x * $x;
+  $i: 1;
+  $s: $x;
+  $sp: null;
+  @while $sp != $s {
+    $x: $x * $x2;
+    $i: $i + 2;
+    $sp: $s;
+    $s: $s + math.div($x, $i);
+  }
+  @return $LN2 * $k + 2 * $s;
+}

@@ -1,0 +1,15 @@
+/*
+clearfix
+
+mixin to apply the clearfix
+
+Styleguide tools.mixins.clearfix
+*/
+
+@mixin clearfix {
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}

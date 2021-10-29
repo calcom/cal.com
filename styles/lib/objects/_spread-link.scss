@@ -1,0 +1,25 @@
+/**
+ * Cover parent with a link element (parent is the first element positioned relative)
+ * Keep in mind that in html 5 a link can wrap block level elements : http://html5doctor.com/block-level-links-in-html-5/
+ */
+
+@mixin o-spread-link() {
+  background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 0;
+  text-indent: -999em;
+  overflow: hidden;
+  z-index: 1;
+  border: 5px solid red;
+}
+
+/*
+.o-spread-link {
+  @include o-spread-link();
+}
+*/
