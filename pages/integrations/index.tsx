@@ -8,7 +8,7 @@ import {
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -21,6 +21,7 @@ import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
+import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -35,8 +36,7 @@ import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
-type TIntegrations = inferQueryOutput<"viewer.integrations">;
-type TWebhook = TIntegrations["webhooks"][number];
+type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
 function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
   const { t } = useLocale();
@@ -269,14 +269,9 @@ function WebhookDialogForm(props: {
   );
 }
 
-function WebhookEmbed(props: { webhooks: TWebhook[] }) {
+function Webhooks() {
   const { t } = useLocale();
-  const user = trpc.useQuery(["viewer.me"]).data;
-
-  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
-  const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
-    "schedule_a_meeting"
-  )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
+  const query = trpc.useQuery(["viewer.webhook.list"], { suspense: true });
 
   const [newWebhookModal, setNewWebhookModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -301,9 +296,9 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
         </ListItem>
       </List>
 
-      {props.webhooks.length ? (
+      {query.data?.length ? (
         <List>
-          {props.webhooks.map((item) => (
+          {query.data.map((item) => (
             <WebhookListItem
               key={item.id}
               webhook={item}
@@ -315,19 +310,40 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
           ))}
         </List>
       ) : null}
-      <div className="divide-y divide-gray-200 lg:col-span-9">
-        <div className="py-6 lg:pb-8">
-          <div>
-            {/* {!!props.webhooks.length && (
-              <WebhookList
-                webhooks={props.webhooks}
-                onChange={() => {}}
-                onEditWebhook={editWebhook}></WebhookList>
-            )} */}
-          </div>
-        </div>
-      </div>
 
+      {/* New webhook dialog */}
+      <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
+        <DialogContent>
+          <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
+        </DialogContent>
+      </Dialog>
+      {/* Edit webhook dialog */}
+      <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
+        <DialogContent>
+          {editing && (
+            <WebhookDialogForm
+              key={editing.id}
+              handleClose={() => setEditModalOpen(false)}
+              defaultValues={editing}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function IframeEmbeds() {
+  const { t } = useLocale();
+  const user = trpc.useQuery(["viewer.me"], { suspense: true }).data;
+
+  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
+  const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
+    "schedule_a_meeting"
+  )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
+
+  return (
+    <>
       <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} />
       <div className="lg:pb-8 lg:col-span-9">
         <List>
@@ -398,25 +414,6 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
           {t("browse_api_documentation")}
         </a>
       </div>
-
-      {/* New webhook dialog */}
-      <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
-        <DialogContent>
-          <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
-        </DialogContent>
-      </Dialog>
-      {/* Edit webhook dialog */}
-      <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-        <DialogContent>
-          {editing && (
-            <WebhookDialogForm
-              key={editing.id}
-              handleClose={() => setEditModalOpen(false)}
-              defaultValues={editing}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
@@ -552,7 +549,10 @@ export default function IntegrationsPage() {
                 </>
               )}
               <CalendarsList calendars={data.calendar.items} onChanged={handleOpenChange} />
-              <WebhookEmbed webhooks={data.webhooks} />
+              <Suspense fallback={<Loader />}>
+                <Webhooks />
+                <IframeEmbeds />
+              </Suspense>
             </>
           );
         }}

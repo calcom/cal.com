@@ -338,11 +338,6 @@ const loggedInViewerRouter = createProtectedRouter()
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
-      const webhooks = await ctx.prisma.webhook.findMany({
-        where: {
-          userId: user.id,
-        },
-      });
       return {
         conferencing: {
           items: conferencing,
@@ -357,7 +352,6 @@ const loggedInViewerRouter = createProtectedRouter()
           numActive: countActive(payment),
         },
         connectedCalendars,
-        webhooks,
       };
     },
   })
