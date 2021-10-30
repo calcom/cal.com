@@ -31,7 +31,7 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.16.0",
+    "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
     "@hookform/resolvers": "^2.8.1",
