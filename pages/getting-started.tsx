@@ -117,10 +117,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
-  const [selectedTimeZone, setSelectedTimeZone] = useState({
-    value: props.user.timeZone ?? dayjs.tz.guess(),
-    label: null,
-  });
+  const [selectedTimeZone, setSelectedTimeZone] = useState(props.user.timeZone ?? dayjs.tz.guess());
   const currentTime = React.useMemo(() => {
     return dayjs().tz(selectedTimeZone.value).format("H:mm A");
   }, [selectedTimeZone]);
@@ -279,7 +276,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           setSubmitting(true);
           await updateUser({
             name: nameRef.current?.value,
-            timeZone: selectedTimeZone.value,
+            timeZone: selectedTimeZone,
           });
           setEnteredName(nameRef.current?.value || "");
           setSubmitting(true);
