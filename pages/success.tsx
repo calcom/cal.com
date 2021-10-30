@@ -6,6 +6,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -228,31 +229,15 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </div>
                     </div>
                   )}
-                  {!props.hideBranding && (
-                    <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
-                      <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
-                        }}
-                        className="flex mt-4">
-                        <input
-                          type="email"
-                          name="email"
-                          id="email"
-                          inputMode="email"
-                          defaultValue={router.query.email}
-                          className="shadow-sm text-gray-600 dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300"
-                          placeholder="rick.astley@cal.com"
-                        />
-                        <Button type="submit" className="min-w-max" color="primary">
-                          {t("try_for_free")}
-                        </Button>
-                      </form>
-                    </div>
-                  )}
+                  <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
+                    <a href="https://bullbitcoin.com">
+                      <Button className="min-w-max" color="primary">
+                        <Image src="/static/bullbitcoin-logo.svg" height="32" width="38" />
+                        <div className="pl-3">Back to Bull Bitcoin</div>
+                      </Button>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

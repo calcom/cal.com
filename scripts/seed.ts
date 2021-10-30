@@ -148,158 +148,158 @@ async function createTeamAndAddUsers(
 async function main() {
   await createUserAndEventType({
     user: {
-      email: "onboarding@example.com",
-      password: "onboarding",
-      username: "onboarding",
-      name: "onboarding",
-      plan: "TRIAL",
+      email: "nathan@satoshiportal.com",
+      password: "satoshi123",
+      username: "nate",
+      name: "Nate",
+      plan: "PRO",
       completedOnboarding: false,
     },
     eventTypes: [],
   });
 
-  await createUserAndEventType({
-    user: {
-      email: "free-first-hidden@example.com",
-      password: "free-first-hidden",
-      username: "free-first-hidden",
-      name: "Free First Hidden Example",
-      plan: "FREE",
-    },
-    eventTypes: [
-      {
-        title: "30min",
-        slug: "30min",
-        length: 30,
-        hidden: true,
-      },
-      {
-        title: "60min",
-        slug: "60min",
-        length: 30,
-      },
-    ],
-  });
-  await createUserAndEventType({
-    user: {
-      email: "pro@example.com",
-      name: "Pro Example",
-      password: "pro",
-      username: "pro",
-      plan: "PRO",
-    },
+  // await createUserAndEventType({
+  //   user: {
+  //     email: "free-first-hidden@example.com",
+  //     password: "free-first-hidden",
+  //     username: "free-first-hidden",
+  //     name: "Free First Hidden Example",
+  //     plan: "FREE",
+  //   },
+  //   eventTypes: [
+  //     {
+  //       title: "30min",
+  //       slug: "30min",
+  //       length: 30,
+  //       hidden: true,
+  //     },
+  //     {
+  //       title: "60min",
+  //       slug: "60min",
+  //       length: 30,
+  //     },
+  //   ],
+  // });
+  // await createUserAndEventType({
+  //   user: {
+  //     email: "pro@example.com",
+  //     name: "Pro Example",
+  //     password: "pro",
+  //     username: "pro",
+  //     plan: "PRO",
+  //   },
 
-    eventTypes: [
-      {
-        title: "30min",
-        slug: "30min",
-        length: 30,
-        _bookings: [
-          {
-            uid: uuid(),
-            title: "30min",
-            startTime: dayjs().add(1, "day").toDate(),
-            endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
-          },
-          {
-            uid: uuid(),
-            title: "30min",
-            startTime: dayjs().add(2, "day").toDate(),
-            endTime: dayjs().add(2, "day").add(30, "minutes").toDate(),
-            confirmed: false,
-          },
-        ],
-      },
-      {
-        title: "60min",
-        slug: "60min",
-        length: 60,
-      },
-    ],
-  });
+  //   eventTypes: [
+  //     {
+  //       title: "30min",
+  //       slug: "30min",
+  //       length: 30,
+  //       _bookings: [
+  //         {
+  //           uid: uuid(),
+  //           title: "30min",
+  //           startTime: dayjs().add(1, "day").toDate(),
+  //           endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+  //         },
+  //         {
+  //           uid: uuid(),
+  //           title: "30min",
+  //           startTime: dayjs().add(2, "day").toDate(),
+  //           endTime: dayjs().add(2, "day").add(30, "minutes").toDate(),
+  //           confirmed: false,
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       title: "60min",
+  //       slug: "60min",
+  //       length: 60,
+  //     },
+  //   ],
+  // });
 
-  await createUserAndEventType({
-    user: {
-      email: "trial@example.com",
-      password: "trial",
-      username: "trial",
-      name: "Trial Example",
-      plan: "TRIAL",
-    },
-    eventTypes: [
-      {
-        title: "30min",
-        slug: "30min",
-        length: 30,
-      },
-      {
-        title: "60min",
-        slug: "60min",
-        length: 60,
-      },
-    ],
-  });
+  // await createUserAndEventType({
+  //   user: {
+  //     email: "trial@example.com",
+  //     password: "trial",
+  //     username: "trial",
+  //     name: "Trial Example",
+  //     plan: "TRIAL",
+  //   },
+  //   eventTypes: [
+  //     {
+  //       title: "30min",
+  //       slug: "30min",
+  //       length: 30,
+  //     },
+  //     {
+  //       title: "60min",
+  //       slug: "60min",
+  //       length: 60,
+  //     },
+  //   ],
+  // });
 
-  await createUserAndEventType({
-    user: {
-      email: "free@example.com",
-      password: "free",
-      username: "free",
-      name: "Free Example",
-      plan: "FREE",
-    },
-    eventTypes: [
-      {
-        title: "30min",
-        slug: "30min",
-        length: 30,
-      },
-      {
-        title: "60min",
-        slug: "60min",
-        length: 30,
-      },
-    ],
-  });
+  // await createUserAndEventType({
+  //   user: {
+  //     email: "free@example.com",
+  //     password: "free",
+  //     username: "free",
+  //     name: "Free Example",
+  //     plan: "FREE",
+  //   },
+  //   eventTypes: [
+  //     {
+  //       title: "30min",
+  //       slug: "30min",
+  //       length: 30,
+  //     },
+  //     {
+  //       title: "60min",
+  //       slug: "60min",
+  //       length: 30,
+  //     },
+  //   ],
+  // });
 
-  const freeUserTeam = await createUserAndEventType({
-    user: {
-      email: "teamfree@example.com",
-      password: "teamfree",
-      username: "teamfree",
-      name: "Team Free Example",
-      plan: "FREE",
-    },
-    eventTypes: [],
-  });
+  // const freeUserTeam = await createUserAndEventType({
+  //   user: {
+  //     email: "teamfree@example.com",
+  //     password: "teamfree",
+  //     username: "teamfree",
+  //     name: "Team Free Example",
+  //     plan: "FREE",
+  //   },
+  //   eventTypes: [],
+  // });
 
-  const proUserTeam = await createUserAndEventType({
-    user: {
-      email: "teampro@example.com",
-      password: "teampro",
-      username: "teampro",
-      name: "Team Pro Example",
-      plan: "PRO",
-    },
-    eventTypes: [],
-  });
+  // const proUserTeam = await createUserAndEventType({
+  //   user: {
+  //     email: "teampro@example.com",
+  //     password: "teampro",
+  //     username: "teampro",
+  //     name: "Team Pro Example",
+  //     plan: "PRO",
+  //   },
+  //   eventTypes: [],
+  // });
 
-  await createTeamAndAddUsers(
-    {
-      name: "Seeded Team",
-      slug: "seeded-team",
-    },
-    [
-      {
-        id: proUserTeam.id,
-        username: proUserTeam.name || "Unknown",
-      },
-      {
-        id: freeUserTeam.id,
-        username: freeUserTeam.name || "Unknown",
-      },
-    ]
-  );
+  // await createTeamAndAddUsers(
+  //   {
+  //     name: "Seeded Team",
+  //     slug: "seeded-team",
+  //   },
+  //   [
+  //     {
+  //       id: proUserTeam.id,
+  //       username: proUserTeam.name || "Unknown",
+  //     },
+  //     {
+  //       id: freeUserTeam.id,
+  //       username: freeUserTeam.name || "Unknown",
+  //     },
+  //   ]
+  // );
 
   await prisma.$disconnect();
 }

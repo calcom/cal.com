@@ -127,6 +127,9 @@ function isOutOfBounds(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
+
+  console.log("\n%creqBody", "color:orange;font-weight:bold;", reqBody, "\n\n");
+
   const eventTypeId = reqBody.eventTypeId;
   const t = await getTranslation(reqBody.language ?? "en", "common");
 

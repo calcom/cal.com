@@ -12,7 +12,6 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
@@ -20,7 +19,6 @@ import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import PoweredByCal from "@components/ui/PoweredByCal";
 
 import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
@@ -220,7 +218,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
               </div>
             </div>
           )}
-          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />}
+          {/* {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />} */}
         </main>
       </div>
     </>

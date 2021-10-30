@@ -97,19 +97,20 @@ const BookingPage = (props: BookingPageProps) => {
       if (!!notes && !!event.target.notes.value) {
         notes += `\n\n${t("additional_notes")}:\n` + event.target.notes.value;
       } else {
-        notes += event.target.notes.value;
+        notes += event.target?.notes?.value || "";
       }
 
       const payload: BookingCreateBody = {
         start: dayjs(date).format(),
         end: dayjs(date).add(props.eventType.length, "minute").format(),
-        name: event.target.name.value,
+        name: event.target.name.value || "",
         email: event.target.email.value,
         notes: notes,
         guests: guestEmails,
         eventTypeId: props.eventType.id,
         timeZone: timeZone(),
         language: i18n.language,
+        saleId: router.query.saleId,
       };
       if (typeof rescheduleUid === "string") payload.rescheduleUid = rescheduleUid;
       if (typeof router.query.user === "string") payload.user = router.query.user;
@@ -253,7 +254,8 @@ const BookingPage = (props: BookingPageProps) => {
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <form onSubmit={bookingHandler}>
-                  <div className="mb-4">
+                  {/* WE REMOVE NAME FROM OUR BOOKING REQUIREMENTS TO INCREASE PRIVACY */}
+                  {/* <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("your_name")}
                     </label>
@@ -268,7 +270,7 @@ const BookingPage = (props: BookingPageProps) => {
                         defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
                     </div>
-                  </div>
+                  </div> */}
                   <div className="mb-4">
                     <label
                       htmlFor="email"
@@ -427,7 +429,8 @@ const BookingPage = (props: BookingPageProps) => {
                       )}
                     </div>
                   )}
-                  <div className="mb-4">
+                  {/* WE REMOVE ADDITIONAL NOTES OUR BOOKING REQUIREMENTS TO INCREASE PRIVACY */}
+                  {/* <div className="mb-4">
                     <label
                       htmlFor="notes"
                       className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
@@ -441,7 +444,7 @@ const BookingPage = (props: BookingPageProps) => {
                       placeholder={t("share_additional_notes")}
                       defaultValue={props.booking ? props.booking.description : ""}
                     />
-                  </div>
+                  </div> */}
                   <div className="flex items-start space-x-2">
                     {/* TODO: add styling props to <Button variant="" color="" /> and get rid of btn-primary */}
                     <Button type="submit" loading={loading}>
