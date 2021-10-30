@@ -119,7 +119,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** TimeZone */
   const [selectedTimeZone, setSelectedTimeZone] = useState(props.user.timeZone ?? dayjs.tz.guess());
   const currentTime = React.useMemo(() => {
-    return dayjs().tz(selectedTimeZone.value).format("H:mm A");
+    return dayjs().tz(selectedTimeZone).format("H:mm A");
   }, [selectedTimeZone]);
   /** End TimeZone */
 
@@ -260,7 +260,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <TimezoneSelect
                 id="timeZone"
                 value={selectedTimeZone}
-                onChange={setSelectedTimeZone}
+                onChange={({ value }) => {
+                  setSelectedTimeZone(value);
+                }}
                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </fieldset>
