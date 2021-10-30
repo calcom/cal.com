@@ -15,7 +15,7 @@ export function decodeOAuthState(req: NextApiRequest) {
   if (typeof req.query.state !== "string") {
     return undefined;
   }
-  const state = JSON.parse(req.query.state) as unknown as IntegrationOAuthCallbackState;
+  const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state);
 
   return state;
 }
