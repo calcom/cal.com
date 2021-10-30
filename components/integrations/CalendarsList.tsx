@@ -1,3 +1,4 @@
+import type { IntegrationOAuthCallbackState } from "pages/api/integrations/types";
 import React, { ReactNode } from "react";
 
 import { List } from "@components/List";
@@ -15,6 +16,7 @@ interface Props {
     type: string;
   }[];
   onChanged: () => void | Promise<void>;
+  oAuthState?: IntegrationOAuthCallbackState;
 }
 
 const CalendarsList = (props: Props): JSX.Element => {
@@ -33,6 +35,7 @@ const CalendarsList = (props: Props): JSX.Element => {
                   Connect
                 </Button>
               )}
+              oAuthState={props.oAuthState}
               onOpenChange={onChanged}
             />
           }

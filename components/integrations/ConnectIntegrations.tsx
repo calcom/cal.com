@@ -16,16 +16,17 @@ export default function ConnectIntegration(props: {
   const { type } = props;
   const [isLoading, setIsLoading] = useState(false);
   const mutation = useMutation(async () => {
-    const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add");
+    let searchParams = "";
+    if (props.oAuthState) {
+      const stateStr = encodeURIComponent(JSON.stringify(props.oAuthState));
+      searchParams = `?state=${stateStr}`;
+    }
+    const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add" + searchParams);
     if (!res.ok) {
       throw new Error("Something went wrong");
     }
     const json = await res.json();
-    let { url } = json;
-    if (props.oAuthState) {
-      const stateStr = encodeURIComponent(JSON.stringify(props.oAuthState));
-      url += `?state=${stateStr}`;
-    }
+    const { url } = json;
     window.location.href = url;
     setIsLoading(true);
   });

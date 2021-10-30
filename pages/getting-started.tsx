@@ -320,6 +320,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
             onChanged={() => {
               refreshData();
             }}
+            oAuthState={{
+              returnTo: "/getting-started",
+            }}
           />
         </>
       ),

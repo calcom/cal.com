@@ -463,6 +463,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   return (
     <ConnectIntegration
+      oAuthState={{ returnTo: "/integrations" }}
       type={props.type}
       render={(btnProps) => (
         <Button color="secondary" {...btnProps}>
