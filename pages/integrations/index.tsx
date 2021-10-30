@@ -11,7 +11,6 @@ import Image from "next/image";
 import React, { Suspense, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
-import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -268,7 +267,7 @@ function WebhookDialogForm(props: {
   );
 }
 
-function Webhooks() {
+function WebhookListContainer() {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.webhook.list"], { suspense: true });
 
@@ -332,7 +331,7 @@ function Webhooks() {
   );
 }
 
-function IframeEmbeds() {
+function IframeEmbedContainer() {
   const { t } = useLocale();
   const user = trpc.useQuery(["viewer.me"], { suspense: true }).data;
 
@@ -470,59 +469,57 @@ function ConnectOrDisconnectIntegrationButton(props: {
   );
 }
 
-export default function IntegrationsPage() {
-  const query = trpc.useQuery(["viewer.integrations"]);
+function IntegrationsContainer() {
+  const query = trpc.useQuery(["viewer.integrations"], { suspense: true });
 
   return (
-    <Shell heading="Integrations" subtitle="Connect your favourite apps.">
-      <QueryCell
-        query={query}
-        success={({ data }) => {
-          return (
-            <>
-              <ShellSubHeading
-                title={
-                  <SubHeadingTitleWithConnections
-                    title="Conferencing"
-                    numConnections={data.conferencing.numActive}
-                  />
-                }
-              />
-              <List>
-                {data.conferencing.items.map((item) => (
-                  <IntegrationListItem
-                    key={item.title}
-                    {...item}
-                    actions={<ConnectOrDisconnectIntegrationButton {...item} />}
-                  />
-                ))}
-              </List>
-
-              <ShellSubHeading
-                className="mt-10"
-                title={
-                  <SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />
-                }
-              />
-              <List>
-                {data.payment.items.map((item) => (
-                  <IntegrationListItem
-                    key={item.title}
-                    {...item}
-                    actions={<ConnectOrDisconnectIntegrationButton {...item} />}
-                  />
-                ))}
-              </List>
-
-              <Suspense fallback={<Loader />}>
-                <CalendarListContainer />
-                <Webhooks />
-                <IframeEmbeds />
-              </Suspense>
-            </>
-          );
-        }}
+    <>
+      <ShellSubHeading
+        title={
+          <SubHeadingTitleWithConnections
+            title="Conferencing"
+            numConnections={query.data?.conferencing.numActive}
+          />
+        }
       />
+      <List>
+        {query.data?.conferencing.items.map((item) => (
+          <IntegrationListItem
+            key={item.title}
+            {...item}
+            actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+          />
+        ))}
+      </List>
+
+      <ShellSubHeading
+        className="mt-10"
+        title={
+          <SubHeadingTitleWithConnections title="Payment" numConnections={query.data?.payment.numActive} />
+        }
+      />
+      <List>
+        {query.data?.payment.items.map((item) => (
+          <IntegrationListItem
+            key={item.title}
+            {...item}
+            actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+          />
+        ))}
+      </List>
+    </>
+  );
+}
+
+export default function IntegrationsPage() {
+  return (
+    <Shell heading="Integrations" subtitle="Connect your favourite apps.">
+      <Suspense fallback={<Loader />}>
+        <IntegrationsContainer />
+        <CalendarListContainer />
+        <WebhookListContainer />
+        <IframeEmbedContainer />
+      </Suspense>
     </Shell>
   );
 }
