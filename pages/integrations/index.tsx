@@ -353,7 +353,7 @@ function IframeEmbedContainer() {
 
   return (
     <>
-      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} />
+      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} className="mt-10" />
       <div className="lg:pb-8 lg:col-span-9">
         <List>
           <ListItem className={classNames("flex-col")}>
