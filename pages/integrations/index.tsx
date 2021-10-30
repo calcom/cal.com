@@ -43,7 +43,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   const utils = trpc.useContext();
   const deleteWebhook = trpc.useMutation("viewer.webhook.delete", {
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.integrations"]);
+      await utils.invalidateQueries(["viewer.webhhok.list"]);
     },
   });
 
@@ -195,11 +195,11 @@ function WebhookDialogForm(props: {
           .handleSubmit(async (values) => {
             if (values.id) {
               await utils.client.mutation("viewer.webhook.edit", values);
-              await utils.invalidateQueries(["viewer.integrations"]);
+              await utils.invalidateQueries(["viewer.webhook.list"]);
               showToast(t("webhook_updated_successfully"), "success");
             } else {
               await utils.client.mutation("viewer.webhook.create", values);
-              await utils.invalidateQueries(["viewer.integrations"]);
+              await utils.invalidateQueries(["viewer.webhook.list"]);
               showToast(t("webhook_created_successfully"), "success");
             }
 
