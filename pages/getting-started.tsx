@@ -10,7 +10,7 @@ import { NextPageContext } from "next";
 import { useSession } from "next-auth/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
@@ -20,10 +20,7 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Loader from "@components/Loader";
-import { ShellSubHeading } from "@components/Shell";
-import CalendarsList from "@components/integrations/CalendarsList";
-import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
-import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
@@ -40,10 +37,6 @@ dayjs.extend(timezone);
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
 
   const DEFAULT_EVENT_TYPES = [
     {
@@ -300,28 +293,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <>
-          {props.connectedCalendars.length > 0 && (
-            <>
-              <ConnectedCalendarsList
-                connectedCalendars={props.connectedCalendars}
-                onChanged={() => {
-                  refreshData();
-                }}
-              />
-              <ShellSubHeading
-                className="mt-6"
-                title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
-              />
-            </>
-          )}
-          <CalendarsList
-            calendars={props.integrations}
-            onChanged={() => {
-              refreshData();
-            }}
-          />
-        </>
+        <Suspense fallback={<Loader />}>
+          <CalendarListContainer heading={false} />
+        </Suspense>
       ),
       hideConfirm: true,
       confirmText: t("continue"),

@@ -173,7 +173,8 @@ function CalendarList(props: Props) {
     </List>
   );
 }
-export function CalendarListContainer() {
+export function CalendarListContainer(props: { heading?: false }) {
+  const { heading = true } = props;
   const utils = trpc.useContext();
   const onChanged = () =>
     Promise.allSettled([
@@ -183,17 +184,19 @@ export function CalendarListContainer() {
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
   return (
     <>
-      <ShellSubHeading
-        className="mt-10"
-        title={<SubHeadingTitleWithConnections title="Calendars" numConnections={query.data?.length} />}
-        subtitle={
-          <>
-            Configure how your links integrate with your calendars.
-            <br />
-            You can override these settings on a per event basis.
-          </>
-        }
-      />
+      {heading && (
+        <ShellSubHeading
+          className="mt-10"
+          title={<SubHeadingTitleWithConnections title="Calendars" numConnections={query.data?.length} />}
+          subtitle={
+            <>
+              Configure how your links integrate with your calendars.
+              <br />
+              You can override these settings on a per event basis.
+            </>
+          }
+        />
+      )}
       <ConnectedCalendarsList onChanged={onChanged} />
       {!!query.data?.length && (
         <ShellSubHeading
