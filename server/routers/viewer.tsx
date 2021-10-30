@@ -344,12 +344,6 @@ const loggedInViewerRouter = createProtectedRouter()
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
       const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
-      // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
-
-      // get all the connected integrations' calendars (from third party)
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-
       return {
         conferencing: {
           items: conferencing,
@@ -363,7 +357,6 @@ const loggedInViewerRouter = createProtectedRouter()
           items: payment,
           numActive: countActive(payment),
         },
-        connectedCalendars,
       };
     },
   })
