@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Check that user is authenticated
   const session = await getSession({ req: req });
-  if (!session?.user.id) {
+  if (!session?.user?.id) {
     res.status(401).json({ message: "You must be logged in to do this" });
     return;
   }
