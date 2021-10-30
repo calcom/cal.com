@@ -26,8 +26,7 @@ export default function ConnectIntegration(props: {
       throw new Error("Something went wrong");
     }
     const json = await res.json();
-    const { url } = json;
-    window.location.href = url;
+    window.location.href = json.url;
     setIsLoading(true);
   });
   const [isModalOpen, _setIsModalOpen] = useState(false);
