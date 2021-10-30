@@ -8,7 +8,7 @@ import {
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import React, { useState, Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -26,9 +26,8 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
-import CalendarsList from "@components/integrations/CalendarsList";
+import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
-import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
@@ -473,10 +472,6 @@ function ConnectOrDisconnectIntegrationButton(props: {
 
 export default function IntegrationsPage() {
   const query = trpc.useQuery(["viewer.integrations"]);
-  const utils = trpc.useContext();
-  const handleOpenChange = () => {
-    utils.invalidateQueries(["viewer.integrations"]);
-  };
 
   return (
     <Shell heading="Integrations" subtitle="Connect your favourite apps.">
@@ -519,37 +514,8 @@ export default function IntegrationsPage() {
                 ))}
               </List>
 
-              <ShellSubHeading
-                className="mt-10"
-                title={
-                  <SubHeadingTitleWithConnections
-                    title="Calendars"
-                    numConnections={data.calendar.numActive}
-                  />
-                }
-                subtitle={
-                  <>
-                    Configure how your links integrate with your calendars.
-                    <br />
-                    You can override these settings on a per event basis.
-                  </>
-                }
-              />
-
-              {data.connectedCalendars.length > 0 && (
-                <>
-                  <ConnectedCalendarsList
-                    connectedCalendars={data.connectedCalendars}
-                    onChanged={handleOpenChange}
-                  />
-                  <ShellSubHeading
-                    className="mt-6"
-                    title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
-                  />
-                </>
-              )}
-              <CalendarsList calendars={data.calendar.items} onChanged={handleOpenChange} />
               <Suspense fallback={<Loader />}>
+                <CalendarListContainer />
                 <Webhooks />
                 <IframeEmbeds />
               </Suspense>

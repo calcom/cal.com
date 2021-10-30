@@ -313,6 +313,18 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("connectedCalendars", {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      // get user's credentials + their connected integrations
+      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+
+      // get all the connected integrations' calendars (from third party)
+      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+
+      return connectedCalendars;
+    },
+  })
   .query("integrations", {
     async resolve({ ctx }) {
       const { user } = ctx;
