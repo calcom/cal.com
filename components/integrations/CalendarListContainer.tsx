@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 import { useMutation } from "react-query";
 
+import { QueryCell } from "@lib/QueryCell";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
@@ -91,86 +92,95 @@ function CalendarSwitch(props: {
 function ConnectedCalendarsList(props: Props) {
   const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
 
-  if (!query.data?.length) {
-    return null;
-  }
   return (
-    <List>
-      {query.data.map((item) => (
-        <Fragment key={item.credentialId}>
-          {item.calendars ? (
-            <IntegrationListItem
-              {...item.integration}
-              description={item.primary?.externalId || "No external Id"}
-              actions={
-                <DisconnectIntegration
-                  id={item.credentialId}
-                  render={(btnProps) => (
-                    <Button {...btnProps} color="warn">
-                      Disconnect
-                    </Button>
-                  )}
-                  onOpenChange={props.onChanged}
+    <QueryCell
+      query={query}
+      empty={() => null}
+      success={({ data }) => (
+        <List>
+          {data.map((item) => (
+            <Fragment key={item.credentialId}>
+              {item.calendars ? (
+                <IntegrationListItem
+                  {...item.integration}
+                  description={item.primary?.externalId || "No external Id"}
+                  actions={
+                    <DisconnectIntegration
+                      id={item.credentialId}
+                      render={(btnProps) => (
+                        <Button {...btnProps} color="warn">
+                          Disconnect
+                        </Button>
+                      )}
+                      onOpenChange={props.onChanged}
+                    />
+                  }>
+                  <ul className="p-4 space-y-2">
+                    {item.calendars.map((cal) => (
+                      <CalendarSwitch
+                        key={cal.externalId}
+                        externalId={cal.externalId as string}
+                        title={cal.name as string}
+                        type={item.integration.type}
+                        defaultSelected={cal.isSelected}
+                      />
+                    ))}
+                  </ul>
+                </IntegrationListItem>
+              ) : (
+                <Alert
+                  severity="warning"
+                  title="Something went wrong"
+                  message={item.error?.message}
+                  actions={
+                    <DisconnectIntegration
+                      id={item.credentialId}
+                      render={(btnProps) => (
+                        <Button {...btnProps} color="warn">
+                          Disconnect
+                        </Button>
+                      )}
+                      onOpenChange={() => props.onChanged()}
+                    />
+                  }
                 />
-              }>
-              <ul className="p-4 space-y-2">
-                {item.calendars.map((cal) => (
-                  <CalendarSwitch
-                    key={cal.externalId}
-                    externalId={cal.externalId as string}
-                    title={cal.name as string}
-                    type={item.integration.type}
-                    defaultSelected={cal.isSelected}
-                  />
-                ))}
-              </ul>
-            </IntegrationListItem>
-          ) : (
-            <Alert
-              severity="warning"
-              title="Something went wrong"
-              message={item.error?.message}
+              )}
+            </Fragment>
+          ))}
+        </List>
+      )}
+    />
+  );
+}
+
+function CalendarList(props: Props) {
+  const query = trpc.useQuery(["viewer.integrations"]);
+
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => (
+        <List>
+          {data.calendar.items.map((item) => (
+            <IntegrationListItem
+              key={item.title}
+              {...item}
               actions={
-                <DisconnectIntegration
-                  id={item.credentialId}
+                <ConnectIntegration
+                  type={item.type}
                   render={(btnProps) => (
-                    <Button {...btnProps} color="warn">
-                      Disconnect
+                    <Button color="secondary" {...btnProps}>
+                      Connect
                     </Button>
                   )}
                   onOpenChange={() => props.onChanged()}
                 />
               }
             />
-          )}
-        </Fragment>
-      ))}
-    </List>
-  );
-}
-
-function CalendarList(props: Props) {
-  const query = trpc.useQuery(["viewer.integrations"]);
-  return (
-    <List>
-      {query.data?.calendar.items.map((item) => (
-        <IntegrationListItem
-          key={item.title}
-          {...item}
-          actions={
-            <ConnectIntegration
-              type={item.type}
-              render={(btnProps) => (
-                <Button color="secondary" {...btnProps}>
-                  Connect
-                </Button>
-              )}
-              onOpenChange={() => props.onChanged()}
-            />
-          }
-        />
-      ))}
-    </List>
+          ))}
+        </List>
+      )}
+    />
   );
 }
 export function CalendarListContainer(props: { heading?: false }) {

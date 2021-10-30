@@ -11,6 +11,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
+import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -276,65 +277,74 @@ function WebhookListContainer() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editing, setEditing] = useState<TWebhook | null>(null);
   return (
-    <>
-      <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
-      <List>
-        <ListItem className={classNames("flex-col")}>
-          <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-            <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
-            <div className="flex-grow pl-2 truncate">
-              <ListItemTitle component="h3">Webhooks</ListItemTitle>
-              <ListItemText component="p">Automation</ListItemText>
-            </div>
-            <div>
-              <Button color="secondary" onClick={() => setNewWebhookModal(true)} data-testid="new_webhook">
-                {t("new_webhook")}
-              </Button>
-            </div>
-          </div>
-        </ListItem>
-      </List>
+    <QueryCell
+      query={query}
+      success={({ data }) => (
+        <>
+          <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
+          <List>
+            <ListItem className={classNames("flex-col")}>
+              <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+                <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
+                <div className="flex-grow pl-2 truncate">
+                  <ListItemTitle component="h3">Webhooks</ListItemTitle>
+                  <ListItemText component="p">Automation</ListItemText>
+                </div>
+                <div>
+                  <Button
+                    color="secondary"
+                    onClick={() => setNewWebhookModal(true)}
+                    data-testid="new_webhook">
+                    {t("new_webhook")}
+                  </Button>
+                </div>
+              </div>
+            </ListItem>
+          </List>
 
-      {query.data?.length ? (
-        <List>
-          {query.data.map((item) => (
-            <WebhookListItem
-              key={item.id}
-              webhook={item}
-              onEditWebhook={() => {
-                setEditing(item);
-                setEditModalOpen(true);
-              }}
-            />
-          ))}
-        </List>
-      ) : null}
+          {data.length ? (
+            <List>
+              {data.map((item) => (
+                <WebhookListItem
+                  key={item.id}
+                  webhook={item}
+                  onEditWebhook={() => {
+                    setEditing(item);
+                    setEditModalOpen(true);
+                  }}
+                />
+              ))}
+            </List>
+          ) : null}
 
-      {/* New webhook dialog */}
-      <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
-        <DialogContent>
-          <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
-        </DialogContent>
-      </Dialog>
-      {/* Edit webhook dialog */}
-      <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-        <DialogContent>
-          {editing && (
-            <WebhookDialogForm
-              key={editing.id}
-              handleClose={() => setEditModalOpen(false)}
-              defaultValues={editing}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+          {/* New webhook dialog */}
+          <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
+            <DialogContent>
+              <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
+            </DialogContent>
+          </Dialog>
+          {/* Edit webhook dialog */}
+          <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
+            <DialogContent>
+              {editing && (
+                <WebhookDialogForm
+                  key={editing.id}
+                  handleClose={() => setEditModalOpen(false)}
+                  defaultValues={editing}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+    />
   );
 }
 
 function IframeEmbedContainer() {
   const { t } = useLocale();
-  const user = trpc.useQuery(["viewer.me"], { suspense: true }).data;
+  // doesn't need suspense as it should already be loaded
+  const user = trpc.useQuery(["viewer.me"]).data;
 
   const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
@@ -474,41 +484,43 @@ function IntegrationsContainer() {
   const query = trpc.useQuery(["viewer.integrations"], { suspense: true });
 
   return (
-    <>
-      <ShellSubHeading
-        title={
-          <SubHeadingTitleWithConnections
-            title="Conferencing"
-            numConnections={query.data?.conferencing.numActive}
+    <QueryCell
+      query={query}
+      success={({ data }) => (
+        <>
+          <ShellSubHeading
+            title={
+              <SubHeadingTitleWithConnections
+                title="Conferencing"
+                numConnections={data.conferencing.numActive}
+              />
+            }
           />
-        }
-      />
-      <List>
-        {query.data?.conferencing.items.map((item) => (
-          <IntegrationListItem
-            key={item.title}
-            {...item}
-            actions={<ConnectOrDisconnectIntegrationButton {...item} />}
-          />
-        ))}
-      </List>
+          <List>
+            {data.conferencing.items.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                {...item}
+                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+              />
+            ))}
+          </List>
 
-      <ShellSubHeading
-        className="mt-10"
-        title={
-          <SubHeadingTitleWithConnections title="Payment" numConnections={query.data?.payment.numActive} />
-        }
-      />
-      <List>
-        {query.data?.payment.items.map((item) => (
-          <IntegrationListItem
-            key={item.title}
-            {...item}
-            actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+          <ShellSubHeading
+            className="mt-10"
+            title={<SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />}
           />
-        ))}
-      </List>
-    </>
+          <List>
+            {data.payment.items.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                {...item}
+                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+              />
+            ))}
+          </List>
+        </>
+      )}></QueryCell>
   );
 }
 
