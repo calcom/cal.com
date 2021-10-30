@@ -5,4 +5,4 @@ export const WEBHOOK_TRIGGER_EVENTS = [
   WebhookTriggerEvents.BOOKING_CANCELLED,
   WebhookTriggerEvents.BOOKING_CREATED,
   WebhookTriggerEvents.BOOKING_RESCHEDULED,
-] as const;
+] as ["BOOKING_CANCELLED", "BOOKING_CREATED", "BOOKING_RESCHEDULED"];
