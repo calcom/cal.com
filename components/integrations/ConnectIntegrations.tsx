@@ -1,3 +1,4 @@
+import type { IntegrationOAuthCallbackState } from "pages/api/integrations/types";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
@@ -10,6 +11,7 @@ export default function ConnectIntegration(props: {
   type: string;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
   onOpenChange: (isOpen: boolean) => void | Promise<void>;
+  oAuthState?: IntegrationOAuthCallbackState;
 }) {
   const { type } = props;
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +21,12 @@ export default function ConnectIntegration(props: {
       throw new Error("Something went wrong");
     }
     const json = await res.json();
-    window.location.href = json.url;
+    let { url } = json;
+    if (props.oAuthState) {
+      const stateStr = encodeURIComponent(JSON.stringify(props.oAuthState));
+      url += `?state=${stateStr}`;
+    }
+    window.location.href = url;
     setIsLoading(true);
   });
   const [isModalOpen, _setIsModalOpen] = useState(false);

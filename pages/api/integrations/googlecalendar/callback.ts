@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
-import type { GoogleCallbackState } from "./add";
+import { decodeOAuthState } from "../utils";
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
 
@@ -40,8 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: session.user.id,
     },
   });
-  const state = req.query.state
-    ? (JSON.stringify(req.query.state as string) as unknown as GoogleCallbackState)
-    : null;
+  const state = decodeOAuthState(req);
   res.redirect(state?.returnTo ?? "/integrations");
 }
