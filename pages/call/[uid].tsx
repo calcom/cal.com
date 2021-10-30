@@ -14,15 +14,50 @@ export default function JoinCall(props, session) {
 
   //if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
+
+  //daily.co calls have a 60 minute exit and entry buffer when a user enters a call when it's not available it will trigger the modals
+  const now = new Date();
+  const enterDate = new Date(now.getTime() + 60 * 60 * 1000);
+  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
+
+  console.log(enterDate);
+
+  //find out if the meeting is upcoming or in the past
+  const isPast = new Date(props.booking.endTime) <= exitDate;
+  const isUpcoming = new Date(props.booking.startTime) >= enterDate;
+  const meetingUnavailable = isUpcoming == true || isPast == true;
+
   useEffect(() => {
     if (emptyBooking) {
       router.push("/call/no-meeting-found");
     }
+
+    if (isUpcoming) {
+      router.push(`/call/meeting-not-started/${props.booking.uid}`);
+    }
+
+    if (isPast) {
+      router.push(`/call/meeting-ended/${props.booking.uid}`);
+    }
   });
 
   useEffect(() => {
-    if (!emptyBooking && session.userid !== props.booking.user.id) {
+    if (!meetingUnavailable && !emptyBooking && session.userid !== props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
+        theme: {
+          colors: {
+            accent: "#FFF",
+            accentText: "#111111",
+            background: "#111111",
+            backgroundAccent: "#111111",
+            baseText: "#FFF",
+            border: "#000000",
+            mainAreaBg: "#111111",
+            mainAreaBgAccent: "#111111",
+            mainAreaText: "#FFF",
+            supportiveText: "#FFF",
+          },
+        },
         showLeaveButton: true,
         iframeStyle: {
           position: "fixed",
@@ -35,8 +70,22 @@ export default function JoinCall(props, session) {
         showLeaveButton: true,
       });
     }
-    if (!emptyBooking && session.userid === props.booking.user.id) {
+    if (!meetingUnavailable && !emptyBooking && session.userid === props.booking.user.id) {
       const callFrame = DailyIframe.createFrame({
+        theme: {
+          colors: {
+            accent: "#FFF",
+            accentText: "#111111",
+            background: "#111111",
+            backgroundAccent: "#111111",
+            baseText: "#FFF",
+            border: "#000000",
+            mainAreaBg: "#111111",
+            mainAreaBgAccent: "#111111",
+            mainAreaText: "#FFF",
+            supportiveText: "#FFF",
+          },
+        },
         showLeaveButton: true,
         iframeStyle: {
           position: "fixed",
@@ -64,7 +113,7 @@ export default function JoinCall(props, session) {
       <div style={{ zIndex: 2, position: "relative" }}>
         <Link href="/">
           <img
-            className="hidden sm:inline-block z-10 fixed w-auto h-5"
+            className="fixed z-10 hidden w-auto h-5 sm:inline-block"
             src="https://cal.com/logo-white.svg"
             alt="Cal.com Logo"
             style={{
@@ -80,12 +129,17 @@ export default function JoinCall(props, session) {
 }
 
 export async function getServerSideProps(context) {
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid,
     },
     select: {
+      uid: true,
       id: true,
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
       user: {
         select: {
           credentials: true,
@@ -107,11 +161,22 @@ export async function getServerSideProps(context) {
     },
   });
 
+  if (!booking) {
+    // TODO: Booking is already cancelled
+    return {
+      props: { booking: null },
+    };
+  }
+
+  const bookingObj = Object.assign({}, booking, {
+    startTime: booking.startTime.toString(),
+    endTime: booking.endTime.toString(),
+  });
   const session = await getSession();
 
   return {
     props: {
-      booking: booking,
+      booking: bookingObj,
       session: session,
     },
   };

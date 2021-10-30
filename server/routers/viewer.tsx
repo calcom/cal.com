@@ -226,8 +226,14 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("bookings", {
     input: z.object({
       status: z.enum(["upcoming", "past", "cancelled"]),
+      limit: z.number().min(1).max(100).nullish(),
+      cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
     }),
     async resolve({ ctx, input }) {
+      // using offset actually because cursor pagination requires a unique column
+      // for orderBy, but we don't use a unique column in our orderBy
+      const take = input.limit ?? 10;
+      const skip = input.cursor ?? 0;
       const { prisma, user } = ctx;
       const bookingListingByStatus = input.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
@@ -237,8 +243,8 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
         upcoming: { startTime: "desc" },
-        past: { startTime: "asc" },
-        cancelled: { startTime: "asc" },
+        past: { startTime: "desc" },
+        cancelled: { startTime: "desc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
@@ -281,6 +287,8 @@ const loggedInViewerRouter = createProtectedRouter()
           status: true,
         },
         orderBy,
+        take: take + 1,
+        skip,
       });
 
       const bookings = bookingsQuery.reverse().map((booking) => {
@@ -291,7 +299,30 @@ const loggedInViewerRouter = createProtectedRouter()
         };
       });
 
-      return bookings;
+      let nextCursor: typeof skip | null = skip;
+      if (bookings.length > take) {
+        bookings.shift();
+        nextCursor += bookings.length;
+      } else {
+        nextCursor = null;
+      }
+
+      return {
+        bookings,
+        nextCursor,
+      };
+    },
+  })
+  .query("connectedCalendars", {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      // get user's credentials + their connected integrations
+      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+
+      // get all the connected integrations' calendars (from third party)
+      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+
+      return connectedCalendars;
     },
   })
   .query("integrations", {
@@ -313,17 +344,6 @@ const loggedInViewerRouter = createProtectedRouter()
       const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
       const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
-      // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
-
-      // get all the connected integrations' calendars (from third party)
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-
-      const webhooks = await ctx.prisma.webhook.findMany({
-        where: {
-          userId: user.id,
-        },
-      });
       return {
         conferencing: {
           items: conferencing,
@@ -337,8 +357,6 @@ const loggedInViewerRouter = createProtectedRouter()
           items: payment,
           numActive: countActive(payment),
         },
-        connectedCalendars,
-        webhooks,
       };
     },
   })
