@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "@heroicons/react/outline";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import debounce from "lodash/debounce";
@@ -37,13 +38,14 @@ import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(localizedFormat);
 
 type ScheduleFormValues = {
   schedule: ScheduleType;
 };
 
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
 
   const DEFAULT_EVENT_TYPES = [
@@ -125,12 +127,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** End Name */
   /** TimeZone */
   const [selectedTimeZone, setSelectedTimeZone] = useState(props.user.timeZone ?? dayjs.tz.guess());
-  const currentTime = React.useMemo(() => {
-    return dayjs()
-      .tz(selectedTimeZone)
-      .toDate()
-      .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" });
-  }, [selectedTimeZone, i18n.language]);
   /** End TimeZone */
 
   /** Onboarding Steps */
@@ -266,7 +262,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 </label>
                 <Text variant="caption">
                   {t("current_time")}:&nbsp;
-                  <span className="text-black">{currentTime}</span>
+                  <span className="text-black">{dayjs().tz(selectedTimeZone).format("LT")}</span>
                 </Text>
               </section>
               <TimezoneSelect
