@@ -72,7 +72,7 @@
     "next-i18next": "^8.8.0",
     "next-seo": "^4.26.0",
     "next-transpile-modules": "^8.0.0",
-    "nodemailer": "^6.6.3",
+    "nodemailer": "^6.7.0",
     "otplib": "^12.0.1",
     "qrcode": "^1.4.4",
     "react": "^17.0.2",
