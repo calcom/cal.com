@@ -418,10 +418,10 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
-"@daily-co/daily-js@^0.16.0":
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/@daily-co/daily-js/-/daily-js-0.16.0.tgz#9020104bb88de62dcc1966e713da65844243b9ab"
-  integrity sha512-DBWzbZs2IR7uYqfbABva1Ms3f/oX85dnQnCpVbGbexTN63LPIGknFSQp31ZYED88qcG+YJNydywBTb+ApNiNXA==
+"@daily-co/daily-js@^0.21.0":
+  version "0.21.0"
+  resolved "https://registry.yarnpkg.com/@daily-co/daily-js/-/daily-js-0.21.0.tgz#f0773d5e430dc886763ddfe8d100262774db3ce6"
+  integrity sha512-yE5xXrhaVWxXMGYraJkFvuohHnuh8ytv2WudQxcPe+et3Vajx2gG4TMnBAu+bH6Nf3WBcIJjETIq++jjvrSUiw==
   dependencies:
     "@babel/runtime" "^7.12.5"
     bowser "^2.8.1"
