@@ -38,7 +38,8 @@
       "jest-playwright-preset",
       "expect-playwright"
     ],
-    "allowJs": false
+    "allowJs": false,
+    "incremental": true
   },
   "include": [
     "next-env.d.ts",
