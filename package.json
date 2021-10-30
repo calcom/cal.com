@@ -105,7 +105,7 @@
     "@types/jest": "^27.0.1",
     "@types/lodash": "^4.14.175",
     "@types/micro": "^7.3.6",
-    "@types/node": "^16.10.2",
+    "@types/node": "^16.11.5",
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",
     "@types/react": "^17.0.18",
