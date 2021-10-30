@@ -7,7 +7,7 @@ import { encodeOAuthState } from "../utils";
 const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") {
+  if (req.method === "GET") {
     // Check that user is authenticated
     const session = await getSession({ req: req });
 
