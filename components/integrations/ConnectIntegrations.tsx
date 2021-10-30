@@ -9,7 +9,7 @@ import { ButtonBaseProps } from "@components/ui/Button";
 export default function ConnectIntegration(props: {
   type: string;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
-  onOpenChange: (isOpen: boolean) => void | Promise<void>;
+  onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;
 }) {
   const { type } = props;
   const [isLoading, setIsLoading] = useState(false);

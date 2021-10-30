@@ -19,15 +19,16 @@ import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
+import { ClientSuspense } from "@components/ClientSuspense";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
+import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
-import CalendarsList from "@components/integrations/CalendarsList";
+import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
-import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
@@ -35,15 +36,14 @@ import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
-type TIntegrations = inferQueryOutput<"viewer.integrations">;
-type TWebhook = TIntegrations["webhooks"][number];
+type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
 function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const deleteWebhook = trpc.useMutation("viewer.webhook.delete", {
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.integrations"]);
+      await utils.invalidateQueries(["viewer.webhhook.list"]);
     },
   });
 
@@ -195,11 +195,11 @@ function WebhookDialogForm(props: {
           .handleSubmit(async (values) => {
             if (values.id) {
               await utils.client.mutation("viewer.webhook.edit", values);
-              await utils.invalidateQueries(["viewer.integrations"]);
+              await utils.invalidateQueries(["viewer.webhook.list"]);
               showToast(t("webhook_updated_successfully"), "success");
             } else {
               await utils.client.mutation("viewer.webhook.create", values);
-              await utils.invalidateQueries(["viewer.integrations"]);
+              await utils.invalidateQueries(["viewer.webhook.list"]);
               showToast(t("webhook_created_successfully"), "success");
             }
 
@@ -269,8 +269,81 @@ function WebhookDialogForm(props: {
   );
 }
 
-function WebhookEmbed(props: { webhooks: TWebhook[] }) {
+function WebhookListContainer() {
   const { t } = useLocale();
+  const query = trpc.useQuery(["viewer.webhook.list"], { suspense: true });
+
+  const [newWebhookModal, setNewWebhookModal] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editing, setEditing] = useState<TWebhook | null>(null);
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => (
+        <>
+          <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
+          <List>
+            <ListItem className={classNames("flex-col")}>
+              <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+                <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
+                <div className="flex-grow pl-2 truncate">
+                  <ListItemTitle component="h3">Webhooks</ListItemTitle>
+                  <ListItemText component="p">Automation</ListItemText>
+                </div>
+                <div>
+                  <Button
+                    color="secondary"
+                    onClick={() => setNewWebhookModal(true)}
+                    data-testid="new_webhook">
+                    {t("new_webhook")}
+                  </Button>
+                </div>
+              </div>
+            </ListItem>
+          </List>
+
+          {data.length ? (
+            <List>
+              {data.map((item) => (
+                <WebhookListItem
+                  key={item.id}
+                  webhook={item}
+                  onEditWebhook={() => {
+                    setEditing(item);
+                    setEditModalOpen(true);
+                  }}
+                />
+              ))}
+            </List>
+          ) : null}
+
+          {/* New webhook dialog */}
+          <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
+            <DialogContent>
+              <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
+            </DialogContent>
+          </Dialog>
+          {/* Edit webhook dialog */}
+          <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
+            <DialogContent>
+              {editing && (
+                <WebhookDialogForm
+                  key={editing.id}
+                  handleClose={() => setEditModalOpen(false)}
+                  defaultValues={editing}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+    />
+  );
+}
+
+function IframeEmbedContainer() {
+  const { t } = useLocale();
+  // doesn't need suspense as it should already be loaded
   const user = trpc.useQuery(["viewer.me"]).data;
 
   const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
@@ -278,57 +351,9 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
     "schedule_a_meeting"
   )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
 
-  const [newWebhookModal, setNewWebhookModal] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editing, setEditing] = useState<TWebhook | null>(null);
   return (
     <>
-      <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
-      <List>
-        <ListItem className={classNames("flex-col")}>
-          <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-            <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
-            <div className="flex-grow pl-2 truncate">
-              <ListItemTitle component="h3">Webhooks</ListItemTitle>
-              <ListItemText component="p">Automation</ListItemText>
-            </div>
-            <div>
-              <Button color="secondary" onClick={() => setNewWebhookModal(true)} data-testid="new_webhook">
-                {t("new_webhook")}
-              </Button>
-            </div>
-          </div>
-        </ListItem>
-      </List>
-
-      {props.webhooks.length ? (
-        <List>
-          {props.webhooks.map((item) => (
-            <WebhookListItem
-              key={item.id}
-              webhook={item}
-              onEditWebhook={() => {
-                setEditing(item);
-                setEditModalOpen(true);
-              }}
-            />
-          ))}
-        </List>
-      ) : null}
-      <div className="divide-y divide-gray-200 lg:col-span-9">
-        <div className="py-6 lg:pb-8">
-          <div>
-            {/* {!!props.webhooks.length && (
-              <WebhookList
-                webhooks={props.webhooks}
-                onChange={() => {}}
-                onEditWebhook={editWebhook}></WebhookList>
-            )} */}
-          </div>
-        </div>
-      </div>
-
-      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} />
+      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} className="mt-10" />
       <div className="lg:pb-8 lg:col-span-9">
         <List>
           <ListItem className={classNames("flex-col")}>
@@ -398,25 +423,6 @@ function WebhookEmbed(props: { webhooks: TWebhook[] }) {
           {t("browse_api_documentation")}
         </a>
       </div>
-
-      {/* New webhook dialog */}
-      <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
-        <DialogContent>
-          <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
-        </DialogContent>
-      </Dialog>
-      {/* Edit webhook dialog */}
-      <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-        <DialogContent>
-          {editing && (
-            <WebhookDialogForm
-              key={editing.id}
-              handleClose={() => setEditModalOpen(false)}
-              defaultValues={editing}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
@@ -474,89 +480,59 @@ function ConnectOrDisconnectIntegrationButton(props: {
   );
 }
 
-export default function IntegrationsPage() {
-  const query = trpc.useQuery(["viewer.integrations"]);
-  const utils = trpc.useContext();
-  const handleOpenChange = () => {
-    utils.invalidateQueries(["viewer.integrations"]);
-  };
+function IntegrationsContainer() {
+  const query = trpc.useQuery(["viewer.integrations"], { suspense: true });
 
   return (
+    <QueryCell
+      query={query}
+      success={({ data }) => (
+        <>
+          <ShellSubHeading
+            title={
+              <SubHeadingTitleWithConnections
+                title="Conferencing"
+                numConnections={data.conferencing.numActive}
+              />
+            }
+          />
+          <List>
+            {data.conferencing.items.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                {...item}
+                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+              />
+            ))}
+          </List>
+
+          <ShellSubHeading
+            className="mt-10"
+            title={<SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />}
+          />
+          <List>
+            {data.payment.items.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                {...item}
+                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+              />
+            ))}
+          </List>
+        </>
+      )}></QueryCell>
+  );
+}
+
+export default function IntegrationsPage() {
+  return (
     <Shell heading="Integrations" subtitle="Connect your favourite apps.">
-      <QueryCell
-        query={query}
-        success={({ data }) => {
-          return (
-            <>
-              <ShellSubHeading
-                title={
-                  <SubHeadingTitleWithConnections
-                    title="Conferencing"
-                    numConnections={data.conferencing.numActive}
-                  />
-                }
-              />
-              <List>
-                {data.conferencing.items.map((item) => (
-                  <IntegrationListItem
-                    key={item.title}
-                    {...item}
-                    actions={<ConnectOrDisconnectIntegrationButton {...item} />}
-                  />
-                ))}
-              </List>
-
-              <ShellSubHeading
-                className="mt-10"
-                title={
-                  <SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />
-                }
-              />
-              <List>
-                {data.payment.items.map((item) => (
-                  <IntegrationListItem
-                    key={item.title}
-                    {...item}
-                    actions={<ConnectOrDisconnectIntegrationButton {...item} />}
-                  />
-                ))}
-              </List>
-
-              <ShellSubHeading
-                className="mt-10"
-                title={
-                  <SubHeadingTitleWithConnections
-                    title="Calendars"
-                    numConnections={data.calendar.numActive}
-                  />
-                }
-                subtitle={
-                  <>
-                    Configure how your links integrate with your calendars.
-                    <br />
-                    You can override these settings on a per event basis.
-                  </>
-                }
-              />
-
-              {data.connectedCalendars.length > 0 && (
-                <>
-                  <ConnectedCalendarsList
-                    connectedCalendars={data.connectedCalendars}
-                    onChanged={handleOpenChange}
-                  />
-                  <ShellSubHeading
-                    className="mt-6"
-                    title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
-                  />
-                </>
-              )}
-              <CalendarsList calendars={data.calendar.items} onChanged={handleOpenChange} />
-              <WebhookEmbed webhooks={data.webhooks} />
-            </>
-          );
-        }}
-      />
+      <ClientSuspense fallback={<Loader />}>
+        <IntegrationsContainer />
+        <CalendarListContainer />
+        <WebhookListContainer />
+        <IframeEmbedContainer />
+      </ClientSuspense>
     </Shell>
   );
 }
