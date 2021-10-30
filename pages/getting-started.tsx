@@ -10,7 +10,7 @@ import { NextPageContext } from "next";
 import { useSession } from "next-auth/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
@@ -19,6 +19,7 @@ import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
@@ -293,9 +294,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <Suspense fallback={<Loader />}>
+        <ClientSuspense fallback={<Loader />}>
           <CalendarListContainer heading={false} />
-        </Suspense>
+        </ClientSuspense>
       ),
       hideConfirm: true,
       confirmText: t("continue"),

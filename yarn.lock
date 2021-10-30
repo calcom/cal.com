@@ -6969,14 +6969,14 @@ react-date-picker@^8.3.3:
     react-fit "^1.0.3"
     update-input-width "^1.2.2"
 
-react-dom@^18.0.0-alpha-9c8161ba8-20211028:
-  version "18.0.0-alpha-9c8161ba8-20211028"
-  resolved "https://registry.npmjs.org/react-dom/-/react-dom-18.0.0-alpha-9c8161ba8-20211028.tgz#8f62af882e91ecffd98dc4672278d77ceab8abe7"
-  integrity sha512-K2jCV1TihdKhiZLXeTxSQmOcUuMgC4UArCdwjlE4Tp7bIFEn0mgt/F198DavJRs6J1uE8MEhqid0nBwzuk49SQ==
+react-dom@^17.0.02:
+  version "17.0.2"
+  resolved "https://registry.npmjs.org/react-dom/-/react-dom-17.0.2.tgz#ecffb6845e3ad8dbfcdc498f0d0a939736502c23"
+  integrity sha512-s4h96KtLDUQlsENhMn1ar8t2bEa+q/YAtj8pPPdIjPDGBDIVNsrD9aXNWqspUe6AzKCIG0C1HZZLqLV7qpOBGA==
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-    scheduler "0.21.0-alpha-9c8161ba8-20211028"
+    scheduler "^0.20.2"
 
 react-easy-crop@^3.5.2:
   version "3.5.3"
@@ -7169,10 +7169,10 @@ react-use-intercom@1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/react-use-intercom/-/react-use-intercom-1.4.0.tgz#796527728c131ebf132186385bf78f69dbcd84cc"
 
-react@^18.0.0-alpha-9c8161ba8-20211028:
-  version "18.0.0-alpha-9c8161ba8-20211028"
-  resolved "https://registry.npmjs.org/react/-/react-18.0.0-alpha-9c8161ba8-20211028.tgz#3f0ff49b7c7801cc12f72fb1a34aefd80a7657be"
-  integrity sha512-UEalDMh9km1sG+2lAaKghre6ta5ANne4SnO/MXZq6h3tr5RBewJOjcffx1x5jMkqqKMsr1FvE6CT6+V6GhDcIA==
+react@^17.0.02:
+  version "17.0.2"
+  resolved "https://registry.npmjs.org/react/-/react-17.0.2.tgz#d0b5cc516d29eb3eee383f75b62864cfb6800037"
+  integrity sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
@@ -7397,10 +7397,10 @@ saxes@^5.0.1:
   dependencies:
     xmlchars "^2.2.0"
 
-scheduler@0.21.0-alpha-9c8161ba8-20211028:
-  version "0.21.0-alpha-9c8161ba8-20211028"
-  resolved "https://registry.npmjs.org/scheduler/-/scheduler-0.21.0-alpha-9c8161ba8-20211028.tgz#4294d929c021b59d8018fab6422f7ca7b505802f"
-  integrity sha512-gt9YOVxEgBUNfyhiOvJE0CBLtIaRuv/qPP18MWr5/qyVhuIQfyV0B1UjTZzY5IMrP+Tt6pWDQ+4V/gh4J6fqpA==
+scheduler@^0.20.2:
+  version "0.20.2"
+  resolved "https://registry.npmjs.org/scheduler/-/scheduler-0.20.2.tgz#4baee39436e34aa93b4874bddcbf0fe8b8b50e91"
+  integrity sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"

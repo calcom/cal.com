@@ -8,7 +8,7 @@ import {
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import React, { Suspense, useState } from "react";
+import React, { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import classNames from "@lib/classNames";
@@ -18,6 +18,7 @@ import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
+import { ClientSuspense } from "@components/ClientSuspense";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Loader from "@components/Loader";
@@ -514,12 +515,12 @@ function IntegrationsContainer() {
 export default function IntegrationsPage() {
   return (
     <Shell heading="Integrations" subtitle="Connect your favourite apps.">
-      <Suspense fallback={<Loader />}>
+      <ClientSuspense fallback={<Loader />}>
         <IntegrationsContainer />
         <CalendarListContainer />
         <WebhookListContainer />
         <IframeEmbedContainer />
-      </Suspense>
+      </ClientSuspense>
     </Shell>
   );
 }
