@@ -5,5 +5,5 @@ import { Suspense, SuspenseProps } from "react";
  * Can be simply replaced by `<Suspense />` once React 18 is ready.
  */
 export const ClientSuspense = (props: SuspenseProps) => {
-  return <>{process.browser ? <Suspense {...props} /> : props.fallback}</>;
+  return <>{typeof window !== "undefined" ? <Suspense {...props} /> : props.fallback}</>;
 };
