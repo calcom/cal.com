@@ -38,7 +38,7 @@
     "@jitsu/sdk-js": "^2.2.4",
     "@next/bundle-analyzer": "11.1.2",
     "@prisma/client": "^2.30.2",
-    "@radix-ui/react-avatar": "^0.1.0",
+    "@radix-ui/react-avatar": "^0.1.1",
     "@radix-ui/react-collapsible": "^0.1.0",
     "@radix-ui/react-dialog": "^0.1.0",
     "@radix-ui/react-dropdown-menu": "^0.1.1",
