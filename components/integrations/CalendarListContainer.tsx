@@ -138,7 +138,7 @@ function ConnectedCalendarsList(props: Props) {
                       Disconnect
                     </Button>
                   )}
-                  onOpenChange={onChanged}
+                  onOpenChange={() => props.onChanged()}
                 />
               }
             />
