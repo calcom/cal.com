@@ -9,6 +9,10 @@ const scopes = [
   "https://www.googleapis.com/auth/calendar.events",
 ];
 
+export type GoogleCallbackState = {
+  returnTo: string;
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     // Check that user is authenticated
@@ -24,6 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const redirect_uri = process.env.BASE_URL + "/api/integrations/googlecalendar/callback";
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
+    const state: GoogleCallbackState = {
+      returnTo: "/integrations",
+    };
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
       scope: scopes,
@@ -32,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // setting the prompt to 'consent' will force this consent
       // every time, forcing a refresh_token to be returned.
       prompt: "consent",
+      state: JSON.stringify(state),
     });
 
     res.status(200).json({ url: authUrl });
