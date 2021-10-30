@@ -1,11 +1,14 @@
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { StripeCardElementChangeEvent } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import React, { useState } from "react";
+import { SyntheticEvent } from "react";
 
 import { PaymentData } from "@ee/lib/stripe/server";
 
 import useDarkMode from "@lib/core/browser/useDarkMode";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
 
@@ -34,6 +37,7 @@ type Props = {
   };
   eventType: { id: number };
   user: { username: string | null };
+  location: string;
 };
 
 type States =
@@ -43,6 +47,7 @@ type States =
   | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
+  const { t } = useLocale();
   const router = useRouter();
   const { name, date } = router.query;
   const [state, setState] = useState<States>({ status: "idle" });
@@ -56,15 +61,17 @@ export default function PaymentComponent(props: Props) {
     CARD_OPTIONS.style.base["::placeholder"].color = "#fff";
   }
 
-  const handleChange = async (event) => {
+  const handleChange = async (event: StripeCardElementChangeEvent) => {
     // Listen for changes in the CardElement
     // and display any errors as the customer types their card details
     setState({ status: "idle" });
-    if (event.emtpy || event.error)
-      setState({ status: "error", error: new Error(event.error?.message || "Missing card fields") });
+    if (event.error)
+      setState({ status: "error", error: new Error(event.error?.message || t("missing_card_fields")) });
   };
-  const handleSubmit = async (ev) => {
+
+  const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
+
     if (!stripe || !elements) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
@@ -87,11 +94,11 @@ export default function PaymentComponent(props: Props) {
         name,
       };
 
-      if (payload["location"]) {
-        if (payload["location"].includes("integration")) {
-          params.location = "Web conferencing details to follow.";
+      if (props.location) {
+        if (props.location.includes("integration")) {
+          params.location = t("web_conferencing_details_to_follow");
         } else {
-          params.location = payload["location"];
+          params.location = props.location;
         }
       }
 
@@ -104,19 +111,19 @@ export default function PaymentComponent(props: Props) {
   return (
     <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
       <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
-      <div className="flex mt-2 justify-center">
+      <div className="flex justify-center mt-2">
         <Button
           type="submit"
           disabled={["processing", "error"].includes(state.status)}
           loading={state.status === "processing"}
           id="submit">
           <span id="button-text">
-            {state.status === "processing" ? <div className="spinner" id="spinner" /> : "Pay now"}
+            {state.status === "processing" ? <div className="spinner" id="spinner" /> : t("pay_now")}
           </span>
         </Button>
       </div>
       {state.status === "error" && (
-        <div className="mt-4 text-gray-700 dark:text-gray-300 text-center" role="alert">
+        <div className="mt-4 text-center text-gray-700 dark:text-gray-300" role="alert">
           {state.error.message}
         </div>
       )}

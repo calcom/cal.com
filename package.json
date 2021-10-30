@@ -147,6 +147,9 @@
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint"
+    ],
+    "./prisma/schema.prisma": [
+      "prisma format"
     ]
   }
 }

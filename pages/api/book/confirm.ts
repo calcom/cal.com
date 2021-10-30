@@ -1,3 +1,4 @@
+import { User, Booking, SchedulingType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
@@ -10,6 +11,32 @@ import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
 
 import { getTranslation } from "@server/lib/i18n";
+
+const authorized = async (
+  currentUser: Pick<User, "id">,
+  booking: Pick<Booking, "eventTypeId" | "userId">
+) => {
+  // if the organizer
+  if (booking.userId === currentUser.id) {
+    return true;
+  }
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      id: booking.eventTypeId || undefined,
+    },
+    select: {
+      schedulingType: true,
+      users: true,
+    },
+  });
+  if (
+    eventType?.schedulingType === SchedulingType.COLLECTIVE &&
+    eventType.users.find((user) => user.id === currentUser.id)
+  ) {
+    return true;
+  }
+  return false;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const t = await getTranslation(req.body.language ?? "en", "common");
@@ -55,6 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         endTime: true,
         confirmed: true,
         attendees: true,
+        eventTypeId: true,
         location: true,
         userId: true,
         id: true,
@@ -63,9 +91,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (!booking || booking.userId !== currentUser.id) {
+    if (!booking) {
       return res.status(404).json({ message: "booking not found" });
     }
+
+    if (!(await authorized(currentUser, booking))) {
+      return res.status(401).end();
+    }
+
     if (booking.confirmed) {
       return res.status(400).json({ message: "booking already confirmed" });
     }
@@ -76,7 +109,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       description: booking.description,
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
-      organizer: { email: currentUser.email, name: currentUser.name!, timeZone: currentUser.timeZone },
+      organizer: {
+        email: currentUser.email,
+        name: currentUser.name || "Unnamed",
+        timeZone: currentUser.timeZone,
+      },
       attendees: booking.attendees,
       location: booking.location ?? "",
       uid: booking.uid,
@@ -99,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      res.status(204).json({ message: "ok" });
+      res.status(204).end();
     } else {
       await refund(booking, evt);
 
@@ -114,7 +151,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const attendeeMail = new EventRejectionMail(evt);
       await attendeeMail.sendEmail();
 
-      res.status(204).json({ message: "ok" });
+      res.status(204).end();
     }
   }
 }

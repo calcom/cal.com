@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CalendarEvent } from "@lib/calendarClient";
 import EventOrganizerRefundFailedMail from "@lib/emails/EventOrganizerRefundFailedMail";
 import EventPaymentMail from "@lib/emails/EventPaymentMail";
+import { getErrorFromUnknown } from "@lib/errors";
 import prisma from "@lib/prisma";
 
 import { createPaymentLink } from "./client";
@@ -79,8 +80,7 @@ export async function handlePayment(
       name: booking.user?.name,
       date: booking.startTime.toISOString(),
     }),
-    evt,
-    booking.uid
+    evt
   );
   await mail.sendEmail();
 
@@ -110,7 +110,6 @@ export async function refund(
     if (payment.type != PaymentType.STRIPE) {
       await handleRefundError({
         event: calEvent,
-        booking: booking,
         reason: "cannot refund non Stripe payment",
         paymentId: "unknown",
       });
@@ -127,7 +126,6 @@ export async function refund(
     if (!refund || refund.status === "failed") {
       await handleRefundError({
         event: calEvent,
-        booking: booking,
         reason: refund?.failure_reason || "unknown",
         paymentId: payment.externalId,
       });
@@ -143,30 +141,20 @@ export async function refund(
       },
     });
   } catch (e) {
-    console.error(e, "Refund failed");
+    const err = getErrorFromUnknown(e);
+    console.error(err, "Refund failed");
     await handleRefundError({
       event: calEvent,
-      booking: booking,
-      reason: e.message || "unknown",
+      reason: err.message || "unknown",
       paymentId: "unknown",
     });
   }
 }
 
-async function handleRefundError(opts: {
-  event: CalendarEvent;
-  booking: { id: number; uid: string };
-  reason: string;
-  paymentId: string;
-}) {
-  console.error(`refund failed: ${opts.reason} for booking '${opts.booking.id}'`);
+async function handleRefundError(opts: { event: CalendarEvent; reason: string; paymentId: string }) {
+  console.error(`refund failed: ${opts.reason} for booking '${opts.event.uid}'`);
   try {
-    await new EventOrganizerRefundFailedMail(
-      opts.event,
-      opts.booking.uid,
-      opts.reason,
-      opts.paymentId
-    ).sendEmail();
+    await new EventOrganizerRefundFailedMail(opts.event, opts.reason, opts.paymentId).sendEmail();
   } catch (e) {
     console.error("Error while sending refund error email", e);
   }
