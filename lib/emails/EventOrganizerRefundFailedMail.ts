@@ -16,23 +16,27 @@ export default class EventOrganizerRefundFailedMail extends EventOrganizerMail {
   reason: string;
   paymentId: string;
 
-  constructor(calEvent: CalendarEvent, uid: string, reason: string, paymentId: string) {
-    super(calEvent, uid, undefined);
+  constructor(calEvent: CalendarEvent, reason: string, paymentId: string) {
+    super(calEvent);
     this.reason = reason;
     this.paymentId = paymentId;
   }
 
   protected getBodyHeader(): string {
-    return "A refund failed";
+    return this.calEvent.language("a_refund_failed");
   }
 
   protected getBodyText(): string {
     const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
-    return `The refund for the event ${this.calEvent.type} with ${
-      this.calEvent.attendees[0].name
-    } on ${organizerStart.format("LT dddd, LL")} failed. Please check with your payment provider and ${
-      this.calEvent.attendees[0].name
-    } how to handle this.<br>The error message was: '${this.reason}'<br>PaymentId: '${this.paymentId}'`;
+    return `${this.calEvent.language("refund_failed", {
+      eventType: this.calEvent.type,
+      userName: this.calEvent.attendees[0].name,
+      date: organizerStart.format("LT dddd, LL"),
+    })} ${this.calEvent.language("check_with_provider_and_user", {
+      userName: this.calEvent.attendees[0].name,
+    })}<br>${this.calEvent.language("error_message", { errorMessage: this.reason })}<br>PaymentId: '${
+      this.paymentId
+    }'`;
   }
 
   protected getAdditionalBody(): string {
@@ -58,8 +62,10 @@ export default class EventOrganizerRefundFailedMail extends EventOrganizerMail {
 
   protected getSubject(): string {
     const organizerStart: Dayjs = dayjs(this.calEvent.startTime).tz(this.calEvent.organizer.timeZone);
-    return `Refund failed: ${this.calEvent.attendees[0].name} - ${organizerStart.format("LT dddd, LL")} - ${
-      this.calEvent.type
-    }`;
+    return this.calEvent.language("refund_failed_subject", {
+      userName: this.calEvent.attendees[0].name,
+      date: organizerStart.format("LT dddd, LL"),
+      eventType: this.calEvent.type,
+    });
   }
 }

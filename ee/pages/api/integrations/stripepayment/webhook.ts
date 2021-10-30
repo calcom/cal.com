@@ -55,6 +55,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
               timeZone: true,
               email: true,
               name: true,
+              locale: true,
             },
           },
         },
@@ -72,7 +73,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (!user) throw new Error("No user found");
 
-  const t = await getTranslation(/* FIXME handle mulitple locales here */ "en", "common");
+  const t = await getTranslation(user.locale ?? "en", "common");
 
   const evt: Ensure<CalendarEvent, "language"> = {
     type: booking.title,
@@ -85,6 +86,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     uid: booking.uid,
     language: t,
   };
+
   if (booking.location) evt.location = booking.location;
 
   if (booking.confirmed) {
