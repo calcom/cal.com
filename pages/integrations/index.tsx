@@ -43,7 +43,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   const utils = trpc.useContext();
   const deleteWebhook = trpc.useMutation("viewer.webhook.delete", {
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.webhhook.list"]);
+      await utils.invalidateQueries(["viewer.webhook.list"]);
     },
   });
 
