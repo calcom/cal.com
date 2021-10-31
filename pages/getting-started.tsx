@@ -19,11 +19,9 @@ import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
-import { ShellSubHeading } from "@components/Shell";
-import CalendarsList from "@components/integrations/CalendarsList";
-import ConnectedCalendarsList from "@components/integrations/ConnectedCalendarsList";
-import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
@@ -40,10 +38,6 @@ dayjs.extend(timezone);
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
 
   const DEFAULT_EVENT_TYPES = [
     {
@@ -123,12 +117,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
-  const [selectedTimeZone, setSelectedTimeZone] = useState({
-    value: props.user.timeZone ?? dayjs.tz.guess(),
-    label: null,
-  });
+  const [selectedTimeZone, setSelectedTimeZone] = useState(props.user.timeZone ?? dayjs.tz.guess());
   const currentTime = React.useMemo(() => {
-    return dayjs().tz(selectedTimeZone.value).format("H:mm A");
+    return dayjs().tz(selectedTimeZone).format("H:mm A");
   }, [selectedTimeZone]);
   /** End TimeZone */
 
@@ -269,7 +260,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <TimezoneSelect
                 id="timeZone"
                 value={selectedTimeZone}
-                onChange={setSelectedTimeZone}
+                onChange={({ value }) => {
+                  setSelectedTimeZone(value);
+                }}
                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </fieldset>
@@ -285,7 +278,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           setSubmitting(true);
           await updateUser({
             name: nameRef.current?.value,
-            timeZone: selectedTimeZone.value,
+            timeZone: selectedTimeZone,
           });
           setEnteredName(nameRef.current?.value || "");
           setSubmitting(true);
@@ -300,28 +293,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <>
-          {props.connectedCalendars.length > 0 && (
-            <>
-              <ConnectedCalendarsList
-                connectedCalendars={props.connectedCalendars}
-                onChanged={() => {
-                  refreshData();
-                }}
-              />
-              <ShellSubHeading
-                className="mt-6"
-                title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
-              />
-            </>
-          )}
-          <CalendarsList
-            calendars={props.integrations}
-            onChanged={() => {
-              refreshData();
-            }}
-          />
-        </>
+        <ClientSuspense fallback={<Loader />}>
+          <CalendarListContainer heading={false} />
+        </ClientSuspense>
       ),
       hideConfirm: true,
       confirmText: t("continue"),

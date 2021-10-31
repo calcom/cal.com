@@ -31,10 +31,10 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.16.0",
+    "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
-    "@hookform/resolvers": "^2.8.1",
+    "@hookform/resolvers": "^2.8.2",
     "@jitsu/sdk-js": "^2.2.4",
     "@next/bundle-analyzer": "11.1.2",
     "@prisma/client": "^2.30.2",
@@ -75,8 +75,8 @@
     "nodemailer": "^6.6.3",
     "otplib": "^12.0.1",
     "qrcode": "^1.4.4",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "react-easy-crop": "^3.5.2",
     "react-hook-form": "^7.17.5",
     "react-hot-toast": "^2.1.0",
@@ -105,7 +105,7 @@
     "@types/jest": "^27.0.1",
     "@types/lodash": "^4.14.175",
     "@types/micro": "^7.3.6",
-    "@types/node": "^16.10.2",
+    "@types/node": "^16.11.5",
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",
     "@types/react": "^17.0.18",
@@ -134,7 +134,7 @@
     "mockdate": "^3.0.5",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
-    "playwright": "^1.15.2",
+    "playwright": "^1.16.2",
     "postcss": "^8.3.11",
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
@@ -147,6 +147,9 @@
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint"
+    ],
+    "./prisma/schema.prisma": [
+      "prisma format"
     ]
   }
 }

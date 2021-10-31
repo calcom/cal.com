@@ -65,21 +65,20 @@ export const webhookRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { id } = input;
-      const webhook = await ctx.prisma.webhook.findFirst({
+
+      await ctx.prisma.user.update({
         where: {
-          userId: ctx.user.id,
-          id,
+          id: ctx.user.id,
+        },
+        data: {
+          webhooks: {
+            delete: {
+              id,
+            },
+          },
         },
       });
-      if (!webhook) {
-        // user does not own this webhook
-        return null;
-      }
-      await ctx.prisma.webhook.delete({
-        where: {
-          id,
-        },
-      });
+
       return {
         id,
       };
