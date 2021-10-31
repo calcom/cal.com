@@ -1,4 +1,4 @@
-import { EventTypeCustomInput, Prisma } from "@prisma/client";
+import { Availability, EventTypeCustomInput, MembershipRole, Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
@@ -61,6 +61,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { id: req.body.id },
       include: {
         users: true,
+        team: {
+          select: {
+            members: {
+              select: {
+                userId: true,
+                role: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -68,20 +78,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: "No event exists matching that id." });
     }
 
-    const isAuthorized =
-      event.userId === session.user.id ||
-      event.users.find((user) => {
-        return user.id === session.user?.id;
-      });
+    const isAuthorized = (function () {
+      if (event.team) {
+        return event.team.members
+          .filter((member) => member.role === MembershipRole.OWNER)
+          .map((member) => member.userId)
+          .includes(session.user.id);
+      }
+      return (
+        event.userId === session.user.id ||
+        event.users.find((user) => {
+          return user.id === session.user?.id;
+        })
+      );
+    })();
 
     if (!isAuthorized) {
       console.warn(`User ${session.user.id} attempted to an access an event ${event.id} they do not own.`);
-      return res.status(404).json({ message: "No event exists matching that id." });
+      return res.status(403).json({ message: "No event exists matching that id." });
     }
   }
 
   if (req.method == "PATCH" || req.method == "POST") {
-    const data: Prisma.EventTypeUpdateInput = {
+    const data: Prisma.EventTypeCreateInput | Prisma.EventTypeUpdateInput = {
       title: req.body.title,
       slug: req.body.slug.trim(),
       description: req.body.description,
@@ -119,10 +138,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const eventType = await prisma.eventType.create({
         data: {
-          ...data,
+          ...(data as Prisma.EventTypeCreateInput),
           users: {
             connect: {
-              id: parseInt(session.user.id),
+              id: session?.user?.id,
             },
           },
         },
@@ -154,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         Promise.all(
-          openingHours.map((schedule) =>
+          openingHours.map((schedule: Pick<Availability, "days" | "startTime" | "endTime">) =>
             prisma.availability.create({
               data: {
                 eventTypeId: +req.body.id,
