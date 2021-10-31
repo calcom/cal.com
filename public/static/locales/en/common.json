@@ -251,6 +251,7 @@
   "dark": "Dark",
   "automatically_adjust_theme": "Automatically adjust theme based on invitee preferences",
   "email": "Email",
+  "email_placeholder": "jdoe@example.com",
   "full_name": "Full name",
   "browse_api_documentation": "Browse our API documentation",
   "leverage_our_api": "Leverage our API for full control and customizability.",
@@ -511,5 +512,7 @@
   "delete_event_type": "Delete Event Type",
   "confirm_delete_event_type": "Yes, delete event type",
   "integrations": "Integrations",
-  "settings": "Settings"
+  "settings": "Settings",
+  "error_password_mismatch": "Passwords don't match.",
+  "error_required_field": "This field is required."
 }

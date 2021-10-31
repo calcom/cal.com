@@ -1,8 +1,11 @@
 import { useId } from "@radix-ui/react-id";
 import { forwardRef, ReactNode } from "react";
-import { FormProvider, UseFormReturn } from "react-hook-form";
+import { FormProvider, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@lib/classNames";
+import { useLocale } from "@lib/hooks/useLocale";
+
+import { Alert } from "@components/ui/Alert";
 
 type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
@@ -26,26 +29,66 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
   );
 }
 
-export const TextField = forwardRef<
-  HTMLInputElement,
-  {
-    label: ReactNode;
-  } & React.ComponentProps<typeof Input> & {
-      labelProps?: React.ComponentProps<typeof Label>;
-    }
->(function TextField(props, ref) {
-  const id = useId();
-  const { label, ...passThroughToInput } = props;
+type InputFieldProps = {
+  label?: ReactNode;
+  addOnLeading?: ReactNode;
+} & React.ComponentProps<typeof Input> & {
+    labelProps?: React.ComponentProps<typeof Label>;
+  };
 
-  // TODO: use `useForm()` from RHF and get error state here too!
+const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
+  const id = useId();
+  const { t } = useLocale();
+  const methods = useFormContext();
+  const {
+    label = t(props.name),
+    labelProps,
+    placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
+      ? t(props.name + "_placeholder")
+      : "",
+    className,
+    addOnLeading,
+    ...passThroughToInput
+  } = props;
   return (
     <div>
-      <Label htmlFor={id} {...props.labelProps}>
+      <Label htmlFor={id} {...labelProps}>
         {label}
       </Label>
-      <Input id={id} {...passThroughToInput} ref={ref} />
+      {addOnLeading ? (
+        <div className="flex mt-1 rounded-md shadow-sm">
+          {addOnLeading}
+          <Input
+            id={id}
+            placeholder={placeholder}
+            className={classNames(className, "mt-0")}
+            {...passThroughToInput}
+            ref={ref}
+          />
+        </div>
+      ) : (
+        <Input id={id} placeholder={placeholder} className={className} {...passThroughToInput} ref={ref} />
+      )}
+      {methods?.formState?.errors[props.name] && (
+        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      )}
     </div>
   );
+});
+
+export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(props, ref) {
+  return <InputField ref={ref} {...props} />;
+});
+
+export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
+  props,
+  ref
+) {
+  return <InputField type="password" placeholder="•••••••••••••" ref={ref} {...props} />;
+});
+
+export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function EmailField(props, ref) {
+  return <InputField type="email" inputMode="email" ref={ref} {...props} />;
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
