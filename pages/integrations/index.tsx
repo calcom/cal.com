@@ -50,7 +50,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   return (
     <ListItem className="flex w-full p-4">
       <div className="flex justify-between w-full">
-        <div className="flex flex-col truncate sm:max-w-sm md:max-w-lg lg:max-w-xl">
+        <div className="flex flex-col max-w-full truncate">
           <div className="flex space-y-1">
             <span
               className={classNames(
