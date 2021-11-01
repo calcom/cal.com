@@ -85,6 +85,7 @@ You will also need Google API credentials. You can get this from the [Google API
 ## Development
 
 ### Setup
+
 #### Quick start with `yarn dx`
 
 > - **Requires Docker to be installed**
@@ -155,7 +156,7 @@ yarn dx
    npx prisma studio
    ```
 8. Click on the `User` model to add a new user record.
-9. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+9. Fill out the fields `email`, `username`, and `password` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
 
@@ -216,11 +217,10 @@ yarn test-playwright
 ### Docker
 
 The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
-  
+
 If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
-  
 
 ### Railway
 
@@ -288,10 +288,10 @@ Contributions are what make the open source community such an amazing place to b
 
 ## Obtaining Daily API Credentials
 
- 1. Open [Daily](https://www.daily.co/) and sign into your account.
- 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
- 3. Copy your API key.
- 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+1.  Open [Daily](https://www.daily.co/) and sign into your account.
+2.  From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
+3.  Copy your API key.
+4.  Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 
 <!-- LICENSE -->
 
