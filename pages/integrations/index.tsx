@@ -50,18 +50,18 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   return (
     <ListItem className="flex w-full p-4">
       <div className="flex justify-between w-full">
-        <div className="flex flex-col">
-          <div className="inline-block space-y-1">
+        <div className="flex flex-col max-w-full truncate">
+          <div className="flex space-y-1">
             <span
               className={classNames(
-                "flex text-sm ",
+                "text-sm truncate",
                 props.webhook.active ? "text-neutral-700" : "text-neutral-200"
               )}>
               {props.webhook.subscriberUrl}
             </span>
           </div>
           <div className="flex mt-2">
-            <span className="flex space-x-2 text-xs">
+            <span className="flex flex-col space-y-1 text-xs sm:flex-row sm:space-x-2">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
