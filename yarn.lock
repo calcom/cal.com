@@ -2550,7 +2550,7 @@ babel-jest@^27.2.4:
     graceful-fs "^4.2.4"
     slash "^3.0.0"
 
-babel-plugin-istanbul@^6.0.0, babel-plugin-istanbul@^6.1.1:
+babel-plugin-istanbul@^6.0.0:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/babel-plugin-istanbul/-/babel-plugin-istanbul-6.1.1.tgz#fa88ec59232fd9b4e36dbbc540a8ec9a9b47da73"
   integrity sha512-Y1IQok9821cC9onCx5otgFfRm7Lm+I+wwxOx738M/WLPZ9Q42m4IG5W0FNX8WLL2gYMZo3JkuXIH2DOpWM+qwA==
@@ -6632,7 +6632,7 @@ playwright-core@=1.16.2, playwright-core@>=1.2.0:
 
 playwright@^1.15.1, playwright@^1.16.2:
   version "1.16.2"
-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.16.2.tgz#92e1c48a74cab778970facca4094ce79fb57cae4"
+  resolved "https://registry.npmjs.org/playwright/-/playwright-1.16.2.tgz#92e1c48a74cab778970facca4094ce79fb57cae4"
   integrity sha512-lqndwy5rDIp3tOLex5lnLSrltomqxgVkRkRi547rXoTl2qy7PY2rtHbUouQl7KY2XoVSeSeECYVq/bLJ+bbJNg==
   dependencies:
     playwright-core "=1.16.2"
