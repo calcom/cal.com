@@ -7,7 +7,7 @@ import { SyntheticEvent } from "react";
 
 import { PaymentData } from "@ee/lib/stripe/server";
 
-import useDarkMode from "@lib/core/browser/useDarkMode";
+// import useDarkMode from "@lib/core/browser/useDarkMode";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
@@ -53,13 +53,14 @@ export default function PaymentComponent(props: Props) {
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
-  const { isDarkMode } = useDarkMode();
 
-  if (isDarkMode) {
-    CARD_OPTIONS.style.base.color = "#fff";
-    CARD_OPTIONS.style.base.iconColor = "#fff";
-    CARD_OPTIONS.style.base["::placeholder"].color = "#fff";
-  }
+  /* const { isDarkMode } = useDarkMode();
+
+  if (false || isDarkMode) {
+    CARD_OPTIONS.style.base.color = "#FFF";
+    CARD_OPTIONS.style.base.iconColor = "#FFF";
+    CARD_OPTIONS.style.base["::placeholder"].color = "#FFF";
+  } */
 
   const handleChange = async (event: StripeCardElementChangeEvent) => {
     // Listen for changes in the CardElement
