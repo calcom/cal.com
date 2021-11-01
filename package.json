@@ -100,6 +100,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.15.8",
+    "@netlify/plugin-nextjs": "^4.0.0-beta.4",
     "@storybook/addon-actions": "^6.3.12",
     "@storybook/addon-essentials": "^6.3.12",
     "@storybook/addon-links": "^6.3.12",

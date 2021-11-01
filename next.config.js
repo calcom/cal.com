@@ -55,6 +55,7 @@ plugins.push(withTM);
 
 // prettier-ignore
 module.exports = () => plugins.reduce((acc, next) => next(acc), {
+  
   i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
