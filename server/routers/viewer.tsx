@@ -314,7 +314,7 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      const bookings = bookingsQuery.map((booking) => {
+      const bookings = bookingsQuery.reverse().map((booking) => {
         return {
           ...booking,
           startTime: booking.startTime.toISOString(),
