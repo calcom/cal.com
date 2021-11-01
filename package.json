@@ -90,7 +90,7 @@
     "react-use-intercom": "1.4.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.168.0",
-    "superjson": "1.7.5",
+    "superjson": "1.8.0",
     "tsdav": "1.0.6",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2",
