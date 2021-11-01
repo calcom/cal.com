@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
@@ -15,24 +16,26 @@ type FormValues = {
   schedule: ScheduleType;
 };
 
-const createSchedule = async ({ schedule }: FormValues) => {
-  const res = await fetch(`/api/schedule`, {
-    method: "POST",
-    body: JSON.stringify({ schedule }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error((await res.json()).message);
-  }
-  const responseData = await res.json();
-  return responseData.data;
-};
-
 export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">) {
   const { t } = useLocale();
+
+  const createSchedule = async ({ schedule }: FormValues) => {
+    const res = await fetch(`/api/schedule`, {
+      method: "POST",
+      body: JSON.stringify({ schedule }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error((await res.json()).message);
+    }
+    const responseData = await res.json();
+    showToast(t("availability_updated_successfully"), "success");
+    return responseData.data;
+  };
+
   const form = useForm({
     defaultValues: {
       schedule: props.schedule || DEFAULT_SCHEDULE,
