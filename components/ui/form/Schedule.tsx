@@ -116,7 +116,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   });
 
   const handleAppend = () => {
-    // XXX: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
+    // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
     const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
     const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
 
