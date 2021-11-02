@@ -1,7 +1,11 @@
 jest.setTimeout(60e3);
 
 test("login with pro@example.com", async () => {
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    recordVideo: {
+      dir: __dirname + "/videos/",
+    },
+  });
   const page = await context.newPage();
   await page.goto("http://localhost:3000/auth/login");
   // Click input[name="email"]
@@ -16,6 +20,8 @@ test("login with pro@example.com", async () => {
   await page.press('input[name="password"]', "Enter");
 
   await page.waitForSelector("[data-testid=event-types]");
+
+  await context.close();
 });
 
 export {};
