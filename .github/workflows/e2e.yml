@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-${{-nextjs
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}-nextjs
 
       - run: yarn test
       - run: yarn prisma migrate deploy
