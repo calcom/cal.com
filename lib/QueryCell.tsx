@@ -13,36 +13,37 @@ import { Alert } from "@components/ui/Alert";
 type ErrorLike = {
   message: string;
 };
+type JSXElementOrNull = JSX.Element | null;
 
 interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
   query: UseQueryResult<TData, TError>;
   error?: (
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
-  ) => JSX.Element;
-  loading?: (query: QueryObserverLoadingResult<TData, TError>) => JSX.Element;
-  idle?: (query: QueryObserverIdleResult<TData, TError>) => JSX.Element;
+  ) => JSXElementOrNull;
+  loading?: (query: QueryObserverLoadingResult<TData, TError>) => JSXElementOrNull;
+  idle?: (query: QueryObserverIdleResult<TData, TError>) => JSXElementOrNull;
 }
 
 interface QueryCellOptionsNoEmpty<TData, TError extends ErrorLike>
   extends QueryCellOptionsBase<TData, TError> {
-  success: (query: QueryObserverSuccessResult<TData, TError>) => JSX.Element;
+  success: (query: QueryObserverSuccessResult<TData, TError>) => JSXElementOrNull;
 }
 
 interface QueryCellOptionsWithEmpty<TData, TError extends ErrorLike>
   extends QueryCellOptionsBase<TData, TError> {
-  success: (query: QueryObserverSuccessResult<NonNullable<TData>, TError>) => JSX.Element;
+  success: (query: QueryObserverSuccessResult<NonNullable<TData>, TError>) => JSXElementOrNull;
   /**
    * If there's no data (`null`, `undefined`, or `[]`), render this component
    */
-  empty: (query: QueryObserverSuccessResult<TData, TError>) => JSX.Element;
+  empty: (query: QueryObserverSuccessResult<TData, TError>) => JSXElementOrNull;
 }
 
 export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsWithEmpty<TData, TError>
-): JSX.Element;
+): JSXElementOrNull;
 export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError>
-): JSX.Element;
+): JSXElementOrNull;
 export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
