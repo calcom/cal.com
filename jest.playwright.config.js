@@ -1,7 +1,7 @@
 const opts = {
   // launch headless on CI, in browser locally
   headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
-  collectCoverage: !!process.env.PLAYWRIGHT_HEADLESS,
+  collectCoverage: false, // not possible in Next.js 12
   executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
 };
 
