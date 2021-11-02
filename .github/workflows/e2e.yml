@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs
+          key: ${{ runner.os }}-${{-nextjs
 
       - run: yarn test
       - run: yarn prisma migrate deploy
@@ -72,7 +72,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install-deps
 
-      - run: yarn test-playwright --testPathPattern _login
+      - run: yarn test-playwright --testPathPattern login
 
       - name: Upload videos
         if: ${{ always() }}
