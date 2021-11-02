@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}-nextjs
 
       - run: yarn test
       - run: yarn prisma migrate deploy
@@ -59,7 +59,20 @@ jobs:
       - run: yarn build
       - run: yarn start &
       - run: npx wait-port 3000 --timeout 10000
-      - run: yarn playwright install-deps
+
+      - name: Cache playwright binaries
+        uses: actions/cache@v2
+        id: playwright-cache
+        with:
+          path: |
+            ~/Library/Caches/ms-playwright
+            ~/.cache/ms-playwright
+            **/node_modules/playwright
+          key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+      - name: Install playwright deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: yarn playwright install-deps
+
       - run: yarn test-playwright
 
       - name: Upload videos
