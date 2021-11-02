@@ -14,7 +14,6 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import dayjs from "dayjs";
@@ -23,11 +22,10 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
 import Select, { OptionTypeBase } from "react-select";
-import * as z from "zod";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -313,50 +311,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     avatar: `${avatar || ""}`,
   });
 
-  // const schema = z.object({
-  // username: z
-  //   .string()
-  //   .min(1)
-  //   .superRefine(async (val, ctx) => {
-  //     const response = await fetch("/api/username", {
-  //       method: "POST",
-  //       body: JSON.stringify({
-  //         username: val.trim(),
-  //       }),
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  //     const res = await response.json();
-  //     if (response.status === 200) {
-  //       setUsernamePremium(false);
-  //     }
-  //     if (response.status === 418) {
-  //       ctx.addIssue({
-  //         code: "custom",
-  //         message: `${val.trim()} is taken. We've suggested an alternative.`,
-  //       });
-  //       setUsernameSuggestion(res.suggestion);
-  //       // setSuggestedUsername();
-  //       setForceSetUsername(true);
-  //     }
-  //     if (response.status === 402) {
-  //       setUsernamePremium(true);
-  //       setUsernameSuggestion(res.suggestion);
-  //     }
-  // }),
-  // email: z.string().email({ message: "Please enter a valid email ID" }),
-  // password: z.string().refine((val) => isPasswordValid(val.trim()), {
-  //   message:
-  //     "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
-  // }),
-  // });
-
-  // const formMethods = useForm<{
-  //   username: string;
-  //   email: string;
-  //   password: string;
-  // }>({ resolver: zodResolver(schema), mode: "onSubmit" });
+  const formMethods = useForm<{
+    title: string;
+    eventTitle: string;
+    slug: string;
+    length: number;
+    description: string;
+    location: string;
+    users: AdvancedOptions["users"];
+    periodDays: number;
+  }>();
 
   return (
     <div>
@@ -366,7 +330,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         heading={
           <div className="relative -mb-2 group" onClick={() => setEditIcon(false)}>
             <input
-              {...useForm.register("title")}
+              {...formMethods.register("title")}
               ref={titleRef}
               type="text"
               name="title"
@@ -389,46 +353,46 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
               {/* react-hook-formify  useform*/}
-              <form 
-              onSubmit={updateEventTypeHandler} 
-              onSubmit={formMethods.handleSubmit(async (values) => {
-                console.log("form submitted", { values });
-                // check if username premium and proceed accordingly
-                if (usernamePremium) {
-                  setLoading(true);
-                  // send to stripe payment page
-                  router.push("https://buy.stripe.com/bIY4irdzN2PJ5t68wA");
-                } else {
-                  setLoading(true);
-                  // complete signup
-                  const response = await fetch("/api/signup", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      username: values.username,
-                      email: values.email,
-                      password: values.password,
-                    }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
-                  if (response.status == 201) {
-                    setLoading(false);
-                    console.log("Sign up successful!");
-                    router.push("https://app.cal.com");
-                  } else {
-                    const data = await response.json().catch((e) => {
-                      console.log("Error: response.json invalid");
-                      setLoading(false);
-                    });
-                    setLoading(false);
-                    if (data) {
-                      console.log(data.message);
-                    }
-                  }
-                }
-              })}
-              className="space-y-6">
+              <form
+                onSubmit={updateEventTypeHandler}
+                // onSubmit={formMethods.handleSubmit(async (values) => {
+                //   console.log("form submitted", { values });
+                //   // check if username premium and proceed accordingly
+                //   if (usernamePremium) {
+                //     setLoading(true);
+                //     // send to stripe payment page
+                //     router.push("https://buy.stripe.com/bIY4irdzN2PJ5t68wA");
+                //   } else {
+                //     setLoading(true);
+                //     // complete signup
+                //     const response = await fetch("/api/signup", {
+                //       method: "POST",
+                //       body: JSON.stringify({
+                //         username: values.username,
+                //         email: values.email,
+                //         password: values.password,
+                //       }),
+                //       headers: {
+                //         "Content-Type": "application/json",
+                //       },
+                //     });
+                //     if (response.status == 201) {
+                //       setLoading(false);
+                //       console.log("Sign up successful!");
+                //       router.push("https://app.cal.com");
+                //     } else {
+                //       const data = await response.json().catch((e) => {
+                //         console.log("Error: response.json invalid");
+                //         setLoading(false);
+                //       });
+                //       setLoading(false);
+                //       if (data) {
+                //         console.log(data.message);
+                //       }
+                //     }
+                //   }
+                // })}
+                className="space-y-6">
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
                     <div className="mb-4 min-w-48 sm:mb-0">
@@ -443,8 +407,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
-                        <input 
-                          {...userForm.register("slug")}
+                        <input
+                          {...formMethods.register("slug")}
                           type="text"
                           name="slug"
                           id="slug"
@@ -455,19 +419,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                   </div>
-
-                  <MinutesField
-                    {useForm.register("length")}
-                    label={
-                      <>
-                        <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> {t("duration")}
-                      </>
-                    }
+                  <Controller
                     name="length"
-                    id="length"
-                    required
-                    placeholder="15"
-                    defaultValue={eventType.length || 15}
+                    render={() => (
+                      <MinutesField
+                        label={
+                          <>
+                            <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> {t("duration")}
+                          </>
+                        }
+                        id="length"
+                        required
+                        placeholder="15"
+                        defaultValue={eventType.length || 15}
+                        onChange={(e) => {
+                          formMethods.setValue("length", Number(e?.target.value));
+                        }}
+                      />
+                    )}
                   />
                 </div>
                 <hr />
@@ -482,15 +451,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="w-full">
                       {locations.length === 0 && (
                         <div className="flex">
-                          <Select
-                            {...useForm.register("location")}
+                          <Controller
                             name="location"
-                            id="location"
-                            options={locationOptions}
-                            isSearchable={false}
-                            classNamePrefix="react-select"
-                            className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                            onChange={(e) => openLocationModal(e?.value)}
+                            control={formMethods.control}
+                            render={() => (
+                              <Select
+                                options={locationOptions}
+                                isSearchable={false}
+                                classNamePrefix="react-select"
+                                className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                onChange={(e) => {
+                                  formMethods.setValue("location", e?.value);
+                                  openLocationModal(e?.value);
+                                }}
+                              />
+                            )}
                           />
                         </div>
                       )}
@@ -659,7 +634,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                     <div className="w-full">
                       <textarea
-                        {...useForm.register("description")}
+                        {...formMethods.register("description")}
                         name="description"
                         id="description"
                         className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -693,12 +668,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </label>
                       </div>
                       <div className="w-full space-y-2">
-                        <CheckedSelect
-                          onChange={(options) => setUsers(options.map((option) => option.value))}
-                          defaultValue={eventType.users.map(mapUserToValue)}
-                          options={teamMembers.map(mapUserToValue)}
-                          id="users"
-                          placeholder={t("add_attendees")}
+                        <Controller
+                          name="users"
+                          render={() => (
+                            <CheckedSelect
+                              disabled={false}
+                              onChange={(options) =>
+                                formMethods.setValue(
+                                  "users",
+                                  options.map((option) => option.value)
+                                )
+                              }
+                              defaultValue={eventType.users.map(mapUserToValue)}
+                              options={teamMembers.map(mapUserToValue)}
+                              placeholder={t("add_attendees")}
+                            />
+                          )}
                         />
                       </div>
                     </div>
@@ -729,10 +714,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <div className="w-full">
                           <div className="relative mt-1 rounded-sm shadow-sm">
                             <input
-                              {...useForm.register("eventTitle")}
+                              {...formMethods.register("eventTitle")}
                               ref={eventNameRef}
                               type="text"
-                              name="title"
                               id="title"
                               className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                               placeholder={t("meeting_with_user")}
@@ -888,14 +872,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           {period.type === "rolling" && (
                                             <div className="inline-flex">
                                               <input
+                                                {...formMethods.register("periodDays")}
                                                 type="text"
                                                 name="periodDays"
                                                 id=""
                                                 className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                                 placeholder="30"
                                                 defaultValue={eventType.periodDays || 30}
+                                                onChange={(e) => {
+                                                  formMethods.setValue("periodDays", Number(e.target.value));
+                                                }}
                                               />
                                               <select
+                                                {...formMethods.register("periodDaysType")}
                                                 id=""
                                                 name="periodDaysType"
                                                 className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -924,6 +913,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               ))}
                             </div>
                           </RadioGroup>
+                          {/* new radio group goes here */}
                         </div>
                       </div>
 
