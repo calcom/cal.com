@@ -1,5 +1,4 @@
 jest.setTimeout(60e3);
-jest.retryTimes(3);
 
 test("login with pro@example.com", async () => {
   const context = await browser.newContext();
@@ -18,3 +17,5 @@ test("login with pro@example.com", async () => {
 
   await page.waitForSelector("[data-testid=event-types]");
 });
+
+export {};
