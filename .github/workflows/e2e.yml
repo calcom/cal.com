@@ -67,7 +67,7 @@ jobs:
           path: |
             ~/Library/Caches/ms-playwright
             **/node_modules/playwright
-          key: cache-playwright-macos
+          key: cache-playwright-macos-${{ hashFiles('**/yarn.lock') }}
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install-deps
