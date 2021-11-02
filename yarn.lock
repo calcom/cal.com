@@ -2264,6 +2264,14 @@
     "@typescript-eslint/types" "4.33.0"
     eslint-visitor-keys "^2.0.0"
 
+"@vercel/edge-functions-ui@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.npmjs.org/@vercel/edge-functions-ui/-/edge-functions-ui-0.2.1.tgz#8af0a5d8d4d544364fa79c4d075564e3a5bd972e"
+  integrity sha512-dBomNbO5IuWGEP0OB8deIpjNm+ZeG7Ex5WXIUsVfJihE6CtBXoZi0zWDOlyWxRW1rogqFLnSjgItzDA7G4ADkg==
+  dependencies:
+    clsx "^1.1.1"
+    next-transpile-modules "^8.0.0"
+
 "@wojtekmaj/date-utils@^1.0.2", "@wojtekmaj/date-utils@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@wojtekmaj/date-utils/-/date-utils-1.0.3.tgz#2dcfd92881425c5923e429c2aec86fb3609032a1"
@@ -3032,6 +3040,11 @@ cliui@^7.0.2:
     string-width "^4.2.0"
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
+
+clsx@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.npmjs.org/clsx/-/clsx-1.1.1.tgz#98b3134f9abbdf23b2663491ace13c5c03a73188"
+  integrity sha512-6/bPho624p3S2pMyvP5kKBPXnI3ufHLObBFCfgx+LkeR5lg2XYy2hqZqUf45ypD8COn2bhgGJSUE+l5dhNBieA==
 
 co@^4.6.0:
   version "4.6.0"
@@ -6041,6 +6054,14 @@ next-i18next@^8.9.0:
 next-seo@^4.26.0:
   version "4.28.1"
   resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-4.28.1.tgz#c98ee559c8ab7196c62d0f6903afd7a8cde47a03"
+
+next-transpile-modules@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.npmjs.org/next-transpile-modules/-/next-transpile-modules-8.0.0.tgz#56375cdc25ae5d23a834195f277fc2737b26cb97"
+  integrity sha512-Q2f2yB0zMJ8KJbIYAeZoIxG6cSfVk813zr6B5HzsLMBVcJ3FaF8lKr7WG66n0KlHCwjLSmf/6EkgI6QQVWHrDw==
+  dependencies:
+    enhanced-resolve "^5.7.0"
+    escalade "^3.1.1"
 
 next-transpile-modules@^9.0.0:
   version "9.0.0"
