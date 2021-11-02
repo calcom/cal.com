@@ -32,7 +32,7 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.1",
-    "@heroicons/react": "^1.0.4",
+    "@heroicons/react": "^1.0.5",
     "@hookform/resolvers": "^2.8.2",
     "@jitsu/sdk-js": "^2.2.4",
     "@next/bundle-analyzer": "11.1.2",
