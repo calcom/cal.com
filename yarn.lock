@@ -7144,7 +7144,7 @@ react-style-singleton@^2.1.0:
 
 react-timezone-select@^1.1.13:
   version "1.1.13"
-  resolved "https://registry.yarnpkg.com/react-timezone-select/-/react-timezone-select-1.1.13.tgz#76090b9511b14e7dbf9474b30c61bd77a64a1852"
+  resolved "https://registry.npmjs.org/react-timezone-select/-/react-timezone-select-1.1.13.tgz#76090b9511b14e7dbf9474b30c61bd77a64a1852"
   integrity sha512-lHcjnax3HtLyHCa+yI3xO6IOLfMI4rTjlFGHN2fBauerKi4ee+ZGoQ6zw7HHisTkWmyU4iE/Xf3gSh1pEQMW8g==
   dependencies:
     react-select "^5.0.0"
