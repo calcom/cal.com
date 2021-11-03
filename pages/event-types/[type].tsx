@@ -3,9 +3,9 @@
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
-  ClockIcon,
   DocumentIcon,
   ExternalLinkIcon,
+  ClockIcon,
   LinkIcon,
   LocationMarkerIcon,
   PencilIcon,
@@ -37,7 +37,6 @@ import {
   asStringOrUndefined,
 } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
@@ -114,7 +113,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  const [users, setUsers] = useState<AdvancedOptions["users"]>([]);
+  const [users] = useState<AdvancedOptions["users"]>([]);
   const [editIcon, setEditIcon] = useState(true);
   const [enteredAvailability, setEnteredAvailability] = useState<{
     openingHours: WorkingHours[];
@@ -318,10 +317,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     slug: string;
     length: number;
     description: string;
+    disableGuests: boolean;
+    requiresConfirmation: boolean;
     location: string;
     users: AdvancedOptions["users"];
+    periodType: string;
     periodDays: number;
     periodDaysType: string;
+    minimumBookingNotice: number;
   }>();
 
   return (
@@ -332,14 +335,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         heading={
           <div className="relative -mb-2 group" onClick={() => setEditIcon(false)}>
             <input
-              {...formMethods.register("title")}
-              ref={titleRef}
               type="text"
-              name="title"
-              id="title"
               required
               className="w-full pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
               placeholder={t("quick_chat")}
+              {...formMethods.register("title")}
               defaultValue={eventType.title}
             />
             {editIcon && (
@@ -356,44 +356,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
               {/* react-hook-formify  useform*/}
               <form
-                onSubmit={updateEventTypeHandler}
-                // onSubmit={formMethods.handleSubmit(async (values) => {
-                //   console.log("form submitted", { values });
-                //   // check if username premium and proceed accordingly
-                //   if (usernamePremium) {
-                //     setLoading(true);
-                //     // send to stripe payment page
-                //     router.push("https://buy.stripe.com/bIY4irdzN2PJ5t68wA");
-                //   } else {
-                //     setLoading(true);
-                //     // complete signup
-                //     const response = await fetch("/api/signup", {
-                //       method: "POST",
-                //       body: JSON.stringify({
-                //         username: values.username,
-                //         email: values.email,
-                //         password: values.password,
-                //       }),
-                //       headers: {
-                //         "Content-Type": "application/json",
-                //       },
-                //     });
-                //     if (response.status == 201) {
-                //       setLoading(false);
-                //       console.log("Sign up successful!");
-                //       router.push("https://app.cal.com");
-                //     } else {
-                //       const data = await response.json().catch((e) => {
-                //         console.log("Error: response.json invalid");
-                //         setLoading(false);
-                //       });
-                //       setLoading(false);
-                //       if (data) {
-                //         console.log(data.message);
-                //       }
-                //     }
-                //   }
-                // })}
+                onSubmit={formMethods.handleSubmit(async (values) => {
+                  console.log(values, eventNameRef.current?.value);
+                })}
                 className="space-y-6">
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
@@ -410,20 +375,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
-                          {...formMethods.register("slug")}
                           type="text"
-                          name="slug"
-                          id="slug"
                           required
                           className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                           defaultValue={eventType.slug}
+                          {...formMethods.register("slug")}
                         />
                       </div>
                     </div>
                   </div>
-                  {/* uncomment below::FIX NEEDED:: Causing crash => TypeError: Cannot read properties of null (reading 'control') */}
-                  {/* <Controller
+                  <Controller
                     name="length"
+                    control={formMethods.control}
+                    defaultValue={eventType.length || 15}
                     render={() => (
                       <MinutesField
                         label={
@@ -435,12 +399,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         required
                         placeholder="15"
                         defaultValue={eventType.length || 15}
-                        onChange={(e) => {
-                          formMethods.setValue("length", Number(e?.target.value));
-                        }}
                       />
                     )}
-                  /> */}
+                  />
                 </div>
                 <hr />
                 <div className="space-y-3">
@@ -637,11 +598,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                     <div className="w-full">
                       <textarea
-                        {...formMethods.register("description")}
-                        name="description"
                         id="description"
                         className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                         placeholder={t("quick_video_meeting")}
+                        {...formMethods.register("description")}
                         defaultValue={asStringOrUndefined(eventType.description)}></textarea>
                     </div>
                   </div>
@@ -673,6 +633,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full space-y-2">
                         <Controller
                           name="users"
+                          defaultValue={eventType.users.map(mapUserToValue)}
                           render={() => (
                             <CheckedSelect
                               disabled={false}
@@ -716,13 +677,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <div className="w-full">
                           <div className="relative mt-1 rounded-sm shadow-sm">
                             <input
-                              {...formMethods.register("eventTitle")}
-                              ref={eventNameRef}
                               type="text"
-                              id="title"
                               className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                               placeholder={t("meeting_with_user")}
-                              defaultValue={eventType.eventName}
+                              defaultValue={eventType.eventName || ""}
+                              {...formMethods.register("eventTitle")}
                             />
                           </div>
                         </div>
@@ -801,31 +760,58 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                       </div>
 
-                      <CheckboxField
-                        id="requiresConfirmation"
+                      <Controller
                         name="requiresConfirmation"
-                        label={t("opt_in_booking")}
-                        description={t("opt_in_booking_description")}
-                        defaultChecked={eventType.requiresConfirmation}
+                        control={formMethods.control}
+                        defaultValue={eventType.requiresConfirmation}
+                        render={() => (
+                          <CheckboxField
+                            id="requiresConfirmation"
+                            name="requiresConfirmation"
+                            label={t("opt_in_booking")}
+                            description={t("opt_in_booking_description")}
+                            defaultChecked={eventType.requiresConfirmation}
+                            onChange={(e) => {
+                              formMethods.setValue("requiresConfirmation", e?.target.checked);
+                            }}
+                          />
+                        )}
                       />
 
-                      <CheckboxField
-                        id="disableGuests"
+                      <Controller
                         name="disableGuests"
-                        label={t("disable_guests")}
-                        description={t("disable_guests_description")}
-                        defaultChecked={eventType.disableGuests}
+                        control={formMethods.control}
+                        defaultValue={eventType.disableGuests}
+                        render={() => (
+                          <CheckboxField
+                            id="disableGuests"
+                            name="disableGuests"
+                            label={t("disable_guests")}
+                            description={t("disable_guests_description")}
+                            defaultChecked={eventType.disableGuests}
+                            onChange={(e) => {
+                              formMethods.setValue("disableGuests", e?.target.checked);
+                            }}
+                          />
+                        )}
                       />
 
                       <hr className="my-2 border-neutral-200" />
 
-                      <MinutesField
-                        label={t("minimum_booking_notice")}
+                      <Controller
                         name="minimumBookingNotice"
-                        id="minimumBookingNotice"
-                        required
-                        placeholder="120"
+                        control={formMethods.control}
                         defaultValue={eventType.minimumBookingNotice}
+                        render={() => (
+                          <MinutesField
+                            label={t("minimum_booking_notice")}
+                            name="minimumBookingNotice"
+                            id="minimumBookingNotice"
+                            required
+                            placeholder="120"
+                            defaultValue={eventType.minimumBookingNotice}
+                          />
+                        )}
                       />
 
                       <div className="block sm:flex">
@@ -838,56 +824,63 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                         <div className="w-full">
                           {/* Following needs work, periodType datatype interface with what radiogroup.root expects */}
-                          <RadioGroup.Root defaultValue={PERIOD_TYPES[0].type}>
-                            {console.log(periodType)}
-                            {PERIOD_TYPES.map((period) => (
-                              <div className="flex items-center mb-2" key={period.type}>
-                                <RadioGroup.Item
-                                  id={period.type}
-                                  value={period.type}
-                                  className="flex items-center w-4 h-4 mr-2 bg-white border border-black rounded-full cursor-pointer focus:border-2 focus:outline-none">
-                                  <RadioGroup.Indicator className="relative flex items-center justify-center w-4 h-4 after:bg-black after:block after:w-2 after:h-2 after:rounded-full" />
-                                </RadioGroup.Item>
-                                {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
-                                {period.type === "rolling" && (
-                                  <div className="inline-flex">
-                                    <input
-                                      {...formMethods.register("periodDays")}
-                                      type="text"
-                                      name="periodDays"
-                                      id=""
-                                      className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                      placeholder="30"
-                                      defaultValue={eventType.periodDays || 30}
-                                      onChange={(e) => {
-                                        formMethods.setValue("periodDays", Number(e.target.value));
-                                      }}
-                                    />
-                                    <select
-                                      {...formMethods.register("periodDaysType")}
-                                      id=""
-                                      name="periodDaysType"
-                                      className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                      defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
-                                      <option value="1">{t("calendar_days")}</option>
-                                      <option value="0">{t("business_days")}</option>
-                                    </select>
+                          <Controller
+                            name="periodType"
+                            control={formMethods.control}
+                            defaultValue={periodType?.type}
+                            render={() => (
+                              <RadioGroup.Root
+                                defaultValue={periodType?.type}
+                                onValueChange={(val) => formMethods.setValue("periodType", val)}>
+                                {PERIOD_TYPES.map((period) => (
+                                  <div className="flex items-center mb-2" key={period.type}>
+                                    <RadioGroup.Item
+                                      id={period.type}
+                                      value={period.type}
+                                      className="flex items-center w-4 h-4 mr-2 bg-white border border-black rounded-full cursor-pointer focus:border-2 focus:outline-none">
+                                      <RadioGroup.Indicator className="relative flex items-center justify-center w-4 h-4 after:bg-black after:block after:w-2 after:h-2 after:rounded-full" />
+                                    </RadioGroup.Item>
+                                    {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
+                                    {period.type === "rolling" && (
+                                      <div className="inline-flex">
+                                        <input
+                                          type="text"
+                                          className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                          placeholder="30"
+                                          {...formMethods.register("periodDays")}
+                                          defaultValue={eventType.periodDays || 30}
+                                          onChange={(e) => {
+                                            formMethods.setValue("periodDays", Number(e.target.value));
+                                          }}
+                                        />
+                                        <select
+                                          id=""
+                                          className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                          {...formMethods.register("periodDaysType")}
+                                          defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
+                                          <option value="1">{t("calendar_days")}</option>
+                                          <option value="0">{t("business_days")}</option>
+                                        </select>
+                                      </div>
+                                    )}
+                                    {period.type === "range" && (
+                                      <div className="inline-flex ml-2 space-x-2">
+                                        <DateRangePicker
+                                          startDate={periodDates.startDate}
+                                          endDate={periodDates.endDate}
+                                          onDatesChange={setPeriodDates}
+                                        />
+                                      </div>
+                                    )}
+                                    {period.suffix ? (
+                                      <span className="ml-2">&nbsp;{period.suffix}</span>
+                                    ) : null}
+                                    {/* <label htmlFor={period.type}>{period.type}</label> */}
                                   </div>
-                                )}
-                                {period.type === "range" && (
-                                  <div className="inline-flex ml-2 space-x-2">
-                                    <DateRangePicker
-                                      startDate={periodDates.startDate}
-                                      endDate={periodDates.endDate}
-                                      onDatesChange={setPeriodDates}
-                                    />
-                                  </div>
-                                )}
-                                {period.suffix ? <span className="ml-2">&nbsp;{period.suffix}</span> : null}
-                                {/* <label htmlFor={period.type}>{period.type}</label> */}
-                              </div>
-                            ))}
-                          </RadioGroup.Root>
+                                ))}
+                              </RadioGroup.Root>
+                            )}
+                          />
                         </div>
                       </div>
 
