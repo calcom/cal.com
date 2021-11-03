@@ -4,8 +4,8 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import React, { useEffect, useState } from "react";
-import TimezoneSelect from "react-timezone-select";
 
+// import TimezoneSelect from "react-timezone-select";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { WeekdaySelect } from "./WeekdaySelect";
@@ -109,12 +109,12 @@ export const Scheduler = ({
               {t("timezone")}
             </label>
             <div className="mt-1">
-              <TimezoneSelect
+              {/* <TimezoneSelect
                 id="timeZone"
                 value={{ value: selectedTimeZone }}
                 onChange={(tz) => setTimeZone(tz.value)}
                 className="shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
-              />
+              /> */}
             </div>
           </div>
           <ul>

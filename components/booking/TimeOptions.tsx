@@ -1,7 +1,7 @@
 // TODO: replace headlessui with radix-ui
 import { Switch } from "@headlessui/react";
 import { FC, useEffect, useState } from "react";
-import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
+import type { ITimezoneOption } from "react-timezone-select";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -65,12 +65,12 @@ const TimeOptions: FC<Props> = (props) => {
           </Switch.Group>
         </div>
       </div>
-      <TimezoneSelect
+      {/* <TimezoneSelect
         id="timeZone"
         value={selectedTimeZone}
         onChange={(tz: ITimezoneOption) => setSelectedTimeZone(tz.value)}
         className="mb-2 shadow-sm focus:ring-black focus:border-black mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
-      />
+      /> */}
     </div>
   ) : null;
 };
