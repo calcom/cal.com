@@ -1,7 +1,6 @@
 import { kont } from "kont";
 
 import { loginProvider } from "./lib/loginProvider";
-import { randomString } from "./lib/testUtils";
 
 jest.setTimeout(60e3);
 jest.retryTimes(3);
