@@ -1,0 +1,23 @@
+import { kont } from "kont";
+
+import { loginProvider } from "./lib/loginProvider";
+import { randomString } from "./lib/testUtils";
+
+jest.setTimeout(60e3);
+jest.retryTimes(3);
+
+const ctx = kont()
+  .useBeforeEach(
+    loginProvider({
+      user: "onboarding",
+    })
+  )
+  .done();
+
+test("redirects to /getting-started after login", async () => {
+  await ctx.page.waitForNavigation({
+    url(url) {
+      return url.pathname === "/getting-started";
+    },
+  });
+});
