@@ -103,7 +103,7 @@
     "@types/async": "^3.2.9",
     "@types/bcryptjs": "^2.4.2",
     "@types/jest": "^27.0.1",
-    "@types/lodash": "^4.14.175",
+    "@types/lodash": "^4.14.176",
     "@types/micro": "^7.3.6",
     "@types/node": "^16.11.5",
     "@types/nodemailer": "^6.4.4",
