@@ -18,6 +18,7 @@ module.exports = {
     "jest-playwright": {
       browsers: ["chromium" /*, 'firefox', 'webkit'*/],
       exitOnPageError: false,
+      launchType: "LAUNCH",
       launchOptions: {
         headless: opts.headless,
         executablePath: opts.executablePath,
