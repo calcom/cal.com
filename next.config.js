@@ -42,8 +42,19 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
   );
 }
 
+const plugins = [];
+if (process.env.ANALYZE === "true") {
+  // only load dependency if env `ANALYZE` was set
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  plugins.push(withBundleAnalyzer);
+}
+
+plugins.push(withTM);
+
 // prettier-ignore
-module.exports = () => withTM({
+module.exports = () => plugins.reduce((acc, next) => next(acc), {
   // i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
