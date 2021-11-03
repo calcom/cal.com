@@ -222,10 +222,12 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user        User   @relation(fields: [userId], references: [id])
+  user        User    @relation(fields: [userId], references: [id])
   userId      Int
   integration String
   externalId  String
+  // this is the calendar where the events are created
+  primary     Boolean @default(false)
 
   @@id([userId, integration, externalId])
 }
