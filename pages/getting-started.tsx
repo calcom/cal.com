@@ -11,8 +11,8 @@ import { useSession } from "next-auth/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
+import TimezoneSelect from "react-timezone-select";
 
-// import TimezoneSelect from "react-timezone-select";
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations from "@lib/integrations/getIntegrations";
@@ -257,14 +257,14 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   <span className="text-black">{currentTime}</span>
                 </Text>
               </section>
-              {/* <TimezoneSelect
+              <TimezoneSelect
                 id="timeZone"
                 value={selectedTimeZone}
                 onChange={({ value }) => {
                   setSelectedTimeZone(value);
                 }}
                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              /> */}
+              />
             </fieldset>
           </section>
         </form>

@@ -4,7 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState, useMemo } from "react";
 import Select, { OptionTypeBase } from "react-select";
-import type { ITimezone } from "react-timezone-select";
+import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -310,13 +310,13 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 {t("timezone")}
               </label>
               <div className="mt-1">
-                {/* <TimezoneSelect
+                <TimezoneSelect
                   id="timeZone"
                   value={selectedTimeZone}
                   onChange={setSelectedTimeZone}
                   classNamePrefix="react-select"
                   className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                /> */}
+                />
               </div>
             </div>
             <div>
