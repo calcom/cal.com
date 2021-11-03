@@ -7,7 +7,6 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      # NODE_ENV: test
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
       # GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
@@ -73,7 +72,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install-deps
 
-      - run: yarn test-playwright --testPathPattern login
+      - run: yarn test-playwright
 
       - name: Upload videos
         if: ${{ always() }}
