@@ -1,5 +1,5 @@
 // TODO: replace headlessui with radix-ui
-import { RadioGroup } from "@headlessui/react";
+// import { RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/solid";
 import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -320,6 +321,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     location: string;
     users: AdvancedOptions["users"];
     periodDays: number;
+    periodDaysType: string;
   }>();
 
   return (
@@ -419,7 +421,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                   </div>
-                  <Controller
+                  {/* uncomment below::FIX NEEDED:: Causing crash => TypeError: Cannot read properties of null (reading 'control') */}
+                  {/* <Controller
                     name="length"
                     render={() => (
                       <MinutesField
@@ -437,7 +440,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         }}
                       />
                     )}
-                  />
+                  /> */}
                 </div>
                 <hr />
                 <div className="space-y-3">
@@ -692,7 +695,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <Collapsible
                   open={advancedSettingsVisible}
                   onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
-                  {/* {({ open }) => ( */}
                   <>
                     <CollapsibleTrigger type="button" className="flex w-full">
                       <ChevronRightIcon
@@ -835,85 +837,57 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </label>
                         </div>
                         <div className="w-full">
-                          <RadioGroup value={periodType} onChange={setPeriodType}>
-                            <RadioGroup.Label className="sr-only">{t("date_range")}</RadioGroup.Label>
-                            <div>
-                              {PERIOD_TYPES.map((period) => (
-                                <RadioGroup.Option
-                                  key={period.type}
-                                  value={period}
-                                  className={({ checked }) =>
-                                    classNames(
-                                      checked ? "border-secondary-200 z-10" : "border-gray-200",
-                                      "relative min-h-12 flex items-center cursor-pointer focus:outline-none"
-                                    )
-                                  }>
-                                  {({ active, checked }) => (
-                                    <>
-                                      <div
-                                        className={classNames(
-                                          checked
-                                            ? "bg-primary-600 border-transparent"
-                                            : "bg-white border-gray-300",
-                                          active ? "ring-2 ring-offset-2 ring-primary-500" : "",
-                                          "h-4 w-4 mt-0.5 mr-2 cursor-pointer rounded-full border items-center justify-center"
-                                        )}
-                                        aria-hidden="true">
-                                        <span className="rounded-full bg-white w-1.5 h-1.5" />
-                                      </div>
-                                      <div className="flex flex-col lg:ml-3">
-                                        <RadioGroup.Label
-                                          as="span"
-                                          className={classNames(
-                                            checked ? "text-secondary-900" : "text-gray-900",
-                                            "block text-sm space-y-2 lg:space-y-0"
-                                          )}>
-                                          {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
-                                          {period.type === "rolling" && (
-                                            <div className="inline-flex">
-                                              <input
-                                                {...formMethods.register("periodDays")}
-                                                type="text"
-                                                name="periodDays"
-                                                id=""
-                                                className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                                placeholder="30"
-                                                defaultValue={eventType.periodDays || 30}
-                                                onChange={(e) => {
-                                                  formMethods.setValue("periodDays", Number(e.target.value));
-                                                }}
-                                              />
-                                              <select
-                                                {...formMethods.register("periodDaysType")}
-                                                id=""
-                                                name="periodDaysType"
-                                                className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                                defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
-                                                <option value="1">{t("calendar_days")}</option>
-                                                <option value="0">{t("business_days")}</option>
-                                              </select>
-                                            </div>
-                                          )}
-
-                                          {checked && period.type === "range" && (
-                                            <div className="inline-flex space-x-2">
-                                              <DateRangePicker
-                                                startDate={periodDates.startDate}
-                                                endDate={periodDates.endDate}
-                                                onDatesChange={setPeriodDates}
-                                              />
-                                            </div>
-                                          )}
-                                          {period.suffix ? <span>&nbsp;{period.suffix}</span> : null}
-                                        </RadioGroup.Label>
-                                      </div>
-                                    </>
-                                  )}
-                                </RadioGroup.Option>
-                              ))}
-                            </div>
-                          </RadioGroup>
-                          {/* new radio group goes here */}
+                          {/* Following needs work, periodType datatype interface with what radiogroup.root expects */}
+                          <RadioGroup.Root defaultValue={PERIOD_TYPES[0].type}>
+                            {console.log(periodType)}
+                            {PERIOD_TYPES.map((period) => (
+                              <div className="flex items-center mb-2" key={period.type}>
+                                <RadioGroup.Item
+                                  id={period.type}
+                                  value={period.type}
+                                  className="flex items-center w-4 h-4 mr-2 bg-white border border-black rounded-full cursor-pointer focus:border-2 focus:outline-none">
+                                  <RadioGroup.Indicator className="relative flex items-center justify-center w-4 h-4 after:bg-black after:block after:w-2 after:h-2 after:rounded-full" />
+                                </RadioGroup.Item>
+                                {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
+                                {period.type === "rolling" && (
+                                  <div className="inline-flex">
+                                    <input
+                                      {...formMethods.register("periodDays")}
+                                      type="text"
+                                      name="periodDays"
+                                      id=""
+                                      className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                      placeholder="30"
+                                      defaultValue={eventType.periodDays || 30}
+                                      onChange={(e) => {
+                                        formMethods.setValue("periodDays", Number(e.target.value));
+                                      }}
+                                    />
+                                    <select
+                                      {...formMethods.register("periodDaysType")}
+                                      id=""
+                                      name="periodDaysType"
+                                      className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                      defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
+                                      <option value="1">{t("calendar_days")}</option>
+                                      <option value="0">{t("business_days")}</option>
+                                    </select>
+                                  </div>
+                                )}
+                                {period.type === "range" && (
+                                  <div className="inline-flex ml-2 space-x-2">
+                                    <DateRangePicker
+                                      startDate={periodDates.startDate}
+                                      endDate={periodDates.endDate}
+                                      onDatesChange={setPeriodDates}
+                                    />
+                                  </div>
+                                )}
+                                {period.suffix ? <span className="ml-2">&nbsp;{period.suffix}</span> : null}
+                                {/* <label htmlFor={period.type}>{period.type}</label> */}
+                              </div>
+                            ))}
+                          </RadioGroup.Root>
                         </div>
                       </div>
 
