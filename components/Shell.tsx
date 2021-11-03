@@ -37,7 +37,11 @@ import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useMeQuery() {
-  const meQuery = trpc.useQuery(["viewer.me"]);
+  const meQuery = trpc.useQuery(["viewer.me"], {
+    retry(failureCount) {
+      return failureCount > 3;
+    },
+  });
 
   return meQuery;
 }
