@@ -64,20 +64,17 @@ function useRedirectToLoginIfUnauthenticated() {
 }
 
 function useRedirectToOnboardingIfNeeded() {
-  const [session, loading] = useSession();
   const router = useRouter();
   const query = useMeQuery();
   const user = query.data;
 
   useEffect(() => {
-    if (!loading && user) {
-      if (shouldShowOnboarding(user)) {
-        router.replace({
-          pathname: "/getting-started",
-        });
-      }
+    if (user && shouldShowOnboarding(user)) {
+      router.replace({
+        pathname: "/getting-started",
+      });
     }
-  }, [loading, session, router, user]);
+  }, [router, user]);
 }
 
 export function ShellSubHeading(props: {
