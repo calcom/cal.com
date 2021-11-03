@@ -4,6 +4,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
+import { decodeOAuthState } from "../utils";
+
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -29,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const redirect_uri = process.env.BASE_URL + "/api/integrations/googlecalendar/callback";
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
   const token = await oAuth2Client.getToken(code);
+
   const key = token.res?.data;
   await prisma.credential.create({
     data: {
@@ -37,6 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: session.user.id,
     },
   });
-
-  res.redirect("/integrations");
+  const state = decodeOAuthState(req);
+  res.redirect(state?.returnTo ?? "/integrations");
 }

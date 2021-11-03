@@ -592,14 +592,15 @@
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.4.1.tgz#0a8dbb20e1d63dcea55bfc3ab1b87637aaac7777"
 
-"@heroicons/react@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@heroicons/react/-/react-1.0.4.tgz#11847eb2ea5510419d7ada9ff150a33af0ad0863"
+"@heroicons/react@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@heroicons/react/-/react-1.0.5.tgz#2fe4df9d33eb6ce6d5178a0f862e97b61c01e27d"
+  integrity sha512-UDMyLM2KavIu2vlWfMspapw9yii7aoLwzI2Hudx4fyoPwfKfxU8r3cL8dEBXOjcLG0/oOONZzbT14M1HoNtEcg==
 
-"@hookform/resolvers@^2.8.2":
-  version "2.8.2"
-  resolved "https://registry.yarnpkg.com/@hookform/resolvers/-/resolvers-2.8.2.tgz#590dcc23212a659bad08212138261c3950ef09f1"
-  integrity sha512-oDTGrm7yHxT4VIv4kJcfjvWvozCbdcL0/jrpbAkeo39FYn78XnKOrrGTNmrXdfu+EQVkNIdZ47IYRFManZ4jUA==
+"@hookform/resolvers@^2.8.3":
+  version "2.8.3"
+  resolved "https://registry.yarnpkg.com/@hookform/resolvers/-/resolvers-2.8.3.tgz#d362360f6057bcca7318ad22d49e5f0c47290e27"
+  integrity sha512-9G6/vCUNvg3O4MeAK4l749syOz/2r1DF/Pq3Njuk3sI4ObHoRyV0nxio5NrNLGC+7N1Ixu9vJ/loNhaUNXTX6A==
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
@@ -1505,14 +1506,16 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-context" "0.1.1"
 
-"@radix-ui/react-label@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-label/-/react-label-0.1.0.tgz#2f460b4422a87097ae7cc0b4567a7ae5f269979a"
+"@radix-ui/react-label@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-label/-/react-label-0.1.1.tgz#c2970b19214248c2b3a0425c3c0d299290b559a5"
+  integrity sha512-52mHm7gxDcbY1+XuFwe0zBvUHp+JP424QC5V2nloPH9JUpCsM2MfviqA/nyW4nKuoGAeF6MhedjtlrXyze8DFw==
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-compose-refs" "0.1.0"
-    "@radix-ui/react-id" "0.1.0"
-    "@radix-ui/react-primitive" "0.1.0"
+    "@radix-ui/react-context" "0.1.1"
+    "@radix-ui/react-id" "0.1.1"
+    "@radix-ui/react-primitive" "0.1.1"
 
 "@radix-ui/react-menu@0.1.1":
   version "0.1.1"
@@ -1664,16 +1667,17 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-compose-refs" "0.1.0"
 
-"@radix-ui/react-switch@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-switch/-/react-switch-0.1.0.tgz#c5cca26f350fba1b48be7667311720c78437bd80"
+"@radix-ui/react-switch@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-switch/-/react-switch-0.1.1.tgz#a60090a26387fc018feecb0eb8ae108e2d693472"
+  integrity sha512-QlLGNj7NnMUoYj+9msP4q9/X7ZtHLqVLlH5CSzEgoDxxU+wh5+65oTyBynWJLsF9QligE9pJqOwMdqo4qqnBhg==
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/primitive" "0.1.0"
     "@radix-ui/react-compose-refs" "0.1.0"
-    "@radix-ui/react-context" "0.1.0"
-    "@radix-ui/react-label" "0.1.0"
-    "@radix-ui/react-primitive" "0.1.0"
+    "@radix-ui/react-context" "0.1.1"
+    "@radix-ui/react-label" "0.1.1"
+    "@radix-ui/react-primitive" "0.1.1"
     "@radix-ui/react-use-controllable-state" "0.1.0"
     "@radix-ui/react-use-previous" "0.1.0"
     "@radix-ui/react-use-size" "0.1.0"
@@ -1852,38 +1856,38 @@
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
 
-"@trpc/client@9.10.1", "@trpc/client@^9.10.1":
-  version "9.10.1"
-  resolved "https://registry.npmjs.org/@trpc/client/-/client-9.10.1.tgz#cebf3ff2966a02e9a0220eb1e439e17fbd402580"
-  integrity sha512-SABrnpyLjidZVA65wFnOCFPPdE4ZoGPZXK22X1lXRm6po6H6TgDMNTtvRtQfYeEeVXQeEs7x127PBGyiZbWQPA==
+"@trpc/client@9.12.0", "@trpc/client@^9.12.0":
+  version "9.12.0"
+  resolved "https://registry.npmjs.org/@trpc/client/-/client-9.12.0.tgz#3a066a83acc58c1c804bac2d2007d1592247b1c2"
+  integrity sha512-GJjCgSaQmTmpyqyxBXUriSsovtsMFvnSZuQ4vK3IrXUw6/DzCab07wHVjAMFdvF9k6WIVuXWZBfXh5hq9H024w==
   dependencies:
     "@babel/runtime" "^7.9.0"
-    "@trpc/server" "9.10.1"
+    "@trpc/server" "9.12.0"
 
-"@trpc/next@^9.10.1":
-  version "9.10.1"
-  resolved "https://registry.npmjs.org/@trpc/next/-/next-9.10.1.tgz#6e35ae78de62ce079028f04b3d7b91cd3d0b831d"
-  integrity sha512-+pJLWSaFFmTN82XSTCBSVa6FnDsNkDojKusUIg2y+HJqma6csg8MxlyEg1dGAHWb7QDgU1Upf4pTjoZBfHp9+g==
+"@trpc/next@^9.12.0":
+  version "9.12.0"
+  resolved "https://registry.npmjs.org/@trpc/next/-/next-9.12.0.tgz#77eda17ed7ef6dbd737a69508b606b304c42b16d"
+  integrity sha512-P1Tq+9WM5fGvzhUe93aUWCczpd2ic7+VRYc3RYuDZr6I5TK6vf+xscRIZcIbDV4YmdHO05cZ2vclEzrUApJNtA==
   dependencies:
     "@babel/runtime" "^7.9.0"
-    "@trpc/client" "9.10.1"
-    "@trpc/react" "9.10.1"
-    "@trpc/server" "9.10.1"
+    "@trpc/client" "9.12.0"
+    "@trpc/react" "9.12.0"
+    "@trpc/server" "9.12.0"
     react-ssr-prepass "^1.4.0"
 
-"@trpc/react@9.10.1", "@trpc/react@^9.10.1":
-  version "9.10.1"
-  resolved "https://registry.npmjs.org/@trpc/react/-/react-9.10.1.tgz#27a5851157237a5a598ecc4a8afd6cacf4223988"
-  integrity sha512-FTqHBzP2BZdGsbDllVXEjiQiJXQVmGARNdaDUmVIVtO9wrpwrGK3iI8rC9SWCdKsg2IjKT6X7ynkCq2qAeXJWQ==
+"@trpc/react@9.12.0", "@trpc/react@^9.12.0":
+  version "9.12.0"
+  resolved "https://registry.npmjs.org/@trpc/react/-/react-9.12.0.tgz#bfad54c4f62288e8f849d08d2f48105b9755a96e"
+  integrity sha512-okd5+hJytiHZ1PUP6H6rakF7NUZ2UP2Ec34kkwlJPZu1iTUwggdikydbZA3QJUX4JlW+8+VPSAN9yIbLmTp2IQ==
   dependencies:
     "@babel/runtime" "^7.9.0"
-    "@trpc/client" "9.10.1"
-    "@trpc/server" "9.10.1"
+    "@trpc/client" "9.12.0"
+    "@trpc/server" "9.12.0"
 
-"@trpc/server@9.10.1", "@trpc/server@^9.10.1":
-  version "9.10.1"
-  resolved "https://registry.npmjs.org/@trpc/server/-/server-9.10.1.tgz#17ff6eae0a4596382dd9d6c1f2768390abe47936"
-  integrity sha512-nYKlAF2kwhazPZBHnCSwX/qciZBIt36VuiBVULvxsiZe1cYR9qEgVLkaDB/jYNFvi6oMkWQj2UZnHSxmhESjjg==
+"@trpc/server@9.12.0", "@trpc/server@^9.12.0":
+  version "9.12.0"
+  resolved "https://registry.npmjs.org/@trpc/server/-/server-9.12.0.tgz#2987ab9b8d7db163538b082689564bbcccc1e682"
+  integrity sha512-ZoqyVEm4tkk0Ms/v9Uu53eHHZ4N1hXAAZukdzLKq5Ix1bRAl0x/jm5vzUr7oKxWo8mtp5Arz7iNd1uyaqszRfg==
   dependencies:
     tslib "^2.1.0"
 
