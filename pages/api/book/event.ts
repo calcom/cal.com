@@ -154,6 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     timeZone: true,
     credentials: true,
     bufferTime: true,
+    CalendarDestination: true,
   });
 
   const userData = Prisma.validator<Prisma.UserArgs>()({
@@ -427,7 +428,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!user) throw Error("Can't continue, user not found.");
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const eventManager = new EventManager(await refreshCredentials(user.credentials));
+  const credentials = await refreshCredentials(user.credentials);
+  const eventManager = new EventManager({ ...user, credentials });
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.

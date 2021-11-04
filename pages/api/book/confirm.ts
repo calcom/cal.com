@@ -63,6 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timeZone: true,
       email: true,
       name: true,
+      CalendarDestination: true,
     },
   });
 
@@ -121,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (reqBody.confirmed) {
-      const eventManager = new EventManager(currentUser.credentials);
+      const eventManager = new EventManager(currentUser);
       const scheduleResult = await eventManager.create(evt);
 
       await prisma.booking.update({

@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { Credential, CalendarDestination } from "@prisma/client";
 import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
@@ -51,18 +51,24 @@ interface GetLocationRequestFromIntegrationRequest {
   location: string;
 }
 
+type EventManagerUser = {
+  credentials: Credential[];
+  CalendarDestination: CalendarDestination | null;
+};
 export default class EventManager {
   calendarCredentials: Array<Credential>;
   videoCredentials: Array<Credential>;
+  private calendarDestination;
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param credentials
    */
-  constructor(credentials: Array<Credential>) {
-    this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
+  constructor(user: EventManagerUser) {
+    this.calendarDestination = user.CalendarDestination;
+    this.calendarCredentials = user.credentials.filter((cred) => cred.type.endsWith("_calendar"));
+    this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
 
     //for  Daily.co video, temporarily pushes a credential for the daily-video-client
     const hasDailyIntegration = process.env.DAILY_API_KEY;
