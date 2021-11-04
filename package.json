@@ -46,7 +46,7 @@
     "@radix-ui/react-switch": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.0",
     "@stripe/react-stripe-js": "^1.4.1",
-    "@stripe/stripe-js": "^1.16.0",
+    "@stripe/stripe-js": "^1.21.1",
     "@tailwindcss/forms": "^0.3.4",
     "@trpc/client": "^9.12.0",
     "@trpc/next": "^9.12.0",
@@ -135,7 +135,7 @@
     "postcss": "^8.3.11",
     "prettier": "^2.3.2",
     "prisma": "^2.30.2",
-    "tailwindcss": "^2.2.16",
+    "tailwindcss": "^2.2.19",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.4"
