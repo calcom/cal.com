@@ -1884,10 +1884,17 @@
     "@trpc/client" "9.12.0"
     "@trpc/server" "9.12.0"
 
-"@trpc/server@9.12.0", "@trpc/server@^9.12.0":
+"@trpc/server@9.12.0":
   version "9.12.0"
   resolved "https://registry.npmjs.org/@trpc/server/-/server-9.12.0.tgz#2987ab9b8d7db163538b082689564bbcccc1e682"
   integrity sha512-ZoqyVEm4tkk0Ms/v9Uu53eHHZ4N1hXAAZukdzLKq5Ix1bRAl0x/jm5vzUr7oKxWo8mtp5Arz7iNd1uyaqszRfg==
+  dependencies:
+    tslib "^2.1.0"
+
+"@trpc/server@^9.12.2":
+  version "9.12.2"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.12.2.tgz#04cb934746c6d1b36c5ad2d00f0dd27327d9f5e8"
+  integrity sha512-9u+ScxZcIDgydvd734KqoOofrXybJ/VD/YRlJODCzhUFEjtYzZ/BMz4n1ODVfg47NbJeuuJq2Ndb5kXOiD3utw==
   dependencies:
     tslib "^2.1.0"
 
