@@ -12,6 +12,9 @@ module.exports = {
     },
     extend: {
       colors: {
+        /* your primary brand color */
+        brand: "#292929",
+
         black: "#111111",
         gray: {
           50: "#F8F8F8",

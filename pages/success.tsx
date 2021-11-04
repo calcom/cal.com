@@ -246,7 +246,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           id="email"
                           inputMode="email"
                           defaultValue={router.query.email}
-                          className="block w-full text-gray-600 border-gray-300 shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                          className="block w-full text-gray-600 border-gray-300 shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button type="submit" className="min-w-max" color="primary">

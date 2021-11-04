@@ -7,7 +7,7 @@
   @apply text-sm focus:ring-0 border-0;
 }
 .dark .PhoneInputInput {
-  @apply bg-black;
+  @apply bg-brand;
 }
 .PhoneInputCountrySelect {
   @apply text-black;
@@ -170,12 +170,12 @@
 }
 
 .react-multi-email > [type="text"] {
-  @apply shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-md;
+  @apply shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-md;
 }
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply inline-flex items-center px-2 py-1 my-1 mr-2 border border-transparent text-sm font-medium rounded-md text-gray-900 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  @apply inline-flex items-center px-2 py-1 my-1 mr-2 border border-transparent text-sm font-medium rounded-md text-gray-900 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-brand focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email > span[data-placeholder] {

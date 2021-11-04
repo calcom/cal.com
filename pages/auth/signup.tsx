@@ -85,7 +85,7 @@ export default function Signup(props) {
                   disabled={!!props.email}
                   readOnly={!!props.email}
                   value={props.email}
-                  className="bg-gray-100 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="bg-gray-100 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
                 />
               </div>
               <div className="mb-2">
@@ -98,7 +98,7 @@ export default function Signup(props) {
                   id="password"
                   required
                   placeholder="•••••••••••••"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
                 />
               </div>
               <div>
@@ -111,7 +111,7 @@ export default function Signup(props) {
                   id="passwordcheck"
                   required
                   placeholder="•••••••••••••"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
                 />
               </div>
             </div>
