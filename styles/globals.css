@@ -25,16 +25,16 @@
 }
 
 /* Roboto */
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap");
+@font-face {
+  font-family: "Roboto";
+  src: url("https://app.cal.com/roboto.ttf");
+}
 
 /* Cal Sans */
 @font-face {
   font-family: "Cal Sans";
-  src: url("https://cal.com/cal.ttf");
+  src: url("https://app.cal.com/cal.ttf");
 }
-
-/* Lexend Fallback for Cal Sans*/
-@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {

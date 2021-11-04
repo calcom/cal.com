@@ -99,7 +99,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        cal: ["Cal Sans", "Lexend", "sans-serif"],
+        cal: ["Cal Sans", "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",
