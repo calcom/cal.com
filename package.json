@@ -134,7 +134,7 @@
     "playwright": "^1.16.2",
     "postcss": "^8.3.11",
     "prettier": "^2.3.2",
-    "prisma": "^2.30.2",
+    "prisma": "^3.4.0",
     "tailwindcss": "^2.2.19",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.2.1",
