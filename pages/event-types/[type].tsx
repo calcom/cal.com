@@ -170,7 +170,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         !requirePayment ? undefined :
           formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
             /* otherwise */   0;
-      advancedPayload.currency = currency;
+      advancedPayload.currency = currency; //
       advancedPayload.availability = enteredAvailability || undefined;
       advancedPayload.customInputs = customInputs;
       advancedPayload.timeZone = selectedTimeZone;
@@ -288,7 +288,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   ];
 
-  const [periodDates, setPeriodDates] = useState<{ startDate: Date; endDate: Date }>({
+  const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
@@ -319,11 +319,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
+    price: number;
+    isHidden: boolean;
     location: string;
+    selectedCustomInput: EventTypeCustomInput | undefined;
+    customInputs: EventTypeCustomInput[] | undefined;
     users: AdvancedOptions["users"];
     periodType: string;
     periodDays: number;
     periodDaysType: string;
+    periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
   }>();
 
@@ -357,7 +362,52 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               {/* react-hook-formify  useform*/}
               <form
                 onSubmit={formMethods.handleSubmit(async (values) => {
-                  console.log(values, eventNameRef.current?.value);
+                  console.log(values);
+                  // const formData = Object.fromEntries(new FormData(event.currentTarget).entries());
+                  const enteredTitle: string = values.title;
+
+                  const advancedPayload: AdvancedOptions = {};
+                  if (advancedSettingsVisible) {
+                    advancedPayload.eventName = values.eventTitle;
+                    advancedPayload.periodType = values.periodType;
+                    advancedPayload.periodDays = asNumberOrUndefined(values.periodDays);
+                    advancedPayload.periodCountCalendarDays = Boolean(
+                      asNumberOrUndefined(values.periodDaysType)
+                    );
+                    advancedPayload.periodStartDate = values.periodDates.startDate || undefined;
+                    advancedPayload.periodEndDate = values.periodDates.endDate || undefined;
+                    advancedPayload.minimumBookingNotice = asNumberOrUndefined(values.minimumBookingNotice);
+                    // prettier-ignore
+                    advancedPayload.price =
+                      !requirePayment ? undefined :
+                        values.price ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100) :
+                          /* otherwise */   0;
+                    advancedPayload.currency = currency; //
+                    advancedPayload.availability = enteredAvailability || undefined;
+                    advancedPayload.customInputs = customInputs;
+                    advancedPayload.timeZone = selectedTimeZone;
+                    advancedPayload.disableGuests = values.disableGuests;
+                    advancedPayload.requiresConfirmation = values.requiresConfirmation;
+                  }
+
+                  const payload: EventTypeInput = {
+                    id: eventType.id,
+                    title: enteredTitle,
+                    slug: asStringOrThrow(values.slug),
+                    description: asStringOrThrow(values.description),
+                    length: asNumberOrThrow(values.length),
+                    hidden: values.isHidden,
+                    locations,
+                    ...advancedPayload,
+                    ...(team
+                      ? {
+                          schedulingType: formData.schedulingType as SchedulingType,
+                          users,
+                        }
+                      : {}),
+                  };
+
+                  updateMutation.mutate(payload);
                 })}
                 className="space-y-6">
                 <div className="space-y-3">
@@ -731,6 +781,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <Button
                                       onClick={() => {
                                         setSelectedCustomInput(customInput);
+                                        formMethods.setValue("selectedCustomInput", customInput);
                                         setSelectedCustomInputModalOpen(true);
                                       }}
                                       color="minimal"
@@ -748,6 +799,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <Button
                                 onClick={() => {
                                   setSelectedCustomInput(undefined);
+                                  formMethods.setValue("selectedCustomInput", undefined);
                                   setSelectedCustomInputModalOpen(true);
                                 }}
                                 color="secondary"
@@ -865,10 +917,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     )}
                                     {period.type === "range" && (
                                       <div className="inline-flex ml-2 space-x-2">
-                                        <DateRangePicker
-                                          startDate={periodDates.startDate}
-                                          endDate={periodDates.endDate}
-                                          onDatesChange={setPeriodDates}
+                                        <Controller
+                                          name="periodDates"
+                                          defaultValue={periodDates}
+                                          render={() => (
+                                            <DateRangePicker
+                                              startDate={periodDates.startDate}
+                                              endDate={periodDates.endDate}
+                                              onDatesChange={({ startDate, endDate }) => {
+                                                formMethods.setValue("periodDates", { startDate, endDate });
+                                              }}
+                                            />
+                                          )}
                                         />
                                       </div>
                                     )}
@@ -953,8 +1013,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       <div className="relative mt-1 rounded-sm shadow-sm">
                                         <input
                                           type="number"
-                                          name="price"
-                                          id="price"
                                           step="0.01"
                                           required
                                           className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -962,6 +1020,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           defaultValue={
                                             eventType.price > 0 ? eventType.price / 100.0 : undefined
                                           }
+                                          {...formMethods.register("price")}
                                         />
                                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                           <span className="text-gray-500 sm:text-sm" id="duration">
@@ -999,11 +1058,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           </div>
           <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
             <div className="px-2">
-              <Switch
+              <Controller
+                control={formMethods.control}
                 name="isHidden"
-                defaultChecked={hidden}
-                onCheckedChange={setHidden}
-                label={t("hide_event_type")}
+                defaultValue={eventType.hidden}
+                render={({ field }) => (
+                  <Switch
+                    defaultChecked={field.value}
+                    onCheckedChange={(isChecked) => {
+                      formMethods.setValue("isHidden", isChecked);
+                    }}
+                    label={t("hide_event_type")}
+                  />
+                )}
               />
             </div>
             <div className="mt-4 space-y-1.5">
@@ -1099,31 +1166,37 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </div>
                 </div>
               </div>
-              <CustomInputTypeForm
-                selectedCustomInput={selectedCustomInput}
-                onSubmit={(values) => {
-                  const customInput: EventTypeCustomInput = {
-                    id: -1,
-                    eventTypeId: -1,
-                    label: values.label,
-                    placeholder: values.placeholder,
-                    required: values.required,
-                    type: values.type,
-                  };
+              <Controller
+                name="selectedCustomInput"
+                control={formMethods.control}
+                render={() => (
+                  <CustomInputTypeForm
+                    selectedCustomInput={selectedCustomInput}
+                    onSubmit={(values) => {
+                      const customInput: EventTypeCustomInput = {
+                        id: -1,
+                        eventTypeId: -1,
+                        label: values.label,
+                        placeholder: values.placeholder,
+                        required: values.required,
+                        type: values.type,
+                      };
 
-                  if (selectedCustomInput) {
-                    selectedCustomInput.label = customInput.label;
-                    selectedCustomInput.placeholder = customInput.placeholder;
-                    selectedCustomInput.required = customInput.required;
-                    selectedCustomInput.type = customInput.type;
-                  } else {
-                    setCustomInputs(customInputs.concat(customInput));
-                  }
-                  setSelectedCustomInputModalOpen(false);
-                }}
-                onCancel={() => {
-                  setSelectedCustomInputModalOpen(false);
-                }}
+                      if (selectedCustomInput) {
+                        selectedCustomInput.label = customInput.label;
+                        selectedCustomInput.placeholder = customInput.placeholder;
+                        selectedCustomInput.required = customInput.required;
+                        selectedCustomInput.type = customInput.type;
+                      } else {
+                        setCustomInputs(customInputs.concat(customInput));
+                      }
+                      setSelectedCustomInputModalOpen(false);
+                    }}
+                    onCancel={() => {
+                      setSelectedCustomInputModalOpen(false);
+                    }}
+                  />
+                )}
               />
             </div>
           </DialogContent>
