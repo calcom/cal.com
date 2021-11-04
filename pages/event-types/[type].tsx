@@ -63,32 +63,35 @@ import * as RadioArea from "@components/ui/form/radio-area";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const PERIOD_TYPES = [
-  {
-    type: "rolling",
-    suffix: "into the future",
-  },
-  {
-    type: "range",
-    prefix: "Within a date range",
-  },
-  {
-    type: "unlimited",
-    prefix: "Indefinitely into the future",
-  },
-];
-
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const { t } = useLocale();
+  const PERIOD_TYPES = [
+    {
+      type: "rolling",
+      suffix: t("into_the_future"),
+    },
+    {
+      type: "range",
+      prefix: t("within_date_range"),
+    },
+    {
+      type: "unlimited",
+      prefix: t("indefinitely_into_future"),
+    },
+  ];
   const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
     props;
+  locationOptions.push(
+    { value: LocationType.InPerson, label: t("in_person_meeting") },
+    { value: LocationType.Phone, label: t("phone_call") }
+  );
 
-  const { t } = useLocale();
   const router = useRouter();
 
   const updateMutation = useMutation(updateEventType, {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types");
-      showToast(`${eventType.title} event type updated successfully`, "success");
+      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err: HttpError) => {
       const message = `${err.statusCode}: ${err.message}`;
@@ -99,7 +102,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const deleteMutation = useMutation(deleteEventType, {
     onSuccess: async () => {
       await router.push("/event-types");
-      showToast("Event type deleted successfully", "success");
+      showToast(t("event_type_deleted_successfully"), "success");
     },
     onError: (err: HttpError) => {
       const message = `${err.statusCode}: ${err.message}`;
@@ -274,13 +277,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const schedulingTypeOptions: { value: SchedulingType; label: string; description: string }[] = [
     {
       value: SchedulingType.COLLECTIVE,
-      label: "Collective",
-      description: "Schedule meetings when all selected team members are available.",
+      label: t("collective"),
+      description: t("collective_description"),
     },
     {
       value: SchedulingType.ROUND_ROBIN,
-      label: "Round Robin",
-      description: "Cycle meetings between multiple team members.",
+      label: t("round_robin"),
+      description: t("round_robin_description"),
     },
   ];
 
@@ -311,7 +314,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     <div>
       <Shell
         centered
-        title={`${eventType.title} | Event Type`}
+        title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
           <div className="relative -mb-2 group" onClick={() => setEditIcon(false)}>
             <input
@@ -321,7 +324,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               id="title"
               required
               className="w-full pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
-              placeholder="Quick Chat"
+              placeholder={t("quick_chat")}
               defaultValue={eventType.title}
             />
             {editIcon && (
@@ -491,7 +494,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           fillRule="evenodd"></path>
                                       </g>
                                     </svg>
-                                    <span className="ml-2 text-sm"> Daily.co Video</span>
+                                    <span className="ml-2 text-sm">Daily.co Video</span>
                                   </div>
                                 )}
                                 {location.type === LocationType.Zoom && (
@@ -682,7 +685,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                       <div>
                                         <span className="ml-2 text-sm">
-                                          {customInput.required ? "Required" : "Optional"}
+                                          {customInput.required ? t("required") : t("optional")}
                                         </span>
                                       </div>
                                     </div>
@@ -1228,10 +1231,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const integrations = getIntegrations(credentials);
 
-  const locationOptions: OptionTypeBase[] = [
-    { value: LocationType.InPerson, label: "Link or In-person meeting" },
-    { value: LocationType.Phone, label: "Phone call" },
-  ];
+  const locationOptions: OptionTypeBase[] = [];
 
   if (hasIntegration(integrations, "zoom_video")) {
     locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });

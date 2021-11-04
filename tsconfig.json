@@ -1,15 +1,26 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["components/*"],
-      "@lib/*": ["lib/*"],
-      "@server/*": ["server/*"],
-      "@ee/*": ["ee/*"]
+      "@components/*": [
+        "components/*"
+      ],
+      "@lib/*": [
+        "lib/*"
+      ],
+      "@server/*": [
+        "server/*"
+      ],
+      "@ee/*": [
+        "ee/*"
+      ]
     },
-    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
@@ -20,9 +31,22 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "useUnknownInCatchVariables": true,
     "jsx": "preserve",
-    "types": ["@types/jest", "jest-playwright-preset", "expect-playwright"]
+    "types": [
+      "@types/jest",
+      "jest-playwright-preset",
+      "expect-playwright"
+    ],
+    "allowJs": false,
+    "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "lib/*.js"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

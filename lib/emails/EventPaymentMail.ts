@@ -5,7 +5,7 @@ import utc from "dayjs/plugin/utc";
 
 import { CalendarEvent } from "@lib/calendarClient";
 
-import EventMail, { AdditionInformation } from "./EventMail";
+import EventMail from "./EventMail";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -14,13 +14,8 @@ dayjs.extend(localizedFormat);
 export default class EventPaymentMail extends EventMail {
   paymentLink: string;
 
-  constructor(
-    paymentLink: string,
-    calEvent: CalendarEvent,
-    uid: string,
-    additionInformation: AdditionInformation = null
-  ) {
-    super(calEvent, uid, additionInformation);
+  constructor(paymentLink: string, calEvent: CalendarEvent) {
+    super(calEvent);
     this.paymentLink = paymentLink;
   }
 
@@ -59,8 +54,10 @@ export default class EventPaymentMail extends EventMail {
         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
       />
     </svg>
-    <h1 style="font-weight: 500; color: #161e2e;">Your meeting is awaiting payment</h1>
-    <p style="color: #4b5563; margin-bottom: 30px;">You and any other attendees have been emailed with this information.</p>
+    <h1 style="font-weight: 500; color: #161e2e;">${this.calEvent.language("meeting_awaiting_payment")}</h1>
+    <p style="color: #4b5563; margin-bottom: 30px;">${this.calEvent.language(
+      "emailed_you_and_any_other_attendees"
+    )}</p>
     <hr />
     <table style="border-spacing: 20px; color: #161e2e; margin-bottom: 10px;">
       <colgroup>
@@ -68,25 +65,25 @@ export default class EventPaymentMail extends EventMail {
         <col span="1" style="width: 60%;">
      </colgroup>
       <tr>
-        <td>What</td>
+        <td>${this.calEvent.language("what")}</td>
         <td>${this.calEvent.type}</td>
       </tr>
       <tr>
-        <td>When</td>
+        <td>${this.calEvent.language("when")}</td>
         <td>${this.getInviteeStart().format("dddd, LL")}<br>${this.getInviteeStart().format("h:mma")} (${
         this.calEvent.attendees[0].timeZone
       })</td>
       </tr>
       <tr>
-        <td>Who</td>
+        <td>${this.calEvent.language("who")}</td>
         <td>${this.calEvent.organizer.name}<br /><small>${this.calEvent.organizer.email}</small></td>
       </tr>
       <tr>
-        <td>Where</td>
+        <td>${this.calEvent.language("where")}</td>
         <td>${this.getLocation()}</td>
       </tr>
       <tr>
-        <td>Notes</td>
+        <td>${this.calEvent.language("notes")}Notes</td>
         <td>${this.calEvent.description}</td>
       </tr>
     </table>
@@ -109,15 +106,18 @@ export default class EventPaymentMail extends EventMail {
    * @protected
    */
   protected getLocation(): string {
-    if (this.additionInformation?.hangoutLink) {
-      return `<a href="${this.additionInformation?.hangoutLink}">${this.additionInformation?.hangoutLink}</a><br />`;
+    if (this.calEvent.additionInformation?.hangoutLink) {
+      return `<a href="${this.calEvent.additionInformation?.hangoutLink}">${this.calEvent.additionInformation?.hangoutLink}</a><br />`;
     }
 
-    if (this.additionInformation?.entryPoints && this.additionInformation?.entryPoints.length > 0) {
-      const locations = this.additionInformation?.entryPoints
+    if (
+      this.calEvent.additionInformation?.entryPoints &&
+      this.calEvent.additionInformation?.entryPoints.length > 0
+    ) {
+      const locations = this.calEvent.additionInformation?.entryPoints
         .map((entryPoint) => {
           return `
-          Join by ${entryPoint.entryPointType}: <br />
+          ${this.calEvent.language("join_by_entrypoint", { entryPoint: entryPoint.entryPointType })}: <br />
           <a href="${entryPoint.uri}">${entryPoint.label}</a> <br />
         `;
         })
@@ -130,7 +130,7 @@ export default class EventPaymentMail extends EventMail {
   }
 
   protected getAdditionalBody(): string {
-    return `<a href="${this.paymentLink}">Pay now</a>`;
+    return `<a href="${this.paymentLink}">${this.calEvent.language("pay_now")}</a>`;
   }
 
   /**
@@ -143,15 +143,17 @@ export default class EventPaymentMail extends EventMail {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Awaiting Payment: ${this.calEvent.type} with ${
-        this.calEvent.organizer.name
-      } on ${this.getInviteeStart().format("dddd, LL")}`,
+      subject: this.calEvent.language("awaiting_payment", {
+        eventType: this.calEvent.type,
+        organizerName: this.calEvent.organizer.name,
+        date: this.getInviteeStart().format("dddd, LL"),
+      }),
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
   }
 
-  protected printNodeMailerError(error: string): void {
+  protected printNodeMailerError(error: Error): void {
     console.error("SEND_BOOKING_PAYMENT_ERROR", this.calEvent.attendees[0].email, error);
   }
 

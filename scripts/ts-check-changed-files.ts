@@ -7,7 +7,8 @@ const files = diff
   .trim()
   .split("\n")
   .map((file) => file.trim())
-  .filter(Boolean);
+  .filter(Boolean)
+  .filter((file) => file.endsWith(".ts") || file.endsWith(".tsx"));
 
 console.log("ℹ️ Changed files:");
 console.log(files.map((str) => `  - ${str}`).join("\n"));

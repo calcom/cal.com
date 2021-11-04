@@ -1,5 +1,6 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useState } from "react";
+import React, { SyntheticEvent } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { Team } from "@lib/team";
@@ -8,7 +9,7 @@ import Button from "@components/ui/Button";
 
 export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const handleError = async (res: Response) => {
     const responseData = await res.json();
@@ -21,13 +22,22 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
     return responseData;
   };
 
-  const inviteMember = (e) => {
+  const inviteMember = (e: SyntheticEvent) => {
     e.preventDefault();
 
+    const target = e.target as typeof e.target & {
+      elements: {
+        role: { value: string };
+        inviteUser: { value: string };
+        sendInviteEmail: { checked: boolean };
+      };
+    };
+
     const payload = {
-      role: e.target.elements["role"].value,
-      usernameOrEmail: e.target.elements["inviteUser"].value,
-      sendEmailInvitation: e.target.elements["sendInviteEmail"].checked,
+      language: i18n.language,
+      role: target.elements["role"].value,
+      usernameOrEmail: target.elements["inviteUser"].value,
+      sendEmailInvitation: target.elements["sendInviteEmail"].checked,
     };
 
     return fetch("/api/teams/" + props?.team?.id + "/invite", {
@@ -61,7 +71,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
 
         <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div className="mb-4 sm:flex sm:items-start">
-            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-black rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
+            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-brand rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
               <UsersIcon className="w-6 h-6 text-black" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -85,7 +95,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                   id="inviteUser"
                   placeholder="email@example.com"
                   required
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
                 />
               </div>
               <div className="mb-4">
@@ -94,7 +104,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                 </label>
                 <select
                   id="role"
-                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm">
+                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm">
                   <option value="MEMBER">{t("member")}</option>
                   <option value="OWNER">{t("owner")}</option>
                 </select>
@@ -106,7 +116,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                     name="sendInviteEmail"
                     defaultChecked
                     id="sendInviteEmail"
-                    className="text-black border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                    className="text-black border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                   />
                 </div>
                 <div className="ml-2 text-sm">

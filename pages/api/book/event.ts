@@ -1,7 +1,7 @@
-import { SchedulingType, Prisma, Credential } from "@prisma/client";
+import { Credential, Prisma, SchedulingType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
-import dayjsBusinessDays from "dayjs-business-days";
+import dayjsBusinessTime from "dayjs-business-time";
 import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -13,14 +13,17 @@ import { handlePayment } from "@ee/lib/stripe/server";
 
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
+import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
-import EventManager, { CreateUpdateResult, EventResult, PartialReference } from "@lib/events/EventManager";
+import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
+
+import { getTranslation } from "@server/lib/i18n";
 
 export interface DailyReturnType {
   name: string;
@@ -29,7 +32,7 @@ export interface DailyReturnType {
   created_at: string;
 }
 
-dayjs.extend(dayjsBusinessDays);
+dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
 dayjs.extend(timezone);
@@ -98,7 +101,7 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number)
 
 function isOutOfBounds(
   time: dayjs.ConfigType,
-  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }
+  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
 ): boolean {
   const date = dayjs(time);
 
@@ -106,7 +109,7 @@ function isOutOfBounds(
     case "rolling": {
       const periodRollingEndDay = periodCountCalendarDays
         ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
-        : dayjs().tz(timeZone).businessDaysAdd(periodDays, "days").endOf("day");
+        : dayjs().tz(timeZone).addBusinessTime(periodDays, "days").endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
@@ -125,6 +128,7 @@ function isOutOfBounds(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
+  const t = await getTranslation(reqBody.language ?? "en", "common");
 
   log.debug(`Booking eventType ${eventTypeId} started`);
 
@@ -272,6 +276,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
+    language: t,
+    uid,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -298,7 +304,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
         description: evt.description,
-        confirmed: !eventType.requiresConfirmation || !!rescheduleUid,
+        confirmed: !eventType?.requiresConfirmation || !!rescheduleUid,
         location: evt.location,
         eventType: {
           connect: {
@@ -323,9 +329,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
-  } catch (e) {
-    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", e.message);
-    if (e.code === "P2002") {
+    evt.uid = booking.uid;
+  } catch (_err) {
+    const err = getErrorFromUnknown(_err);
+    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
+    if (err.code === "P2002") {
       res.status(409).json({ message: "booking.conflict" });
       return;
     }
@@ -361,7 +369,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
 
       const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter((time) => time);
-      calendarBusyTimes.push(...videoBusyTimes);
+      calendarBusyTimes.push(...(videoBusyTimes as any[])); // FIXME add types
       console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
       const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
@@ -423,7 +431,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateResults: CreateUpdateResult = await eventManager.update(evt, rescheduleUid);
+    const eventManagerCalendarEvent = { ...evt, uid: rescheduleUid };
+    const updateResults = await eventManager.update(eventManagerCalendarEvent);
 
     results = updateResults.results;
     referencesToCreate = updateResults.referencesToCreate;
@@ -436,9 +445,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.name} failed`, error, results);
     }
+    // If it's not a reschedule, doesn't require confirmation and there's no price,
+    // Create a booking
   } else if (!eventType.requiresConfirmation && !eventType.price) {
     // Use EventManager to conditionally use all needed integrations.
-    const createResults: CreateUpdateResult = await eventManager.create(evt, uid);
+    const createResults = await eventManager.create(evt);
 
     results = createResults.results;
     referencesToCreate = createResults.referencesToCreate;
@@ -453,48 +464,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  //for Daily.co video calls will grab the meeting token for the call
-  const isDaily = evt.location === "integrations:daily";
-
-  let dailyEvent: DailyReturnType;
-
-  if (!rescheduleUid) {
-    dailyEvent = results.filter((ref) => ref.type === "daily")[0]?.createdEvent as DailyReturnType;
-  } else {
-    dailyEvent = results.filter((ref) => ref.type === "daily_video")[0]?.updatedEvent as DailyReturnType;
-  }
-
-  let meetingToken;
-  if (isDaily) {
-    const response = await fetch("https://api.daily.co/v1/meeting-tokens", {
-      method: "POST",
-      body: JSON.stringify({ properties: { room_name: dailyEvent.name, is_owner: true } }),
-      headers: {
-        Authorization: "Bearer " + process.env.DAILY_API_KEY,
-        "Content-Type": "application/json",
-      },
-    });
-    meetingToken = await response.json();
-  }
-
-  //for Daily.co video calls will update the dailyEventReference table
-
-  if (isDaily) {
-    await prisma.dailyEventReference.create({
-      data: {
-        dailyurl: dailyEvent.url,
-        dailytoken: meetingToken.token,
-        booking: {
-          connect: {
-            uid: booking.uid,
-          },
-        },
-      },
-    });
-  }
-
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await new EventOrganizerRequestMail(evt, uid).sendEmail();
+    await new EventOrganizerRequestMail({ ...evt, uid }).sendEmail();
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {

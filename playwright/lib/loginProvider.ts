@@ -37,7 +37,7 @@ export function loginProvider(opts: {
   waitForSelector?: string;
 }): Provider<Needs, Contributes> {
   return provider<Needs, Contributes>()
-    .name("page")
+    .name("login")
     .before(async () => {
       const context = await browser.newContext();
       const page = await context.newPage();

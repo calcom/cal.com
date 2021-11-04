@@ -1,12 +1,11 @@
 // import { getBusyVideoTimes } from "@lib/videoClient";
+import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
-
-import { Prisma } from ".prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = asStringOrNull(req.query.user);

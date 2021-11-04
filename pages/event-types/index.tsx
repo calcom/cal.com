@@ -40,6 +40,8 @@ import * as RadioArea from "@components/ui/form/radio-area";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
+type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
+type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
 interface CreateEventTypeProps {
   canAddEvents: boolean;
@@ -223,7 +225,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
 };
 
 interface EventTypeListHeadingProps {
-  profile: Profile;
+  profile: EventTypeGroupProfile;
   membershipCount: number;
 }
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => (
@@ -273,7 +275,7 @@ const EventTypesPage = () => {
   return (
     <div>
       <Head>
-        <title>{t("event_types_page_title")}| Cal.com</title>
+        <title>Home | Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
@@ -342,7 +344,7 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
   const createMutation = useMutation(createEventType, {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types/" + eventType.id);
-      showToast(`${eventType.title} event type created successfully`, "success");
+      showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err: HttpError) => {
       const message = `${err.statusCode}: ${err.message}`;
