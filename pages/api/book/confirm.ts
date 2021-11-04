@@ -1,4 +1,4 @@
-import { User, Booking, SchedulingType } from "@prisma/client";
+import { User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
@@ -146,6 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         data: {
           rejected: true,
+          status: BookingStatus.REJECTED,
         },
       });
       const attendeeMail = new EventRejectionMail(evt);
