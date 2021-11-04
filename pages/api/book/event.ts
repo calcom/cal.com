@@ -265,7 +265,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const evt: CalendarEvent = {
     type: eventType.title,
-    title: getEventName(reqBody.name, eventType.title, eventType.eventName),
+    title: getEventName(reqBody.name, eventType.title, eventType.eventName, users[0].name || "Nameless"),
     description: reqBody.notes,
     startTime: reqBody.start,
     endTime: reqBody.end,

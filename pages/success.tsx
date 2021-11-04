@@ -39,7 +39,12 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
-  const eventName = getEventName(name, props.eventType.title, props.eventType.eventName);
+  const eventName = getEventName(
+    name,
+    props.eventType.title,
+    props.eventType.eventName,
+    props.profile.name || "Nameless"
+  );
 
   function eventLink(): string {
     const optional: { location?: string } = {};
