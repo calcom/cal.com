@@ -71,7 +71,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
 
         <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div className="mb-4 sm:flex sm:items-start">
-            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-black rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
+            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-brand rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
               <UsersIcon className="w-6 h-6 text-black" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -95,7 +95,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                   id="inviteUser"
                   placeholder="email@example.com"
                   required
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
                 />
               </div>
               <div className="mb-4">
@@ -104,7 +104,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                 </label>
                 <select
                   id="role"
-                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm">
+                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm">
                   <option value="MEMBER">{t("member")}</option>
                   <option value="OWNER">{t("owner")}</option>
                 </select>
@@ -116,7 +116,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                     name="sendInviteEmail"
                     defaultChecked
                     id="sendInviteEmail"
-                    className="text-black border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                    className="text-black border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                   />
                 </div>
                 <div className="ml-2 text-sm">
