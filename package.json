@@ -44,7 +44,7 @@
     "@radix-ui/react-id": "^0.1.0",
     "@radix-ui/react-slider": "^0.1.1",
     "@radix-ui/react-switch": "^0.1.1",
-    "@radix-ui/react-tooltip": "^0.1.0",
+    "@radix-ui/react-tooltip": "^0.1.1",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.16.0",
     "@tailwindcss/forms": "^0.3.4",

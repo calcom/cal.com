@@ -1341,13 +1341,6 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
-"@radix-ui/react-arrow@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-arrow/-/react-arrow-0.1.0.tgz#9491f7244c574c0a7a281de8bf8c55b85438948d"
-  dependencies:
-    "@babel/runtime" "^7.13.10"
-    "@radix-ui/react-primitive" "0.1.0"
-
 "@radix-ui/react-arrow@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-arrow/-/react-arrow-0.1.1.tgz#e8e05444b37b9f71bf712a8cd4dd07dbd419e749"
@@ -1541,20 +1534,6 @@
     aria-hidden "^1.1.1"
     react-remove-scroll "^2.4.0"
 
-"@radix-ui/react-popper@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-popper/-/react-popper-0.1.0.tgz#5b41c806870c51562ca7dbfc137bdfe8c8eeb761"
-  dependencies:
-    "@babel/runtime" "^7.13.10"
-    "@radix-ui/popper" "0.1.0"
-    "@radix-ui/react-arrow" "0.1.0"
-    "@radix-ui/react-compose-refs" "0.1.0"
-    "@radix-ui/react-context" "0.1.0"
-    "@radix-ui/react-primitive" "0.1.0"
-    "@radix-ui/react-use-rect" "0.1.0"
-    "@radix-ui/react-use-size" "0.1.0"
-    "@radix-ui/rect" "0.1.0"
-
 "@radix-ui/react-popper@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-popper/-/react-popper-0.1.1.tgz#239eac72cdd7861636f14ff736f21fcb27237afd"
@@ -1682,26 +1661,27 @@
     "@radix-ui/react-use-previous" "0.1.0"
     "@radix-ui/react-use-size" "0.1.0"
 
-"@radix-ui/react-tooltip@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-tooltip/-/react-tooltip-0.1.0.tgz#ce51db528f97e3a44bf437810032441bb22270b1"
+"@radix-ui/react-tooltip@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-tooltip/-/react-tooltip-0.1.1.tgz#cab234fb62740626794a8008c95cd02f3bcad904"
+  integrity sha512-EVZoZ/268kJ/eo+iYN5iGdh5sYAkPMdqdTL51GhTdfG5pskgoeYJQFNP8peObcikKgoyKqkV+5iXGQGa9zzwYg==
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/primitive" "0.1.0"
     "@radix-ui/react-compose-refs" "0.1.0"
-    "@radix-ui/react-context" "0.1.0"
-    "@radix-ui/react-id" "0.1.0"
-    "@radix-ui/react-popper" "0.1.0"
-    "@radix-ui/react-portal" "0.1.0"
-    "@radix-ui/react-presence" "0.1.0"
-    "@radix-ui/react-primitive" "0.1.0"
-    "@radix-ui/react-slot" "0.1.0"
+    "@radix-ui/react-context" "0.1.1"
+    "@radix-ui/react-id" "0.1.1"
+    "@radix-ui/react-popper" "0.1.1"
+    "@radix-ui/react-portal" "0.1.1"
+    "@radix-ui/react-presence" "0.1.1"
+    "@radix-ui/react-primitive" "0.1.1"
+    "@radix-ui/react-slot" "0.1.1"
     "@radix-ui/react-use-controllable-state" "0.1.0"
     "@radix-ui/react-use-escape-keydown" "0.1.0"
     "@radix-ui/react-use-layout-effect" "0.1.0"
     "@radix-ui/react-use-previous" "0.1.0"
-    "@radix-ui/react-use-rect" "0.1.0"
-    "@radix-ui/react-visually-hidden" "0.1.0"
+    "@radix-ui/react-use-rect" "0.1.1"
+    "@radix-ui/react-visually-hidden" "0.1.1"
 
 "@radix-ui/react-use-body-pointer-events@0.1.0":
   version "0.1.0"
@@ -1748,13 +1728,6 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
-"@radix-ui/react-use-rect@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-use-rect/-/react-use-rect-0.1.0.tgz#074defa995c104e66319817c0b57ddbe3a22d53e"
-  dependencies:
-    "@babel/runtime" "^7.13.10"
-    "@radix-ui/rect" "0.1.0"
-
 "@radix-ui/react-use-rect@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-use-rect/-/react-use-rect-0.1.1.tgz#6c15384beee59c086e75b89a7e66f3d2e583a856"
@@ -1769,18 +1742,13 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
-"@radix-ui/react-visually-hidden@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-visually-hidden/-/react-visually-hidden-0.1.0.tgz#94d546c0507c4140bb369803a66fe557edf12897"
+"@radix-ui/react-visually-hidden@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-visually-hidden/-/react-visually-hidden-0.1.1.tgz#19be23414d4d731159a2c86d69a2c7319750a80f"
+  integrity sha512-9tH9yD5fwPOtQO4X5Xq3rv27g30bMY4S9T7Jx2SAhqdIhRfojuMnu3hUNOtGdrVwahm+/AFHwMEs2w+Dq+fdZw==
   dependencies:
     "@babel/runtime" "^7.13.10"
-    "@radix-ui/react-primitive" "0.1.0"
-
-"@radix-ui/rect@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/rect/-/rect-0.1.0.tgz#6e4becf9f0161bae08a40a8a13185e6bcac9b185"
-  dependencies:
-    "@babel/runtime" "^7.13.10"
+    "@radix-ui/react-primitive" "0.1.1"
 
 "@radix-ui/rect@0.1.1":
   version "0.1.1"
