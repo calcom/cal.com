@@ -63,7 +63,7 @@ enum UserPlan {
   PRO
 }
 
-model CalendarDestination {
+model DestinationCalendar {
   id          Int    @id
   integration String
   externalId  String
@@ -103,7 +103,7 @@ model User {
   webhooks            Webhook[]
 
   // the location where the events will end up
-  CalendarDestination CalendarDestination?
+  DestinationCalendar DestinationCalendar?
 
   @@map(name: "users")
 }
@@ -178,7 +178,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?     @unique
+  bookingId  Int?
 }
 
 model Booking {
