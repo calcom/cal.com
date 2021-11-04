@@ -24,18 +24,6 @@
   @apply rounded-sm focus:ring-primary-500 focus:border-primary-500 h-auto py-0.5 my-0.5;
 }
 
-/* Roboto */
-@font-face {
-  font-family: "Roboto";
-  src: url("https://app.cal.com/roboto.ttf");
-}
-
-/* Cal Sans */
-@font-face {
-  font-family: "Cal Sans";
-  src: url("https://app.cal.com/cal.ttf");
-}
-
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {
   /* Primary buttons */
