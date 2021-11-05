@@ -14,7 +14,7 @@ import { handlePayment } from "@ee/lib/stripe/server";
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
 import { getErrorFromUnknown } from "@lib/errors";
-import { getEventName } from "@lib/event";
+import { getEventName, EventNameObjectType } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
@@ -263,9 +263,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
+  const eventNameObject: EventNameObjectType = {
+    attendee: reqBody.name,
+    eventType: eventType.title,
+    eventName: eventType.eventName,
+    host: users[0].name || "Nameless",
+  };
+
   const evt: CalendarEvent = {
     type: eventType.title,
-    title: getEventName(reqBody.name, eventType.title, eventType.eventName, users[0].name || "Nameless"),
+    title: getEventName(eventNameObject),
     description: reqBody.notes,
     startTime: reqBody.start,
     endTime: reqBody.end,

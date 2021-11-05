@@ -11,7 +11,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
-import { getEventName } from "@lib/event";
+import { getEventName, EventNameObjectType } from "@lib/event";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -39,12 +39,14 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
-  const eventName = getEventName(
-    name,
-    props.eventType.title,
-    props.eventType.eventName,
-    props.profile.name || "Nameless"
-  );
+  const eventNameObject: EventNameObjectType = {
+    attendee: name,
+    eventType: props.eventType.title,
+    eventName: props.eventType.eventName,
+    host: props.profile.name || "Nameless",
+  };
+
+  const eventName = getEventName(eventNameObject);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
