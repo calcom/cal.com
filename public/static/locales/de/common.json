@@ -426,7 +426,7 @@
   "new_event_description": "Erstellen Sie einen neuen Ereignistyp, mit dem Personen Zeiten buchen können.",
   "event_type_created_successfully": "{{eventTypeTitle}} Ereignistyp erfolgreich erstellt",
   "event_type_updated_successfully": "Ereignistyp erfolgreich aktualisiert",
-  "event_type_deleted_successfully": "Ereignis-Typ erfolgreich gelöscht",
+  "event_type_deleted_successfully": "Event-Typ erfolgreich gelöscht",
   "hours": "Stunden",
   "your_email": "Ihre Emailadresse",
   "change_avatar": "Profilbild ändern",
