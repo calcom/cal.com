@@ -205,7 +205,7 @@ const BookingPage = (props: BookingPageProps) => {
         {isReady && (
           <div className="overflow-hidden bg-white border border-gray-200 dark:bg-neutral-900 dark:border-0 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
-              <div className="sm:w-1/2 sm:border-r sm:dark:border-black">
+              <div className="sm:w-1/2 sm:border-r sm:dark:border-brand">
                 <AvatarGroup
                   size={16}
                   items={[{ image: props.profile.image, alt: props.profile.name }].concat(
@@ -263,7 +263,7 @@ const BookingPage = (props: BookingPageProps) => {
                         name="name"
                         id="name"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                         placeholder="John Doe"
                         defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
@@ -282,7 +282,7 @@ const BookingPage = (props: BookingPageProps) => {
                         id="email"
                         inputMode="email"
                         required
-                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                        className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                         placeholder="you@example.com"
                         defaultValue={props.booking ? props.booking.attendees[0].email : ""}
                       />
@@ -341,7 +341,7 @@ const BookingPage = (props: BookingPageProps) => {
                               id={"custom_" + input.id}
                               required={input.required}
                               rows={3}
-                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -351,7 +351,7 @@ const BookingPage = (props: BookingPageProps) => {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                               placeholder={input.placeholder}
                             />
                           )}
@@ -361,7 +361,7 @@ const BookingPage = (props: BookingPageProps) => {
                               name={"custom_" + input.id}
                               id={"custom_" + input.id}
                               required={input.required}
-                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                               placeholder=""
                             />
                           )}
@@ -437,7 +437,7 @@ const BookingPage = (props: BookingPageProps) => {
                       name="notes"
                       id="notes"
                       rows={3}
-                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
+                      className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                       placeholder={t("share_additional_notes")}
                       defaultValue={props.booking ? props.booking.description : ""}
                     />

@@ -48,7 +48,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   });
 
   return (
-    <ListItem className="flex w-full p-4">
+    <ListItem className="flex w-full p-4 -mt-px">
       <div className="flex justify-between w-full">
         <div className="flex flex-col max-w-full truncate">
           <div className="flex space-y-1">
@@ -61,7 +61,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="flex mt-2">
-            <span className="flex flex-col space-y-1 text-xs sm:flex-row sm:space-x-2">
+            <span className="flex flex-col space-y-1 sm:space-y-0 text-xs sm:flex-row sm:space-x-2">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -366,7 +366,7 @@ function IframeEmbedContainer() {
               <div>
                 <input
                   id="iframe"
-                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-black"
+                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-brand"
                   placeholder={t("loading")}
                   defaultValue={iframeTemplate}
                   readOnly
@@ -391,7 +391,7 @@ function IframeEmbedContainer() {
               <div>
                 <input
                   id="fullscreen"
-                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-black"
+                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-brand"
                   placeholder={t("loading")}
                   defaultValue={htmlTemplate}
                   readOnly
@@ -419,9 +419,9 @@ function IframeEmbedContainer() {
         </div>
 
         <ShellSubHeading className="mt-10" title="Cal.com API" subtitle={t("leverage_our_api")} />
-        <a href="https://developer.cal.com/api" className="btn btn-primary">
+        <Button color="primary" href="https://developer.cal.com/api">
           {t("browse_api_documentation")}
-        </a>
+        </Button>
       </div>
     </>
   );
