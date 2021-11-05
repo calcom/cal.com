@@ -69,7 +69,7 @@ describe("webhooks", () => {
     body.payload.uid = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
-    console.log("BODY", body);
+    // console.log("BODY", body);
     expect(body).toMatchInlineSnapshot(`
     Object {
       "createdAt": "[redacted/dynamic]",

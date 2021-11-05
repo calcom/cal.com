@@ -9,6 +9,7 @@ const SKIP_PATHS = [
   "404",
   "api",
   "auth",
+  "fonts",
   "availability",
   "bookings",
   "call",
@@ -35,7 +36,8 @@ export async function middleware(req: NextRequest) {
   const [firstPart] = parts;
 
   const isFileRequest = pathname.includes(".");
-  if (SKIP_PATHS.includes(firstPart) || isFileRequest) {
+
+  if (SKIP_PATHS.includes(firstPart) || isFileRequest || pathname === "/") {
     return;
   }
 
