@@ -89,7 +89,7 @@ describe("webhooks", () => {
           "timeZone": "[redacted/dynamic]",
         },
         "startTime": "[redacted/dynamic]",
-        "title": "30min with Test Testson",
+        "title": "30min between Pro Example and Test Testson",
         "type": "30min",
         "uid": "[redacted/dynamic]",
       },
