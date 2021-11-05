@@ -1864,18 +1864,15 @@
     "@babel/runtime" "^7.9.0"
     "@trpc/server" "9.12.0"
 
-"@trpc/next@^9.12.0":
-  version "9.12.0"
-  resolved "https://registry.npmjs.org/@trpc/next/-/next-9.12.0.tgz#77eda17ed7ef6dbd737a69508b606b304c42b16d"
-  integrity sha512-P1Tq+9WM5fGvzhUe93aUWCczpd2ic7+VRYc3RYuDZr6I5TK6vf+xscRIZcIbDV4YmdHO05cZ2vclEzrUApJNtA==
+"@trpc/next@^9.12.2":
+  version "9.12.2"
+  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.12.2.tgz#8adaa95f1866b8336098a8d3baf2abf9b5dbc0f0"
+  integrity sha512-8uWApeq6nxdOfBLTA/gFaqlptsgUsPb//lOb+ksaJajNdOLvEr2oMPNjnmwbv9CNI3Fp9/KNGTjwRhZlOZVcCA==
   dependencies:
     "@babel/runtime" "^7.9.0"
-    "@trpc/client" "9.12.0"
-    "@trpc/react" "9.12.0"
-    "@trpc/server" "9.12.0"
     react-ssr-prepass "^1.4.0"
 
-"@trpc/react@9.12.0", "@trpc/react@^9.12.0":
+"@trpc/react@^9.12.0":
   version "9.12.0"
   resolved "https://registry.npmjs.org/@trpc/react/-/react-9.12.0.tgz#bfad54c4f62288e8f849d08d2f48105b9755a96e"
   integrity sha512-okd5+hJytiHZ1PUP6H6rakF7NUZ2UP2Ec34kkwlJPZu1iTUwggdikydbZA3QJUX4JlW+8+VPSAN9yIbLmTp2IQ==
