@@ -1,7 +1,7 @@
 import { TFunction } from "next-i18next";
 
-export type EventNameObjectType = {
-  attendee: string | string[] | undefined;
+type EventNameObjectType = {
+  attendeeName?: string | string[];
   eventType: string;
   eventName: string | null;
   host: string;
@@ -9,12 +9,13 @@ export type EventNameObjectType = {
 };
 
 export function getEventName(eventNameObj: EventNameObjectType) {
-  if (!eventNameObj.attendee || !(typeof eventNameObj.attendee === "string")) eventNameObj.attendee = ""; // If name is not set or is not of proper type
-  return !eventNameObj.eventType
-    ? eventNameObj.eventType.replace("{USER}", eventNameObj.attendee)
+  if (!eventNameObj.attendeeName || !(typeof eventNameObj.attendeeName === "string"))
+    eventNameObj.attendeeName = "";
+  return eventNameObj.eventName
+    ? eventNameObj.eventName.replace("{USER}", eventNameObj.attendeeName)
     : eventNameObj.t("event_between_users", {
-        eventName: eventNameObj.eventName,
+        eventName: eventNameObj.eventType,
         host: eventNameObj.host,
-        attendee: eventNameObj.attendee,
+        attendeeName: eventNameObj.attendeeName,
       });
 }
