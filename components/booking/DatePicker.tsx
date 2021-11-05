@@ -186,12 +186,12 @@ function DatePicker({
                 disabled={day.disabled}
                 className={classNames(
                   "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
-                  "hover:border hover:border-black dark:hover:border-white",
+                  "hover:border hover:border-brand dark:hover:border-white",
                   day.disabled
                     ? "text-gray-400 font-light hover:border-0 cursor-default"
                     : "dark:text-white text-primary-500 font-medium",
                   date && date.isSame(inviteeDate().date(day.date), "day")
-                    ? "bg-black text-white-important"
+                    ? "bg-brand text-white-important"
                     : !day.disabled
                     ? " bg-gray-100 dark:bg-gray-600"
                     : ""
