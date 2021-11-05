@@ -63,7 +63,7 @@ enum UserPlan {
   PRO
 }
 
-model DestinationCalendar {
+model UserDestinationCalendar {
   id          Int    @id
   integration String
   externalId  String
@@ -103,7 +103,7 @@ model User {
   webhooks            Webhook[]
 
   // the location where the events will end up
-  DestinationCalendar DestinationCalendar?
+  UserDestinationCalendar UserDestinationCalendar?
 
   @@map(name: "users")
 }
@@ -181,6 +181,14 @@ model DailyEventReference {
   bookingId  Int?
 }
 
+model BookingDestinationCalendar {
+  id          Int    @id
+  integration String
+  externalId  String
+
+  Booking Booking @relation(fields: [id], references: [id])
+}
+
 model Booking {
   id          Int                @id @default(autoincrement())
   uid         String             @unique
@@ -207,6 +215,8 @@ model Booking {
   status    BookingStatus @default(ACCEPTED)
   paid      Boolean       @default(false)
   payment   Payment[]
+
+  BookingDestinationCalendar BookingDestinationCalendar?
 }
 
 model Schedule {

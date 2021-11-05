@@ -324,11 +324,11 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         connectedCalendars,
-        DestinationCalendar: user.DestinationCalendar,
+        UserDestinationCalendar: user.UserDestinationCalendar,
       };
     },
   })
-  .mutation("setDestinationCalendar", {
+  .mutation("setUserDestinationCalendar", {
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
@@ -345,7 +345,7 @@ const loggedInViewerRouter = createProtectedRouter()
       ) {
         throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
       }
-      await ctx.prisma.destinationCalendar.upsert({
+      await ctx.prisma.UserDestinationCalendar.upsert({
         where: {
           id,
         },

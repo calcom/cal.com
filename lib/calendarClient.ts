@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
-import { Credential, Prisma, SelectedCalendar } from "@prisma/client";
+import { Credential, Prisma, SelectedCalendar, BookingDestinationCalendar } from "@prisma/client";
 import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { Auth, calendar_v3, google } from "googleapis";
 import { TFunction } from "next-i18next";
@@ -161,6 +161,7 @@ export interface CalendarEvent {
   /** If this property exist it we can assume it's a reschedule/update */
   uid?: string | null;
   videoCallData?: VideoCallData;
+  BookingDestinationCalendar?: BookingDestinationCalendar | null;
 }
 
 export interface ConferenceData {
@@ -641,7 +642,6 @@ const createEvent = async (
           return undefined;
         })
     : undefined;
-
   const metadata: AdditionInformation = {};
   if (creationResult) {
     // TODO: Handle created event metadata more elegantly

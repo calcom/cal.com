@@ -154,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     timeZone: true,
     credentials: true,
     bufferTime: true,
-    DestinationCalendar: true,
+    UserDestinationCalendar: true,
   });
 
   const userData = Prisma.validator<Prisma.UserArgs>()({

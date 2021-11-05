@@ -1,4 +1,4 @@
-import { Credential, DestinationCalendar } from "@prisma/client";
+import { Credential, UserDestinationCalendar } from "@prisma/client";
 import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
@@ -53,12 +53,12 @@ interface GetLocationRequestFromIntegrationRequest {
 
 type EventManagerUser = {
   credentials: Credential[];
-  DestinationCalendar: DestinationCalendar | null;
+  UserDestinationCalendar: UserDestinationCalendar | null;
 };
 export default class EventManager {
   calendarCredentials: Array<Credential>;
   videoCredentials: Array<Credential>;
-  private DestinationCalendar;
+  private calendarDestination;
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -66,7 +66,7 @@ export default class EventManager {
    * @param credentials
    */
   constructor(user: EventManagerUser) {
-    this.DestinationCalendar = user.DestinationCalendar;
+    this.calendarDestination = user.UserDestinationCalendar;
     this.calendarCredentials = user.credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
 
@@ -156,6 +156,7 @@ export default class EventManager {
             meetingUrl: true,
           },
         },
+        BookingDestinationCalendar: true,
       },
     });
 
@@ -208,18 +209,13 @@ export default class EventManager {
   }
 
   /**
-   * Creates event entries for all calendar integrations given in the credentials.
-   * When noMail is true, no mails will be sent. This is used when the event is
-   * a video meeting because then the mail containing the video credentials will be
-   * more important than the mails created for these bare calendar events.
-   *
-   * When the optional uid is set, it will be used instead of the auto generated uid.
+   * Creates event entriy for the destination calendar in the credentials.
+   * If no destination is found, it uses the first one it can find
    *
    * @param event
    * @param noMail
    * @private
    */
-
   private createAllCalendarEvents(event: CalendarEvent, noMail: boolean | null): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
       return createEvent(credential, event, noMail);

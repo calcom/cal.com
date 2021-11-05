@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timeZone: true,
       email: true,
       name: true,
-      DestinationCalendar: true,
+      UserDestinationCalendar: true,
     },
   });
 

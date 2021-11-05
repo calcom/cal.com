@@ -167,7 +167,7 @@ function PrimaryCalendarSelector() {
     const selected = query.data?.connectedCalendars
       .map((connected) => connected.calendars ?? [])
       .flat()
-      .find((cal) => cal.externalId === query.data.DestinationCalendar?.externalId);
+      .find((cal) => cal.externalId === query.data.UserDestinationCalendar?.externalId);
 
     if (!selected) {
       return null;
@@ -179,7 +179,7 @@ function PrimaryCalendarSelector() {
     };
   });
 
-  const mutation = trpc.useMutation("viewer.setDestinationCalendar");
+  const mutation = trpc.useMutation("viewer.setUserDestinationCalendar");
 
   if (!query.data?.connectedCalendars.length) {
     return null;
