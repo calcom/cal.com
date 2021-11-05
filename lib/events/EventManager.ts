@@ -88,6 +88,11 @@ export default class EventManager {
     let evt = EventManager.processLocation(event);
     const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
 
+    // 1. list all user's remote calendar
+    // 2. check if destination calendar exist
+    // 3a) - not exists - pick first one
+    // 3b) - exists - use destination calendar
+
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
     const results: Array<EventResult> = await this.createAllCalendarEvents(evt, isDedicated);
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
