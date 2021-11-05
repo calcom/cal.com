@@ -1856,13 +1856,20 @@
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
 
-"@trpc/client@9.12.0", "@trpc/client@^9.12.0":
+"@trpc/client@9.12.0":
   version "9.12.0"
   resolved "https://registry.npmjs.org/@trpc/client/-/client-9.12.0.tgz#3a066a83acc58c1c804bac2d2007d1592247b1c2"
   integrity sha512-GJjCgSaQmTmpyqyxBXUriSsovtsMFvnSZuQ4vK3IrXUw6/DzCab07wHVjAMFdvF9k6WIVuXWZBfXh5hq9H024w==
   dependencies:
     "@babel/runtime" "^7.9.0"
     "@trpc/server" "9.12.0"
+
+"@trpc/client@^9.12.2":
+  version "9.12.2"
+  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.12.2.tgz#7e74f613f052b2c3c1bdedd9a33f2776ee5f9120"
+  integrity sha512-UJYpcMTpceh/meYIqydUL0Jgi1FXTpCqqgFOYkv/BMIdWg5yXH8bEvwr35dNtglhCeT5OR9IAAETNAXSV2fW5Q==
+  dependencies:
+    "@babel/runtime" "^7.9.0"
 
 "@trpc/next@^9.12.0":
   version "9.12.0"
