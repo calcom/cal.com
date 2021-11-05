@@ -22,7 +22,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
@@ -115,10 +115,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [users] = useState<AdvancedOptions["users"]>([]);
   const [editIcon, setEditIcon] = useState(true);
-  const [enteredAvailability, setEnteredAvailability] = useState<{
-    openingHours: WorkingHours[];
-    dateOverrides: WorkingHours[];
-  }>();
+  // const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
@@ -136,67 +133,63 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     );
   });
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
-
-  const [hidden, setHidden] = useState<boolean>(eventType.hidden);
-
-  const titleRef = useRef<HTMLInputElement>(null);
-  const eventNameRef = useRef<HTMLInputElement>(null);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
   useEffect(() => {
+    formMethods.setValue("scheduler.selectedTimezone", eventType.timeZone || "");
     setSelectedTimeZone(eventType.timeZone || "");
   }, []);
 
-  async function updateEventTypeHandler(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // async function updateEventTypeHandler(event: React.FormEvent<HTMLFormElement>) {
+  //   event.preventDefault();
 
-    const formData = Object.fromEntries(new FormData(event.currentTarget).entries());
+  //   const formData = Object.fromEntries(new FormData(event.currentTarget).entries());
 
-    const enteredTitle: string = titleRef.current!.value;
+  //   const enteredTitle: string = titleRef.current!.value;
 
-    const advancedPayload: AdvancedOptions = {};
-    if (advancedSettingsVisible) {
-      advancedPayload.eventName = eventNameRef.current.value;
-      advancedPayload.periodType = periodType?.type;
-      advancedPayload.periodDays = asNumberOrUndefined(formData.periodDays);
-      advancedPayload.periodCountCalendarDays = Boolean(
-        asNumberOrUndefined(formData.periodCountCalendarDays)
-      );
-      advancedPayload.periodStartDate = periodDates.startDate || undefined;
-      advancedPayload.periodEndDate = periodDates.endDate || undefined;
-      advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
-      // prettier-ignore
-      advancedPayload.price =
-        !requirePayment ? undefined :
-          formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
-            /* otherwise */   0;
-      advancedPayload.currency = currency; //
-      advancedPayload.availability = enteredAvailability || undefined;
-      advancedPayload.customInputs = customInputs;
-      advancedPayload.timeZone = selectedTimeZone;
-      advancedPayload.disableGuests = formData.disableGuests === "on";
-      advancedPayload.requiresConfirmation = formData.requiresConfirmation === "on";
-    }
+  //   const advancedPayload: AdvancedOptions = {};
+  //   if (advancedSettingsVisible) {
+  //     advancedPayload.eventName = eventNameRef.current.value;
+  //     advancedPayload.periodType = periodType?.type;
+  //     advancedPayload.periodDays = asNumberOrUndefined(formData.periodDays);
+  //     advancedPayload.periodCountCalendarDays = Boolean(
+  //       asNumberOrUndefined(formData.periodCountCalendarDays)
+  //     );
+  //     advancedPayload.periodStartDate = periodDates.startDate || undefined;
+  //     advancedPayload.periodEndDate = periodDates.endDate || undefined;
+  //     advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
+  //     // prettier-ignore
+  //     advancedPayload.price =
+  //       !requirePayment ? undefined :
+  //         formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
+  //           /* otherwise */   0;
+  //     advancedPayload.currency = currency; //
+  //     advancedPayload.availability = enteredAvailability || undefined;
+  //     advancedPayload.customInputs = customInputs;
+  //     advancedPayload.timeZone = selectedTimeZone;
+  //     advancedPayload.disableGuests = formData.disableGuests === "on";
+  //     advancedPayload.requiresConfirmation = formData.requiresConfirmation === "on";
+  //   }
 
-    const payload: EventTypeInput = {
-      id: eventType.id,
-      title: enteredTitle,
-      slug: asStringOrThrow(formData.slug),
-      description: asStringOrThrow(formData.description),
-      length: asNumberOrThrow(formData.length),
-      hidden,
-      locations,
-      ...advancedPayload,
-      ...(team
-        ? {
-            schedulingType: formData.schedulingType as SchedulingType,
-            users,
-          }
-        : {}),
-    };
+  //   const payload: EventTypeInput = {
+  //     id: eventType.id,
+  //     title: enteredTitle,
+  //     slug: asStringOrThrow(formData.slug),
+  //     description: asStringOrThrow(formData.description),
+  //     length: asNumberOrThrow(formData.length),
+  //     hidden,
+  //     locations,
+  //     ...advancedPayload,
+  //     ...(team
+  //       ? {
+  //           schedulingType: formData.schedulingType as SchedulingType,
+  //           users,
+  //         }
+  //       : {}),
+  //   };
 
-    updateMutation.mutate(payload);
-  }
+  //   updateMutation.mutate(payload);
+  // }
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();
@@ -319,15 +312,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
+    schedulingType: SchedulingType;
     price: number;
     isHidden: boolean;
     location: string;
     selectedCustomInput: EventTypeCustomInput | undefined;
     customInputs: EventTypeCustomInput[] | undefined;
     users: AdvancedOptions["users"];
-    periodType: string;
+    scheduler: { enteredAvailability: string; selectedTimezone: string };
+    periodType: string | number;
     periodDays: number;
-    periodDaysType: string;
+    periodDaysType: string | number;
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
   }>();
@@ -383,9 +378,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         values.price ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100) :
                           /* otherwise */   0;
                     advancedPayload.currency = currency; //
-                    advancedPayload.availability = enteredAvailability || undefined;
+                    advancedPayload.availability = values.scheduler.enteredAvailability || undefined;
                     advancedPayload.customInputs = customInputs;
-                    advancedPayload.timeZone = selectedTimeZone;
+                    advancedPayload.timeZone = values.scheduler.selectedTimezone;
                     advancedPayload.disableGuests = values.disableGuests;
                     advancedPayload.requiresConfirmation = values.requiresConfirmation;
                   }
@@ -395,19 +390,20 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     title: enteredTitle,
                     slug: asStringOrThrow(values.slug),
                     description: asStringOrThrow(values.description),
-                    length: asNumberOrThrow(values.length),
+                    // length: asNumberOrThrow(values.length),
+                    length: values.length,
                     hidden: values.isHidden,
                     locations,
                     ...advancedPayload,
                     ...(team
                       ? {
-                          schedulingType: formData.schedulingType as SchedulingType,
+                          schedulingType: values.schedulingType as SchedulingType,
                           users,
                         }
                       : {}),
                   };
 
-                  updateMutation.mutate(payload);
+                  // updateMutation.mutate(payload);
                 })}
                 className="space-y-6">
                 <div className="space-y-3">
@@ -667,10 +663,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <UsersIcon className="w-5 h-5 mr-2 text-neutral-500" /> {t("scheduling_type")}
                         </label>
                       </div>
-                      <RadioArea.Select
+                      <Controller
                         name="schedulingType"
-                        value={asStringOrUndefined(eventType.schedulingType)}
-                        options={schedulingTypeOptions}
+                        control={formMethods.control}
+                        defaultValue={eventType.schedulingType}
+                        render={() => (
+                          <RadioArea.Select
+                            value={asStringOrUndefined(eventType.schedulingType)}
+                            options={schedulingTypeOptions}
+                            onChange={(val) => {
+                              formMethods.setValue("schedulingType", val);
+                            }}
+                          />
+                        )}
                       />
                     </div>
 
@@ -683,6 +688,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full space-y-2">
                         <Controller
                           name="users"
+                          control={formMethods.control}
                           defaultValue={eventType.users.map(mapUserToValue)}
                           render={() => (
                             <CheckedSelect
@@ -919,6 +925,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       <div className="inline-flex ml-2 space-x-2">
                                         <Controller
                                           name="periodDates"
+                                          control={formMethods.control}
                                           defaultValue={periodDates}
                                           render={() => (
                                             <DateRangePicker
@@ -953,11 +960,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </label>
                         </div>
                         <div className="w-full">
-                          <Scheduler
-                            setAvailability={setEnteredAvailability}
-                            setTimeZone={setSelectedTimeZone}
-                            timeZone={selectedTimeZone}
-                            availability={availability}
+                          <Controller
+                            name="scheduler"
+                            control={formMethods.control}
+                            defaultValue={{ enteredAvailability: "", selectedTimezone: "" }}
+                            render={() => (
+                              <Scheduler
+                                setAvailability={(val) => {
+                                  formMethods.setValue("scheduler.enteredAvailability", val);
+                                }}
+                                setTimeZone={(val) => {
+                                  formMethods.setValue("scheduler.selectedTimezone", val);
+                                }}
+                                timeZone={selectedTimeZone}
+                                availability={availability}
+                              />
+                            )}
                           />
                         </div>
                       </div>
@@ -1059,8 +1077,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
             <div className="px-2">
               <Controller
-                control={formMethods.control}
                 name="isHidden"
+                control={formMethods.control}
                 defaultValue={eventType.hidden}
                 render={({ field }) => (
                   <Switch
@@ -1078,7 +1096,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 href={permalink}
                 target="_blank"
                 rel="noreferrer"
-                className="flex inline-flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
+                className="inline-flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
                 <ExternalLinkIcon className="w-4 h-4 mr-2 text-neutral-500" aria-hidden="true" />
                 {t("preview")}
               </a>
