@@ -44,6 +44,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     eventType: props.eventType.title,
     eventName: props.eventType.eventName,
     host: props.profile.name || "Nameless",
+    t: t,
   };
 
   const eventName = getEventName(eventNameObject);
