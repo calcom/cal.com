@@ -4,6 +4,8 @@ import dayjs, { Dayjs } from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
@@ -128,6 +130,7 @@ function DatePicker({
     setDays(days);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth]);
+  const router = useRouter();
 
   return (
     <div
@@ -181,25 +184,28 @@ function DatePicker({
             {day === null ? (
               <div key={`e-${idx}`} />
             ) : (
-              <button
-                onClick={() => onDatePicked(inviteeDate().date(day.date))}
-                disabled={day.disabled}
-                className={classNames(
-                  "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
-                  "hover:border hover:border-brand dark:hover:border-white",
-                  day.disabled
-                    ? "text-gray-400 font-light hover:border-0 cursor-default"
-                    : "dark:text-white text-primary-500 font-medium",
-                  date && date.isSame(inviteeDate().date(day.date), "day")
-                    ? "bg-brand text-white-important"
-                    : !day.disabled
-                    ? " bg-gray-100 dark:bg-gray-600"
-                    : ""
-                )}
-                data-testid="day"
-                data-disabled={day.disabled}>
-                {day.date}
-              </button>
+              <Link href={`/${router.query.user}/${router.query.type}?date=2021-11-10%2B0000`}>
+                <a>{day.date}</a>
+              </Link>
+              // <button
+              //   onClick={() => onDatePicked(inviteeDate().date(day.date))}
+              //   disabled={day.disabled}
+              //   className={classNames(
+              //     "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
+              //     "hover:border hover:border-brand dark:hover:border-white",
+              //     day.disabled
+              //       ? "text-gray-400 font-light hover:border-0 cursor-default"
+              //       : "dark:text-white text-primary-500 font-medium",
+              //     date && date.isSame(inviteeDate().date(day.date), "day")
+              //       ? "bg-brand text-white-important"
+              //       : !day.disabled
+              //       ? " bg-gray-100 dark:bg-gray-600"
+              //       : ""
+              //   )}
+              //   data-testid="day"
+              //   data-disabled={day.disabled}>
+              //   {day.date}
+              // </button>
             )}
           </div>
         ))}
