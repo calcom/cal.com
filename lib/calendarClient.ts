@@ -10,8 +10,6 @@ import logger from "@lib/logger";
 import { VideoCallData } from "@lib/videoClient";
 
 import CalEventParser from "./CalEventParser";
-import EventOrganizerMail from "./emails/EventOrganizerMail";
-import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import { AppleCalendar } from "./integrations/Apple/AppleCalendarAdapter";
 import { CalDavCalendar } from "./integrations/CalDav/CalDavCalendarAdapter";
 import prisma from "./prisma";
@@ -320,12 +318,7 @@ const MicrosoftOffice365Calendar = (credential: Credential): CalendarApiAdapter 
             "Content-Type": "application/json",
           },
           body: JSON.stringify(translateEvent(event)),
-        })
-          .then(handleErrorsJson)
-          .then((responseBody) => ({
-            ...responseBody,
-            disableConfirmationEmail: true,
-          }))
+        }).then(handleErrorsJson)
       ),
     deleteEvent: (uid: string) =>
       auth.getToken().then((accessToken) =>
@@ -616,11 +609,7 @@ const listCalendars = (withCredentials: Credential[]) =>
     results.reduce((acc, calendars) => acc.concat(calendars), []).filter((c) => c != null)
   );
 
-const createEvent = async (
-  credential: Credential,
-  calEvent: CalendarEvent,
-  noMail: boolean | null = false
-): Promise<EventResult> => {
+const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   /*
@@ -642,21 +631,13 @@ const createEvent = async (
         })
     : undefined;
 
-  const metadata: AdditionInformation = {};
-  if (creationResult) {
-    // TODO: Handle created event metadata more elegantly
-    metadata.hangoutLink = creationResult.hangoutLink;
-    metadata.conferenceData = creationResult.conferenceData;
-    metadata.entryPoints = creationResult.entryPoints;
-  }
-
-  if (!noMail) {
-    try {
-      const organizerMail = new EventOrganizerMail({ ...calEvent, uid, additionInformation: metadata });
-      await organizerMail.sendEmail();
-    } catch (e) {
-      console.error("organizerMail.sendEmail failed", e);
-    }
+  if (!creationResult) {
+    return {
+      type: credential.type,
+      success,
+      uid,
+      originalEvent: calEvent,
+    };
   }
 
   return {
@@ -671,45 +652,40 @@ const createEvent = async (
 const updateEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  noMail: boolean | null = false
+  bookingRefUid: string | null
 ): Promise<EventResult> => {
-  // In order to generate a new uid after rescheduling
-  const oldUid = calEvent.uid;
-  calEvent.uid = undefined;
-
   const parser: CalEventParser = new CalEventParser(calEvent);
-  const newUid = parser.getUid();
+  const uid = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   let success = true;
 
   const updateResult =
-    credential && oldUid
+    credential && bookingRefUid
       ? await calendars([credential])[0]
-          .updateEvent(oldUid, richEvent)
+          .updateEvent(bookingRefUid, richEvent)
           .catch((e) => {
-            log.error("updateEvent failed", e, { ...calEvent, uid: oldUid });
+            log.error("updateEvent failed", e, calEvent);
             success = false;
+            return undefined;
           })
-      : null;
+      : undefined;
 
-  calEvent.uid = newUid;
-
-  if (!noMail) {
-    try {
-      const organizerMail = new EventOrganizerRescheduledMail(calEvent);
-      await organizerMail.sendEmail();
-    } catch (e) {
-      console.error("organizerMail.sendEmail failed", e);
-    }
+  if (!updateResult) {
+    return {
+      type: credential.type,
+      success,
+      uid,
+      originalEvent: calEvent,
+    };
   }
 
   return {
     type: credential.type,
     success,
-    uid: newUid,
+    uid,
     updatedEvent: updateResult,
-    originalEvent: { ...calEvent, uid: oldUid },
+    originalEvent: calEvent,
   };
 };
 

@@ -12,8 +12,8 @@ import { v5 as uuidv5 } from "uuid";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import { CalendarEvent, AdditionInformation, getBusyCalendarTimes } from "@lib/calendarClient";
-import EventAttendeeRescheduledMail from "@lib/emails/EventAttendeeRescheduledMail";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
+import { sendScheduledEmails, sendRescheduledEmails } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
@@ -278,7 +278,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
     language: t,
-    uid,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -330,6 +329,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
+    evt.uid = booking.uid;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
@@ -431,8 +431,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
-    evt.uid = rescheduleUid;
-    const updateResults = await eventManager.update(evt);
+    const updateResults = await eventManager.update(evt, rescheduleUid);
 
     results = updateResults.results;
     referencesToCreate = updateResults.referencesToCreate;
@@ -444,26 +443,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
 
       log.error(`Booking ${user.name} failed`, error, results);
-    }
-
-    // Set to new uid when sending email
-    evt.uid = booking.uid;
-
-    if (!results.length || !results.some((eRes) => eRes.updatedEvent?.disableConfirmationEmail)) {
-      const metadata: AdditionInformation = {};
-      if (results.length) {
-        // TODO: Handle created event metadata more elegantly
-        metadata.hangoutLink = results[0].updatedEvent?.hangoutLink;
-        metadata.conferenceData = results[0].updatedEvent?.conferenceData;
-        metadata.entryPoints = results[0].updatedEvent?.entryPoints;
-      }
-
-      try {
-        const attendeeMail = new EventAttendeeRescheduledMail({ ...evt, additionInformation: metadata });
-        await attendeeMail.sendEmail();
-      } catch (e) {
-        console.error("attendeeMail.sendEmail failed", e);
-      }
+    } else {
+      await sendRescheduledEmails(evt);
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -481,6 +462,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
 
       log.error(`Booking ${user.username} failed`, error, results);
+    } else {
+      const metadata: AdditionInformation = {};
+
+      if (results.length) {
+        // TODO: Handle created event metadata more elegantly
+        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+        metadata.conferenceData = results[0].createdEvent?.conferenceData;
+        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+      }
+      await sendScheduledEmails({ ...evt, additionInformation: metadata });
     }
   }
 
