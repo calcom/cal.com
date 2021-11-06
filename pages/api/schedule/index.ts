@@ -1,13 +1,9 @@
 import { Availability } from "@prisma/client";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 import { TimeRange } from "@lib/types/schedule";
-
-dayjs.extend(utc);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -23,14 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const availability = req.body.schedule.reduce(
     (availability: Availability[], times: TimeRange[], day: number) => {
-      const startOfDay = dayjs.utc().startOf("day");
-
-      const startAndEndTimesAsMinutes = (time: TimeRange) => ({
-        ...time,
-        start: -startOfDay.diff(time.start, "minute"),
-        end: -startOfDay.diff(time.end, "minute"),
-      });
-
       const addNewTime = (time: TimeRange) =>
         ({
           days: [day],
@@ -38,10 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           endTime: time.end,
         } as Availability);
 
-      if (!availability.length) {
-        return times.map(startAndEndTimesAsMinutes).map(addNewTime);
-      }
-      const filteredTimes = times.map(startAndEndTimesAsMinutes).filter((time) => {
+      const filteredTimes = times.filter((time) => {
         let idx;
         if (
           (idx = availability.findIndex(

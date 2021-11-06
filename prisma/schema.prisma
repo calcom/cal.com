@@ -216,8 +216,8 @@ model Availability {
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
-  startTime   Int // Number of minutes since midnight in UTC
-  endTime     Int // Number of minutes since midnight in UTC
+  startTime   DateTime   @db.Time
+  endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
 }
 

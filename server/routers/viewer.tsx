@@ -396,18 +396,8 @@ const loggedInViewerRouter = createProtectedRouter()
         (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
             schedule[day].push({
-              start: new Date().setUTCHours(
-                Math.floor(availability.startTime / 60),
-                availability.startTime % 60,
-                0,
-                0
-              ),
-              end: new Date().setUTCHours(
-                Math.floor(availability.endTime / 60),
-                availability.endTime % 60,
-                0,
-                0
-              ),
+              start: new Date(new Date().toDateString() + " " + availability.startTime.toTimeString()),
+              end: new Date(new Date().toDateString() + " " + availability.endTime.toTimeString()),
             });
           });
           return schedule;

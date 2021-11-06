@@ -18,8 +18,8 @@ const increment = 15;
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
 const TIMES = (() => {
-  const end = dayjs("1970-01-01").endOf("day");
-  let t: Dayjs = dayjs("1970-01-01").startOf("day");
+  const end = dayjs().endOf("day");
+  let t: Dayjs = dayjs().startOf("day");
 
   const times = [];
   while (t.isBefore(end)) {
@@ -30,9 +30,10 @@ const TIMES = (() => {
 })();
 /** End Time Increments For Select */
 
+// sets the desired time in current date, needs to be current date for proper DST translation
 const defaultDayRange: TimeRange = {
-  start: new Date("1970-01-01T09:00:00").valueOf(),
-  end: new Date("1970-01-01T17:00:00").valueOf(),
+  start: new Date(new Date().setHours(9, 0, 0, 0)),
+  end: new Date(new Date().setHours(17, 0, 0, 0)),
 };
 
 export const DEFAULT_SCHEDULE: ScheduleType = [
@@ -58,15 +59,15 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
 
-  const getOption = (time: number) => ({
-    value: time,
-    label: new Date(time).toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
+  const getOption = (time: Date) => ({
+    value: time.valueOf(),
+    label: time.toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
   });
 
   const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
     const { limit, offset } = offsetOrLimit;
     return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (t) => getOption(t.valueOf())
+      (t) => getOption(t.toDate())
     );
   }, []);
 
@@ -81,7 +82,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
             onFocus={() => setOptions(timeOptions())}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={(option) => onChange(option?.value)}
+            onChange={(option) => onChange(new Date(option?.value as number))}
           />
         )}
       />
@@ -95,7 +96,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
             onFocus={() => setOptions(timeOptions())}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={(option) => onChange(option?.value)}
+            onChange={(option) => onChange(new Date(option?.value as number))}
           />
         )}
       />
@@ -122,8 +123,8 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
 
     if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
       return append({
-        start: nextRangeStart.toDate().valueOf(),
-        end: nextRangeEnd.toDate().valueOf(),
+        start: nextRangeStart.toDate(),
+        end: nextRangeEnd.toDate(),
       });
     }
   };
