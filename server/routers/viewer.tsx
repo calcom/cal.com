@@ -400,6 +400,41 @@ const loggedInViewerRouter = createProtectedRouter()
         data,
       });
     },
+  })
+  .mutation("eventTypePosition", {
+    input: z.object({
+      eventType: z.number(),
+      action: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      // This mutation is for the user to be able to order their event types by incrementing or decrementing the position number
+      const { prisma } = ctx;
+      if (input.eventType && input.action == "increment") {
+        await prisma.eventType.update({
+          where: {
+            id: input.eventType,
+          },
+          data: {
+            position: {
+              increment: 1,
+            },
+          },
+        });
+      }
+
+      if (input.eventType && input.action == "decrement") {
+        await prisma.eventType.update({
+          where: {
+            id: input.eventType,
+          },
+          data: {
+            position: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+    },
   });
 
 export const viewerRouter = createRouter()

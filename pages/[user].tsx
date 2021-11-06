@@ -124,6 +124,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       ],
     },
+    orderBy: {
+      position: "desc",
+    },
     select: {
       id: true,
       slug: true,
