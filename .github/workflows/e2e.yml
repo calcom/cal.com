@@ -7,7 +7,6 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      NODE_ENV: test
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
       # GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}

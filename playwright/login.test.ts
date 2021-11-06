@@ -16,6 +16,8 @@ test("login with pro@example.com", async () => {
   await page.press('input[name="password"]', "Enter");
 
   await page.waitForSelector("[data-testid=event-types]");
+
+  await context.close();
 });
 
 export {};

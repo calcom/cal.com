@@ -98,7 +98,7 @@ function BookingListItem(booking: BookingItem) {
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
           {!booking.confirmed && !booking.rejected && (
-            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+            <span className="ml-2 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
               {t("unconfirmed")}
             </span>
           )}

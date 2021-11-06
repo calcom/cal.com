@@ -130,7 +130,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
             name="url"
             id="url"
             placeholder="https://example.com/calendar"
-            className="focus:ring-black focus:border-black flex-grow block w-full min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300 lowercase"
+            className="focus:ring-black focus:border-brand flex-grow block w-full min-w-0 rounded-none rounded-r-sm sm:text-sm border-gray-300 lowercase"
           />
         </div>
       </div>
