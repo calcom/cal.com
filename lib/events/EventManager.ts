@@ -1,7 +1,6 @@
 import { Credential } from "@prisma/client";
 import async from "async";
-import prisma from "@lib/prisma";
-import { LocationType } from "@lib/location";
+import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import { AdditionInformation, CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
