@@ -1,7 +1,7 @@
 -- This is an empty migration.
 
 ALTER TABLE "Availability" RENAME COLUMN "startTime" to "old_startTime";
-ALTER TABLE "Availability" RENAME COLUMN "startTime" to "old_startTime";
+ALTER TABLE "Availability" RENAME COLUMN "endTime" to "old_endTime";
 ALTER TABLE "Availability" ADD COLUMN "startTime" TIME;
 ALTER TABLE "Availability" ADD COLUMN "endTime" TIME;
 

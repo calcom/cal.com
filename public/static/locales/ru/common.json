@@ -1,5 +1,5 @@
 {
-  "accept_our_license": "Примите нашу лицензию, изменив переменную .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> на '{{agree}}'.",
+  "accept_our_license": "Примите нашу лицензию, изменив переменную окружения <1>NEXT_PUBLIC_LICENSE_CONSENT</1> на '{{agree}}'.",
   "remove_banner_instructions": "Чтобы удалить этот баннер, откройте файл .env и измените <1>NEXT_PUBLIC_LICENSE_CONSENT</1> на '{{agree}}'.",
   "error_message": "Сообщение об ошибке: '{{errorMessage}}'",
   "refund_failed_subject": "Возврат не удался: {{userName}} - {{date}} - {{eventType}}",
