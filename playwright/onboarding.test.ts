@@ -3,7 +3,7 @@ import { kont } from "kont";
 import { loginProvider } from "./lib/loginProvider";
 
 jest.setTimeout(60e3);
-jest.retryTimes(3);
+jest.retryTimes(2);
 
 const ctx = kont()
   .useBeforeEach(
