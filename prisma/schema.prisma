@@ -10,6 +10,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum EventTypeStatus {
+  ACTIVE
+  PAUSED
+  LEAVED
+}
+
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
@@ -31,6 +37,7 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   coachProgramId          String
+  status                  EventTypeStatus        @default(ACTIVE)
 }
 
 model Credential {
