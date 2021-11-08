@@ -99,7 +99,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 60;
     const scalePlan = process.env.DAILY_SCALE_PLAN;
 
-    if (scalePlan) {
+    if (scalePlan === "true") {
       return {
         privacy: "private",
         properties: {
