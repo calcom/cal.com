@@ -254,8 +254,6 @@
   "automatically_adjust_theme": "Automatically adjust theme based on invitee preferences",
   "email": "Email",
   "full_name": "Full name",
-  "browse_api_documentation": "Browse our API documentation",
-  "leverage_our_api": "Leverage our API for full control and customizability.",
   "create_webhook": "Create Webhook",
   "booking_cancelled": "Booking Cancelled",
   "booking_rescheduled": "Booking Rescheduled",
