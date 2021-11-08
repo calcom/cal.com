@@ -9,7 +9,7 @@ export default function DisconnectIntegration(props: {
   /** Integration credential id */
   id: number;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
-  onOpenChange: (isOpen: boolean) => void | Promise<void>;
+  onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const mutation = useMutation(

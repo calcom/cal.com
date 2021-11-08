@@ -23,7 +23,9 @@ type AppPropsWithChildren = AppProps & {
 };
 
 const CustomI18nextProvider = (props: AppPropsWithChildren) => {
-  const { i18n, locale } = trpc.useQuery(["viewer.i18n"]).data ?? {};
+  const { i18n, locale } = trpc.useQuery(["viewer.i18n"]).data ?? {
+    locale: "en",
+  };
 
   const passedProps = {
     ...props,

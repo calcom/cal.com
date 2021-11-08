@@ -216,8 +216,11 @@ yarn test-playwright
 ### Docker
 
 The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+  
+If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
+  
 
 ### Railway
 
@@ -289,6 +292,7 @@ Contributions are what make the open source community such an amazing place to b
  2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
  3. Copy your API key.
  4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+ 5. If you have a [Daily Scale Plan](https://www.daily.co/pricing)  can also enable the ability to record Daily video meetings. To do so, set the `DAILY_SCALE_PLAN` environment variable to `enable` 
 
 <!-- LICENSE -->
 

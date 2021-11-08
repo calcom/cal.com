@@ -12,13 +12,14 @@ import TableActions, { ActionType } from "@components/ui/TableActions";
 type BookingItem = inferQueryOutput<"viewer.bookings">[number];
 
 function BookingListItem(booking: BookingItem) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
   const mutation = useMutation(
     async (confirm: boolean) => {
       const res = await fetch("/api/book/confirm", {
         method: "PATCH",
-        body: JSON.stringify({ id: booking.id, confirmed: confirm }),
+        body: JSON.stringify({ id: booking.id, confirmed: confirm, language: i18n.language }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -73,8 +74,8 @@ function BookingListItem(booking: BookingItem) {
 
   return (
     <tr>
-      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap align-top">
-        <div className="text-sm text-gray-900 leading-6">{startTime}</div>
+      <td className="hidden px-6 py-4 align-top sm:table-cell whitespace-nowrap">
+        <div className="text-sm leading-6 text-gray-900">{startTime}</div>
         <div className="text-sm text-gray-500">
           {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
@@ -86,24 +87,24 @@ function BookingListItem(booking: BookingItem) {
               {t("unconfirmed")}
             </span>
           )}
-          <div className="text-sm text-gray-900 font-medium">
+          <div className="text-sm font-medium text-gray-900">
             {startTime}:{" "}
             <small className="text-sm text-gray-500">
               {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
             </small>
           </div>
         </div>
-        <div className="text-sm text-neutral-900 font-medium leading-6 truncate max-w-60 md:max-w-96">
+        <div className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-52 md:max-w-96">
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
           {!booking.confirmed && !booking.rejected && (
-            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+            <span className="ml-2 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
               {t("unconfirmed")}
             </span>
           )}
         </div>
         {booking.description && (
-          <div className="text-sm text-gray-500 truncate max-w-60 md:max-w-96" title={booking.description}>
+          <div className="text-sm text-gray-500 truncate max-w-52 md:max-w-96" title={booking.description}>
             &quot;{booking.description}&quot;
           </div>
         )}
@@ -114,7 +115,7 @@ function BookingListItem(booking: BookingItem) {
         )}
       </td>
 
-      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+      <td className="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
         {isUpcoming && !isCancelled ? (
           <>
             {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}

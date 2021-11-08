@@ -13,6 +13,7 @@ import { withTRPC } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
 
+import "../styles/fonts.css";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {

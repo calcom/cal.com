@@ -5,5 +5,9 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "eslint.run": "onSave"
+  "eslint.run": "onSave",
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#888888",
+    "titleBar.inactiveBackground": "#292929"
+  }
 }

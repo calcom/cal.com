@@ -10,12 +10,17 @@ export default class EventAttendeeRescheduledMail extends EventAttendeeMail {
     return (
       `
     <div>
-      Hi ${this.calEvent.attendees[0].name},<br />
+      ${this.calEvent.language("hi_user_name", { userName: this.calEvent.attendees[0].name })},<br />
       <br />
-      Your ${this.calEvent.type} with ${
-        this.calEvent.team?.name || this.calEvent.organizer.name
-      } has been rescheduled to ${this.getInviteeStart().format("h:mma")}
-      (${this.calEvent.attendees[0].timeZone}) on ${this.getInviteeStart().format("dddd, LL")}.<br />
+      ${this.calEvent.language("event_type_has_been_rescheduled_on_time_date", {
+        eventType: this.calEvent.type,
+        name: this.calEvent.team?.name || this.calEvent.organizer.name,
+        time: this.getInviteeStart().format("h:mma"),
+        timeZone: this.calEvent.attendees[0].timeZone,
+        date:
+          `${this.calEvent.language(this.getInviteeStart().format("dddd, ").toLowerCase())}` +
+          `${this.calEvent.language(this.getInviteeStart().format("LL").toLowerCase())}`,
+      })}<br />
       ` +
       this.getAdditionalFooter() +
       `
@@ -34,15 +39,17 @@ export default class EventAttendeeRescheduledMail extends EventAttendeeMail {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Rescheduled: ${this.calEvent.type} with ${
-        this.calEvent.organizer.name
-      } on ${this.getInviteeStart().format("dddd, LL")}`,
+      subject: this.calEvent.language("rescheduled_event_type_with_organizer", {
+        eventType: this.calEvent.type,
+        organizerName: this.calEvent.organizer.name,
+        date: this.getInviteeStart().format("dddd, LL"),
+      }),
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
   }
 
-  protected printNodeMailerError(error: string): void {
+  protected printNodeMailerError(error: Error): void {
     console.error("SEND_RESCHEDULE_CONFIRMATION_ERROR", this.calEvent.attendees[0].email, error);
   }
 }
