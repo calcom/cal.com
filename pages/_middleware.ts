@@ -26,6 +26,8 @@ const SKIP_PATHS = [
   "team",
 ];
 
+const FIXME_LOCALES = ["en", "fr", "it", "ru", "es", "de", "pt", "ro", "nl", "pt-BR", "es-419", "ko", "ja"];
+
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
@@ -37,7 +39,12 @@ export async function middleware(req: NextRequest) {
 
   const isFileRequest = pathname.includes(".");
 
-  if (SKIP_PATHS.includes(firstPart) || isFileRequest || pathname === "/") {
+  if (
+    SKIP_PATHS.includes(firstPart) ||
+    isFileRequest ||
+    pathname === "/" ||
+    FIXME_LOCALES.includes(firstPart)
+  ) {
     return;
   }
 

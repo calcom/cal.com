@@ -14,6 +14,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { useRouterPathname } from "@lib/useRouterPathname";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
@@ -59,8 +60,10 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
+  const basePath = useRouterPathname();
   const changeDate = (newDate: Dayjs) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
+
     router.replace(
       {
         query: {
@@ -68,7 +71,12 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
           date: newDate.format("YYYY-MM-DDZZ"),
         },
       },
-      undefined,
+      {
+        pathname: basePath,
+        query: {
+          date: newDate.format("YYYY-MM-DDZZ"),
+        },
+      },
       {
         shallow: true,
       }

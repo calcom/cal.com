@@ -5,12 +5,12 @@ import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
+import { useRouterPathname } from "@lib/useRouterPathname";
 
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
@@ -40,6 +40,7 @@ function DatePicker({
         : date.month()
       : dayjs().month() /* High chance server is going to have the same month */
   );
+  const basePath = useRouterPathname();
 
   useEffect(() => {
     if (dayjs().month() !== selectedMonth) {
@@ -129,7 +130,6 @@ function DatePicker({
     setDays(days);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth]);
-  const router = useRouter();
 
   return (
     <div
@@ -184,9 +184,10 @@ function DatePicker({
               <div key={`e-${idx}`} />
             ) : (
               <Link
-                href={`/${router.query.user}/${router.query.type}?date=${encodeURIComponent(
+                href={`${basePath}?date=${encodeURIComponent(
                   inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
-                )}`}>
+                )}`}
+                scroll={false}>
                 <a
                   className={classNames(
                     "rounded-sm text-center border border-transparent absolute inset-0",
