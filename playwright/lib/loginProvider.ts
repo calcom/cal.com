@@ -45,7 +45,7 @@ export function loginProvider(opts: {
       if (cachedCookies) {
         await context.addCookies(cachedCookies);
       } else {
-        await page.goto("http://localhost:3000/event-types");
+        await page.goto("http://localhost:3000/auth/login");
         // Click input[name="email"]
         await page.click('input[name="email"]');
         // Fill input[name="email"]
