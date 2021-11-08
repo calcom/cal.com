@@ -194,7 +194,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                   periodEndDate={eventType?.periodEndDate}
                   periodDays={eventType?.periodDays}
                   periodCountCalendarDays={eventType?.periodCountCalendarDays}
-                  onDatePicked={changeDate}
                   workingHours={workingHours}
                   weekStart={profile.weekStart || "Sunday"}
                   eventLength={eventType.length}
