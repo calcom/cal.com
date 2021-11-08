@@ -48,7 +48,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
   });
 
   return (
-    <ListItem className="flex w-full p-4">
+    <ListItem className="flex w-full p-4 -mt-px">
       <div className="flex justify-between w-full">
         <div className="flex flex-col max-w-full truncate">
           <div className="flex space-y-1">
@@ -61,7 +61,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="flex mt-2">
-            <span className="flex flex-col space-y-1 text-xs sm:flex-row sm:space-x-2">
+            <span className="flex flex-col space-y-1 sm:space-y-0 text-xs sm:flex-row sm:space-x-2">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -288,7 +288,7 @@ function WebhookListContainer() {
                 <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
                 <div className="flex-grow pl-2 truncate">
                   <ListItemTitle component="h3">Webhooks</ListItemTitle>
-                  <ListItemText component="p">Automation</ListItemText>
+                  <ListItemText component="p">{t("automation")}</ListItemText>
                 </div>
                 <div>
                   <Button
@@ -361,12 +361,12 @@ function IframeEmbedContainer() {
               <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
               <div className="flex-grow pl-2 truncate">
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
-                <ListItemText component="p">Embed your calendar within your webpage</ListItemText>
+                <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
               </div>
               <div>
                 <input
                   id="iframe"
-                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-black"
+                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-brand"
                   placeholder={t("loading")}
                   defaultValue={iframeTemplate}
                   readOnly
@@ -391,7 +391,7 @@ function IframeEmbedContainer() {
               <div>
                 <input
                   id="fullscreen"
-                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-black"
+                  className="px-2 py-1 text-sm text-gray-500 focus:ring-black focus:border-brand"
                   placeholder={t("loading")}
                   defaultValue={htmlTemplate}
                   readOnly
@@ -419,9 +419,9 @@ function IframeEmbedContainer() {
         </div>
 
         <ShellSubHeading className="mt-10" title="Cal.com API" subtitle={t("leverage_our_api")} />
-        <a href="https://developer.cal.com/api" className="btn btn-primary">
+        <Button color="primary" href="https://developer.cal.com/api">
           {t("browse_api_documentation")}
-        </a>
+        </Button>
       </div>
     </>
   );
@@ -433,6 +433,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   type: string;
   installed: boolean;
 }) {
+  const { t } = useLocale();
   const [credentialId] = props.credentialIds;
   const utils = trpc.useContext();
   const handleOpenChange = () => {
@@ -445,7 +446,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
         id={credentialId}
         render={(btnProps) => (
           <Button {...btnProps} color="warn">
-            Disconnect
+            {t("disconnect")}
           </Button>
         )}
         onOpenChange={handleOpenChange}
@@ -455,7 +456,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (!props.installed) {
     return (
       <div className="flex items-center truncate">
-        <Alert severity="warning" title="Not installed" />
+        <Alert severity="warning" title={t("not_installed")} />
       </div>
     );
   }
@@ -463,7 +464,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (props.type === "daily_video") {
     return (
       <div className="px-3 py-2 truncate">
-        <h3 className="text-sm font-medium text-gray-700">Installed</h3>
+        <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>
       </div>
     );
   }
@@ -472,7 +473,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       type={props.type}
       render={(btnProps) => (
         <Button color="secondary" {...btnProps}>
-          Connect
+          {t("connect")}
         </Button>
       )}
       onOpenChange={handleOpenChange}
@@ -481,8 +482,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 function IntegrationsContainer() {
+  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations"], { suspense: true });
-
   return (
     <QueryCell
       query={query}
@@ -491,7 +492,7 @@ function IntegrationsContainer() {
           <ShellSubHeading
             title={
               <SubHeadingTitleWithConnections
-                title="Conferencing"
+                title={t("conferencing")}
                 numConnections={data.conferencing.numActive}
               />
             }
@@ -508,7 +509,9 @@ function IntegrationsContainer() {
 
           <ShellSubHeading
             className="mt-10"
-            title={<SubHeadingTitleWithConnections title="Payment" numConnections={data.payment.numActive} />}
+            title={
+              <SubHeadingTitleWithConnections title={t("payment")} numConnections={data.payment.numActive} />
+            }
           />
           <List>
             {data.payment.items.map((item) => (
@@ -525,8 +528,10 @@ function IntegrationsContainer() {
 }
 
 export default function IntegrationsPage() {
+  const { t } = useLocale();
+
   return (
-    <Shell heading="Integrations" subtitle="Connect your favourite apps.">
+    <Shell heading={t("integrations")} subtitle={t("connect_your_favourite_apps")}>
       <ClientSuspense fallback={<Loader />}>
         <IntegrationsContainer />
         <CalendarListContainer />
