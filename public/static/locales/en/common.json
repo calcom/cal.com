@@ -516,5 +516,15 @@
   "integrations": "Integrations",
   "settings": "Settings",
   "next_step": "Skip step",
-  "prev_step": "Prev step"
+  "prev_step": "Prev step",
+  "installed": "Installed",
+  "disconnect": "Disconnect",
+  "embed_your_calendar": "Embed your calendar within your webpage",
+  "connect_your_favourite_apps": "Connect your favourite apps.",
+  "automation": "Automation",
+  "configure_how_your_event_types_interact": "Configure how your event types should interact with your calendars.",
+  "connect_an_additional_calendar": "Connect an additional calendar",
+  "conferencing": "Conferencing",
+  "calendar": "Calendar",
+  "not_installed": "Not installed"
 }
