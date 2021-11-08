@@ -144,7 +144,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
       </div>
       <div className="flex-grow">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex justify-between mb-2">
+          <div key={field.id} className="flex justify-between">
             <div className="flex items-center space-x-2">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>
