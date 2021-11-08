@@ -1,8 +1,0 @@
-{
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercelruntimes/next@0.0.1-dev.36"
-    }
-  ]
-}
