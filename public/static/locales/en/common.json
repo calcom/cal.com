@@ -222,6 +222,7 @@
   "no_meeting_found_description": "This meeting does not exist. Contact the meeting owner for an updated link.",
   "no_status_bookings_yet": "No {{status}} bookings, yet",
   "no_status_bookings_yet_description": "You have no {{status}} bookings. {{description}}",
+  "event_between_users": "{{eventName}} between {{host}} and {{attendeeName}}",
   "bookings": "Bookings",
   "bookings_description": "See upcoming and past events booked through your event type links.",
   "upcoming_bookings": "As soon as someone books a time with you it will show up here.",

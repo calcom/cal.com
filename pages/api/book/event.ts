@@ -263,9 +263,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
+  const eventNameObject = {
+    attendeeName: reqBody.name || "Nameless",
+    eventType: eventType.title,
+    eventName: eventType.eventName,
+    host: users[0].name || "Nameless",
+    t,
+  };
+
   const evt: CalendarEvent = {
     type: eventType.title,
-    title: getEventName(reqBody.name, eventType.title, eventType.eventName),
+    title: getEventName(eventNameObject),
     description: reqBody.notes,
     startTime: reqBody.start,
     endTime: reqBody.end,
@@ -488,6 +496,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscriberUrls = await getSubscriberUrls(user.id, eventTrigger);
+  console.log("evt:", evt);
   const promises = subscriberUrls.map((url) =>
     sendPayload(eventTrigger, new Date().toISOString(), url, evt).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${url}`, e);
