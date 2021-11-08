@@ -81,7 +81,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
   const { t } = useLocale();
 
   const utils = trpc.useContext();
-  const mut = trpc.useMutation("viewer.eventTypeOrder", {
+  const mutation = trpc.useMutation("viewer.eventTypeOrder", {
     onError: (err) => {
       console.error(err.message);
     },
@@ -104,7 +104,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
       newList[index + increment] = type;
     }
     setSortableTypes(newList);
-    mut.mutate({
+    mutation.mutate({
       ids: newList.map((type) => type.id),
     });
   }

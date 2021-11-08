@@ -455,8 +455,44 @@ const loggedInViewerRouter = createProtectedRouter()
       ids: z.array(z.number()),
     }),
     async resolve({ input, ctx }) {
-      // FIXME: check that user can access each event id
-      const { prisma } = ctx;
+      const { prisma, user } = ctx;
+      const allEventTypes = await ctx.prisma.eventType.findMany({
+        select: {
+          id: true,
+        },
+        where: {
+          id: {
+            in: input.ids,
+          },
+          OR: [
+            {
+              userId: user.id,
+            },
+            {
+              users: {
+                some: {
+                  id: user.id,
+                },
+              },
+            },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: user.id,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      });
+      const allEventTypeIds = new Set(allEventTypes.map((type) => type.id));
+      if (input.ids.some((id) => !allEventTypeIds.has(id))) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
       await Promise.all(
         _.reverse(input.ids).map((id, position) => {
           console.log({
