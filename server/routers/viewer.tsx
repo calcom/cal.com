@@ -1,4 +1,5 @@
 import { BookingStatus, Prisma } from "@prisma/client";
+import _ from "lodash";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
@@ -84,6 +85,7 @@ const loggedInViewerRouter = createProtectedRouter()
         hidden: true,
         price: true,
         currency: true,
+        position: true,
         users: {
           select: {
             id: true,
@@ -125,6 +127,14 @@ const loggedInViewerRouter = createProtectedRouter()
                   },
                   eventTypes: {
                     select: eventTypeSelect,
+                    orderBy: [
+                      {
+                        position: "desc",
+                      },
+                      {
+                        id: "asc",
+                      },
+                    ],
                   },
                 },
               },
@@ -135,6 +145,14 @@ const loggedInViewerRouter = createProtectedRouter()
               team: null,
             },
             select: eventTypeSelect,
+            orderBy: [
+              {
+                position: "desc",
+              },
+              {
+                id: "asc",
+              },
+            ],
           },
         },
       });
@@ -149,6 +167,14 @@ const loggedInViewerRouter = createProtectedRouter()
           userId: ctx.user.id,
         },
         select: eventTypeSelect,
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
       });
 
       type EventTypeGroup = {
@@ -183,7 +209,7 @@ const loggedInViewerRouter = createProtectedRouter()
           name: user.name,
           image: user.avatar,
         },
-        eventTypes: mergedEventTypes,
+        eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
         metadata: {
           membershipCount: 1,
           readOnly: false,
@@ -422,6 +448,35 @@ const loggedInViewerRouter = createProtectedRouter()
         },
         data,
       });
+    },
+  })
+  .mutation("eventTypeOrder", {
+    input: z.object({
+      ids: z.array(z.number()),
+    }),
+    async resolve({ input, ctx }) {
+      // FIXME: check that user can access each event id
+      const { prisma } = ctx;
+      await Promise.all(
+        _.reverse(input.ids).map((id, position) => {
+          console.log({
+            where: {
+              id,
+            },
+            data: {
+              position,
+            },
+          });
+          return prisma.eventType.update({
+            where: {
+              id,
+            },
+            data: {
+              position,
+            },
+          });
+        })
+      );
     },
   })
   .mutation("eventTypePosition", {
