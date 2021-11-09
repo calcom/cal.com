@@ -183,7 +183,7 @@ export default function Login({ csrfToken, isGoogleLoginEnabled, isSAMLLoginEnab
           {isSAMLLoginEnabled && (
             <div style={{ marginTop: "24px" }}>
               <button
-                onClick={async () => await signIn("boxyhq")}
+                onClick={async () => await signIn("saml")}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_saml")}
               </button>

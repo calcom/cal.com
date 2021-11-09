@@ -12,5 +12,13 @@ services:
     environment:
       POSTGRES_PASSWORD: ""
       POSTGRES_HOST_AUTH_METHOD: trust
+  boxyhq_saml:
+    image: boxyhq/jackson:7ce6cc6f
+    ports:
+      - "5000:5000"
+      - "6000:6000"
+    restart: always
+    environment:
+      DB_URL: "postgresql://postgres:postgres@postgres:5432/calendso"
 volumes:
   db_data:

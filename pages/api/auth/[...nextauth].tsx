@@ -103,7 +103,7 @@ if (isGoogleLoginEnabled) {
 
 if (isSAMLLoginEnabled) {
   providers.push({
-    id: "boxyhq",
+    id: "saml",
     name: "BoxyHQ",
     type: "oauth",
     version: "2.0",
@@ -156,7 +156,7 @@ export default NextAuth({
       // user based on those values in order to construct a JWT.
       if (account.type === "oauth" && account.provider) {
         let idP = IdentityProvider.GOOGLE;
-        if (account.provider === "boxyhq") {
+        if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
 
@@ -208,7 +208,7 @@ export default NextAuth({
 
       if (account.provider) {
         let idP = IdentityProvider.GOOGLE;
-        if (account.provider === "boxyhq") {
+        if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
         user.verified_email = user.verified_email || profile.verified_email;
