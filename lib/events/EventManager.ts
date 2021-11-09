@@ -213,12 +213,15 @@ export default class EventManager {
    * @private
    */
 
-  private createAllCalendarEvents(event: CalendarEvent, noMail: boolean | null): Promise<Array<EventResult>> {
+  private async createAllCalendarEvents(
+    event: CalendarEvent,
+    noMail: boolean | null
+  ): Promise<Array<EventResult>> {
     const [firstCalendar] = this.calendarCredentials;
     if (!firstCalendar) {
-      throw new Error("No calendar integration connected");
+      return [];
     }
-    return Promise.all([createEvent(firstCalendar, event, noMail)]);
+    return [await createEvent(firstCalendar, event, noMail)];
   }
 
   /**
