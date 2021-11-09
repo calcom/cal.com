@@ -3,6 +3,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
 
+export enum CoachProfileProgramStatus {
+  ACTIVE = "ACTIVE",
+  LEAVED = "LEAVED",
+  PAUSED = "PAUSED",
+}
+
 type CoachProfileProgramAvailability = {
   id?: string;
   coachProfileProgramId: string;
@@ -25,6 +31,7 @@ type CoachProfileProgram = {
   assEventTypeId?: number;
   availability?: CoachProfileProgramAvailability[];
   program?: HealthCoachProgram;
+  status: CoachProfileProgramStatus;
 };
 
 type CoachProfileAvailability = {
@@ -108,7 +115,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // create event type
   const assMapping = await Promise.all(
     (insertedCoachProfileProgram || [])?.map(
-      async ({ id, programId, coachUserId, program, availability }) => {
+      async ({ id, programId, coachUserId, program, availability, status }) => {
         const newAvailability = (availability || [])?.map(({ days, startTime, endTime }) => ({
           days,
           startTime,
@@ -120,6 +127,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const newCoachProgram = {
           description,
+          status,
           title: name,
           slug: coachUserId,
           locations: [{ type: "integrations:zoom" }],
@@ -131,9 +139,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           },
         };
 
+        console.log({ newCoachProgram });
+
         const newProgramCreated = await prisma.eventType.create({
           data: newCoachProgram,
         });
+
+        console.log({ newProgramCreated });
 
         return { coachProgramId: id, assEventTypeId: newProgramCreated.id };
       }
