@@ -80,11 +80,12 @@ export default function Security() {
                 required={true}
                 rows={10}
                 className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
-                placeholder="Paste SAML metadata file here"
+                placeholder="Please paste the SAML metadata from your Identity Provider here"
               />
             </div>
-            <p className="mt-1 text-sm text-gray-500">
-              Paste SAML metadata file above to update your SAML configuration.
+            <p className="text-sm text-gray-500">
+              Please paste the SAML metadata from your Identity Provider in the textbox above to update your
+              SAML configuration.
             </p>
             <hr className="mt-8" />
             <div className="flex justify-end py-4">
