@@ -17,16 +17,16 @@ export default function Security() {
   return (
     <Shell heading={t("security")} subtitle={t("manage_account_security")}>
       <SettingsShell>
-        {user?.identityProvider !== IdentityProvider.CAL ? (
+        {user && user.identityProvider !== IdentityProvider.CAL ? (
           <>
             <div className="mt-6">
               <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">
-                Your account is managed by {identityProviderNameMap[user?.identityProvider]}
+                Your account is managed by {identityProviderNameMap[user.identityProvider]}
               </h2>
             </div>
             <p className="mt-1 text-sm text-gray-500">
               To change your email, password, enable two-factor authentication and more, please visit your{" "}
-              {identityProviderNameMap[user?.identityProvider]} account settings.
+              {identityProviderNameMap[user.identityProvider]} account settings.
             </p>
           </>
         ) : (
