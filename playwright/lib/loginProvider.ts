@@ -45,7 +45,7 @@ export function loginProvider(opts: {
       if (cachedCookies) {
         await context.addCookies(cachedCookies);
       } else {
-        await page.goto("http://localhost:3000/event-types");
+        await page.goto("http://localhost:3000/auth/login");
         // Click input[name="email"]
         await page.click('input[name="email"]');
         // Fill input[name="email"]
@@ -57,7 +57,12 @@ export function loginProvider(opts: {
         // Press Enter
         await page.press('input[name="password"]', "Enter");
 
-        await page.waitForSelector("[data-testid=event-types]");
+        await page.waitForNavigation({
+          url(url) {
+            return !url.pathname.startsWith("/auth");
+          },
+        });
+
         const cookies = await context.cookies();
         cookieCache.set(opts.user, cookies);
       }
