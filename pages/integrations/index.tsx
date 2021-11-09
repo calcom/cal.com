@@ -32,6 +32,7 @@ import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import Web3Integration from "@components/integrations/Web3Integration";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
@@ -354,7 +355,7 @@ function IframeEmbedContainer() {
   return (
     <>
       <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} className="mt-10" />
-      <div className="lg:pb-8 lg:col-span-9">
+      <div className="lg:col-span-9">
         <List>
           <ListItem className={classNames("flex-col")}>
             <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
@@ -417,11 +418,6 @@ function IframeEmbedContainer() {
             <div className="mt-1"></div>
           </div>
         </div>
-
-        <ShellSubHeading className="mt-10" title="Cal.com API" subtitle={t("leverage_our_api")} />
-        <Button color="primary" href="https://developer.cal.com/api">
-          {t("browse_api_documentation")}
-        </Button>
       </div>
     </>
   );
@@ -537,6 +533,7 @@ export default function IntegrationsPage() {
         <CalendarListContainer />
         <WebhookListContainer />
         <IframeEmbedContainer />
+        <Web3Integration />
       </ClientSuspense>
     </Shell>
   );

@@ -30,6 +30,13 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.4.5",
+    "@walletconnect/web3-provider": "^1.6.5",
+    "@web3-react/core": "^6.1.9",
+    "@web3-react/injected-connector": "^6.0.7",
+    "@web3-react/walletconnect-connector": "^6.2.4",
+    "ethers": "^5.4.7",
+    "web3": "^1.5.3",
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.5",
