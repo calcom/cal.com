@@ -5,7 +5,7 @@ import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware"
 
 export enum CoachProfileProgramStatus {
   ACTIVE = "ACTIVE",
-  LEAVED = "LEAVED",
+  LEFT = "LEFT",
   PAUSED = "PAUSED",
 }
 

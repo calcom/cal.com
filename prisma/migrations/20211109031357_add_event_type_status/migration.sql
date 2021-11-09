@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "EventTypeStatus" AS ENUM ('ACTIVE', 'PAUSED', 'LEAVED');
+CREATE TYPE "EventTypeStatus" AS ENUM ('ACTIVE', 'PAUSED', 'LEFT');
 
 -- AlterTable
 ALTER TABLE "EventType" ADD COLUMN     "status" "EventTypeStatus" NOT NULL DEFAULT E'ACTIVE';
