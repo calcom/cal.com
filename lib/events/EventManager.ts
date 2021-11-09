@@ -79,7 +79,7 @@ export default class EventManager {
    * @param event
    */
   public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
-    let evt = EventManager.processLocation(event);
+    const evt = EventManager.processLocation(event);
     const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
 
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
@@ -88,7 +88,7 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
       if (result.videoCallData) {
-        evt = { ...evt, videoCallData: result.videoCallData };
+        evt.videoCallData = result.videoCallData;
       }
       results.push(result);
     } else {
@@ -126,17 +126,20 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(event: Ensure<CalendarEvent, "uid">): Promise<CreateUpdateResult> {
-    let evt = EventManager.processLocation(event);
+  public async update(
+    event: Ensure<CalendarEvent, "language">,
+    rescheduleUid: string
+  ): Promise<CreateUpdateResult> {
+    const evt = EventManager.processLocation(event);
 
-    if (!evt.uid) {
-      throw new Error("You called eventManager.update without an `uid`. This should never happen.");
+    if (!rescheduleUid) {
+      throw new Error("You called eventManager.update without an `rescheduleUid`. This should never happen.");
     }
 
     // Get details of existing booking.
     const booking = await prisma.booking.findFirst({
       where: {
-        uid: evt.uid,
+        uid: rescheduleUid,
       },
       select: {
         id: true,
@@ -164,7 +167,7 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
       if (result.videoCallData) {
-        evt = { ...evt, videoCallData: result.videoCallData };
+        evt.videoCallData = result.videoCallData;
       }
       results.push(result);
     } else {
@@ -182,15 +185,11 @@ export default class EventManager {
       },
     });
 
-    let bookingDeletes = null;
-
-    if (evt.uid) {
-      bookingDeletes = prisma.booking.delete({
-        where: {
-          uid: evt.uid,
-        },
-      });
-    }
+    const bookingDeletes = prisma.booking.delete({
+      where: {
+        id: booking.id,
+      },
+    });
 
     // Wait for all deletions to be applied.
     await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
@@ -275,8 +274,7 @@ export default class EventManager {
       const bookingRefUid = booking
         ? booking.references.filter((ref) => ref.type === credential.type)[0]?.uid
         : null;
-      const evt = { ...event, uid: bookingRefUid };
-      return updateEvent(credential, evt, noMail);
+      return updateEvent(credential, event, noMail, bookingRefUid);
     });
   }
 
@@ -292,10 +290,10 @@ export default class EventManager {
 
     if (credential) {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
-      const evt = { ...event, uid: bookingRef?.uid };
-      return updateMeeting(credential, evt).then((returnVal: EventResult) => {
+      const bookingRefUid = bookingRef ? bookingRef.uid : null;
+      return updateMeeting(credential, event, bookingRefUid).then((returnVal: EventResult) => {
         // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
-        if (returnVal.videoCallData == undefined) {
+        if (returnVal.videoCallData === undefined) {
           returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
         }
         return returnVal;
@@ -441,15 +439,16 @@ export default class EventManager {
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      const emailEvent = { ...event, additionInformation: metadata };
+
+      event.additionInformation = metadata;
 
       let attendeeMail;
       switch (type) {
         case "reschedule":
-          attendeeMail = new EventAttendeeRescheduledMail(emailEvent);
+          attendeeMail = new EventAttendeeRescheduledMail(event);
           break;
         case "new":
-          attendeeMail = new EventAttendeeMail(emailEvent);
+          attendeeMail = new EventAttendeeMail(event);
           break;
       }
       try {
