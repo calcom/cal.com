@@ -376,6 +376,7 @@
   "little_something_about": "Een introductie over uzelf.",
   "profile_updated_successfully": "Profiel bijgewerkt",
   "your_user_profile_updated_successfully": "Uw profiel is is met succes bijgewerkt.",
+  "saml_config_updated_successfully": "SAML configuration updated successfully",
   "user_cannot_found_db": "Gebruiker lijkt ingelogd maar kan niet gevonden worden in de db",
   "embed_and_webhooks": "Insluiten & Webhooks",
   "enabled": "Ingeschakeld",

@@ -120,7 +120,7 @@ if (isSAMLLoginEnabled) {
         verified_email: true,
       };
     },
-    clientId: "tenant=boxyhq.com&product=demo",
+    clientId: `tenant=${process.env.SAML_TENANT_ID}&product=${process.env.SAML_PRODUCT_ID}`,
     clientSecret: "dummy",
   });
 }

@@ -454,6 +454,7 @@
   "little_something_about": "A little something about yourself.",
   "profile_updated_successfully": "Profile updated successfully",
   "your_user_profile_updated_successfully": "Your user profile has been updated successfully.",
+  "saml_config_updated_successfully": "SAML configuration updated successfully",
   "user_cannot_found_db": "User seems logged in but cannot be found in the db",
   "embed_and_webhooks": "Embed & Webhooks",
   "enabled": "Enabled",

@@ -11,6 +11,7 @@ import { Schedule } from "@lib/types/schedule";
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
+import fetch from 'node-fetch';
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
@@ -450,6 +451,28 @@ const loggedInViewerRouter = createProtectedRouter()
         },
         data,
       });
+    },
+  })
+  .mutation("updateSAMLConfig", {
+    input: z.object({
+      rawMetadata: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const params = new URLSearchParams();
+      params.append('rawMetadata', input.rawMetadata);
+      params.append('defaultRedirectUrl', `${process.env.BASE_URL}/login/saml`);
+      params.append('redirectUrl', JSON.stringify([`${process.env.BASE_URL}/*`]));
+      params.append('tenant', process.env.SAML_TENANT_ID || '');
+      params.append('product', process.env.SAML_PRODUCT_ID || '');
+
+      const response = await fetch(`${process.env.SAML_API_URL}/api/v1/saml/config`, {
+        method: 'POST',
+        body: params,
+      });
+
+      if (response.status !== 200) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration update failed" });
+      }
     },
   });
 

@@ -453,6 +453,7 @@
   "little_something_about": "Немного о вас.",
   "profile_updated_successfully": "Профиль успешно обновлен",
   "your_user_profile_updated_successfully": "Ваш профиль пользователя успешно обновлен.",
+  "saml_config_updated_successfully": "SAML configuration updated successfully",
   "user_cannot_found_db": "Пользователь авторизован, но не найден в базе данных",
   "embed_and_webhooks": "Встраивание и веб-хуки",
   "enabled": "Включено",

@@ -453,6 +453,7 @@
   "little_something_about": "Ein wenig über sich selbst.",
   "profile_updated_successfully": "Profil erfolgreich aktualisiert",
   "your_user_profile_updated_successfully": "Ihr Benutzerprofil wurde erfolgreich aktualisiert.",
+  "saml_config_updated_successfully": "SAML configuration updated successfully",
   "user_cannot_found_db": "Benutzer scheint eingeloggt zu sein, kann aber nicht in db gefunden werden",
   "embed_and_webhooks": "Embed & Webhooks",
   "enabled": "Aktiviert",
