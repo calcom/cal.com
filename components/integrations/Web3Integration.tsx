@@ -37,12 +37,12 @@ function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
 export default function Web3Integration() {
   return (
     <Web3ReactProvider getLibrary={getLibrary}>
-      <Home />
+      <Web3Component />
     </Web3ReactProvider>
   );
 }
 
-function Home() {
+function Web3Component() {
   const { t } = useLocale();
   const web3React = useWeb3React();
   const [, setLoaded] = useState(false);
