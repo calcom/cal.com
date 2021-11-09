@@ -417,11 +417,6 @@ function IframeEmbedContainer() {
             <div className="mt-1"></div>
           </div>
         </div>
-
-        <ShellSubHeading className="mt-10" title="Cal.com API" subtitle={t("leverage_our_api")} />
-        <Button color="primary" href="https://developer.cal.com/api">
-          {t("browse_api_documentation")}
-        </Button>
       </div>
     </>
   );
