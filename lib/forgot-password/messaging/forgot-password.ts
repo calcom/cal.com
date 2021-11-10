@@ -1,20 +1,28 @@
-import buildMessageTemplate from "../../emails/buildMessageTemplate";
+import { TFunction } from "next-i18next";
 
-export const forgotPasswordSubjectTemplate = "Forgot your password? - Cal.com";
+import { buildMessageTemplate, VarType } from "../../emails/buildMessageTemplate";
 
-export const forgotPasswordMessageTemplate = `Hey there,
+export const forgotPasswordSubjectTemplate = (t: TFunction): string => {
+  const text = t("forgot_your_password_calcom");
+  return text;
+};
 
-Use the link below to reset your password.
-{{link}}
+export const forgotPasswordMessageTemplate = (t: TFunction): string => {
+  const text = `${t("hey_there")}
 
-p.s. It expires in 6 hours.
+  ${t("use_link_to_reset_password")}
+  {{link}}
 
-- Cal.com`;
+  ${t("link_expires", { expiresIn: 6 })}
 
-export const buildForgotPasswordMessage = (vars) => {
+  - Cal.com`;
+  return text;
+};
+
+export const buildForgotPasswordMessage = (vars: VarType) => {
   return buildMessageTemplate({
-    subjectTemplate: forgotPasswordSubjectTemplate,
-    messageTemplate: forgotPasswordMessageTemplate,
+    subjectTemplate: forgotPasswordSubjectTemplate(vars.language),
+    messageTemplate: forgotPasswordMessageTemplate(vars.language),
     vars,
   });
 };

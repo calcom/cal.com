@@ -7,6 +7,8 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
@@ -14,6 +16,7 @@ export default function Type(props: AvailabilityPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const userParam = asStringOrNull(context.query.user);
@@ -153,7 +156,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }*/
   const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
-    availability && availability.length ? availability : null;
+    availability && availability.length
+      ? availability.map((schedule) => ({
+          ...schedule,
+          startTime: schedule.startTime.getUTCHours() * 60 + schedule.startTime.getUTCMinutes(),
+          endTime: schedule.endTime.getUTCHours() * 60 + schedule.endTime.getUTCMinutes(),
+        }))
+      : null;
 
   const workingHours =
     getWorkingHours(eventType.availability) ||
@@ -173,6 +182,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
+  eventTypeObject.availability = [];
+
   return {
     props: {
       profile: {
@@ -185,6 +196,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
+      trpcState: ssr.dehydrate(),
     },
   };
 };

@@ -14,13 +14,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const data = req.body;
   const { email, password } = data;
   const username = slugify(data.username);
+  const userEmail = email.toLowerCase();
 
   if (!username) {
     res.status(422).json({ message: "Invalid username" });
     return;
   }
 
-  if (!email || !email.includes("@")) {
+  if (!userEmail || !userEmail.includes("@")) {
     res.status(422).json({ message: "Invalid email" });
     return;
   }
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           username: username,
         },
         {
-          email: email,
+          email: userEmail,
         },
       ],
     },
@@ -45,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (existingUser) {
     const message: string =
-      existingUser.email !== email ? "Username already taken" : "Email address is already registered";
+      existingUser.email !== userEmail ? "Username already taken" : "Email address is already registered";
 
     return res.status(409).json({ message });
   }
@@ -56,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // here. Inviting a team member should not create a new user until the invitee
   // explicitly creates an account.
   await prisma.user.upsert({
-    where: { email },
+    where: { email: userEmail },
     update: {
       username,
       password: hashedPassword,
@@ -65,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     create: {
       username,
-      email,
+      email: userEmail,
       password: hashedPassword,
       identityProvider: IdentityProvider.CAL,
     },

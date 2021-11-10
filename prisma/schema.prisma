@@ -33,7 +33,7 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              String                @default("unlimited") // unlimited | rolling | range
+  periodType              String                 @default("unlimited") // unlimited | rolling | range
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
@@ -91,16 +91,15 @@ model User {
   bookings            Booking[]
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
-  completedOnboarding Boolean?           @default(false)
+  completedOnboarding Boolean            @default(false)
   locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
   identityProvider    IdentityProvider   @default(CAL)
   identityProviderId  String?
-
-
-  plan     UserPlan   @default(PRO)
-  Schedule Schedule[]
+  plan                UserPlan           @default(PRO)
+  Schedule            Schedule[]
+  webhooks            Webhook[]
 
   @@map(name: "users")
 }
@@ -171,10 +170,10 @@ enum BookingStatus {
 }
 
 model DailyEventReference {
-  id         Int         @id @default(autoincrement())
-  dailyurl   String      @default("dailycallurl")
-  dailytoken String      @default("dailytoken")
-  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  id         Int      @id @default(autoincrement())
+  dailyurl   String   @default("dailycallurl")
+  dailytoken String   @default("dailytoken")
+  booking    Booking? @relation(fields: [bookingId], references: [id])
   bookingId  Int?
 }
 
@@ -195,9 +194,9 @@ model Booking {
   attendees Attendee[]
   location  String?
 
-  dailyRef  DailyEventReference?
+  dailyRef DailyEventReference?
 
-  createdAt DateTime  @default(now())
+  createdAt DateTime      @default(now())
   updatedAt DateTime?
   confirmed Boolean       @default(true)
   rejected  Boolean       @default(false)
@@ -224,8 +223,8 @@ model Availability {
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
-  startTime   Int
-  endTime     Int
+  startTime   DateTime   @db.Time
+  endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
 }
 
@@ -301,10 +300,11 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String      @unique @id
+  id            String                 @id @unique
   userId        Int
   subscriberUrl String
-  createdAt     DateTime  @default(now())
-  active        Boolean   @default(true)
+  createdAt     DateTime               @default(now())
+  active        Boolean                @default(true)
   eventTriggers WebhookTriggerEvents[]
+  user          User                   @relation(fields: [userId], references: [id])
 }

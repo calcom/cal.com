@@ -12,6 +12,9 @@ module.exports = {
     },
     extend: {
       colors: {
+        /* your primary brand color */
+        brand: "#292929",
+
         black: "#111111",
         gray: {
           50: "#F8F8F8",
@@ -99,7 +102,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        cal: ["Cal Sans", "Lexend", "sans-serif"],
+        cal: ["Cal Sans", "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",

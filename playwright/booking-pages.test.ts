@@ -3,6 +3,7 @@ import { kont } from "kont";
 import { pageProvider } from "./lib/pageProvider";
 
 jest.setTimeout(60e3);
+jest.retryTimes(3);
 
 describe("free user", () => {
   const ctx = kont()

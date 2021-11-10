@@ -32,7 +32,7 @@ export default function Security() {
         ) : (
           <>
             <ChangePasswordSection />
-            <TwoFactorAuthSection twoFactorEnabled={user.twoFactorEnabled} />
+            <TwoFactorAuthSection twoFactorEnabled={user?.twoFactorEnabled || false} />
           </>
         )}
       </SettingsShell>

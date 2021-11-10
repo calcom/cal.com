@@ -1,10 +1,10 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
-import { i18n } from "next-i18next.config";
-import { ComponentProps, RefObject, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState, useMemo } from "react";
 import Select, { OptionTypeBase } from "react-select";
-import TimezoneSelect from "react-timezone-select";
+import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -29,16 +29,10 @@ import { UsernameInput } from "@components/ui/UsernameInput";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
-const getLocaleOptions = (displayLocale: string | string[]): OptionTypeBase[] => {
-  return i18n.locales.map((locale) => ({
-    value: locale,
-    label: new Intl.DisplayNames(displayLocale, { type: "language" }).of(locale),
-  }));
-};
-
 function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
   const { t } = useLocale();
   const [modelOpen, setModalOpen] = useState(false);
+
   return (
     <>
       <input
@@ -103,6 +97,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const router = useRouter();
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
@@ -118,20 +113,32 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     },
   });
 
-  const localeOptions = getLocaleOptions(props.localeProp);
+  const localeOptions = useMemo(() => {
+    return (router.locales || []).map((locale) => ({
+      value: locale,
+      // FIXME
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale),
+    }));
+  }, [props.localeProp, router.locales]);
 
   const themeOptions = [
     { value: "light", label: t("light") },
     { value: "dark", label: t("dark") },
   ];
-
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const usernameRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const nameRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const avatarRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>();
-  const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
+  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState<OptionTypeBase>({
     value: props.user.weekStart,
     label: nameOfDay(props.localeProp, props.user.weekStart === "Sunday" ? 0 : 1),
@@ -149,16 +156,17 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     setSelectedTheme(
       props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : undefined
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function updateProfileHandler(event) {
+  async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const enteredUsername = usernameRef.current.value.toLowerCase();
     const enteredName = nameRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
-    const enteredTimeZone = selectedTimeZone.value;
+    const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
     const enteredLanguage = selectedLanguage.value;
@@ -186,7 +194,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
           <div className="flex-grow space-y-6">
             <div className="block sm:flex">
               <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
-                <UsernameInput ref={usernameRef} defaultValue={props.user.username} />
+                <UsernameInput ref={usernameRef} defaultValue={props.user.username || undefined} />
               </div>
               <div className="w-full sm:w-1/2 sm:ml-2">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -201,7 +209,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   placeholder={t("your_name")}
                   required
                   className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-                  defaultValue={props.user.name}
+                  defaultValue={props.user.name || undefined}
                 />
               </div>
             </div>
@@ -247,7 +255,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
             <div>
               <div className="flex mt-1">
                 <Avatar
-                  displayName={props.user.name}
+                  alt={props.user.name || ""}
                   className="relative w-10 h-10 rounded-full"
                   gravatarFallbackMd5={props.user.emailMd5}
                   imageSrc={imageSrc}
@@ -270,11 +278,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
                       window.HTMLInputElement.prototype,
                       "value"
-                    ).set;
-                    nativeInputValueSetter.call(avatarRef.current, newAvatar);
+                    )?.set;
+                    nativeInputValueSetter?.call(avatarRef.current, newAvatar);
                     const ev2 = new Event("input", { bubbles: true });
                     avatarRef.current.dispatchEvent(ev2);
-                    updateProfileHandler(ev2);
+                    updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
                     setImageSrc(newAvatar);
                   }}
                   imageSrc={imageSrc}
@@ -350,7 +358,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="theme-adjust-os"
                     name="theme-adjust-os"
                     type="checkbox"
-                    onChange={(e) => setSelectedTheme(e.target.checked ? null : themeOptions[0])}
+                    onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
                     checked={!selectedTheme}
                     className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
                   />
