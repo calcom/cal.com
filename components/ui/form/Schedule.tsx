@@ -139,12 +139,12 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
             className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
           />
-          <span className="inline-block capitalize">{weekday}</span>
+          <span className="text-sm inline-block capitalize">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex justify-between mb-2">
+          <div key={field.id} className="flex justify-between mb-1">
             <div className="flex items-center space-x-2">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>
@@ -157,7 +157,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             />
           </div>
         ))}
-        {!fields.length && t("no_availability")}
+        <span className="text-sm block text-gray-500">{!fields.length && t("no_availability")}</span>
       </div>
       <div>
         <Button
