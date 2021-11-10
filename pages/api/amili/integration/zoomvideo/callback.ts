@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const redirectURL =
     isCoachUser === "true"
-      ? `${process.env.AMILI_BASE_URL}/dashboard/settings/coach-profile`
+      ? `${process.env.COACH_DASHBOARD_URL}/app/profile`
       : `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${coachId}`;
 
   return res.redirect(redirectURL);
