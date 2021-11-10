@@ -303,7 +303,7 @@ const EventTypesPage = () => {
                       </a>
                     </>
                   }
-                  className="my-4"
+                  className="mb-4"
                 />
               )}
               {data.eventTypeGroups &&
