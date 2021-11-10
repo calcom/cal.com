@@ -10,7 +10,6 @@ import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 
 import { IdentityProvider } from ".prisma/client";
 
@@ -75,12 +74,18 @@ export default function Security() {
           </>
         )}
 
+        <hr className="mt-8" />
+
         {isSAMLLoginEnabled ? (
           <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateSAMLConfigHandler}>
             <div className="mt-6">
               <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">SAML Configuration</h2>
             </div>
             {hasErrors && <Alert severity="error" title={errorMessage} />}
+            <p className="mt-1 text-sm text-gray-500">
+              Please paste the SAML metadata from your Identity Provider in the textbox above to update your
+              SAML configuration.
+            </p>
             <div className="mt-6">
               <textarea
                 ref={samlConfigRef}
@@ -92,14 +97,14 @@ export default function Security() {
                 placeholder="Please paste the SAML metadata from your Identity Provider here"
               />
             </div>
-            <p className="text-sm text-gray-500">
-              Please paste the SAML metadata from your Identity Provider in the textbox above to update your
-              SAML configuration.
-            </p>
-            <hr className="mt-8" />
-            <div className="flex justify-end py-4">
-              <Button type="submit">{t("save")}</Button>
+            <div className="flex justify-end py-8">
+              <button
+                type="submit"
+                className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                {t("save")}
+              </button>
             </div>
+            <hr className="mt-4" />
           </form>
         ) : null}
       </SettingsShell>
