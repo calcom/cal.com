@@ -3,6 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 
+import { encodeOAuthState } from "../utils";
+
 const credentials = process.env.GOOGLE_API_CREDENTIALS!;
 const scopes = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -32,6 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // setting the prompt to 'consent' will force this consent
       // every time, forcing a refresh_token to be returned.
       prompt: "consent",
+      state: encodeOAuthState(req),
     });
 
     res.status(200).json({ url: authUrl });
