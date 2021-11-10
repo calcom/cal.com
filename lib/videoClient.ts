@@ -26,9 +26,9 @@ export interface VideoCallData {
 type EventBusyDate = Record<"start" | "end", Date>;
 
 export interface VideoApiAdapter {
-  createMeeting(event: CalendarEvent): Promise<any>;
+  createMeeting(event: CalendarEvent): Promise<VideoCallData>;
 
-  updateMeeting(uid: string, event: CalendarEvent): Promise<any>;
+  updateMeeting(uid: string, event: CalendarEvent): Promise<VideoCallData | void>;
 
   deleteMeeting(uid: string): Promise<unknown>;
 
@@ -87,26 +87,12 @@ const createMeeting = async (
     };
   }
 
-  const videoCallData: VideoCallData = {
-    type: credential.type,
-    id: createdMeeting.id,
-    password: createdMeeting.password,
-    url: createdMeeting.join_url,
-  };
-
-  if (credential.type === "daily_video") {
-    videoCallData.type = "Daily.co Video";
-    videoCallData.id = createdMeeting.name;
-    videoCallData.url = process.env.BASE_URL + "/call/" + uid;
-  }
-
   return {
     type: credential.type,
     success,
     uid,
     createdEvent: createdMeeting,
     originalEvent: calEvent,
-    videoCallData: videoCallData,
   };
 };
 
@@ -136,19 +122,6 @@ const updateMeeting = async (
       uid,
       originalEvent: calEvent,
     };
-  }
-
-  const videoCallData: VideoCallData = {
-    type: credential.type,
-    id: updatedMeeting.id,
-    password: updatedMeeting.password,
-    url: updatedMeeting.join_url,
-  };
-
-  if (credential.type === "daily_video") {
-    videoCallData.type = "Daily.co Video";
-    videoCallData.id = updatedMeeting.name;
-    videoCallData.url = process.env.BASE_URL + "/call/" + uid;
   }
 
   return {

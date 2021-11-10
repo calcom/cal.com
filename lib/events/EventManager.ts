@@ -4,14 +4,13 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import { AdditionInformation, CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
-import { DailyEventResult, FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
-import { ZoomEventResult } from "@lib/integrations/Zoom/ZoomVideoApiAdapter";
+import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { Ensure } from "@lib/types/utils";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
-export type Event = AdditionInformation & { name: string; id: string } & (ZoomEventResult | DailyEventResult);
+export type Event = AdditionInformation & VideoCallData;
 
 export interface EventResult {
   type: string;
@@ -20,7 +19,6 @@ export interface EventResult {
   createdEvent?: Event;
   updatedEvent?: Event;
   originalEvent: CalendarEvent;
-  videoCallData?: VideoCallData;
 }
 
 export interface CreateUpdateResult {
@@ -45,6 +43,18 @@ export interface PartialReference {
 interface GetLocationRequestFromIntegrationRequest {
   location: string;
 }
+
+export const isZoom = (location: string): boolean => {
+  return location === "integrations:zoom";
+};
+
+export const isDaily = (location: string): boolean => {
+  return location === "integrations:daily";
+};
+
+export const isDedicatedIntegration = (location: string): boolean => {
+  return isZoom(location) || isDaily(location);
+};
 
 export default class EventManager {
   calendarCredentials: Array<Credential>;
@@ -75,35 +85,26 @@ export default class EventManager {
    */
   public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
     const evt = EventManager.processLocation(event);
-    const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
+    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
     const results: Array<EventResult> = await this.createAllCalendarEvents(evt);
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
-      if (result.videoCallData) {
-        evt.videoCallData = result.videoCallData;
+      if (result.createdEvent) {
+        evt.videoCallData = result.createdEvent;
       }
       results.push(result);
     }
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
-      let uid = "";
-      if (result.createdEvent) {
-        const isDailyResult = result.type === "daily_video";
-        if (isDailyResult) {
-          uid = (result.createdEvent as DailyEventResult).name.toString();
-        } else {
-          uid = (result.createdEvent as ZoomEventResult).id.toString();
-        }
-      }
       return {
         type: result.type,
-        uid,
-        meetingId: result.videoCallData?.id.toString(),
-        meetingPassword: result.videoCallData?.password,
-        meetingUrl: result.videoCallData?.url,
+        uid: result.createdEvent?.id ?? "",
+        meetingId: result.createdEvent?.id,
+        meetingPassword: result.createdEvent?.password,
+        meetingUrl: result.createdEvent?.url,
       };
     });
 
@@ -153,14 +154,14 @@ export default class EventManager {
       throw new Error("booking not found");
     }
 
-    const isDedicated = evt.location ? EventManager.isDedicatedIntegration(evt.location) : null;
+    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
     const results: Array<EventResult> = await this.updateAllCalendarEvents(evt, booking);
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
-      if (result.videoCallData) {
-        evt.videoCallData = result.videoCallData;
+      if (result.updatedEvent) {
+        evt.videoCallData = result.updatedEvent;
       }
       results.push(result);
     }
@@ -292,23 +293,6 @@ export default class EventManager {
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
-  }
-
-  /**
-   * Returns true if the given location describes a dedicated integration that
-   * delivers meeting credentials. Zoom, for example, is dedicated, because it
-   * needs to be called independently from any calendar APIs to receive meeting
-   * credentials. Google Meetings, in contrast, are not dedicated, because they
-   * are created while scheduling a regular calendar event by simply adding some
-   * attributes to the payload JSON.
-   *
-   * @param location
-   * @private
-   */
-  private static isDedicatedIntegration(location: string): boolean {
-    // Hard-coded for now, because Zoom and Google Meet are both integrations, but one is dedicated, the other one isn't.
-
-    return location === "integrations:zoom" || location === "integrations:daily";
   }
 
   /**
