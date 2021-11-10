@@ -368,7 +368,7 @@ const loggedInViewerRouter = createProtectedRouter()
       ) {
         throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
       }
-      await ctx.prisma.UserDestinationCalendar.upsert({
+      await ctx.prisma.userDestinationCalendar.upsert({
         where: {
           id,
         },

@@ -205,7 +205,9 @@ function PrimaryCalendarSelector() {
           return;
         }
 
-        const [integration, externalId] = option.value.split(":");
+        /* Split only the first `:`, since Apple uses the full URL as externalId */
+        const [integration, externalId] = option.value.split(/:(.+)/);
+
         mutation.mutate({
           integration,
           externalId,
