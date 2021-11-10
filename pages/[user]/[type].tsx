@@ -156,7 +156,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }*/
   const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
-    availability && availability.length ? availability : null;
+    availability && availability.length
+      ? availability.map((schedule) => ({
+          ...schedule,
+          startTime: schedule.startTime.getUTCHours() * 60 + schedule.startTime.getUTCMinutes(),
+          endTime: schedule.endTime.getUTCHours() * 60 + schedule.endTime.getUTCMinutes(),
+        }))
+      : null;
 
   const workingHours =
     getWorkingHours(eventType.availability) ||
@@ -175,6 +181,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
+
+  eventTypeObject.availability = [];
 
   return {
     props: {

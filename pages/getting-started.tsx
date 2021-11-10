@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "@heroicons/react/outline";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import debounce from "lodash/debounce";
@@ -11,6 +12,7 @@ import { useSession } from "next-auth/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
@@ -18,14 +20,16 @@ import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
+import { Form } from "@components/form/fields";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
-import SchedulerForm, { SCHEDULE_FORM_ID } from "@components/ui/Schedule/Schedule";
 import Text from "@components/ui/Text";
+import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -34,6 +38,11 @@ import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(localizedFormat);
+
+type ScheduleFormValues = {
+  schedule: ScheduleType;
+};
 
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
@@ -96,10 +105,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return responseData.data;
   };
 
-  const createSchedule = async (data: Prisma.ScheduleCreateInput) => {
+  const createSchedule = async ({ schedule }: ScheduleFormValues) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
-      body: JSON.stringify({ data: { ...data } }),
+      body: JSON.stringify({ schedule }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -118,16 +127,13 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** End Name */
   /** TimeZone */
   const [selectedTimeZone, setSelectedTimeZone] = useState(props.user.timeZone ?? dayjs.tz.guess());
-  const currentTime = React.useMemo(() => {
-    return dayjs().tz(selectedTimeZone).format("H:mm A");
-  }, [selectedTimeZone]);
   /** End TimeZone */
 
   /** Onboarding Steps */
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
     let step = 0;
-    const hasSetUserNameOrTimeZone = props.user.name && props.user.timeZone;
+    const hasSetUserNameOrTimeZone = props.user?.name && props.user?.timeZone;
     if (hasSetUserNameOrTimeZone) {
       step = 1;
     }
@@ -153,6 +159,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         steps[currentStep].onComplete &&
         typeof steps[currentStep].onComplete === "function"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await steps[currentStep].onComplete!();
       }
       incrementStep();
@@ -222,6 +229,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     router.push("/event-types");
   };
 
+  const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [
     {
       id: t("welcome"),
@@ -254,15 +262,13 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 </label>
                 <Text variant="caption">
                   {t("current_time")}:&nbsp;
-                  <span className="text-black">{currentTime}</span>
+                  <span className="text-black">{dayjs().tz(selectedTimeZone).format("LT")}</span>
                 </Text>
               </section>
               <TimezoneSelect
                 id="timeZone"
                 value={selectedTimeZone}
-                onChange={({ value }) => {
-                  setSelectedTimeZone(value);
-                }}
+                onChange={({ value }) => setSelectedTimeZone(value)}
                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </fieldset>
@@ -307,29 +313,30 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("set_availability"),
       description: t("set_availability_instructions"),
       Component: (
-        <>
-          <section className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white">
-            <SchedulerForm
-              onSubmit={async (data) => {
-                try {
-                  setSubmitting(true);
-                  await createSchedule({
-                    freeBusyTimes: data,
-                  });
-                  debouncedHandleConfirmStep();
-                  setSubmitting(false);
-                } catch (error) {
-                  setError(error as Error);
-                }
-              }}
-            />
+        <Form
+          className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white"
+          form={availabilityForm}
+          handleSubmit={async (values) => {
+            try {
+              setSubmitting(true);
+              await createSchedule({ ...values });
+              debouncedHandleConfirmStep();
+              setSubmitting(false);
+            } catch (error) {
+              if (error instanceof Error) {
+                setError(error);
+              }
+            }
+          }}>
+          <section>
+            <Schedule name="schedule" />
+            <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
+              <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
+                {t("continue")}
+              </Button>
+            </footer>
           </section>
-          <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
-            <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit" form={SCHEDULE_FORM_ID}>
-              {t("continue")}
-            </Button>
-          </footer>
-        </>
+        </Form>
       ),
       hideConfirm: true,
       showCancel: false,
@@ -401,6 +408,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   useEffect(() => {
     detectStep();
     setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (Sess[1] || !ready) {
@@ -471,12 +479,18 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </section>
           <section className="max-w-xl py-8 mx-auto">
             <div className="flex flex-row-reverse justify-between">
-              <button disabled={isSubmitting} onClick={handleSkipStep}>
-                <Text variant="caption">Skip Step</Text>
+              <button
+                disabled={isSubmitting}
+                onClick={handleSkipStep}
+                className="text-sm leading-tight text-gray-500 dark:text-white">
+                {t("next_step")}
               </button>
               {currentStep !== 0 && (
-                <button disabled={isSubmitting} onClick={decrementStep}>
-                  <Text variant="caption">Prev Step</Text>
+                <button
+                  disabled={isSubmitting}
+                  onClick={decrementStep}
+                  className="text-sm leading-tight text-gray-500 dark:text-white">
+                  {t("prev_step")}
                 </button>
               )}
             </div>
