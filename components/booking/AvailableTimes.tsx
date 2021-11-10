@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import React, { FC } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import { useRouterBasePath } from "@lib/hooks/useRouterPath";
 import { useSlots } from "@lib/hooks/useSlots";
 
 import Loader from "@components/Loader";
@@ -51,6 +52,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     eventTypeId,
   });
 
+  const basePath = useRouterBasePath();
+
   return (
     <div className="sm:pl-4 mt-8 sm:mt-0 text-center sm:w-1/3 md:-mb-5">
       <div className="text-gray-600 font-light text-lg mb-4 text-left">
@@ -66,25 +69,16 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         {!loading &&
           slots?.length > 0 &&
           slots.map((slot) => {
-            type BookingURL = {
-              pathname: string;
-              query: Record<string, string | number | string[] | undefined>;
-            };
-            const bookingUrl: BookingURL = {
-              pathname: "book",
-              query: {
-                ...router.query,
-                date: slot.time.format(),
-                type: eventTypeId,
-              },
-            };
+            let bookingUrl = `/${basePath}/book?date=${encodeURIComponent(
+              slot.time.format()
+            )}&type=${eventTypeId}`;
 
             if (rescheduleUid) {
-              bookingUrl.query.rescheduleUid = rescheduleUid as string;
+              bookingUrl += `&rescheduleUid=${rescheduleUid}`;
             }
 
             if (schedulingType === SchedulingType.ROUND_ROBIN) {
-              bookingUrl.query.user = slot.users;
+              bookingUrl += `&user=${slot.users}`;
             }
 
             return (

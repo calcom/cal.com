@@ -11,10 +11,10 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
+import { useRouterAsPath } from "@lib/hooks/useRouterPath";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { useRouterPathname } from "@lib/useRouterPathname";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
@@ -60,7 +60,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
-  const basePath = useRouterPathname();
+  const asPath = useRouterAsPath();
   const changeDate = (newDate: Dayjs) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
 
@@ -72,7 +72,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
         },
       },
       {
-        pathname: basePath,
+        pathname: asPath,
         query: {
           date: newDate.format("YYYY-MM-DDZZ"),
         },
@@ -196,6 +196,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                   <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
                 </div>
                 <DatePicker
+                  rescheduleUid={router.query?.rescheduleUid}
                   date={selectedDate}
                   periodType={eventType?.periodType}
                   periodStartDate={eventType?.periodStartDate}

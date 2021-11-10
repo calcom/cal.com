@@ -9,8 +9,8 @@ import { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
+import { useRouterAsPath } from "@lib/hooks/useRouterPath";
 import getSlots from "@lib/slots";
-import { useRouterPathname } from "@lib/useRouterPathname";
 
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
@@ -29,6 +29,7 @@ function DatePicker({
   periodDays,
   periodCountCalendarDays,
   minimumBookingNotice,
+  rescheduleUid,
 }: any): JSX.Element {
   const { t } = useLocale();
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
@@ -40,7 +41,8 @@ function DatePicker({
         : date.month()
       : dayjs().month() /* High chance server is going to have the same month */
   );
-  const basePath = useRouterPathname();
+
+  const asPath = useRouterAsPath();
 
   useEffect(() => {
     if (dayjs().month() !== selectedMonth) {
@@ -184,9 +186,15 @@ function DatePicker({
               <div key={`e-${idx}`} />
             ) : (
               <Link
-                href={`${basePath}?date=${encodeURIComponent(
-                  inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
-                )}`}
+                href={`${
+                  rescheduleUid
+                    ? `${asPath}?rescheduleUid=${rescheduleUid}&date=${encodeURIComponent(
+                        inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
+                      )}`
+                    : `${asPath}?date=${encodeURIComponent(
+                        inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
+                      )}`
+                }`}
                 scroll={false}>
                 <a
                   className={classNames(
