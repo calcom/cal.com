@@ -7,6 +7,7 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
+import { isSAMLLoginEnabled } from "@lib/auth";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -453,11 +454,18 @@ const loggedInViewerRouter = createProtectedRouter()
       });
     },
   })
+  .query("isSAMLLoginEnabled", {
+    async resolve() {
+      return {
+        isSAMLLoginEnabled,
+      };
+    },
+  })
   .mutation("updateSAMLConfig", {
     input: z.object({
       rawMetadata: z.string(),
     }),
-    async resolve({ input, ctx }) {
+    async resolve({ input }) {
       const params = new URLSearchParams();
       params.append('rawMetadata', input.rawMetadata);
       params.append('defaultRedirectUrl', `${process.env.BASE_URL}/login/saml`);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import { identityProviderNameMap } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -15,6 +15,15 @@ import Button from "@components/ui/Button";
 import { IdentityProvider } from ".prisma/client";
 
 export default function Security() {
+  const [isSAMLLoginEnabled, setIsSAMLLoginEnabled] = useState(false);
+
+  const query = trpc.useQuery(["viewer.isSAMLLoginEnabled"]);
+
+  useEffect(() => {
+    const data = query.data;
+    setIsSAMLLoginEnabled(data?.isSAMLLoginEnabled ?? false);
+  }, [query.data]);
+
   const mutation = trpc.useMutation("viewer.updateSAMLConfig", {
     onSuccess: () => {
       showToast(t("saml_config_updated_successfully"), "success");
@@ -27,10 +36,10 @@ export default function Security() {
     },
   });
 
-  const samlConfigRef = React.useRef<HTMLTextAreaElement>(null!);
+  const samlConfigRef = useRef<HTMLTextAreaElement>(null!);
 
-  const [hasErrors, setHasErrors] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState("");
+  const [hasErrors, setHasErrors] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   async function updateSAMLConfigHandler(event) {
     event.preventDefault();
@@ -66,7 +75,7 @@ export default function Security() {
           </>
         )}
 
-        {user && user.identityProvider === IdentityProvider.SAML ? (
+        {isSAMLLoginEnabled ? (
           <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateSAMLConfigHandler}>
             <div className="mt-6">
               <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">SAML Configuration</h2>
