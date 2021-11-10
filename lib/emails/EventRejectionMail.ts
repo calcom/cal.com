@@ -45,8 +45,8 @@ export default class EventRejectionMail extends EventMail {
          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
       />
     </svg>
-    <h1 style="font-weight: 500; color: #161e2e;">Your meeting request has been rejected</h1>
-    <p style="color: #4b5563; margin-bottom: 30px;">You and any other attendees have been emailed with this information.</p>
+    <h1 style="font-weight: 500; color: #161e2e;">${this.calEvent.language("meeting_request_rejected")}</h1>
+    <p style="color: #4b5563; margin-bottom: 30px;">${this.calEvent.language("emailed_you_and_attendees")}</p>
     <hr />
     ` +
       `
@@ -68,24 +68,35 @@ export default class EventRejectionMail extends EventMail {
       to: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `Rejected: ${this.calEvent.type} with ${
-        this.calEvent.organizer.name
-      } on ${this.getInviteeStart().format("dddd, LL")}`,
+      subject: this.calEvent.language("rejected_event_type_with_organizer", {
+        eventType: this.calEvent.type,
+        organizer: this.calEvent.organizer.name,
+        date: this.getInviteeStart().format("dddd, LL"),
+      }),
       html: this.getHtmlRepresentation(),
       text: this.getPlainTextRepresentation(),
     };
   }
 
-  protected printNodeMailerError(error: string): void {
+  protected printNodeMailerError(error: Error): void {
     console.error("SEND_BOOKING_CONFIRMATION_ERROR", this.calEvent.attendees[0].email, error);
   }
 
   /**
    * Returns the inviteeStart value used at multiple points.
    *
-   * @private
+   * @protected
    */
   protected getInviteeStart(): Dayjs {
     return dayjs(this.calEvent.startTime).tz(this.calEvent.attendees[0].timeZone);
+  }
+
+  /**
+   * Adds the video call information to the mail body.
+   *
+   * @protected
+   */
+  protected getLocation(): string {
+    return "";
   }
 }

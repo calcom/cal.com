@@ -216,8 +216,11 @@ yarn test-playwright
 ### Docker
 
 The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+  
+If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
+  
 
 ### Railway
 

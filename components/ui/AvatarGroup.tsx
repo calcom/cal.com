@@ -40,7 +40,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
               <span className="w-16 absolute bottom-1.5 border-2 border-gray-300 flex-inline items-center text-white pt-4 text-2xl top-0 rounded-full block bg-neutral-600">+1</span>
             </Tooltip.TooltipTrigger>
             {truncatedAvatars.length !== 0 && (
-              <Tooltip.Content className="p-2 rounded-sm text-sm bg-black text-white shadow-sm">
+              <Tooltip.Content className="p-2 rounded-sm text-sm bg-brand text-white shadow-sm">
                 <Tooltip.Arrow />
                 <ul>
                   {truncatedAvatars.map((title) => (

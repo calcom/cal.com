@@ -74,7 +74,7 @@ async function getUserFromSession({
   }
   const avatar = user.avatar || defaultAvatarSrc({ email });
 
-  const locale = user.locale ?? getLocaleFromHeaders(req);
+  const locale = user.locale || getLocaleFromHeaders(req);
   return {
     ...user,
     avatar,
