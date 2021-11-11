@@ -17,8 +17,14 @@ it("can fit 24 hourly slots for an empty day", async () => {
     getSlots({
       inviteeDate: dayjs().add(1, "day"),
       frequency: 60,
-      workingHours: [{ days: Array.from(Array(7).keys()), startTime: 0, endTime: 1440 }],
-      organizerTimeZone: "Europe/London",
+      minimumBookingNotice: 0,
+      workingHours: [
+        {
+          days: Array.from(Array(7).keys()),
+          startTime: new Date(new Date().setHours(0, 0, 0, 0)),
+          endTime: new Date(new Date().setHours(24, 0, 0, 0)),
+        },
+      ],
     })
   ).toHaveLength(24);
 });
@@ -29,8 +35,14 @@ it.skip("only shows future booking slots on the same day", async () => {
     getSlots({
       inviteeDate: dayjs(),
       frequency: 60,
-      workingHours: [{ days: Array.from(Array(7).keys()), startTime: 0, endTime: 1440 }],
-      organizerTimeZone: "GMT",
+      minimumBookingNotice: 0,
+      workingHours: [
+        {
+          days: Array.from(Array(7).keys()),
+          startTime: new Date(new Date().setHours(0, 0, 0, 0)),
+          endTime: new Date(new Date().setHours(24, 0, 0, 0)),
+        },
+      ],
     })
   ).toHaveLength(12);
 });
@@ -40,19 +52,32 @@ it("can cut off dates that due to invitee timezone differences fall on the next 
     getSlots({
       inviteeDate: dayjs().tz("Europe/Amsterdam").startOf("day"), // time translation +01:00
       frequency: 60,
-      workingHours: [{ days: [0], startTime: 1380, endTime: 1440 }],
-      organizerTimeZone: "Europe/London",
+      minimumBookingNotice: 0,
+      workingHours: [
+        {
+          days: [0],
+          startTime: new Date(new Date().setHours(23, 0, 0, 0)),
+          endTime: new Date(new Date().setHours(24, 0, 0, 0)),
+        },
+      ],
     })
   ).toHaveLength(0);
 });
 
 it.skip("can cut off dates that due to invitee timezone differences fall on the previous day", async () => {
+  const workingHours = [
+    {
+      days: [0],
+      startTime: new Date(new Date().setHours(0, 0, 0, 0)),
+      endTime: new Date(new Date().setHours(1, 0, 0, 0)),
+    },
+  ];
   expect(
     getSlots({
       inviteeDate: dayjs().startOf("day"), // time translation -01:00
       frequency: 60,
-      workingHours: [{ days: [0], startTime: 0, endTime: 60 }],
-      organizerTimeZone: "Europe/London",
+      minimumBookingNotice: 0,
+      workingHours,
     })
   ).toHaveLength(0);
 });
