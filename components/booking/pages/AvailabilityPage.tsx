@@ -15,6 +15,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
+import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
@@ -95,6 +96,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
         name={profile.name}
         avatar={profile.image}
       />
+      <CustomBranding val={profile.brandColor} />
       <div>
         <main
           className={
@@ -162,8 +164,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="font-medium text-gray-500 dark:text-gray-300 mt-3">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
+                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 font-cal dark:text-white">
                     {eventType.title}
                   </h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
