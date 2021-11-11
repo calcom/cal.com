@@ -30,7 +30,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         avatar={user.avatar || undefined}
       />
       {isReady && (
-        <div className="bg-neutral-50 dark:bg-brand h-screen">
+        <div className="bg-neutral-50 dark:bg-black h-screen">
           <main className="max-w-3xl mx-auto py-24 px-4">
             <div className="mb-8 text-center">
               <Avatar

@@ -642,6 +642,15 @@ const createEvent = async (
         })
     : undefined;
 
+  if (!creationResult) {
+    return {
+      type: credential.type,
+      success,
+      uid,
+      originalEvent: calEvent,
+    };
+  }
+
   const metadata: AdditionInformation = {};
   if (creationResult) {
     // TODO: Handle created event metadata more elegantly
@@ -650,10 +659,10 @@ const createEvent = async (
     metadata.entryPoints = creationResult.entryPoints;
   }
 
-  const emailEvent = { ...calEvent, additionInformation: metadata };
+  calEvent.additionInformation = metadata;
 
   if (!noMail) {
-    const organizerMail = new EventOrganizerMail(emailEvent);
+    const organizerMail = new EventOrganizerMail(calEvent);
 
     try {
       await organizerMail.sendEmail();
@@ -674,27 +683,37 @@ const createEvent = async (
 const updateEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  noMail: boolean | null = false
+  noMail: boolean | null = false,
+  bookingRefUid: string | null
 ): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
-  const newUid: string = parser.getUid();
+  const uid = parser.getUid();
   const richEvent: CalendarEvent = parser.asRichEventPlain();
 
   let success = true;
 
-  const updateResult =
-    credential && calEvent.uid
+  const updatedResult =
+    credential && bookingRefUid
       ? await calendars([credential])[0]
-          .updateEvent(calEvent.uid, richEvent)
+          .updateEvent(bookingRefUid, richEvent)
           .catch((e) => {
             log.error("updateEvent failed", e, calEvent);
             success = false;
+            return undefined;
           })
       : null;
 
+  if (!updatedResult) {
+    return {
+      type: credential.type,
+      success,
+      uid,
+      originalEvent: calEvent,
+    };
+  }
+
   if (!noMail) {
-    const emailEvent = { ...calEvent, uid: newUid };
-    const organizerMail = new EventOrganizerRescheduledMail(emailEvent);
+    const organizerMail = new EventOrganizerRescheduledMail(calEvent);
     try {
       await organizerMail.sendEmail();
     } catch (e) {
@@ -705,8 +724,8 @@ const updateEvent = async (
   return {
     type: credential.type,
     success,
-    uid: newUid,
-    updatedEvent: updateResult,
+    uid,
+    updatedEvent: updatedResult,
     originalEvent: calEvent,
   };
 };
