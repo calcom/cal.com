@@ -6,6 +6,7 @@ import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
+import { Schedule } from "@lib/types/schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -237,9 +238,32 @@ const loggedInViewerRouter = createProtectedRouter()
       const { prisma, user } = ctx;
       const bookingListingByStatus = input.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
-        upcoming: [{ endTime: { gte: new Date() }, NOT: { status: { equals: BookingStatus.CANCELLED } } }],
-        past: [{ endTime: { lte: new Date() }, NOT: { status: { equals: BookingStatus.CANCELLED } } }],
-        cancelled: [{ status: { equals: BookingStatus.CANCELLED } }],
+        upcoming: [
+          {
+            endTime: { gte: new Date() },
+            AND: [
+              { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+              { NOT: { status: { equals: BookingStatus.REJECTED } } },
+            ],
+          },
+        ],
+        past: [
+          {
+            endTime: { lte: new Date() },
+            AND: [
+              { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+              { NOT: { status: { equals: BookingStatus.REJECTED } } },
+            ],
+          },
+        ],
+        cancelled: [
+          {
+            OR: [
+              { status: { equals: BookingStatus.CANCELLED } },
+              { status: { equals: BookingStatus.REJECTED } },
+            ],
+          },
+        ],
       };
       const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
         upcoming: { startTime: "desc" },
@@ -357,6 +381,31 @@ const loggedInViewerRouter = createProtectedRouter()
           items: payment,
           numActive: countActive(payment),
         },
+      };
+    },
+  })
+  .query("availability", {
+    async resolve({ ctx }) {
+      const { prisma, user } = ctx;
+      const availabilityQuery = await prisma.availability.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
+      const schedule = availabilityQuery.reduce(
+        (schedule: Schedule, availability) => {
+          availability.days.forEach((day) => {
+            schedule[day].push({
+              start: new Date(new Date().toDateString() + " " + availability.startTime.toTimeString()),
+              end: new Date(new Date().toDateString() + " " + availability.endTime.toTimeString()),
+            });
+          });
+          return schedule;
+        },
+        Array.from([...Array(7)]).map(() => [])
+      );
+      return {
+        schedule,
       };
     },
   })

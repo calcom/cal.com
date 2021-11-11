@@ -1,29 +1,33 @@
-import React, { PropsWithChildren } from "react";
-import Select, { components, NamedProps } from "react-select";
+import React from "react";
+import ReactSelect, { components, GroupBase, Props } from "react-select";
 
 import classNames from "@lib/classNames";
 
-export const SelectComp = (props: PropsWithChildren<NamedProps>) => (
-  <Select
-    theme={(theme) => ({
-      ...theme,
-      borderRadius: 2,
-      colors: {
-        ...theme.colors,
-        primary: "rgba(17, 17, 17, var(--tw-bg-opacity))",
-        primary50: "rgba(17, 17, 17, var(--tw-bg-opacity))",
-        primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
-      },
-    })}
-    components={{
-      ...components,
-      IndicatorSeparator: () => null,
-    }}
-    className={classNames("text-sm shadow-sm focus:border-primary-500", props.className)}
-    {...props}
-  />
-);
+function Select<
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({ className, ...props }: Props<Option, IsMulti, Group>) {
+  return (
+    <ReactSelect
+      theme={(theme) => ({
+        ...theme,
+        borderRadius: 2,
+        colors: {
+          ...theme.colors,
+          primary: "rgba(17, 17, 17, var(--tw-bg-opacity))",
+          primary50: "rgba(17, 17, 17, var(--tw-bg-opacity))",
+          primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+        },
+      })}
+      components={{
+        ...components,
+        IndicatorSeparator: () => null,
+      }}
+      className={classNames("text-sm shadow-sm focus:border-primary-500", className)}
+      {...props}
+    />
+  );
+}
 
-SelectComp.displayName = "Select";
-
-export default SelectComp;
+export default Select;

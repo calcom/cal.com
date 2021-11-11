@@ -12,7 +12,7 @@ const RadioArea = (props: RadioAreaProps) => {
     <label
       className={classNames(
         "block border border-1 p-4 focus:outline-none focus:ring focus:ring-neutral-500",
-        props.checked && "border-black",
+        props.checked && "border-brand",
         props.className
       )}>
       <input

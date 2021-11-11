@@ -216,8 +216,8 @@ model Availability {
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
-  startTime   Int
-  endTime     Int
+  startTime   DateTime   @db.Time
+  endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
 }
 
