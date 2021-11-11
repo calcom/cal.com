@@ -254,7 +254,10 @@
   "dark": "Escuro",
   "automatically_adjust_theme": "Ajustar tema automaticamente com base nas preferências do convidado",
   "email": "Email",
+  "email_placeholder": "nome@exemplo.com",
   "full_name": "Nome Completo",
+  "browse_api_documentation": "Consulte a nossa documentação da API",
+  "leverage_our_api": "Tire partido da nossa API para controlo e personalização total.",
   "create_webhook": "Criar Webhook",
   "booking_cancelled": "Reserva Cancelada",
   "booking_rescheduled": "Reserva Reagendada",
@@ -525,5 +528,7 @@
   "connect_an_additional_calendar": "Ligue um calendário adicional",
   "conferencing": "Conferência",
   "calendar": "Calendário",
-  "not_installed": "Não instalado"
+  "not_installed": "Não instalado",
+  "error_password_mismatch": "As senhas não são iguais.",
+  "error_required_field": "Este campo é obrigatório."
 }
