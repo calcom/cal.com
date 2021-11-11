@@ -18,7 +18,7 @@ jobs:
         with:
           upload_translations: true
           download_translations: true
-          pull_request_labels: "i18n"
+          pull_request_labels: "i18n, ♻️ autoupdate"
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
