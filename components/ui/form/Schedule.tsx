@@ -1,14 +1,19 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { Dayjs, ConfigType } from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
-import { TimeRange, Schedule as ScheduleType } from "@lib/types/schedule";
+import { TimeRange } from "@lib/types/schedule";
 
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 /** Begin Time Increments For Select */
 const increment = 15;
@@ -31,18 +36,18 @@ const TIMES = (() => {
 /** End Time Increments For Select */
 
 // sets the desired time in current date, needs to be current date for proper DST translation
-const defaultDayRange: TimeRange = {
-  start: new Date(new Date().setHours(9, 0, 0, 0)),
-  end: new Date(new Date().setHours(17, 0, 0, 0)),
-};
+const defaultDayRange = (timeZone: string) => ({
+  start: dayjs().startOf("day").add(9, "hour").tz(timeZone, true).toDate(),
+  end: dayjs().startOf("day").add(17, "hour").tz(timeZone, true).toDate(),
+});
 
-export const DEFAULT_SCHEDULE: ScheduleType = [
+export const defaultSchedule = (timeZone: string) => [
   [],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
+  [defaultDayRange(timeZone)],
+  [defaultDayRange(timeZone)],
+  [defaultDayRange(timeZone)],
+  [defaultDayRange(timeZone)],
+  [defaultDayRange(timeZone)],
   [],
 ];
 
@@ -59,15 +64,15 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
 
-  const getOption = (time: Date) => ({
-    value: time.valueOf(),
-    label: time.toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
+  const getOption = (time: ConfigType) => ({
+    value: dayjs(time).utc(true).toDate().valueOf(),
+    label: dayjs(time).toDate().toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
   });
 
   const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
     const { limit, offset } = offsetOrLimit;
     return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (t) => getOption(t.toDate())
+      (t) => getOption(t)
     );
   }, []);
 
@@ -108,9 +113,10 @@ type ScheduleBlockProps = {
   day: number;
   weekday: string;
   name: string;
+  timeZone: string;
 };
 
-const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
+const ScheduleBlock = ({ timeZone, name, day, weekday }: ScheduleBlockProps) => {
   const { t } = useLocale();
   const { fields, append, remove, replace } = useFieldArray({
     name: `${name}.${day}`,
@@ -136,7 +142,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
           <input
             type="checkbox"
             checked={fields.length > 0}
-            onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
+            onChange={(e) => (e.target.checked ? replace([defaultDayRange(timeZone)]) : replace([]))}
             className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
           />
           <span className="inline-block capitalize">{weekday}</span>
@@ -173,12 +179,12 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   );
 };
 
-const Schedule = ({ name }: { name: string }) => {
+const Schedule = ({ name, timeZone }: { name: string; timeZone: string }) => {
   const { i18n } = useLocale();
   return (
     <fieldset className="divide-y divide-gray-200">
       {weekdayNames(i18n.language).map((weekday, num) => (
-        <ScheduleBlock key={num} name={name} weekday={weekday} day={num} />
+        <ScheduleBlock timeZone={timeZone} key={num} name={name} weekday={weekday} day={num} />
       ))}
     </fieldset>
   );

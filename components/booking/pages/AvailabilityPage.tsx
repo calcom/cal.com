@@ -30,11 +30,17 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
+const AvailabilityPage = ({ profile, eventType, ...props }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
   const { t } = useLocale();
+
+  const workingHours = props.workingHours.map((hours) => ({
+    ...hours,
+    startTime: new Date(hours.startTime),
+    endTime: new Date(hours.endTime),
+  }));
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -92,8 +98,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
-        name={profile.name}
-        avatar={profile.image}
+        name={profile.name || undefined}
+        avatar={profile.image || undefined}
       />
       <div>
         <main
@@ -107,14 +113,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <AvatarGroup
-                    items={[{ image: profile.image, alt: profile.name }].concat(
-                      eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          image: user.avatar,
-                        }))
-                    )}
+                    items={
+                      [
+                        { image: profile.image, alt: profile.name, title: profile.name },
+                        ...eventType.users
+                          .filter((user) => user.name !== profile.name)
+                          .map((user) => ({
+                            title: user.name,
+                            image: user.avatar || undefined,
+                            alt: user.name || undefined,
+                          })),
+                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                    }
                     size={9}
                     truncateAfter={5}
                   />
@@ -151,19 +161,23 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
-                    items={[{ image: profile.image, alt: profile.name }].concat(
-                      eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          image: user.avatar,
-                        }))
-                    )}
+                    items={
+                      [
+                        { image: profile.image, alt: profile.name, title: profile.name },
+                        ...eventType.users
+                          .filter((user) => user.name !== profile.name)
+                          .map((user) => ({
+                            title: user.name,
+                            alt: user.name,
+                            image: user.avatar,
+                          })),
+                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                    }
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="font-medium text-gray-500 dark:text-gray-300 mt-3">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
+                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 font-cal dark:text-white">
                     {eventType.title}
                   </h1>
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">

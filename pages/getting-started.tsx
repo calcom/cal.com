@@ -29,7 +29,7 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
-import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
+import Schedule, { defaultSchedule } from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -229,7 +229,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     router.push("/event-types");
   };
 
-  const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
+  const availabilityForm = useForm({ defaultValues: { schedule: defaultSchedule(selectedTimeZone) } });
   const steps = [
     {
       id: t("welcome"),
@@ -329,7 +329,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
             }
           }}>
           <section>
-            <Schedule name="schedule" />
+            <Schedule timeZone={selectedTimeZone} name="schedule" />
             <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
               <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
                 {t("continue")}

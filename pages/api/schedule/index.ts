@@ -1,4 +1,5 @@
 import { Availability } from "@prisma/client";
+import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
@@ -19,12 +20,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const availability = req.body.schedule.reduce(
     (availability: Availability[], times: TimeRange[], day: number) => {
-      const addNewTime = (time: TimeRange) =>
-        ({
+      const addNewTimes = (time: TimeRange) => {
+        const times = [];
+        if (!dayjs(time.start).isSame(time.end, "day")) {
+          times.push({
+            days: [day - dayjs(time.start).diff(time.end, "day")],
+            startTime: time.start,
+            endTime: time.end,
+          });
+        }
+        times.push({
           days: [day],
           startTime: time.start,
           endTime: time.end,
-        } as Availability);
+        });
+        return times as Availability[];
+      };
 
       const filteredTimes = times.filter((time) => {
         let idx;
@@ -39,8 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return true;
       });
       filteredTimes.forEach((time) => {
-        availability.push(addNewTime(time));
+        availability.push(...addNewTimes(time));
       });
+      console.log(availability);
       return availability;
     },
     [] as Availability[]

@@ -10,7 +10,7 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 import Shell from "@components/Shell";
 import { Form } from "@components/form/fields";
 import Button from "@components/ui/Button";
-import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
+import Schedule, { defaultSchedule } from "@components/ui/form/Schedule";
 
 type FormValues = {
   schedule: ScheduleType;
@@ -22,7 +22,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
   const createSchedule = async ({ schedule }: FormValues) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
-      body: JSON.stringify({ schedule }),
+      body: JSON.stringify({ schedule, timeZone: props.timeZone }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -38,9 +38,10 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
 
   const form = useForm({
     defaultValues: {
-      schedule: props.schedule || DEFAULT_SCHEDULE,
+      schedule: props.schedule || defaultSchedule(props.timeZone),
     },
   });
+
   return (
     <div className="grid grid-cols-3 gap-2">
       <Form
@@ -51,7 +52,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
         className="col-span-3 space-y-2 lg:col-span-2">
         <div className="px-4 py-5 bg-white border border-gray-200 divide-y rounded-sm sm:p-6">
           <h3 className="mb-4 text-lg font-semibold leading-6 text-gray-900">{t("change_start_end")}</h3>
-          <Schedule name="schedule" />
+          <Schedule timeZone={props.timeZone} name="schedule" />
         </div>
         <div className="text-right">
           <Button>{t("save")}</Button>
