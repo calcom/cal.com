@@ -439,8 +439,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
-    const eventManagerCalendarEvent = { ...evt, uid: rescheduleUid };
-    const updateResults = await eventManager.update(eventManagerCalendarEvent);
+    const updateResults = await eventManager.update(evt, rescheduleUid);
 
     results = updateResults.results;
     referencesToCreate = updateResults.referencesToCreate;
@@ -473,7 +472,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await new EventOrganizerRequestMail({ ...evt, uid }).sendEmail();
+    await new EventOrganizerRequestMail(evt).sendEmail();
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {

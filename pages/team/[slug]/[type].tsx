@@ -66,8 +66,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const [eventType] = team.eventTypes;
 
   type Availability = typeof eventType["availability"];
-  const getWorkingHours = (availability: Availability) => (availability?.length ? availability : null);
-  const workingHours = getWorkingHours(eventType.availability) || [];
+  const getWorkingHours = (availability: Availability) =>
+    availability?.length
+      ? availability.map((schedule) => ({
+          ...schedule,
+          startTime: schedule.startTime.getUTCHours() * 60 + schedule.startTime.getUTCMinutes(),
+          endTime: schedule.endTime.getUTCHours() * 60 + schedule.endTime.getUTCMinutes(),
+        }))
+      : null;
+  const workingHours =
+    getWorkingHours(eventType.availability) ||
+    [
+      {
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startTime: 0,
+        endTime: 1440,
+      },
+    ].filter((availability): boolean => typeof availability["days"] !== "undefined");
 
   workingHours.sort((a, b) => a.startTime - b.startTime);
 
@@ -75,6 +90,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
+
+  eventTypeObject.availability = [];
 
   return {
     props: {

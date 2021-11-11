@@ -67,6 +67,7 @@ describe("webhooks", () => {
     }
     body.payload.organizer.timeZone = dynamic;
     body.payload.uid = dynamic;
+    body.payload.additionInformation = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
@@ -74,6 +75,7 @@ describe("webhooks", () => {
     Object {
       "createdAt": "[redacted/dynamic]",
       "payload": Object {
+        "additionInformation": "[redacted/dynamic]",
         "attendees": Array [
           Object {
             "email": "test@example.com",
