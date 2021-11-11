@@ -1,9 +1,13 @@
-import { EventTypeCustomInput, MembershipRole, Prisma } from "@prisma/client";
+import { EventTypeCustomInput, MembershipRole, Prisma, PeriodType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 import { WorkingHours } from "@lib/types/schedule";
+
+function handlePeriodType(periodType: string): PeriodType {
+  return PeriodType[periodType.toUpperCase()];
+}
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
   if (!customInputs || !customInputs?.length) return undefined;
@@ -112,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       locations: req.body.locations,
       eventName: req.body.eventName,
       customInputs: handleCustomInputs(req.body.customInputs as EventTypeCustomInput[], req.body.id),
-      periodType: req.body.periodType,
+      periodType: handlePeriodType(req.body.periodType),
       periodDays: req.body.periodDays,
       periodStartDate: req.body.periodStartDate,
       periodEndDate: req.body.periodEndDate,
