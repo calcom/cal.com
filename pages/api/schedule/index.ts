@@ -1,9 +1,8 @@
-import { Availability } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import { getAvailabilityFromSchedule } from "@lib/availability";
 import prisma from "@lib/prisma";
-import { TimeRange } from "@lib/types/schedule";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
@@ -17,34 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "Bad Request." });
   }
 
-  const availability: Availability[] = req.body.schedule.reduce(
-    (availability: Availability[], times: TimeRange[], day: number) => {
-      const addNewTime = (time: TimeRange) =>
-        ({
-          days: [day],
-          startTime: time.start,
-          endTime: time.end,
-        } as Availability);
-
-      const filteredTimes = times.filter((time) => {
-        let idx;
-        if (
-          (idx = availability.findIndex(
-            (schedule) => schedule.startTime === time.start && schedule.endTime === time.end
-          )) !== -1
-        ) {
-          availability[idx].days.push(day);
-          return false;
-        }
-        return true;
-      });
-      filteredTimes.forEach((time) => {
-        availability.push(addNewTime(time));
-      });
-      return availability;
-    },
-    [] as Availability[]
-  );
+  const availability = getAvailabilityFromSchedule(req.body.schedule);
 
   if (req.method === "POST") {
     try {

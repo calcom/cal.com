@@ -3,9 +3,10 @@ import dayjs, { Dayjs } from "dayjs";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
+import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
-import { TimeRange, Schedule as ScheduleType } from "@lib/types/schedule";
+import { TimeRange } from "@lib/types/schedule";
 
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
@@ -29,22 +30,6 @@ const TIMES = (() => {
   return times;
 })();
 /** End Time Increments For Select */
-
-// sets the desired time in current date, needs to be current date for proper DST translation
-const defaultDayRange: TimeRange = {
-  start: new Date(new Date().setHours(9, 0, 0, 0)),
-  end: new Date(new Date().setHours(17, 0, 0, 0)),
-};
-
-export const DEFAULT_SCHEDULE: ScheduleType = [
-  [],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [],
-];
 
 type Option = {
   readonly label: string;
@@ -139,7 +124,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
             className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
           />
-          <span className="text-sm inline-block capitalize">{weekday}</span>
+          <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
@@ -157,7 +142,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             />
           </div>
         ))}
-        <span className="text-sm block text-gray-500">{!fields.length && t("no_availability")}</span>
+        <span className="block text-sm text-gray-500">{!fields.length && t("no_availability")}</span>
       </div>
       <div>
         <Button

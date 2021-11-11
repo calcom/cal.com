@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
+import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
@@ -29,7 +30,7 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
-import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
+import Schedule from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
