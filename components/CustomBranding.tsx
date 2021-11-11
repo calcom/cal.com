@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
-const BrandColor = ({ val }: { val: string }) => {
+const BrandColor = ({ val="#292929" }: { val: string | undefined }) => {
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-color", val);
-  });
+  },[val]);
   return null;
 };
 
