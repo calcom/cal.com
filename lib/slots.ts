@@ -1,16 +1,17 @@
 import dayjs, { Dayjs } from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
 
-import { OpeningHours } from "@lib/types/event-type";
+import { WorkingHours } from "./types/schedule";
 
 dayjs.extend(utc);
+dayjs.extend(isBetween);
 
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
-  workingHours: OpeningHours[];
+  workingHours: WorkingHours[];
   minimumBookingNotice: number;
-  organizerTimeZone: string;
 };
 
 const getMinuteOffset = (date: Dayjs, step: number) => {
