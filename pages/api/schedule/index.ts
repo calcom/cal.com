@@ -6,7 +6,7 @@ import prisma from "@lib/prisma";
 import { TimeRange } from "@lib/types/schedule";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req: req });
+  const session = await getSession({ req });
   const userId = session?.user?.id;
   if (!userId) {
     res.status(401).json({ message: "Not authenticated" });
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "Bad Request." });
   }
 
-  const availability = req.body.schedule.reduce(
+  const availability: Availability[] = req.body.schedule.reduce(
     (availability: Availability[], times: TimeRange[], day: number) => {
       const addNewTime = (time: TimeRange) =>
         ({
@@ -48,27 +48,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "POST") {
     try {
-      await prisma.availability.deleteMany({
+      await prisma.user.update({
         where: {
-          userId,
+          id: userId,
         },
-      });
-      await Promise.all(
-        availability.map((schedule: Availability) =>
-          prisma.availability.create({
-            data: {
-              days: schedule.days,
-              startTime: schedule.startTime,
-              endTime: schedule.endTime,
-              user: {
-                connect: {
-                  id: userId,
-                },
+        data: {
+          availability: {
+            /* We delete user availabilty */
+            deleteMany: {
+              userId: {
+                equals: userId,
               },
             },
-          })
-        )
-      );
+            /* So we can replace it */
+            createMany: {
+              data: availability.map((schedule) => ({
+                days: schedule.days,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+              })),
+            },
+          },
+        },
+      });
       return res.status(200).json({
         message: "created",
       });
