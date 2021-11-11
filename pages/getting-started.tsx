@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
+import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
@@ -29,7 +30,7 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
-import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
+import Schedule from "@components/ui/form/Schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -313,7 +314,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("set_availability"),
       description: t("set_availability_instructions"),
       Component: (
-        <Form
+        <Form<ScheduleFormValues>
           className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white"
           form={availabilityForm}
           handleSubmit={async (values) => {

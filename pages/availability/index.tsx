@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
+import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -10,7 +11,7 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 import Shell from "@components/Shell";
 import { Form } from "@components/form/fields";
 import Button from "@components/ui/Button";
-import Schedule, { DEFAULT_SCHEDULE } from "@components/ui/form/Schedule";
+import Schedule from "@components/ui/form/Schedule";
 
 type FormValues = {
   schedule: ScheduleType;

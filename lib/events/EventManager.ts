@@ -213,10 +213,15 @@ export default class EventManager {
    * @private
    */
 
-  private createAllCalendarEvents(event: CalendarEvent, noMail: boolean | null): Promise<Array<EventResult>> {
-    return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      return createEvent(credential, event, noMail);
-    });
+  private async createAllCalendarEvents(
+    event: CalendarEvent,
+    noMail: boolean | null
+  ): Promise<Array<EventResult>> {
+    const [firstCalendar] = this.calendarCredentials;
+    if (!firstCalendar) {
+      return [];
+    }
+    return [await createEvent(firstCalendar, event, noMail)];
   }
 
   /**
