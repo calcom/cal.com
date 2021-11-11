@@ -313,7 +313,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("set_availability"),
       description: t("set_availability_instructions"),
       Component: (
-        <Form
+        <Form<ScheduleFormValues>
           className="max-w-lg mx-auto text-black bg-white dark:bg-opacity-5 dark:text-white"
           form={availabilityForm}
           handleSubmit={async (values) => {

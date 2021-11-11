@@ -1,9 +1,11 @@
 import { useId } from "@radix-ui/react-id";
-import { forwardRef, ReactNode } from "react";
-import { FormProvider, useFormContext, UseFormReturn } from "react-hook-form";
+import { forwardRef, ReactElement, ReactNode, Ref } from "react";
+import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@lib/classNames";
+import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
 
 import { Alert } from "@components/ui/Alert";
 
@@ -91,20 +93,35 @@ export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function
   return <InputField type="email" inputMode="email" ref={ref} {...props} />;
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const Form = forwardRef<HTMLFormElement, { form: UseFormReturn<any> } & JSX.IntrinsicElements["form"]>(
-  function Form(props, ref) {
-    const { form, ...passThrough } = props;
+type FormProps<T> = { form: UseFormReturn<T>; handleSubmit: SubmitHandler<T> } & Omit<
+  JSX.IntrinsicElements["form"],
+  "onSubmit"
+>;
 
-    return (
-      <FormProvider {...form}>
-        <form ref={ref} {...passThrough}>
-          {props.children}
-        </form>
-      </FormProvider>
-    );
-  }
-);
+const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLFormElement>) => {
+  const { form, handleSubmit, ...passThrough } = props;
+
+  return (
+    <FormProvider {...form}>
+      <form
+        ref={ref}
+        onSubmit={(event) => {
+          form
+            .handleSubmit(handleSubmit)(event)
+            .catch((err) => {
+              showToast(`${getErrorFromUnknown(err).message}`, "error");
+            });
+        }}
+        {...passThrough}>
+        {props.children}
+      </form>
+    </FormProvider>
+  );
+};
+
+export const Form = forwardRef(PlainForm) as <T extends FieldValues>(
+  p: FormProps<T> & { ref?: Ref<HTMLFormElement> }
+) => ReactElement;
 
 export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
   return (
