@@ -6,7 +6,7 @@ import { stringify } from "querystring";
 import { useEffect, useState } from "react";
 
 import getSlots from "@lib/slots";
-import { TimeRange } from "@lib/types/schedule";
+import { TimeRange, WorkingHours } from "@lib/types/schedule";
 
 dayjs.extend(isBetween);
 dayjs.extend(utc);
@@ -27,11 +27,7 @@ type UseSlotsProps = {
   eventTypeId: number;
   minimumBookingNotice?: number;
   date: Dayjs;
-  workingHours: {
-    days: number[];
-    startTime: number;
-    endTime: number;
-  }[];
+  workingHours: WorkingHours[];
   users: { username: string | null }[];
   schedulingType: SchedulingType | null;
 };
@@ -111,7 +107,6 @@ export const useSlots = (props: UseSlotsProps) => {
       inviteeDate: date,
       workingHours: responseBody.workingHours,
       minimumBookingNotice,
-      organizerTimeZone: responseBody.timeZone,
     });
 
     // Check for conflicts

@@ -7,12 +7,12 @@ import React, { FC } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
-import { OpeningHours } from "@lib/types/event-type";
+import { WorkingHours } from "@lib/types/schedule";
 
 import Loader from "@components/Loader";
 
 type AvailableTimesProps = {
-  workingHours: OpeningHours[];
+  workingHours: WorkingHours[];
   timeFormat: string;
   minimumBookingNotice: number;
   eventTypeId: number;

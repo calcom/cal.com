@@ -60,6 +60,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           minimumBookingNotice: true,
           price: true,
           currency: true,
+          timeZone: true,
         },
       },
     },

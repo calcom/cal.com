@@ -42,6 +42,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodCountCalendarDays: true,
     schedulingType: true,
     minimumBookingNotice: true,
+    timeZone: true,
     users: {
       select: {
         avatar: true,
@@ -49,6 +50,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         username: true,
         hideBranding: true,
         plan: true,
+        timeZone: true,
       },
     },
   });
@@ -119,6 +121,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       username: user.username,
       hideBranding: user.hideBranding,
       plan: user.plan,
+      timeZone: user.timeZone,
     });
     user.eventTypes.push(eventTypeBackwardsCompat);
   }

@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
-import { OpeningHours } from "@lib/types/event-type";
+import { WorkingHours } from "@lib/types/schedule";
 
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
@@ -17,7 +17,7 @@ dayjs.extend(utc);
 type DatePickerProps = {
   weekStart: string;
   onDatePicked: (pickedDate: Dayjs) => void;
-  workingHours: OpeningHours[];
+  workingHours: WorkingHours[];
   eventLength: number;
   date: Dayjs | null;
   periodType: string;
