@@ -96,7 +96,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
         name={profile.name}
         avatar={profile.image}
       />
-      <CustomBranding val={profile.brandColor} />
+      <CustomBranding val={profile.brandColor || "#292929"} />
       <div>
         <main
           className={
