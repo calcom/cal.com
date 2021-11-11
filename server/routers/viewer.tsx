@@ -6,6 +6,7 @@ import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
+import { Schedule } from "@lib/types/schedule";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
@@ -380,6 +381,31 @@ const loggedInViewerRouter = createProtectedRouter()
           items: payment,
           numActive: countActive(payment),
         },
+      };
+    },
+  })
+  .query("availability", {
+    async resolve({ ctx }) {
+      const { prisma, user } = ctx;
+      const availabilityQuery = await prisma.availability.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
+      const schedule = availabilityQuery.reduce(
+        (schedule: Schedule, availability) => {
+          availability.days.forEach((day) => {
+            schedule[day].push({
+              start: new Date(new Date().toDateString() + " " + availability.startTime.toTimeString()),
+              end: new Date(new Date().toDateString() + " " + availability.endTime.toTimeString()),
+            });
+          });
+          return schedule;
+        },
+        Array.from([...Array(7)]).map(() => [])
+      );
+      return {
+        schedule,
       };
     },
   })
