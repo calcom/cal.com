@@ -10,6 +10,7 @@ export type GetSlots = {
   frequency: number;
   workingHours: OpeningHours[];
   minimumBookingNotice: number;
+  organizerTimeZone: string;
 };
 
 const getMinuteOffset = (date: Dayjs, step: number) => {
