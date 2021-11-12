@@ -1,121 +1,116 @@
-import Joi from "@hapi/joi";
+import { z } from "zod";
 
-const eventTypeSchema: { [field: string]: Joi.ObjectSchema<any> } = {
-  post: Joi.object({
-    title: Joi.string().required(),
-    slug: Joi.string().required(),
-    price: Joi.number().optional(),
-    customInputs: Joi.array().items(
-      Joi.object({
-        id: Joi.number().required(),
-        eventTypeId: Joi.number().required(),
-        label: Joi.string().required(),
-        type: Joi.string().required(),
-        required: Joi.boolean().required(),
-        placeholder: Joi.string().required(),
+const eventTypeSchema: { [field: string]: z.ZodObject<any> } = {
+  post: z.object({
+    title: z.string(),
+    slug: z.string(),
+    price: z.number().optional(),
+    customInputs: z.array(
+      z.object({
+        id: z.number(),
+        eventTypeId: z.number(),
+        label: z.string(),
+        type: z.string(),
+        required: z.boolean(),
+        placeholder: z.string(),
       })
     ),
-    minimumBookingNotice: Joi.number().optional(),
-    length: Joi.number().optional(),
-    team: Joi.number().optional(),
-    description: Joi.string().optional().allow(""),
-    hidden: Joi.boolean().optional(),
-    requiresConfirmation: Joi.boolean().optional(),
-    disableGuests: Joi.boolean().optional(),
-    locations: Joi.array().optional().items(Joi.object().unknown()),
-    eventName: Joi.string().optional().allow(""),
-    periodType: Joi.string().optional(),
-    periodDays: Joi.number().optional(),
-    periodStartDate: Joi.string().optional(),
-    periodEndDate: Joi.string().optional(),
-    periodCountCalendarDays: Joi.boolean().optional(),
-    currency: Joi.string().optional(),
-    schedulingType: Joi.string().optional(),
-    timeZone: Joi.string().optional(),
-    availability: Joi.object()
-      .optional()
-      .keys({
+    minimumBookingNotice: z.number().optional(),
+    length: z.number().optional(),
+    team: z.number().optional(),
+    description: z.string().optional(),
+    hidden: z.boolean().optional(),
+    requiresConfirmation: z.boolean().optional(),
+    disableGuests: z.boolean().optional(),
+    locations: z.array(z.object({}).catchall(z.unknown())).optional(),
+    eventName: z.string().optional(),
+    periodType: z.string().optional(),
+    periodDays: z.number().optional(),
+    periodStartDate: z.string().optional(),
+    periodEndDate: z.string().optional(),
+    periodCountCalendarDays: z.boolean().optional(),
+    currency: z.string().optional(),
+    schedulingType: z.string().optional(),
+    timeZone: z.string().optional(),
+    availability: z
+      .object({
         // TODO: What is this?? where used this??
-        dateOverrides: Joi.array().optional().items(Joi.object().unknown()),
-        openingHours: Joi.array()
-          .required()
-          .items(
-            Joi.object().keys({
-              id: Joi.number().optional(),
-              label: Joi.string().optional().allow(null),
-              userId: Joi.string().optional().allow(null),
-              date: Joi.string().optional().allow(null),
-              startDate: Joi.date().optional(),
-              endDate: Joi.date().optional(),
-              eventTypeId: Joi.number().optional(),
-              days: Joi.array().required().items(Joi.number()),
-              startTime: Joi.number().required(),
-              endTime: Joi.number().required(),
-            })
-          ),
-      }),
+        dateOverrides: z.array(z.object({}).catchall(z.unknown())).optional(),
+        openingHours: z.array(
+          z.object({
+            id: z.number().optional(),
+            label: z.string().optional().nullable(),
+            userId: z.string().optional().nullable(),
+            date: z.string().optional().nullable(),
+            startDate: z.date().optional(),
+            endDate: z.date().optional(),
+            eventTypeId: z.number().optional(),
+            days: z.array(z.number()),
+            startTime: z.number(),
+            endTime: z.number(),
+          })
+        ),
+      })
+      .optional(),
   }),
-  patch: Joi.object({
-    id: Joi.number().required(),
-    title: Joi.string().optional(),
-    slug: Joi.string().optional(),
-    price: Joi.number().optional(),
-    customInputs: Joi.array()
-      .optional()
-      .items(
-        Joi.object({
-          id: Joi.number().required(),
-          eventTypeId: Joi.number().required(),
-          label: Joi.string().required(),
-          type: Joi.string().required(),
-          required: Joi.boolean().required(),
-          placeholder: Joi.string().allow(""),
+  patch: z.object({
+    id: z.number(),
+    title: z.string().optional(),
+    slug: z.string().optional(),
+    price: z.number().optional(),
+    customInputs: z
+      .array(
+        z.object({
+          id: z.number(),
+          eventTypeId: z.number(),
+          label: z.string(),
+          type: z.string(),
+          required: z.boolean(),
+          placeholder: z.string(),
         })
-      ),
-    minimumBookingNotice: Joi.number().optional(),
-    length: Joi.number().optional(),
-    team: Joi.number().optional(),
-    description: Joi.string().optional().allow(""),
-    hidden: Joi.boolean().optional(),
-    requiresConfirmation: Joi.boolean().optional(),
-    disableGuests: Joi.boolean().optional(),
-    locations: Joi.array().optional().items(Joi.object().unknown()),
-    eventName: Joi.string().optional().allow(""),
-    periodType: Joi.string().optional(),
-    periodDays: Joi.number().optional(),
-    periodStartDate: Joi.string().optional(),
-    periodEndDate: Joi.string().optional(),
-    periodCountCalendarDays: Joi.boolean().optional(),
-    currency: Joi.string().optional(),
-    schedulingType: Joi.string().optional(),
-    timeZone: Joi.string().optional(),
-
-    availability: Joi.object()
-      .optional()
-      .keys({
+      )
+      .optional(),
+    minimumBookingNotice: z.number().optional(),
+    length: z.number().optional(),
+    team: z.number().optional(),
+    description: z.string().optional(),
+    hidden: z.boolean().optional(),
+    requiresConfirmation: z.boolean().optional(),
+    disableGuests: z.boolean().optional(),
+    locations: z.array(z.unknown()).optional(),
+    eventName: z.string().optional(),
+    periodType: z.string().optional(),
+    periodDays: z.number().optional(),
+    periodStartDate: z.string().optional(),
+    periodEndDate: z.string().optional(),
+    periodCountCalendarDays: z.boolean().optional(),
+    currency: z.string().optional(),
+    schedulingType: z.string().optional(),
+    timeZone: z.string().optional(),
+    availability: z
+      .object({
         // TODO: What is this?? where used this??
-        dateOverrides: Joi.array().optional().items(Joi.object().unknown()),
-        openingHours: Joi.array()
-          .required()
-          .items(
-            Joi.object().keys({
-              id: Joi.number().optional(),
-              label: Joi.string().optional().allow(null),
-              userId: Joi.string().optional().allow(null),
-              date: Joi.string().optional().allow(null),
-              startDate: Joi.date().optional(),
-              endDate: Joi.date().optional(),
-              eventTypeId: Joi.number().optional(),
-              days: Joi.array().required().items(Joi.number()),
-              startTime: Joi.number().required(),
-              endTime: Joi.number().required(),
-            })
-          ),
-      }),
+        dateOverrides: z.array(z.object({}).catchall(z.unknown())).optional(),
+        openingHours: z.array(
+          z.object({
+            id: z.number().optional(),
+            label: z.string().optional().nullable(),
+            userId: z.string().optional().nullable(),
+            date: z.string().optional().nullable(),
+            startDate: z.date().optional(),
+            endDate: z.date().optional(),
+            eventTypeId: z.number().optional(),
+            days: z.array(z.number()),
+            startTime: z.number(),
+            endTime: z.number(),
+          })
+        ),
+      })
+      .optional(),
   }),
 
-  delete: Joi.object({
-    id: Joi.number().required(),
+  delete: z.object({
+    id: z.number(),
   }),
 };
 

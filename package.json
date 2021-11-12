@@ -31,7 +31,6 @@
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.21.0",
-    "@hapi/joi": "17.1.1",
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.5",
     "@hookform/resolvers": "^2.8.3",
@@ -53,7 +52,6 @@
     "@trpc/next": "^9.12.0",
     "@trpc/react": "^9.12.0",
     "@trpc/server": "^9.12.0",
-    "@types/hapi__joi": "17.1.7",
     "@vercel/edge-functions-ui": "^0.2.1",
     "@wojtekmaj/react-daterange-picker": "^3.3.1",
     "accept-language-parser": "^1.5.0",

@@ -125,14 +125,15 @@ export function route(methodsHandler: Handler = {}) {
     if (methodsHandler[method]) {
       const methodHandler = methodsHandler[method] as NextApiHandlerProps;
       const schema = eventTypeSchema[method];
-      const { error } = schema.validate(req.body);
-      if (error) {
+      const { success, error } = schema.safeParse(req.body) as { success: boolean; error?: any };
+      if (!success) {
+        const issues = error?.issues as Array<{ message: string; received: string; path: string[] }>;
         return res.status(422).json({
-          message: "validation errors",
-          validationErrors: error.details.map(({ message, context }) => ({
+          message: "Validation errors",
+          validationErrors: issues.map(({ message, received, path: [field] }) => ({
             message,
-            field: context?.label || "",
-            value: context?.value || "",
+            field,
+            received,
           })),
         });
       }
