@@ -20,6 +20,12 @@ const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
 const googleAuth = (credential: Credential) => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS!).web;
+  console.log(
+    "\n%c{ client_secret, client_id, redirect_uris }",
+    "color:orange;font-weight:bold;",
+    { client_secret, client_id, redirect_uris },
+    "\n\n"
+  );
   const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
   const googleCredentials = credential.key as Auth.Credentials;
   myGoogleAuth.setCredentials(googleCredentials);
