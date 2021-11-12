@@ -1,19 +1,19 @@
 <!-- PROJECT LOGO -->
 <div align="center">
-  <a href="https://cal.com/enterprise">
+  <a href="https://cal.com/sales">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
   </a>
   
-  <a href="https://cal.com/enterprise">Get Started with Enterprise</a>
+  <a href="https://cal.com/sales">Get Started with the Commercial License</a>
 </div>
 
-# Enterprise Edition
+# Commercial Edition
 
-Welcome to the Enterprise Edition ("/ee") of Cal.com.
+Welcome to the Commercial Edition ("/ce") of Cal.com, Inc.
 
-The [/ee](https://github.com/calendso/calendso/tree/main/ee) subfolder is the place for all the **Pro** features from our [hosted](https://cal.com/pricing) plan and [enterprise-grade](https://cal.com/enterprise) features such as SSO, SAML, ADFS, OIDC, SCIM, SIEM, HRIS and much more.
+The [/ce](https://github.com/calendso/calendso/tree/main/ce) subfolder is the place for all the **Pro** features from our [hosted](https://cal.com/pricing) plan and [enterprise-grade](https://cal.com/sales) features such as SSO, SAML, ADFS, OIDC, SCIM, SIEM, HRIS and much more.
 
-> _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calendso/calendso)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://cal.com/enterprise) first❗_
+> _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calendso/calendso)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://cal.com/sales) first❗_
 
 ## Setting up Stripe
 

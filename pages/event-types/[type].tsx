@@ -15,6 +15,7 @@ import {
   UsersIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
+import { StripeData } from "ce/lib/stripe/server";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -24,8 +25,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
 import Select, { OptionTypeBase } from "react-select";
-
-import { StripeData } from "@ee/lib/stripe/server";
 
 import {
   asNumberOrThrow,

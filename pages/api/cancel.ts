@@ -1,8 +1,7 @@
 import { BookingStatus } from "@prisma/client";
 import async from "async";
+import { refund } from "ce/lib/stripe/server";
 import { NextApiRequest, NextApiResponse } from "next";
-
-import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";

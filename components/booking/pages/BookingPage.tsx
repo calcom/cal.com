@@ -6,6 +6,7 @@ import {
   LocationMarkerIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
+import { createPaymentLink } from "ce/lib/stripe/client";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -13,8 +14,6 @@ import { stringify } from "querystring";
 import { useCallback, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
-
-import { createPaymentLink } from "@ee/lib/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";

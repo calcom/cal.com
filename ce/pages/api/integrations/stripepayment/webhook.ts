@@ -1,8 +1,7 @@
+import stripe from "ce/lib/stripe/server";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
-
-import stripe from "@ee/lib/stripe/server";
 
 import { CalendarEvent } from "@lib/calendarClient";
 import { HttpError } from "@lib/core/http/error";

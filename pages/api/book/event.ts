@@ -1,5 +1,6 @@
 import { Credential, Prisma, SchedulingType } from "@prisma/client";
 import async from "async";
+import { handlePayment } from "ce/lib/stripe/server";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
 import isBetween from "dayjs/plugin/isBetween";
@@ -8,8 +9,6 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
-import { handlePayment } from "@ee/lib/stripe/server";
 
 import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
 import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";

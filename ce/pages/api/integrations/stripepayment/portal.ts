@@ -1,6 +1,5 @@
+import stripe from "ce/lib/stripe/server";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import stripe from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";

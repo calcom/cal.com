@@ -1,1 +1,1 @@
-export { default, config } from "@ee/pages/api/integrations/stripepayment/webhook";
+export { default, config } from "ce/pages/api/integrations/stripepayment/webhook";

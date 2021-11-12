@@ -1,10 +1,9 @@
 import { IdProvider } from "@radix-ui/react-id";
+import DynamicIntercomProvider from "ce/lib/intercom/providerDynamic";
 import { Provider } from "next-auth/client";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps } from "next/app";
 import React, { ComponentProps, ReactNode } from "react";
-
-import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
 import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 

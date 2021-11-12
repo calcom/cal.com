@@ -1,5 +1,5 @@
-import PaymentPage from "@ee/components/stripe/PaymentPage";
-import { getServerSideProps } from "@ee/pages/payment/[uid]";
+import PaymentPage from "ce/components/stripe/PaymentPage";
+import { getServerSideProps } from "ce/pages/payment/[uid]";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

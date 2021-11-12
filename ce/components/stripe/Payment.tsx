@@ -1,11 +1,10 @@
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { StripeCardElementChangeEvent } from "@stripe/stripe-js";
+import { PaymentData } from "ce/lib/stripe/server";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import React, { useState } from "react";
 import { SyntheticEvent } from "react";
-
-import { PaymentData } from "@ee/lib/stripe/server";
 
 import useDarkMode from "@lib/core/browser/useDarkMode";
 import { useLocale } from "@lib/hooks/useLocale";

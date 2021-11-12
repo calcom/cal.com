@@ -1,7 +1,6 @@
 import { User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
+import { refund } from "ce/lib/stripe/server";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import { CalendarEvent } from "@lib/calendarClient";

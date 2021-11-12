@@ -1,1 +1,1 @@
-export { default } from "@ee/pages/api/integrations/stripepayment/callback";
+export { default } from "ce/pages/api/integrations/stripepayment/callback";

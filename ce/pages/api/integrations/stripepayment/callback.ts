@@ -1,8 +1,7 @@
 import { Prisma } from "@prisma/client";
+import stripe, { StripeData } from "ce/lib/stripe/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
-
-import stripe, { StripeData } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";

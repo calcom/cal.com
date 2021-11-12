@@ -8,14 +8,13 @@ import {
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
+import LicenseBanner from "ce/components/LicenseBanner";
+import HelpMenuItemDynamic from "ce/lib/intercom/HelpMenuItemDynamic";
 import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
-
-import LicenseBanner from "@ee/components/LicenseBanner";
-import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";

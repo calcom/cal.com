@@ -1,7 +1,6 @@
 import { BookingStatus, Prisma } from "@prisma/client";
+import { checkPremiumUsername } from "ce/lib/core/checkPremiumUsername";
 import { z } from "zod";
-
-import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
