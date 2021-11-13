@@ -245,7 +245,7 @@
   "troubleshoot_availability": "Troubleshoot your availability to explore why your times are showing as they are.",
   "change_available_times": "Change available times",
   "change_your_available_times": "Change your available times",
-  "change_start_end": "Set your weekly hours",
+  "change_start_end": "Change the start and end times of your day",
   "change_start_end_buffer": "Set the start and end time of your day and a minimum buffer between your meetings.",
   "current_start_date": "Currently, your day is set to start at",
   "start_end_changed_successfully": "The start and end times for your day have been changed successfully.",
@@ -254,7 +254,10 @@
   "dark": "Dark",
   "automatically_adjust_theme": "Automatically adjust theme based on invitee preferences",
   "email": "Email",
+  "email_placeholder": "jdoe@example.com",
   "full_name": "Full name",
+  "browse_api_documentation": "Browse our API documentation",
+  "leverage_our_api": "Leverage our API for full control and customizability.",
   "create_webhook": "Create Webhook",
   "booking_cancelled": "Booking Cancelled",
   "booking_rescheduled": "Booking Rescheduled",
@@ -463,7 +466,7 @@
   "manage_your_billing_info": "Manage your billing information and cancel your subscription.",
   "availability": "Availability",
   "availability_updated_successfully": "Availability updated successfully",
-  "configure_availability": "Set times when you are available for bookings.",
+  "configure_availability": "Configure times when you are available for bookings.",
   "change_weekly_schedule": "Change your weekly schedule",
   "logo": "Logo",
   "error": "Error",
@@ -525,5 +528,7 @@
   "connect_an_additional_calendar": "Connect an additional calendar",
   "conferencing": "Conferencing",
   "calendar": "Calendar",
-  "not_installed": "Not installed"
+  "not_installed": "Not installed",
+  "error_password_mismatch": "Passwords don't match.",
+  "error_required_field": "This field is required."
 }
