@@ -495,14 +495,6 @@ const loggedInViewerRouter = createProtectedRouter()
       }
       await Promise.all(
         _.reverse(input.ids).map((id, position) => {
-          console.log({
-            where: {
-              id,
-            },
-            data: {
-              position,
-            },
-          });
           return prisma.eventType.update({
             where: {
               id,
