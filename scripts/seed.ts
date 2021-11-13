@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
 import { hashPassword } from "../lib/auth";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../lib/availability";
 
 const prisma = new PrismaClient();
 
@@ -26,6 +27,11 @@ async function createUserAndEventType(opts: {
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
+    availability: {
+      createMany: {
+        data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+      },
+    },
   };
   const user = await prisma.user.upsert({
     where: { email: opts.user.email },

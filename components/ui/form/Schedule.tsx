@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
+import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import { TimeRange } from "@lib/types/schedule";
@@ -34,22 +35,6 @@ const TIMES = (() => {
   return times;
 })();
 /** End Time Increments For Select */
-
-// sets the desired time in current date, needs to be current date for proper DST translation
-const defaultDayRange = (timeZone: string) => ({
-  start: dayjs().startOf("day").add(9, "hour").tz(timeZone, true).toDate(),
-  end: dayjs().startOf("day").add(17, "hour").tz(timeZone, true).toDate(),
-});
-
-export const defaultSchedule = (timeZone: string) => [
-  [],
-  [defaultDayRange(timeZone)],
-  [defaultDayRange(timeZone)],
-  [defaultDayRange(timeZone)],
-  [defaultDayRange(timeZone)],
-  [defaultDayRange(timeZone)],
-  [],
-];
 
 type Option = {
   readonly label: string;
@@ -113,10 +98,9 @@ type ScheduleBlockProps = {
   day: number;
   weekday: string;
   name: string;
-  timeZone: string;
 };
 
-const ScheduleBlock = ({ timeZone, name, day, weekday }: ScheduleBlockProps) => {
+const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const { t } = useLocale();
   const { fields, append, remove, replace } = useFieldArray({
     name: `${name}.${day}`,
@@ -142,15 +126,15 @@ const ScheduleBlock = ({ timeZone, name, day, weekday }: ScheduleBlockProps) => 
           <input
             type="checkbox"
             checked={fields.length > 0}
-            onChange={(e) => (e.target.checked ? replace([defaultDayRange(timeZone)]) : replace([]))}
+            onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
             className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
           />
-          <span className="inline-block capitalize">{weekday}</span>
+          <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex justify-between mb-2">
+          <div key={field.id} className="flex justify-between mb-1">
             <div className="flex items-center space-x-2">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>
@@ -163,7 +147,7 @@ const ScheduleBlock = ({ timeZone, name, day, weekday }: ScheduleBlockProps) => 
             />
           </div>
         ))}
-        {!fields.length && t("no_availability")}
+        <span className="block text-sm text-gray-500">{!fields.length && t("no_availability")}</span>
       </div>
       <div>
         <Button
@@ -181,10 +165,11 @@ const ScheduleBlock = ({ timeZone, name, day, weekday }: ScheduleBlockProps) => 
 
 const Schedule = ({ name, timeZone }: { name: string; timeZone: string }) => {
   const { i18n } = useLocale();
+  console.log(timeZone);
   return (
     <fieldset className="divide-y divide-gray-200">
       {weekdayNames(i18n.language).map((weekday, num) => (
-        <ScheduleBlock timeZone={timeZone} key={num} name={name} weekday={weekday} day={num} />
+        <ScheduleBlock key={num} name={name} weekday={weekday} day={num} />
       ))}
     </fieldset>
   );

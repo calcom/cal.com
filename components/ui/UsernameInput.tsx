@@ -4,6 +4,9 @@ interface UsernameInputProps extends React.ComponentPropsWithRef<"input"> {
   label?: string;
 }
 
+/**
+ * @deprecated Use <TextField addOnLeading={}> to achieve the same effect.
+ */
 const UsernameInput = React.forwardRef<HTMLInputElement, UsernameInputProps>((props, ref) => (
   // todo, check if username is already taken here?
   <div>
