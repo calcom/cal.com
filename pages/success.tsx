@@ -39,7 +39,17 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
-  const eventName = getEventName(name, props.eventType.title, props.eventType.eventName);
+  const attendeeName = typeof name === "string" ? name : "Nameless";
+
+  const eventNameObject = {
+    attendeeName,
+    eventType: props.eventType.title,
+    eventName: props.eventType.eventName,
+    host: props.profile.name || "Nameless",
+    t,
+  };
+
+  const eventName = getEventName(eventNameObject);
 
   function eventLink(): string {
     const optional: { location?: string } = {};

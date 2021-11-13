@@ -1,32 +1,50 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import { getAvailabilityFromSchedule } from "@lib/availability";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req: req });
-
-  if (!session) {
+  const session = await getSession({ req });
+  const userId = session?.user?.id;
+  if (!userId) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
 
+  if (!req.body.schedule || req.body.schedule.length !== 7) {
+    return res.status(400).json({ message: "Bad Request." });
+  }
+
+  const availability = getAvailabilityFromSchedule(req.body.schedule);
+
   if (req.method === "POST") {
     try {
-      const createdSchedule = await prisma.schedule.create({
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
         data: {
-          freeBusyTimes: req.body.data.freeBusyTimes,
-          user: {
-            connect: {
-              id: session.user.id,
+          availability: {
+            /* We delete user availabilty */
+            deleteMany: {
+              userId: {
+                equals: userId,
+              },
+            },
+            /* So we can replace it */
+            createMany: {
+              data: availability.map((schedule) => ({
+                days: schedule.days,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+              })),
             },
           },
         },
       });
-
       return res.status(200).json({
         message: "created",
-        data: createdSchedule,
       });
     } catch (error) {
       console.error(error);
