@@ -11,6 +11,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
+import Button from "@components/ui/Button";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -20,6 +21,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
 
   const nameOrUsername = user.name || user.username || "";
+
+  // todo: implement web3 event-types and components
+  const web3 = true;
 
   return (
     <>
@@ -48,11 +52,24 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div
                   key={type.id}
                   className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-brand rounded-sm">
-                  <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
+                  {!web3 && (
+                    <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
+                  )}
                   <Link href={`/${user.username}/${type.slug}`}>
-                    <a className="block px-6 py-4">
-                      <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                      <EventTypeDescription eventType={type} />
+                    <a className="flex items-center justify-between w-full px-6 py-4">
+                      <div>
+                        <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                        <EventTypeDescription eventType={type} />
+                      </div>
+                      {/* TODO: connect to MetaMask and validate token ownership */}
+                      {web3 && (
+                        <div className="transition-opacity opacity-0 group-hover:opacity-100">
+                          <Button color="secondary">
+                            <img className="h-5 mr-1" src="/integrations/metamask.svg" />
+                            Connect to MetaMask
+                          </Button>
+                        </div>
+                      )}
                     </a>
                   </Link>
                 </div>
