@@ -3,11 +3,11 @@ import { useState } from "react";
 import React, { SyntheticEvent } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { Team } from "@lib/team";
+import { TeamWithMembers } from "@lib/queries/teams";
 
 import Button from "@components/ui/Button";
 
-export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
+export default function MemberInvitationModal(props: { team: TeamWithMembers | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
 
@@ -71,7 +71,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
 
         <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div className="mb-4 sm:flex sm:items-start">
-            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-brand rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
+            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-brand bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
               <UsersIcon className="w-6 h-6 text-black" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">

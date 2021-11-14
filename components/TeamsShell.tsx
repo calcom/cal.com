@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Team } from "@lib/team";
+import { Team } from "@lib/types/team";
 
 import NavTabs from "./NavTabs";
 import Shell from "./Shell";

@@ -29,7 +29,7 @@ export default function MemberListItem(props: {
                 imageSrc={
                   props.member.avatar
                     ? props.member.avatar
-                    : "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
+                    : "https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=" +
                       encodeURIComponent(props.member.name || "")
                 }
                 alt={props.member.name || ""}
@@ -40,7 +40,7 @@ export default function MemberListItem(props: {
                 <span className="block -mt-1 text-xs text-gray-400">{props.member.email}</span>
               </div>
             </div>
-            <div>
+            <div className="flex justify-center">
               {props.member.role === "INVITEE" && (
                 <>
                   <span className="self-center h-6 px-3 py-1 mr-2 text-xs text-yellow-700 capitalize rounded-md bg-yellow-50">

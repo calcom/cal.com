@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
+import { getTeamWithMembers } from "@lib/queries/teams";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
@@ -19,53 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "GET") {
-    const userSelect = Prisma.validator<Prisma.UserSelect>()({
-      username: true,
-      avatar: true,
-      email: true,
-      name: true,
-      id: true,
-      bio: true,
-    });
-
-    const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
-      id: true,
-      name: true,
-      slug: true,
-      logo: true,
-      members: {
-        select: {
-          user: {
-            select: userSelect,
-          },
-        },
-      },
-      eventTypes: {
-        where: {
-          hidden: false,
-        },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          length: true,
-          slug: true,
-          schedulingType: true,
-          price: true,
-          currency: true,
-          users: {
-            select: userSelect,
-          },
-        },
-      },
-    });
-
-    const team = await prisma.team.findUnique({
-      where: {
-        id: parseInt(req.query.team as string),
-      },
-      select: teamSelect,
-    });
+    const team = await getTeamWithMembers(parseInt(req.query.team as string));
     return res.status(200).json({ team });
   }
   // DELETE /api/teams/{team}

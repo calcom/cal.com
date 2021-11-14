@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { handleErrorsJson } from "@lib/errors";
-import { Team } from "@lib/team";
+import { Team } from "@lib/types/team";
 
 interface TeamAvailabilityProps {
   team: Team;
