@@ -41,7 +41,7 @@ import updateEventType from "@lib/mutations/event-types/update-event-type";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
-import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
+import { AdvancedOptions, DateOverride, EventTypeInput, OpeningHours } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { WorkingHours } from "@lib/types/schedule";
 
@@ -110,7 +110,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [users] = useState<AdvancedOptions["users"]>([]);
   const [editIcon, setEditIcon] = useState(true);
-  // const [enteredAvailability, setEnteredAvailability] = useState();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
@@ -314,7 +313,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     selectedCustomInput: EventTypeCustomInput | undefined;
     customInputs: EventTypeCustomInput[] | undefined;
     users: AdvancedOptions["users"];
-    scheduler: { enteredAvailability: string; selectedTimezone: string };
+    scheduler: {
+      enteredAvailability: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
+      selectedTimezone: string;
+    };
     periodType: string | number;
     periodDays: number;
     periodDaysType: string | number;
@@ -959,13 +961,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <Controller
                             name="scheduler"
                             control={formMethods.control}
-                            defaultValue={{ enteredAvailability: "", selectedTimezone: "" }}
+                            // defaultValue={{ enteredAvailability: {openingHours:, dateOverrides:}, selectedTimezone: "" }}
                             render={() => (
                               <Scheduler
-                                setAvailability={(val) => {
-                                  formMethods.setValue("scheduler.enteredAvailability", val);
+                                setAvailability={(val: {
+                                  openingHours: OpeningHours[];
+                                  dateOverrides: DateOverride[];
+                                }) => {
+                                  formMethods.setValue("scheduler.enteredAvailability", {
+                                    openingHours: val.openingHours,
+                                    dateOverrides: val.dateOverrides,
+                                  });
                                 }}
-                                setTimeZone={(val) => {
+                                setTimeZone={(val: string) => {
                                   formMethods.setValue("scheduler.selectedTimezone", val);
                                 }}
                                 timeZone={selectedTimeZone}
