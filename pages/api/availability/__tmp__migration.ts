@@ -9,40 +9,29 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export async function tmpMigration() {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      startTime: true,
-      endTime: true,
-      timeZone: true,
-      availability: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
+  await prisma.$queryRaw(`
+    insert into "Availability" ("userId", "startTime", "endTime", "days")
+    select
+      id as "userId", 
+      CAST(CONCAT(CAST(("startTime" / 60) AS text), ':00') AS time) AT TIME ZONE "timeZone" AT TIME ZONE 'UTC',
+      CAST(CONCAT(CAST(("endTime" / 60) AS text), ':00') AS time) AT TIME ZONE "timeZone" AT TIME ZONE 'UTC',
+      ARRAY [0,1,2,3,4,5,6]
+    from 
+      (
+        select 
+          users.id, 
+          users."startTime", 
+          users."endTime", 
+          users."timeZone",
+          count("Availability".id) as availability_count
+        from users 
+        left join "Availability" on "Availability"."userId" = users.id
+        group by users.id
+      ) usersWithAvailabilityNumber
+    where availability_count < 1
+  `);
 
-  const usersWithNoAvailability = users.filter((user) => user.availability.length === 0);
-
-  for (const user of usersWithNoAvailability) {
-    // convert startTime/endTime to timezone using `user.timezone`
-    const baseDate = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0).set("millisecond", 0);
-
-    const startTime = baseDate.add(user.startTime, "minute").toDate();
-    const endTime = baseDate.add(user.endTime, "minute").toDate();
-    // create availabiltiy for every day of the week
-    await prisma.availability.create({
-      data: {
-        userId: user.id,
-        days: [0, 1, 2, 3, 4, 5, 6],
-        startTime,
-        endTime,
-      },
-    });
-  }
-
-  return usersWithNoAvailability;
+  return NaN;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -51,9 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
-  const usersWithNoAvailability = await tmpMigration();
+  await tmpMigration();
 
-  res.send({
-    message: `${usersWithNoAvailability.length} users updated`,
-  });
+  res.send("Maybe worked?");
 }

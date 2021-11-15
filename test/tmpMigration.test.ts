@@ -5,6 +5,15 @@ import { tmpMigration } from "../pages/api/availability/__tmp__migration";
 import { randomString } from "../playwright/lib/testUtils";
 
 test("tmpMigration", async () => {
+  // const unknownTimezoneUser = await prisma.user.create({
+  //   data: {
+  //     name: "unknownTimezoneUser",
+  //     email: `${randomString()}@example.com`,
+  //     startTime: 0, // midnight
+  //     endTime: 1380, // midnight
+  //     timeZone: null,
+  //   },
+  // });
   const europeUser = await prisma.user.create({
     data: {
       name: "europeanUser",
