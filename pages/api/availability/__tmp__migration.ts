@@ -8,12 +8,7 @@ import prisma from "@lib/prisma";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
-  if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
-  }
+export async function tmpMigration() {
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -39,8 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .set("second", 0)
       .set("millisecond", 0);
 
-    const startTime = baseDate.add(user.startTime, "minute").format("HH:mm:ss");
-    const endTime = baseDate.add(user.endTime, "minute").format("HH:mm:ss");
+    const startTime = baseDate.add(user.startTime, "minute").toDate();
+    const endTime = baseDate.add(user.endTime, "minute").toDate();
     // create availabiltiy for every day of the week
     await prisma.availability.create({
       data: {
@@ -51,6 +46,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   }
+
+  return usersWithNoAvailability;
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const apiKey = req.headers.authorization || req.query.apiKey;
+  if (process.env.CRON_API_KEY !== apiKey) {
+    res.status(401).json({ message: "Not authenticated" });
+    return;
+  }
+  const usersWithNoAvailability = await tmpMigration();
 
   res.send({
     message: `${usersWithNoAvailability.length} users updated`,
