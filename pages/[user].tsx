@@ -50,7 +50,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-brand rounded-sm">
                   <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
                   <Link href={`/${user.username}/${type.slug}`}>
-                    <a className="block px-6 py-4">
+                    <a className="block px-6 py-4" data-testid="event-type-link">
                       <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
                     </a>
