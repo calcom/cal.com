@@ -83,7 +83,8 @@ export const bookingRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       const { prisma } = ctx;
-      const { username, slug } = input;
+      const { username: userParam, slug: typeParam } = input;
+
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         id: true,
         title: true,
@@ -112,7 +113,7 @@ export const bookingRouter = createRouter()
 
       const user = await prisma.user.findUnique({
         where: {
-          username: username.toLowerCase(),
+          username: userParam.toLowerCase(),
         },
         select: {
           id: true,
@@ -133,7 +134,7 @@ export const bookingRouter = createRouter()
             where: {
               AND: [
                 {
-                  slug,
+                  slug: typeParam,
                 },
                 {
                   teamId: null,
@@ -157,7 +158,7 @@ export const bookingRouter = createRouter()
                 userId: user.id,
               },
               {
-                slug,
+                slug: typeParam,
               },
             ],
           },
@@ -203,13 +204,17 @@ export const bookingRouter = createRouter()
       },
     });
     if (firstEventType?.id !== eventType.id) {
-      return {
-        notFound: true,
-      } as const;
+      return null;
     }
   }*/
       const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
-        availability && availability.length ? availability : null;
+        availability && availability.length
+          ? availability.map((schedule) => ({
+              ...schedule,
+              startTime: schedule.startTime.getUTCHours() * 60 + schedule.startTime.getUTCMinutes(),
+              endTime: schedule.endTime.getUTCHours() * 60 + schedule.endTime.getUTCMinutes(),
+            }))
+          : null;
 
       const workingHours =
         getWorkingHours(eventType.availability) ||
@@ -228,6 +233,8 @@ export const bookingRouter = createRouter()
         periodStartDate: eventType.periodStartDate?.toString() ?? null,
         periodEndDate: eventType.periodEndDate?.toString() ?? null,
       });
+
+      eventTypeObject.availability = [];
 
       return {
         profile: {
