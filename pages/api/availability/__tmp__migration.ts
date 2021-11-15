@@ -9,6 +9,11 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const apiKey = req.headers.authorization || req.query.apiKey;
+  if (process.env.CRON_API_KEY !== apiKey) {
+    res.status(401).json({ message: "Not authenticated" });
+    return;
+  }
   const users = await prisma.user.findMany({
     select: {
       id: true,
