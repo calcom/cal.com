@@ -39,8 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .set("second", 0)
       .set("millisecond", 0);
 
-    const startTime = baseDate.add(user.startTime, "minute").toDate();
-    const endTime = baseDate.add(user.endTime, "minute").toDate();
+    const startTime = baseDate.add(user.startTime, "minute").format("HH:mm:ss");
+    const endTime = baseDate.add(user.endTime, "minute").format("HH:mm:ss");
     // create availabiltiy for every day of the week
     await prisma.availability.create({
       data: {
