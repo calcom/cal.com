@@ -153,10 +153,11 @@ function DatePicker({
                 selectedMonth <= dayjs().month() &&
                 "text-gray-400 dark:text-gray-600"
             )}
-            disabled={typeof selectedMonth === "number" && selectedMonth <= dayjs().month()}>
+            disabled={typeof selectedMonth === "number" && selectedMonth <= dayjs().month()}
+            data-testid="decrementMonth">
             <ChevronLeftIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
-          <button className="group p-1" onClick={incrementMonth}>
+          <button className="group p-1" onClick={incrementMonth} data-testid="incrementMonth">
             <ChevronRightIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
           </button>
         </div>
