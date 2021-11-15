@@ -33,7 +33,7 @@ describe("pro user", () => {
     expect($eventTypes.length).toBeGreaterThanOrEqual(2);
   });
 
-  test.only("book an event first day in next month", async () => {
+  test("book an event first day in next month", async () => {
     const { page } = ctx;
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
