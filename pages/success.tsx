@@ -350,7 +350,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? "#292929" : eventType.users[0].brandColor || "#292929",
+    brandColor: eventType.team ? null : eventType.users[0].brandColor,
   };
 
   return {
