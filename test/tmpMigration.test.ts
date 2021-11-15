@@ -33,7 +33,7 @@ test("tmpMigration", async () => {
       name: "europeanUser",
       email: `${randomString()}@example.com`,
       startTime: 0, // midnight
-      endTime: 1380, // midnight
+      endTime: 1380, // 23:00
       timeZone: "Europe/London",
     },
   });
