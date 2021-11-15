@@ -1,13 +1,20 @@
 // TODO: replace headlessui with radix-ui
 import { Menu, Transition } from "@headlessui/react";
-import { UsersIcon } from "@heroicons/react/solid";
-import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
-import { DotsHorizontalIcon, ExternalLinkIcon, LinkIcon } from "@heroicons/react/solid";
+import {
+  DotsHorizontalIcon,
+  ExternalLinkIcon,
+  LinkIcon,
+  ArrowDownIcon,
+  ChevronDownIcon,
+  PlusIcon,
+  ArrowUpIcon,
+  UsersIcon,
+} from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useRef } from "react";
+import React, { Fragment, useRef, useState, useEffect } from "react";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -72,10 +79,40 @@ interface EventTypeListProps {
 }
 const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
+
+  const utils = trpc.useContext();
+  const mutation = trpc.useMutation("viewer.eventTypeOrder", {
+    onError: (err) => {
+      console.error(err.message);
+    },
+    async onSettled() {
+      await utils.cancelQuery(["viewer.eventTypes"]);
+      await utils.invalidateQueries(["viewer.eventTypes"]);
+    },
+  });
+  const [sortableTypes, setSortableTypes] = useState(types);
+  useEffect(() => {
+    setSortableTypes(types);
+  }, [types]);
+  function moveEventType(index: number, increment: 1 | -1) {
+    const newList = [...sortableTypes];
+
+    const type = sortableTypes[index];
+    const tmp = sortableTypes[index + increment];
+    if (tmp) {
+      newList[index] = tmp;
+      newList[index + increment] = type;
+    }
+    setSortableTypes(newList);
+    mutation.mutate({
+      ids: newList.map((type) => type.id),
+    });
+  }
+
   return (
     <div className="mb-16 -mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
-        {types.map((type) => (
+        {sortableTypes.map((type, index) => (
           <li
             key={type.id}
             className={classNames(
@@ -87,7 +124,17 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 "hover:bg-neutral-50 flex justify-between items-center ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
+              <div className="group flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
+                <button
+                  className="absolute mb-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                  onClick={() => moveEventType(index, -1)}>
+                  <ArrowUpIcon />
+                </button>
+                <button
+                  className="absolute mt-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                  onClick={() => moveEventType(index, 1)}>
+                  <ArrowDownIcon />
+                </button>
                 <Link href={"/event-types/" + type.id}>
                   <a
                     className="flex-grow text-sm truncate"
