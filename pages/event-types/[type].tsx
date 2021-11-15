@@ -1148,6 +1148,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </div>
               <form onSubmit={updateLocations}>
                 <Select
+                  maxMenuHeight={100}
                   name="location"
                   defaultValue={selectedLocation}
                   options={locationOptions}
