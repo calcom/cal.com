@@ -18,6 +18,9 @@ async function tmpMigration() {
 
   return NaN;
 }
+afterAll(async () => {
+  await prisma.$disconnect();
+});
 test("tmpMigration", async () => {
   // const unknownTimezoneUser = await prisma.user.create({
   //   data: {
