@@ -21,6 +21,7 @@ model EventType {
   title                   String
   slug                    String
   description             String?
+  position                Int                    @default(0)
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)

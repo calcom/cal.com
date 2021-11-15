@@ -517,6 +517,7 @@
   "confirm_delete_event_type": "Yes, delete event type",
   "integrations": "Integrations",
   "settings": "Settings",
+  "event_type_moved_successfully": "Event type has been moved successfully",
   "next_step": "Skip step",
   "prev_step": "Prev step",
   "installed": "Installed",
