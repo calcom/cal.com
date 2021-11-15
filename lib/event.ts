@@ -1,8 +1,19 @@
-export function getEventName(
-  name: string | string[] | undefined,
-  eventTitle: string,
-  eventNameTemplate: string | null
-) {
-  if (!name || !(typeof name === "string")) name = ""; // If name is not set or is not of proper type
-  return eventNameTemplate ? eventNameTemplate.replace("{USER}", name) : eventTitle + " with " + name;
+import { TFunction } from "next-i18next";
+
+type EventNameObjectType = {
+  attendeeName: string;
+  eventType: string;
+  eventName?: string | null;
+  host: string;
+  t: TFunction;
+};
+
+export function getEventName(eventNameObj: EventNameObjectType) {
+  return eventNameObj.eventName
+    ? eventNameObj.eventName.replace("{USER}", eventNameObj.attendeeName)
+    : eventNameObj.t("event_between_users", {
+        eventName: eventNameObj.eventType,
+        host: eventNameObj.host,
+        attendeeName: eventNameObj.attendeeName,
+      });
 }

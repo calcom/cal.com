@@ -9,6 +9,22 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
+export type Integration = {
+  installed: boolean;
+  type:
+    | "google_calendar"
+    | "office365_calendar"
+    | "zoom_video"
+    | "daily_video"
+    | "caldav_calendar"
+    | "apple_calendar"
+    | "stripe_payment";
+  title: string;
+  imageSrc: string;
+  description: string;
+  variant: "calendar" | "conferencing" | "payment";
+};
+
 export const ALL_INTEGRATIONS = [
   {
     installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
@@ -70,7 +86,7 @@ export const ALL_INTEGRATIONS = [
     description: "Collect payments",
     variant: "payment",
   },
-] as const;
+] as Integration[];
 
 function getIntegrations(userCredentials: CredentialData[]) {
   const integrations = ALL_INTEGRATIONS.map((integration) => {
