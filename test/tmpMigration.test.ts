@@ -7,6 +7,7 @@ import { randomString } from "../playwright/lib/testUtils";
 test("tmpMigration", async () => {
   const europeUser = await prisma.user.create({
     data: {
+      name: "europeanUser",
       email: `${randomString()}@example.com`,
       startTime: 0, // midnight
       endTime: 1440, // midnight
@@ -16,6 +17,7 @@ test("tmpMigration", async () => {
 
   const americanUser = await prisma.user.create({
     data: {
+      name: "americanUser",
       email: `${randomString()}@example.com`,
       startTime: 0, // midnight
       endTime: 1440, // midnight
@@ -32,6 +34,7 @@ test("tmpMigration", async () => {
   const unaffectedUser = await prisma.user.create({
     data: {
       email: `${randomString()}@example.com`,
+      name: "unaffectedUser",
       startTime: 0, // midnight
       endTime: 1440, // midnight
       timeZone: "America/Los_Angeles",
@@ -58,6 +61,7 @@ test("tmpMigration", async () => {
       },
     },
     select: {
+      name: true,
       startTime: true,
       endTime: true,
       availability: {
@@ -91,6 +95,7 @@ test("tmpMigration", async () => {
           },
         ],
         "endTime": 1440,
+        "name": "europeanUser",
         "startTime": 0,
       },
       Object {
@@ -111,6 +116,7 @@ test("tmpMigration", async () => {
           },
         ],
         "endTime": 1440,
+        "name": "americanUser",
         "startTime": 0,
       },
       Object {
@@ -123,6 +129,7 @@ test("tmpMigration", async () => {
           },
         ],
         "endTime": 1440,
+        "name": "unaffectedUser",
         "startTime": 0,
       },
     ]
