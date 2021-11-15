@@ -27,12 +27,7 @@ export async function tmpMigration() {
 
   for (const user of usersWithNoAvailability) {
     // convert startTime/endTime to timezone using `user.timezone`
-    const baseDate = dayjs()
-      .tz(user.timeZone ?? "Europe/London")
-      .set("hour", 0)
-      .set("minute", 0)
-      .set("second", 0)
-      .set("millisecond", 0);
+    const baseDate = dayjs().set("hour", 0).set("minute", 0).set("second", 0).set("millisecond", 0);
 
     const startTime = baseDate.add(user.startTime, "minute").toDate();
     const endTime = baseDate.add(user.endTime, "minute").toDate();

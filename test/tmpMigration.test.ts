@@ -24,12 +24,7 @@ test("tmpMigration", async () => {
       timeZone: "America/Los_Angeles",
     },
   });
-  const baseDate = dayjs()
-    .tz("Europe/London")
-    .set("hour", 0)
-    .set("minute", 0)
-    .set("second", 0)
-    .set("millisecond", 0);
+  const baseDate = dayjs().set("hour", 0).set("minute", 0).set("second", 0).set("millisecond", 0);
 
   const unaffectedUser = await prisma.user.create({
     data: {
@@ -91,8 +86,8 @@ test("tmpMigration", async () => {
               5,
               6,
             ],
-            "endTime": "1970-01-01T01:00:00.000Z",
-            "startTime": "1970-01-01T01:00:00.000Z",
+            "endTime": "1970-01-01T23:00:00.000Z",
+            "startTime": "1970-01-01T23:00:00.000Z",
           },
         ],
         "endTime": 1440,
@@ -112,8 +107,8 @@ test("tmpMigration", async () => {
               5,
               6,
             ],
-            "endTime": "1970-01-01T08:00:00.000Z",
-            "startTime": "1970-01-01T08:00:00.000Z",
+            "endTime": "1970-01-01T23:00:00.000Z",
+            "startTime": "1970-01-01T23:00:00.000Z",
           },
         ],
         "endTime": 1440,
@@ -125,8 +120,8 @@ test("tmpMigration", async () => {
           Object {
             "date": null,
             "days": Array [],
-            "endTime": "1970-01-01T18:00:00.000Z",
-            "startTime": "1970-01-01T10:00:00.000Z",
+            "endTime": "1970-01-01T16:00:00.000Z",
+            "startTime": "1970-01-01T08:00:00.000Z",
           },
         ],
         "endTime": 1440,
