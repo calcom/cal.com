@@ -1116,20 +1116,14 @@
 "@next-auth/prisma-legacy-adapter@0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@next-auth/prisma-legacy-adapter/-/prisma-legacy-adapter-0.1.2.tgz#d19b65696bf16bda5dbc88f85da98aee6f30e2f3"
-<<<<<<< HEAD
-=======
   integrity sha512-QpGcRvrnFERkvVFroqS89qDbnskw9AjhvWxO095u3xl/8QVI++Y+doluQdZWuV6PewjrV7xY+uVUEnRhnGM8yQ==
->>>>>>> origin/main
   dependencies:
     "@babel/runtime" "^7.14.0"
 
 "@next-auth/typeorm-legacy-adapter@0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@next-auth/typeorm-legacy-adapter/-/typeorm-legacy-adapter-0.1.4.tgz#a250498613669b736d76b36a2a46f7eafc9e6ed5"
-<<<<<<< HEAD
-=======
   integrity sha512-UDnctrPiUU0yaPNeFhD6uw0FAuWGvx6IUVwUYTEzZm26RCEe/BBjkpGLYk43M3rcnkBPfkiljomAs/O7Uzh12w==
->>>>>>> origin/main
   dependencies:
     "@babel/runtime" "^7.14.0"
     require_optional "^1.0.1"
@@ -1785,22 +1779,14 @@
 
 "@trpc/client@^9.12.0":
   version "9.12.2"
-<<<<<<< HEAD
-  resolved "https://registry.npmjs.org/@trpc/client/-/client-9.12.2.tgz#7e74f613f052b2c3c1bdedd9a33f2776ee5f9120"
-=======
   resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.12.2.tgz#7e74f613f052b2c3c1bdedd9a33f2776ee5f9120"
->>>>>>> origin/main
   integrity sha512-UJYpcMTpceh/meYIqydUL0Jgi1FXTpCqqgFOYkv/BMIdWg5yXH8bEvwr35dNtglhCeT5OR9IAAETNAXSV2fW5Q==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
 "@trpc/next@^9.12.0":
   version "9.12.2"
-<<<<<<< HEAD
-  resolved "https://registry.npmjs.org/@trpc/next/-/next-9.12.2.tgz#8adaa95f1866b8336098a8d3baf2abf9b5dbc0f0"
-=======
   resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.12.2.tgz#8adaa95f1866b8336098a8d3baf2abf9b5dbc0f0"
->>>>>>> origin/main
   integrity sha512-8uWApeq6nxdOfBLTA/gFaqlptsgUsPb//lOb+ksaJajNdOLvEr2oMPNjnmwbv9CNI3Fp9/KNGTjwRhZlOZVcCA==
   dependencies:
     "@babel/runtime" "^7.9.0"
@@ -1808,22 +1794,14 @@
 
 "@trpc/react@^9.12.0":
   version "9.12.2"
-<<<<<<< HEAD
-  resolved "https://registry.npmjs.org/@trpc/react/-/react-9.12.2.tgz#7399daef67cd9e1e4ca7435c15d7d9db2e478b45"
-=======
   resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.12.2.tgz#7399daef67cd9e1e4ca7435c15d7d9db2e478b45"
->>>>>>> origin/main
   integrity sha512-9MoCasfsWo42O9ZAgPgva1fxNxWHsqJg2Eu7Dp8sY6T5THfZG8+U15cx+kk24OeLeJ3YiF8jBy1i6H6iv3Qu/Q==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
 "@trpc/server@^9.12.0":
   version "9.12.2"
-<<<<<<< HEAD
-  resolved "https://registry.npmjs.org/@trpc/server/-/server-9.12.2.tgz#04cb934746c6d1b36c5ad2d00f0dd27327d9f5e8"
-=======
   resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.12.2.tgz#04cb934746c6d1b36c5ad2d00f0dd27327d9f5e8"
->>>>>>> origin/main
   integrity sha512-9u+ScxZcIDgydvd734KqoOofrXybJ/VD/YRlJODCzhUFEjtYzZ/BMz4n1ODVfg47NbJeuuJq2Ndb5kXOiD3utw==
   dependencies:
     tslib "^2.1.0"
@@ -1955,15 +1933,7 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.168.tgz#fe24632e79b7ade3f132891afff86caa5e5ce008"
   integrity sha512-oVfRvqHV/V6D1yifJbVRU3TMp8OT6o6BG+U9MkwuJ3U8/CsDHvalRpsxBqivn71ztOFZBTfJMvETbqHiaNSj7Q==
 
-<<<<<<< HEAD
-"@types/lodash@^4.14.165":
-  version "4.14.175"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.175.tgz#b78dfa959192b01fae0ad90e166478769b215f45"
-
-"@types/lodash@^4.14.176":
-=======
 "@types/lodash@^4.14.175", "@types/lodash@^4.14.176":
->>>>>>> origin/main
   version "4.14.176"
   resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.176.tgz#641150fc1cda36fbfa329de603bbb175d7ee20c0"
   integrity sha512-xZmuPTa3rlZoIbtDUyJKZQimJV3bxCmzMIO2c9Pz9afyDro6kr7R79GwcB6mRhuoPmV2p1Vb66WOJH7F886WKQ==
@@ -1976,19 +1946,9 @@
     "@types/node" "*"
     "@types/socket.io" "2.1.13"
 
-<<<<<<< HEAD
-"@types/node@*", "@types/node@>=8.1.0":
-  version "16.10.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.10.1.tgz#f3647623199ca920960006b3dccf633ea905f243"
-
-"@types/node@^16.11.5":
-  version "16.11.6"
-  resolved "https://registry.npmjs.org/@types/node/-/node-16.11.6.tgz#6bef7a2a0ad684cf6e90fcfe31cecabd9ce0a3ae"
-=======
 "@types/node@*", "@types/node@>=8.1.0", "@types/node@^16.11.5":
   version "16.11.6"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.6.tgz#6bef7a2a0ad684cf6e90fcfe31cecabd9ce0a3ae"
->>>>>>> origin/main
   integrity sha512-ua7PgUoeQFjmWPcoo9khiPum3Pd60k4/2ZGXt18sm2Slk0W0xZTqt5Y0Ny1NyBiN1EVQ/+FaF9NcY4Qe6rwk5w==
 
 "@types/nodemailer@^6.4.4":
@@ -2033,37 +1993,17 @@
   dependencies:
     "@types/react" "*"
 
-<<<<<<< HEAD
-"@types/react-select@^4.0.17":
-  version "4.0.18"
-  resolved "https://registry.yarnpkg.com/@types/react-select/-/react-select-4.0.18.tgz#f907f406411afa862217a9d86c54a301367a35c1"
-  dependencies:
-    "@emotion/serialize" "^1.0.0"
-    "@types/react" "*"
-    "@types/react-dom" "*"
-    "@types/react-transition-group" "*"
-
-"@types/react-transition-group@*", "@types/react-transition-group@^4.4.0":
-  version "4.4.3"
-  resolved "https://registry.yarnpkg.com/@types/react-transition-group/-/react-transition-group-4.4.3.tgz#b0994da0a7023d67dbb4a8910a62112bc00d5688"
-=======
 "@types/react-transition-group@^4.4.0":
   version "4.4.4"
   resolved "https://registry.yarnpkg.com/@types/react-transition-group/-/react-transition-group-4.4.4.tgz#acd4cceaa2be6b757db61ed7b432e103242d163e"
   integrity sha512-7gAPz7anVK5xzbeQW9wFBDg7G++aPLAFY0QaSMOou9rJZpbuI58WAuJrgu+qR92l61grlnCUe7AFX8KGahAgug==
->>>>>>> origin/main
   dependencies:
     "@types/react" "*"
 
 "@types/react@*", "@types/react@16 || 17", "@types/react@^17.0.18":
-<<<<<<< HEAD
-  version "17.0.24"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.24.tgz#7e1b3f78d0fc53782543f9bce6d949959a5880bd"
-=======
   version "17.0.34"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.34.tgz#797b66d359b692e3f19991b6b07e4b0c706c0102"
   integrity sha512-46FEGrMjc2+8XhHXILr+3+/sTe3OfzSPU9YGKILLrUYbQ1CLQC9Daqo1KzENGXAWwrFwiY0l4ZbF20gRvgpWTg==
->>>>>>> origin/main
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -2356,10 +2296,7 @@ ansi-regex@^4.1.0:
 ansi-regex@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-5.0.1.tgz#082cb2c89c9fe8659a311a53bd6a4dc5301db304"
-<<<<<<< HEAD
-=======
   integrity sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==
->>>>>>> origin/main
 
 ansi-styles@^2.2.1:
   version "2.2.1"
@@ -3170,7 +3107,7 @@ commander@^5.1.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-5.1.0.tgz#46abbd1652f8e059bddaef99bbdcb2ad9cf179ae"
   integrity sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg==
 
-commander@^6.0.0, commander@^6.1.0, commander@^6.2.0:
+commander@^6.0.0, commander@^6.2.0:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-6.2.1.tgz#0792eb682dfbc325999bb2b84fddddba110ac73c"
   integrity sha512-U7VdrJFnJgo4xjrHpTzu0yrHPGImdsmD95ZlgYSEajAn2JKzDhDTPG9kBTefmObL2w/ngeZnilk+OV9CG3d7UA==
@@ -4742,10 +4679,7 @@ i18next-fs-backend@^1.0.7:
 i18next@^20.1.0:
   version "20.6.1"
   resolved "https://registry.yarnpkg.com/i18next/-/i18next-20.6.1.tgz#535e5f6e5baeb685c7d25df70db63bf3cc0aa345"
-<<<<<<< HEAD
-=======
   integrity sha512-yCMYTMEJ9ihCwEQQ3phLo7I/Pwycf8uAx+sRHwwk5U9Aui/IZYgQRyMqXafQOw5QQ7DM1Z+WyEXWIqSuJHhG2A==
->>>>>>> origin/main
   dependencies:
     "@babel/runtime" "^7.12.0"
 
@@ -6389,11 +6323,7 @@ next-auth@^3.29.0:
 
 next-i18next@^8.9.0:
   version "8.10.0"
-<<<<<<< HEAD
-  resolved "https://registry.npmjs.org/next-i18next/-/next-i18next-8.10.0.tgz#94440d796d7c3d16a74218ac72df296daf13aaa3"
-=======
   resolved "https://registry.yarnpkg.com/next-i18next/-/next-i18next-8.10.0.tgz#94440d796d7c3d16a74218ac72df296daf13aaa3"
->>>>>>> origin/main
   integrity sha512-nY3tw+uU6lzZq7YfqRr0lFBiz15txIeYBX5R6rVeAK8wWFsCRJpZ6lTm02DMC+MfD1G6LmtpR6bmOOaBD3TR9A==
   dependencies:
     "@babel/runtime" "^7.13.17"
@@ -6412,10 +6342,7 @@ next-seo@^4.26.0:
 next-transpile-modules@^8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/next-transpile-modules/-/next-transpile-modules-8.0.0.tgz#56375cdc25ae5d23a834195f277fc2737b26cb97"
-<<<<<<< HEAD
-=======
   integrity sha512-Q2f2yB0zMJ8KJbIYAeZoIxG6cSfVk813zr6B5HzsLMBVcJ3FaF8lKr7WG66n0KlHCwjLSmf/6EkgI6QQVWHrDw==
->>>>>>> origin/main
   dependencies:
     enhanced-resolve "^5.7.0"
     escalade "^3.1.1"
@@ -7071,15 +6998,9 @@ platform@1.3.6:
   resolved "https://registry.yarnpkg.com/platform/-/platform-1.3.6.tgz#48b4ce983164b209c2d45a107adb31f473a6e7a7"
   integrity sha512-fnWVljUchTro6RiCFvCXBbNhJc2NijN7oIQxbwsyL0buWJPG85v81ehlHI9fXrJsMNgTofEoWIQeClKpgxFLrg==
 
-<<<<<<< HEAD
-playwright-core@=1.16.3:
-  version "1.16.3"
-  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.16.3.tgz#f466be9acaffb698654adfb0a17a4906ba936895"
-=======
 playwright-core@=1.16.3, playwright-core@>=1.2.0:
   version "1.16.3"
   resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.16.3.tgz#f466be9acaffb698654adfb0a17a4906ba936895"
->>>>>>> origin/main
   integrity sha512-16hF27IvQheJee+DbhC941AUZLjbJgfZFWi9YPS4LKEk/lKFhZI+9TiFD0sboYqb9eaEWvul47uR5xxTVbE4iw==
   dependencies:
     commander "^8.2.0"
@@ -7099,55 +7020,9 @@ playwright-core@=1.16.3, playwright-core@>=1.2.0:
     yauzl "^2.10.0"
     yazl "^2.5.1"
 
-<<<<<<< HEAD
-playwright-core@>=1.2.0:
-  version "1.15.2"
-  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.15.2.tgz#0bcc4c61e0346f8bb14609c2a4ba1cc0ece605f0"
-  integrity sha512-bY3eZu27QL62Y/iVsZUTm+RtPZ+0Zj34GoKQ6VtdjhzqoUWj40IoLy0q/GhMpXUNqKZMntHmtxvLYlREFauf8Q==
-  dependencies:
-    commander "^6.1.0"
-    debug "^4.1.1"
-    extract-zip "^2.0.1"
-    https-proxy-agent "^5.0.0"
-    jpeg-js "^0.4.2"
-    mime "^2.4.6"
-    pngjs "^5.0.0"
-    progress "^2.0.3"
-    proper-lockfile "^4.1.1"
-    proxy-from-env "^1.1.0"
-    rimraf "^3.0.2"
-    stack-utils "^2.0.3"
-    ws "^7.4.6"
-    yazl "^2.5.1"
-
-playwright@^1.15.1:
-  version "1.15.2"
-  resolved "https://registry.npmjs.org/playwright/-/playwright-1.15.2.tgz#b350056d1fffbe5de5b1bdaca6ab73e35758baad"
-  integrity sha512-+Z+7ckihyxR6rK5q8DWC6eUbKARfXpyxpjNcoJfgwSr64lAOzjhyFQiPC/JkdIqhsLgZjxpWfl1S7fLb+wPkgA==
-  dependencies:
-    commander "^6.1.0"
-    debug "^4.1.1"
-    extract-zip "^2.0.1"
-    https-proxy-agent "^5.0.0"
-    jpeg-js "^0.4.2"
-    mime "^2.4.6"
-    pngjs "^5.0.0"
-    progress "^2.0.3"
-    proper-lockfile "^4.1.1"
-    proxy-from-env "^1.1.0"
-    rimraf "^3.0.2"
-    stack-utils "^2.0.3"
-    ws "^7.4.6"
-    yazl "^2.5.1"
-
-playwright@^1.16.2:
-  version "1.16.3"
-  resolved "https://registry.npmjs.org/playwright/-/playwright-1.16.3.tgz#27a292d9fa54fbac923998d3af58cd2b691f5ebe"
-=======
 playwright@^1.15.1, playwright@^1.16.2:
   version "1.16.3"
   resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.16.3.tgz#27a292d9fa54fbac923998d3af58cd2b691f5ebe"
->>>>>>> origin/main
   integrity sha512-nfJx/OpIb/8OexL3rYGxNN687hGyaM3XNpfuMzoPlrekURItyuiHHsNhC9oQCx3JDmCn5O3EyyyFCnrZjH6MpA==
   dependencies:
     playwright-core "=1.16.3"
@@ -7579,11 +7454,7 @@ react-phone-number-input@^3.1.25:
 
 react-query@^3.30.0:
   version "3.31.0"
-<<<<<<< HEAD
-  resolved "https://registry.npmjs.org/react-query/-/react-query-3.31.0.tgz#297add9301d15ef2e004297e72a8e46f7aa5616a"
-=======
   resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.31.0.tgz#297add9301d15ef2e004297e72a8e46f7aa5616a"
->>>>>>> origin/main
   integrity sha512-6NiXgjdXBKGA9ge04NI21uqTCIpH6qzR8AGGom/nR/emaGc//D9KM6C6+AEy8zLYl4RYjvd/XhA3lWME5kGMiw==
   dependencies:
     "@babel/runtime" "^7.5.5"
@@ -7643,28 +7514,10 @@ react-router@5.2.1:
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
 
-<<<<<<< HEAD
-react-select@^4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/react-select/-/react-select-4.3.1.tgz#389fc07c9bc7cf7d3c377b7a05ea18cd7399cb81"
-  dependencies:
-    "@babel/runtime" "^7.12.0"
-    "@emotion/cache" "^11.4.0"
-    "@emotion/react" "^11.1.1"
-    memoize-one "^5.0.0"
-    prop-types "^15.6.0"
-    react-input-autosize "^3.0.0"
-    react-transition-group "^4.3.0"
-
-react-select@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.0.0.tgz#356c0bc20659445bc00104f3aba7350f544fef72"
-=======
 react-select@^5.0.0, react-select@^5.1.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.2.0.tgz#7535ac8f4ce7216033c0f2cd5c240ca6e4becb3b"
   integrity sha512-JLH2/ei/m1an0Vu4ERMKvGgDB6yHLsgxltho2QennOLTq4Fx35GwGwh+2MFnz5EWgslX6G9rjclUTZWAA2DuBg==
->>>>>>> origin/main
   dependencies:
     "@babel/runtime" "^7.12.0"
     "@emotion/cache" "^11.4.0"
@@ -7978,10 +7831,7 @@ saxes@^5.0.1:
 scheduler@^0.20.2:
   version "0.20.2"
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.20.2.tgz#4baee39436e34aa93b4874bddcbf0fe8b8b50e91"
-<<<<<<< HEAD
-=======
   integrity sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==
->>>>>>> origin/main
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
@@ -8065,13 +7915,6 @@ shell-quote@1.7.3, shell-quote@^1.6.1:
   resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.7.3.tgz#aa40edac170445b9a431e17bb62c0b881b9c4123"
   integrity sha512-Vpfqwm4EnqGdlsBFNmHhxhElJYrdfcxPThu+ryKS5J8L/fhAwLazFZtq+S+TWZ9ANj2piSQLGj6NQg+lKPmxrw==
 
-<<<<<<< HEAD
-shell-quote@^1.6.1:
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.7.2.tgz#67a7d02c76c9da24f99d20808fcaded0e0e04be2"
-
-=======
->>>>>>> origin/main
 short-uuid@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/short-uuid/-/short-uuid-4.2.0.tgz#3706d9e7287ac589dc5ffe324d3e34817a07540b"
@@ -8397,11 +8240,7 @@ stringify-object@3.3.0:
 
 strip-ansi@6.0.1, strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
-<<<<<<< HEAD
-  resolved "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
-=======
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
->>>>>>> origin/main
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
   dependencies:
     ansi-regex "^5.0.1"
