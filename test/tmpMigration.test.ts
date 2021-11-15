@@ -10,7 +10,7 @@ test("tmpMigration", async () => {
       name: "europeanUser",
       email: `${randomString()}@example.com`,
       startTime: 0, // midnight
-      endTime: 1440, // midnight
+      endTime: 1380, // midnight
       timeZone: "Europe/London",
     },
   });
@@ -71,6 +71,7 @@ test("tmpMigration", async () => {
   });
 
   const usersWithNormalizedDates = JSON.parse(JSON.stringify(users));
+
   expect(usersWithNormalizedDates).toMatchInlineSnapshot(`
     Array [
       Object {
@@ -87,10 +88,10 @@ test("tmpMigration", async () => {
               6,
             ],
             "endTime": "1970-01-01T23:00:00.000Z",
-            "startTime": "1970-01-01T23:00:00.000Z",
+            "startTime": "1970-01-01T00:00:00.000Z",
           },
         ],
-        "endTime": 1440,
+        "endTime": 1380,
         "name": "europeanUser",
         "startTime": 0,
       },
@@ -107,8 +108,8 @@ test("tmpMigration", async () => {
               5,
               6,
             ],
-            "endTime": "1970-01-01T23:00:00.000Z",
-            "startTime": "1970-01-01T23:00:00.000Z",
+            "endTime": "1970-01-01T00:00:00.000Z",
+            "startTime": "1970-01-01T00:00:00.000Z",
           },
         ],
         "endTime": 1440,
