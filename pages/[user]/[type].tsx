@@ -159,8 +159,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     availability && availability.length
       ? availability.map((schedule) => ({
           ...schedule,
-          startTime: schedule.startTime.getUTCHours() * 60 + schedule.startTime.getUTCMinutes(),
-          endTime: schedule.endTime.getUTCHours() * 60 + schedule.endTime.getUTCMinutes(),
+          startTime: schedule.startTime.getHours() * 60 + schedule.startTime.getMinutes(),
+          endTime: schedule.endTime.getHours() * 60 + schedule.endTime.getMinutes(),
         }))
       : null;
 
