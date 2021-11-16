@@ -53,6 +53,10 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
   }, [] as Availability[]);
 }
 
+export const MINUTES_IN_DAY = 60 * 24;
+export const MINUTES_DAY_END = MINUTES_IN_DAY - 1;
+export const MINUTES_DAY_START = 0;
+
 /**
  * PostgreSQL stores the date relatively
  */
@@ -66,8 +70,8 @@ export function getWorkingHours(
       {
         days: [0, 1, 2, 3, 4, 5, 6],
         // shorthand for: dayjs().startOf("day").tz(timeZone).diff(dayjs.utc().startOf("day"), "minutes")
-        startTime: 0,
-        endTime: 1439,
+        startTime: MINUTES_DAY_START,
+        endTime: MINUTES_DAY_END,
       },
     ];
   }
@@ -84,23 +88,23 @@ export function getWorkingHours(
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
     workingHours.push({
       days: schedule.days,
-      startTime: Math.max(0, Math.min(1439, startTime)),
-      endTime: Math.max(0, Math.min(1439, endTime)),
+      startTime: Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, startTime)),
+      endTime: Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, endTime)),
     });
     // check for overflow to the previous day
-    if (startTime < 0 || endTime < 0) {
+    if (startTime < MINUTES_DAY_START || endTime < MINUTES_DAY_START) {
       workingHours.push({
         days: schedule.days.map((day) => day - 1),
         startTime,
-        endTime: Math.min(endTime + 1440, 1439),
+        endTime: Math.min(endTime + MINUTES_IN_DAY, MINUTES_DAY_END),
       });
     }
     // else, check for overflow in the next day
-    else if (startTime > 1439 || endTime > 1439) {
+    else if (startTime > MINUTES_DAY_END || endTime > MINUTES_DAY_END) {
       workingHours.push({
         days: schedule.days.map((day) => day + 1),
-        startTime: Math.max(startTime - 1439, 0),
-        endTime: endTime - 1439,
+        startTime: Math.max(startTime - MINUTES_DAY_END, MINUTES_DAY_START),
+        endTime: endTime - MINUTES_DAY_END,
       });
     }
     return workingHours;
