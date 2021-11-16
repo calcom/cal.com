@@ -310,7 +310,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     price: number;
     isHidden: boolean;
     location: string;
-    selectedCustomInput: EventTypeCustomInput | undefined;
+    // selectedCustomInput: EventTypeCustomInput | undefined;
     customInputs: EventTypeCustomInput[] | undefined;
     users: AdvancedOptions["users"];
     scheduler: {
@@ -375,7 +375,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           /* otherwise */   0;
                     advancedPayload.currency = currency; //
                     advancedPayload.availability = values.scheduler.enteredAvailability || undefined;
-                    advancedPayload.customInputs = customInputs;
+                    advancedPayload.customInputs = values.customInputs;
                     advancedPayload.timeZone = values.scheduler.selectedTimezone;
                     advancedPayload.disableGuests = values.disableGuests;
                     advancedPayload.requiresConfirmation = values.requiresConfirmation;
@@ -785,7 +785,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <Button
                                       onClick={() => {
                                         setSelectedCustomInput(customInput);
-                                        formMethods.setValue("selectedCustomInput", customInput);
+                                        // formMethods.setValue("selectedCustomInput", customInput);
                                         setSelectedCustomInputModalOpen(true);
                                       }}
                                       color="minimal"
@@ -803,7 +803,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <Button
                                 onClick={() => {
                                   setSelectedCustomInput(undefined);
-                                  formMethods.setValue("selectedCustomInput", undefined);
+                                  // formMethods.setValue("selectedCustomInput", undefined);
                                   setSelectedCustomInputModalOpen(true);
                                 }}
                                 color="secondary"
@@ -1190,7 +1190,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </div>
               </div>
               <Controller
-                name="selectedCustomInput"
+                name="customInputs"
                 control={formMethods.control}
                 render={() => (
                   <CustomInputTypeForm
@@ -1212,6 +1212,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         selectedCustomInput.type = customInput.type;
                       } else {
                         setCustomInputs(customInputs.concat(customInput));
+                        formMethods.setValue("customInputs", customInputs.concat(customInput));
                       }
                       setSelectedCustomInputModalOpen(false);
                     }}
