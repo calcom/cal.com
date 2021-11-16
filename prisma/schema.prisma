@@ -94,6 +94,7 @@ model User {
   plan                UserPlan           @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
+  brandColor          String            @default("#292929")
 
   @@map(name: "users")
 }
