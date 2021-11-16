@@ -91,7 +91,7 @@ export function getWorkingHours(
     if (startTime < 0 || endTime < 0) {
       workingHours.push({
         days: schedule.days.map((day) => day - 1),
-        startTime: startTime + 1440,
+        startTime,
         endTime: Math.min(endTime + 1440, 1439),
       });
     }
