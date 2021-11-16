@@ -1,4 +1,4 @@
-import { Availability, SchedulingType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
@@ -14,7 +14,7 @@ dayjs.extend(utc);
 type AvailabilityUserResponse = {
   busy: TimeRange[];
   timeZone: string;
-  workingHours: Availability[];
+  workingHours: WorkingHours[];
 };
 
 type Slot = {
@@ -27,7 +27,6 @@ type UseSlotsProps = {
   eventTypeId: number;
   minimumBookingNotice?: number;
   date: Dayjs;
-  workingHours: WorkingHours[];
   users: { username: string | null }[];
   schedulingType: SchedulingType | null;
 };

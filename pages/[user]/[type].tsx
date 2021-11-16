@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { getWorkingHours } from "@lib/availability";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -158,32 +159,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as const;
     }
   }*/
-  const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
-    availability && availability.length
-      ? availability.map((schedule) => ({
-          ...schedule,
-          startTime: schedule.startTime.valueOf(),
-          endTime: schedule.endTime.valueOf(),
-        }))
-      : null;
-
-  const workingHours =
-    getWorkingHours(eventType.availability) ||
-    getWorkingHours(user.availability) ||
-    [
-      {
-        days: [0, 1, 2, 3, 4, 5, 6],
-        startTime: 0,
-        endTime: 86400000 - 1,
-      },
-    ].filter((availability): boolean => typeof availability["days"] !== "undefined");
-
-  workingHours.sort((a, b) => a.startTime - b.startTime);
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
+
+  const workingHours = getWorkingHours(
+    user.timeZone,
+    eventType.availability.length ? eventType.availability : user.availability
+  );
 
   eventTypeObject.availability = [];
 

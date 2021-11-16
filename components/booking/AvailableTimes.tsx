@@ -7,12 +7,10 @@ import React, { FC } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
-import { WorkingHours } from "@lib/types/schedule";
 
 import Loader from "@components/Loader";
 
 type AvailableTimesProps = {
-  workingHours: WorkingHours[];
   timeFormat: string;
   minimumBookingNotice: number;
   eventTypeId: number;
@@ -29,7 +27,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   eventLength,
   eventTypeId,
   minimumBookingNotice,
-  workingHours,
   timeFormat,
   users,
   schedulingType,
@@ -42,12 +39,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     date,
     eventLength,
     schedulingType,
-    workingHours: workingHours.map((hours) => ({
-      // FIXME: useSlots.tsx
-      ...hours,
-      startTime: hours.startTime.getUTCHours() * 60 + hours.startTime.getUTCMinutes(),
-      endTime: hours.endTime.getUTCHours() * 60 + hours.endTime.getUTCMinutes(),
-    })),
     users,
     minimumBookingNotice,
     eventTypeId,

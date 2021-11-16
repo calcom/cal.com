@@ -30,17 +30,11 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, eventType, ...props }: Props) => {
+const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
   const { t } = useLocale();
-
-  const workingHours = props.workingHours.map((hours) => ({
-    ...hours,
-    startTime: new Date(hours.startTime),
-    endTime: new Date(hours.endTime),
-  }));
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -221,7 +215,6 @@ const AvailabilityPage = ({ profile, eventType, ...props }: Props) => {
 
                 {selectedDate && (
                   <AvailableTimes
-                    workingHours={workingHours}
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}

@@ -1,5 +1,3 @@
-import { Availability } from "@prisma/client";
-
 export type TimeRange = {
   start: Date;
   end: Date;
@@ -7,4 +5,14 @@ export type TimeRange = {
 
 export type Schedule = TimeRange[][];
 
-export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
+/**
+ * ```text
+ * Ensure startTime and endTime in minutes since midnight; serialized to UTC by using the organizer timeZone, either by using the schedule timeZone or the user timeZone.
+ * @see lib/availability.ts getWorkingHours(timeZone: string, availability: Availability[])
+ * ```
+ */
+export type WorkingHours = {
+  days: number[];
+  startTime: number;
+  endTime: number;
+};

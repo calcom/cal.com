@@ -33,11 +33,22 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
     hours.days.includes(dayjs(inviteeDate).utc().get("day"))
   );
 
+  console.log(thisDayWorkingHours);
+
   const slots: Dayjs[] = [];
   for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
     const slot = inviteeDate.startOf("day").add(minutes, "minutes");
     // add slots to available slots if it is found to be between the start and end time of the checked working hours.
-    if (thisDayWorkingHours.some((hours) => slot.isBetween(hours.startTime, hours.endTime, null, "[)"))) {
+    if (
+      thisDayWorkingHours.some((hours) =>
+        slot.isBetween(
+          dayjs(inviteeDate).startOf("day").utc().add(hours.startTime, "minutes"),
+          dayjs(inviteeDate).startOf("day").utc().add(hours.endTime, "minutes"),
+          null,
+          "[)"
+        )
+      )
+    ) {
       slots.push(slot);
     }
   }
