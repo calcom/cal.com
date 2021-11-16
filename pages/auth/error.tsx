@@ -1,10 +1,13 @@
 import { XIcon } from "@heroicons/react/outline";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export default function Error() {
   const { t } = useLocale();
@@ -47,4 +50,14 @@ export default function Error() {
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
 }
