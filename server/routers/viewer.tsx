@@ -55,6 +55,7 @@ const loggedInViewerRouter = createProtectedRouter()
         createdDate,
         completedOnboarding,
         twoFactorEnabled,
+        brandColor,
       } = ctx.user;
       const me = {
         id,
@@ -69,6 +70,7 @@ const loggedInViewerRouter = createProtectedRouter()
         createdDate,
         completedOnboarding,
         twoFactorEnabled,
+        brandColor,
       };
       return me;
     },
@@ -444,6 +446,7 @@ const loggedInViewerRouter = createProtectedRouter()
       timeZone: z.string().optional(),
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
+      brandColor: z.string().optional(),
       theme: z.string().optional().nullable(),
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),

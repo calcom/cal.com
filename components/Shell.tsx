@@ -23,6 +23,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
+import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
@@ -166,6 +167,9 @@ export default function Shell(props: {
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
+  const query = useMeQuery();
+  const user = query.data;
+
   const i18n = useViewerI18n();
 
   if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
@@ -178,6 +182,7 @@ export default function Shell(props: {
   }
   return (
     <>
+      <CustomBranding val={user?.brandColor} />
       <HeadSeo
         title={pageTitle ?? "Cal.com"}
         description={props.subtitle ? props.subtitle?.toString() : ""}
