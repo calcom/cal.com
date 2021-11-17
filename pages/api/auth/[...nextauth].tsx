@@ -1,8 +1,8 @@
-import NextAuth from "next-auth";
+import NextAuth, { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { authenticator } from "otplib";
 
-import { ErrorCode, Session, verifyPassword } from "@lib/auth";
+import { ErrorCode, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 

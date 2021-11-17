@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const user = await prisma.user.findUnique({
+    rejectOnNotFound: true,
     where: {
       id: session.user.id,
     },
