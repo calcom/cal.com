@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "next-auth/react";
 
 import { symmetricEncrypt } from "@lib/crypto";
 import { AppleCalendar } from "@lib/integrations/Apple/AppleCalendarAdapter";

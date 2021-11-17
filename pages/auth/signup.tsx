@@ -1,5 +1,5 @@
 import { GetServerSidePropsContext } from "next";
-import { signIn } from "next-auth/client";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useForm, SubmitHandler, FormProvider } from "react-hook-form";
 

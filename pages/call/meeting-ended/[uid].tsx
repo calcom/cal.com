@@ -1,7 +1,7 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/outline";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
-import { getSession } from "next-auth/client";
+import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useEffect } from "react";

@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import Providers from "next-auth/providers";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { authenticator } from "otplib";
 
 import { ErrorCode, Session, verifyPassword } from "@lib/auth";
@@ -8,7 +8,7 @@ import prisma from "@lib/prisma";
 
 export default NextAuth({
   session: {
-    jwt: true,
+    strategy: "jwt",
   },
   jwt: {
     secret: process.env.JWT_SECRET,
@@ -19,7 +19,7 @@ export default NextAuth({
     error: "/auth/error", // Error code passed in query string as ?error=
   },
   providers: [
-    Providers.Credentials({
+    CredentialsProvider({
       name: "Cal.com",
       credentials: {
         email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
@@ -27,6 +27,11 @@ export default NextAuth({
         totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
       },
       async authorize(credentials) {
+        if (!credentials) {
+          console.error(`For some reason credentials are missing`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
         const user = await prisma.user.findUnique({
           where: {
             email: credentials.email.toLowerCase(),
@@ -85,14 +90,14 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async jwt(token, user) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.username = user.username;
       }
       return token;
     },
-    async session(session, token) {
+    async session({ session, token }) {
       const calendsoSession: Session = {
         ...session,
         user: {

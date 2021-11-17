@@ -1,5 +1,5 @@
 import DailyIframe from "@daily-co/daily-js";
-import { getSession } from "next-auth/client";
+import { getSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";

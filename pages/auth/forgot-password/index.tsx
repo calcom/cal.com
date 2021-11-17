@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { GetServerSidePropsContext } from "next";
-import { getCsrfToken } from "next-auth/client";
+import { getCsrfToken } from "next-auth/react";
 import Link from "next/link";
 import React, { SyntheticEvent } from "react";
 

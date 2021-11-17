@@ -1,6 +1,6 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { useSession } from "next-auth/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -13,7 +13,8 @@ export default function CancelSuccess() {
   // Get router variables
   const router = useRouter();
   const { title, name, eventPage } = router.query;
-  const [session, loading] = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   return (
     <div>
       <HeadSeo
