@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const timeZone = eventType?.timeZone || currentUser.timeZone;
   const workingHours = getWorkingHours(
-    timeZone,
+    { timeZone },
     eventType?.availability.length ? eventType.availability : currentUser.availability
   );
 
