@@ -293,6 +293,7 @@ Contributions are what make the open source community such an amazing place to b
  2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
  3. Copy your API key.
  4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+ 5. If you have a [Daily Scale Plan](https://www.daily.co/pricing)  can also enable the ability to record Daily video meetings. To do so, set the `DAILY_SCALE_PLAN` environment variable to `'true'` 
 
 <!-- LICENSE -->
 

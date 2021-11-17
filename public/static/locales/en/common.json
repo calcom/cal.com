@@ -438,6 +438,7 @@
   "timezone": "Timezone",
   "first_day_of_week": "First Day of Week",
   "single_theme": "Single Theme",
+  "brand_color": "Brand Color",
   "file_not_named": "File is not named [idOrSlug]/[user]",
   "create_team": "Create Team",
   "name": "Name",

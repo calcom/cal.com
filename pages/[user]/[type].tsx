@@ -73,6 +73,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       weekStart: true,
       availability: true,
       hideBranding: true,
+      brandColor: true,
       theme: true,
       plan: true,
       eventTypes: {
@@ -180,6 +181,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         slug: user.username,
         theme: user.theme,
         weekStart: user.weekStart,
+        brandColor: user.brandColor,
       },
       date: dateParam,
       eventType: eventTypeObject,

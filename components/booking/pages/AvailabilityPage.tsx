@@ -15,6 +15,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
+import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
@@ -95,6 +96,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
         name={profile.name || undefined}
         avatar={profile.image || undefined}
       />
+      <CustomBranding val={profile.brandColor} />
       <div>
         <main
           className={
