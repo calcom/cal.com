@@ -91,11 +91,15 @@ export function getWorkingHours(
       dayjs.utc(schedule.endTime).get("hour") * 60 + dayjs.utc(schedule.endTime).get("minute") - utcOffset;
 
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
-    workingHours.push({
-      days: schedule.days,
-      startTime: Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, startTime)),
-      endTime: Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, endTime)),
-    });
+    const sameDayStartTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, startTime));
+    const sameDayEndTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, endTime));
+    if (sameDayStartTime !== sameDayEndTime) {
+      workingHours.push({
+        days: schedule.days,
+        startTime: sameDayStartTime,
+        endTime: sameDayEndTime,
+      });
+    }
     // check for overflow to the previous day
     if (startTime < MINUTES_DAY_START || endTime < MINUTES_DAY_START) {
       workingHours.push({
@@ -108,10 +112,11 @@ export function getWorkingHours(
     else if (startTime > MINUTES_DAY_END || endTime > MINUTES_DAY_END) {
       workingHours.push({
         days: schedule.days.map((day) => day + 1),
-        startTime: Math.max(startTime - MINUTES_DAY_END, MINUTES_DAY_START),
-        endTime: endTime - MINUTES_DAY_END,
+        startTime: Math.max(startTime - MINUTES_IN_DAY, MINUTES_DAY_START),
+        endTime: endTime - MINUTES_IN_DAY,
       });
     }
+
     return workingHours;
   }, []);
 
