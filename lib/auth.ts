@@ -1,5 +1,5 @@
 import { compare, hash } from "bcryptjs";
-import { DefaultSession } from "next-auth";
+import { Session } from "next-auth";
 import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
 
 export async function hashPassword(password: string) {
@@ -10,15 +10,6 @@ export async function hashPassword(password: string) {
 export async function verifyPassword(password: string, hashedPassword: string) {
   const isValid = await compare(password, hashedPassword);
   return isValid;
-}
-
-type DefaultSessionUser = NonNullable<DefaultSession["user"]>;
-type CalendsoSessionUser = DefaultSessionUser & {
-  id: number;
-  username: string;
-};
-export interface Session extends DefaultSession {
-  user?: CalendsoSessionUser;
 }
 
 export async function getSession(options: GetSessionParams): Promise<Session | null> {
