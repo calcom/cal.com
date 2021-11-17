@@ -167,7 +167,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const workingHours = getWorkingHours(
-    user.timeZone,
+    {
+      timeZone: user.timeZone,
+    },
     eventType.availability.length ? eventType.availability : user.availability
   );
 

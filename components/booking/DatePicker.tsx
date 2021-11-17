@@ -44,8 +44,6 @@ function DatePicker({
   const { t } = useLocale();
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
 
-  console.log(workingHours);
-
   const [selectedMonth, setSelectedMonth] = useState<number>(
     date
       ? periodType === PeriodType.RANGE

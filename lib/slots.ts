@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
 
+import { getWorkingHours } from "./availability";
 import { WorkingHours } from "./types/schedule";
 
 dayjs.extend(utc);
@@ -23,27 +24,30 @@ const getMinuteOffset = (date: Dayjs, step: number) => {
 
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
   // current date in invitee tz
-  const startDate = inviteeDate.add(minimumBookingNotice, "minutes"); // + minimum notice period
+  const startDate = dayjs(inviteeDate).add(minimumBookingNotice, "minutes"); // + minimum notice period
   // checks if the start date is in the past
   if (startDate.isBefore(dayjs(), "day")) {
     return [];
   }
-  // only fetches relevant working hours; the one on the same day as the day being checked
-  const thisDayWorkingHours = workingHours.filter((hours) =>
-    hours.days.includes(dayjs(inviteeDate).utc().get("day"))
-  );
 
-  console.log(thisDayWorkingHours);
+  const localWorkingHours = getWorkingHours(
+    { utcOffset: -inviteeDate.utcOffset() },
+    workingHours.map((schedule) => ({
+      days: schedule.days,
+      startTime: dayjs.utc().startOf("day").add(schedule.startTime, "minutes"),
+      endTime: dayjs.utc().startOf("day").add(schedule.endTime, "minutes"),
+    }))
+  ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];
   for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
     const slot = inviteeDate.startOf("day").add(minutes, "minutes");
     // add slots to available slots if it is found to be between the start and end time of the checked working hours.
     if (
-      thisDayWorkingHours.some((hours) =>
+      localWorkingHours.some((hours) =>
         slot.isBetween(
-          dayjs(inviteeDate).startOf("day").utc().add(hours.startTime, "minutes"),
-          dayjs(inviteeDate).startOf("day").utc().add(hours.endTime, "minutes"),
+          inviteeDate.startOf("day").add(hours.startTime, "minutes"),
+          inviteeDate.startOf("day").add(hours.endTime, "minutes"),
           null,
           "[)"
         )
@@ -52,6 +56,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
       slots.push(slot);
     }
   }
+
   return slots;
 };
 
