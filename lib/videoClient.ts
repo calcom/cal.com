@@ -170,15 +170,6 @@ const updateMeeting = async (
         })
       : undefined;
 
-  if (!updatedMeeting) {
-    return {
-      type: credential.type,
-      success,
-      uid,
-      originalEvent: calEvent,
-    };
-  }
-
   try {
     const organizerMail = new EventOrganizerRescheduledMail(calEvent);
     await organizerMail.sendEmail();

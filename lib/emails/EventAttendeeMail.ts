@@ -75,10 +75,7 @@ export default class EventAttendeeMail extends EventMail {
           </small>
         </td>
       </tr>
-      <tr>
-        <td>${this.calEvent.language("where")}</td>
-        <td>${this.getLocation()}</td>
-      </tr>
+      ${this.getLocation()}
       <tr>
         <td>${this.calEvent.language("notes")}</td>
         <td>${this.calEvent.description}</td>
@@ -107,7 +104,13 @@ export default class EventAttendeeMail extends EventMail {
    */
   protected getLocation(): string {
     if (this.calEvent.additionInformation?.hangoutLink) {
-      return `<a href="${this.calEvent.additionInformation?.hangoutLink}">${this.calEvent.additionInformation?.hangoutLink}</a><br />`;
+      return `<tr>
+       <td>${this.calEvent.language("where")}</td>
+       <td><a href="${this.calEvent.additionInformation?.hangoutLink}">${
+        this.calEvent.additionInformation?.hangoutLink
+      }</a><br /></td>
+       </tr>
+       `;
     }
 
     if (
@@ -117,16 +120,30 @@ export default class EventAttendeeMail extends EventMail {
       const locations = this.calEvent.additionInformation?.entryPoints
         .map((entryPoint) => {
           return `
-          ${this.calEvent.language("join_by_entrypoint", { entryPoint: entryPoint.entryPointType })}: <br />
-          <a href="${entryPoint.uri}">${entryPoint.label}</a> <br />
-        `;
+           ${this.calEvent.language("join_by_entrypoint", { entryPoint: entryPoint.entryPointType })}: <br />
+           <a href="${entryPoint.uri}">${entryPoint.label}</a> <br />
+         `;
         })
         .join("<br />");
 
-      return `${locations}`;
+      return `<tr>
+       <td>${this.calEvent.language("where")}</td>
+       <td>${locations}</td>
+       </tr>
+       `;
     }
 
-    return this.calEvent.location ? `${this.calEvent.location}<br /><br />` : "";
+    if (!this.calEvent.location) {
+      return ``;
+    }
+
+    if (this.calEvent.location === "integrations:zoom" || this.calEvent.location === "integrations:daily") {
+      return ``;
+    }
+
+    return `<tr><td>${this.calEvent.language("where")}</td><td>${
+      this.calEvent.location
+    }<br /><br /></td></tr>`;
   }
 
   protected getAdditionalBody(): string {
