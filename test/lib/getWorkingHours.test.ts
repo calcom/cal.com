@@ -13,7 +13,7 @@ MockDate.set("2021-06-20T11:59:59Z");
 
 it("correctly translates Availability (UTC+0) to UTC workingHours", async () => {
   expect(
-    getWorkingHours("GMT", [
+    getWorkingHours({ timeZone: "GMT" }, [
       {
         days: [0],
         startTime: new Date(Date.UTC(2021, 11, 16, 23)),
@@ -32,7 +32,7 @@ it("correctly translates Availability (UTC+0) to UTC workingHours", async () => 
 it("correctly translates Availability in a positive UTC offset (Pacific/Auckland) to UTC workingHours", async () => {
   // Take note that (Pacific/Auckland) is UTC+12 on 2021-06-20, NOT +13 like the other half of the year.
   expect(
-    getWorkingHours("Pacific/Auckland", [
+    getWorkingHours({ timeZone: "Pacific/Auckland" }, [
       {
         days: [1],
         startTime: new Date(Date.UTC(2021, 11, 16, 0)),
@@ -56,7 +56,31 @@ it("correctly translates Availability in a positive UTC offset (Pacific/Auckland
 it("correctly translates Availability in a negative UTC offset (Pacific/Midway) to UTC workingHours", async () => {
   // Take note that (Pacific/Midway) is UTC-12 on 2021-06-20, NOT +13 like the other half of the year.
   expect(
-    getWorkingHours("Pacific/Midway", [
+    getWorkingHours({ timeZone: "Pacific/Midway" }, [
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(2021, 11, 16, 0)),
+        endTime: new Date(Date.UTC(2021, 11, 16, 23, 59)),
+      },
+    ])
+  ).toStrictEqual([
+    {
+      days: [2],
+      endTime: 660,
+      startTime: 0,
+    },
+    {
+      days: [1],
+      endTime: 1439,
+      startTime: 660,
+    },
+  ]);
+});
+
+it("can do the same with UTC offsets", async () => {
+  // Take note that (Pacific/Midway) is UTC-12 on 2021-06-20, NOT +13 like the other half of the year.
+  expect(
+    getWorkingHours({ utcOffset: dayjs().tz("Pacific/Midway").utcOffset() }, [
       {
         days: [1],
         startTime: new Date(Date.UTC(2021, 11, 16, 0)),

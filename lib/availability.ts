@@ -1,5 +1,5 @@
 import { Availability } from "@prisma/client";
-import dayjs from "dayjs";
+import dayjs, { ConfigType } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -58,11 +58,14 @@ export const MINUTES_DAY_END = MINUTES_IN_DAY - 1;
 export const MINUTES_DAY_START = 0;
 
 /**
- * PostgreSQL stores the date relatively
+ * Allows "casting" availability (days, startTime, endTime) given in UTC to a timeZone or utcOffset
  */
 export function getWorkingHours(
-  timeZone: string,
-  availability: Pick<Availability, "days" | "startTime" | "endTime">[]
+  relativeTimeUnit: {
+    timeZone?: string;
+    utcOffset?: number;
+  },
+  availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
   // clearly bail when availability is not set, set everything available.
   if (!availability.length) {
@@ -76,16 +79,16 @@ export function getWorkingHours(
     ];
   }
 
-  const workingHours = availability.reduce((workingHours: WorkingHours[], schedule) => {
-    const startTime = dayjs
-      .utc(dayjs.utc(schedule.startTime).format("HH:mm:ss"), "HH:mm:ss")
-      .tz(timeZone, true)
-      .diff(dayjs.utc().startOf("day"), "minutes");
+  const utcOffset = relativeTimeUnit.utcOffset || dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
 
-    const endTime = dayjs
-      .utc(dayjs.utc(schedule.endTime).format("HH:mm:ss"), "HH:mm:ss")
-      .tz(timeZone, true)
-      .diff(dayjs.utc().startOf("day"), "minutes");
+  const workingHours = availability.reduce((workingHours: WorkingHours[], schedule) => {
+    // Get times localised to the given utcOffset/timeZone
+    const startTime =
+      dayjs.utc(schedule.startTime).get("hour") * 60 +
+      dayjs.utc(schedule.startTime).get("minute") -
+      utcOffset;
+    const endTime =
+      dayjs.utc(schedule.endTime).get("hour") * 60 + dayjs.utc(schedule.endTime).get("minute") - utcOffset;
 
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
     workingHours.push({
