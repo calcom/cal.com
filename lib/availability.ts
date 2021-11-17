@@ -81,10 +81,12 @@ export function getWorkingHours(
       .utc(dayjs.utc(schedule.startTime).format("HH:mm:ss"), "HH:mm:ss")
       .tz(timeZone, true)
       .diff(dayjs.utc().startOf("day"), "minutes");
+
     const endTime = dayjs
       .utc(dayjs.utc(schedule.endTime).format("HH:mm:ss"), "HH:mm:ss")
       .tz(timeZone, true)
       .diff(dayjs.utc().startOf("day"), "minutes");
+
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
     workingHours.push({
       days: schedule.days,
@@ -95,7 +97,7 @@ export function getWorkingHours(
     if (startTime < MINUTES_DAY_START || endTime < MINUTES_DAY_START) {
       workingHours.push({
         days: schedule.days.map((day) => day - 1),
-        startTime,
+        startTime: startTime + MINUTES_IN_DAY,
         endTime: Math.min(endTime + MINUTES_IN_DAY, MINUTES_DAY_END),
       });
     }

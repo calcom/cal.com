@@ -4,6 +4,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import MockDate from "mockdate";
 
+import { MINUTES_DAY_END, MINUTES_DAY_START } from "@lib/availability";
 import getSlots from "@lib/slots";
 
 dayjs.extend(utc);
@@ -21,8 +22,8 @@ it("can fit 24 hourly slots for an empty day", async () => {
       workingHours: [
         {
           days: Array.from(Array(7).keys()),
-          startTime: new Date(new Date().setHours(0, 0, 0, 0)),
-          endTime: new Date(new Date().setHours(24, 0, 0, 0)),
+          startTime: MINUTES_DAY_START,
+          endTime: MINUTES_DAY_END,
         },
       ],
     })
@@ -39,8 +40,8 @@ it.skip("only shows future booking slots on the same day", async () => {
       workingHours: [
         {
           days: Array.from(Array(7).keys()),
-          startTime: new Date(new Date().setHours(0, 0, 0, 0)),
-          endTime: new Date(new Date().setHours(24, 0, 0, 0)),
+          startTime: MINUTES_DAY_START,
+          endTime: MINUTES_DAY_END,
         },
       ],
     })
@@ -56,8 +57,8 @@ it("can cut off dates that due to invitee timezone differences fall on the next 
       workingHours: [
         {
           days: [0],
-          startTime: new Date(new Date().setHours(23, 0, 0, 0)),
-          endTime: new Date(new Date().setHours(24, 0, 0, 0)),
+          startTime: 23 * 60, // 23h
+          endTime: MINUTES_DAY_END,
         },
       ],
     })
@@ -68,8 +69,8 @@ it.skip("can cut off dates that due to invitee timezone differences fall on the 
   const workingHours = [
     {
       days: [0],
-      startTime: new Date(new Date().setHours(0, 0, 0, 0)),
-      endTime: new Date(new Date().setHours(1, 0, 0, 0)),
+      startTime: MINUTES_DAY_START,
+      endTime: 1 * 60, // 1h
     },
   ];
   expect(
