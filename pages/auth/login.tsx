@@ -44,7 +44,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
     setErrorMessage(null);
 
     try {
-      const response = await signIn("credentials", {
+      const response = await signIn<"credentials">("credentials", {
         redirect: false,
         email,
         password,
@@ -93,7 +93,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-neutral-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit} action="#">
             <input name="csrfToken" type="hidden" defaultValue={csrfToken || undefined} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">

@@ -20,7 +20,9 @@ export default NextAuth({
   },
   providers: [
     CredentialsProvider({
+      id: "credentials",
       name: "Cal.com",
+      type: "credentials",
       credentials: {
         email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
         password: { label: "Password", type: "password", placeholder: "Your super secure password" },
