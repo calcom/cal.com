@@ -11,7 +11,7 @@ dayjs.extend(timezone);
 
 MockDate.set("2021-06-20T11:59:59Z");
 
-it.skip("correctly translates Availability (UTC+0) to UTC workingHours", async () => {
+it("correctly translates Availability (UTC+0) to UTC workingHours", async () => {
   expect(
     getWorkingHours({ timeZone: "GMT" }, [
       {
@@ -29,7 +29,7 @@ it.skip("correctly translates Availability (UTC+0) to UTC workingHours", async (
   ]);
 });
 
-it.skip("correctly translates Availability in a positive UTC offset (Pacific/Auckland) to UTC workingHours", async () => {
+it("correctly translates Availability in a positive UTC offset (Pacific/Auckland) to UTC workingHours", async () => {
   // Take note that (Pacific/Auckland) is UTC+12 on 2021-06-20, NOT +13 like the other half of the year.
   expect(
     getWorkingHours({ timeZone: "Pacific/Auckland" }, [
@@ -53,7 +53,7 @@ it.skip("correctly translates Availability in a positive UTC offset (Pacific/Auc
   ]);
 });
 
-it.skip("correctly translates Availability in a negative UTC offset (Pacific/Midway) to UTC workingHours", async () => {
+it("correctly translates Availability in a negative UTC offset (Pacific/Midway) to UTC workingHours", async () => {
   // Take note that (Pacific/Midway) is UTC-12 on 2021-06-20, NOT +13 like the other half of the year.
   expect(
     getWorkingHours({ timeZone: "Pacific/Midway" }, [
@@ -66,7 +66,7 @@ it.skip("correctly translates Availability in a negative UTC offset (Pacific/Mid
   ).toStrictEqual([
     {
       days: [2],
-      endTime: 660,
+      endTime: 659,
       startTime: 0,
     },
     {
@@ -77,7 +77,7 @@ it.skip("correctly translates Availability in a negative UTC offset (Pacific/Mid
   ]);
 });
 
-it.skip("can do the same with UTC offsets", async () => {
+it("can do the same with UTC offsets", async () => {
   // Take note that (Pacific/Midway) is UTC-12 on 2021-06-20, NOT +13 like the other half of the year.
   expect(
     getWorkingHours({ utcOffset: dayjs().tz("Pacific/Midway").utcOffset() }, [
@@ -90,7 +90,7 @@ it.skip("can do the same with UTC offsets", async () => {
   ).toStrictEqual([
     {
       days: [2],
-      endTime: 660,
+      endTime: 659,
       startTime: 0,
     },
     {
