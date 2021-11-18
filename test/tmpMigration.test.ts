@@ -130,26 +130,13 @@ test("tmpMigration", async () => {
     },
   });
 
-  const usersWithNormalizedDates = JSON.parse(
-    JSON.stringify(
-      users.map((user) => ({
-        ...user,
-        availability: user.availability.map((availability) => ({
-          ...availability,
-          $startTime: dayjs(availability.startTime, user.timeZone).format("HH:mm:ss"),
-          $endTime: dayjs(availability.endTime, user.timeZone).format("HH:mm:ss"),
-        })),
-      }))
-    )
-  );
+  const usersWithNormalizedDates = JSON.parse(JSON.stringify(users));
 
   expect(usersWithNormalizedDates).toMatchInlineSnapshot(`
     Array [
       Object {
         "availability": Array [
           Object {
-            "$endTime": "00:00:00",
-            "$startTime": "01:00:00",
             "date": null,
             "days": Array [
               0,
@@ -172,8 +159,6 @@ test("tmpMigration", async () => {
       Object {
         "availability": Array [
           Object {
-            "$endTime": "00:59:00",
-            "$startTime": "01:00:00",
             "date": null,
             "days": Array [
               0,
@@ -196,8 +181,6 @@ test("tmpMigration", async () => {
       Object {
         "availability": Array [
           Object {
-            "$endTime": "18:00:00",
-            "$startTime": "10:00:00",
             "date": null,
             "days": Array [],
             "endTime": "1970-01-01T17:00:00.000Z",
@@ -212,8 +195,6 @@ test("tmpMigration", async () => {
       Object {
         "availability": Array [
           Object {
-            "$endTime": "17:00:00",
-            "$startTime": "13:00:00",
             "date": null,
             "days": Array [
               0,
