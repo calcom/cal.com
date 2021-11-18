@@ -3,7 +3,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
-import { createEvent } from "ics";
+import { createEvent, DateArray } from "ics";
 
 import { Person } from "@lib/calendarClient";
 
@@ -26,7 +26,7 @@ export default class EventOrganizerMail extends EventMail {
         .utc()
         .toArray()
         .slice(0, 6)
-        .map((v, i) => (i === 1 ? v + 1 : v)),
+        .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
       productId: "calendso/ics",
       title: this.calEvent.language("organizer_ics_event_title", {
@@ -125,10 +125,7 @@ export default class EventOrganizerMail extends EventMail {
         this.calEvent.attendees[0].email
       }">${this.calEvent.attendees[0].email}</a></small></td>
       </tr>
-      <tr>
-        <td>${this.calEvent.language("where")}</td>
-        <td>${this.getLocation()}</td>
-      </tr>
+      ${this.getLocation()}
       <tr>
         <td>${this.calEvent.language("notes")}</td>
         <td>${this.calEvent.description}</td>
@@ -157,7 +154,13 @@ export default class EventOrganizerMail extends EventMail {
    */
   protected getLocation(): string {
     if (this.calEvent.additionInformation?.hangoutLink) {
-      return `<a href="${this.calEvent.additionInformation?.hangoutLink}">${this.calEvent.additionInformation?.hangoutLink}</a><br />`;
+      return `<tr>
+      <td>${this.calEvent.language("where")}</td>
+      <td><a href="${this.calEvent.additionInformation?.hangoutLink}">${
+        this.calEvent.additionInformation?.hangoutLink
+      }</a><br /></td>
+      </tr>
+      `;
     }
 
     if (
@@ -173,10 +176,24 @@ export default class EventOrganizerMail extends EventMail {
         })
         .join("<br />");
 
-      return `${locations}`;
+      return `<tr>
+      <td>${this.calEvent.language("where")}</td>
+      <td>${locations}</td>
+      </tr>
+      `;
     }
 
-    return this.calEvent.location ? `${this.calEvent.location}<br /><br />` : "";
+    if (!this.calEvent.location) {
+      return ``;
+    }
+
+    if (this.calEvent.location === "integrations:zoom" || this.calEvent.location === "integrations:daily") {
+      return ``;
+    }
+
+    return `<tr><td>${this.calEvent.language("where")}</td><td>${
+      this.calEvent.location
+    }<br /><br /></td></tr>`;
   }
 
   protected getAdditionalBody(): string {
