@@ -420,12 +420,29 @@ const loggedInViewerRouter = createProtectedRouter()
           userId: user.id,
         },
       });
+
       const schedule = availabilityQuery.reduce(
         (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
             schedule[day].push({
-              start: new Date(new Date().toDateString() + " " + availability.startTime.toTimeString()),
-              end: new Date(new Date().toDateString() + " " + availability.endTime.toTimeString()),
+              start: new Date(
+                Date.UTC(
+                  new Date().getUTCFullYear(),
+                  new Date().getUTCMonth(),
+                  new Date().getUTCDate(),
+                  availability.startTime.getUTCHours(),
+                  availability.startTime.getUTCMinutes()
+                )
+              ),
+              end: new Date(
+                Date.UTC(
+                  new Date().getUTCFullYear(),
+                  new Date().getUTCMonth(),
+                  new Date().getUTCDate(),
+                  availability.endTime.getUTCHours(),
+                  availability.endTime.getUTCMinutes()
+                )
+              ),
             });
           });
           return schedule;
@@ -434,6 +451,7 @@ const loggedInViewerRouter = createProtectedRouter()
       );
       return {
         schedule,
+        timeZone: user.timeZone,
       };
     },
   })

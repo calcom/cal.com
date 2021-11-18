@@ -15,6 +15,7 @@ async function createUserAndEventType(opts: {
     plan: UserPlan;
     name: string;
     completedOnboarding?: boolean;
+    timeZone?: string;
   };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
@@ -263,6 +264,24 @@ async function main() {
       {
         title: "60min",
         slug: "60min",
+        length: 30,
+      },
+    ],
+  });
+
+  await createUserAndEventType({
+    user: {
+      email: "usa@example.com",
+      password: "usa",
+      username: "usa",
+      name: "USA Timezone Example",
+      plan: "FREE",
+      timeZone: "America/Phoenix",
+    },
+    eventTypes: [
+      {
+        title: "30min",
+        slug: "30min",
         length: 30,
       },
     ],
