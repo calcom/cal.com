@@ -330,7 +330,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
             }
           }}>
           <section>
-            <Schedule timeZone={selectedTimeZone} name="schedule" />
+            <Schedule name="schedule" />
             <footer className="flex flex-col py-6 space-y-6 sm:mx-auto sm:w-full">
               <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
                 {t("continue")}

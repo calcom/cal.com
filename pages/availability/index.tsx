@@ -53,7 +53,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
         className="col-span-3 space-y-2 lg:col-span-2">
         <div className="px-4 py-5 bg-white border border-gray-200 divide-y rounded-sm sm:p-6">
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
-          <Schedule timeZone={props.timeZone} name="schedule" />
+          <Schedule name="schedule" />
         </div>
         <div className="text-right">
           <Button>{t("save")}</Button>

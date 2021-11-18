@@ -2,7 +2,7 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import dayjs, { Dayjs, ConfigType } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import React, { useCallback, useState } from "react";
+import React from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
 import { defaultDayRange } from "@lib/availability";
@@ -36,30 +36,17 @@ const TIMES = (() => {
 })();
 /** End Time Increments For Select */
 
-type Option = {
-  readonly label: string;
-  readonly value: number;
-};
-
 type TimeRangeFieldProps = {
   name: string;
 };
 
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
-  // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
-  const [options, setOptions] = useState<Option[]>([]);
-
   const getOption = (time: ConfigType) => ({
     value: dayjs(time).utc(true).toDate().valueOf(),
     label: dayjs(time).toDate().toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
   });
 
-  const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
-    const { limit, offset } = offsetOrLimit;
-    return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (t) => getOption(t)
-    );
-  }, []);
+  const timeOptions = TIMES.map((t) => getOption(t));
 
   return (
     <>
@@ -68,10 +55,10 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
         render={({ field: { onChange, value } }) => (
           <Select
             className="w-[6rem]"
-            options={options}
-            onFocus={() => setOptions(timeOptions())}
-            onBlur={() => setOptions([])}
-            defaultValue={getOption(value)}
+            options={timeOptions}
+            value={timeOptions.filter(function (option) {
+              return option.value === getOption(value).value;
+            })}
             onChange={(option) => onChange(new Date(option?.value as number))}
           />
         )}
@@ -82,10 +69,10 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
         render={({ field: { onChange, value } }) => (
           <Select
             className="w-[6rem]"
-            options={options}
-            onFocus={() => setOptions(timeOptions())}
-            onBlur={() => setOptions([])}
-            defaultValue={getOption(value)}
+            options={timeOptions}
+            value={timeOptions.filter(function (option) {
+              return option.value === getOption(value).value;
+            })}
             onChange={(option) => onChange(new Date(option?.value as number))}
           />
         )}
@@ -163,9 +150,8 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   );
 };
 
-const Schedule = ({ name, timeZone }: { name: string; timeZone: string }) => {
+const Schedule = ({ name }: { name: string }) => {
   const { i18n } = useLocale();
-  console.log(timeZone);
   return (
     <fieldset className="divide-y divide-gray-200">
       {weekdayNames(i18n.language).map((weekday, num) => (
