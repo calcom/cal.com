@@ -195,26 +195,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setShowLocationModal(true);
   };
 
-  const updateLocations = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const newLocation = e.currentTarget.location.value;
+  // const updateLocations = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   const newLocation = e.currentTarget.location.value;
 
-    let details = {};
-    if (newLocation === LocationType.InPerson) {
-      details = { address: e.currentTarget.address.value };
-    }
+  //   let details = {};
+  //   if (newLocation === LocationType.InPerson) {
+  //     details = { address: e.currentTarget.address.value };
+  //   }
 
-    const existingIdx = locations.findIndex((loc) => newLocation === loc.type);
-    if (existingIdx !== -1) {
-      const copy = locations;
-      copy[existingIdx] = { ...locations[existingIdx], ...details };
-      setLocations(copy);
-    } else {
-      setLocations(locations.concat({ type: newLocation, ...details }));
-    }
+  //   const existingIdx = locations.findIndex((loc) => newLocation === loc.type);
+  //   if (existingIdx !== -1) {
+  //     const copy = locations;
+  //     copy[existingIdx] = { ...locations[existingIdx], ...details };
+  //     setLocations(copy);
+  //   } else {
+  //     setLocations(locations.concat({ type: newLocation, ...details }));
+  //   }
 
-    setShowLocationModal(false);
-  };
+  //   setShowLocationModal(false);
+  // };
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     setLocations(locations.filter((location) => location.type !== selectedLocation.type));
@@ -234,11 +234,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-1">
               <input
                 type="text"
-                name="address"
+                // name="address"
+                {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
                 className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                defaultValue={locations.find((location) => location.type === LocationType.InPerson)?.address}
+                defaultValue={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.InPerson)?.address
+                }
               />
             </div>
           </div>
@@ -256,6 +261,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   };
 
   const removeCustom = (index: number) => {
+    formMethods.getValues("customInputs").splice(index, 1);
     customInputs.splice(index, 1);
     setCustomInputs([...customInputs]);
   };
@@ -307,7 +313,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     schedulingType: SchedulingType;
     price: number;
     isHidden: boolean;
-    location: string;
+    locations: { type: LocationType; address?: string }[];
     // selectedCustomInput: EventTypeCustomInput | undefined;
     customInputs: EventTypeCustomInput[];
     users: AdvancedOptions["users"];
@@ -320,6 +326,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     periodDaysType: string | number;
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
+  }>({
+    defaultValues: { locations: eventType.locations || [] },
+  });
+
+  const locationFormMethods = useForm<{
+    locationType: LocationType;
+    locationAddress: string;
   }>();
 
   return (
@@ -386,7 +399,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     description: asStringOrThrow(values.description),
                     length: values.length,
                     hidden: values.isHidden,
-                    locations,
+                    locations: values.locations,
                     ...advancedPayload,
                     ...(team
                       ? {
@@ -395,8 +408,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         }
                       : {}),
                   };
-                  console.log(payload);
-                  // updateMutation.mutate(payload);
+                  updateMutation.mutate(payload);
                 })}
                 className="space-y-6">
                 <div className="space-y-3">
@@ -457,22 +469,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="w-full">
                       {locations.length === 0 && (
                         <div className="flex">
-                          <Controller
+                          {/* <Controller
                             name="location"
                             control={formMethods.control}
-                            render={() => (
-                              <Select
-                                options={locationOptions}
-                                isSearchable={false}
-                                classNamePrefix="react-select"
-                                className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                onChange={(e) => {
-                                  formMethods.setValue("location", e?.value);
-                                  openLocationModal(e?.value);
-                                }}
-                              />
-                            )}
+                            render={() => ( */}
+                          <Select
+                            options={locationOptions}
+                            isSearchable={false}
+                            classNamePrefix="react-select"
+                            className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                            onChange={(e) => {
+                              // formMethods.setValue("locations", e?.value);
+                              locationFormMethods.setValue("locationType", e?.value);
+                              openLocationModal(e?.value);
+                            }}
                           />
+                          {/* )} */}
+                          {/* /> */}
                         </div>
                       )}
                       {locations.length > 0 && (
@@ -1144,16 +1157,52 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </div>
                 </div>
               </div>
-              <form onSubmit={updateLocations}>
-                <Select
-                  maxMenuHeight={100}
-                  name="location"
-                  defaultValue={selectedLocation}
-                  options={locationOptions}
-                  isSearchable={false}
-                  classNamePrefix="react-select"
-                  className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  onChange={setSelectedLocation}
+              <form
+                // onSubmit={updateLocations}
+                onSubmit={locationFormMethods.handleSubmit(async (values) => {
+                  const newLocation = values.locationType;
+
+                  let details = {};
+                  if (newLocation === LocationType.InPerson) {
+                    details = { address: values.locationAddress };
+                  }
+
+                  const existingIdx = formMethods
+                    .getValues("locations")
+                    .findIndex((loc) => values.locationType === loc.type);
+                  if (existingIdx !== -1) {
+                    const copy = formMethods.getValues("locations");
+                    copy[existingIdx] = { ...formMethods.getValues("locations")[existingIdx], ...details };
+                    setLocations(copy);
+                    formMethods.setValue("locations", copy);
+                  } else {
+                    setLocations(locations.concat({ type: values.locationType, ...details }));
+                    formMethods.setValue(
+                      "locations",
+                      formMethods.getValues("locations").concat({ type: values.locationType, ...details })
+                    );
+                  }
+
+                  setShowLocationModal(false);
+                })}>
+                <Controller
+                  name="locationType"
+                  control={locationFormMethods.control}
+                  render={() => (
+                    <Select
+                      maxMenuHeight={100}
+                      name="location"
+                      defaultValue={selectedLocation}
+                      options={locationOptions}
+                      isSearchable={false}
+                      classNamePrefix="react-select"
+                      className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      onChange={(val) => {
+                        locationFormMethods.setValue("locationType", val.value);
+                        setSelectedLocation(val);
+                      }}
+                    />
+                  )}
                 />
                 <LocationOptions />
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse ">
@@ -1171,27 +1220,29 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </DialogContent>
         </Dialog>
-        <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
-          <DialogContent asChild>
-            <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-              <div className="mb-4 sm:flex sm:items-start">
-                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
-                  <PlusIcon className="w-6 h-6 text-primary-600" />
-                </div>
-                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                    {t("add_new_custom_input_field")}
-                  </h3>
-                  <div>
-                    <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
+        <Controller
+          name="customInputs"
+          control={formMethods.control}
+          defaultValue={eventType.customInputs.sort((a, b) => a.id - b.id) || []}
+          render={() => (
+            <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
+              <DialogContent asChild>
+                <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                  <div className="mb-4 sm:flex sm:items-start">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <PlusIcon className="w-6 h-6 text-primary-600" />
+                    </div>
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                        {t("add_new_custom_input_field")}
+                      </h3>
+                      <div>
+                        <p className="text-sm text-gray-400">
+                          {t("this_input_will_shown_booking_this_event")}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <Controller
-                name="customInputs"
-                control={formMethods.control}
-                defaultValue={eventType.customInputs.sort((a, b) => a.id - b.id) || []}
-                render={() => (
                   <CustomInputTypeForm
                     selectedCustomInput={selectedCustomInput}
                     onSubmit={(values) => {
@@ -1211,7 +1262,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         selectedCustomInput.type = customInput.type;
                       } else {
                         setCustomInputs(customInputs.concat(customInput));
-                        formMethods.setValue("customInputs", customInputs.concat(customInput));
+                        formMethods.setValue(
+                          "customInputs",
+                          formMethods.getValues("customInputs").concat(customInput)
+                        );
                       }
                       setSelectedCustomInputModalOpen(false);
                     }}
@@ -1219,11 +1273,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       setSelectedCustomInputModalOpen(false);
                     }}
                   />
-                )}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        />
       </Shell>
     </div>
   );
