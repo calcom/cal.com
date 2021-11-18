@@ -3,7 +3,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
-import { createEvent } from "ics";
+import { createEvent, DateArray } from "ics";
 
 import { Person } from "@lib/calendarClient";
 
@@ -26,7 +26,7 @@ export default class EventOrganizerMail extends EventMail {
         .utc()
         .toArray()
         .slice(0, 6)
-        .map((v, i) => (i === 1 ? v + 1 : v)),
+        .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
       productId: "calendso/ics",
       title: this.calEvent.language("organizer_ics_event_title", {
