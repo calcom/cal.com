@@ -108,7 +108,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  const [users] = useState<AdvancedOptions["users"]>([]);
   const [editIcon, setEditIcon] = useState(true);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
@@ -132,57 +131,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setSelectedTimeZone(eventType.timeZone || "");
   }, []);
 
-  // async function updateEventTypeHandler(event: React.FormEvent<HTMLFormElement>) {
-  //   event.preventDefault();
-
-  //   const formData = Object.fromEntries(new FormData(event.currentTarget).entries());
-
-  //   const enteredTitle: string = titleRef.current!.value;
-
-  //   const advancedPayload: AdvancedOptions = {};
-  //   if (advancedSettingsVisible) {
-  //     advancedPayload.eventName = eventNameRef.current.value;
-  //     advancedPayload.periodType = periodType?.type;
-  //     advancedPayload.periodDays = asNumberOrUndefined(formData.periodDays);
-  //     advancedPayload.periodCountCalendarDays = Boolean(
-  //       asNumberOrUndefined(formData.periodCountCalendarDays)
-  //     );
-  //     advancedPayload.periodStartDate = periodDates.startDate || undefined;
-  //     advancedPayload.periodEndDate = periodDates.endDate || undefined;
-  //     advancedPayload.minimumBookingNotice = asNumberOrUndefined(formData.minimumBookingNotice);
-  //     // prettier-ignore
-  //     advancedPayload.price =
-  //       !requirePayment ? undefined :
-  //         formData.price ? Math.round(parseFloat(asStringOrThrow(formData.price)) * 100) :
-  //           /* otherwise */   0;
-  //     advancedPayload.currency = currency; //
-  //     advancedPayload.availability = enteredAvailability || undefined;
-  //     advancedPayload.customInputs = customInputs;
-  //     advancedPayload.timeZone = selectedTimeZone;
-  //     advancedPayload.disableGuests = formData.disableGuests === "on";
-  //     advancedPayload.requiresConfirmation = formData.requiresConfirmation === "on";
-  //   }
-
-  //   const payload: EventTypeInput = {
-  //     id: eventType.id,
-  //     title: enteredTitle,
-  //     slug: asStringOrThrow(formData.slug),
-  //     description: asStringOrThrow(formData.description),
-  //     length: asNumberOrThrow(formData.length),
-  //     hidden,
-  //     locations,
-  //     ...advancedPayload,
-  //     ...(team
-  //       ? {
-  //           schedulingType: formData.schedulingType as SchedulingType,
-  //           users,
-  //         }
-  //       : {}),
-  //   };
-
-  //   updateMutation.mutate(payload);
-  // }
-
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();
 
@@ -194,27 +142,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setSelectedLocation(locationOptions.find((option) => option.value === type));
     setShowLocationModal(true);
   };
-
-  // const updateLocations = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const newLocation = e.currentTarget.location.value;
-
-  //   let details = {};
-  //   if (newLocation === LocationType.InPerson) {
-  //     details = { address: e.currentTarget.address.value };
-  //   }
-
-  //   const existingIdx = locations.findIndex((loc) => newLocation === loc.type);
-  //   if (existingIdx !== -1) {
-  //     const copy = locations;
-  //     copy[existingIdx] = { ...locations[existingIdx], ...details };
-  //     setLocations(copy);
-  //   } else {
-  //     setLocations(locations.concat({ type: newLocation, ...details }));
-  //   }
-
-  //   setShowLocationModal(false);
-  // };
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     setLocations(locations.filter((location) => location.type !== selectedLocation.type));
