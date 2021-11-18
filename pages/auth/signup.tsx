@@ -1,43 +1,52 @@
+import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/client";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useForm, SubmitHandler, FormProvider } from "react-hook-form";
 
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { EmailField, PasswordField, TextField } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
-import { UsernameInput } from "@components/ui/UsernameInput";
-import ErrorAlert from "@components/ui/alerts/Error";
+import { Alert } from "@components/ui/Alert";
+import Button from "@components/ui/Button";
 
-export default function Signup(props) {
+import { ssrInit } from "@server/lib/ssr";
+
+type Props = inferSSRProps<typeof getServerSideProps>;
+
+type FormValues = {
+  username: string;
+  email: string;
+  password: string;
+  passwordcheck: string;
+  apiError: string;
+};
+
+export default function Signup({ email }: Props) {
   const { t } = useLocale();
   const router = useRouter();
+  const methods = useForm<FormValues>();
+  const {
+    register,
+    formState: { errors, isSubmitting },
+  } = methods;
 
-  const [hasErrors, setHasErrors] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  methods.setValue("email", email);
 
-  const handleErrors = async (resp) => {
+  const handleErrors = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
       throw new Error(err.message);
     }
   };
 
-  const signUp = (e) => {
-    e.preventDefault();
-
-    if (e.target.password.value !== e.target.passwordcheck.value) {
-      throw new Error("Password mismatch");
-    }
-
-    const email: string = e.target.email.value;
-    const password: string = e.target.password.value;
-
-    fetch("/api/auth/signup", {
+  const signUp: SubmitHandler<FormValues> = async (data) => {
+    await fetch("/api/auth/signup", {
       body: JSON.stringify({
-        username: e.target.username.value,
-        password,
-        email,
+        ...data,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -45,104 +54,97 @@ export default function Signup(props) {
       method: "POST",
     })
       .then(handleErrors)
-      .then(() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string }))
+      .then(async () => await signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string }))
       .catch((err) => {
-        setHasErrors(true);
-        setErrorMessage(err.message);
+        methods.setError("apiError", { message: err.message });
       });
   };
 
   return (
     <div
-      className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8"
+      className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
       <HeadSeo title={t("sign_up")} description={t("sign_up")} />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="font-cal text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="text-3xl font-extrabold text-center text-gray-900 font-cal">
           {t("create_your_account")}
         </h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow mx-2 sm:rounded-lg sm:px-10">
-          <form method="POST" onSubmit={signUp} className="bg-white space-y-6">
-            {hasErrors && <ErrorAlert message={errorMessage} />}
-            <div>
-              <div className="mb-2">
-                <UsernameInput required />
-              </div>
-              <div className="mb-2">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  {t("email")}
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  inputMode="email"
-                  id="email"
-                  placeholder="jdoe@example.com"
-                  disabled={!!props.email}
-                  readOnly={!!props.email}
-                  value={props.email}
-                  className="bg-gray-100 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
-                />
-              </div>
-              <div className="mb-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  {t("password")}
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
+        <div className="px-4 py-8 mx-2 bg-white shadow sm:rounded-lg sm:px-10">
+          {/* TODO: Refactor as soon as /availability is live */}
+          <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(signUp)} className="space-y-6 bg-white">
+              {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
+              <div className="space-y-2">
+                <TextField
+                  addOnLeading={
+                    <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                      {process.env.NEXT_PUBLIC_APP_URL}/
+                    </span>
+                  }
+                  labelProps={{ className: "block text-sm font-medium text-gray-700" }}
+                  className="flex-grow block w-full min-w-0 lowercase border-gray-300 rounded-none rounded-r-sm focus:ring-black focus:border-black sm:text-sm"
+                  {...register("username")}
                   required
-                  placeholder="•••••••••••••"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
+                />
+                <EmailField
+                  {...register("email")}
+                  className="block w-full px-3 py-2 mt-1 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                />
+                <PasswordField
+                  labelProps={{
+                    className: "block text-sm font-medium text-gray-700",
+                  }}
+                  {...register("password")}
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                />
+                <PasswordField
+                  label={t("confirm_password")}
+                  labelProps={{
+                    className: "block text-sm font-medium text-gray-700",
+                  }}
+                  {...register("passwordcheck", {
+                    validate: (value) =>
+                      value === methods.watch("password") || (t("error_password_mismatch") as string),
+                  })}
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
                 />
               </div>
-              <div>
-                <label htmlFor="passwordcheck" className="block text-sm font-medium text-gray-700">
-                  {t("confirm_password")}
-                </label>
-                <input
-                  type="password"
-                  name="passwordcheck"
-                  id="passwordcheck"
-                  required
-                  placeholder="•••••••••••••"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
-                />
+              <div className="flex space-x-2">
+                <Button loading={isSubmitting} className="justify-center w-7/12">
+                  {t("create_account")}
+                </Button>
+                <Button
+                  color="secondary"
+                  className="justify-center w-5/12"
+                  onClick={() =>
+                    signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })
+                  }>
+                  {t("login_instead")}
+                </Button>
               </div>
-            </div>
-            <div className="mt-3 sm:mt-4 flex">
-              <input
-                type="submit"
-                value={t("create_account")}
-                className="btn btn-primary w-7/12 mr-2 inline-flex justify-center rounded-md border border-transparent cursor-pointer shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm"
-              />
-              <a
-                onClick={() => signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })}
-                className="w-5/12 inline-flex justify-center text-sm text-gray-500 font-medium  border px-4 py-2 rounded btn cursor-pointer">
-                {t("login_instead")}
-              </a>
-            </div>
-          </form>
+            </form>
+          </FormProvider>
         </div>
       </div>
     </div>
   );
 }
 
-export async function getServerSideProps(ctx) {
-  if (!ctx.query.token) {
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(ctx);
+  const token = asStringOrNull(ctx.query.token);
+  if (!token) {
     return {
       notFound: true,
     };
   }
   const verificationRequest = await prisma.verificationRequest.findUnique({
     where: {
-      token: ctx.query.token,
+      token,
     },
   });
 
@@ -170,9 +172,17 @@ export async function getServerSideProps(ctx) {
 
   if (existingUser) {
     return {
-      redirect: { permanent: false, destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl },
+      redirect: {
+        permanent: false,
+        destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
+      },
     };
   }
 
-  return { props: { email: verificationRequest.identifier } };
-}
+  return {
+    props: {
+      email: verificationRequest.identifier,
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};

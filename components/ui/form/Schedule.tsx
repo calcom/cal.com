@@ -1,14 +1,20 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { Dayjs, ConfigType } from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
+import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
-import { TimeRange, Schedule as ScheduleType } from "@lib/types/schedule";
+import { TimeRange } from "@lib/types/schedule";
 
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 /** Begin Time Increments For Select */
 const increment = 15;
@@ -30,22 +36,6 @@ const TIMES = (() => {
 })();
 /** End Time Increments For Select */
 
-// sets the desired time in current date, needs to be current date for proper DST translation
-const defaultDayRange: TimeRange = {
-  start: new Date(new Date().setHours(9, 0, 0, 0)),
-  end: new Date(new Date().setHours(17, 0, 0, 0)),
-};
-
-export const DEFAULT_SCHEDULE: ScheduleType = [
-  [],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [],
-];
-
 type Option = {
   readonly label: string;
   readonly value: number;
@@ -58,16 +48,17 @@ type TimeRangeFieldProps = {
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
-
-  const getOption = (time: Date) => ({
-    value: time.valueOf(),
-    label: time.toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
+  // const { i18n } = useLocale();
+  const getOption = (time: ConfigType) => ({
+    value: dayjs(time).toDate().valueOf(),
+    label: dayjs(time).utc().format("HH:mm"),
+    // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
   });
 
   const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
     const { limit, offset } = offsetOrLimit;
     return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (t) => getOption(t.toDate())
+      (t) => getOption(t)
     );
   }, []);
 
@@ -139,12 +130,12 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
             className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
           />
-          <span className="inline-block capitalize">{weekday}</span>
+          <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex justify-between mb-2">
+          <div key={field.id} className="flex justify-between mb-1">
             <div className="flex items-center space-x-2">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>
@@ -157,7 +148,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             />
           </div>
         ))}
-        {!fields.length && t("no_availability")}
+        <span className="block text-sm text-gray-500">{!fields.length && t("no_availability")}</span>
       </div>
       <div>
         <Button

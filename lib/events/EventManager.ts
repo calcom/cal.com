@@ -206,10 +206,15 @@ export default class EventManager {
    * @private
    */
 
-  private createAllCalendarEvents(event: CalendarEvent): Promise<Array<EventResult>> {
-    return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      return createEvent(credential, event);
-    });
+  private async createAllCalendarEvents(
+    event: CalendarEvent,
+    noMail: boolean | null
+  ): Promise<Array<EventResult>> {
+    const [firstCalendar] = this.calendarCredentials;
+    if (!firstCalendar) {
+      return [];
+    }
+    return [await createEvent(firstCalendar, event)];
   }
 
   /**
@@ -285,9 +290,9 @@ export default class EventManager {
       const bookingRefUid = bookingRef ? bookingRef.uid : null;
       return updateMeeting(credential, event, bookingRefUid).then((returnVal: EventResult) => {
         // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
-        if (returnVal.videoCallData === undefined) {
-          returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
-        }
+        // if (returnVal.videoCallData === undefined) {
+        //   returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
+        // }
         return returnVal;
       });
     } else {
