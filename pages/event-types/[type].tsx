@@ -316,7 +316,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locations: { type: LocationType; address?: string }[];
     // selectedCustomInput: EventTypeCustomInput | undefined;
     customInputs: EventTypeCustomInput[];
-    users: AdvancedOptions["users"];
+    users: string[];
     scheduler: {
       enteredAvailability: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
       selectedTimezone: string;
@@ -410,7 +410,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     ...(team
                       ? {
                           schedulingType: values.schedulingType as SchedulingType,
-                          users,
+                          users: values.users,
                         }
                       : {}),
                   };
@@ -704,16 +704,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <Controller
                           name="users"
                           control={formMethods.control}
-                          defaultValue={eventType.users.map(mapUserToValue)}
+                          defaultValue={eventType.users.map((user) => user.id.toString())}
                           render={() => (
                             <CheckedSelect
                               disabled={false}
-                              onChange={(options) =>
+                              onChange={(options) => {
                                 formMethods.setValue(
                                   "users",
-                                  options.map((option) => option.value)
-                                )
-                              }
+                                  options.map((user) => user.value)
+                                );
+                              }}
                               defaultValue={eventType.users.map(mapUserToValue)}
                               options={teamMembers.map(mapUserToValue)}
                               placeholder={t("add_attendees")}
