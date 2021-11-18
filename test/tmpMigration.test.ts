@@ -9,11 +9,32 @@ import { randomString } from "../playwright/lib/testUtils";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const MIGRATION_SQL = fs
-  .readFileSync(__dirname + "/../prisma/migrations/20211115182559_availability_issue/migration.sql")
-  .toString();
-
 async function tmpMigration() {
+  //   console.log(
+  //     await prisma.$queryRaw(`
+  //   select
+  //   id as "userId",
+  //   CAST(CONCAT(CAST(("startTime") AS text), ' minute')::interval AS time) as "startTime",
+  //   CAST(CONCAT(CAST(("endTime") AS text), ' minute')::interval AS time)  as "endTime",
+  //   ARRAY [0,1,2,3,4,5,6]
+  // from
+  //   (
+  //     select
+  //       users.id,
+  //       users."startTime",
+  //       users."endTime",
+  //       users."timeZone",
+  //       count("Availability".id) as availability_count
+  //     from users
+  //     left join "Availability" on "Availability"."userId" = users.id
+  //     group by users.id
+  //   ) usersWithAvailabilityNumber
+  // where availability_count < 1
+  // `)
+  //   );
+  const MIGRATION_SQL = fs
+    .readFileSync(__dirname + "/../prisma/migrations/20211115182559_availability_issue/migration.sql")
+    .toString();
   await prisma.$queryRaw(MIGRATION_SQL);
 
   return NaN;
@@ -22,6 +43,7 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 test("tmpMigration", async () => {
+  const ONE_MINUTE_BEFORE_MIDNIGHT = 1440 - 1;
   // const unknownTimezoneUser = await prisma.user.create({
   //   data: {
   //     name: "unknownTimezoneUser",
@@ -33,7 +55,7 @@ test("tmpMigration", async () => {
   // });
   const europeUser = await prisma.user.create({
     data: {
-      name: "europeanUser",
+      name: "europeanUser0to1380",
       email: `${randomString()}@example.com`,
       startTime: 0, // midnight
       endTime: 1380, // 23:00
@@ -43,10 +65,10 @@ test("tmpMigration", async () => {
 
   const americanUser = await prisma.user.create({
     data: {
-      name: "americanUser",
+      name: "americanUser0toONE_MINUTE_BEFORE_MIDNIGHT",
       email: `${randomString()}@example.com`,
       startTime: 0, // midnight
-      endTime: 1440, // midnight
+      endTime: ONE_MINUTE_BEFORE_MIDNIGHT, // midnight
       timeZone: "America/Los_Angeles",
     },
   });
@@ -55,9 +77,9 @@ test("tmpMigration", async () => {
   const unaffectedUser = await prisma.user.create({
     data: {
       email: `${randomString()}@example.com`,
-      name: "unaffectedUser",
+      name: "unaffectedUser0toONE_MINUTE_BEFORE_MIDNIGHTu",
       startTime: 0, // midnight
-      endTime: 1440, // midnight
+      endTime: ONE_MINUTE_BEFORE_MIDNIGHT, // midnight
       timeZone: "America/Los_Angeles",
       availability: {
         create: {
@@ -65,6 +87,16 @@ test("tmpMigration", async () => {
           endTime: baseDate.add(17, "hour").toDate(),
         },
       },
+    },
+  });
+
+  const weirdUser = await prisma.user.create({
+    data: {
+      email: `${randomString()}@example.com`,
+      name: "weirdUser",
+      startTime: 54000,
+      endTime: 96000,
+      timeZone: "America/Los_Angeles",
     },
   });
 
@@ -78,6 +110,7 @@ test("tmpMigration", async () => {
           europeUser.id,
           americanUser.id,
           unaffectedUser.id,
+          weirdUser.id,
         ],
       },
     },
@@ -85,6 +118,7 @@ test("tmpMigration", async () => {
       name: true,
       startTime: true,
       endTime: true,
+      timeZone: true,
       availability: {
         select: {
           days: true,
@@ -96,13 +130,26 @@ test("tmpMigration", async () => {
     },
   });
 
-  const usersWithNormalizedDates = JSON.parse(JSON.stringify(users));
+  const usersWithNormalizedDates = JSON.parse(
+    JSON.stringify(
+      users.map((user) => ({
+        ...user,
+        availability: user.availability.map((availability) => ({
+          ...availability,
+          $startTime: dayjs(availability.startTime).format("HH:mm:ss"),
+          $endTime: dayjs(availability.endTime).format("HH:mm:ss"),
+        })),
+      }))
+    )
+  );
 
   expect(usersWithNormalizedDates).toMatchInlineSnapshot(`
     Array [
       Object {
         "availability": Array [
           Object {
+            "$endTime": "00:00:00",
+            "$startTime": "01:00:00",
             "date": null,
             "days": Array [
               0,
@@ -118,12 +165,15 @@ test("tmpMigration", async () => {
           },
         ],
         "endTime": 1380,
-        "name": "europeanUser",
+        "name": "europeanUser0to1380",
         "startTime": 0,
+        "timeZone": "Europe/London",
       },
       Object {
         "availability": Array [
           Object {
+            "$endTime": "00:59:00",
+            "$startTime": "01:00:00",
             "date": null,
             "days": Array [
               0,
@@ -134,26 +184,54 @@ test("tmpMigration", async () => {
               5,
               6,
             ],
-            "endTime": "1970-01-01T00:00:00.000Z",
+            "endTime": "1970-01-01T23:59:00.000Z",
             "startTime": "1970-01-01T00:00:00.000Z",
           },
         ],
-        "endTime": 1440,
-        "name": "americanUser",
+        "endTime": 1439,
+        "name": "americanUser0toONE_MINUTE_BEFORE_MIDNIGHT",
         "startTime": 0,
+        "timeZone": "America/Los_Angeles",
       },
       Object {
         "availability": Array [
           Object {
+            "$endTime": "18:00:00",
+            "$startTime": "10:00:00",
             "date": null,
             "days": Array [],
             "endTime": "1970-01-01T17:00:00.000Z",
             "startTime": "1970-01-01T09:00:00.000Z",
           },
         ],
-        "endTime": 1440,
-        "name": "unaffectedUser",
+        "endTime": 1439,
+        "name": "unaffectedUser0toONE_MINUTE_BEFORE_MIDNIGHTu",
         "startTime": 0,
+        "timeZone": "America/Los_Angeles",
+      },
+      Object {
+        "availability": Array [
+          Object {
+            "$endTime": "17:00:00",
+            "$startTime": "13:00:00",
+            "date": null,
+            "days": Array [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+            ],
+            "endTime": "1970-01-01T16:00:00.000Z",
+            "startTime": "1970-01-01T12:00:00.000Z",
+          },
+        ],
+        "endTime": 96000,
+        "name": "weirdUser",
+        "startTime": 54000,
+        "timeZone": "America/Los_Angeles",
       },
     ]
   `);
