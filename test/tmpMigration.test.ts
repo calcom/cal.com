@@ -136,8 +136,8 @@ test("tmpMigration", async () => {
         ...user,
         availability: user.availability.map((availability) => ({
           ...availability,
-          $startTime: dayjs(availability.startTime).format("HH:mm:ss"),
-          $endTime: dayjs(availability.endTime).format("HH:mm:ss"),
+          $startTime: dayjs(availability.startTime, user.timeZone).format("HH:mm:ss"),
+          $endTime: dayjs(availability.endTime, user.timeZone).format("HH:mm:ss"),
         })),
       }))
     )
