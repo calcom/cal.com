@@ -55,7 +55,6 @@ export interface CalendarEvent {
   conferenceData?: ConferenceData;
   language: TFunction;
   additionInformation?: AdditionInformation;
-  /** If this property exist it we can assume it's a reschedule/update */
   uid?: string | null;
   videoCallData?: VideoCallData;
 }
