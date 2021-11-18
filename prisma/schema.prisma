@@ -16,6 +16,12 @@ enum SchedulingType {
   COLLECTIVE   @map("collective")
 }
 
+enum PeriodType {
+  UNLIMITED  @map("unlimited")
+  ROLLING    @map("rolling")
+  RANGE      @map("range")
+}
+
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
@@ -34,7 +40,7 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              String                 @default("unlimited") // unlimited | rolling | range
+  periodType              PeriodType             @default(UNLIMITED)
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
@@ -96,6 +102,7 @@ model User {
   plan                UserPlan           @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
+  brandColor          String            @default("#292929")
 
   @@map(name: "users")
 }
