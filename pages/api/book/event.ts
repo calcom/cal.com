@@ -17,6 +17,7 @@ import { sendScheduledEmails, sendRescheduledEmails } from "@lib/emails/email-ma
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
+import { BufferedBusyTime } from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
@@ -26,13 +27,6 @@ import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
 
 import { getTranslation } from "@server/lib/i18n";
 
-export interface DailyReturnType {
-  name: string;
-  url: string;
-  id: string;
-  created_at: string;
-}
-
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -41,7 +35,7 @@ dayjs.extend(timezone);
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
-type BufferedBusyTimes = { start: string; end: string }[];
+type BufferedBusyTimes = BufferedBusyTime[];
 
 /**
  * Refreshes a Credential with fresh data from the database.

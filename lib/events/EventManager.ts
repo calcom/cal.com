@@ -101,8 +101,8 @@ export default class EventManager {
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
         type: result.type,
-        uid: result.createdEvent?.id ?? "",
-        meetingId: result.createdEvent?.id,
+        uid: (result.createdEvent?.id as string) ?? "",
+        meetingId: (result.createdEvent?.id as string) ?? "",
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
       };
@@ -206,10 +206,7 @@ export default class EventManager {
    * @private
    */
 
-  private async createAllCalendarEvents(
-    event: CalendarEvent,
-    noMail: boolean | null
-  ): Promise<Array<EventResult>> {
+  private async createAllCalendarEvents(event: CalendarEvent): Promise<Array<EventResult>> {
     const [firstCalendar] = this.calendarCredentials;
     if (!firstCalendar) {
       return [];
