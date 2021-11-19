@@ -27,7 +27,7 @@ type DatePickerProps = {
   periodDays: number | null;
   periodCountCalendarDays: boolean | null;
   minimumBookingNotice: number;
-  rescheduleUid: string;
+  rescheduleUid: string | undefined;
 };
 
 function DatePicker({

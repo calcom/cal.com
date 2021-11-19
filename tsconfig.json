@@ -38,7 +38,7 @@
       "jest-playwright-preset",
       "expect-playwright"
     ],
-    "allowJs": false,
+    "allowJs": true,
     "incremental": true
   },
   "include": [

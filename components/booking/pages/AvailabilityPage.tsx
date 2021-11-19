@@ -104,7 +104,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
         name={profile.name || undefined}
         avatar={profile.image || undefined}
       />
-      <CustomBranding val={profile.brandColor} />
+      {"brandColor" in profile && <CustomBranding val={profile.brandColor} />}
       <div>
         <main
           className={
@@ -206,7 +206,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                   <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
                 </div>
                 <DatePicker
-                  rescheduleUid={router.query?.rescheduleUid}
+                  rescheduleUid={router.query?.rescheduleUid as string | undefined}
                   date={selectedDate}
                   periodType={eventType?.periodType}
                   periodStartDate={eventType?.periodStartDate}
