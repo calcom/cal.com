@@ -198,6 +198,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
           <div className="flex-grow space-y-6">
             <div className="block sm:flex">
               <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  {t("username")}
+                </label>
                 <UsernameInput ref={usernameRef} defaultValue={props.user.username || undefined} />
               </div>
               <div className="w-full sm:w-1/2 sm:ml-2">
@@ -273,24 +276,26 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                   defaultValue={imageSrc}
                 />
-                <ImageUploader
-                  target="avatar"
-                  id="avatar-upload"
-                  buttonMsg={t("change_avatar")}
-                  handleAvatarChange={(newAvatar) => {
-                    avatarRef.current.value = newAvatar;
-                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                      window.HTMLInputElement.prototype,
-                      "value"
-                    )?.set;
-                    nativeInputValueSetter?.call(avatarRef.current, newAvatar);
-                    const ev2 = new Event("input", { bubbles: true });
-                    avatarRef.current.dispatchEvent(ev2);
-                    updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
-                    setImageSrc(newAvatar);
-                  }}
-                  imageSrc={imageSrc}
-                />
+                <div className="flex items-center px-5">
+                  <ImageUploader
+                    target="avatar"
+                    id="avatar-upload"
+                    buttonMsg={t("change_avatar")}
+                    handleAvatarChange={(newAvatar) => {
+                      avatarRef.current.value = newAvatar;
+                      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype,
+                        "value"
+                      )?.set;
+                      nativeInputValueSetter?.call(avatarRef.current, newAvatar);
+                      const ev2 = new Event("input", { bubbles: true });
+                      avatarRef.current.dispatchEvent(ev2);
+                      updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
+                      setImageSrc(newAvatar);
+                    }}
+                    imageSrc={imageSrc}
+                  />
+                </div>
               </div>
               <hr className="mt-6" />
             </div>
