@@ -3,13 +3,29 @@ import { SchedulingType } from "@prisma/client";
 import { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { useRouterBasePath } from "@lib/hooks/useRouterPath";
 import { useSlots } from "@lib/hooks/useSlots";
 
 import Loader from "@components/Loader";
+
+/**
+ * @returns i.e. `/peer` for users or `/teams/cal` for teams
+ */
+function useRouterBasePath() {
+  const router = useRouter();
+  return useMemo(() => {
+    const path = router.asPath.split("/");
+
+    // For teams
+    if (path.length > 3) {
+      return `${path[1]}/${path[2]}`;
+    }
+
+    return path[1] as string;
+  }, [router.asPath]);
+}
 
 type AvailableTimesProps = {
   timeFormat: string;
