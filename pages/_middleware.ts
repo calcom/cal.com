@@ -1,37 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 import { NextRequest, NextResponse } from "next/server";
 
-// FIXME - this would be nicer if it was dynamic using `fs.readDirSync('.')
-const SKIP_PATHS = [
-  ".next",
-  "404",
-  "api",
-  "auth",
-  "fonts",
-  "availability",
-  "bookings",
-  "call",
-  "cancel",
-  "event-types",
-  "getting-started",
-  "index",
-  "integrations",
-  "payment",
-  "reschedule",
-  "sandbox",
-  "settings",
-  "success",
-  "team",
-];
+import { i18n } from "../next-i18next.config";
 
-const FIXME_LOCALES = ["en", "fr", "it", "ru", "es", "de", "pt", "ro", "nl", "pt-BR", "es-419", "ko", "ja"];
+const REDIRECTED_PAGES = ["/[locale]", "/[locale]/[user]"];
 
 export async function middleware(req: NextRequest) {
+  const pageName = req.page.name;
   const pathname = req.nextUrl.pathname;
 
-  if (!pathname) {
+  if (!pathname || !pageName) {
     return;
   }
   const parts = pathname.split("/").filter(Boolean);
@@ -39,12 +17,7 @@ export async function middleware(req: NextRequest) {
 
   const isFileRequest = pathname.includes(".");
 
-  if (
-    SKIP_PATHS.includes(firstPart) ||
-    isFileRequest ||
-    pathname === "/" ||
-    FIXME_LOCALES.includes(firstPart)
-  ) {
+  if (!REDIRECTED_PAGES.includes(pageName) || isFileRequest || i18n.locales.includes(firstPart)) {
     return;
   }
 
