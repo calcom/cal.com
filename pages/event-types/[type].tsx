@@ -145,6 +145,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     setLocations(locations.filter((location) => location.type !== selectedLocation.type));
+    formMethods.setValue(
+      "locations",
+      formMethods.getValues("locations").filter((location) => location.type !== selectedLocation.type)
+    );
   };
 
   const LocationOptions = () => {
