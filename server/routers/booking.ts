@@ -1,12 +1,17 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { getWorkingHours } from "@lib/availability";
+
 import { createRouter } from "../createRouter";
 
 export const bookingRouter = createRouter()
   .query("userEventTypes", {
     input: z.object({
-      username: z.string().min(1),
+      username: z
+        .string()
+        .min(1)
+        .transform((v) => v.toLowerCase()),
     }),
     async resolve({ input, ctx }) {
       const { prisma } = ctx;
@@ -54,6 +59,14 @@ export const bookingRouter = createRouter()
             },
           ],
         },
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
         select: {
           id: true,
           slug: true,
@@ -69,6 +82,7 @@ export const bookingRouter = createRouter()
       });
 
       const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
+
       return {
         user,
         eventTypes,
@@ -83,7 +97,7 @@ export const bookingRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       const { prisma } = ctx;
-      const { username: userParam, slug: typeParam } = input;
+      const { username: userParam, slug: typeParam, date: dateParam } = input;
 
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         id: true,
@@ -100,6 +114,7 @@ export const bookingRouter = createRouter()
         periodCountCalendarDays: true,
         schedulingType: true,
         minimumBookingNotice: true,
+        timeZone: true,
         users: {
           select: {
             avatar: true,
@@ -107,6 +122,7 @@ export const bookingRouter = createRouter()
             username: true,
             hideBranding: true,
             plan: true,
+            timeZone: true,
           },
         },
       });
@@ -128,6 +144,7 @@ export const bookingRouter = createRouter()
           weekStart: true,
           availability: true,
           hideBranding: true,
+          brandColor: true,
           theme: true,
           plan: true,
           eventTypes: {
@@ -173,6 +190,7 @@ export const bookingRouter = createRouter()
           username: user.username,
           hideBranding: user.hideBranding,
           plan: user.plan,
+          timeZone: user.timeZone,
         });
         user.eventTypes.push(eventTypeBackwardsCompat);
       }
@@ -207,32 +225,18 @@ export const bookingRouter = createRouter()
       return null;
     }
   }*/
-      const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
-        availability && availability.length
-          ? availability.map((schedule) => ({
-              ...schedule,
-              startTime: schedule.startTime.getUTCHours() * 60 + schedule.startTime.getUTCMinutes(),
-              endTime: schedule.endTime.getUTCHours() * 60 + schedule.endTime.getUTCMinutes(),
-            }))
-          : null;
-
-      const workingHours =
-        getWorkingHours(eventType.availability) ||
-        getWorkingHours(user.availability) ||
-        [
-          {
-            days: [0, 1, 2, 3, 4, 5, 6],
-            startTime: user.startTime,
-            endTime: user.endTime,
-          },
-        ].filter((availability): boolean => typeof availability["days"] !== "undefined");
-
-      workingHours.sort((a, b) => a.startTime - b.startTime);
 
       const eventTypeObject = Object.assign({}, eventType, {
         periodStartDate: eventType.periodStartDate?.toString() ?? null,
         periodEndDate: eventType.periodEndDate?.toString() ?? null,
       });
+
+      const workingHours = getWorkingHours(
+        {
+          timeZone: eventType.timeZone || user.timeZone,
+        },
+        eventType.availability.length ? eventType.availability : user.availability
+      );
 
       eventTypeObject.availability = [];
 
@@ -243,7 +247,9 @@ export const bookingRouter = createRouter()
           slug: user.username,
           theme: user.theme,
           weekStart: user.weekStart,
+          brandColor: user.brandColor,
         },
+        date: dateParam,
         eventType: eventTypeObject,
         workingHours,
       };

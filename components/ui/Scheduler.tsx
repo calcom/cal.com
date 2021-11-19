@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { OpeningHours, DateOverride } from "@lib/types/event-type";
+import { WorkingHours } from "@lib/types/schedule";
 
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";
@@ -19,7 +19,7 @@ type Props = {
   timeZone: string;
   availability: Availability[];
   setTimeZone: (timeZone: string) => void;
-  setAvailability: (schedule: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] }) => void;
+  setAvailability: (schedule: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] }) => void;
 };
 
 /**
