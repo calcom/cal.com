@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import classNames from "@lib/classNames";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { Team } from "@lib/types/team";
@@ -62,12 +63,7 @@ export default function TeamListItem(props: {
               <div className="flex">
                 <Avatar
                   size={9}
-                  imageSrc={
-                    props.team.logo
-                      ? props.team.logo
-                      : "https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=" +
-                        encodeURIComponent(props.team.name || "")
-                  }
+                  imageSrc={getPlaceholderAvatar(props.team?.logo, props.team?.name)}
                   alt="Team Logo"
                   className="rounded-full w-9 h-9"
                 />

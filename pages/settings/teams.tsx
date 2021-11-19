@@ -2,17 +2,16 @@ import { PlusIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/client";
 import { useEffect, useState } from "react";
 
+import { handleErrorsJson } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
 
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
+import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
 import Button from "@components/ui/Button";
-
-import TeamCreate from "../../components/team/TeamCreate";
-import { handleErrorsJson } from "../../lib/errors";
 
 export default function Teams() {
   const { t } = useLocale();
@@ -39,15 +38,13 @@ export default function Teams() {
     loadData();
   }, []);
 
-  if (loading) {
-    return <Loader />;
-  }
+  if (loading) return <Loader />;
 
   return (
     <Shell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
       <SettingsShell>
         {showCreateTeamModal && (
-          <TeamCreate onComplete={onTeamCreated} onClose={() => setShowCreateTeamModal(false)} />
+          <TeamCreateModal onComplete={onTeamCreated} onClose={() => setShowCreateTeamModal(false)} />
         )}
         <div className="flex justify-end my-4">
           <Button type="button" className="btn btn-white" onClick={() => setShowCreateTeamModal(true)}>
@@ -57,7 +54,7 @@ export default function Teams() {
         </div>
         {invites.length > 0 && (
           <div className="my-8">
-            <h1 className="mb-2 text-lg font-medium">Open Invitations</h1>
+            <h1 className="mb-2 text-lg font-medium">{t("open_invitations")}</h1>
             <TeamList teams={invites} onChange={loadData}></TeamList>
           </div>
         )}

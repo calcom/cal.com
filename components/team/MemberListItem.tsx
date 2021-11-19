@@ -1,6 +1,7 @@
 import { DotsHorizontalIcon, UserRemoveIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
 
@@ -11,11 +12,7 @@ import Button from "@components/ui/Button";
 
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 
-export default function MemberListItem(props: {
-  member: Member;
-  onActionSelect: (text: string) => void;
-  onChange: (text: string) => void;
-}) {
+export default function MemberListItem(props: { member: Member; onActionSelect: (text: string) => void }) {
   const [member] = useState(props.member);
   const { t } = useLocale();
 
@@ -26,12 +23,7 @@ export default function MemberListItem(props: {
           <div className="flex flex-col justify-between w-full sm:flex-row">
             <div className="flex">
               <Avatar
-                imageSrc={
-                  props.member.avatar
-                    ? props.member.avatar
-                    : "https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=" +
-                      encodeURIComponent(props.member.name || "")
-                }
+                imageSrc={getPlaceholderAvatar(props.member?.avatar, props.member?.name)}
                 alt={props.member.name || ""}
                 className="rounded-full w-9 h-9"
               />

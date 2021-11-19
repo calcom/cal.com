@@ -13,6 +13,12 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers 
 
   const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team?.slug}`;
 
+  //   const deleteTeam = () => {
+  //   return fetch("/api/teams/" + props.team?.id, {
+  //     method: "DELETE",
+  //   });
+  // };
+
   return (
     <div className="px-2 space-y-6">
       {/* 

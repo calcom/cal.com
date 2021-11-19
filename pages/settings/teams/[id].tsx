@@ -1,12 +1,15 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import { GetServerSidePropsContext } from "next";
+import { useState } from "react";
 
 import { getSession } from "@lib/auth";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import { getTeamWithMembers } from "@lib/queries/teams";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Shell from "@components/Shell";
+import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import MemberList from "@components/team/MemberList";
 import TeamSettings from "@components/team/TeamSettings";
 import TeamSettingsRightSidebar from "@components/team/TeamSettingsRightSidebar";
@@ -14,6 +17,8 @@ import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 
 export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>) {
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+
   const { t } = useLocale();
   return (
     <Shell
@@ -23,7 +28,7 @@ export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>
       HeadingLeftIcon={
         <Avatar
           size={12}
-          imageSrc={getAvatarURI(props.team?.logo, props.team?.name)}
+          imageSrc={getPlaceholderAvatar(props.team?.logo, props.team?.name)}
           alt="Team Logo"
           className="mt-1"
         />
@@ -40,24 +45,20 @@ export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>
                 type="button"
                 color="secondary"
                 StartIcon={PlusIcon}
-                onClick={() => {
-                  //todo
-                }}>
+                onClick={() => setShowMemberInvitationModal(true)}>
                 {t("new_member")}
               </Button>
             </div>
           </div>
-          <MemberList
-            team={props.team}
-            onChange={() => {
-              // todo
-            }}
-          />
+          <MemberList team={props.team} />
         </div>
         <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
           <TeamSettingsRightSidebar team={props.team} />
         </div>
       </div>
+      {showMemberInvitationModal && (
+        <MemberInvitationModal team={props.team} onExit={() => setShowMemberInvitationModal(false)} />
+      )}
     </Shell>
   );
 }
@@ -82,10 +83,3 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 export default TeamSettingsPage;
-
-function getAvatarURI(avatar: string | null, name: string | null) {
-  return avatar
-    ? avatar
-    : "https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=" +
-        encodeURIComponent(name || "");
-}

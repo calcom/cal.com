@@ -7,15 +7,16 @@ import showToast from "@lib/notification";
 import { TeamWithMembers } from "@lib/queries/teams";
 
 import ImageUploader from "@components/ImageUploader";
+import { TextField } from "@components/form/fields";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import SettingInputContainer from "@components/ui/SettingInputContainer";
-import { UsernameInput } from "@components/ui/UsernameInput";
 
 interface Props {
   team: TeamWithMembers | null | undefined;
 }
 
-export default function EditTeam(props: Props) {
+export default function TeamSettings(props: Props) {
   const { t } = useLocale();
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const teamUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
@@ -31,11 +32,6 @@ export default function EditTeam(props: Props) {
 
   const hasLogo = !!team?.logo;
 
-  // const deleteTeam = () => {
-  //   return fetch("/api/teams/" + props.team?.id, {
-  //     method: "DELETE",
-  //   });
-  // };
   const loadTeam = () => {
     return fetch("/api/teams/" + team?.id, {
       method: "GET",
@@ -74,7 +70,7 @@ export default function EditTeam(props: Props) {
       .then(() => {
         showToast(t("your_team_updated_successfully"), "success");
         loadTeam();
-        setHasErrors(false); // dismiss any open errors
+        setHasErrors(false);
       })
       .catch((err) => {
         setHasErrors(true);
@@ -95,9 +91,7 @@ export default function EditTeam(props: Props) {
   return (
     <div className="divide-y divide-gray-200 lg:col-span-9">
       <div className="">
-        {/* TODO USE THESE VARS */}
-        {hasErrors && <></>}
-        {errorMessage && <></>}
+        {hasErrors && <Alert severity="error" title={errorMessage} />}
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={(e) => updateTeamHandler(e)}>
           <div className="py-6 lg:pb-8">
             <div className="flex flex-col lg:flex-row">
@@ -105,11 +99,24 @@ export default function EditTeam(props: Props) {
                 <SettingInputContainer
                   Icon={LinkIcon}
                   label="Team URL"
-                  Input={<UsernameInput ref={teamUrlRef} defaultValue={team?.slug as string} />}
+                  htmlFor="team-url"
+                  Input={
+                    <TextField
+                      id="team-url"
+                      addOnLeading={
+                        <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                          {process.env.NEXT_PUBLIC_APP_URL}/{"team/"}
+                        </span>
+                      }
+                      ref={teamUrlRef}
+                      defaultValue={team?.slug as string}
+                    />
+                  }
                 />
                 <SettingInputContainer
                   Icon={HashtagIcon}
                   label="Team Name"
+                  htmlFor="name"
                   Input={
                     <input
                       ref={nameRef}
@@ -128,6 +135,7 @@ export default function EditTeam(props: Props) {
                   <SettingInputContainer
                     Icon={InformationCircleIcon}
                     label={t("about")}
+                    htmlFor="about"
                     Input={
                       <>
                         <textarea
@@ -146,6 +154,7 @@ export default function EditTeam(props: Props) {
                   <SettingInputContainer
                     Icon={PhotographIcon}
                     label={"Logo"}
+                    htmlFor="avatar"
                     Input={
                       <>
                         <div className="flex mt-1">
