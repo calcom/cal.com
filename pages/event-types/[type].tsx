@@ -39,7 +39,7 @@ import updateEventType from "@lib/mutations/event-types/update-event-type";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
-import { AdvancedOptions, DateOverride, EventTypeInput, OpeningHours } from "@lib/types/event-type";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { WorkingHours } from "@lib/types/schedule";
 
@@ -63,15 +63,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
   const PERIOD_TYPES = [
     {
-      type: "rolling",
+      type: "ROLLING",
       suffix: t("into_the_future"),
     },
     {
-      type: "range",
+      type: "RANGE",
       prefix: t("within_date_range"),
     },
     {
-      type: "unlimited",
+      type: "UNLIMITED",
       prefix: t("indefinitely_into_future"),
     },
   ];
@@ -119,6 +119,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "unlimited");
+
+  console.log("periodType", periodType, eventType.periodType);
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
@@ -243,7 +245,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     customInputs: EventTypeCustomInput[];
     users: string[];
     scheduler: {
-      enteredAvailability: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] };
+      enteredAvailability: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
       selectedTimezone: string;
     };
     periodType: string | number;
@@ -835,7 +837,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       <RadioGroup.Indicator className="relative flex items-center justify-center w-4 h-4 after:bg-black after:block after:w-2 after:h-2 after:rounded-full" />
                                     </RadioGroup.Item>
                                     {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
-                                    {period.type === "rolling" && (
+                                    {period.type === "ROLLING" && (
                                       <div className="inline-flex">
                                         <input
                                           type="text"
@@ -857,7 +859,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         </select>
                                       </div>
                                     )}
-                                    {period.type === "range" && (
+                                    {period.type === "RANGE" && (
                                       <div className="inline-flex ml-2 space-x-2">
                                         <Controller
                                           name="periodDates"
@@ -901,8 +903,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             render={() => (
                               <Scheduler
                                 setAvailability={(val: {
-                                  openingHours: OpeningHours[];
-                                  dateOverrides: DateOverride[];
+                                  openingHours: WorkingHours[];
+                                  dateOverrides: WorkingHours[];
                                 }) => {
                                   formMethods.setValue("scheduler.enteredAvailability", {
                                     openingHours: val.openingHours,
@@ -913,7 +915,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   formMethods.setValue("scheduler.selectedTimezone", val);
                                 }}
                                 timeZone={selectedTimeZone}
-                                availability={availability}
+                                availability={availability.map((schedule) => ({
+                                  ...schedule,
+                                  startTime: new Date(schedule.startTime),
+                                  endTime: new Date(schedule.endTime),
+                                }))}
                               />
                             )}
                           />
