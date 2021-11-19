@@ -78,21 +78,19 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         {!loading &&
           slots?.length > 0 &&
           slots.map((slot) => {
-            let bookingUrl = `/${basePath}/book?date=${encodeURIComponent(
-              slot.time.format()
-            )}&type=${eventTypeId}`;
+            const url = {
+              pathname: `/${basePath}/book`,
 
-            if (rescheduleUid) {
-              bookingUrl += `&rescheduleUid=${rescheduleUid}`;
-            }
-
-            if (schedulingType === SchedulingType.ROUND_ROBIN) {
-              bookingUrl += `&user=${slot.users}`;
-            }
-
+              query: {
+                type: eventTypeId,
+                // conditionally add things to query params
+                ...(rescheduleUid ? { rescheduleUid } : {}),
+                ...(schedulingType === SchedulingType.ROUND_ROBIN ? { user: slot.users } : {}),
+              },
+            };
             return (
               <div key={slot.time.format()}>
-                <Link href={bookingUrl}>
+                <Link href={url} as={url}>
                   <a
                     className="block py-4 mb-2 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-brand dark:border-transparent hover:text-white hover:bg-brand dark:hover:border-black dark:hover:bg-black"
                     data-testid="time">
