@@ -35,11 +35,13 @@ describe("webhooks", () => {
     // page contains the url
     await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
 
-    // --- go to tomorrow in the pro user's "30min"-event
-    const tomorrow = dayjs().add(1, "day");
-    const tomorrowFormatted = tomorrow.format("YYYY-MM-DDZZ");
+    // --- go to pro user's "30min"-event
+    await page.goto(`http://localhost:3000/pro/30min`);
 
-    await page.goto(`http://localhost:3000/pro/30min?date=${encodeURIComponent(tomorrowFormatted)}`);
+    // Click [data-testid="incrementMonth"]
+    await page.click('[data-testid="incrementMonth"]');
+    // Click [data-testid="day"]
+    await page.click('[data-testid="day"][data-disabled="false"]');
 
     // click first time available
     await page.click("[data-testid=time]");
