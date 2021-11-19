@@ -218,10 +218,7 @@
   "booking_already_cancelled": "Esta reserva já foi cancelada",
   "go_back_home": "Voltar à Página Inicial",
   "or_go_back_home": "Ou volte à página inicial",
-<<<<<<< HEAD
-=======
   "no_availability": "Indisponível",
->>>>>>> main
   "no_meeting_found": "Nenhuma Reunião Encontrada",
   "no_meeting_found_description": "Esta reunião não existe. Contacte o proprietário da reunião para obter uma ligação atualizada.",
   "no_status_bookings_yet": "Ainda não tem reservas {{status}}",
@@ -259,11 +256,8 @@
   "email": "Email",
   "email_placeholder": "nome@exemplo.com",
   "full_name": "Nome Completo",
-<<<<<<< HEAD
-=======
   "browse_api_documentation": "Consulte a nossa documentação da API",
   "leverage_our_api": "Tire partido da nossa API para controlo e personalização total.",
->>>>>>> main
   "create_webhook": "Criar Webhook",
   "booking_cancelled": "Reserva Cancelada",
   "booking_rescheduled": "Reserva Reagendada",
@@ -456,13 +450,8 @@
   "teams": "Equipas",
   "create_manage_teams_collaborative": "Criar e gerir equipas para usar recursos colaborativos.",
   "only_available_on_pro_plan": "Este recurso só está disponível no plano Pro",
-<<<<<<< HEAD
-  "remove_cal_branding_description": "Para remover a marca Cal das suas páginas de reservas, precisa atualizar para uma conta Pro.",
-  "to_upgrade_go_to": "Para atualizar, aceda",
-=======
   "remove_cal_branding_description": "Para remover a marca Cal das suas páginas de reservas, tem de atualizar para uma conta Pro.",
   "to_upgrade_go_to": "Para atualizar, aceda a",
->>>>>>> main
   "edit_profile_info_description": "Edite as informações do seu perfil, que mostram a sua ligação de agendamento.",
   "change_email_contact": "Para alterar o seu email, por favor contacte",
   "little_something_about": "Um pouco sobre si.",
