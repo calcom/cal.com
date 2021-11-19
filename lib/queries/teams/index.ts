@@ -52,12 +52,23 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     },
   });
 
-  const where = id ? { id } : { slug };
-
   const team = await prisma.team.findUnique({
-    where,
+    where: id ? { id } : { slug },
     select: teamSelect,
   });
 
-  return team;
+  if (!team) return null;
+
+  const memberships = await prisma.membership.findMany({
+    where: {
+      teamId: team.id,
+    },
+  });
+
+  const members = team.members.map((obj) => {
+    const membership = memberships.find((membership) => obj.user.id === membership.userId);
+    return { ...obj.user, role: membership?.accepted ? membership?.role : "INVITEE" };
+  });
+
+  return { ...team, members };
 }

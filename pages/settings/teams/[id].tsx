@@ -31,12 +31,7 @@ export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>
       <div className="block sm:flex md:max-w-5xl">
         <div className="w-full mr-2 sm:w-9/12">
           <div className="p-2 py-2 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
-            <TeamSettings
-              team={props.team}
-              onUpdate={() => {
-                //todo
-              }}
-            />
+            <TeamSettings team={props.team} />
           </div>
           <div className="flex items-center justify-between mb-3 mt-7">
             <h3 className="text-xl font-bold leading-6 text-gray-900 font-cal">{t("members")}</h3>
@@ -60,7 +55,7 @@ export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>
           />
         </div>
         <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
-          <TeamSettingsRightSidebar />
+          <TeamSettingsRightSidebar team={props.team} />
         </div>
       </div>
     </Shell>

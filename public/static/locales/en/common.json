@@ -281,6 +281,7 @@
   "no_event_types_have_been_setup": "This user hasn't set up any event types yet.",
   "edit_logo": "Edit logo",
   "upload_a_logo": "Upload a logo",
+  "remove_logo": "Remove logo",
   "enable": "Enable",
   "code": "Code",
   "code_is_incorrect": "Code is incorrect.",

@@ -18,8 +18,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ message: "Something went wrong." });
   }
 
+  const teamId = parseInt(req.query.team as string);
+
+  // GET /api/teams/{team}
   if (req.method === "GET") {
-    const team = await getTeamWithMembers(parseInt(req.query.team as string));
+    const team = await getTeamWithMembers(teamId);
     return res.status(200).json({ team });
   }
   // DELETE /api/teams/{team}
@@ -27,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const membership = await prisma.membership.findFirst({
       where: {
         userId: session.user.id,
-        teamId: parseInt(req.query.team as string),
+        teamId,
       },
     });
 
@@ -38,12 +41,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await prisma.membership.delete({
       where: {
-        userId_teamId: { userId: session.user.id, teamId: parseInt(req.query.team) },
+        userId_teamId: { userId: session.user.id, teamId },
       },
     });
     await prisma.team.delete({
       where: {
-        id: parseInt(req.query.team),
+        id: teamId,
       },
     });
     return res.status(204).send(null);

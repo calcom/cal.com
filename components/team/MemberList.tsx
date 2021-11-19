@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Member } from "@lib/member";
 import { TeamWithMembers } from "@lib/queries/teams";
@@ -10,16 +10,12 @@ import MemberListItem from "./MemberListItem";
 export default function MemberList(props: { team: TeamWithMembers; onChange: (text: string) => void }) {
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   // const [inviteModalTeam, setInviteModalTeam] = useState<Team | null | undefined>();
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<Member[]>(props.team?.members || []);
 
   const loadMembers = () =>
     fetch("/api/teams/" + props.team?.id + "/membership")
       .then((res) => res.json())
       .then((data) => setMembers(data.members));
-
-  useEffect(() => {
-    loadMembers();
-  }, []);
 
   const onMemberInvitationModalExit = () => {
     loadMembers();
@@ -49,10 +45,12 @@ export default function MemberList(props: { team: TeamWithMembers; onChange: (te
     }
   };
 
+  if (!members.length) return <></>;
+
   return (
     <div>
       <ul className="px-6 mb-2 -mx-6 bg-white border divide-y divide-gray-200 rounded sm:px-4 sm:mx-0">
-        {members.map((member) => (
+        {members?.map((member) => (
           <MemberListItem
             onChange={props.onChange}
             key={member.id}

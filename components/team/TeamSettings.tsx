@@ -1,5 +1,5 @@
 import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@heroicons/react/solid";
-import React, { useRef, useState } from "react";
+import React, { FormEvent, useRef, useState } from "react";
 
 import { handleErrorsJson } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -12,49 +12,60 @@ import SettingInputContainer from "@components/ui/SettingInputContainer";
 import { UsernameInput } from "@components/ui/UsernameInput";
 
 interface Props {
-  team?: TeamWithMembers | null;
-  onUpdate: () => void;
+  team: TeamWithMembers | null | undefined;
 }
 
 export default function EditTeam(props: Props) {
+  const { t } = useLocale();
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const teamUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const descriptionRef = useRef<HTMLTextAreaElement>() as React.MutableRefObject<HTMLTextAreaElement>;
   const hideBrandingRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const logoRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
+  const [team, setTeam] = useState<TeamWithMembers | null | undefined>(props.team);
+  const [imageSrc, setImageSrc] = useState<string>("");
+
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [imageSrc, setImageSrc] = useState<string>("");
-  const { t } = useLocale();
+  const hasLogo = !!team?.logo;
 
   // const deleteTeam = () => {
   //   return fetch("/api/teams/" + props.team?.id, {
   //     method: "DELETE",
   //   });
   // };
+  const loadTeam = () => {
+    return fetch("/api/teams/" + team?.id, {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then((data) => setTeam(data.team));
+  };
 
-  async function updateTeamHandler(event: React.FormEvent<HTMLFormElement>) {
+  async function updateTeamHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const enteredUsername = teamUrlRef?.current?.value.toLowerCase();
     const enteredName = nameRef?.current?.value;
-    const enteredDescription = descriptionRef?.current?.value;
     const enteredLogo = logoRef?.current?.value;
+    const enteredDescription = descriptionRef?.current?.value;
     const enteredHideBranding = hideBrandingRef?.current?.checked;
 
     // TODO: Add validation
+    const obj: Record<string, unknown> = {
+      username: enteredUsername,
+      name: enteredName,
+      description: enteredDescription,
+      hideBranding: enteredHideBranding,
+    };
+    // only add logo if it has changed - this is a hotfix, will find better fix
+    if (enteredLogo) obj.logo = enteredLogo;
 
-    await fetch("/api/teams/" + props.team?.id + "/profile", {
+    await fetch("/api/teams/" + team?.id + "/profile", {
       method: "PATCH",
-      body: JSON.stringify({
-        username: enteredUsername,
-        name: enteredName,
-        description: enteredDescription,
-        logo: enteredLogo,
-        hideBranding: enteredHideBranding,
-      }),
+      body: JSON.stringify(obj),
       headers: {
         "Content-Type": "application/json",
       },
@@ -62,7 +73,7 @@ export default function EditTeam(props: Props) {
       .then(handleErrorsJson)
       .then(() => {
         showToast(t("your_team_updated_successfully"), "success");
-        props.onUpdate();
+        loadTeam();
         setHasErrors(false); // dismiss any open errors
       })
       .catch((err) => {
@@ -77,7 +88,7 @@ export default function EditTeam(props: Props) {
     nativeInputValueSetter?.call(logoRef.current, newLogo);
     const ev2 = new Event("input", { bubbles: true });
     logoRef?.current?.dispatchEvent(ev2);
-    updateTeamHandler(ev2);
+    updateTeamHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
     setImageSrc(newLogo);
   };
 
@@ -94,7 +105,7 @@ export default function EditTeam(props: Props) {
                 <SettingInputContainer
                   Icon={LinkIcon}
                   label="Team URL"
-                  Input={<UsernameInput ref={teamUrlRef} defaultValue={props.team?.slug as string} />}
+                  Input={<UsernameInput ref={teamUrlRef} defaultValue={team?.slug as string} />}
                 />
                 <SettingInputContainer
                   Icon={HashtagIcon}
@@ -108,7 +119,7 @@ export default function EditTeam(props: Props) {
                       placeholder={t("your_team_name")}
                       required
                       className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
-                      defaultValue={props.team?.name as string}
+                      defaultValue={team?.name as string}
                     />
                   }
                 />
@@ -124,7 +135,7 @@ export default function EditTeam(props: Props) {
                           id="about"
                           name="about"
                           rows={3}
-                          defaultValue={props.team?.bio as string}
+                          defaultValue={team?.bio as string}
                           className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"></textarea>
                         <p className="mt-2 text-sm text-gray-500">{t("team_description")}</p>
                       </>
@@ -145,15 +156,20 @@ export default function EditTeam(props: Props) {
                             id="avatar"
                             placeholder="URL"
                             className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
-                            defaultValue={imageSrc ?? props.team?.logo}
+                            defaultValue={imageSrc ?? team?.logo}
                           />
                           <ImageUploader
                             target="logo"
                             id="logo-upload"
-                            buttonMsg={imageSrc !== "" ? t("edit_logo") : t("upload_a_logo")}
+                            buttonMsg={hasLogo ? t("edit_logo") : t("upload_a_logo")}
                             handleAvatarChange={handleLogoChange}
-                            imageSrc={imageSrc ?? props.team?.logo}
+                            imageSrc={imageSrc ?? team?.logo}
                           />
+                          {hasLogo && (
+                            <Button color="secondary" type="button" className="py-1 ml-1 text-xs">
+                              {t("remove_logo")}
+                            </Button>
+                          )}
                         </div>
                       </>
                     }
@@ -170,7 +186,7 @@ export default function EditTeam(props: Props) {
                         name="hide-branding"
                         type="checkbox"
                         ref={hideBrandingRef}
-                        defaultChecked={props.team?.hideBranding}
+                        defaultChecked={team?.hideBranding}
                         className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
                       />
                     </div>
