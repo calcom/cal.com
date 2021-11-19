@@ -27,7 +27,7 @@ export default function User(props: inferSSRProps<typeof getStaticProps>) {
   const { t } = useLocale();
   const { isReady } = useTheme(query.data?.user.theme);
   useEffect(() => {
-    if (!query.data) {
+    if (!query.data || !username) {
       return;
     }
     for (const { slug } of query.data.eventTypes) {
