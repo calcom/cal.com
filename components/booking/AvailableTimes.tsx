@@ -83,6 +83,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
               query: {
                 type: eventTypeId,
+                date: slot.time.format(),
                 // conditionally add things to query params
                 ...(rescheduleUid ? { rescheduleUid } : {}),
                 ...(schedulingType === SchedulingType.ROUND_ROBIN ? { user: slot.users } : {}),
