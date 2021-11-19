@@ -206,7 +206,7 @@ function DatePicker({
                         inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
                       )}`
                 }`}
-                scroll={false}>
+                shallow={true}>
                 <a
                   className={classNames(
                     "rounded-sm text-center border border-transparent absolute inset-0",

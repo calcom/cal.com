@@ -1,6 +1,9 @@
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 
+/**
+ * Used for pages where edge functions
+ */
 export function useRouterAsPath() {
   const router = useRouter();
   return useMemo(() => {
