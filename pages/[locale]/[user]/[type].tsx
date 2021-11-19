@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { GetStaticPaths, GetStaticPropsContext } from "next";
+import { useRouter } from "next/router";
 
-import { useSearchParams } from "@lib/hooks/useSearchParams";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -15,7 +15,7 @@ type TEventTypeByUsername = NonNullable<inferQueryOutput<"booking.eventTypeByUse
 export type AvailabilityPageProps = TEventTypeByUsername;
 
 export default function Type(props: inferSSRProps<typeof getStaticProps>) {
-  const searchParams = useSearchParams();
+  const searchParams = useRouter().query;
   const username = (props.username || searchParams.username) as string;
   const slug = (props.slug || searchParams.slug) as string;
 
