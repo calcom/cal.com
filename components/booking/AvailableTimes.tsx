@@ -16,14 +16,14 @@ import Loader from "@components/Loader";
 function useRouterBasePath() {
   const router = useRouter();
   return useMemo(() => {
-    const path = router.asPath.split("/");
+    const path = router.asPath.split("/").filter(Boolean);
 
     // For teams
-    if (path.length > 3) {
-      return `${path[1]}/${path[2]}`;
+    if (path[0] === "team") {
+      return `${path[0]}/${path[1]}`;
     }
 
-    return path[1] as string;
+    return path[0] as string;
   }, [router.asPath]);
 }
 
