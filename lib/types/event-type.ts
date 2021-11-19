@@ -22,8 +22,7 @@ export type AdvancedOptions = {
   }[];
   availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
   customInputs?: EventTypeCustomInput[];
-  timeZone: string;
-  hidden: boolean;
+  timeZone?: string;
 };
 
 export type EventTypeCustomInput = {

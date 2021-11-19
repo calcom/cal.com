@@ -1,5 +1,3 @@
-// TODO: replace headlessui with radix-ui
-// import { RadioGroup } from "@headlessui/react";
 import { PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
@@ -126,7 +124,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
   useEffect(() => {
-    formMethods.setValue("scheduler.selectedTimezone", eventType.timeZone || "");
     setSelectedTimeZone(eventType.timeZone || "");
   }, []);
 
@@ -164,7 +161,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-1">
               <input
                 type="text"
-                // name="address"
                 {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
@@ -244,7 +240,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     price: number;
     isHidden: boolean;
     locations: { type: LocationType; address?: string }[];
-    // selectedCustomInput: EventTypeCustomInput | undefined;
     customInputs: EventTypeCustomInput[];
     users: string[];
     scheduler: {
@@ -253,7 +248,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     };
     periodType: string | number;
     periodDays: number;
-    periodDaysType: string | number;
+    periodDaysType: string;
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
   }>({
@@ -469,10 +464,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         <div className="block mx-auto sm:flex md:max-w-5xl">
           <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
-              {/* react-hook-formify  useform*/}
               <form
                 onSubmit={formMethods.handleSubmit(async (values) => {
-                  // const formData = Object.fromEntries(new FormData(event.currentTarget).entries());
                   const enteredTitle: string = values.title;
 
                   const advancedPayload: AdvancedOptions = {};
@@ -480,9 +473,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     advancedPayload.eventName = values.eventTitle;
                     advancedPayload.periodType = asStringOrUndefined(values.periodType);
                     advancedPayload.periodDays = asNumberOrUndefined(values.periodDays);
-                    advancedPayload.periodCountCalendarDays = Boolean(
-                      asNumberOrUndefined(values.periodDaysType)
-                    );
+                    advancedPayload.periodCountCalendarDays = Boolean(parseInt(values.periodDaysType));
                     advancedPayload.periodStartDate = values.periodDates.startDate || undefined;
                     advancedPayload.periodEndDate = values.periodDates.endDate || undefined;
                     advancedPayload.minimumBookingNotice = values.minimumBookingNotice;
@@ -735,7 +726,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <Button
                                       onClick={() => {
                                         setSelectedCustomInput(customInput);
-                                        // formMethods.setValue("selectedCustomInput", customInput);
                                         setSelectedCustomInputModalOpen(true);
                                       }}
                                       color="minimal"
@@ -753,7 +743,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <Button
                                 onClick={() => {
                                   setSelectedCustomInput(undefined);
-                                  // formMethods.setValue("selectedCustomInput", undefined);
                                   setSelectedCustomInputModalOpen(true);
                                 }}
                                 color="secondary"
@@ -829,7 +818,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </label>
                         </div>
                         <div className="w-full">
-                          {/* Following needs work, periodType datatype interface with what radiogroup.root expects */}
                           <Controller
                             name="periodType"
                             control={formMethods.control}
@@ -890,7 +878,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     {period.suffix ? (
                                       <span className="ml-2">&nbsp;{period.suffix}</span>
                                     ) : null}
-                                    {/* <label htmlFor={period.type}>{period.type}</label> */}
                                   </div>
                                 ))}
                               </RadioGroup.Root>
@@ -911,7 +898,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <Controller
                             name="scheduler"
                             control={formMethods.control}
-                            // defaultValue={{ enteredAvailability: {openingHours:, dateOverrides:}, selectedTimezone: "" }}
                             render={() => (
                               <Scheduler
                                 setAvailability={(val: {
