@@ -4,10 +4,12 @@ import dayjs, { Dayjs } from "dayjs";
 // Then, include dayjs-business-time
 import dayjsBusinessTime from "dayjs-business-time";
 import utc from "dayjs/plugin/utc";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
+import { useRouterAsPath } from "@lib/hooks/useRouterPath";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
 
@@ -16,7 +18,6 @@ dayjs.extend(utc);
 
 type DatePickerProps = {
   weekStart: string;
-  onDatePicked: (pickedDate: Dayjs) => void;
   workingHours: WorkingHours[];
   eventLength: number;
   date: Dayjs | null;
@@ -30,7 +31,6 @@ type DatePickerProps = {
 
 function DatePicker({
   weekStart,
-  onDatePicked,
   workingHours,
   eventLength,
   date,
@@ -43,7 +43,7 @@ function DatePicker({
 }: DatePickerProps): JSX.Element {
   const { t } = useLocale();
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
-
+  const asPath = useRouterAsPath();
   const [selectedMonth, setSelectedMonth] = useState<number>(
     date
       ? periodType === PeriodType.RANGE
@@ -194,25 +194,42 @@ function DatePicker({
             {day === null ? (
               <div key={`e-${idx}`} />
             ) : (
-              <button
-                onClick={() => onDatePicked(inviteeDate().date(day.date))}
-                disabled={day.disabled}
-                className={classNames(
-                  "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
-                  "hover:border hover:border-brand dark:hover:border-white",
-                  day.disabled
-                    ? "text-gray-400 font-light hover:border-0 cursor-default"
-                    : "dark:text-white text-primary-500 font-medium",
-                  date && date.isSame(inviteeDate().date(day.date), "day")
-                    ? "bg-brand text-white-important"
-                    : !day.disabled
-                    ? " bg-gray-100 dark:bg-gray-600"
-                    : ""
-                )}
-                data-testid="day"
-                data-disabled={day.disabled}>
-                {day.date}
-              </button>
+              <Link
+                href={`${
+                  rescheduleUid
+                    ? `${asPath}?rescheduleUid=${rescheduleUid}&date=${encodeURIComponent(
+                        inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
+                      )}`
+                    : `${asPath}?date=${encodeURIComponent(
+                        inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
+                      )}`
+                }`}
+                scroll={false}>
+                <a
+                  className={classNames(
+                    "rounded-sm text-center border border-transparent absolute inset-0",
+                    "hover:border hover:border-brand dark:hover:border-white",
+                    day.disabled
+                      ? "text-gray-400 font-light hover:border-0 cursor-default"
+                      : "dark:text-white text-primary-500 font-medium",
+                    date && date.isSame(inviteeDate().date(day.date), "day")
+                      ? "bg-brand text-white-important"
+                      : !day.disabled
+                      ? " bg-gray-100 dark:bg-gray-600"
+                      : ""
+                  )}
+                  onClick={(e) => {
+                    if (day.disabled) {
+                      e.preventDefault();
+                    }
+                  }}
+                  data-testid="day"
+                  data-disabled={day.disabled}>
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                    {day.date}
+                  </span>
+                </a>
+              </Link>
             )}
           </div>
         ))}
