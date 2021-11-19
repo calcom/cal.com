@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { kont } from "kont";
 
 import { loginProvider } from "./lib/loginProvider";
