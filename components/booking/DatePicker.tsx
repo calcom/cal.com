@@ -27,6 +27,7 @@ type DatePickerProps = {
   periodDays: number | null;
   periodCountCalendarDays: boolean | null;
   minimumBookingNotice: number;
+  rescheduleUid: string;
 };
 
 function DatePicker({
@@ -40,6 +41,7 @@ function DatePicker({
   periodDays,
   periodCountCalendarDays,
   minimumBookingNotice,
+  rescheduleUid,
 }: DatePickerProps): JSX.Element {
   const { t } = useLocale();
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
