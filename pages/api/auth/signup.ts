@@ -60,9 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hashedPassword = await hashPassword(password);
 
-  // TODO: clean up the member invitation workflow so that upsert can be dropped
-  // here. Inviting a team member should not create a new user until the invitee
-  // explicitly creates an account.
   await prisma.user.upsert({
     where: { email: userEmail },
     update: {
