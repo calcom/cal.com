@@ -141,6 +141,7 @@
   "booking_already_cancelled": "Deze afspraak is reeds geannuleerd",
   "go_back_home": "Terug naar startpagina",
   "or_go_back_home": "Of ga terug naar de startpagina",
+  "no_availability": "Onbeschikbaar",
   "no_meeting_found": "Afspraak Niet Gevonden",
   "no_meeting_found_description": "Kan deze afspraak niet vinden. Neem contact op met de organisator voor een nieuwe link.",
   "no_status_bookings_yet": "Nog geen {{status}} afspraken",
@@ -435,5 +436,7 @@
   "delete_event_type": "Verwijder Evenement",
   "confirm_delete_event_type": "Ja, verwijder evenement",
   "integrations": "Integraties",
-  "settings": "Instellingen"
+  "settings": "Instellingen",
+  "next_step": "Stap overslaan",
+  "prev_step": "Vorige stap"
 }

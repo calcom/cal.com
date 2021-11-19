@@ -15,6 +15,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
+import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
@@ -92,9 +93,10 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
-        name={profile.name}
-        avatar={profile.image}
+        name={profile.name || undefined}
+        avatar={profile.image || undefined}
       />
+      <CustomBranding val={profile.brandColor} />
       <div>
         <main
           className={
@@ -107,14 +109,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <AvatarGroup
-                    items={[{ image: profile.image, alt: profile.name }].concat(
-                      eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          image: user.avatar,
-                        }))
-                    )}
+                    items={
+                      [
+                        { image: profile.image, alt: profile.name, title: profile.name },
+                        ...eventType.users
+                          .filter((user) => user.name !== profile.name)
+                          .map((user) => ({
+                            title: user.name,
+                            image: user.avatar || undefined,
+                            alt: user.name || undefined,
+                          })),
+                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                    }
                     size={9}
                     truncateAfter={5}
                   />
@@ -151,14 +157,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
-                    items={[{ image: profile.image, alt: profile.name }].concat(
-                      eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          image: user.avatar,
-                        }))
-                    )}
+                    items={
+                      [
+                        { image: profile.image, alt: profile.name, title: profile.name },
+                        ...eventType.users
+                          .filter((user) => user.name !== profile.name)
+                          .map((user) => ({
+                            title: user.name,
+                            alt: user.name,
+                            image: user.avatar,
+                          })),
+                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                    }
                     size={10}
                     truncateAfter={3}
                   />
@@ -207,7 +217,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
 
                 {selectedDate && (
                   <AvailableTimes
-                    workingHours={workingHours}
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
