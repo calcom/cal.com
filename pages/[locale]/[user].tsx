@@ -21,8 +21,8 @@ export default function User(props: inferSSRProps<typeof getStaticProps>) {
   const { username } = props;
   const utils = trpc.useContext();
 
-  // data of query below will be will be prepopulated b/c of `getStaticProps`
-  const query = trpc.useQuery(["booking.userEventTypes", { username }]);
+  // data of query below will be will be generally prepopulated b/c of `getStaticProps`
+  const query = trpc.useQuery(["booking.userEventTypes", { username }], { enabled: !!username });
 
   const { t } = useLocale();
   const { isReady } = useTheme(query.data?.user.theme);
@@ -33,11 +33,8 @@ export default function User(props: inferSSRProps<typeof getStaticProps>) {
     for (const { slug } of query.data.eventTypes) {
       utils.prefetchQuery(["booking.eventTypeByUsername", { slug, username }]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]);
+  }, [query.data, username, utils]);
   if (!query.data) {
-    // this shold never happen as we do `blocking: true`
-    // TODO check 404 pages
     return <Loader />;
   }
   const { user, eventTypes } = query.data;
@@ -138,7 +135,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }),
 
     // https://nextjs.org/docs/basic-features/data-fetching#fallback-blocking
-    fallback: "blocking",
+    fallback: true,
   };
 };
 
