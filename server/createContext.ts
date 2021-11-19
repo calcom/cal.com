@@ -44,6 +44,7 @@ async function getUserFromSession({
       avatar: true,
       twoFactorEnabled: true,
       identityProvider: true,
+      brandColor: true,
       credentials: {
         select: {
           id: true,
@@ -70,7 +71,7 @@ async function getUserFromSession({
     return null;
   }
   const { email, username } = user;
-  if (!username || !email) {
+  if (!email) {
     return null;
   }
   const avatar = user.avatar || defaultAvatarSrc({ email });

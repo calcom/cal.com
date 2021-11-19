@@ -1,4 +1,5 @@
 import { BookingStatus, Prisma } from "@prisma/client";
+import _ from "lodash";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
@@ -57,6 +58,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         identityProvider,
+        brandColor,
       } = ctx.user;
       const me = {
         id,
@@ -72,6 +74,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         identityProvider,
+        brandColor,
       };
       return me;
     },
@@ -89,6 +92,7 @@ const loggedInViewerRouter = createProtectedRouter()
         hidden: true,
         price: true,
         currency: true,
+        position: true,
         users: {
           select: {
             id: true,
@@ -130,6 +134,14 @@ const loggedInViewerRouter = createProtectedRouter()
                   },
                   eventTypes: {
                     select: eventTypeSelect,
+                    orderBy: [
+                      {
+                        position: "desc",
+                      },
+                      {
+                        id: "asc",
+                      },
+                    ],
                   },
                 },
               },
@@ -140,6 +152,14 @@ const loggedInViewerRouter = createProtectedRouter()
               team: null,
             },
             select: eventTypeSelect,
+            orderBy: [
+              {
+                position: "desc",
+              },
+              {
+                id: "asc",
+              },
+            ],
           },
         },
       });
@@ -154,6 +174,14 @@ const loggedInViewerRouter = createProtectedRouter()
           userId: ctx.user.id,
         },
         select: eventTypeSelect,
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
       });
 
       type EventTypeGroup = {
@@ -188,7 +216,7 @@ const loggedInViewerRouter = createProtectedRouter()
           name: user.name,
           image: user.avatar,
         },
-        eventTypes: mergedEventTypes,
+        eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
         metadata: {
           membershipCount: 1,
           readOnly: false,
@@ -400,8 +428,24 @@ const loggedInViewerRouter = createProtectedRouter()
         (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
             schedule[day].push({
-              start: new Date(new Date().toDateString() + " " + availability.startTime.toTimeString()),
-              end: new Date(new Date().toDateString() + " " + availability.endTime.toTimeString()),
+              start: new Date(
+                Date.UTC(
+                  new Date().getUTCFullYear(),
+                  new Date().getUTCMonth(),
+                  new Date().getUTCDate(),
+                  availability.startTime.getUTCHours(),
+                  availability.startTime.getUTCMinutes()
+                )
+              ),
+              end: new Date(
+                Date.UTC(
+                  new Date().getUTCFullYear(),
+                  new Date().getUTCMonth(),
+                  new Date().getUTCDate(),
+                  availability.endTime.getUTCHours(),
+                  availability.endTime.getUTCMinutes()
+                )
+              ),
             });
           });
           return schedule;
@@ -410,6 +454,7 @@ const loggedInViewerRouter = createProtectedRouter()
       );
       return {
         schedule,
+        timeZone: user.timeZone,
       };
     },
   })
@@ -422,6 +467,7 @@ const loggedInViewerRouter = createProtectedRouter()
       timeZone: z.string().optional(),
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
+      brandColor: z.string().optional(),
       theme: z.string().optional().nullable(),
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
@@ -452,6 +498,98 @@ const loggedInViewerRouter = createProtectedRouter()
         },
         data,
       });
+    },
+  })
+  .mutation("eventTypeOrder", {
+    input: z.object({
+      ids: z.array(z.number()),
+    }),
+    async resolve({ input, ctx }) {
+      const { prisma, user } = ctx;
+      const allEventTypes = await ctx.prisma.eventType.findMany({
+        select: {
+          id: true,
+        },
+        where: {
+          id: {
+            in: input.ids,
+          },
+          OR: [
+            {
+              userId: user.id,
+            },
+            {
+              users: {
+                some: {
+                  id: user.id,
+                },
+              },
+            },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: user.id,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      });
+      const allEventTypeIds = new Set(allEventTypes.map((type) => type.id));
+      if (input.ids.some((id) => !allEventTypeIds.has(id))) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+      await Promise.all(
+        _.reverse(input.ids).map((id, position) => {
+          return prisma.eventType.update({
+            where: {
+              id,
+            },
+            data: {
+              position,
+            },
+          });
+        })
+      );
+    },
+  })
+  .mutation("eventTypePosition", {
+    input: z.object({
+      eventType: z.number(),
+      action: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      // This mutation is for the user to be able to order their event types by incrementing or decrementing the position number
+      const { prisma } = ctx;
+      if (input.eventType && input.action == "increment") {
+        await prisma.eventType.update({
+          where: {
+            id: input.eventType,
+          },
+          data: {
+            position: {
+              increment: 1,
+            },
+          },
+        });
+      }
+
+      if (input.eventType && input.action == "decrement") {
+        await prisma.eventType.update({
+          where: {
+            id: input.eventType,
+          },
+          data: {
+            position: {
+              decrement: 1,
+            },
+          },
+        });
+      }
     },
   })
   .query("isSAMLLoginEnabled", {

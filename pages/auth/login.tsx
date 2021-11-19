@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -10,7 +11,17 @@ import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 
-export default function Login({ csrfToken, isGoogleLoginEnabled, isSAMLLoginEnabled }) {
+import { ssrInit } from "@server/lib/ssr";
+
+export default function Login({
+  csrfToken,
+  isGoogleLoginEnabled,
+  isSAMLLoginEnabled,
+}: {
+  csrfToken: string;
+  isGoogleLoginEnabled: boolean;
+  isSAMLLoginEnabled: boolean;
+}) {
   const { t } = useLocale();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -91,8 +102,8 @@ export default function Login({ csrfToken, isGoogleLoginEnabled, isSAMLLoginEnab
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 mx-2 rounded-sm sm:px-10 border border-neutral-200">
-          <form className="space-y-6 mb-6" onSubmit={handleSubmit}>
-            <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <input name="csrfToken" type="hidden" defaultValue={csrfToken || undefined} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
                 {t("email_address")}
@@ -203,19 +214,26 @@ export default function Login({ csrfToken, isGoogleLoginEnabled, isSAMLLoginEnab
   );
 }
 
-Login.getInitialProps = async (context) => {
-  const { req, res } = context;
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { req } = context;
   const session = await getSession({ req });
+  const ssr = await ssrInit(context);
 
   if (session) {
-    res.writeHead(302, { Location: "/" });
-    res.end();
-    return;
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
   }
 
   return {
-    csrfToken: await getCsrfToken(context),
-    isGoogleLoginEnabled,
-    isSAMLLoginEnabled,
+    props: {
+      csrfToken: await getCsrfToken(context),
+      trpcState: ssr.dehydrate(),
+      isGoogleLoginEnabled,
+      isSAMLLoginEnabled,
+    },
   };
-};
+}

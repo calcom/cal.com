@@ -213,10 +213,15 @@ export default class EventManager {
    * @private
    */
 
-  private createAllCalendarEvents(event: CalendarEvent, noMail: boolean | null): Promise<Array<EventResult>> {
-    return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      return createEvent(credential, event, noMail);
-    });
+  private async createAllCalendarEvents(
+    event: CalendarEvent,
+    noMail: boolean | null
+  ): Promise<Array<EventResult>> {
+    const [firstCalendar] = this.calendarCredentials;
+    if (!firstCalendar) {
+      return [];
+    }
+    return [await createEvent(firstCalendar, event, noMail)];
   }
 
   /**
@@ -394,9 +399,9 @@ export default class EventManager {
         // future, it might happen that we consider making passwords for Zoom meetings optional.
         // Then, this part below (where the password existence is checked) needs to be adapted.
         isComplete =
-          reference.meetingId != undefined &&
-          reference.meetingPassword != undefined &&
-          reference.meetingUrl != undefined;
+          reference.meetingId !== undefined &&
+          reference.meetingPassword !== undefined &&
+          reference.meetingUrl !== undefined;
         break;
       default:
         isComplete = true;
