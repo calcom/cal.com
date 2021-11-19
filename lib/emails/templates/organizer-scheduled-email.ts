@@ -115,7 +115,7 @@ export default class OrganizerScheduledEmail {
   protected getTextBody(): string {
     return `
 ${this.calEvent.language("new_event_scheduled")}
-${this.calEvent.language("emailed_you_and_attendees")}
+${this.calEvent.language("emailed_you_and_any_other_attendees")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
@@ -298,7 +298,7 @@ ${this.parser.getCancelLink()}
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                             <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#494949;">${this.calEvent.language(
-                              "emailed_you_and_attendees"
+                              "emailed_you_and_any_other_attendees"
                             )}</div>
                           </td>
                         </tr>
@@ -591,6 +591,21 @@ ${this.parser.getCancelLink()}
       </div>
       `;
     }
+
+    if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
+      const location = this.calEvent.location.split(":")[1];
+
+      return `
+      <p style="height: 6px"></p>
+      <div style="line-height: 6px;">
+        <p style="color: #494949;">${this.calEvent.language("where")}</p>
+        <p style="color: #494949; font-weight: 400; line-height: 24px;">${
+          location[0].toUpperCase() + location.slice(1)
+        }</p>
+      </div>
+      `;
+    }
+
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">

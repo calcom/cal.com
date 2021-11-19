@@ -12,8 +12,11 @@ import { v5 as uuidv5 } from "uuid";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import { CalendarEvent, AdditionInformation, getBusyCalendarTimes } from "@lib/calendarClient";
-import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
-import { sendScheduledEmails, sendRescheduledEmails } from "@lib/emails/email-manager";
+import {
+  sendScheduledEmails,
+  sendRescheduledEmails,
+  sendOrganizerRequestEmail,
+} from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
@@ -487,7 +490,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await new EventOrganizerRequestMail(evt).sendEmail();
+    await sendOrganizerRequestEmail(evt);
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {

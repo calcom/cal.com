@@ -5,7 +5,7 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import { CalendarEvent } from "@lib/calendarClient";
-import EventRejectionMail from "@lib/emails/EventRejectionMail";
+import { sendDeclinedEmails } from "@lib/emails/email-manager";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
@@ -149,8 +149,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: BookingStatus.REJECTED,
         },
       });
-      const attendeeMail = new EventRejectionMail(evt);
-      await attendeeMail.sendEmail();
+
+      await sendDeclinedEmails(evt);
 
       res.status(204).end();
     }

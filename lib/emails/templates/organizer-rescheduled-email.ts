@@ -46,6 +46,19 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
     };
   }
 
+  protected getTextBody(): string {
+    return `
+${this.calEvent.language("event_has_been_rescheduled")}
+${this.calEvent.language("emailed_you_and_any_other_attendees")}
+${this.getWhat()}
+${this.getWhen()}
+${this.getLocation()}
+${this.getAdditionalNotes()}
+${this.calEvent.language("need_to_reschedule_or_cancel")}
+${this.parser.getCancelLink()}
+`.replace(/(<([^>]+)>)/gi, "");
+  }
+
   protected getHtmlBody(): string {
     return `
     <!doctype html>
@@ -215,7 +228,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                             <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#494949;">${this.calEvent.language(
-                              "emailed_you_and_attendees"
+                              "emailed_you_and_any_other_attendees"
                             )}</div>
                           </td>
                         </tr>

@@ -4,33 +4,38 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
-import AttendeeScheduledEmail from "./attendee-scheduled-email";
+import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
 
-export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
+export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
+    const toAddresses = [this.calEvent.organizer.email];
+    if (this.calEvent.team) {
+      this.calEvent.team.members.forEach((member) => {
+        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
+        if (memberAttendee) {
+          toAddresses.push(memberAttendee.email);
+        }
+      });
+    }
+
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: this.getiCalEventAsString(),
-      },
-      to: `${this.attendee.name} <${this.attendee.email}>`,
-      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: this.calEvent.organizer.email,
-      subject: `${this.calEvent.language("rescheduled_event_type_subject", {
+      from: `Cal.com <${this.getMailerOptions().from}>`,
+      to: toAddresses.join(","),
+      subject: `${this.calEvent.language("event_awaiting_approval_subject", {
         eventType: this.calEvent.type,
-        name: this.calEvent.team?.name || this.calEvent.organizer.name,
-        date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
+        name: this.calEvent.attendees[0].name,
+        date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
           "h:mma"
         )}, ${this.calEvent.language(
-          this.getInviteeStart().format("dddd").toLowerCase()
+          this.getOrganizerStart().format("dddd").toLowerCase()
         )}, ${this.calEvent.language(
-          this.getInviteeStart().format("MMMM").toLowerCase()
-        )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
+          this.getOrganizerStart().format("MMMM").toLowerCase()
+        )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
       })}`,
       html: this.getHtmlBody(),
       text: this.getTextBody(),
@@ -38,28 +43,15 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
   }
 
   protected getTextBody(): string {
-    // Only the original attendee can make changes to the event
-    // Guests cannot
-    if (this.attendee === this.calEvent.attendees[0]) {
-      return `
-  ${this.calEvent.language("event_has_been_rescheduled")}
-  ${this.calEvent.language("emailed_you_and_any_other_attendees")}
-  ${this.getWhat()}
-  ${this.getWhen()}
-  ${this.getLocation()}
-  ${this.getAdditionalNotes()}
-  ${this.calEvent.language("need_to_reschedule_or_cancel")}
-  ${this.parser.getCancelLink()}
-  `.replace(/(<([^>]+)>)/gi, "");
-    }
-
     return `
-${this.calEvent.language("event_has_been_rescheduled")}
-${this.calEvent.language("emailed_you_and_any_other_attendees")}
+${this.calEvent.language("event_awaiting_approval")}
+${this.calEvent.language("someone_requested_an_event")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
+${this.calEvent.language("confirm_or_reject_request")}
+${this.parser.getCancelLink()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
@@ -69,16 +61,16 @@ ${this.getAdditionalNotes()}
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
     <head>
-      <title>${this.calEvent.language("rescheduled_event_type_subject", {
+      <title>${this.calEvent.language("event_awaiting_approval_subject", {
         eventType: this.calEvent.type,
-        name: this.calEvent.team?.name || this.calEvent.organizer.name,
-        date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
+        name: this.calEvent.attendees[0].name,
+        date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
           "h:mma"
         )}, ${this.calEvent.language(
-          this.getInviteeStart().format("dddd").toLowerCase()
+          this.getOrganizerStart().format("dddd").toLowerCase()
         )}, ${this.calEvent.language(
-          this.getInviteeStart().format("MMMM").toLowerCase()
-        )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
+          this.getOrganizerStart().format("MMMM").toLowerCase()
+        )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
       })}</title>
       <!--[if !mso]><!-->
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -225,14 +217,14 @@ ${this.getAdditionalNotes()}
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;padding-top:24px;padding-bottom:0px;word-break:break-word;">
                             <div style="font-family:Roboto, Helvetica, sans-serif;font-size:24px;font-weight:700;line-height:24px;text-align:center;color:#292929;">${this.calEvent.language(
-                              "event_has_been_rescheduled"
+                              "event_awaiting_approval"
                             )}</div>
                           </td>
                         </tr>
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                             <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#494949;">${this.calEvent.language(
-                              "emailed_you_and_any_other_attendees"
+                              "someone_requested_an_event"
                             )}</div>
                           </td>
                         </tr>
@@ -340,10 +332,21 @@ ${this.getAdditionalNotes()}
                     <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                       <tbody>
                         <tr>
+                          <td align="center" vertical-align="middle" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                              <tr>
+                                <td align="center" bgcolor="#292929" role="presentation" style="border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#292929;" valign="middle">
+                                  <p style="display:inline-block;background:#292929;color:#ffffff;font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;">
+                                    ${this.getManageLink()}
+                                  </p>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr>
                           <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;line-height:0px;text-align:left;color:#3E3E3E;">
-                              ${this.getManageLink()}
-                            </div>
+                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;"></div>
                           </td>
                         </tr>
                       </tbody>
@@ -393,6 +396,35 @@ ${this.getAdditionalNotes()}
       </div>
     </body>
     </html>
+    `;
+  }
+
+  protected getManageLink(): string {
+    const manageText = this.calEvent.language("confirm_or_reject_request");
+    return `<a style="color: #FFFFFF; text-decoration: none;" href="${this.parser.getCancelLink()}" target="_blank">${manageText} <img src="https://i.imgur.com/rKsIBcc.png" width="12px"></img></a>`;
+  }
+
+  protected getLocation(): string {
+    if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
+      const location = this.calEvent.location.split(":")[1];
+
+      return `
+      <p style="height: 6px"></p>
+      <div style="line-height: 6px;">
+        <p style="color: #494949;">${this.calEvent.language("where")}</p>
+        <p style="color: #494949; font-weight: 400; line-height: 24px;">${
+          location[0].toUpperCase() + location.slice(1)
+        }</p>
+      </div>
+      `;
+    }
+
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.language("where")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.location}</p>
+    </div>
     `;
   }
 }
