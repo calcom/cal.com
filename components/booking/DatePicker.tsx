@@ -197,15 +197,14 @@ function DatePicker({
               <div key={`e-${idx}`} />
             ) : (
               <Link
-                href={`${
-                  rescheduleUid
-                    ? `${asPath}?rescheduleUid=${rescheduleUid}&date=${encodeURIComponent(
-                        inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
-                      )}`
-                    : `${asPath}?date=${encodeURIComponent(
-                        inviteeDate().date(day.date).format("YYYY-MM-DDZZ")
-                      )}`
-                }`}
+                href={{
+                  pathname: asPath,
+                  query: {
+                    date: inviteeDate().date(day.date).format("YYYY-MM-DDZZ"),
+                    // add rescheduleUid to query if set
+                    ...(rescheduleUid ? { rescheduleUid } : {}),
+                  },
+                }}
                 shallow={true}>
                 <a
                   className={classNames(
