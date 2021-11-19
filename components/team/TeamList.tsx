@@ -1,17 +1,10 @@
-import { Team } from "@lib/team";
+import { Team } from "@lib/types/team";
 
 import TeamListItem from "./TeamListItem";
 
-export default function TeamList(props: {
-  teams: Team[];
-  onChange: () => void;
-  onEditTeam: (text: Team) => void;
-}) {
+export default function TeamList(props: { teams: Team[]; onChange: () => void }) {
   const selectAction = (action: string, team: Team) => {
     switch (action) {
-      case "edit":
-        props.onEditTeam(team);
-        break;
       case "disband":
         deleteTeam(team);
         break;
@@ -27,7 +20,7 @@ export default function TeamList(props: {
 
   return (
     <div>
-      <ul className="px-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
+      <ul className="mb-2 bg-white border divide-y rounded divide-neutral-200">
         {props.teams.map((team: Team) => (
           <TeamListItem
             onChange={props.onChange}

@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
-
-import prisma from "../../../../lib/prisma";
+import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
@@ -14,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const isTeamOwner = !!(await prisma.membership.findFirst({
     where: {
-      userId: session.user.id,
+      userId: session.user?.id,
       teamId: parseInt(req.query.team as string),
       role: "OWNER",
     },
@@ -54,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const membership = memberships.find((membership) => member.id === membership.userId);
       return {
         ...member,
-        role: membership.accepted ? membership.role : "INVITEE",
+        role: membership?.accepted ? membership?.role : "INVITEE",
       };
     });
 
@@ -65,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "DELETE") {
     await prisma.membership.delete({
       where: {
-        userId_teamId: { userId: req.body.userId, teamId: parseInt(req.query.team) },
+        userId_teamId: { userId: req.body.userId, teamId: parseInt(req.query.team as string) },
       },
     });
     return res.status(204).send(null);

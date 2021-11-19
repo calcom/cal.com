@@ -61,7 +61,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="flex mt-2">
-            <span className="flex flex-col space-y-1 sm:space-y-0 text-xs sm:flex-row sm:space-x-2">
+            <span className="flex flex-col space-y-1 text-xs sm:space-y-0 sm:flex-row sm:space-x-2">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}

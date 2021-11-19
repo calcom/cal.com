@@ -1,6 +1,7 @@
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
+  ArrowLeftIcon,
   ClockIcon,
   CogIcon,
   ExternalLinkIcon,
@@ -36,6 +37,7 @@ import Dropdown, {
 
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
+import Button from "./ui/Button";
 
 function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {
@@ -118,6 +120,8 @@ export default function Shell(props: {
   subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
+  HeadingLeftIcon?: ReactNode;
+  showBackButton?: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -259,7 +263,15 @@ export default function Shell(props: {
               </div>
             </nav>
             <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
+              {props.showBackButton && (
+                <div className="mx-8 mb-8">
+                  <Button onClick={() => router.back()} StartIcon={ArrowLeftIcon} color="secondary">
+                    Back
+                  </Button>
+                </div>
+              )}
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
+                {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="w-full mb-8">
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
                     {props.heading}
