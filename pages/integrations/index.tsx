@@ -1,10 +1,4 @@
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  PencilAltIcon,
-  SwitchHorizontalIcon,
-  TrashIcon,
-} from "@heroicons/react/outline";
+import { ChevronRightIcon, PencilAltIcon, SwitchHorizontalIcon, TrashIcon } from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
@@ -13,7 +7,6 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
-import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -61,7 +54,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="flex mt-2">
-            <span className="flex flex-col space-y-1 sm:space-y-0 text-xs sm:flex-row sm:space-x-2">
+            <span className="flex flex-col space-y-1 text-xs sm:space-y-0 sm:flex-row sm:space-x-2">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -124,13 +117,9 @@ function WebhookTestDisclosure() {
 
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
-      <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full text-sm"}>
-        {t("webhook_test")}{" "}
-        {open ? (
-          <ChevronUpIcon className="w-5 h-5 text-gray-700" />
-        ) : (
-          <ChevronDownIcon className="w-5 h-5 text-gray-700" />
-        )}
+      <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full"}>
+        <ChevronRightIcon className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-neutral-500`} />
+        <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
         <InputGroupBox className="px-0 space-y-0 border-0">
@@ -190,24 +179,17 @@ function WebhookDialogForm(props: {
     <Form
       data-testid="WebhookDialogForm"
       form={form}
-      onSubmit={(event) => {
-        form
-          .handleSubmit(async (values) => {
-            if (values.id) {
-              await utils.client.mutation("viewer.webhook.edit", values);
-              await utils.invalidateQueries(["viewer.webhook.list"]);
-              showToast(t("webhook_updated_successfully"), "success");
-            } else {
-              await utils.client.mutation("viewer.webhook.create", values);
-              await utils.invalidateQueries(["viewer.webhook.list"]);
-              showToast(t("webhook_created_successfully"), "success");
-            }
-
-            props.handleClose();
-          })(event)
-          .catch((err) => {
-            showToast(`${getErrorFromUnknown(err).message}`, "error");
-          });
+      handleSubmit={async (event) => {
+        if (event.id) {
+          await utils.client.mutation("viewer.webhook.edit", event);
+          await utils.invalidateQueries(["viewer.webhook.list"]);
+          showToast(t("webhook_updated_successfully"), "success");
+        } else {
+          await utils.client.mutation("viewer.webhook.create", event);
+          await utils.invalidateQueries(["viewer.webhook.list"]);
+          showToast(t("webhook_created_successfully"), "success");
+        }
+        props.handleClose();
       }}
       className="space-y-4">
       <input type="hidden" {...form.register("id")} />
