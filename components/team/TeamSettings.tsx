@@ -1,5 +1,5 @@
 import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@heroicons/react/solid";
-import React, { FormEvent, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
 import { handleErrorsJson } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -40,9 +40,8 @@ export default function TeamSettings(props: Props) {
       .then((data) => setTeam(data.team));
   };
 
-  async function updateTeamHandler(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function updateTeamHandler<T extends Event>(e?: T) {
+    e?.preventDefault();
     const enteredUsername = teamUrlRef?.current?.value.toLowerCase();
     const enteredName = nameRef?.current?.value;
     const enteredLogo = logoRef?.current?.value;
@@ -84,8 +83,13 @@ export default function TeamSettings(props: Props) {
     nativeInputValueSetter?.call(logoRef.current, newLogo);
     const ev2 = new Event("input", { bubbles: true });
     logoRef?.current?.dispatchEvent(ev2);
-    updateTeamHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
     setImageSrc(newLogo);
+    updateTeamHandler();
+  };
+
+  const removeLogo = () => {
+    setImageSrc("");
+    updateTeamHandler();
   };
 
   return (
@@ -175,7 +179,11 @@ export default function TeamSettings(props: Props) {
                             imageSrc={imageSrc ?? team?.logo}
                           />
                           {hasLogo && (
-                            <Button color="secondary" type="button" className="py-1 ml-1 text-xs">
+                            <Button
+                              onClick={removeLogo}
+                              color="secondary"
+                              type="button"
+                              className="py-1 ml-1 text-xs">
                               {t("remove_logo")}
                             </Button>
                           )}
