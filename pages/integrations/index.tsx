@@ -107,6 +107,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
 
 function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
+  const payloadTemplate = useWatch({ name: "payloadTemplate" }) || null;
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const mutation = trpc.useMutation("viewer.webhook.testTrigger", {
@@ -130,7 +131,7 @@ function WebhookTestDisclosure() {
               type="button"
               color="minimal"
               disabled={mutation.isLoading}
-              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING" })}>
+              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING", payloadTemplate })}>
               {t("ping_test")}
             </Button>
           </div>
@@ -141,9 +142,9 @@ function WebhookTestDisclosure() {
                 <div
                   className={classNames(
                     "px-2 py-1 w-max text-xs ml-auto",
-                    mutation.data.status === 200 ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
+                    mutation.data.ok ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
                   )}>
-                  {mutation.data.status === 200 ? t("success") : t("failed")}
+                  {mutation.data.ok ? t("success") : t("failed")}
                 </div>
                 <pre className="overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</pre>
               </>
@@ -169,8 +170,11 @@ function WebhookDialogForm(props: {
       eventTriggers: WEBHOOK_TRIGGER_EVENTS,
       subscriberUrl: "",
       active: true,
-    },
+      payloadTemplate: null,
+    } as Omit<TWebhook, "userId" | "createdAt">,
   } = props;
+
+  const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
 
   const form = useForm({
     defaultValues,
@@ -180,6 +184,9 @@ function WebhookDialogForm(props: {
       data-testid="WebhookDialogForm"
       form={form}
       handleSubmit={async (event) => {
+        if (!useCustomPayloadTemplate && event.payloadTemplate) {
+          event.payloadTemplate = null;
+        }
         if (event.id) {
           await utils.client.mutation("viewer.webhook.edit", event);
           await utils.invalidateQueries(["viewer.webhook.list"]);
@@ -237,6 +244,38 @@ function WebhookDialogForm(props: {
             />
           ))}
         </InputGroupBox>
+      </fieldset>
+      <fieldset className="space-y-2">
+        <FieldsetLegend>{t("payload_template")}</FieldsetLegend>
+        <div className="space-x-3 text-sm">
+          <label>
+            <input
+              className="text-neutral-900 focus:ring-neutral-500"
+              type="radio"
+              name="useCustomPayloadTemplate"
+              onChange={(value) => setUseCustomPayloadTemplate(!value.target.checked)}
+              defaultChecked={!useCustomPayloadTemplate}
+            />{" "}
+            Default
+          </label>
+          <label>
+            <input
+              className="text-neutral-900 focus:ring-neutral-500"
+              onChange={(value) => setUseCustomPayloadTemplate(value.target.checked)}
+              name="useCustomPayloadTemplate"
+              type="radio"
+              defaultChecked={useCustomPayloadTemplate}
+            />{" "}
+            Custom
+          </label>
+        </div>
+        {useCustomPayloadTemplate && (
+          <textarea
+            {...form.register("payloadTemplate")}
+            className="block w-full font-mono border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+            rows={5}
+            defaultValue={useCustomPayloadTemplate && (defaultValues.payloadTemplate || "")}></textarea>
+        )}
       </fieldset>
       <WebhookTestDisclosure />
       <DialogFooter>
