@@ -42,6 +42,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodCountCalendarDays: true,
     schedulingType: true,
     minimumBookingNotice: true,
+    contractAddress: true,
     users: {
       select: {
         avatar: true,

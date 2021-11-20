@@ -45,6 +45,7 @@ model EventType {
   Schedule                Schedule[]
   price                   Int                    @default(0)
   currency                String                 @default("usd")
+  contractAddress         String?
 
   @@unique([userId, slug])
 }

@@ -1,6 +1,7 @@
 // Get router variables
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
+import { useWeb3React } from "@web3-react/core";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
@@ -14,7 +15,9 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { getContractBalance } from "@lib/web3Utils";
 
+import ConnectWeb3 from "@components/ConnectWeb3";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
@@ -35,6 +38,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
   const { t } = useLocale();
+  const web3React = useWeb3React();
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -59,20 +63,37 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
-  const changeDate = (newDate: Dayjs) => {
+  const changeDate = async (newDate: Dayjs) => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
-    router.replace(
-      {
-        query: {
-          ...router.query,
-          date: newDate.format("YYYY-MM-DDZZ"),
+
+    // TODO: this is not working right now
+    // if (!web3React.active) {
+    //   console.log("you need to connect your wallet to book a slot");
+    //   return;
+    // }
+
+    // TODO: fetch wallet address from web3React
+    const walletAddress = "<INSERT_YOUR_WALLET_HERE_FOR_NOW>";
+    const balance = await getContractBalance(eventType.contractAddress, walletAddress, web3React.library);
+    console.log("balance", balance);
+
+    // TODO: store minimum tokens needed in eventType and use that instead of '1' below
+    if (balance >= 1) {
+      router.replace(
+        {
+          query: {
+            ...router.query,
+            date: newDate.format("YYYY-MM-DDZZ"),
+          },
         },
-      },
-      undefined,
-      {
-        shallow: true,
-      }
-    );
+        undefined,
+        {
+          shallow: true,
+        }
+      );
+    } else {
+      console.error("insufficient balance to book a slot");
+    }
   };
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
@@ -186,6 +207,11 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                   <TimezoneDropdown />
 
                   <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
+                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">
+                    {eventType.contractAddress.slice(0, 6)}...{eventType.contractAddress.slice(-4)}
+                  </p>
+
+                  <ConnectWeb3 />
                 </div>
                 <DatePicker
                   date={selectedDate}
