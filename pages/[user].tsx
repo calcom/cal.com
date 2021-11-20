@@ -8,10 +8,10 @@ import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import ConnectWeb3 from "@components/ConnectWeb3";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
-import Button from "@components/ui/Button";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -51,27 +51,30 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               {eventTypes.map((type) => (
                 <div
                   key={type.id}
-                  className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-brand rounded-sm">
-                  {!web3 && (
-                    <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
-                  )}
-                  <Link href={`/${user.username}/${type.slug}`}>
-                    <a className="flex items-center justify-between w-full px-6 py-4">
-                      <div>
-                        <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                        <EventTypeDescription eventType={type} />
-                      </div>
-                      {/* TODO: connect to MetaMask and validate token ownership */}
-                      {web3 && (
-                        <div className="transition-opacity opacity-0 group-hover:opacity-100">
-                          <Button color="secondary">
-                            <img className="h-5 mr-1" src="/integrations/metamask.svg" />
-                            Connect to MetaMask
-                          </Button>
+                  className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:bordergs-brand rounded-sm">
+                  {web3 ? (
+                    <>
+                      <span className="flex items-center justify-between w-full px-6 py-4">
+                        <div>
+                          <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                          <EventTypeDescription eventType={type} />
                         </div>
-                      )}
-                    </a>
-                  </Link>
+                        <ConnectWeb3 />
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
+                      <Link href={`/${user.username}/${type.slug}`}>
+                        <a className="flex items-center justify-between w-full px-6 py-4">
+                          <div>
+                            <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                            <EventTypeDescription eventType={type} />
+                          </div>
+                        </a>
+                      </Link>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

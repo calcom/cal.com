@@ -32,7 +32,6 @@ import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
-import Web3Integration from "@components/integrations/Web3Integration";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
@@ -533,7 +532,6 @@ export default function IntegrationsPage() {
         <CalendarListContainer />
         <WebhookListContainer />
         <IframeEmbedContainer />
-        <Web3Integration />
       </ClientSuspense>
     </Shell>
   );
