@@ -1,19 +1,19 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import _ from "lodash";
+import fetch from "node-fetch";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
+import { isSAMLLoginEnabled } from "@lib/auth";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
-import { isSAMLLoginEnabled } from "@lib/auth";
 
 import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
 import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
-import fetch from 'node-fetch';
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
@@ -605,14 +605,14 @@ const loggedInViewerRouter = createProtectedRouter()
     }),
     async resolve({ input }) {
       const params = new URLSearchParams();
-      params.append('rawMetadata', input.rawMetadata);
-      params.append('defaultRedirectUrl', `${process.env.BASE_URL}/login/saml`);
-      params.append('redirectUrl', JSON.stringify([`${process.env.BASE_URL}/*`]));
-      params.append('tenant', process.env.SAML_TENANT_ID || '');
-      params.append('product', process.env.SAML_PRODUCT_ID || '');
+      params.append("rawMetadata", input.rawMetadata);
+      params.append("defaultRedirectUrl", `${process.env.BASE_URL}/login/saml`);
+      params.append("redirectUrl", JSON.stringify([`${process.env.BASE_URL}/*`]));
+      params.append("tenant", process.env.SAML_TENANT_ID || "");
+      params.append("product", process.env.SAML_PRODUCT_ID || "");
 
       const response = await fetch(`${process.env.SAML_API_URL}/api/v1/saml/config`, {
-        method: 'POST',
+        method: "POST",
         body: params,
       });
 
