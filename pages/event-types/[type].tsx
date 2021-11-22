@@ -120,8 +120,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "unlimited");
 
-  console.log("periodType", periodType, eventType.periodType);
-
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
@@ -829,7 +827,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 defaultValue={periodType?.type}
                                 onValueChange={(val) => formMethods.setValue("periodType", val)}>
                                 {PERIOD_TYPES.map((period) => (
-                                  <div className="flex items-center mb-2" key={period.type}>
+                                  <div className="flex items-center mb-2 text-sm" key={period.type}>
                                     <RadioGroup.Item
                                       id={period.type}
                                       value={period.type}
