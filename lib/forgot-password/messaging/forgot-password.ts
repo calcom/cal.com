@@ -33,7 +33,7 @@ You use {{identityProvider}} to log into Cal. Click the "Log in with {{identityP
 
 - Cal.com`;
 
-export const buildForgotIdentityProviderMessage = (vars) => {
+export const buildForgotIdentityProviderMessage = (vars: VarType) => {
   return buildMessageTemplate({
     subjectTemplate: forgotPasswordSubjectTemplate(vars.language),
     messageTemplate: forgotIdentityProverMessage,

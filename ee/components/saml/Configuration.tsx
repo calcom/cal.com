@@ -33,7 +33,7 @@ export default function SAMLConfiguration() {
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  async function updateSAMLConfigHandler(event) {
+  async function updateSAMLConfigHandler(event: any) {
     event.preventDefault();
 
     const rawMetadata = samlConfigRef.current.value;

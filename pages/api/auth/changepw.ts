@@ -9,7 +9,7 @@ import { ErrorCode, hashPassword, verifyPassword } from "../../../lib/auth";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
 
-  if (!session) {
+  if (!session || !session.user || !session.user.email) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }

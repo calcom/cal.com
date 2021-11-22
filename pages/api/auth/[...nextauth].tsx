@@ -19,7 +19,7 @@ function randomString(length = 12) {
   return result;
 }
 
-async function authorize(credentials) {
+async function authorize(credentials: any) {
   const user = await prisma.user.findUnique({
     where: {
       email: credentials.email,
@@ -113,13 +113,17 @@ if (isSAMLLoginEnabled) {
     accessTokenUrl: `${process.env.SAML_LOGIN_URL}/oauth/token`,
     authorizationUrl: `${process.env.SAML_LOGIN_URL}/oauth/authorize?response_type=code&provider=saml`,
     profileUrl: `${process.env.SAML_LOGIN_URL}/oauth/userinfo`,
-    profile: (profile) => {
+    profile: (profile: any) => {
       return {
-        ...profile,
+        id: profile.id || "",
+        firstName: profile.first_name || "",
+        lastName: profile.last_name || "",
+        email: profile.email || "",
         name: `${profile.firstName} ${profile.lastName}`,
         verified_email: true,
       };
     },
+    scope: "",
     clientId: `tenant=${process.env.SAML_TENANT_ID}&product=${process.env.SAML_PRODUCT_ID}`,
     clientSecret: "dummy",
   });
@@ -155,7 +159,7 @@ export default NextAuth({
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
       if (account.type === "oauth" && account.provider) {
-        let idP = IdentityProvider.GOOGLE;
+        let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
@@ -207,7 +211,7 @@ export default NextAuth({
       }
 
       if (account.provider) {
-        let idP = IdentityProvider.GOOGLE;
+        let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
