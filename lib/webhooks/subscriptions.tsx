@@ -2,7 +2,7 @@ import { WebhookTriggerEvents } from "@prisma/client";
 
 import prisma from "@lib/prisma";
 
-const getSubscriberUrls = async (userId: number, triggerEvent: WebhookTriggerEvents): Promise<string[]> => {
+const getSubscribers = async (userId: number, triggerEvent: WebhookTriggerEvents) => {
   const allWebhooks = await prisma.webhook.findMany({
     where: {
       userId: userId,
@@ -17,11 +17,11 @@ const getSubscriberUrls = async (userId: number, triggerEvent: WebhookTriggerEve
     },
     select: {
       subscriberUrl: true,
+      payloadTemplate: true,
     },
   });
-  const subscriberUrls = allWebhooks.map(({ subscriberUrl }) => subscriberUrl);
 
-  return subscriberUrls;
+  return allWebhooks;
 };
 
-export default getSubscriberUrls;
+export default getSubscribers;
