@@ -2,6 +2,8 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
+import { PaymentInfo } from "@ee/lib/stripe/server";
+
 import { Event, EventResult } from "@lib/events/EventManager";
 import { AppleCalendar } from "@lib/integrations/Apple/AppleCalendarAdapter";
 import { CalDavCalendar } from "@lib/integrations/CalDav/CalDavCalendarAdapter";
@@ -57,6 +59,7 @@ export interface CalendarEvent {
   additionInformation?: AdditionInformation;
   uid?: string | null;
   videoCallData?: VideoCallData;
+  paymentInfo?: PaymentInfo | null;
 }
 
 export interface IntegrationCalendar extends Partial<SelectedCalendar> {
