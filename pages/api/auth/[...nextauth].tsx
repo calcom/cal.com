@@ -148,7 +148,7 @@ export default NextAuth({
         return token;
       }
 
-      if (account.type === "credentials") {
+      if (account && account.type === "credentials") {
         return {
           id: user.id,
           username: user.username,
@@ -158,7 +158,7 @@ export default NextAuth({
 
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
-      if (account.type === "oauth" && account.provider) {
+      if (account && profile && account.type === "oauth" && account.provider) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
@@ -187,6 +187,8 @@ export default NextAuth({
           email: existingUser.email,
         };
       }
+
+      return token;
     },
     async session(session, token) {
       const calendsoSession: Session = {
@@ -234,6 +236,10 @@ export default NextAuth({
             return true;
           }
 
+          if (!user.email || !user.name) {
+            return false;
+          }
+
           // If the email address doesn't match, check if an account already exists
           // with the new email address. If it does, for now we return an error. If
           // not, update the email of their account and log them in.
@@ -253,7 +259,7 @@ export default NextAuth({
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
         const existingUserWithEmail = await prisma.user.findFirst({
-          where: { email: user.email },
+          where: { email: user.email! },
         });
 
         if (existingUserWithEmail) {
@@ -268,8 +274,8 @@ export default NextAuth({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
-            username: slugify(user.name) + "-" + randomString(6),
-            email: user.email,
+            username: slugify(user.name!) + "-" + randomString(6),
+            email: user.email!,
             identityProvider: idP,
             identityProviderId: user.id as string,
           },
@@ -277,6 +283,8 @@ export default NextAuth({
 
         return true;
       }
+
+      return false;
     },
   },
 });
