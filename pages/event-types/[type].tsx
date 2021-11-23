@@ -63,15 +63,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
   const PERIOD_TYPES = [
     {
-      type: "ROLLING",
+      type: "ROLLING" as const,
       suffix: t("into_the_future"),
     },
     {
-      type: "RANGE",
+      type: "RANGE" as const,
       prefix: t("within_date_range"),
     },
     {
-      type: "UNLIMITED",
+      type: "UNLIMITED" as const,
       prefix: t("indefinitely_into_future"),
     },
   ];
@@ -118,7 +118,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
-    PERIOD_TYPES.find((s) => s.type === "unlimited");
+    PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
@@ -236,7 +236,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
-    schedulingType: SchedulingType;
+    schedulingType: SchedulingType | null;
     price: number;
     isHidden: boolean;
     locations: { type: LocationType; address?: string }[];
