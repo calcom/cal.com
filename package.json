@@ -43,6 +43,7 @@
     "@radix-ui/react-dialog": "^0.1.0",
     "@radix-ui/react-dropdown-menu": "^0.1.1",
     "@radix-ui/react-id": "^0.1.0",
+    "@radix-ui/react-radio-group": "^0.1.1",
     "@radix-ui/react-slider": "^0.1.1",
     "@radix-ui/react-switch": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.0",
@@ -92,8 +93,8 @@
     "react-use-intercom": "1.4.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.168.0",
+    "tsdav": "^1.1.5",
     "superjson": "1.8.0",
-    "tsdav": "1.0.6",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2",
     "zod": "^3.8.2"
