@@ -131,7 +131,7 @@ export default class EventManager {
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
         type: result.type,
-        uid: result.createdEvent?.id.toString(),
+        uid: result.createdEvent?.id.toString() ?? "",
         meetingId: result.createdEvent?.id.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,

@@ -521,8 +521,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
   await Promise.all(promises);
 
-  console.log("REFERENCES:", referencesToCreate);
-
   await prisma.booking.update({
     where: {
       uid: booking.uid,
