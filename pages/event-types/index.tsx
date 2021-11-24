@@ -331,7 +331,10 @@ const EventTypesPage = () => {
         CTA={
           query.data &&
           query.data.eventTypeGroups.length !== 0 && (
-            <CreateNewEventButton canAddEvents={query.data.canAddEvents} profiles={query.data.profiles} />
+            <CreateNewEventButton
+              canAddEvents={query.data.viewer.canAddEvents}
+              profiles={query.data.profiles}
+            />
           )
         }>
         <QueryCell
