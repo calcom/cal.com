@@ -356,23 +356,22 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
-              {data.eventTypeGroups &&
-                data.eventTypeGroups.map((group) => (
-                  <Fragment key={group.profile.slug}>
-                    {/* hide list heading when there is only one (current user) */}
-                    {(data.eventTypeGroups.length !== 1 || group.teamId) && (
-                      <EventTypeListHeading
-                        profile={group.profile}
-                        membershipCount={group.metadata.membershipCount}
-                      />
-                    )}
-                    <EventTypeList
-                      types={group.eventTypes}
+              {data.eventTypeGroups.map((group) => (
+                <Fragment key={group.profile.slug}>
+                  {/* hide list heading when there is only one (current user) */}
+                  {(data.eventTypeGroups.length !== 1 || group.teamId) && (
+                    <EventTypeListHeading
                       profile={group.profile}
-                      readOnly={group.metadata.readOnly}
+                      membershipCount={group.metadata.membershipCount}
                     />
-                  </Fragment>
-                ))}
+                  )}
+                  <EventTypeList
+                    types={group.eventTypes}
+                    profile={group.profile}
+                    readOnly={group.metadata.readOnly}
+                  />
+                </Fragment>
+              ))}
 
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
