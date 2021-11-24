@@ -23,7 +23,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
   const createSchedule = async ({ schedule }: FormValues) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
-      body: JSON.stringify({ schedule }),
+      body: JSON.stringify({ schedule, timeZone: props.timeZone }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -42,6 +42,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
       schedule: props.schedule || DEFAULT_SCHEDULE,
     },
   });
+
   return (
     <div className="grid grid-cols-3 gap-2">
       <Form

@@ -44,8 +44,9 @@ import updateEventType from "@lib/mutations/event-types/update-event-type";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
-import { AdvancedOptions, DateOverride, EventTypeInput, OpeningHours } from "@lib/types/event-type";
+import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { WorkingHours } from "@lib/types/schedule";
 
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Shell from "@components/Shell";
@@ -113,8 +114,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [users, setUsers] = useState<AdvancedOptions["users"]>([]);
   const [editIcon, setEditIcon] = useState(true);
   const [enteredAvailability, setEnteredAvailability] = useState<{
-    openingHours: OpeningHours[];
-    dateOverrides: DateOverride[];
+    openingHours: WorkingHours[];
+    dateOverrides: WorkingHours[];
   }>();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
