@@ -598,7 +598,7 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@headlessui/react@^1.4.1":
+"@headlessui/react@^1.4.2":
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.4.2.tgz#87e264f190dbebbf8dfdd900530da973dad24576"
   integrity sha512-N8tv7kLhg9qGKBkVdtg572BvKvWhmiudmeEpOCyNwzOsZHCXBtl8AazGikIfUS+vBoub20Fse3BjawXDVPPdug==
@@ -1482,17 +1482,6 @@
     "@radix-ui/react-id" "0.1.1"
     "@radix-ui/react-primitive" "0.1.1"
 
-"@radix-ui/react-label@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-label/-/react-label-0.1.1.tgz#c2970b19214248c2b3a0425c3c0d299290b559a5"
-  integrity sha512-52mHm7gxDcbY1+XuFwe0zBvUHp+JP424QC5V2nloPH9JUpCsM2MfviqA/nyW4nKuoGAeF6MhedjtlrXyze8DFw==
-  dependencies:
-    "@babel/runtime" "^7.13.10"
-    "@radix-ui/react-compose-refs" "0.1.0"
-    "@radix-ui/react-context" "0.1.1"
-    "@radix-ui/react-id" "0.1.1"
-    "@radix-ui/react-primitive" "0.1.1"
-
 "@radix-ui/react-menu@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-menu/-/react-menu-0.1.1.tgz#2146352813ac086df5f021d06bce10f7f56d2577"
@@ -1832,32 +1821,32 @@
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
 
-"@trpc/client@^9.12.0":
-  version "9.12.2"
-  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.12.2.tgz#7e74f613f052b2c3c1bdedd9a33f2776ee5f9120"
-  integrity sha512-UJYpcMTpceh/meYIqydUL0Jgi1FXTpCqqgFOYkv/BMIdWg5yXH8bEvwr35dNtglhCeT5OR9IAAETNAXSV2fW5Q==
+"@trpc/client@^9.13.0":
+  version "9.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.13.0.tgz#05a9b8abfe11b87c756ff696e7dbc9fa9bbe0d81"
+  integrity sha512-HnXGi141+dZ/M02NXZI5FdFPSr2p8kkYn8qI2h2VrrOC05H6qZHZdmVnoOCRF5qdmDO/PY6b7eQzXSMr+ApeiA==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/next@^9.12.0":
-  version "9.12.2"
-  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.12.2.tgz#8adaa95f1866b8336098a8d3baf2abf9b5dbc0f0"
-  integrity sha512-8uWApeq6nxdOfBLTA/gFaqlptsgUsPb//lOb+ksaJajNdOLvEr2oMPNjnmwbv9CNI3Fp9/KNGTjwRhZlOZVcCA==
+"@trpc/next@^9.13.0":
+  version "9.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.13.0.tgz#eff7ce21771def3dd36aeb87da8adbc55d0413f7"
+  integrity sha512-9yuiy1EMMF5JOy+tXzffmeIYgMGwBCH67wJ5BUYg2jLigiRqfVviEWhR0N3onuPKZf+GMf4laA8pxJFlF7p/FQ==
   dependencies:
     "@babel/runtime" "^7.9.0"
     react-ssr-prepass "^1.4.0"
 
-"@trpc/react@^9.12.0":
-  version "9.12.2"
-  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.12.2.tgz#7399daef67cd9e1e4ca7435c15d7d9db2e478b45"
-  integrity sha512-9MoCasfsWo42O9ZAgPgva1fxNxWHsqJg2Eu7Dp8sY6T5THfZG8+U15cx+kk24OeLeJ3YiF8jBy1i6H6iv3Qu/Q==
+"@trpc/react@^9.13.0":
+  version "9.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.13.0.tgz#7dfaaa5c36bbd197e6366423309435676f01854c"
+  integrity sha512-o97C5yb7w2w27bVEL2bPKerJnZHhvfXc/DoTQA1yvQ4HWgOGzvdUMUvwOjyvStqdxZuethAxhziWQ5lnSC+vYA==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/server@^9.12.0":
-  version "9.12.2"
-  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.12.2.tgz#04cb934746c6d1b36c5ad2d00f0dd27327d9f5e8"
-  integrity sha512-9u+ScxZcIDgydvd734KqoOofrXybJ/VD/YRlJODCzhUFEjtYzZ/BMz4n1ODVfg47NbJeuuJq2Ndb5kXOiD3utw==
+"@trpc/server@^9.13.0":
+  version "9.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.13.0.tgz#9753f29af3a76cf0e5e8a0ee288a3bc170c47761"
+  integrity sha512-UooZvh9mCsP43fEC9DVsjxGwj/XzBhiHcvmPe5QbOVME+s1s18oUIcliGp8KX5bHJSA3C2Yuqu72jLhB2kuxtg==
   dependencies:
     tslib "^2.1.0"
 
@@ -2006,7 +1995,7 @@
     "@types/node" "*"
     "@types/socket.io" "2.1.13"
 
-"@types/node@*", "@types/node@>=8.1.0", "@types/node@^16.11.5":
+"@types/node@*", "@types/node@>=8.1.0", "@types/node@^16.11.7":
   version "16.11.7"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.7.tgz#36820945061326978c42a01e56b61cd223dfdc42"
   integrity sha512-QB5D2sqfSjCmTuWcBWyJ+/44bcjO7VbjSbOE0ucoVbAsSNQc4Lt6QkgkVXkTDwkL4z/beecZNDvVX15D4P8Jbw==
@@ -3838,12 +3827,12 @@ eslint-plugin-prettier@^3.4.0:
   dependencies:
     prettier-linter-helpers "^1.0.0"
 
-eslint-plugin-react-hooks@^4.2.0:
+eslint-plugin-react-hooks@^4.3.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-4.3.0.tgz#318dbf312e06fab1c835a4abef00121751ac1172"
   integrity sha512-XslZy0LnMn+84NEG9jSGR6eGqaZB3133L8xewQo3fQagbQuGt7a63gf+P1NGKZavEYEC3UXaWEAA/AqDkuN6xA==
 
-eslint-plugin-react@^7.26.1:
+eslint-plugin-react@^7.27.0:
   version "7.27.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react/-/eslint-plugin-react-7.27.0.tgz#f952c76517a3915b81c7788b220b2b4c96703124"
   integrity sha512-0Ut+CkzpppgFtoIhdzi2LpdpxxBvgFf99eFqWxJnUrO7mMe0eOiNpou6rvNYeVVV6lWZvTah0BFne7k5xHjARg==
@@ -6624,7 +6613,7 @@ next-transpile-modules@^9.0.0:
     enhanced-resolve "^5.7.0"
     escalade "^3.1.1"
 
-next@^12.0.2:
+next@^12.0.3:
   version "12.0.3"
   resolved "https://registry.yarnpkg.com/next/-/next-12.0.3.tgz#325732ceb4193306a9a31912815fc570d1a66641"
   integrity sha512-GGdhTBcerdMZbitrO67IVetmB+AHa2X69xrkXKClUT8SRu8pEVto/2QMSnfI+uYc5czCUWPsVtVY3aMoMRMaCA==
@@ -7721,10 +7710,10 @@ react-fit@^1.0.3:
     detect-element-overflow "^1.2.0"
     prop-types "^15.6.0"
 
-react-hook-form@^7.17.5:
-  version "7.19.3"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.19.3.tgz#b6769ab3440390a3a1c33184e25881ff8f3ec1b8"
-  integrity sha512-ko3kz9wQNvwbTo5+4jlQi0iNnYv28eEAz47UAHxOtPUi+tCccCsm7fu8CTaJtMz77P3bedTNLSXAdcO/j1p3Ng==
+react-hook-form@^7.19.5:
+  version "7.19.5"
+  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.19.5.tgz#cc6087419facf2fb57d47d5b0d4a8ca63201298f"
+  integrity sha512-+M9gd0nWWASuEitf5PQGOGNElnHknzY3rGISrPDXwsOmZb7c/jyvkRUqk4OJXaZit1ZwesSv+EysttdAeFEfmw==
 
 react-hot-toast@^2.1.0:
   version "2.1.1"
@@ -7741,7 +7730,7 @@ react-i18next@^11.8.13:
     "@babel/runtime" "^7.14.5"
     html-parse-stringify "^3.0.1"
 
-react-intl@^5.20.7:
+react-intl@^5.21.1:
   version "5.21.1"
   resolved "https://registry.yarnpkg.com/react-intl/-/react-intl-5.21.1.tgz#b0d201a5b0307273b44f15ddb599552734724172"
   integrity sha512-MwkSaNW64fuI7bSuKcL4fzQ7PJf8qvHydbr8LzAB5cefYetP3NPfNivF8kB1I0nFvgQPUIt11NlP/y0uWEqUKw==
@@ -7783,10 +7772,10 @@ react-phone-number-input@^3.1.25:
     libphonenumber-js "^1.9.41"
     prop-types "^15.7.2"
 
-react-query@^3.30.0:
-  version "3.32.1"
-  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.32.1.tgz#829a87d039ece85660d8911ac59b1c92d1879064"
-  integrity sha512-7UN8BYBaZb911iJUyJ/T+CjlBGBf5W8rcm3jRQ5wW4f+mt/onvRxJlB0U2r2fsT204poJt6VO0jPlm5dwu3PrQ==
+react-query@^3.32.3:
+  version "3.32.3"
+  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.32.3.tgz#a15035d0bcd632fffc7044839469e685c2dbcfc9"
+  integrity sha512-RB/EOSdJkmuypDIARG/mVi2T41WZKz3tUh72HAUu1OA3VoFr2kG2OFZoO3ylMKjUYI4A9bSaD7wtYg4Nwb71gQ==
   dependencies:
     "@babel/runtime" "^7.5.5"
     broadcast-channel "^3.4.1"
@@ -7845,9 +7834,9 @@ react-router@5.2.1:
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
 
-react-select@^5.0.0, react-select@^5.1.0:
+react-select@^5.0.0, react-select@^5.2.1:
   version "5.2.1"
-  resolved "https://registry.npmjs.org/react-select/-/react-select-5.2.1.tgz#416c25c6b79b94687702374e019c4f2ed9d159d6"
+  resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.2.1.tgz#416c25c6b79b94687702374e019c4f2ed9d159d6"
   integrity sha512-OOyNzfKrhOcw/BlembyGWgdlJ2ObZRaqmQppPFut1RptJO423j+Y+JIsmxkvsZ4D/3CpOmwIlCvWbbAWEdh12A==
   dependencies:
     "@babel/runtime" "^7.12.0"
@@ -8683,10 +8672,18 @@ strip-json-comments@^3.1.0, strip-json-comments@^3.1.1:
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
-stripe@*, stripe@^8.168.0:
+stripe@*:
   version "8.186.1"
   resolved "https://registry.yarnpkg.com/stripe/-/stripe-8.186.1.tgz#fb717cfcb8c2e73c91e3873dc286f3e8442bfb65"
   integrity sha512-BBByVyqKEBY2GNQDLmfwL1RtfsPmjForD+up7tu+P7KYxxvwEzF1gM2Iv4npfOQevGaBmR70sxIWRwn7utS5pg==
+  dependencies:
+    "@types/node" ">=8.1.0"
+    qs "^6.6.0"
+
+stripe@^8.188.0:
+  version "8.188.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-8.188.0.tgz#1d892c2f9000847c627db06a374529e7fbd2b83e"
+  integrity sha512-AW5IOKq4y+ENfHddJPrLL/GSvGj1MnBvUe6QMI1z27x/4pMNrU7v0ZqzRSJCihWqP0tUuCmQibSYSbsV4XJ3zA==
   dependencies:
     "@types/node" ">=8.1.0"
     qs "^6.6.0"
