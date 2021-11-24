@@ -338,7 +338,7 @@ const EventTypesPage = () => {
           query={query}
           success={({ data }) => (
             <>
-              {data.user.plan === "FREE" && !data.canAddEvents && (
+              {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (
                 <Alert
                   severity="warning"
                   title={<>{t("plan_upgrade")}</>}
