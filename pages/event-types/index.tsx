@@ -357,19 +357,19 @@ const EventTypesPage = () => {
                 />
               )}
               {data.eventTypeGroups &&
-                data.eventTypeGroups.map((input) => (
-                  <Fragment key={input.profile.slug}>
+                data.eventTypeGroups.map((group) => (
+                  <Fragment key={group.profile.slug}>
                     {/* hide list heading when there is only one (current user) */}
-                    {(data.eventTypeGroups.length !== 1 || input.teamId) && (
+                    {(data.eventTypeGroups.length !== 1 || group.teamId) && (
                       <EventTypeListHeading
-                        profile={input.profile}
-                        membershipCount={input.metadata.membershipCount}
+                        profile={group.profile}
+                        membershipCount={group.metadata.membershipCount}
                       />
                     )}
                     <EventTypeList
-                      types={input.eventTypes}
-                      profile={input.profile}
-                      readOnly={input.metadata.readOnly}
+                      types={group.eventTypes}
+                      profile={group.profile}
+                      readOnly={group.metadata.readOnly}
                     />
                   </Fragment>
                 ))}
