@@ -15,15 +15,10 @@ export type AdvancedOptions = {
   price?: number;
   currency?: string;
   schedulingType?: SchedulingType;
-  users?: {
-    value: number;
-    label: string;
-    avatar: string;
-  }[];
+  users?: string[];
   availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
   customInputs?: EventTypeCustomInput[];
-  timeZone: string;
-  hidden: boolean;
+  timeZone?: string;
 };
 
 export type EventTypeCustomInput = {
@@ -55,7 +50,5 @@ export type EventTypeInput = AdvancedOptions & {
   length: number;
   hidden: boolean;
   locations: unknown;
-  customInputs: EventTypeCustomInput[];
-  timeZone: string;
   availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
 };
