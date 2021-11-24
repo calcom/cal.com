@@ -9,6 +9,7 @@ import nodemailer from "nodemailer";
 import { getCancelLink } from "@lib/CalEventParser";
 import { CalendarEvent, Person } from "@lib/calendarClient";
 import { getErrorFromUnknown } from "@lib/errors";
+import { getIntegrationName } from "@lib/integrations";
 import { serverConfig } from "@lib/serverConfig";
 
 import { emailHead } from "./common/head";
@@ -459,7 +460,7 @@ ${this.getAdditionalNotes()}
   }
 
   protected getLocation(): string {
-    let providerName = "";
+    let providerName = this.calEvent.location ? getIntegrationName(this.calEvent.location) : "";
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];
@@ -529,7 +530,7 @@ ${this.getAdditionalNotes()}
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.language("where")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.location}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName}</p>
     </div>
     `;
   }

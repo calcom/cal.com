@@ -251,28 +251,4 @@ ${this.getAdditionalNotes()}
     </html>
     `;
   }
-
-  protected getLocation(): string {
-    if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
-      const location = this.calEvent.location.split(":")[1];
-
-      return `
-      <p style="height: 6px"></p>
-      <div style="line-height: 6px;">
-        <p style="color: #494949;">${this.calEvent.language("where")}</p>
-        <p style="color: #494949; font-weight: 400; line-height: 24px;">${
-          location[0].toUpperCase() + location.slice(1)
-        }</p>
-      </div>
-      `;
-    }
-
-    return `
-    <p style="height: 6px"></p>
-    <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.language("where")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.location}</p>
-    </div>
-    `;
-  }
 }
