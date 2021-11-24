@@ -34,6 +34,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bio: true,
       avatar: true,
       theme: true,
+      brandColor: true,
     },
   });
 
@@ -108,6 +109,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         name: user.name,
         image: user.avatar,
         theme: user.theme,
+        brandColor: user.brandColor,
       },
       eventType: eventTypeObject,
       booking,

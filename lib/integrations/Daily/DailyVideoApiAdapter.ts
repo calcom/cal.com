@@ -97,6 +97,23 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     // added a 1 hour buffer for room expiration and room entry
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
     const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 60;
+    const scalePlan = process.env.DAILY_SCALE_PLAN;
+
+    if (scalePlan === "true") {
+      return {
+        privacy: "private",
+        properties: {
+          enable_new_call_ui: true,
+          enable_prejoin_ui: true,
+          enable_knocking: true,
+          enable_screenshare: true,
+          enable_chat: true,
+          exp: exp,
+          nbf: nbf,
+          enable_recording: "local",
+        },
+      };
+    }
     return {
       privacy: "private",
       properties: {
