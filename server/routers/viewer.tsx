@@ -239,8 +239,10 @@ const loggedInViewerRouter = createProtectedRouter()
       const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
 
       return {
-        canAddEvents,
-        user,
+        viewer: {
+          canAddEvents,
+          plan: user.plan,
+        },
         // don't display event teams without event types,
         eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
         // so we can show a dropdown when the user has teams
