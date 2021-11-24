@@ -375,7 +375,7 @@ const EventTypesPage = () => {
                 ))}
 
               {data.eventTypeGroups.length === 0 && (
-                <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.canAddEvents} />
+                <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
             </>
           )}
