@@ -2,6 +2,7 @@ import { Credential } from "@prisma/client";
 
 import { CalendarEvent } from "@lib/calendarClient";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
+import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
 
@@ -183,7 +184,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 
       return Promise.resolve({
         type: "zoom_video",
-        id: result.id,
+        id: result.id as string,
         password: result.password ?? "",
         url: result.join_url,
       });
@@ -200,10 +201,10 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 
       return Promise.resolve();
     },
-    updateMeeting: async (uid: string, event: CalendarEvent): Promise<void> => {
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       const accessToken = await auth.getToken();
 
-      await fetch("https://api.zoom.us/v2/meetings/" + uid, {
+      await fetch("https://api.zoom.us/v2/meetings/" + bookingRef.uid, {
         method: "PATCH",
         headers: {
           Authorization: "Bearer " + accessToken,
@@ -212,7 +213,12 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         body: JSON.stringify(translateEvent(event)),
       }).then(handleErrorsRaw);
 
-      return Promise.resolve();
+      return Promise.resolve({
+        type: "zoom_video",
+        id: bookingRef.meetingId as string,
+        password: bookingRef.meetingPassword as string,
+        url: bookingRef.meetingUrl as string,
+      });
     },
   };
 };

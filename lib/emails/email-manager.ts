@@ -4,12 +4,14 @@ import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-ema
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";
 import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "@lib/emails/templates/attendee-scheduled-email";
+import ForgotPasswordEmail, { PasswordReset } from "@lib/emails/templates/forgot-password-email";
 import OrganizerCancelledEmail from "@lib/emails/templates/organizer-cancelled-email";
 import OrganizerPaymentRefundFailedEmail from "@lib/emails/templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "@lib/emails/templates/organizer-request-email";
 import OrganizerRequestReminderEmail from "@lib/emails/templates/organizer-request-reminder-email";
 import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
+import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend = [];
@@ -168,6 +170,28 @@ export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEv
       resolve(paymentRefundFailedEmail.sendEmail());
     } catch (e) {
       reject(console.error("OrganizerPaymentRefundFailedEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const passwordResetEmail = new ForgotPasswordEmail(passwordResetEvent);
+      resolve(passwordResetEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("OrganizerPaymentRefundFailedEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const teamInviteEmail = new TeamInviteEmail(teamInviteEvent);
+      resolve(teamInviteEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("TeamInviteEmail.sendEmail failed", e));
     }
   });
 };

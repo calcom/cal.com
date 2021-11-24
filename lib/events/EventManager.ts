@@ -40,10 +40,6 @@ export interface PartialReference {
   meetingUrl?: string | null;
 }
 
-interface GetLocationRequestFromIntegrationRequest {
-  location: string;
-}
-
 export const isZoom = (location: string): boolean => {
   return location === "integrations:zoom";
 };
@@ -54,6 +50,40 @@ export const isDaily = (location: string): boolean => {
 
 export const isDedicatedIntegration = (location: string): boolean => {
   return isZoom(location) || isDaily(location);
+};
+
+export const getLocationRequestFromIntegration = (location: string) => {
+  if (
+    location === LocationType.GoogleMeet.valueOf() ||
+    location === LocationType.Zoom.valueOf() ||
+    location === LocationType.Daily.valueOf()
+  ) {
+    const requestId = uuidv5(location, uuidv5.URL);
+
+    return {
+      conferenceData: {
+        createRequest: {
+          requestId: requestId,
+        },
+      },
+      location,
+    };
+  }
+
+  return null;
+};
+
+export const processLocation = (event: CalendarEvent): CalendarEvent => {
+  // If location is set to an integration location
+  // Build proper transforms for evt object
+  // Extend evt object with those transformations
+  if (event.location?.includes("integration")) {
+    const maybeLocationRequestObject = getLocationRequestFromIntegration(event.location);
+
+    event = merge(event, maybeLocationRequestObject);
+  }
+
+  return event;
 };
 
 export default class EventManager {
@@ -84,7 +114,7 @@ export default class EventManager {
    * @param event
    */
   public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
-    const evt = EventManager.processLocation(event);
+    const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
     // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
@@ -101,8 +131,8 @@ export default class EventManager {
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
         type: result.type,
-        uid: (result.createdEvent?.id as string) ?? "",
-        meetingId: (result.createdEvent?.id as string) ?? "",
+        uid: result.createdEvent?.id.toString(),
+        meetingId: result.createdEvent?.id.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
       };
@@ -124,7 +154,7 @@ export default class EventManager {
     event: Ensure<CalendarEvent, "language">,
     rescheduleUid: string
   ): Promise<CreateUpdateResult> {
-    const evt = EventManager.processLocation(event);
+    const evt = processLocation(event);
 
     if (!rescheduleUid) {
       throw new Error("You called eventManager.update without an `rescheduleUid`. This should never happen.");
@@ -284,109 +314,9 @@ export default class EventManager {
 
     if (credential) {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
-      const bookingRefUid = bookingRef ? bookingRef.uid : null;
-      return updateMeeting(credential, event, bookingRefUid).then((returnVal: EventResult) => {
-        // Some video integrations, such as Zoom, don't return any data about the booking when updating it.
-        // if (returnVal.videoCallData === undefined) {
-        //   returnVal.videoCallData = EventManager.bookingReferenceToVideoCallData(bookingRef);
-        // }
-        return returnVal;
-      });
+      return updateMeeting(credential, event, bookingRef);
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
-    }
-  }
-
-  /**
-   * Helper function for processLocation: Returns the conferenceData object to be merged
-   * with the CalendarEvent.
-   *
-   * @param locationObj
-   * @private
-   */
-  private static getLocationRequestFromIntegration(locationObj: GetLocationRequestFromIntegrationRequest) {
-    const location = locationObj.location;
-
-    if (
-      location === LocationType.GoogleMeet.valueOf() ||
-      location === LocationType.Zoom.valueOf() ||
-      location === LocationType.Daily.valueOf()
-    ) {
-      const requestId = uuidv5(location, uuidv5.URL);
-
-      return {
-        conferenceData: {
-          createRequest: {
-            requestId: requestId,
-          },
-        },
-        location,
-      };
-    }
-
-    return null;
-  }
-
-  /**
-   * Takes a CalendarEvent and adds a ConferenceData object to the event
-   * if the event has an integration-related location.
-   *
-   * @param event
-   * @private
-   */
-  private static processLocation<T extends CalendarEvent>(event: T): T {
-    // If location is set to an integration location
-    // Build proper transforms for evt object
-    // Extend evt object with those transformations
-    if (event.location?.includes("integration")) {
-      const maybeLocationRequestObject = EventManager.getLocationRequestFromIntegration({
-        location: event.location,
-      });
-
-      event = merge(event, maybeLocationRequestObject);
-    }
-
-    return event;
-  }
-
-  /**
-   * Accepts a PartialReference object and, if all data is complete,
-   * returns a VideoCallData object containing the meeting information.
-   *
-   * @param reference
-   * @private
-   */
-  private static bookingReferenceToVideoCallData(
-    reference: PartialReference | null
-  ): VideoCallData | undefined {
-    let isComplete = true;
-
-    if (reference) {
-      switch (reference.type) {
-        case "zoom_video":
-          // Zoom meetings in our system should always have an ID, a password and a join URL. In the
-          // future, it might happen that we consider making passwords for Zoom meetings optional.
-          // Then, this part below (where the password existence is checked) needs to be adapted.
-          isComplete =
-            reference.meetingId !== undefined &&
-            reference.meetingPassword !== undefined &&
-            reference.meetingUrl !== undefined;
-          break;
-        default:
-          isComplete = true;
-      }
-
-      if (isComplete) {
-        return {
-          type: reference.type,
-          // The null coalescing operator should actually never be used here, because we checked if it's defined beforehand.
-          id: reference.meetingId ?? "",
-          password: reference.meetingPassword ?? "",
-          url: reference.meetingUrl ?? "",
-        };
-      } else {
-        return undefined;
-      }
     }
   }
 }

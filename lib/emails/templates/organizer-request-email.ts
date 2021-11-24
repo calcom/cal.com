@@ -4,6 +4,7 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
+import { emailHead } from "./common/head";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 dayjs.extend(utc);
@@ -51,112 +52,27 @@ ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
 ${this.calEvent.language("confirm_or_reject_request")}
-${this.parser.getCancelLink()}
+${process.env.BASE_URL} + "/bookings/upcoming"
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
   protected getHtmlBody(): string {
+    const headerContent = this.calEvent.language("event_awaiting_approval_subject", {
+      eventType: this.calEvent.type,
+      name: this.calEvent.attendees[0].name,
+      date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
+        "h:mma"
+      )}, ${this.calEvent.language(
+        this.getOrganizerStart().format("dddd").toLowerCase()
+      )}, ${this.calEvent.language(
+        this.getOrganizerStart().format("MMMM").toLowerCase()
+      )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
+    });
+
     return `
     <!doctype html>
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-
-    <head>
-      <title>${this.calEvent.language("event_awaiting_approval_subject", {
-        eventType: this.calEvent.type,
-        name: this.calEvent.attendees[0].name,
-        date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
-          "h:mma"
-        )}, ${this.calEvent.language(
-          this.getOrganizerStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.language(
-          this.getOrganizerStart().format("MMMM").toLowerCase()
-        )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
-      })}</title>
-      <!--[if !mso]><!-->
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <!--<![endif]-->
-      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <style type="text/css">
-        #outlook a {
-          padding: 0;
-        }
-
-        body {
-          margin: 0;
-          padding: 0;
-          -webkit-text-size-adjust: 100%;
-          -ms-text-size-adjust: 100%;
-        }
-
-        table,
-        td {
-          border-collapse: collapse;
-          mso-table-lspace: 0pt;
-          mso-table-rspace: 0pt;
-        }
-
-        img {
-          border: 0;
-          height: auto;
-          line-height: 100%;
-          outline: none;
-          text-decoration: none;
-          -ms-interpolation-mode: bicubic;
-        }
-
-        p {
-          display: block;
-          margin: 13px 0;
-        }
-      </style>
-      <!--[if mso]>
-            <noscript>
-            <xml>
-            <o:OfficeDocumentSettings>
-              <o:AllowPNG/>
-              <o:PixelsPerInch>96</o:PixelsPerInch>
-            </o:OfficeDocumentSettings>
-            </xml>
-            </noscript>
-            <![endif]-->
-      <!--[if lte mso 11]>
-            <style type="text/css">
-              .mj-outlook-group-fix { width:100% !important; }
-            </style>
-            <![endif]-->
-      <!--[if !mso]><!-->
-      <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet" type="text/css">
-      <style type="text/css">
-        @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700);
-      </style>
-      <!--<![endif]-->
-      <style type="text/css">
-        @media only screen and (min-width:480px) {
-          .mj-column-per-100 {
-            width: 100% !important;
-            max-width: 100%;
-          }
-        }
-      </style>
-      <style media="screen and (min-width:480px)">
-        .moz-text-html .mj-column-per-100 {
-          width: 100% !important;
-          max-width: 100%;
-        }
-      </style>
-      <style type="text/css">
-        @media only screen and (max-width:480px) {
-          table.mj-full-width-mobile {
-            width: 100% !important;
-          }
-
-          td.mj-full-width-mobile {
-            width: auto !important;
-          }
-        }
-      </style>
-    </head>
+    ${emailHead(headerContent)}
 
     <body style="word-spacing:normal;background-color:#F5F5F5;">
       <div style="background-color:#F5F5F5;">
@@ -401,7 +317,8 @@ ${this.parser.getCancelLink()}
 
   protected getManageLink(): string {
     const manageText = this.calEvent.language("confirm_or_reject_request");
-    return `<a style="color: #FFFFFF; text-decoration: none;" href="${this.parser.getCancelLink()}" target="_blank">${manageText} <img src="https://i.imgur.com/rKsIBcc.png" width="12px"></img></a>`;
+    const manageLink = process.env.BASE_URL + "/bookings/upcoming";
+    return `<a style="color: #FFFFFF; text-decoration: none;" href="${manageLink}" target="_blank">${manageText} <img src="https://i.imgur.com/rKsIBcc.png" width="12px"></img></a>`;
   }
 
   protected getLocation(): string {

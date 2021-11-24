@@ -4,6 +4,7 @@ import { TFunction } from "next-i18next";
 
 import { PaymentInfo } from "@ee/lib/stripe/server";
 
+import { getUid } from "@lib/CalEventParser";
 import { Event, EventResult } from "@lib/events/EventManager";
 import { AppleCalendar } from "@lib/integrations/Apple/AppleCalendarAdapter";
 import { CalDavCalendar } from "@lib/integrations/CalDav/CalDavCalendarAdapter";
@@ -17,8 +18,6 @@ import {
 } from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
 import logger from "@lib/logger";
 import { VideoCallData } from "@lib/videoClient";
-
-import CalEventParser from "./CalEventParser";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
@@ -143,20 +142,12 @@ const listCalendars = (withCredentials: Credential[]) =>
   );
 
 const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
-  const uid: string = parser.getUid();
-  /*
-   * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
-   * We need HTML there. Google Calendar understands newlines and Apple Calendar cannot show HTML, so no HTML should
-   * be used for Google and Apple Calendar.
-   */
-  const richEvent: CalendarEvent = parser.asRichEventPlain();
-
+  const uid: string = getUid(calEvent);
   let success = true;
 
   const creationResult = credential
     ? await calendars([credential])[0]
-        .createEvent(richEvent)
+        .createEvent(calEvent)
         .catch((e) => {
           log.error("createEvent failed", e, calEvent);
           success = false;
@@ -187,21 +178,13 @@ const updateEvent = async (
   calEvent: CalendarEvent,
   bookingRefUid: string | null
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
-  const uid = parser.getUid();
-  /*
-   * Matching the credential type is a workaround because the office calendar simply strips away newlines (\n and \r).
-   * We need HTML there. Google Calendar understands newlines and Apple Calendar cannot show HTML, so no HTML should
-   * be used for Google and Apple Calendar.
-   */
-  const richEvent: CalendarEvent = parser.asRichEventPlain();
-
+  const uid = getUid(calEvent);
   let success = true;
 
   const updationResult =
     credential && bookingRefUid
       ? await calendars([credential])[0]
-          .updateEvent(bookingRefUid, richEvent)
+          .updateEvent(bookingRefUid, calEvent)
           .catch((e) => {
             log.error("updateEvent failed", e, calEvent);
             success = false;

@@ -2,6 +2,7 @@ import { Credential } from "@prisma/client";
 
 import { CalendarEvent } from "@lib/calendarClient";
 import { handleErrorsJson } from "@lib/errors";
+import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
 
@@ -150,8 +151,8 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 
       return Promise.resolve();
     },
-    updateMeeting: (uid: string, event: CalendarEvent): Promise<VideoCallData> =>
-      createOrUpdateMeeting("/rooms/" + uid, event),
+    updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
+      createOrUpdateMeeting("/rooms/" + bookingRef.uid, event),
   };
 };
 

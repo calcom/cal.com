@@ -2,9 +2,9 @@ import { Credential } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import CalEventParser from "@lib/CalEventParser";
-import "@lib/emails/EventMail";
+import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
+import { PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
 import { CalendarEvent } from "./calendarClient";
@@ -28,7 +28,7 @@ type EventBusyDate = Record<"start" | "end", Date>;
 export interface VideoApiAdapter {
   createMeeting(event: CalendarEvent): Promise<VideoCallData>;
 
-  updateMeeting(uid: string, event: CalendarEvent): Promise<VideoCallData | void>;
+  updateMeeting(bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData>;
 
   deleteMeeting(uid: string): Promise<unknown>;
 
@@ -60,8 +60,7 @@ const createMeeting = async (
   credential: Credential,
   calEvent: Ensure<CalendarEvent, "language">
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
-  const uid: string = parser.getUid();
+  const uid: string = getUid(calEvent);
 
   if (!credential) {
     throw new Error(
@@ -99,7 +98,7 @@ const createMeeting = async (
 const updateMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  bookingRefUid: string | null
+  bookingRef: PartialReference | null
 ): Promise<EventResult> => {
   const uid = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
@@ -107,8 +106,8 @@ const updateMeeting = async (
 
   const [firstVideoAdapter] = getVideoAdapters([credential]);
   const updatedMeeting =
-    credential && bookingRefUid
-      ? await firstVideoAdapter.updateMeeting(bookingRefUid, calEvent).catch((e) => {
+    credential && bookingRef
+      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch((e) => {
           log.error("updateMeeting failed", e, calEvent);
           success = false;
           return undefined;
