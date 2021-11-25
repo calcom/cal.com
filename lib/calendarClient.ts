@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { Credential, Prisma, SelectedCalendar } from "@prisma/client";
 import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";

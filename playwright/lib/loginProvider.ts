@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { provider, Provider } from "kont";
 import { Page, Cookie } from "playwright";
 

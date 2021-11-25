@@ -117,7 +117,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     return (router.locales || []).map((locale) => ({
       value: locale,
       // FIXME
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale),
     }));
@@ -127,17 +126,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     { value: "light", label: t("light") },
     { value: "dark", label: t("dark") },
   ];
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const usernameRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const nameRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const avatarRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const brandColorRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>();
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);

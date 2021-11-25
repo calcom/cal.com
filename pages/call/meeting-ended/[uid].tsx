@@ -14,7 +14,6 @@ import Button from "@components/ui/Button";
 export default function MeetingUnavailable(props) {
   const router = useRouter();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [is24h, setIs24h] = useState(false);
 
   //if no booking redirectis to the 404 page

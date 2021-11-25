@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { GetServerSidePropsContext, NextApiRequest } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 

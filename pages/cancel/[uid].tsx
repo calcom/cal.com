@@ -21,13 +21,11 @@ export default function Type(props) {
   const router = useRouter();
   const { uid } = router.query;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [is24h, setIs24h] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(props.booking ? null : t("booking_already_cancelled"));
   const telemetry = useTelemetry();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const cancellationHandler = async (event) => {
     setLoading(true);
 
