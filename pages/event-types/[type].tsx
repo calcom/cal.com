@@ -909,8 +909,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     dateOverrides: val.dateOverrides,
                                   });
                                 }}
-                                setTimeZone={(val: string) => {
-                                  formMethods.setValue("scheduler.selectedTimezone", val);
+                                setTimeZone={(timeZone) => {
+                                  formMethods.setValue("scheduler.selectedTimezone", timeZone);
+                                  setSelectedTimeZone(timeZone);
                                 }}
                                 timeZone={selectedTimeZone}
                                 availability={availability.map((schedule) => ({
