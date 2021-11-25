@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import { BASE_URL } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import prisma from "@lib/prisma";
@@ -78,9 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         from: session.user.name,
         to: req.body.usernameOrEmail,
         teamName: team.name,
-        joinLink: `${process.env.BASE_URL}/auth/signup?token=${token}&callbackUrl=${
-          process.env.BASE_URL + "/settings/teams"
-        }`,
+        joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=${BASE_URL + "/settings/teams"}`,
       };
 
       await sendTeamInviteEmail(teamInviteEvent);
@@ -116,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       from: session.user.name,
       to: req.body.usernameOrEmail,
       teamName: team.name,
-      joinLink: process.env.BASE_URL + "/settings/teams",
+      joinLink: BASE_URL + "/settings/teams",
     };
 
     await sendTeamInviteEmail(teamInviteEvent);
