@@ -90,7 +90,19 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                   if (err) {
                     reject(err);
                   }
-                  resolve(Object.values(apires.data.calendars).flatMap((item) => item["busy"]));
+                  let result: Prisma.PromiseReturnType<CalendarApiAdapter["getAvailability"]> = [];
+                  if (apires?.data.calendars) {
+                    result = Object.values(apires.data.calendars).reduce((c, i) => {
+                      i.busy?.forEach((busyTime) => {
+                        c.push({
+                          start: busyTime.start || "",
+                          end: busyTime.end || "",
+                        });
+                      });
+                      return c;
+                    }, [] as typeof result);
+                  }
+                  resolve(result);
                 }
               );
             })
