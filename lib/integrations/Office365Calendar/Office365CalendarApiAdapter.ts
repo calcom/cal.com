@@ -24,13 +24,12 @@ const o365Auth = (credential: Credential) => {
     return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      // FIXME types - IDK how to type this TBH
       body: new URLSearchParams({
         scope: "User.Read Calendars.Read Calendars.ReadWrite",
-        client_id: process.env.MS_GRAPH_CLIENT_ID,
+        client_id: process.env.MS_GRAPH_CLIENT_ID!,
         refresh_token: refreshToken,
         grant_type: "refresh_token",
-        client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+        client_secret: process.env.MS_GRAPH_CLIENT_SECRET!,
       }),
     })
       .then(handleErrorsJson)
