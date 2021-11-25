@@ -1,6 +1,7 @@
 import { Credential } from "@prisma/client";
 
 import { CalendarEvent } from "@lib/calendarClient";
+import { BASE_URL } from "@lib/config/constants";
 import { handleErrorsJson } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
@@ -94,7 +95,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       type: "daily_video",
       id: dailyEvent.name,
       password: "",
-      url: process.env.BASE_URL + "/call/" + event.uid,
+      url: BASE_URL + "/call/" + event.uid,
     });
   }
 
