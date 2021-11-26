@@ -86,7 +86,7 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
       <div className="flex">
         <div className="w-full">
           <div>
-            <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               {t("timezone")}
             </label>
             <div className="mt-1">

@@ -110,8 +110,8 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
   }
 
   return (
-    <div className="mb-16 -mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
-      <ul className="divide-y divide-neutral-200" data-testid="event-types">
+    <div className="mb-16 -mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0 dark:bg-gray-700 dark:border-gray-500">
+      <ul className="divide-y divide-neutral-200 dark:divide-neutral-500" data-testid="event-types">
         {sortableTypes.map((type, index) => (
           <li
             key={type.id}
@@ -121,10 +121,10 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
             data-disabled={type.$disabled ? 1 : 0}>
             <div
               className={classNames(
-                "hover:bg-neutral-50 flex justify-between items-center ",
+                "hover:bg-neutral-50 flex justify-between items-center dark:hover:bg-gray-600 ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="group flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
+              <div className="flex items-center justify-between w-full px-4 py-4 group sm:px-6 hover:bg-neutral-50 dark:hover:bg-gray-600">
                 <button
                   className="absolute mb-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
                   onClick={() => moveEventType(index, -1)}>
@@ -140,7 +140,9 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                     className="flex-grow text-sm truncate"
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
-                      <span className="font-medium truncate text-neutral-900">{type.title}</span>
+                      <span className="font-medium truncate text-neutral-900 dark:text-gray-100">
+                        {type.title}
+                      </span>
                       {type.hidden && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                           {t("hidden")}

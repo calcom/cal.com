@@ -5,7 +5,7 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
     "./ee/components/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: "class",
+  darkMode: "media",
   theme: {
     fontFamily: {
       sans: ["Roboto", "sans-serif"],

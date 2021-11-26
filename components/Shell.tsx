@@ -195,30 +195,30 @@ export default function Shell(props: {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden bg-gray-100">
+      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-800">
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-56">
-            <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
+            <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200 dark:bg-gray-900 dark:border-gray-700">
               <div className="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
                 <Link href="/event-types">
                   <a className="px-4">
                     <Logo small />
                   </a>
                 </Link>
-                <nav className="flex-1 px-2 mt-5 space-y-1 bg-white">
+                <nav className="flex-1 px-2 mt-5 space-y-1 bg-white dark:bg-gray-900">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
                         className={classNames(
                           item.current
-                            ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                            ? "bg-neutral-100 text-neutral-900 dark:bg-gray-700 dark:text-white"
+                            : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 dark:text-gray-400",
                           "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
                         )}>
                         <item.icon
                           className={classNames(
                             item.current
-                              ? "text-neutral-500"
+                              ? "text-neutral-500 dark:text-gray-100"
                               : "text-neutral-400 group-hover:text-neutral-500",
                             "mr-3 flex-shrink-0 h-5 w-5"
                           )}
@@ -230,7 +230,7 @@ export default function Shell(props: {
                   ))}
                 </nav>
               </div>
-              <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
+              <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700">
                 <UserDropdown />
               </div>
             </div>
@@ -261,10 +261,10 @@ export default function Shell(props: {
             <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
                 <div className="w-full mb-8">
-                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
+                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal dark:text-white">
                     {props.heading}
                   </h1>
-                  <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
+                  <p className="mr-4 text-sm text-neutral-500 dark:text-gray-400">{props.subtitle}</p>
                 </div>
                 <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>

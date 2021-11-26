@@ -9,7 +9,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description,
   return (
     <div className="items-center block sm:flex">
       <div className="mb-4 min-w-48 sm:mb-0">
-        <label htmlFor={rest.id} className="flex text-sm font-medium text-neutral-700">
+        <label htmlFor={rest.id} className="flex text-sm font-medium text-neutral-700 dark:text-gray-200">
           {label}
         </label>
       </div>
@@ -24,7 +24,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description,
             />
           </div>
           <div className="ml-3 text-sm">
-            <p className="text-neutral-900">{description}</p>
+            <p className="text-neutral-900 dark:text-gray-400">{description}</p>
           </div>
         </div>
       </div>

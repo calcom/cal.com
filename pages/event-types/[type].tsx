@@ -275,7 +275,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               options={locationOptions}
               isSearchable={false}
               classNamePrefix="react-select"
-              className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+              className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:border-gray-400"
               onChange={(e) => {
                 locationFormMethods.setValue("locationType", e?.value);
                 openLocationModal(e?.value);
@@ -289,7 +289,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <li
                 key={location.type}
                 className="py-1.5 px-2 mb-2 border rounded-sm shadow-sm border-neutral-300">
-                <div className="flex justify-between">
+                <div className="flex justify-between text-neutral-700 dark:text-gray-300">
                   {location.type === LocationType.InPerson && (
                     <div className="flex items-center flex-grow">
                       <LocationMarkerIcon className="w-6 h-6" />
@@ -424,10 +424,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <li>
                   <button
                     type="button"
-                    className="flex px-3 py-2 rounded-sm hover:bg-gray-100"
+                    className="flex px-3 py-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-600"
                     onClick={() => setShowLocationModal(true)}>
-                    <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900" />
-                    <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
+                    <PlusIcon className="h-4 w-4 mt-0.5 text-neutral-900 dark:text-gray-300" />
+                    <span className="ml-1 text-sm font-medium text-neutral-700 dark:text-gray-300">
+                      {t("add_location")}
+                    </span>
                   </button>
                 </li>
               )}
@@ -447,7 +449,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <input
               type="text"
               required
-              className="w-full pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
+              className="w-full pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none dark:text-white dark:focus:text-white dark:hover:text-gray-200"
               placeholder={t("quick_chat")}
               {...formMethods.register("title")}
               defaultValue={eventType.title}
@@ -455,7 +457,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             {editIcon && (
               <PencilIcon
                 style={{ top: 14, left: `${eventType.title.length * 10 + 8}` }}
-                className="absolute left-0 inline w-4 h-4 text-gray-500 group-hover:text-gray-700"
+                className="absolute left-0 inline w-4 h-4 text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300"
               />
             )}
           </div>
@@ -463,7 +465,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         subtitle={eventType.description || ""}>
         <div className="block mx-auto sm:flex md:max-w-5xl">
           <div className="w-full mr-2 sm:w-9/12">
-            <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
+            <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8 dark:bg-gray-700 dark:border-gray-400">
               <form
                 onSubmit={formMethods.handleSubmit(async (values) => {
                   const enteredTitle: string = values.title;
@@ -512,21 +514,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
                     <div className="mb-4 min-w-48 sm:mb-0">
-                      <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
+                      <label
+                        htmlFor="slug"
+                        className="flex text-sm font-medium text-neutral-700 dark:text-gray-300">
                         <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                         {t("url")}
                       </label>
                     </div>
                     <div className="w-full">
                       <div className="flex rounded-sm shadow-sm">
-                        <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                        <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm dark:bg-gray-700 dark:border-gray-500 dark:text-gray-200">
                           {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
                           type="text"
                           required
-                          className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200"
                           defaultValue={eventType.slug}
                           {...formMethods.register("slug")}
                         />
@@ -540,9 +544,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     render={() => (
                       <MinutesField
                         label={
-                          <>
+                          <div className="flex text-neutral-700 dark:text-gray-300">
                             <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> {t("duration")}
-                          </>
+                          </div>
                         }
                         id="length"
                         required
@@ -559,7 +563,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <div className="space-y-3">
                   <div className="block sm:flex">
                     <div className="min-w-48 sm:mb-0">
-                      <label htmlFor="location" className="flex mt-2.5 text-sm font-medium text-neutral-700">
+                      <label
+                        htmlFor="location"
+                        className="flex mt-2.5 text-sm font-medium text-neutral-700 dark:text-gray-300">
                         <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                         {t("location")}
                       </label>
@@ -576,7 +582,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <div className="space-y-3">
                   <div className="block sm:flex">
                     <div className="mb-4 min-w-48 sm:mb-0 mt-2.5">
-                      <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
+                      <label
+                        htmlFor="description"
+                        className="flex mt-0 text-sm font-medium text-neutral-700 dark:text-gray-300">
                         <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
                         {t("description")}
                       </label>
@@ -584,7 +592,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="w-full">
                       <textarea
                         id="description"
-                        className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                        className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200"
                         placeholder={t("quick_video_meeting")}
                         {...formMethods.register("description")}
                         defaultValue={asStringOrUndefined(eventType.description)}></textarea>
@@ -598,7 +606,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="mb-4 min-w-48 sm:mb-0">
                         <label
                           htmlFor="schedulingType"
-                          className="flex mt-2 text-sm font-medium text-neutral-700">
+                          className="flex mt-2 text-sm font-medium text-neutral-700 dark:text-gray-300">
                           <UsersIcon className="w-5 h-5 mr-2 text-neutral-500" /> {t("scheduling_type")}
                         </label>
                       </div>
@@ -620,7 +628,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                     <div className="block sm:flex">
                       <div className="mb-4 min-w-48 sm:mb-0">
-                        <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
+                        <label
+                          htmlFor="users"
+                          className="flex text-sm font-medium text-neutral-700 dark:text-gray-300">
                           <UserAddIcon className="w-5 h-5 mr-2 text-neutral-500" /> {t("attendees")}
                         </label>
                       </div>
@@ -658,14 +668,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           advancedSettingsVisible ? "transform rotate-90" : ""
                         } w-5 h-5 text-neutral-500 ml-auto`}
                       />
-                      <span className="text-sm font-medium text-neutral-700">
+                      <span className="text-sm font-medium text-neutral-700 dark:text-gray-300">
                         {t("show_advanced_settings")}
                       </span>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-6">
                       <div className="items-center block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
-                          <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
+                          <label
+                            htmlFor="eventName"
+                            className="flex text-sm font-medium text-neutral-700 dark:text-gray-300">
                             {t("event_name")}
                           </label>
                         </div>
@@ -673,7 +685,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <div className="relative mt-1 rounded-sm shadow-sm">
                             <input
                               type="text"
-                              className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                              className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200"
                               placeholder={t("meeting_with_user")}
                               defaultValue={eventType.eventName || ""}
                               {...formMethods.register("eventTitle")}
@@ -685,7 +697,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <div className="mb-4 min-w-48 sm:mb-0">
                           <label
                             htmlFor="additionalFields"
-                            className="mt-2 text-sm font-medium flexflex text-neutral-700">
+                            className="mt-2 text-sm font-medium flexflex text-neutral-700 dark:text-gray-300">
                             {t("additional_inputs")}
                           </label>
                         </div>
@@ -813,7 +825,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <div className="mb-4 min-w-48 sm:mb-0">
                           <label
                             htmlFor="inviteesCanSchedule"
-                            className="flex text-sm font-medium text-neutral-700 mt-2.5">
+                            className="flex text-sm font-medium text-neutral-700 dark:text-gray-300 mt-2.5">
                             {t("invitees_can_schedule")}
                           </label>
                         </div>
@@ -834,12 +846,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       className="flex items-center w-4 h-4 mr-2 bg-white border border-black rounded-full cursor-pointer focus:border-2 focus:outline-none">
                                       <RadioGroup.Indicator className="relative flex items-center justify-center w-4 h-4 after:bg-black after:block after:w-2 after:h-2 after:rounded-full" />
                                     </RadioGroup.Item>
-                                    {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
+                                    {period.prefix ? (
+                                      <span className="dark:text-gray-400">{period.prefix}&nbsp;</span>
+                                    ) : null}
                                     {period.type === "ROLLING" && (
                                       <div className="inline-flex">
                                         <input
                                           type="text"
-                                          className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                          className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200"
                                           placeholder="30"
                                           {...formMethods.register("periodDays")}
                                           defaultValue={eventType.periodDays || 30}
@@ -849,7 +863,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         />
                                         <select
                                           id=""
-                                          className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                          className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200"
                                           {...formMethods.register("periodDaysType")}
                                           defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                           <option value="1">{t("calendar_days")}</option>
@@ -876,7 +890,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                     )}
                                     {period.suffix ? (
-                                      <span className="ml-2">&nbsp;{period.suffix}</span>
+                                      <span className="ml-2 dark:text-gray-400">&nbsp;{period.suffix}</span>
                                     ) : null}
                                   </div>
                                 ))}
@@ -890,7 +904,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                       <div className="block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
-                          <label htmlFor="availability" className="flex text-sm font-medium text-neutral-700">
+                          <label
+                            htmlFor="availability"
+                            className="flex text-sm font-medium text-neutral-700 dark:text-gray-300">
                             {t("availability")}
                           </label>
                         </div>
@@ -931,7 +947,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <div className="mb-4 min-w-48 sm:mb-0">
                               <label
                                 htmlFor="payment"
-                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                className="flex mt-2 text-sm font-medium text-neutral-700 dark:text-gray-300">
                                 {t("payment")}
                               </label>
                             </div>
@@ -1040,7 +1056,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 href={permalink}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
+                className="inline-flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 dark:text-gray-300 hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-gray-100">
                 <ExternalLinkIcon className="w-4 h-4 mr-2 text-neutral-500" aria-hidden="true" />
                 {t("preview")}
               </a>
@@ -1050,12 +1066,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   showToast("Link copied!", "success");
                 }}
                 type="button"
-                className="flex items-center px-2 py-1 text-sm font-medium text-gray-700 rounded-sm text-md hover:text-gray-900 hover:bg-gray-200">
+                className="flex items-center px-2 py-1 text-sm font-medium text-gray-700 rounded-sm text-md hover:text-gray-900 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-gray-100">
                 <LinkIcon className="w-4 h-4 mr-2 text-neutral-500" />
                 {t("copy_link")}
               </button>
               <Dialog>
-                <DialogTrigger className="flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
+                <DialogTrigger className="flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 dark:text-gray-300 hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-gray-100">
                   <TrashIcon className="w-4 h-4 mr-2 text-neutral-500" />
                   {t("delete")}
                 </DialogTrigger>
