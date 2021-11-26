@@ -6,7 +6,7 @@ import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "@lib/cal
 import prisma from "@lib/prisma";
 
 export interface ConferenceData {
-  createRequest: calendar_v3.Schema$CreateConferenceRequest;
+  createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
 const googleAuth = (credential: Credential) => {
@@ -157,7 +157,14 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                 console.error("There was an error contacting google calendar service: ", err);
                 return reject(err);
               }
-              return resolve(event.data);
+              return resolve({
+                ...event.data,
+                id: event.data.id || "",
+                hangoutLink: event.data.hangoutLink || "",
+                type: "google_calendar",
+                password: "",
+                url: "",
+              });
             }
           );
         })
