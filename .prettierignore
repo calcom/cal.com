@@ -13,4 +13,3 @@ public
 .prettierignore
 .DS_Store
 .eslintignore
-@types/ical.js.d.ts
