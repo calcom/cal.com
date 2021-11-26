@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: © 2019 EteSync Authors
 // SPDX-License-Identifier: GPL-3.0-only
-
+// https://github.com/mozilla-comm/ical.js/issues/367#issuecomment-568493517
 declare module "ical.js" {
     function parse(input: string): any[];
   
@@ -45,6 +45,31 @@ declare module "ical.js" {
       public description: string;
       public location: string;
       public attendees: Property[];
+      /**
+       * The sequence value for this event. Used for scheduling.
+       *
+       * @type {number}
+       * @memberof Event
+       */
+      public sequence: number;
+      /**
+       * The duration. This can be the result directly from the property, or the
+       * duration calculated from start date and end date. Setting the property
+       * will remove any `dtend` properties. 
+       *
+       * @type {Duration}
+       * @memberof Event
+       */
+      public duration: Duration;
+      /** 
+       * The organizer value as an uri. In most cases this is a mailto: uri, 
+       * but it can also be something else, like urn:uuid:... 
+       */
+      public organizer: string;
+      /** The sequence value for this event. Used for scheduling */
+      public sequence: number;
+      /** The recurrence id for this event */
+      public recurrenceId: Time;
   
       public component: Component;
   
@@ -116,7 +141,14 @@ declare module "ical.js" {
     }
   
     export class Duration {
+      public weeks: number;
       public days: number;
+      public hours: number;
+      public minutes: number;
+      public seconds: number;
+      public isNegative: boolean;
+      public icalclass: string;
+      public icaltype: string;
     }
   
     export class RecurExpansion {
