@@ -131,12 +131,11 @@ export class CalDavCalendar implements CalendarApiAdapter {
       const { error, value: iCalString } = await createEvent({
         uid,
         startInputType: "utc",
-        // FIXME - types wrong
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
         description: event.description ?? "",
-        location: event.location,
+        location: event.location !== null ? event.location : undefined,
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event.attendees),
       });
@@ -290,15 +289,14 @@ export class CalDavCalendar implements CalendarApiAdapter {
           const vevent = vcalendar.getFirstSubcomponent("vevent");
           const event = new ICAL.Event(vevent);
 
-          const calendarTimezone = vcalendar.getFirstSubcomponent("vtimezone")
-            ? vcalendar.getFirstSubcomponent("vtimezone").getFirstPropertyValue("tzid")
-            : "";
+          const calendarTimezone =
+            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
 
           const startDate = calendarTimezone
-            ? dayjs(event.startDate).tz(calendarTimezone)
+            ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
             : new Date(event.startDate.toUnixTime() * 1000);
           const endDate = calendarTimezone
-            ? dayjs(event.endDate).tz(calendarTimezone)
+            ? dayjs(event.endDate.toJSDate()).tz(calendarTimezone)
             : new Date(event.endDate.toUnixTime() * 1000);
 
           return {

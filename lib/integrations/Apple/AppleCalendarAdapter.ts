@@ -286,17 +286,16 @@ export class AppleCalendar implements CalendarApiAdapter {
           const jcalData = ICAL.parse(object.data);
           const vcalendar = new ICAL.Component(jcalData);
           const vevent = vcalendar.getFirstSubcomponent("vevent");
-          // FIXME Type this
           const event = new ICAL.Event(vevent);
 
           const calendarTimezone =
             vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
 
           const startDate = calendarTimezone
-            ? dayjs(event.startDate).tz(calendarTimezone)
+            ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
             : new Date(event.startDate.toUnixTime() * 1000);
           const endDate = calendarTimezone
-            ? dayjs(event.endDate).tz(calendarTimezone)
+            ? dayjs(event.endDate.toJSDate()).tz(calendarTimezone)
             : new Date(event.endDate.toUnixTime() * 1000);
 
           return {
