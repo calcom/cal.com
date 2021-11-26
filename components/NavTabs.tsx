@@ -17,7 +17,7 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
   const router = useRouter();
   return (
     <>
-      <nav className="-mb-px flex space-x-2 sm:space-x-5" aria-label="Tabs">
+      <nav className="flex -mb-px space-x-2 sm:space-x-5" aria-label="Tabs">
         {tabs.map((tab) => {
           const isCurrent = router.asPath === tab.href;
           return (
@@ -25,15 +25,17 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
               <a
                 className={classNames(
                   isCurrent
-                    ? "border-neutral-900 text-neutral-900"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                    ? "border-neutral-900 text-neutral-900 dark:text-gray-200 dark:border-gray-200"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-100",
                   "group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm"
                 )}
                 aria-current={isCurrent ? "page" : undefined}>
                 {tab.icon && (
                   <tab.icon
                     className={classNames(
-                      isCurrent ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
+                      isCurrent
+                        ? "text-neutral-900"
+                        : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-100",
                       "-ml-0.5 mr-2 h-5 w-5 hidden sm:inline-block"
                     )}
                     aria-hidden="true"

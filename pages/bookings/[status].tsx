@@ -54,9 +54,11 @@ export default function Bookings() {
               {(query.status === "loading" || query.status === "idle") && <Loader />}
               {query.status === "success" && !isEmpty && (
                 <>
-                  <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
+                  <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm dark:border-gray-500">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-400">
+                      <tbody
+                        className="bg-white divide-y divide-gray-200 dark:bg-gray-700"
+                        data-testid="bookings">
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>
                             {page.bookings.map((booking) => (
@@ -67,7 +69,7 @@ export default function Bookings() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="text-center p-4" ref={buttonInView.ref}>
+                  <div className="p-4 text-center" ref={buttonInView.ref}>
                     <Button
                       loading={query.isFetchingNextPage}
                       disabled={!query.hasNextPage}

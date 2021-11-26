@@ -75,7 +75,7 @@ function BookingListItem(booking: BookingItem) {
   return (
     <tr>
       <td className="hidden px-6 py-4 align-top sm:table-cell whitespace-nowrap">
-        <div className="text-sm leading-6 text-gray-900">{startTime}</div>
+        <div className="text-sm leading-6 text-gray-900 dark:text-gray-200">{startTime}</div>
         <div className="text-sm text-gray-500">
           {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
@@ -87,14 +87,14 @@ function BookingListItem(booking: BookingItem) {
               {t("unconfirmed")}
             </span>
           )}
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
             {startTime}:{" "}
             <small className="text-sm text-gray-500">
               {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
             </small>
           </div>
         </div>
-        <div className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-52 md:max-w-96">
+        <div className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-52 md:max-w-96 dark:text-white">
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
           {!booking.confirmed && !booking.rejected && (
@@ -109,7 +109,7 @@ function BookingListItem(booking: BookingItem) {
           </div>
         )}
         {booking.attendees.length !== 0 && (
-          <div className="text-sm text-gray-900 hover:text-blue-500">
+          <div className="text-sm text-gray-900 hover:text-blue-500 dark:text-gray-200">
             <a href={"mailto:" + booking.attendees[0].email}>{booking.attendees[0].email}</a>
           </div>
         )}
