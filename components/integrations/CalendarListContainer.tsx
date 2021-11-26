@@ -3,6 +3,7 @@ import { useMutation } from "react-query";
 import Select from "react-select";
 
 import { QueryCell } from "@lib/QueryCell";
+import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
@@ -91,6 +92,7 @@ function CalendarSwitch(props: {
 }
 
 function ConnectedCalendarsList(props: Props) {
+  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
 
   return (
@@ -114,7 +116,7 @@ function ConnectedCalendarsList(props: Props) {
                         id={item.credentialId}
                         render={(btnProps) => (
                           <Button {...btnProps} color="warn">
-                            Disconnect
+                            {t("disconnect")}
                           </Button>
                         )}
                         onOpenChange={props.onChanged}
@@ -220,6 +222,7 @@ function PrimaryCalendarSelector() {
 }
 
 function CalendarList(props: Props) {
+  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations"]);
 
   return (
@@ -236,7 +239,7 @@ function CalendarList(props: Props) {
                   type={item.type}
                   render={(btnProps) => (
                     <Button color="secondary" {...btnProps}>
-                      Connect
+                      {t("connect")}
                     </Button>
                   )}
                   onOpenChange={() => props.onChanged()}
@@ -250,6 +253,7 @@ function CalendarList(props: Props) {
   );
 }
 export function CalendarListContainer(props: { heading?: false }) {
+  const { t } = useLocale();
   const { heading = true } = props;
   const utils = trpc.useContext();
   const onChanged = () =>
@@ -269,13 +273,7 @@ export function CalendarListContainer(props: { heading?: false }) {
               numConnections={query.data?.connectedCalendars.length}
             />
           }
-          subtitle={
-            <>
-              Configure how your links integrate with your calendars.
-              <br />
-              You can override these settings on a per event basis.
-            </>
-          }
+          subtitle={t("configure_how_your_event_types_interact")}
           actions={<div className="block"></div>}
         />
       )}
@@ -284,7 +282,7 @@ export function CalendarListContainer(props: { heading?: false }) {
       {!!query.data?.connectedCalendars.length && (
         <ShellSubHeading
           className="mt-6"
-          title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
+          title={<SubHeadingTitleWithConnections title={t("connect_an_additional_calendar")} />}
         />
       )}
       <CalendarList onChanged={onChanged} />

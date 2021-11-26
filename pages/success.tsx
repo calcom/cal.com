@@ -18,6 +18,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import CustomBranding from "@components/CustomBranding";
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
@@ -39,7 +40,17 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
-  const eventName = getEventName(name, props.eventType.title, props.eventType.eventName);
+  const attendeeName = typeof name === "string" ? name : "Nameless";
+
+  const eventNameObject = {
+    attendeeName,
+    eventType: props.eventType.title,
+    eventName: props.eventType.eventName,
+    host: props.profile.name || "Nameless",
+    t,
+  };
+
+  const eventName = getEventName(eventNameObject);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
@@ -79,6 +90,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
+        <CustomBranding val={props.profile.brandColor} />
         <main className="max-w-3xl py-24 mx-auto">
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -293,6 +305,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           hideBranding: true,
           plan: true,
           theme: true,
+          brandColor: true,
         },
       },
       team: {
@@ -320,6 +333,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         hideBranding: true,
         plan: true,
         theme: true,
+        brandColor: true,
       },
     });
     if (user) {
@@ -336,6 +350,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
+    brandColor: eventType.team ? null : eventType.users[0].brandColor,
   };
 
   return {

@@ -16,11 +16,18 @@ enum SchedulingType {
   COLLECTIVE   @map("collective")
 }
 
+enum PeriodType {
+  UNLIMITED  @map("unlimited")
+  ROLLING    @map("rolling")
+  RANGE      @map("range")
+}
+
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
   slug                    String
   description             String?
+  position                Int                    @default(0)
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
@@ -33,7 +40,7 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              String                 @default("unlimited") // unlimited | rolling | range
+  periodType              PeriodType             @default(UNLIMITED)
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
@@ -101,6 +108,7 @@ model User {
   plan                UserPlan           @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
+  brandColor          String             @default("#292929")
 
   // the location where the events will end up
   UserDestinationCalendar UserDestinationCalendar?
@@ -237,8 +245,8 @@ model Availability {
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
-  startTime   Int
-  endTime     Int
+  startTime   DateTime   @db.Time
+  endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
 }
 
@@ -314,11 +322,12 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String                 @id @unique
-  userId        Int
-  subscriberUrl String
-  createdAt     DateTime               @default(now())
-  active        Boolean                @default(true)
-  eventTriggers WebhookTriggerEvents[]
-  user          User                   @relation(fields: [userId], references: [id])
+  id              String                 @id @unique
+  userId          Int
+  subscriberUrl   String
+  payloadTemplate String?
+  createdAt       DateTime               @default(now())
+  active          Boolean                @default(true)
+  eventTriggers   WebhookTriggerEvents[]
+  user            User                   @relation(fields: [userId], references: [id])
 }
