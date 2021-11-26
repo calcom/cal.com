@@ -18,7 +18,7 @@ export type BookingCreateBody = {
   rescheduleUid?: string;
   start: string;
   timeZone: string;
-  users?: string[];
+  users?: number[];
   user?: string;
   language: string;
 };
