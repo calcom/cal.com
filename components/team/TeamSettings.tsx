@@ -14,6 +14,7 @@ import SettingInputContainer from "@components/ui/SettingInputContainer";
 
 interface Props {
   team: TeamWithMembers | null | undefined;
+  onUpdateTeam: (team: TeamWithMembers) => void;
 }
 
 export default function TeamSettings(props: Props) {
@@ -32,13 +33,16 @@ export default function TeamSettings(props: Props) {
 
   const hasLogo = !!team?.logo;
 
-  const loadTeam = () => {
+  function loadTeam() {
     return fetch("/api/teams/" + team?.id, {
       method: "GET",
     })
       .then((res) => res.json())
-      .then((data) => setTeam(data.team));
-  };
+      .then((data) => {
+        setTeam(data.team);
+        props.onUpdateTeam(data.team);
+      });
+  }
 
   async function updateTeamHandler<T extends Event>(e?: T) {
     e?.preventDefault();
@@ -56,7 +60,7 @@ export default function TeamSettings(props: Props) {
       hideBranding: enteredHideBranding,
     };
     // only add logo if it has changed - this is a hotfix, will find better fix
-    if (enteredLogo) obj.logo = enteredLogo;
+    if (enteredLogo != team?.logo) obj.logo = enteredLogo;
 
     await fetch("/api/teams/" + team?.id + "/profile", {
       method: "PATCH",

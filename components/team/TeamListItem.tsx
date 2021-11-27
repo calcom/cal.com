@@ -1,10 +1,4 @@
-import {
-  DotsHorizontalIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  PencilAltIcon,
-  TrashIcon,
-} from "@heroicons/react/outline";
+import { DotsHorizontalIcon, ExternalLinkIcon, LinkIcon, TrashIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -120,17 +114,6 @@ export default function TeamListItem(props: {
                   <DotsHorizontalIcon className="w-5 h-5 group-hover:text-gray-400" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>
-                    <Button
-                      type="button"
-                      color="minimal"
-                      className="w-full"
-                      onClick={() => props.onActionSelect("edit")}
-                      StartIcon={PencilAltIcon}>
-                      {" "}
-                      {t("edit_team")}
-                    </Button>
-                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team.slug}`} passHref={true}>
                       <a target="_blank">

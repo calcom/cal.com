@@ -53,7 +53,7 @@ export default function Teams() {
           </Button>
         </div>
         {invites.length > 0 && (
-          <div className="my-8">
+          <div className="mb-4">
             <h1 className="mb-2 text-lg font-medium">{t("open_invitations")}</h1>
             <TeamList teams={invites} onChange={loadData}></TeamList>
           </div>

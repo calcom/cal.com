@@ -17,18 +17,19 @@ import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 
 export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>) {
+  const [team, setTeam] = useState(props.team);
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 
   const { t } = useLocale();
   return (
     <Shell
       showBackButton
-      heading={props.team?.name}
+      heading={team?.name}
       subtitle="Manage this team"
       HeadingLeftIcon={
         <Avatar
           size={12}
-          imageSrc={getPlaceholderAvatar(props.team?.logo, props.team?.name)}
+          imageSrc={getPlaceholderAvatar(team?.logo, team?.name)}
           alt="Team Logo"
           className="mt-1"
         />
@@ -36,7 +37,7 @@ export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>
       <div className="block sm:flex md:max-w-5xl">
         <div className="w-full mr-2 sm:w-9/12">
           <div className="p-2 py-2 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
-            <TeamSettings team={props.team} />
+            <TeamSettings onUpdateTeam={setTeam} team={team} />
           </div>
           <div className="flex items-center justify-between mb-3 mt-7">
             <h3 className="text-xl font-bold leading-6 text-gray-900 font-cal">{t("members")}</h3>
@@ -50,14 +51,14 @@ export function TeamSettingsPage(props: inferSSRProps<typeof getServerSideProps>
               </Button>
             </div>
           </div>
-          <MemberList team={props.team} />
+          <MemberList team={team} />
         </div>
         <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
-          <TeamSettingsRightSidebar team={props.team} />
+          <TeamSettingsRightSidebar team={team} />
         </div>
       </div>
       {showMemberInvitationModal && (
-        <MemberInvitationModal team={props.team} onExit={() => setShowMemberInvitationModal(false)} />
+        <MemberInvitationModal team={team} onExit={() => setShowMemberInvitationModal(false)} />
       )}
     </Shell>
   );
