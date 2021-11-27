@@ -110,25 +110,6 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
-  "customer.subscription.deleted": async (event) => {
-    const object = event.data.object as Stripe.Subscription;
-
-    const customerId = typeof object.customer === "string" ? object.customer : object.customer.id;
-
-    const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
-    if (typeof customer.email !== "string") {
-      throw new Error(`Couldn't find customer email for ${customerId}`);
-    }
-
-    await prisma.user.update({
-      where: {
-        email: customer.email,
-      },
-      data: {
-        plan: "FREE",
-      },
-    });
-  },
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -146,7 +127,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
-    // console.log("payload", payload);
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
@@ -154,7 +134,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (handler) {
       await handler(event);
     } else {
-      console.warn(`Unhandled Stripe Webhook event type ${event.type}`);
+      /** Not really an error, just letting Stripe know that the webhook was received but unhandled */
+      throw new HttpError({
+        statusCode: 202,
+        message: `Unhandled Stripe Webhook event type ${event.type}`,
+      });
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
