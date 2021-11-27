@@ -331,14 +331,17 @@ const EventTypesPage = () => {
         CTA={
           query.data &&
           query.data.eventTypeGroups.length !== 0 && (
-            <CreateNewEventButton canAddEvents={query.data.canAddEvents} profiles={query.data.profiles} />
+            <CreateNewEventButton
+              canAddEvents={query.data.viewer.canAddEvents}
+              profiles={query.data.profiles}
+            />
           )
         }>
         <QueryCell
           query={query}
           success={({ data }) => (
             <>
-              {data.user.plan === "FREE" && !data.canAddEvents && (
+              {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (
                 <Alert
                   severity="warning"
                   title={<>{t("plan_upgrade")}</>}
@@ -353,26 +356,25 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
-              {data.eventTypeGroups &&
-                data.eventTypeGroups.map((input) => (
-                  <Fragment key={input.profile.slug}>
-                    {/* hide list heading when there is only one (current user) */}
-                    {(data.eventTypeGroups.length !== 1 || input.teamId) && (
-                      <EventTypeListHeading
-                        profile={input.profile}
-                        membershipCount={input.metadata.membershipCount}
-                      />
-                    )}
-                    <EventTypeList
-                      types={input.eventTypes}
-                      profile={input.profile}
-                      readOnly={input.metadata.readOnly}
+              {data.eventTypeGroups.map((group) => (
+                <Fragment key={group.profile.slug}>
+                  {/* hide list heading when there is only one (current user) */}
+                  {(data.eventTypeGroups.length !== 1 || group.teamId) && (
+                    <EventTypeListHeading
+                      profile={group.profile}
+                      membershipCount={group.metadata.membershipCount}
                     />
-                  </Fragment>
-                ))}
+                  )}
+                  <EventTypeList
+                    types={group.eventTypes}
+                    profile={group.profile}
+                    readOnly={group.metadata.readOnly}
+                  />
+                </Fragment>
+              ))}
 
               {data.eventTypeGroups.length === 0 && (
-                <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.canAddEvents} />
+                <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
             </>
           )}

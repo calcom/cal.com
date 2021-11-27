@@ -100,7 +100,7 @@ model User {
   plan                UserPlan           @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
-  brandColor          String            @default("#292929")
+  brandColor          String             @default("#292929")
 
   @@map(name: "users")
 }
@@ -301,11 +301,12 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String                 @id @unique
-  userId        Int
-  subscriberUrl String
-  createdAt     DateTime               @default(now())
-  active        Boolean                @default(true)
-  eventTriggers WebhookTriggerEvents[]
-  user          User                   @relation(fields: [userId], references: [id])
+  id              String                 @id @unique
+  userId          Int
+  subscriberUrl   String
+  payloadTemplate String?
+  createdAt       DateTime               @default(now())
+  active          Boolean                @default(true)
+  eventTriggers   WebhookTriggerEvents[]
+  user            User                   @relation(fields: [userId], references: [id])
 }

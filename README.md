@@ -88,7 +88,7 @@ You will also need Google API credentials. You can get this from the [Google API
 ### Setup
 #### Quick start with `yarn dx`
 
-> - **Requires Docker to be installed**
+> - **Requires Docker and Docker Compose to be installed**
 > - Will start a local Postgres instance with a few test users - the credentials will be logged in the console
 
 ```bash
