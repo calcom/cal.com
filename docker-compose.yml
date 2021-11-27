@@ -13,12 +13,13 @@ services:
       POSTGRES_PASSWORD: ""
       POSTGRES_HOST_AUTH_METHOD: trust
   boxyhq_saml:
-    image: boxyhq/jackson:b6c8ab8d
+    image: boxyhq/jackson:2b9350d
     ports:
       - "5000:5000"
       - "6000:6000"
     restart: always
     environment:
       DB_URL: "postgresql://postgres:postgres@postgres:5432/calendso"
+      JACKSON_API_KEYS: $JACKSON_API_KEYS
 volumes:
   db_data:
