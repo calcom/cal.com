@@ -18,7 +18,6 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
             {...rest}
             ref={ref}
             type="number"
-            min="1"
             className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
