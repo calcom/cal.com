@@ -34,7 +34,7 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
                   <tab.icon
                     className={classNames(
                       isCurrent
-                        ? "text-neutral-900"
+                        ? "text-neutral-900 dark:text-white"
                         : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-100",
                       "-ml-0.5 mr-2 h-5 w-5 hidden sm:inline-block"
                     )}

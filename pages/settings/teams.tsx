@@ -87,7 +87,7 @@ export default function Teams() {
                   {!(invites.length || teams.length) && (
                     <div className="sm:rounded-sm">
                       <div className="pb-5 pr-4 sm:pb-6">
-                        <h3 className="text-lg font-medium leading-6 text-gray-900">
+                        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
                           {t("create_team_to_get_started")}
                         </h3>
                         <div className="max-w-xl mt-2 text-sm text-gray-500">
@@ -114,7 +114,9 @@ export default function Teams() {
 
                 {!!invites.length && (
                   <div>
-                    <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">Open Invitations</h2>
+                    <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal dark:text-white">
+                      Open Invitations
+                    </h2>
                     <ul className="px-4 mt-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
                       {invites.map((team: Team) => (
                         <TeamListItem
@@ -152,7 +154,9 @@ export default function Teams() {
                     <UsersIcon className="w-6 h-6 text-neutral-900" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                    <h3
+                      className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
+                      id="modal-title">
                       {t("create_new_team")}
                     </h3>
                     <div>

@@ -10,11 +10,11 @@ interface UsernameInputProps extends React.ComponentPropsWithRef<"input"> {
 const UsernameInput = React.forwardRef<HTMLInputElement, UsernameInputProps>((props, ref) => (
   // todo, check if username is already taken here?
   <div>
-    <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+    <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
       {props.label ? props.label : "Username"}
     </label>
     <div className="flex mt-1 rounded-md shadow-sm">
-      <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+      <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-500">
         {process.env.NEXT_PUBLIC_APP_URL}/{props.label && "team/"}
       </span>
       <input
@@ -25,7 +25,7 @@ const UsernameInput = React.forwardRef<HTMLInputElement, UsernameInputProps>((pr
         autoComplete="username"
         required
         {...props}
-        className="flex-grow block w-full min-w-0 lowercase border-gray-300 rounded-none rounded-r-sm focus:ring-black focus:border-brand sm:text-sm"
+        className="flex-grow block w-full min-w-0 lowercase border-gray-300 rounded-none rounded-r-sm focus:ring-black focus:border-brand sm:text-sm dark:bg-gray-600 dark:text-white dark:border-gray-500"
       />
     </div>
   </div>
