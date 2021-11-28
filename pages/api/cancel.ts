@@ -7,6 +7,7 @@ import { refund } from "@ee/lib/stripe/server";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
+import { sendCancelledEmails } from "@lib/emails/email-manager";
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
@@ -101,6 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return retObj;
     }),
     uid: bookingToDelete?.uid,
+    location: bookingToDelete?.location,
     language: t,
   };
 
@@ -189,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
 
-  //TODO Perhaps send emails to user and client to tell about the cancellation
+  await sendCancelledEmails(evt);
 
   res.status(204).end();
 }

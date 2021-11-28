@@ -443,19 +443,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
-          <div className="relative -mb-2 group" onClick={() => setEditIcon(false)}>
-            <input
-              type="text"
-              required
-              className="w-full pl-0 text-xl font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
-              placeholder={t("quick_chat")}
-              {...formMethods.register("title")}
-              defaultValue={eventType.title}
-            />
-            {editIcon && (
-              <PencilIcon
-                style={{ top: 14, left: `${eventType.title.length * 10 + 8}` }}
-                className="absolute left-0 inline w-4 h-4 text-gray-500 group-hover:text-gray-700"
+          <div className="relative -mb-2 group cursor-pointer" onClick={() => setEditIcon(false)}>
+            {editIcon ? (
+              <>
+                <h1
+                  style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
+                  className="inline pl-0 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-500 focus:ring-0 focus:outline-none">
+                  {eventType.title}
+                </h1>
+                <PencilIcon className="-mt-1 ml-1 inline w-4 h-4 text-gray-700 group-hover:text-gray-500" />
+              </>
+            ) : (
+              <input
+                type="text"
+                autoFocus
+                style={{ top: -6, fontSize: 22 }}
+                required
+                className="w-full relative pl-0 h-10 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
+                placeholder={t("quick_chat")}
+                {...formMethods.register("title")}
+                defaultValue={eventType.title}
               />
             )}
           </div>

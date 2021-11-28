@@ -11,11 +11,16 @@ import { v5 as uuidv5 } from "uuid";
 
 import { handlePayment } from "@ee/lib/stripe/server";
 
-import { CalendarEvent, getBusyCalendarTimes } from "@lib/calendarClient";
-import EventOrganizerRequestMail from "@lib/emails/EventOrganizerRequestMail";
+import { CalendarEvent, AdditionInformation, getBusyCalendarTimes } from "@lib/calendarClient";
+import {
+  sendScheduledEmails,
+  sendRescheduledEmails,
+  sendOrganizerRequestEmail,
+} from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
+import { BufferedBusyTime } from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
@@ -25,13 +30,6 @@ import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
-export interface DailyReturnType {
-  name: string;
-  url: string;
-  id: string;
-  created_at: string;
-}
-
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -40,7 +38,7 @@ dayjs.extend(timezone);
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
-type BufferedBusyTimes = { start: string; end: string }[];
+type BufferedBusyTimes = BufferedBusyTime[];
 
 /**
  * Refreshes a Credential with fresh data from the database.
@@ -285,7 +283,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
     language: t,
-    uid,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -439,10 +436,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateResults = await eventManager.update(evt, rescheduleUid);
+    const updateManager = await eventManager.update(evt, rescheduleUid);
 
-    results = updateResults.results;
-    referencesToCreate = updateResults.referencesToCreate;
+    results = updateManager.results;
+    referencesToCreate = updateManager.referencesToCreate;
 
     if (results.length > 0 && results.every((res) => !res.success)) {
       const error = {
@@ -451,15 +448,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
 
       log.error(`Booking ${user.name} failed`, error, results);
+    } else {
+      const metadata: AdditionInformation = {};
+
+      if (results.length) {
+        // TODO: Handle created event metadata more elegantly
+        metadata.hangoutLink = results[0].updatedEvent?.hangoutLink;
+        metadata.conferenceData = results[0].updatedEvent?.conferenceData;
+        metadata.entryPoints = results[0].updatedEvent?.entryPoints;
+      }
+
+      await sendRescheduledEmails({ ...evt, additionInformation: metadata });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
   } else if (!eventType.requiresConfirmation && !eventType.price) {
     // Use EventManager to conditionally use all needed integrations.
-    const createResults = await eventManager.create(evt);
+    const createManager = await eventManager.create(evt);
 
-    results = createResults.results;
-    referencesToCreate = createResults.referencesToCreate;
+    results = createManager.results;
+    referencesToCreate = createManager.referencesToCreate;
 
     if (results.length > 0 && results.every((res) => !res.success)) {
       const error = {
@@ -468,11 +476,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
 
       log.error(`Booking ${user.username} failed`, error, results);
+    } else {
+      const metadata: AdditionInformation = {};
+
+      if (results.length) {
+        // TODO: Handle created event metadata more elegantly
+        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+        metadata.conferenceData = results[0].createdEvent?.conferenceData;
+        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+      }
+      await sendScheduledEmails({ ...evt, additionInformation: metadata });
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await new EventOrganizerRequestMail(evt).sendEmail();
+    await sendOrganizerRequestEmail(evt);
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {
