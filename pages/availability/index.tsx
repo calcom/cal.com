@@ -51,8 +51,10 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
           await createSchedule(values);
         }}
         className="col-span-3 space-y-2 lg:col-span-2">
-        <div className="px-4 py-5 bg-white border border-gray-200 divide-y rounded-sm sm:p-6">
-          <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
+        <div className="px-4 py-5 bg-white border border-gray-200 divide-y rounded-sm sm:p-6 dark:bg-gray-700 dark:border-gray-500 dark:divide-gray-500">
+          <h3 className="mb-5 text-base font-medium leading-6 text-gray-900 dark:text-white">
+            {t("change_start_end")}
+          </h3>
           <Schedule name="schedule" />
         </div>
         <div className="text-right">
@@ -61,7 +63,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
       </Form>
       <div className="col-span-3 ml-2 lg:col-span-1 min-w-40">
         <div className="px-4 py-5 border border-gray-200 rounded-sm sm:p-6 ">
-          <h3 className="text-base font-medium leading-6 text-gray-900">
+          <h3 className="text-base font-medium leading-6 text-gray-900 dark:text-white">
             {t("something_doesnt_look_right")}
           </h3>
           <div className="max-w-xl mt-2 text-sm text-gray-500">

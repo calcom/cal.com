@@ -77,7 +77,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           />
         )}
       />
-      <span>-</span>
+      <span className="dark:text-gray-300">-</span>
       <Controller
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
@@ -130,7 +130,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
             className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
           />
-          <span className="inline-block text-sm capitalize">{weekday}</span>
+          <span className="inline-block text-sm capitalize dark:text-gray-200">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
@@ -148,7 +148,9 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             />
           </div>
         ))}
-        <span className="block text-sm text-gray-500">{!fields.length && t("no_availability")}</span>
+        <span className="block text-sm text-gray-500 dark:text-gray-300">
+          {!fields.length && t("no_availability")}
+        </span>
       </div>
       <div>
         <Button
@@ -167,7 +169,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
 const Schedule = ({ name }: { name: string }) => {
   const { i18n } = useLocale();
   return (
-    <fieldset className="divide-y divide-gray-200">
+    <fieldset className="divide-y divide-gray-200 dark:divide-gray-500">
       {weekdayNames(i18n.language).map((weekday, num) => (
         <ScheduleBlock key={num} name={name} weekday={weekday} day={num} />
       ))}
