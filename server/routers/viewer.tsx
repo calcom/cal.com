@@ -610,12 +610,13 @@ const loggedInViewerRouter = createProtectedRouter()
       params.append("rawMetadata", input.rawMetadata);
       params.append("defaultRedirectUrl", `${process.env.BASE_URL}/login/saml`);
       params.append("redirectUrl", JSON.stringify([`${process.env.BASE_URL}/*`]));
-      params.append("tenant", process.env.SAML_TENANT_ID || "");
-      params.append("product", process.env.SAML_PRODUCT_ID || "");
+      params.append("tenant", process.env.SAML_TENANT_ID || "Cal.com");
+      params.append("product", process.env.SAML_PRODUCT_ID || "Cal.com");
 
       const response = await fetch(`${process.env.SAML_API_URL}/api/v1/saml/config`, {
         method: "POST",
         body: params,
+        headers: { Authorization: `api-key ${(process.env.JACKSON_API_KEYS || "").split(",")[0]}` },
       });
 
       if (response.status !== 200) {

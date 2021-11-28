@@ -124,7 +124,9 @@ if (isSAMLLoginEnabled) {
       };
     },
     scope: "",
-    clientId: `tenant=${process.env.SAML_TENANT_ID}&product=${process.env.SAML_PRODUCT_ID}`,
+    clientId: `tenant=${process.env.SAML_TENANT_ID || "Cal.com"}&product=${
+      process.env.SAML_PRODUCT_ID || "Cal.com"
+    }`,
     clientSecret: "dummy",
   });
 }
