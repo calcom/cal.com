@@ -1,10 +1,10 @@
 import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@heroicons/react/solid";
 import React, { useRef, useState } from "react";
 
-import { handleErrorsJson } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { TeamWithMembers } from "@lib/queries/teams";
+import { trpc } from "@lib/trpc";
 
 import ImageUploader from "@components/ImageUploader";
 import { TextField } from "@components/form/fields";
@@ -14,93 +14,70 @@ import SettingInputContainer from "@components/ui/SettingInputContainer";
 
 interface Props {
   team: TeamWithMembers | null | undefined;
-  onUpdateTeam: (team: TeamWithMembers) => void;
 }
 
 export default function TeamSettings(props: Props) {
   const { t } = useLocale();
+
+  const [hasErrors, setHasErrors] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const team = props.team;
+  const hasLogo = !!team?.logo;
+
+  const utils = trpc.useContext();
+  const mutation = trpc.useMutation("viewer.teams.update", {
+    onError: (err) => {
+      setHasErrors(true);
+      setErrorMessage(err.message);
+    },
+    async onSettled() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      showToast(t("your_team_updated_successfully"), "success");
+      setHasErrors(false);
+    },
+  });
+
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const teamUrlRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const descriptionRef = useRef<HTMLTextAreaElement>() as React.MutableRefObject<HTMLTextAreaElement>;
   const hideBrandingRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
   const logoRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
-  const [team, setTeam] = useState<TeamWithMembers | null | undefined>(props.team);
-  const [imageSrc, setImageSrc] = useState<string>("");
-
-  const [hasErrors, setHasErrors] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const hasLogo = !!team?.logo;
-
-  function loadTeam() {
-    return fetch("/api/teams/" + team?.id, {
-      method: "GET",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setTeam(data.team);
-        props.onUpdateTeam(data.team);
-      });
-  }
-
-  async function updateTeamHandler<T extends Event>(e?: T) {
-    e?.preventDefault();
-    const enteredUsername = teamUrlRef?.current?.value.toLowerCase();
-    const enteredName = nameRef?.current?.value;
-    const enteredLogo = logoRef?.current?.value;
-    const enteredDescription = descriptionRef?.current?.value;
-    const enteredHideBranding = hideBrandingRef?.current?.checked;
-
-    // TODO: Add validation
-    const obj: Record<string, unknown> = {
-      username: enteredUsername,
-      name: enteredName,
-      description: enteredDescription,
-      hideBranding: enteredHideBranding,
+  function updateTeamData() {
+    if (!team) return;
+    const variables = {
+      name: nameRef.current?.value,
+      slug: teamUrlRef.current?.value,
+      bio: descriptionRef.current?.value,
+      hideBranding: hideBrandingRef.current?.checked,
     };
-    // only add logo if it has changed - this is a hotfix, will find better fix
-    if (enteredLogo != team?.logo) obj.logo = enteredLogo;
-
-    await fetch("/api/teams/" + team?.id + "/profile", {
-      method: "PATCH",
-      body: JSON.stringify(obj),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(handleErrorsJson)
-      .then(() => {
-        showToast(t("your_team_updated_successfully"), "success");
-        loadTeam();
-        setHasErrors(false);
-      })
-      .catch((err) => {
-        setHasErrors(true);
-        setErrorMessage(err.message);
-      });
+    // remove unchanged variables
+    for (const key in variables) {
+      //@ts-expect-error will fix types
+      if (variables[key] === team?.[key]) delete variables[key];
+    }
+    mutation.mutate({ id: team.id, ...variables });
   }
 
-  const handleLogoChange = (newLogo: string) => {
+  function updateLogo(newLogo: string) {
+    if (!team) return;
     logoRef.current.value = newLogo;
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement?.prototype, "value")?.set;
-    nativeInputValueSetter?.call(logoRef.current, newLogo);
-    const ev2 = new Event("input", { bubbles: true });
-    logoRef?.current?.dispatchEvent(ev2);
-    setImageSrc(newLogo);
-    updateTeamHandler();
-  };
+    mutation.mutate({ id: team.id, logo: newLogo });
+  }
 
-  const removeLogo = () => {
-    setImageSrc("");
-    updateTeamHandler();
-  };
+  const removeLogo = () => updateLogo("");
 
   return (
     <div className="divide-y divide-gray-200 lg:col-span-9">
       <div className="">
         {hasErrors && <Alert severity="error" title={errorMessage} />}
-        <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={(e) => updateTeamHandler(e)}>
+        <form
+          className="divide-y divide-gray-200 lg:col-span-9"
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateTeamData();
+          }}>
           <div className="py-6 lg:pb-8">
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
@@ -173,14 +150,14 @@ export default function TeamSettings(props: Props) {
                             id="avatar"
                             placeholder="URL"
                             className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
-                            defaultValue={imageSrc ?? team?.logo}
+                            defaultValue={team?.logo ?? undefined}
                           />
                           <ImageUploader
                             target="logo"
                             id="logo-upload"
                             buttonMsg={hasLogo ? t("edit_logo") : t("upload_a_logo")}
-                            handleAvatarChange={handleLogoChange}
-                            imageSrc={imageSrc ?? team?.logo}
+                            handleAvatarChange={updateLogo}
+                            imageSrc={team?.logo ?? undefined}
                           />
                           {hasLogo && (
                             <Button
