@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!req.body.teamId) {
+    console.log(req.body);
     return res.status(400).json({ message: "Bad request" });
   }
 

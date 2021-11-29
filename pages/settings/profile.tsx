@@ -1,4 +1,5 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
+import { TrashIcon } from "@heroicons/react/solid";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
@@ -17,11 +18,15 @@ import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
+<<<<<<< HEAD
 import { TextField } from "@components/form/fields";
+=======
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+>>>>>>> 24a005a9 (--WIP)
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
@@ -111,6 +116,37 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       await utils.invalidateQueries(["viewer.i18n"]);
     },
   });
+
+  const deleteAccount = async () => {
+    // get all memberships
+    const memberships = await fetch("/api/user/membership")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data", data);
+        return data;
+      });
+
+    console.log("Memberships", memberships.membership);
+
+    // remove all memberships if any
+    memberships.membership.forEach((membership) => {
+      fetch("/api/user/membership", {
+        method: "DELETE",
+        body: JSON.stringify({ teamId: membership.id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then(console.log("membership removed"));
+    });
+
+    // remove any related/selected calendars
+
+    // remove all event types
+    // remove Bookings
+    // remove Availability
+    // remove stripe account
+    // signout
+  };
 
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
@@ -407,6 +443,25 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   </label>
                   <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                 </div>
+              </div>
+            </div>
+            <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">{t("danger_zone")}</h3>
+            <div>
+              <div className="relative flex items-start">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button type="button" color="secondary" StartIcon={TrashIcon}>
+                      {t("delete_account")}
+                    </Button>
+                  </DialogTrigger>
+                  <ConfirmationDialogContent
+                    variety="danger"
+                    title={t("delete_account")}
+                    confirmBtnText={t("confirm_delete_account")}
+                    onConfirm={() => deleteAccount()}>
+                    {t("delete_account_confirmation_message")}
+                  </ConfirmationDialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
