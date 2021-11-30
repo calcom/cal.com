@@ -33,7 +33,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "DELETE") {
-    return res.status(405).json({ message: "Method Not Allowed" });
+    await prisma.user.delete({
+      where: {
+        id: authenticatedUser?.id,
+      },
+    });
+    return res.status(200).json({ message: "User Deleted" });
   }
 
   if (req.method === "PATCH") {

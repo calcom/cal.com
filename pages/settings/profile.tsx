@@ -2,6 +2,7 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import { TrashIcon } from "@heroicons/react/solid";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
+import { signOut } from "next-auth/client";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
@@ -128,24 +129,37 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
 
     console.log("Memberships", memberships.membership);
 
-    // remove all memberships if any
-    memberships.membership.forEach((membership) => {
-      fetch("/api/user/membership", {
+    // // remove all memberships if any
+    for (const team of memberships.membership) {
+      await fetch("/api/user/membership", {
         method: "DELETE",
-        body: JSON.stringify({ teamId: membership.id }),
+        body: JSON.stringify({ teamId: team.id }),
         headers: {
           "Content-Type": "application/json",
         },
-      }).then(console.log("membership removed"));
-    });
+      }).then(console.log("team: " + team.id + " membership removed"));
+    }
 
     // remove any related/selected calendars
+
+    // remove any saved credentials/integrations
 
     // remove all event types
     // remove Bookings
     // remove Availability
+
+    console.log(props.user.id);
+    fetch("/api/user/" + props.user.id, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
     // remove stripe account
-    // signout
+
+    // signout;
+    signOut({ callbackUrl: "/auth/logout" });
   };
 
   const localeOptions = useMemo(() => {
