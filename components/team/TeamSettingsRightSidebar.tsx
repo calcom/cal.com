@@ -5,6 +5,7 @@ import React from "react";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { TeamWithMembers } from "@lib/queries/teams";
+import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -12,14 +13,20 @@ import LinkIconButton from "@components/ui/LinkIconButton";
 
 export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers }) {
   const { t } = useLocale();
+  const utils = trpc.useContext();
 
   const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team?.slug}`;
 
-  const deleteTeam = () => {
-    return fetch("/api/teams/" + props.team?.id, {
-      method: "DELETE",
-    });
-  };
+  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      showToast(t("your_team_updated_successfully"), "success");
+    },
+  });
+
+  function deleteTeam() {
+    if (props.team?.id) deleteTeamMutation.mutate({ teamId: props.team.id });
+  }
 
   return (
     <div className="px-2 space-y-6">

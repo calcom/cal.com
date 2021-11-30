@@ -1,4 +1,4 @@
-import { DotsHorizontalIcon, UserRemoveIcon } from "@heroicons/react/outline";
+import { DotsHorizontalIcon, UserRemoveIcon, PencilIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -63,6 +63,17 @@ export default function MemberListItem(props: { member: Member; onActionSelect: 
                 <DotsHorizontalIcon className="w-5 h-5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    color="minimal"
+                    StartIcon={PencilIcon}
+                    className="w-full">
+                    {t("Edit role")}
+                  </Button>
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Dialog>
                     <DialogTrigger asChild>

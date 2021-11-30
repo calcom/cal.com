@@ -31,7 +31,7 @@ export default function TeamSettings(props: Props) {
       setHasErrors(true);
       setErrorMessage(err.message);
     },
-    async onSettled() {
+    async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.get"]);
       showToast(t("your_team_updated_successfully"), "success");
       setHasErrors(false);

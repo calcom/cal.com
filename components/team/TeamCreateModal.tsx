@@ -2,26 +2,28 @@ import { UsersIcon } from "@heroicons/react/outline";
 import { useRef } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import { trpc } from "@lib/trpc";
 
 interface Props {
-  onComplete: () => void;
   onClose: () => void;
 }
 
 export default function TeamCreate(props: Props) {
   const { t } = useLocale();
+  const utils = trpc.useContext();
 
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
+  const createTeamMutation = trpc.useMutation("viewer.teams.create", {
+    onSuccess: () => {
+      utils.invalidateQueries(["viewer.teams.list"]);
+      props.onClose();
+    },
+  });
+
   const createTeam = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    return fetch("/api/teams", {
-      method: "POST",
-      body: JSON.stringify({ name: nameRef?.current?.value }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(props.onComplete);
+    createTeamMutation.mutate({ name: nameRef?.current?.value });
   };
 
   return (

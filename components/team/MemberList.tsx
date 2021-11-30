@@ -1,23 +1,32 @@
+import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
+import showToast from "@lib/notification";
+import { trpc } from "@lib/trpc";
 
 import MemberListItem from "./MemberListItem";
 
-export default function MemberList(props: { members: Member[] }) {
-  // const onRemoveMember = (member: Member) => {
-  //   return fetch("/api/teams/" + props.team?.id + "/membership", {
-  //     method: "DELETE",
-  //     body: JSON.stringify({ userId: member.id }),
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   }).then(loadMembers);
-  // };
+export default function MemberList(props: { teamId: number; members: Member[] }) {
+  const utils = trpc.useContext();
+  const { t } = useLocale();
+
+  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      showToast(t("success"), "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  const onRemoveMember = (member: Member) =>
+    removeMemberMutation.mutate({ teamId: props.teamId, memberId: member.id });
 
   const selectAction = (action: string, member: Member) => {
     switch (action) {
       case "remove":
         member;
-        // onRemoveMember(member);
+        onRemoveMember(member);
         break;
     }
   };

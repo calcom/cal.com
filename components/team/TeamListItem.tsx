@@ -1,11 +1,11 @@
 import { DotsHorizontalIcon, ExternalLinkIcon, LinkIcon, TrashIcon } from "@heroicons/react/outline";
 import Link from "next/link";
-import { useState } from "react";
 
 import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
+import { trpc } from "@lib/trpc";
 import { Team } from "@lib/types/team";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -20,29 +20,22 @@ import Dropdown, {
 } from "@components/ui/Dropdown";
 
 export default function TeamListItem(props: {
-  onChange: () => void;
   key: number;
   team: Team;
   onActionSelect: (text: string) => void;
 }) {
-  const [team, setTeam] = useState<Team | null>(props.team);
   const { t } = useLocale();
+  const team = props.team;
 
-  const acceptInvite = () => invitationResponse(true);
-  const declineInvite = () => invitationResponse(false);
-
-  const invitationResponse = (accept: boolean) =>
-    fetch("/api/user/membership", {
-      method: accept ? "PATCH" : "DELETE",
-      body: JSON.stringify({ teamId: props.team.id }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(() => {
-      // success
-      setTeam(null);
-      props.onChange();
+  const respondToInviteMutation = trpc.useMutation("viewer.teams.respondToInvite");
+  function respondToInvite(accept: boolean) {
+    respondToInviteMutation.mutate({
+      teamId: team.id,
+      accept,
     });
+  }
+  const acceptInvite = () => respondToInvite(true);
+  const declineInvite = () => respondToInvite(false);
 
   return (
     team && (

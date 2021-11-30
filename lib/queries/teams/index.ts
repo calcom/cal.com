@@ -72,3 +72,13 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
 
   return { ...team, members };
 }
+
+export async function isTeamAdmin(userId: number, teamId: number) {
+  return !!(await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      role: "OWNER", // TODO: add more roles (admin/moderator)
+    },
+  }));
+}

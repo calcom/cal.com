@@ -16,14 +16,14 @@ import TeamSettingsRightSidebar from "@components/team/TeamSettingsRightSidebar"
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 
-function useTeamsQuery(teamId: number) {
+function useTeamQuery(teamId: number) {
   return trpc.useQuery(["viewer.teams.get", { teamId }]);
 }
 
 export function TeamSettingsPage() {
   const { t } = useLocale();
   const router = useRouter();
-  const { data: team } = useTeamsQuery(Number(router.query.id));
+  const { data: team } = useTeamQuery(Number(router.query.id));
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 
   return (
@@ -60,7 +60,7 @@ export function TeamSettingsPage() {
                   </Button>
                 </div>
               </div>
-              <MemberList members={team.members || []} />
+              <MemberList teamId={team.id} members={team.members || []} />
             </div>
             <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
               <TeamSettingsRightSidebar team={team} />
