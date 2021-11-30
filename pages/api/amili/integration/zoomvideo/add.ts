@@ -7,12 +7,12 @@ const addIntegration = async (req: NextApiRequest, res: NextApiResponse): Promis
   // Check valid method
   if (req.method !== "GET") res.status(405).json({});
 
-  const { assUserId, coachId, isCoachUser } = req.query;
+  const { assUserId, coachId, isCoachUser, isSetupPage } = req.query;
 
   // console.log("\n query =", req.query);
 
   const redirectUri = encodeURI(
-    `${process.env.BASE_URL}/api/amili/integration/zoomvideo/callback?info=${assUserId}*${coachId}*${isCoachUser}`
+    `${process.env.BASE_URL}/api/amili/integration/zoomvideo/callback?info=${assUserId}*${coachId}*${isCoachUser}*${isSetupPage}`
   );
 
   const authUrl = `https://zoom.us/oauth/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirectUri}`;

@@ -8,10 +8,10 @@ const client_secret = process.env.ZOOM_CLIENT_SECRET;
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   const { code, info } = req.query;
   console.log("\n ==> req.query =", req.query);
-  const [assUserId, coachId, isCoachUser] = info.toString().split("*");
+  const [assUserId, coachId, isCoachUser, isSetupPage] = info.toString().split("*");
 
   const redirectUri = encodeURI(
-    `${process.env.BASE_URL}/api/amili/integration/zoomvideo/callback?info=${assUserId}*${coachId}*${isCoachUser}`
+    `${process.env.BASE_URL}/api/amili/integration/zoomvideo/callback?info=${assUserId}*${coachId}*${isCoachUser}*${isSetupPage}`
   );
 
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
@@ -35,7 +35,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const redirectURL =
-    isCoachUser === "true"
+    isCoachUser === "true" && isSetupPage === "true"
+      ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/success`
+      : isCoachUser === "true"
       ? `${process.env.COACH_DASHBOARD_URL}/app/profile`
       : `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${coachId}`;
 
