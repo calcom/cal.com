@@ -62,7 +62,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
         </div>
       </Form>
       <div className="col-span-3 ml-2 lg:col-span-1 min-w-40">
-        <div className="px-4 py-5 border border-gray-200 rounded-sm sm:p-6 ">
+        <div className="px-4 py-5 border border-gray-200 rounded-sm sm:p-6 dark:border-gray-500">
           <h3 className="text-base font-medium leading-6 text-gray-900 dark:text-white">
             {t("something_doesnt_look_right")}
           </h3>

@@ -308,7 +308,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedLanguage || props.localeProp}
                   onChange={setSelectedLanguage}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  className="block w-full mt-1 capitalize rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                   options={localeOptions}
                 />
               </div>
@@ -325,7 +325,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedTimeZone}
                   onChange={setSelectedTimeZone}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  className="block w-full mt-1 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -341,7 +341,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedWeekStartDay}
                   onChange={setSelectedWeekStartDay}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  className="block w-full mt-1 capitalize rounded-sm shadow-sm react-select-container focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                   options={[
                     { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                     { value: "Monday", label: nameOfDay(props.localeProp, 1) },
@@ -360,7 +360,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   defaultValue={selectedTheme || themeOptions[0]}
                   value={selectedTheme || themeOptions[0]}
                   onChange={setSelectedTheme}
-                  className="shadow-sm | { value: string } focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="shadow-sm | { value: string } focus:ring-neutral-500 focus:border-neutral-500 mt-1 block w-full sm:text-sm rounded-sm"
                   options={themeOptions}
                 />
               </div>
