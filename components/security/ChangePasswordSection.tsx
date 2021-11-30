@@ -4,6 +4,8 @@ import { ErrorCode } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 
+import Button from "@components/ui/Button";
+
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -102,12 +104,8 @@ const ChangePasswordSection = () => {
             </div>
           </div>
           {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
-          <div className="flex justify-end py-8">
-            <button
-              type="submit"
-              className="inline-flex justify-center px-4 py-2 ml-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black dark:bg-white dark:text-black dark:hover:text-gray-300">
-              {t("save")}
-            </button>
+          <div className="py-8 flex justify-end">
+            <Button type="submit">{t("save")}</Button>
           </div>
           <hr className="mt-4" />
         </div>

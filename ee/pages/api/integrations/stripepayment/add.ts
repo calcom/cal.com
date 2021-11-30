@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
 import { getSession } from "@lib/auth";
+import { BASE_URL } from "@lib/config/constants";
 import prisma from "@lib/prisma";
 
 const client_id = process.env.STRIPE_CLIENT_ID;
@@ -27,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const redirect_uri = encodeURI(process.env.BASE_URL + "/api/integrations/stripepayment/callback");
+    const redirect_uri = encodeURI(BASE_URL + "/api/integrations/stripepayment/callback");
     const stripeConnectParams = {
       client_id,
       scope: "read_write",

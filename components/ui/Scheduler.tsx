@@ -9,6 +9,8 @@ import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 import { useLocale } from "@lib/hooks/useLocale";
 import { WorkingHours } from "@lib/types/schedule";
 
+import Button from "@components/ui/Button";
+
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";
 
@@ -103,9 +105,9 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
               <OpeningHours key={idx} idx={idx} item={item} />
             ))}
           </ul>
-          <button type="button" onClick={addNewSchedule} className="mt-2 btn-white btn-sm">
+          <Button type="button" onClick={addNewSchedule} className="mt-2" color="secondary" size="sm">
             {t("add_another")}
-          </button>
+          </Button>
         </div>
       </div>
       {editSchedule >= 0 && (

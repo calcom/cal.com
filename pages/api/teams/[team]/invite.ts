@@ -2,7 +2,9 @@ import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
-import { createInvitationEmail } from "@lib/emails/invitation";
+import { BASE_URL } from "@lib/config/constants";
+import { sendTeamInviteEmail } from "@lib/emails/email-manager";
+import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -72,13 +74,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (session?.user?.name && team?.name) {
-      createInvitationEmail({
+      const teamInviteEvent: TeamInvite = {
         language: t,
-        toEmail: req.body.usernameOrEmail,
         from: session.user.name,
+        to: req.body.usernameOrEmail,
         teamName: team.name,
-        token,
-      });
+        joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=${BASE_URL + "/settings/teams"}`,
+      };
+
+      await sendTeamInviteEmail(teamInviteEvent);
     }
 
     return res.status(201).json({});
@@ -106,12 +110,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // inform user of membership by email
   if (req.body.sendEmailInvitation && session?.user?.name && team?.name) {
-    createInvitationEmail({
+    const teamInviteEvent: TeamInvite = {
       language: t,
-      toEmail: invitee.email,
       from: session.user.name,
+      to: req.body.usernameOrEmail,
       teamName: team.name,
-    });
+      joinLink: BASE_URL + "/settings/teams",
+    };
+
+    await sendTeamInviteEmail(teamInviteEvent);
   }
 
   res.status(201).json({});
