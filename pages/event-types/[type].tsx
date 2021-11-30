@@ -553,6 +553,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         }
                         id="length"
                         required
+                        min="10"
                         placeholder="15"
                         defaultValue={eventType.length || 15}
                         onChange={(e) => {
@@ -807,6 +808,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <MinutesField
                             label={t("minimum_booking_notice")}
                             required
+                            min="0"
                             placeholder="120"
                             defaultValue={eventType.minimumBookingNotice}
                             onChange={(e) => {
