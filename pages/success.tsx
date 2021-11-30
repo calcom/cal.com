@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
+import { useBullBitcoinParams } from "@lib/hooks/useBullBitcoinParams";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -39,6 +40,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
+
+  const { redeemCode } = useBullBitcoinParams();
 
   const eventName = getEventName(name, props.eventType.title, props.eventType.eventName);
 
@@ -233,7 +236,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   )}
 
                   <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
-                    <a href="https://bullbitcoin.com">
+                    <a href={`https://bullbitcoin.com/claim/${redeemCode}`}>
                       <Button className="min-w-max" color="primary">
                         <Image src="/static/bullbitcoin-logo.svg" height="32" width="38" />
                         <div className="pl-3">Back to Bull Bitcoin</div>

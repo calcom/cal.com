@@ -18,6 +18,7 @@ import { createPaymentLink } from "@ee/lib/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
+import { useBullBitcoinParams } from "@lib/hooks/useBullBitcoinParams";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
@@ -53,6 +54,8 @@ const BookingPage = (props: BookingPageProps) => {
   const [selectedLocation, setSelectedLocation] = useState<LocationType>(
     locations.length === 1 ? locations[0].type : ""
   );
+
+  const { saleId, redeemCode } = useBullBitcoinParams();
 
   const telemetry = useTelemetry();
 
@@ -110,7 +113,8 @@ const BookingPage = (props: BookingPageProps) => {
         eventTypeId: props.eventType.id,
         timeZone: timeZone(),
         language: i18n.language,
-        saleId: router.query.saleId,
+        saleId,
+        redeemCode,
       };
       if (typeof rescheduleUid === "string") payload.rescheduleUid = rescheduleUid;
       if (typeof router.query.user === "string") payload.user = router.query.user;
