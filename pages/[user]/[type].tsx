@@ -155,6 +155,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as const;
     }
   }*/
+
   const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
     availability && availability.length ? availability : null;
 

@@ -55,7 +55,7 @@ const BookingPage = (props: BookingPageProps) => {
     locations.length === 1 ? locations[0].type : ""
   );
 
-  const { saleId, redeemCode } = useBullBitcoinParams();
+  const { redeemCode } = useBullBitcoinParams();
 
   const telemetry = useTelemetry();
 
@@ -113,7 +113,6 @@ const BookingPage = (props: BookingPageProps) => {
         eventTypeId: props.eventType.id,
         timeZone: timeZone(),
         language: i18n.language,
-        saleId,
         redeemCode,
       };
       if (typeof rescheduleUid === "string") payload.rescheduleUid = rescheduleUid;
