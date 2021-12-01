@@ -26,7 +26,7 @@ export default class OrganizerPaymentRefundFailedEmail extends OrganizerSchedule
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Bull Bitcoin Bookings <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.language("refund_failed_subject", {
         eventType: this.calEvent.type,

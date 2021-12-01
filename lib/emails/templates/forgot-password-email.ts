@@ -51,7 +51,7 @@ export default class ForgotPasswordEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Bull Bitcoin Bookings <${this.getMailerOptions().from}>`,
       subject: this.passwordEvent.language("reset_password_subject"),
       html: this.getHtmlBody(),
       text: this.getTextBody(),

@@ -26,7 +26,7 @@ export default class OrganizerRequestReminderEmail extends OrganizerScheduledEma
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Bull Bitcoin Bookings <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.language("event_awaiting_approval_subject", {
         eventType: this.calEvent.type,

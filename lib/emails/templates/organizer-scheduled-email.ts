@@ -88,7 +88,7 @@ export default class OrganizerScheduledEmail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Bull Bitcoin Bookings <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.language("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
