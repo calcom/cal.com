@@ -1186,6 +1186,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         eventTypeId: -1,
                         label: values.label,
                         placeholder: values.placeholder,
+                        inputMask: values.inputMask,
                         required: values.required,
                         type: values.type,
                       };
@@ -1193,6 +1194,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       if (selectedCustomInput) {
                         selectedCustomInput.label = customInput.label;
                         selectedCustomInput.placeholder = customInput.placeholder;
+                        selectedCustomInput.inputMask = customInput.inputMask;
                         selectedCustomInput.required = customInput.required;
                         selectedCustomInput.type = customInput.type;
                       } else {

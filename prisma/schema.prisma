@@ -242,6 +242,7 @@ enum EventTypeCustomInputType {
   TEXT      @map("text")
   TEXTLONG  @map("textLong")
   NUMBER    @map("number")
+  PHONE     @map("phone")
   BOOL      @map("bool")
 }
 
@@ -253,6 +254,7 @@ model EventTypeCustomInput {
   type        EventTypeCustomInputType
   required    Boolean
   placeholder String                   @default("")
+  inputMask   String                   @default("")
 }
 
 model ResetPasswordRequest {

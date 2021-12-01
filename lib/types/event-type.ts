@@ -25,6 +25,7 @@ export type EventTypeCustomInput = {
   id: number;
   label: string;
   placeholder: string;
+  inputMask: string;
   required: boolean;
   type: string;
 };
