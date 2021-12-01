@@ -7,13 +7,19 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["selectRelationCount"]
 }
 
 enum SchedulingType {
-  ROUND_ROBIN @map("roundRobin")
-  COLLECTIVE  @map("collective")
+  ROUND_ROBIN  @map("roundRobin")
+  COLLECTIVE   @map("collective")
+}
+
+enum PeriodType {
+  UNLIMITED  @map("unlimited")
+  ROLLING    @map("rolling")
+  RANGE      @map("range")
 }
 
 model EventType {
@@ -21,6 +27,7 @@ model EventType {
   title                   String
   slug                    String
   description             String?
+  position                Int                    @default(0)
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
@@ -33,7 +40,7 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              String                @default("unlimited") // unlimited | rolling | range
+  periodType              PeriodType             @default(UNLIMITED)
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
@@ -45,6 +52,7 @@ model EventType {
   Schedule                Schedule[]
   price                   Int                    @default(0)
   currency                String                 @default("usd")
+
   @@unique([userId, slug])
 }
 
@@ -86,26 +94,26 @@ model User {
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean            @default(false)
-  locale String?
+  locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean            @default(false)
-
-
-  plan     UserPlan   @default(PRO)
-  Schedule Schedule[]
+  plan                UserPlan           @default(PRO)
+  Schedule            Schedule[]
+  webhooks            Webhook[]
+  brandColor          String             @default("#292929")
 
   @@map(name: "users")
 }
 
 model Team {
-  id            Int          @id @default(autoincrement())
-  name          String?
-  slug          String?      @unique
-  logo          String?
-  bio           String?
-  hideBranding  Boolean      @default(false)
-  members       Membership[]
-  eventTypes    EventType[]
+  id           Int          @id @default(autoincrement())
+  name         String?
+  slug         String?      @unique
+  logo         String?
+  bio          String?
+  hideBranding Boolean      @default(false)
+  members      Membership[]
+  eventTypes   EventType[]
 }
 
 enum MembershipRole {
@@ -156,17 +164,17 @@ model Attendee {
 }
 
 enum BookingStatus {
-  CANCELLED @map("cancelled")
-  ACCEPTED  @map("accepted")
-  REJECTED  @map("rejected")
-  PENDING   @map("pending")
+  CANCELLED  @map("cancelled")
+  ACCEPTED   @map("accepted")
+  REJECTED   @map("rejected")
+  PENDING    @map("pending")
 }
 
 model DailyEventReference {
-  id         Int         @id @default(autoincrement())
-  dailyurl   String      @default("dailycallurl")
-  dailytoken String      @default("dailytoken")
-  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  id         Int      @id @default(autoincrement())
+  dailyurl   String   @default("dailycallurl")
+  dailytoken String   @default("dailytoken")
+  booking    Booking? @relation(fields: [bookingId], references: [id])
   bookingId  Int?
 }
 
@@ -187,14 +195,14 @@ model Booking {
   attendees Attendee[]
   location  String?
 
-  dailyRef  DailyEventReference?
+  dailyRef DailyEventReference?
 
-  createdAt DateTime  @default(now())
+  createdAt DateTime      @default(now())
   updatedAt DateTime?
-  confirmed Boolean   @default(true)
-  rejected  Boolean   @default(false)
+  confirmed Boolean       @default(true)
+  rejected  Boolean       @default(false)
   status    BookingStatus @default(ACCEPTED)
-  paid      Boolean @default(false)
+  paid      Boolean       @default(false)
   payment   Payment[]
 }
 
@@ -216,8 +224,8 @@ model Availability {
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
-  startTime   Int
-  endTime     Int
+  startTime   DateTime   @db.Time
+  endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
 }
 
@@ -274,18 +282,18 @@ enum PaymentType {
 }
 
 model Payment {
-  id             Int      @id @default(autoincrement())
-  uid            String   @unique
-  type           PaymentType
-  bookingId      Int
-  booking        Booking?  @relation(fields: [bookingId], references: [id])
-  amount         Int
-  fee            Int
-  currency       String
-  success        Boolean
-  refunded       Boolean
-  data           Json
-  externalId     String   @unique
+  id         Int         @id @default(autoincrement())
+  uid        String      @unique
+  type       PaymentType
+  bookingId  Int
+  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  amount     Int
+  fee        Int
+  currency   String
+  success    Boolean
+  refunded   Boolean
+  data       Json
+  externalId String      @unique
 }
 
 enum WebhookTriggerEvents {
@@ -295,10 +303,12 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String      @unique @id
-  userId        Int
-  subscriberUrl String
-  createdAt     DateTime  @default(now())
-  active        Boolean   @default(true)
-  eventTriggers WebhookTriggerEvents[]
+  id              String                 @id @unique
+  userId          Int
+  subscriberUrl   String
+  payloadTemplate String?
+  createdAt       DateTime               @default(now())
+  active          Boolean                @default(true)
+  eventTriggers   WebhookTriggerEvents[]
+  user            User                   @relation(fields: [userId], references: [id])
 }

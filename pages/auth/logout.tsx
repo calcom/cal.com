@@ -1,9 +1,12 @@
 import { CheckIcon } from "@heroicons/react/outline";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export default function Logout() {
   const { t } = useLocale();
@@ -35,7 +38,7 @@ export default function Logout() {
           </div>
           <div className="mt-5 sm:mt-6">
             <Link href="/auth/login">
-              <a className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm">
+              <a className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm">
                 {t("go_back_login")}
               </a>
             </Link>
@@ -44,4 +47,14 @@ export default function Logout() {
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
 }

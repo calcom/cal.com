@@ -43,6 +43,7 @@ async function getUserFromSession({
       hideBranding: true,
       avatar: true,
       twoFactorEnabled: true,
+      brandColor: true,
       credentials: {
         select: {
           id: true,
@@ -69,12 +70,12 @@ async function getUserFromSession({
     return null;
   }
   const { email, username } = user;
-  if (!username || !email) {
+  if (!email) {
     return null;
   }
   const avatar = user.avatar || defaultAvatarSrc({ email });
 
-  const locale = user.locale ?? getLocaleFromHeaders(req);
+  const locale = user.locale || getLocaleFromHeaders(req);
   return {
     ...user,
     avatar,

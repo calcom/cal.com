@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import stripe from "@ee/lib/stripe/server";
 
 import { CalendarEvent } from "@lib/calendarClient";
+import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
@@ -55,6 +56,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
               timeZone: true,
               email: true,
               name: true,
+              locale: true,
             },
           },
         },
@@ -72,7 +74,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (!user) throw new Error("No user found");
 
-  const t = await getTranslation(/* FIXME handle mulitple locales here */ "en", "common");
+  const t = await getTranslation(user.locale ?? "en", "common");
 
   const evt: Ensure<CalendarEvent, "language"> = {
     type: booking.title,
@@ -85,6 +87,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     uid: booking.uid,
     language: t,
   };
+
   if (booking.location) evt.location = booking.location;
 
   if (booking.confirmed) {
@@ -108,25 +111,6 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
-  "customer.subscription.deleted": async (event) => {
-    const object = event.data.object as Stripe.Subscription;
-
-    const customerId = typeof object.customer === "string" ? object.customer : object.customer.id;
-
-    const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
-    if (typeof customer.email !== "string") {
-      throw new Error(`Couldn't find customer email for ${customerId}`);
-    }
-
-    await prisma.user.update({
-      where: {
-        email: customer.email,
-      },
-      data: {
-        plan: "FREE",
-      },
-    });
-  },
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -144,7 +128,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
-    // console.log("payload", payload);
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
@@ -152,14 +135,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (handler) {
       await handler(event);
     } else {
-      console.warn(`Unhandled Stripe Webhook event type ${event.type}`);
+      /** Not really an error, just letting Stripe know that the webhook was received but unhandled */
+      throw new HttpError({
+        statusCode: 202,
+        message: `Unhandled Stripe Webhook event type ${event.type}`,
+      });
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     res.status(err.statusCode ?? 500).send({
       message: err.message,
-      stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.stack,
     });
     return;
   }

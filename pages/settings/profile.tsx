@@ -1,10 +1,10 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
-import { i18n } from "next-i18next.config";
-import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState, useMemo } from "react";
 import Select, { OptionTypeBase } from "react-select";
-import TimezoneSelect from "react-timezone-select";
+import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -29,19 +29,10 @@ import { UsernameInput } from "@components/ui/UsernameInput";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
-const getLocaleOptions = (displayLocale: string | string[]): OptionTypeBase[] => {
-  return i18n.locales.map((locale) => ({
-    value: locale,
-    // FIXME
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    label: new Intl.DisplayNames(displayLocale, { type: "language" }).of(locale),
-  }));
-};
-
 function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
   const { t } = useLocale();
   const [modelOpen, setModalOpen] = useState(false);
+
   return (
     <>
       <input
@@ -90,9 +81,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
             <DialogClose asChild>
-              <Button
-                className="table-cell text-center btn-wide btn-primary"
-                onClick={() => setModalOpen(false)}>
+              <Button className="table-cell text-center btn-wide" onClick={() => setModalOpen(false)}>
                 {t("dismiss")}
               </Button>
             </DialogClose>
@@ -106,6 +95,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const router = useRouter();
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
@@ -121,20 +111,34 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     },
   });
 
-  const localeOptions = getLocaleOptions(props.localeProp);
+  const localeOptions = useMemo(() => {
+    return (router.locales || []).map((locale) => ({
+      value: locale,
+      // FIXME
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale),
+    }));
+  }, [props.localeProp, router.locales]);
 
   const themeOptions = [
     { value: "light", label: t("light") },
     { value: "dark", label: t("dark") },
   ];
-
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const usernameRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const nameRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const avatarRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const brandColorRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>();
-  const [selectedTimeZone, setSelectedTimeZone] = useState({ value: props.user.timeZone });
+  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState<OptionTypeBase>({
     value: props.user.weekStart,
     label: nameOfDay(props.localeProp, props.user.weekStart === "Sunday" ? 0 : 1),
@@ -152,6 +156,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     setSelectedTheme(
       props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : undefined
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
@@ -161,7 +166,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredName = nameRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
-    const enteredTimeZone = selectedTimeZone.value;
+    const enteredBrandColor = brandColorRef.current.value;
+    const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
     const enteredLanguage = selectedLanguage.value;
@@ -177,6 +183,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       weekStart: asStringOrUndefined(enteredWeekStartDay),
       hideBranding: enteredHideBranding,
       theme: asStringOrNull(selectedTheme?.value),
+      brandColor: enteredBrandColor,
       locale: enteredLanguage,
     });
   }
@@ -366,6 +373,23 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               </div>
             </div>
             <div>
+              <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
+                {t("brand_color")}
+              </label>
+              <div className="flex mt-1">
+                <input
+                  ref={brandColorRef}
+                  type="text"
+                  name="brandColor"
+                  id="brandColor"
+                  placeholder="#hex-code"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  defaultValue={props.user.brandColor}
+                />
+              </div>
+              <hr className="mt-6" />
+            </div>
+            <div>
               <div className="relative flex items-start">
                 <div className="flex items-center h-5">
                   <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
@@ -429,6 +453,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding: true,
       theme: true,
       plan: true,
+      brandColor: true,
     },
   });
 

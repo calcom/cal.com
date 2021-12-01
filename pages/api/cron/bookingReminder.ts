@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { CalendarEvent } from "@lib/calendarClient";
-import EventOrganizerRequestReminderMail from "@lib/emails/EventOrganizerRequestReminderMail";
+import { sendOrganizerRequestReminderEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -37,7 +37,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: true,
         endTime: true,
         attendees: true,
-        user: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+            username: true,
+            locale: true,
+            timeZone: true,
+          },
+        },
         id: true,
         uid: true,
       },
@@ -62,7 +70,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.error(`Booking ${booking.id} is missing required properties for booking reminder`, { user });
         continue;
       }
-      const t = await getTranslation(req.body.language ?? "en", "common");
+
+      const t = await getTranslation(user.locale ?? "en", "common");
+
       const evt: CalendarEvent = {
         type: booking.title,
         title: booking.title,
@@ -80,7 +90,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         language: t,
       };
 
-      await new EventOrganizerRequestReminderMail(evt).sendEmail();
+      await sendOrganizerRequestReminderEmail(evt);
+
       await prisma.reminderMail.create({
         data: {
           referenceId: booking.id,
