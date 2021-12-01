@@ -98,10 +98,7 @@ export default function Teams() {
                   )}
                 </div>
                 <div className="flex items-start mb-4">
-                  <Button
-                    type="button"
-                    onClick={() => setShowCreateTeamModal(true)}
-                    className="btn btn-white">
+                  <Button type="button" onClick={() => setShowCreateTeamModal(true)} color="secondary">
                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
                     {t("new_team")}
                   </Button>
@@ -114,7 +111,7 @@ export default function Teams() {
 
                 {!!invites.length && (
                   <div>
-                    <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">Open Invitations</h2>
+                    <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">Open Invitations</h2>
                     <ul className="px-4 mt-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
                       {invites.map((team: Team) => (
                         <TeamListItem
@@ -176,15 +173,14 @@ export default function Teams() {
                     />
                   </div>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      {t("create_team")}
-                    </button>
-                    <button
+                    <Button type="submit">{t("create_team")}</Button>
+                    <Button
                       onClick={() => setShowCreateTeamModal(false)}
                       type="button"
-                      className="mr-2 btn btn-white">
+                      className="mr-2"
+                      color="secondary">
                       {t("cancel")}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>

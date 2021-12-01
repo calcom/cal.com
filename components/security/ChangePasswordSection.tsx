@@ -4,6 +4,8 @@ import { ErrorCode } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 
+import Button from "@components/ui/Button";
+
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -72,7 +74,7 @@ const ChangePasswordSection = () => {
                   name="current_password"
                   id="current_password"
                   required
-                  className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder={t("your_old_password")}
                 />
               </div>
@@ -89,7 +91,7 @@ const ChangePasswordSection = () => {
                   value={newPassword}
                   required
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
-                  className="shadow-sm focus:ring-black focus:border-black block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-sm"
                   placeholder={t("super_secure_new_password")}
                 />
               </div>
@@ -97,11 +99,7 @@ const ChangePasswordSection = () => {
           </div>
           {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           <div className="py-8 flex justify-end">
-            <button
-              type="submit"
-              className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              {t("save")}
-            </button>
+            <Button type="submit">{t("save")}</Button>
           </div>
           <hr className="mt-4" />
         </div>

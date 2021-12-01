@@ -6,4 +6,8 @@
     "source.fixAll.eslint": true
   },
   "eslint.run": "onSave",
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#292929",
+    "titleBar.inactiveBackground": "#888888"
+  }
 }
