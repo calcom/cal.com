@@ -4,15 +4,29 @@ on:
     branches:
       - "master"
 jobs:
-  sync-branch:
+  sync-sandbox:
+    name: sync-sandbox
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-
-      - name: Merge master -> sandbox
-        uses: devmasx/merge-branch@master
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: merge
+        uses: mtanzi/action-automerge@v1
+        id: merge
         with:
-          type: now
-          from_branch: master
-          target_branch: sandbox
-          token: ${{ secrets.TOKEN }}
+          github_token: ${{ secrets.TOKEN }}
+          source: "master"
+          target: "sandbox"
+
+  # sync-branch:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@master
+
+  #     - name: Merge master -> sandbox
+  #       uses: devmasx/merge-branch@master
+  #       with:
+  #         type: now
+  #         from_branch: master
+  #         target_branch: sandbox
+  #         token: ${{ secrets.TOKEN }}
