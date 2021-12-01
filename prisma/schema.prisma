@@ -164,7 +164,7 @@ enum BookingStatus {
 
 model DailyEventReference {
   id         Int         @id @default(autoincrement())
-  dailyurl   String      @default("dailycallurl") 
+  dailyurl   String      @default("dailycallurl")
   dailytoken String      @default("dailytoken")
   booking    Booking?    @relation(fields: [bookingId], references: [id])
   bookingId  Int?
@@ -234,6 +234,7 @@ enum EventTypeCustomInputType {
   TEXT      @map("text")
   TEXTLONG  @map("textLong")
   NUMBER    @map("number")
+  PHONE     @map("phone")
   BOOL      @map("bool")
 }
 
@@ -245,6 +246,7 @@ model EventTypeCustomInput {
   type        EventTypeCustomInputType
   required    Boolean
   placeholder String                   @default("")
+  inputMask   String                   @default("")
 }
 
 model ResetPasswordRequest {
@@ -293,10 +295,10 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id            String      @unique @id 
-  userId        Int       
+  id            String      @unique @id
+  userId        Int
   subscriberUrl String
   createdAt     DateTime  @default(now())
-  active        Boolean   @default(true)         
+  active        Boolean   @default(true)
   eventTriggers WebhookTriggerEvents[]
 }

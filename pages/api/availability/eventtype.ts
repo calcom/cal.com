@@ -14,6 +14,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
       label: input.label,
       required: input.required,
       placeholder: input.placeholder,
+      inputMask: input.inputMask,
     }));
   const cInputsToUpdate = customInputs
     .filter((input) => input.id > 0)
@@ -23,6 +24,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
         label: input.label,
         required: input.required,
         placeholder: input.placeholder,
+        inputMask: input.inputMask,
       },
       where: {
         id: input.id,
