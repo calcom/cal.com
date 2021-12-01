@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import stripe from "@ee/lib/stripe/server";
 
 import { CalendarEvent } from "@lib/calendarClient";
+import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
@@ -145,7 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error(`Webhook Error: ${err.message}`);
     res.status(err.statusCode ?? 500).send({
       message: err.message,
-      stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.stack,
     });
     return;
   }
