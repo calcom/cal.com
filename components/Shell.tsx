@@ -264,7 +264,7 @@ export default function Shell(props: {
             </nav>
             <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
               {props.showBackButton && (
-                <div className="mx-8 mb-8">
+                <div className="mx-3 mb-8 sm:mx-8">
                   <Button onClick={() => router.back()} StartIcon={ArrowLeftIcon} color="secondary">
                     Back
                   </Button>

@@ -78,7 +78,7 @@ export default function TeamSettings(props: Props) {
             e.preventDefault();
             updateTeamData();
           }}>
-          <div className="py-6 lg:pb-8">
+          <div className="py-6">
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
                 <SettingInputContainer
@@ -176,24 +176,22 @@ export default function TeamSettings(props: Props) {
                   <hr className="mt-6" />
                 </div>
 
-                <div>
-                  <div className="relative flex items-start">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="hide-branding"
-                        name="hide-branding"
-                        type="checkbox"
-                        ref={hideBrandingRef}
-                        defaultChecked={team?.hideBranding}
-                        className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
-                      />
-                    </div>
-                    <div className="ml-3 text-sm">
-                      <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                        {t("disable_cal_branding")}
-                      </label>
-                      <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
-                    </div>
+                <div className="relative flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="hide-branding"
+                      name="hide-branding"
+                      type="checkbox"
+                      ref={hideBrandingRef}
+                      defaultChecked={team?.hideBranding}
+                      className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                      {t("disable_cal_branding")}
+                    </label>
+                    <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                   </div>
                 </div>
               </div>

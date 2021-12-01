@@ -1,4 +1,5 @@
-import { DotsHorizontalIcon, ExternalLinkIcon, LinkIcon, TrashIcon } from "@heroicons/react/outline";
+import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/react/outline";
+import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 
 import classNames from "@lib/classNames";
@@ -19,51 +20,73 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
+import TeamRole from "./TeamRole";
+import { MembershipRole } from ".prisma/client";
+
 export default function TeamListItem(props: {
   key: number;
   team: Team;
   onActionSelect: (text: string) => void;
 }) {
   const { t } = useLocale();
+  const utils = trpc.useContext();
   const team = props.team;
 
-  const respondToInviteMutation = trpc.useMutation("viewer.teams.respondToInvite");
-  function respondToInvite(accept: boolean) {
-    respondToInviteMutation.mutate({
+  const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
+    onSuccess: () => {
+      utils.invalidateQueries(["viewer.teams.list"]);
+    },
+  });
+  function acceptOrLeave(accept: boolean) {
+    acceptOrLeaveMutation.mutate({
       teamId: team.id,
       accept,
     });
   }
-  const acceptInvite = () => respondToInvite(true);
-  const declineInvite = () => respondToInvite(false);
+  const acceptInvite = () => acceptOrLeave(true);
+  const declineInvite = () => acceptOrLeave(false);
+
+  const isOwner = props.team.role === "OWNER";
+  const isInvitee = props.team.role === "INVITEE";
+  const isAdmin = props.team.role === "OWNER" || props.team.role === "ADMIN";
+
+  if (!team) return <></>;
+
+  const teamInfo = (
+    <div className="flex px-5 py-5">
+      <Avatar
+        size={9}
+        imageSrc={getPlaceholderAvatar(props.team?.logo, props.team?.name)}
+        alt="Team Logo"
+        className="rounded-full w-9 h-9"
+      />
+      <div className="inline-block ml-3">
+        <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>
+        <span className="block text-xs text-gray-400">
+          {process.env.NEXT_PUBLIC_APP_URL}/team/{props.team.slug}
+        </span>
+      </div>
+    </div>
+  );
 
   return (
-    team && (
-      <li className="divide-y">
-        <div
-          className={classNames(
-            "flex justify-between py-5 px-5 items-center",
-            props.team.role !== "INVITEE" && "group hover:bg-neutral-50"
-          )}>
+    <li className="divide-y">
+      <div
+        className={classNames(
+          "flex justify-between  items-center",
+          !isInvitee && "group hover:bg-neutral-50"
+        )}>
+        {!isInvitee ? (
           <Link href={"/settings/teams/" + props.team.id}>
             <a className="flex-grow text-sm truncate cursor-pointer" title={`${props.team.name}`}>
-              <div className="flex">
-                <Avatar
-                  size={9}
-                  imageSrc={getPlaceholderAvatar(props.team?.logo, props.team?.name)}
-                  alt="Team Logo"
-                  className="rounded-full w-9 h-9"
-                />
-                <div className="inline-block ml-3">
-                  <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>
-                  <span className="block text-xs text-gray-400">
-                    {process.env.NEXT_PUBLIC_APP_URL}/team/{props.team.slug}
-                  </span>
-                </div>
-              </div>
+              {teamInfo}
             </a>
           </Link>
-          {props.team.role === "INVITEE" && (
+        ) : (
+          teamInfo
+        )}
+        <div className="px-5 py-5">
+          {isInvitee && (
             <>
               <Button type="button" color="secondary" onClick={declineInvite}>
                 {t("reject")}
@@ -73,18 +96,10 @@ export default function TeamListItem(props: {
               </Button>
             </>
           )}
-          <div className="flex space-x-1">
-            {props.team.role === "OWNER" && (
-              <span className="self-center px-3 py-1 mr-3 text-xs text-gray-700 capitalize bg-gray-100 border border-gray-100 rounded-md group-hover:border-gray-200">
-                {t("owner")}
-              </span>
-            )}
-            {props.team.role === "MEMBER" && (
-              <Button type="button" color="primary" onClick={declineInvite}>
-                {t("leave")}
-              </Button>
-            )}
-            {props.team.role !== "INVITEE" && (
+          {!isInvitee && (
+            <div className="flex space-x-2">
+              <TeamRole role={props.team.role as MembershipRole} />
+
               <Tooltip content={t("copy_link_team")}>
                 <Button
                   onClick={() => {
@@ -93,20 +108,29 @@ export default function TeamListItem(props: {
                     );
                     showToast(t("link_copied"), "success");
                   }}
-                  className="w-10 h-10 hover:bg-white "
+                  className="w-10 h-10 transition-none"
                   size="icon"
                   color="minimal"
-                  StartIcon={LinkIcon}
-                  type="button"
-                />
+                  type="button">
+                  <LinkIcon className="w-5 h-5 group-hover:text-gray-600" />
+                </Button>
               </Tooltip>
-            )}
-            {props.team.role === "OWNER" && (
               <Dropdown>
-                <DropdownMenuTrigger className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white">
-                  <DotsHorizontalIcon className="w-5 h-5 group-hover:text-gray-400" />
+                <DropdownMenuTrigger className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 ">
+                  <DotsHorizontalIcon className="w-5 h-5 group-hover:text-gray-800" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
+                  {isAdmin && (
+                    <DropdownMenuItem>
+                      <Link href={"/settings/teams/" + props.team.id}>
+                        <a>
+                          <Button type="button" color="minimal" className="w-full" StartIcon={PencilIcon}>
+                            {t("edit_team")}
+                          </Button>
+                        </a>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem>
                     <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team.slug}`} passHref={true}>
                       <a target="_blank">
@@ -117,34 +141,61 @@ export default function TeamListItem(props: {
                       </a>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          color="warn"
-                          StartIcon={TrashIcon}
-                          className="w-full">
-                          {t("disband_team")}
-                        </Button>
-                      </DialogTrigger>
-                      <ConfirmationDialogContent
-                        variety="danger"
-                        title={t("disband_team")}
-                        confirmBtnText={t("confirm_disband_team")}
-                        onConfirm={() => props.onActionSelect("disband")}>
-                        {t("disband_team_confirmation_message")}
-                      </ConfirmationDialogContent>
-                    </Dialog>
-                  </DropdownMenuItem>
+                  {isOwner && (
+                    <DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            color="warn"
+                            StartIcon={TrashIcon}
+                            className="w-full">
+                            {t("disband_team")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("disband_team")}
+                          confirmBtnText={t("confirm_disband_team")}
+                          onConfirm={() => props.onActionSelect("disband")}>
+                          {t("disband_team_confirmation_message")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
+                  )}
+                  {!isOwner && (
+                    <DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            type="button"
+                            color="warn"
+                            StartIcon={LogoutIcon}
+                            className="w-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}>
+                            {t("leave_team")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("leave_team")}
+                          confirmBtnText={t("confirm_leave_team")}
+                          onConfirm={declineInvite}>
+                          {t("leave_team_confirmation_message")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </Dropdown>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      </li>
-    )
+      </div>
+    </li>
   );
 }

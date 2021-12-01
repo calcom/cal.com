@@ -10,23 +10,31 @@ import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 export default function Teams() {
   const { t } = useLocale();
   const [, loading] = useSession();
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const { data } = trpc.useQuery(["viewer.teams.list"]);
+  const { data } = trpc.useQuery(["viewer.teams.list"], {
+    onError: (e) => {
+      setErrorMessage(e.message);
+    },
+  });
 
-  if (loading || !data) return <Loader />;
+  if (loading) return <Loader />;
 
-  const teams = data.filter((m) => m.role !== "INVITEE") || [];
-  const invites = data.filter((m) => m.role === "INVITEE") || [];
+  const teams = data?.filter((m) => m.role !== "INVITEE") || [];
+  const invites = data?.filter((m) => m.role === "INVITEE") || [];
 
   return (
     <Shell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
       <SettingsShell>
+        {!!errorMessage && <Alert severity="error" title={errorMessage} />}
+
         {showCreateTeamModal && <TeamCreateModal onClose={() => setShowCreateTeamModal(false)} />}
         <div className="flex justify-end my-4">
           <Button type="button" className="btn btn-white" onClick={() => setShowCreateTeamModal(true)}>

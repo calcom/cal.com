@@ -1,11 +1,12 @@
 import { MembershipRole } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
 import { BASE_URL } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
-import { getTeamWithMembers, isTeamAdmin } from "@lib/queries/teams";
+import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
 import slugify from "@lib/slugify";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -18,8 +19,13 @@ export const viewerTeamsRouter = createProtectedRouter()
     input: z.object({
       teamId: z.number(),
     }),
-    async resolve({ input }) {
-      return await getTeamWithMembers(input.teamId);
+    async resolve({ ctx, input }) {
+      const team = await getTeamWithMembers(input.teamId);
+      if (!team?.members.find((m) => m.id === ctx.user.id)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
+      }
+      const membership = team?.members.find((membership) => membership.id === ctx.user.id);
+      return { ...team, membership: { role: membership?.role } };
     },
   })
   // Returns teams I a member of
@@ -29,6 +35,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         where: {
           userId: ctx.user.id,
         },
+        orderBy: { role: "desc" },
       });
       const teams = await ctx.prisma.team.findMany({
         where: {
@@ -37,6 +44,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           },
         },
       });
+
       return memberships.map((membership) => ({
         role: membership.accepted ? membership.role : "INVITEE",
         ...teams.find((team) => team.id === membership.teamId),
@@ -116,8 +124,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      // TODO: change to owner, only owner can delete
-      if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -129,19 +136,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       await ctx.prisma.team.delete({
         where: {
           id: input.teamId,
-        },
-      });
-    },
-  })
-  // Allows member to leave team
-  .mutation("leaveTeam", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
-      await ctx.prisma.membership.delete({
-        where: {
-          userId_teamId: { userId: ctx.user?.id, teamId: input.teamId },
         },
       });
     },
@@ -172,7 +166,7 @@ export const viewerTeamsRouter = createProtectedRouter()
     input: z.object({
       teamId: z.number(),
       usernameOrEmail: z.string(),
-      role: z.string(),
+      role: z.nativeEnum(MembershipRole),
       language: z.string(),
       sendEmailInvitation: z.boolean(),
     }),
@@ -246,14 +240,15 @@ export const viewerTeamsRouter = createProtectedRouter()
               role: input.role as MembershipRole,
             },
           });
-        } catch (err: any) {
-          if (err.code === "P2002") {
-            // unique constraint violation
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "This user is a member of this team / has a pending invitation.",
-            });
-          } else throw err;
+        } catch (e) {
+          if (e instanceof Prisma.PrismaClientKnownRequestError) {
+            if (e.code === "P2002") {
+              throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "This user is a member of this team / has a pending invitation.",
+              });
+            }
+          } else throw e;
         }
 
         // inform user of membership by email
@@ -271,7 +266,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       }
     },
   })
-  .mutation("respondToInvite", {
+  .mutation("acceptOrLeave", {
     input: z.object({
       teamId: z.number(),
       accept: z.boolean(),
@@ -293,5 +288,35 @@ export const viewerTeamsRouter = createProtectedRouter()
           },
         });
       }
+    },
+  })
+  .mutation("changeMemberRole", {
+    input: z.object({
+      teamId: z.number(),
+      memberId: z.number(),
+      role: z.nativeEnum(MembershipRole),
+    }),
+    async resolve({ ctx, input }) {
+      if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const membership = await ctx.prisma.membership.findFirst({
+        where: { userId: input.memberId, teamId: input.teamId },
+      });
+
+      if (membership?.role === "OWNER") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You can not change the role of the owner of a team.",
+        });
+      }
+
+      await ctx.prisma.membership.update({
+        where: {
+          userId_teamId: { userId: input.memberId, teamId: input.teamId },
+        },
+        data: {
+          role: input.role,
+        },
+      });
     },
   });

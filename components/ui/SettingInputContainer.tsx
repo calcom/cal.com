@@ -7,7 +7,7 @@ export default function SettingInputContainer({
   Input: React.ReactNode;
   Icon: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
   label: string;
-  htmlFor: string;
+  htmlFor?: string;
 }) {
   return (
     <div className="space-y-3">
