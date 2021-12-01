@@ -1,0 +1,18 @@
+name: Sync Sandbox to Master
+on:
+  push:
+    branches:
+      - "master"
+jobs:
+  sync-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge master -> sandbox
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: master
+          target_branch: sandbox
+          token: ${{ secrets.TOKEN }}
