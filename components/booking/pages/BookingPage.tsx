@@ -444,7 +444,6 @@ const BookingPage = (props: BookingPageProps) => {
                     />
                   </div>
                   <div className="flex items-start space-x-2">
-                    {/* TODO: add styling props to <Button variant="" color="" /> and get rid of btn-primary */}
                     <Button type="submit" loading={loading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
