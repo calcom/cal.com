@@ -6,6 +6,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
+import getConfig from "next/config";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -27,6 +28,8 @@ import Button from "@components/ui/Button";
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
+
+const { publicRuntimeConfig } = getConfig();
 
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
@@ -248,7 +251,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   )}
 
                   <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
-                    <a href={`https://bullbitcoin.com/claim/${redeemCode}`}>
+                    <a href={`${publicRuntimeConfig.origins.bullbitcoin}/claim/${redeemCode}`}>
                       <Button className="min-w-max" color="primary">
                         <Image src="/static/bullbitcoin-logo.svg" height="32" width="38" />
                         <div className="pl-3">Back to Bull Bitcoin</div>
