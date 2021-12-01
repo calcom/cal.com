@@ -242,10 +242,15 @@ export default function Shell(props: {
               <div className="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
                 <Link href="/event-types">
                   <a className="px-4">
-                    <Logo small />
+                    {/* <Logo small /> */}
+                    <h1 className="inline p-2">
+                      <strong>
+                        <img className="w-auto h-10" alt="Cal" title="Cal" src="/cal-com-icon.svg" />
+                      </strong>
+                    </h1>
                   </a>
                 </Link>
-                <nav className="flex-1 px-2 mt-5 space-y-1 bg-white">
+                <nav className="flex-1 px-2 space-y-1 bg-white">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
