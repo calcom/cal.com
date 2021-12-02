@@ -1,14 +1,11 @@
-import { ResetPasswordRequest, IdentityProvider } from "@prisma/client";
+import { ResetPasswordRequest } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { identityProviderNameMap } from "@lib/auth";
 import { sendPasswordResetEmail } from "@lib/emails/email-manager";
-import sendEmail from "@lib/emails/sendMail";
 import { PasswordReset, PASSWORD_RESET_EXPIRY_HOURS } from "@lib/emails/templates/forgot-password-email";
-import { buildForgotIdentityProviderMessage } from "@lib/forgot-password/messaging/forgot-password";
 import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -40,15 +37,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "Couldn't find an account for this email" });
     }
 
-    if (maybeUser.identityProvider !== IdentityProvider.CAL) {
-      const { subject, message } = buildForgotIdentityProviderMessage({
-        identityProvider: identityProviderNameMap[maybeUser.identityProvider],
-      });
-      await sendEmail({ to: rawEmail, subject, text: message });
-      console.log({ to: rawEmail, subject, text: message });
+    // if (maybeUser.identityProvider !== IdentityProvider.CAL) {
+    //   const { subject, message } = buildForgotIdentityProviderMessage({
+    //     identityProvider: identityProviderNameMap[maybeUser.identityProvider],
+    //   });
+    //   await sendEmail({ to: rawEmail, subject, text: message });
+    //   console.log({ to: rawEmail, subject, text: message });
 
-      return res.status(201).json({ message: "Reset Requested" });
-    }
+    //   return res.status(201).json({ message: "Reset Requested" });
+    // }
 
     const now = dayjs().toDate();
     const maybePreviousRequest = await prisma.resetPasswordRequest.findMany({

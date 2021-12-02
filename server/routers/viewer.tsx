@@ -604,7 +604,6 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("isSAMLLoginEnabled", {
     async resolve({ ctx }) {
       const { user } = ctx;
-      console.log("ctx.user=", user);
 
       return {
         isSAMLLoginEnabled: isSAMLLoginEnabled && isSAMLAdmin(user.email),
