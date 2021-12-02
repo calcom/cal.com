@@ -142,8 +142,6 @@ export default class EventManager {
       };
     });
 
-    console.log({ referencesToCreate });
-
     return {
       results,
       referencesToCreate,
