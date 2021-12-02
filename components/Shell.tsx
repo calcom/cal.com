@@ -239,13 +239,12 @@ export default function Shell(props: {
         <div className="hidden md:flex md:flex-shrink-0 lg:hidden">
           <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
-              <div className="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+              <div className="flex flex-col flex-1 pb-4 overflow-y-auto">
                 <Link href="/event-types">
-                  <a className="px-2">
-                    {/* <Logo small /> */}
-                    <h1 className="inline p-2">
+                  <a className="px-2 my-3">
+                    <h1 className="inline">
                       <strong>
-                        <img className="w-auto h-10" alt="Cal" title="Cal" src="/cal-com-icon.svg" />
+                        <img className="w-auto h-9" alt="Cal" title="Cal" src="/cal-com-icon.svg" />
                       </strong>
                     </h1>
                   </a>
