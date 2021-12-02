@@ -5,9 +5,16 @@ import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
-import { isSAMLLoginEnabled } from "@lib/auth";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
+import {
+  isSAMLLoginEnabled,
+  samlApiUrl,
+  samlTenantID,
+  samlProductID,
+  samlServiceApiKey,
+  isSAMLAdmin,
+} from "@lib/saml";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
@@ -595,9 +602,12 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   })
   .query("isSAMLLoginEnabled", {
-    async resolve() {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      console.log("ctx.user=", user);
+
       return {
-        isSAMLLoginEnabled,
+        isSAMLLoginEnabled: isSAMLLoginEnabled && isSAMLAdmin(user.email),
       };
     },
   })
@@ -610,13 +620,13 @@ const loggedInViewerRouter = createProtectedRouter()
       params.append("rawMetadata", input.rawMetadata);
       params.append("defaultRedirectUrl", `${process.env.BASE_URL}/login/saml`);
       params.append("redirectUrl", JSON.stringify([`${process.env.BASE_URL}/*`]));
-      params.append("tenant", process.env.SAML_TENANT_ID || "Cal.com");
-      params.append("product", process.env.SAML_PRODUCT_ID || "Cal.com");
+      params.append("tenant", samlTenantID);
+      params.append("product", samlProductID);
 
-      const response = await fetch(`${process.env.SAML_API_URL}/api/v1/saml/config`, {
+      const response = await fetch(`${samlApiUrl}/api/v1/saml/config`, {
         method: "POST",
         body: params,
-        headers: { Authorization: `api-key ${(process.env.JACKSON_API_KEYS || "").split(",")[0]}` },
+        headers: { Authorization: `api-key ${samlServiceApiKey}` },
       });
 
       if (response.status !== 200) {

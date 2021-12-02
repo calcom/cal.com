@@ -2,9 +2,10 @@ import NextAuth from "next-auth";
 import Providers, { AppProviders } from "next-auth/providers";
 import { authenticator } from "otplib";
 
-import { ErrorCode, isGoogleLoginEnabled, isSAMLLoginEnabled, Session, verifyPassword } from "@lib/auth";
+import { ErrorCode, isGoogleLoginEnabled, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
+import { isSAMLLoginEnabled, samlLoginUrl, samlProductID, samlTenantID } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { IdentityProvider } from ".prisma/client";
@@ -110,9 +111,9 @@ if (isSAMLLoginEnabled) {
     params: {
       grant_type: "authorization_code",
     },
-    accessTokenUrl: `${process.env.SAML_LOGIN_URL}/oauth/token`,
-    authorizationUrl: `${process.env.SAML_LOGIN_URL}/oauth/authorize?response_type=code&provider=saml`,
-    profileUrl: `${process.env.SAML_LOGIN_URL}/oauth/userinfo`,
+    accessTokenUrl: `${samlLoginUrl}/oauth/token`,
+    authorizationUrl: `${samlLoginUrl}/oauth/authorize?response_type=code&provider=saml`,
+    profileUrl: `${samlLoginUrl}/oauth/userinfo`,
     profile: (profile: any) => {
       return {
         id: profile.id || "",
@@ -124,9 +125,7 @@ if (isSAMLLoginEnabled) {
       };
     },
     scope: "",
-    clientId: `tenant=${process.env.SAML_TENANT_ID || "Cal.com"}&product=${
-      process.env.SAML_PRODUCT_ID || "Cal.com"
-    }`,
+    clientId: `tenant=${samlTenantID}&product=${samlProductID}`,
     clientSecret: "dummy",
   });
 }

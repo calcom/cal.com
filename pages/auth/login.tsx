@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { ErrorCode, getSession, isGoogleLoginEnabled, isSAMLLoginEnabled } from "@lib/auth";
+import { ErrorCode, getSession, isGoogleLoginEnabled } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
+import { isSAMLLoginEnabled } from "@lib/saml";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";

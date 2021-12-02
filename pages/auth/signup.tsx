@@ -4,9 +4,10 @@ import { useRouter } from "next/router";
 import { useForm, SubmitHandler, FormProvider } from "react-hook-form";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { isGoogleLoginEnabled, isSAMLLoginEnabled } from "@lib/auth";
+import { isGoogleLoginEnabled } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
+import { isSAMLLoginEnabled } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { EmailField, PasswordField, TextField } from "@components/form/fields";
