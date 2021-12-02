@@ -117,16 +117,20 @@ export default class EventManager {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    const results: Array<EventResult> = await this.createAllCalendarEvents(evt);
+    const results: Array<EventResult> = [];
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
+        evt.location = result.createdEvent.url;
       }
+
       results.push(result);
     }
+
+    // Create the calendar event with the proper video call data
+    results.push(...(await this.createAllCalendarEvents(evt)));
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
