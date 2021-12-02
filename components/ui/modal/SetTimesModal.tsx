@@ -3,6 +3,8 @@ import { useRef } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
+import Button from "@components/ui/Button";
+
 export default function SetTimesModal(props) {
   const { t } = useLocale();
   const [startHours, startMinutes] = [Math.floor(props.startTime / 60), props.startTime % 60];
@@ -31,26 +33,26 @@ export default function SetTimesModal(props) {
 
   return (
     <div
-      className="fixed z-50 inset-0 overflow-y-auto"
+      className="fixed inset-0 z-50 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div
-          className="fixed inset-0 bg-gray-500 z-0 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
           aria-hidden="true"></div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
 
-        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="sm:flex sm:items-start mb-4">
-            <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-              <ClockIcon className="h-6 w-6 text-black" />
+        <div className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+          <div className="mb-4 sm:flex sm:items-start">
+            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-blue-100 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+              <ClockIcon className="w-6 h-6 text-black" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
                 {t("change_bookings_availability")}
               </h3>
               <div>
@@ -59,7 +61,7 @@ export default function SetTimesModal(props) {
             </div>
           </div>
           <div className="flex mb-4">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("start_time")}</label>
+            <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("start_time")}</label>
             <div>
               <label htmlFor="startHours" className="sr-only">
                 {t("hours")}
@@ -72,12 +74,12 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="hours"
                 id="startHours"
-                className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                 placeholder="9"
                 defaultValue={startHours}
               />
             </div>
-            <span className="mx-2 pt-1">:</span>
+            <span className="pt-1 mx-2">:</span>
             <div>
               <label htmlFor="startMinutes" className="sr-only">
                 {t("minutes")}
@@ -91,14 +93,14 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="minutes"
                 id="startMinutes"
-                className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                 placeholder="30"
                 defaultValue={startMinutes}
               />
             </div>
           </div>
           <div className="flex">
-            <label className="w-1/4 pt-2 block text-sm font-medium text-gray-700">{t("end_time")}</label>
+            <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("end_time")}</label>
             <div>
               <label htmlFor="endHours" className="sr-only">
                 {t("hours")}
@@ -111,12 +113,12 @@ export default function SetTimesModal(props) {
                 maxLength="2"
                 name="hours"
                 id="endHours"
-                className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                 placeholder="17"
                 defaultValue={endHours}
               />
             </div>
-            <span className="mx-2 pt-1">:</span>
+            <span className="pt-1 mx-2">:</span>
             <div>
               <label htmlFor="endMinutes" className="sr-only">
                 {t("minutes")}
@@ -130,19 +132,19 @@ export default function SetTimesModal(props) {
                 step="15"
                 name="minutes"
                 id="endMinutes"
-                className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-md"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                 placeholder="30"
                 defaultValue={endMinutes}
               />
             </div>
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button onClick={updateStartEndTimesHandler} type="submit" className="btn btn-primary">
+            <Button onClick={updateStartEndTimesHandler} type="submit">
               {t("save")}
-            </button>
-            <button onClick={props.onExit} type="button" className="btn btn-white mr-2">
+            </Button>
+            <Button onClick={props.onExit} type="button" color="secondary" className="mr-2">
               {t("cancel")}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

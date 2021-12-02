@@ -1,19 +1,15 @@
-const isProduction = process.env.NODE_ENV === "production";
+import { IS_PRODUCTION, BASE_URL } from "@lib/config/constants";
 
 export type BodyHeadType = "checkCircle" | "xCircle" | "calendarCircle";
 
-export const getHeadImage = (headerType: BodyHeadType) => {
+export const getHeadImage = (headerType: BodyHeadType): string => {
   switch (headerType) {
     case "checkCircle":
-      return isProduction
-        ? "https://www.cal.com/emails/checkCircle@2x.png"
-        : "https://i.imgur.com/6BHFgjS.png";
+      return IS_PRODUCTION ? BASE_URL + "/emails/checkCircle@2x.png" : "https://i.imgur.com/6BHFgjS.png";
     case "xCircle":
-      return isProduction ? "https://www.cal.com/emails/xCircle@2x.png" : "https://i.imgur.com/44Dq2je.png";
+      return IS_PRODUCTION ? BASE_URL + "/emails/xCircle@2x.png" : "https://i.imgur.com/44Dq2je.png";
     case "calendarCircle":
-      return isProduction
-        ? "https://www.cal.com/emails/calendarCircle@2x.png"
-        : "https://i.imgur.com/aQOp1mm.png";
+      return IS_PRODUCTION ? BASE_URL + "/emails/calendarCircle@2x.png" : "https://i.imgur.com/aQOp1mm.png";
   }
 };
 
