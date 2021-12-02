@@ -2,6 +2,7 @@ import React, { Fragment } from "react";
 import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
+import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
@@ -90,6 +91,7 @@ function CalendarSwitch(props: {
 }
 
 function ConnectedCalendarsList(props: Props) {
+  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
 
   return (
@@ -109,7 +111,7 @@ function ConnectedCalendarsList(props: Props) {
                       id={item.credentialId}
                       render={(btnProps) => (
                         <Button {...btnProps} color="warn">
-                          Disconnect
+                          {t("disconnect")}
                         </Button>
                       )}
                       onOpenChange={props.onChanged}
@@ -137,7 +139,7 @@ function ConnectedCalendarsList(props: Props) {
                       id={item.credentialId}
                       render={(btnProps) => (
                         <Button {...btnProps} color="warn">
-                          Disconnect
+                          {t("disconnect")}
                         </Button>
                       )}
                       onOpenChange={() => props.onChanged()}
@@ -154,6 +156,7 @@ function ConnectedCalendarsList(props: Props) {
 }
 
 function CalendarList(props: Props) {
+  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations"]);
 
   return (
@@ -170,7 +173,7 @@ function CalendarList(props: Props) {
                   type={item.type}
                   render={(btnProps) => (
                     <Button color="secondary" {...btnProps}>
-                      Connect
+                      {t("connect")}
                     </Button>
                   )}
                   onOpenChange={() => props.onChanged()}
@@ -184,6 +187,7 @@ function CalendarList(props: Props) {
   );
 }
 export function CalendarListContainer(props: { heading?: false }) {
+  const { t } = useLocale();
   const { heading = true } = props;
   const utils = trpc.useContext();
   const onChanged = () =>
@@ -197,21 +201,15 @@ export function CalendarListContainer(props: { heading?: false }) {
       {heading && (
         <ShellSubHeading
           className="mt-10"
-          title={<SubHeadingTitleWithConnections title="Calendars" numConnections={query.data?.length} />}
-          subtitle={
-            <>
-              Configure how your links integrate with your calendars.
-              <br />
-              You can override these settings on a per event basis.
-            </>
-          }
+          title={<SubHeadingTitleWithConnections title={t("calendar")} numConnections={query.data?.length} />}
+          subtitle={t("configure_how_your_event_types_interact")}
         />
       )}
       <ConnectedCalendarsList onChanged={onChanged} />
       {!!query.data?.length && (
         <ShellSubHeading
           className="mt-6"
-          title={<SubHeadingTitleWithConnections title="Connect an additional calendar" />}
+          title={<SubHeadingTitleWithConnections title={t("connect_an_additional_calendar")} />}
         />
       )}
       <CalendarList onChanged={onChanged} />

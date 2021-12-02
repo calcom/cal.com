@@ -1,11 +1,17 @@
 // import { getBusyVideoTimes } from "@lib/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { getWorkingHours } from "@lib/availability";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = asStringOrNull(req.query.user);
@@ -71,15 +77,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }));
 
   const timeZone = eventType?.timeZone || currentUser.timeZone;
-  const defaultAvailability = {
-    startTime: currentUser.startTime,
-    endTime: currentUser.endTime,
-    days: [0, 1, 2, 3, 4, 5, 6],
-  };
-  const workingHours = eventType?.availability.length
-    ? eventType.availability
-    : // currentUser.availability /* note(zomars) There's no UI nor default for this as of today */
-      [defaultAvailability]; /* note(zomars) For now, make every day available as fallback */
+  const workingHours = getWorkingHours(
+    { timeZone },
+    eventType?.availability.length ? eventType.availability : currentUser.availability
+  );
 
   res.status(200).json({
     busy: bufferedBusyTimes,
