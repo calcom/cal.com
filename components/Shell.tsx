@@ -244,7 +244,7 @@ export default function Shell(props: {
                   <a className="px-2 my-3">
                     <h1 className="inline">
                       <strong>
-                        <img className="w-auto h-9" alt="Cal" title="Cal" src="/cal-com-icon.svg" />
+                        <img className="w-auto h-9" alt="Cal" title="Cal" src="/cal-com-icon-white.svg" />
                       </strong>
                     </h1>
                   </a>
