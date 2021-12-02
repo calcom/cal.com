@@ -276,8 +276,6 @@ export default class EventManager {
   private createVideoEvent(event: Ensure<CalendarEvent, "language">): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
-    console.log("createVideoEvent", { event });
-
     if (credential) {
       return createMeeting(credential, event);
     } else {
