@@ -85,18 +85,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.status(200).json({
     busy: bufferedBusyTimes,
     timeZone,
-    workingHours: workingHours
-      // FIXME: Currently the organizer timezone is used for the logic
-      // refactor to be organizerTimezone unaware, use UTC instead.
-      .map((workingHour) => ({
-        days: workingHour.days,
-        startTime: dayjs(workingHour.startTime).tz(timeZone).toDate(),
-        endTime: dayjs(workingHour.endTime).tz(timeZone).toDate(),
-      }))
-      .map((workingHour) => ({
-        days: workingHour.days,
-        startTime: workingHour.startTime.getHours() * 60 + workingHour.startTime.getMinutes(),
-        endTime: workingHour.endTime.getHours() * 60 + workingHour.endTime.getMinutes(),
-      })),
+    workingHours,
   });
 }
