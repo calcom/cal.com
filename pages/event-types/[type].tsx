@@ -448,7 +448,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <>
                 <h1
                   style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
-                  className="inline pl-0 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-500 focus:ring-0 focus:outline-none">
+                  className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
                   {eventType.title}
                 </h1>
                 <PencilIcon className="-mt-1 ml-1 inline w-4 h-4 text-gray-700 group-hover:text-gray-500" />
@@ -553,6 +553,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         }
                         id="length"
                         required
+                        min="10"
                         placeholder="15"
                         defaultValue={eventType.length || 15}
                         onChange={(e) => {
@@ -807,6 +808,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <MinutesField
                             label={t("minimum_booking_notice")}
                             required
+                            min="0"
                             placeholder="120"
                             defaultValue={eventType.minimumBookingNotice}
                             onChange={(e) => {
@@ -1026,7 +1028,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </form>
             </div>
           </div>
-          <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
+          <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-[177px] ">
             <div className="px-2">
               <Controller
                 name="isHidden"
@@ -1140,15 +1142,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 />
                 <LocationOptions />
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse ">
-                  <button type="submit" className="btn btn-primary">
-                    {t("update")}
-                  </button>
-                  <button
+                  <Button type="submit">{t("update")}</Button>
+                  <Button
                     onClick={() => setShowLocationModal(false)}
                     type="button"
-                    className="mr-2 btn btn-white">
+                    color="secondary"
+                    className="mr-2">
                     {t("cancel")}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>

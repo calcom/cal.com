@@ -1821,32 +1821,32 @@
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
 
-"@trpc/client@^9.14.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.15.0.tgz#51675e01bfd2d7e9171c5894d5d9fa6be699f9fb"
-  integrity sha512-5mnCf4E5dLlJSjOdYCHOQYeQNvA0ZxGEt/4BnCnIJpEdOoJy4KtZ87Uo3OCJOf8Cu3KZPwqWAJoXVvg5XShtdw==
+"@trpc/client@^9.15.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.16.0.tgz#73c9ab291191bf6f3bb6b406f3b43a2bfb30306f"
+  integrity sha512-IwH3xQ792IKq9Q3nLOCYzxMe2xZg+B1iyiX0ueBF7P2blO/3791DJjUFyzVT3bXPJj3rISoL1Ermd0mtPRxGpQ==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/next@^9.14.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.15.0.tgz#dccec59fb6fc53ac09a24e5b20b3c114c0c8a8de"
-  integrity sha512-WigbVW/JX5qt9DI2uQAa/un9dkQ1vatwVLiV4EyShVJ522hP4lr+tvOpbJhAmtBOFFzUh0nzeS225n3v80xEEg==
+"@trpc/next@^9.15.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.16.0.tgz#294da9a256130257980659116d2dda9fcbd14c7c"
+  integrity sha512-j3gyZYqNTqzchWJKCEAQdwzr2aNoQjfW5sgpObktAD0YofTogXi3nl9mKzHq7HaiRQFEDU6/O6CSg4coVj+U7g==
   dependencies:
     "@babel/runtime" "^7.9.0"
     react-ssr-prepass "^1.4.0"
 
-"@trpc/react@^9.14.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.15.0.tgz#d73e29a581c8ea34f4558d2b8d35115f6f47c01b"
-  integrity sha512-hgI2WEapsKyEeiCBqSBazRADEEvu/7aB04h1Zw+mFRb2j/0s4tmMiaezw8+FBNRdLv69yDhyWAP6QM7cZg2+IQ==
+"@trpc/react@^9.15.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.16.0.tgz#1d4bfac470beb43b5f43557822c98b6947cd65f6"
+  integrity sha512-gaF+631mXWaziUlDYNksiAhRV7VdjcA04a7by9ZhFVgTzsHXc5VMX57X1Uo2LdWUcW7zOfWiaYBpYs7fRbAv9w==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/server@^9.14.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.15.0.tgz#84486aa174f6af20992472b57cbbc5ccc893538f"
-  integrity sha512-ikqF5JqA3EW9z/M8ABhlauhB82yOu29mWSZbhQ7LDViBnBq4y4I5vgBOn2kqk3lufyb9/opxBBtb/L5IwY1MBg==
+"@trpc/server@^9.15.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.16.0.tgz#93fc30166f92a4f1286da63ad3bad42c955c7e15"
+  integrity sha512-IENsJs41ZR4oeFUJhsNNTSgEOtuRN0m9u7ec4u3eG/qOc7bIoo1nDoYtx4bl6OJJSQYEytG9tlcVz9G8OAaHbg==
   dependencies:
     tslib "^2.1.0"
 
@@ -2069,7 +2069,7 @@
     "@types/scheduler" "*"
     csstype "^3.0.2"
 
-"@types/react@^17.0.36":
+"@types/react@^17.0.37":
   version "17.0.37"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.37.tgz#6884d0aa402605935c397ae689deed115caad959"
   integrity sha512-2FS1oTqBGcH/s0E+CjrCCR9+JMpsu9b69RTFO+40ua43ZqP5MmQ4iUde/dMjWR909KxZwmOQIFq6AV6NjEG5xg==
@@ -7420,7 +7420,7 @@ postcss@8.2.15:
     nanoid "^3.1.23"
     source-map "^0.6.1"
 
-postcss@^8.1.6, postcss@^8.2.1, postcss@^8.3.11:
+postcss@^8.1.6, postcss@^8.2.1:
   version "8.3.11"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.3.11.tgz#c3beca7ea811cd5e1c4a3ec6d2e7599ef1f8f858"
   integrity sha512-hCmlUAIlUiav8Xdqw3Io4LcpA1DOt7h3LSTAC4G6JGHFFaWzI6qvFt9oilvl8BmkbBRX1IhM90ZAmpk68zccQA==
@@ -7428,6 +7428,15 @@ postcss@^8.1.6, postcss@^8.2.1, postcss@^8.3.11:
     nanoid "^3.1.30"
     picocolors "^1.0.0"
     source-map-js "^0.6.2"
+
+postcss@^8.4.1:
+  version "8.4.4"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.4.tgz#d53d4ec6a75fd62557a66bb41978bf47ff0c2869"
+  integrity sha512-joU6fBsN6EIer28Lj6GDFoC/5yOZzLCfn0zHAn/MYXI7aPt4m4hK5KC5ovEZXy+lnCjmYIbQWngvju2ddyEr8Q==
+  dependencies:
+    nanoid "^3.1.30"
+    picocolors "^1.0.0"
+    source-map-js "^1.0.1"
 
 preact-render-to-string@^5.1.14:
   version "5.1.19"
@@ -7795,10 +7804,10 @@ react-phone-number-input@^3.1.41:
     libphonenumber-js "^1.9.43"
     prop-types "^15.7.2"
 
-react-query@^3.33.4:
-  version "3.33.5"
-  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.33.5.tgz#5d8a42bd3237e25a00173a8f8aa59c04b6af5729"
-  integrity sha512-gNpTzbY9Xw/s0ALeLsXdUGXtzXbXQcRAMa4Ina2JOJHbDr2mdA79O2SMNUwctKJ1/c0vKTdALIdn4taptv+MTQ==
+react-query@^3.33.5:
+  version "3.34.0"
+  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.34.0.tgz#43477ac6d117d850354e6db80dcca6d5c1b36728"
+  integrity sha512-g6L90FeCLzz6+53CbVKYJALBiZR5icOYPjqGGiNgHNeufcnddLZaQGE9wheclk10k6g+o+Dd4/jAtswhjVblXw==
   dependencies:
     "@babel/runtime" "^7.5.5"
     broadcast-channel "^3.4.1"
@@ -8428,6 +8437,11 @@ source-map-js@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-0.6.2.tgz#0bb5de631b41cfbda6cfba8bd05a80efdfd2385e"
   integrity sha512-/3GptzWzu0+0MBQFrDKzw/DvvMTUORvgY6k6jd/VS6iCR4RDTKWH6v6WPwQoUO8667uQEf9Oe38DxAYWY5F/Ug==
+
+source-map-js@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.0.1.tgz#a1741c131e3c77d048252adfa24e23b908670caf"
+  integrity sha512-4+TN2b3tqOCd/kaGRJ/sTYA0tR0mdXx26ipdolxcwtJVqEnqNYvlCAt1q3ypy4QMlYus+Zh34RNtYLoq2oQ4IA==
 
 source-map-support@^0.5.19, source-map-support@^0.5.6:
   version "0.5.20"
