@@ -34,12 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const redirectURL =
-    isCoachUser === "true" && isSetupPage === "true"
-      ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/success`
-      : isCoachUser === "true"
-      ? `${process.env.COACH_DASHBOARD_URL}/app/profile`
-      : `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${coachId}`;
-
+  const redirectURL = '';
+  if (isCoachuser === "true") {
+     redirectURL = isSetupPage === "true" ? : `${process.env.COACH_DASHBOARD_URL}/app/setup-account/success` : `${process.env.COACH_DASHBOARD_URL}/app/profile`;
+  } else {
+     redirectURL = `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${coachId}`;
+  }
   return res.redirect(redirectURL);
 }
