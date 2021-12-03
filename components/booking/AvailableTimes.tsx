@@ -11,7 +11,7 @@ import { useSlots } from "@lib/hooks/useSlots";
 import Loader from "@components/Loader";
 
 /**
- * @returns i.e. `/peer` for users or `/teams/cal` for teams
+ * @returns i.e. `/peer` for users or `/team/cal` for teams
  */
 function useRouterBasePath() {
   const router = useRouter();
