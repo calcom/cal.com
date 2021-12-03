@@ -23,8 +23,8 @@ it("can find lucky users", async () => {
   ];
   expect(
     getLuckyUsers(users, [
-      { id: 1, _count: { bookings: 2 } },
-      { id: 2, _count: { bookings: 0 } },
+      { username: "test", bookingCount: 2 },
+      { username: "test2", bookingCount: 0 },
     ])
   ).toStrictEqual([users[1]]);
 });
