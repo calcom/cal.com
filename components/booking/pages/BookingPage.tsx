@@ -52,7 +52,7 @@ const BookingPage = (props: BookingPageProps) => {
     },
   });*/
   const mutation = useMutation(createBooking, {
-    onSuccess: async ({ attendees, paymentUid }) => {
+    onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -63,6 +63,17 @@ const BookingPage = (props: BookingPageProps) => {
           })
         );
       }
+
+      const location = (function humanReadableLocation(location) {
+        if (!location) {
+          return;
+        }
+        if (location.includes("integration")) {
+          return t("web_conferencing_details_to_follow");
+        }
+        return location;
+      })(responseData.location);
+
       return router.push({
         pathname: "/success",
         query: {
@@ -72,6 +83,7 @@ const BookingPage = (props: BookingPageProps) => {
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
+          location,
         },
       });
     },
@@ -120,11 +132,12 @@ const BookingPage = (props: BookingPageProps) => {
     locationType?: LocationType;
     guests?: string[];
     phone?: string;
-    customInput?: {
+    customInputs?: {
       [key: string]: string;
     };
   };
 
+  // can be shortened using .filter(), except TypeScript doesn't know what to make of the types.
   const guests = router.query.guest
     ? Array.isArray(router.query.guest)
       ? router.query.guest
@@ -137,12 +150,12 @@ const BookingPage = (props: BookingPageProps) => {
       email: (router.query.email as string) || "",
       notes: (router.query.notes as string) || "",
       guests,
-      customInput: props.eventType.customInputs.reduce(
+      customInputs: props.eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
-          [slugify(input.label)]: (router.query[slugify(input.label)] as string) || "",
+          [input.id]: router.query[slugify(input.label)],
         }),
-        {} as { [key: string]: string }
+        {}
       ),
     },
   });
@@ -203,6 +216,12 @@ const BookingPage = (props: BookingPageProps) => {
       user: router.query.user as string,
       location: getLocationValue(booking),
       metadata,
+      customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        value: booking.customInputs![inputId],
+      })),
     });
   };
 
@@ -357,7 +376,7 @@ const BookingPage = (props: BookingPageProps) => {
                         )}
                         {input.type === EventTypeCustomInputType.TEXTLONG && (
                           <textarea
-                            {...bookingForm.register(`customInput.${slugify(input.label)}`, {
+                            {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
@@ -369,7 +388,7 @@ const BookingPage = (props: BookingPageProps) => {
                         {input.type === EventTypeCustomInputType.TEXT && (
                           <input
                             type="text"
-                            {...bookingForm.register(`customInput.${slugify(input.label)}`, {
+                            {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
@@ -380,7 +399,7 @@ const BookingPage = (props: BookingPageProps) => {
                         {input.type === EventTypeCustomInputType.NUMBER && (
                           <input
                             type="number"
-                            {...bookingForm.register(`customInput.${slugify(input.label)}`, {
+                            {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
@@ -392,7 +411,7 @@ const BookingPage = (props: BookingPageProps) => {
                           <div className="flex items-center h-5">
                             <input
                               type="checkbox"
-                              {...bookingForm.register(`customInput.${slugify(input.label)}`, {
+                              {...bookingForm.register(`customInputs.${input.id}`, {
                                 required: input.required,
                               })}
                               id={"custom_" + input.id}

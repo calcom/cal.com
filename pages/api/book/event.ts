@@ -269,10 +269,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     t,
   };
 
+  const description =
+    reqBody.customInputs.reduce((str, input) => str + input.label + "\n" + input.value + "\n\n", "") +
+    t("additional_notes") +
+    ":\n" +
+    reqBody.notes;
+
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject),
-    description: reqBody.notes,
+    description,
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
