@@ -1,4 +1,6 @@
+import jwt from "jsonwebtoken";
 import NextAuth from "next-auth";
+import { JWT, JWTDecodeParams, JWTEncodeParams } from "next-auth/jwt";
 import Providers from "next-auth/providers";
 import { authenticator } from "otplib";
 
@@ -6,13 +8,87 @@ import { ErrorCode, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 
+const isSecureEnvironment = ["production", "staging"].includes(process.env.NODE_ENV || "production");
+
+const { hostname } = new URL(process.env.NEXTAUTH_URL || "");
+
 export default NextAuth({
   session: {
+    // Use JSON Web Tokens for session instead of database sessions.
+    // This option can be used with or without a database for users/accounts.
+    // Note: `jwt` is automatically set to `true` if no database is specified.
     jwt: true,
+
+    // Seconds - How long until an idle session expires and is no longer valid.
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+
+    // Seconds - Throttle how frequently to write to database to extend a session.
+    // Use it to limit write operations. Set to 0 to always update the database.
+    // Note: This option is ignored if using JSON Web Tokens
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   jwt: {
     secret: process.env.JWT_SECRET,
+    async encode(params?: JWTEncodeParams) {
+      const { secret, token } = params || {};
+      return jwt.sign(token || {}, secret || process.env.JWT_SECRET || "") as string;
+    },
+    async decode(params?: JWTDecodeParams) {
+      const { secret, token } = params || {};
+      const decodedToken = jwt.verify(token || "", secret || process.env.JWT_SECRET || "") as JWT;
+
+      let user;
+      user = await prisma.user.findUnique({
+        where: {
+          thetisId: decodedToken?.userId as string,
+        },
+      });
+
+      if (!user && decodedToken?.email) {
+        user = await prisma.user.upsert({
+          where: {
+            email: decodedToken?.email?.toLowerCase(),
+          },
+          update: {
+            thetisId: decodedToken?.userId as string,
+            username: decodedToken?.instructorProfileHandle as string,
+            name: decodedToken?.instructorProfilePublicName as string,
+          },
+          create: {
+            email: decodedToken?.email?.toLowerCase(),
+            thetisId: decodedToken?.userId as string,
+            username: decodedToken?.instructorProfileHandle as string,
+            name: decodedToken?.instructorProfilePublicName as string,
+          },
+        });
+      }
+
+      if (!user) {
+        console.error(`"Thetis user: ${decodedToken?.email?.toLowerCase()} could not be found or created."`);
+        throw new Error(ErrorCode.InternalServerError);
+      }
+
+      decodedToken.id = user.id;
+      return decodedToken;
+    },
   },
+  cookies: {
+    sessionToken: {
+      name: `${isSecureEnvironment ? "__Secure-" : ""}next-auth.session-token`,
+      options: {
+        domain: isSecureEnvironment
+          ? hostname.includes(".theskills.com")
+            ? ".theskills.com"
+            : hostname
+          : undefined,
+        path: "/",
+        httpOnly: true,
+        secure: isSecureEnvironment,
+        sameSite: "lax",
+      },
+    },
+  },
+  debug: process.env.NODE_ENV !== "production",
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
