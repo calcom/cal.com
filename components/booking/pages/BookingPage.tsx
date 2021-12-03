@@ -9,10 +9,11 @@ import { EventTypeCustomInputType } from "@prisma/client";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { stringify } from "querystring";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
+import { useMutation } from "react-query";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
@@ -23,10 +24,11 @@ import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
+import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { BookingCreateBody } from "@lib/types/booking";
 
 import CustomBranding from "@components/CustomBranding";
+import { Form } from "@components/form/fields";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
 import PhoneInput from "@components/ui/form/PhoneInput";
@@ -39,31 +41,78 @@ type BookingPageProps = BookPageProps | TeamBookingPageProps;
 const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const { rescheduleUid } = router.query;
+  /*
+   * This was too optimistic
+   * I started, then I remembered what a beast book/event.ts is
+   * Gave up shortly after. One day. Maybe.
+   *
+  const mutation = trpc.useMutation("viewer.bookEvent", {
+    onSuccess: ({ booking }) => {
+      // go to success page.
+    },
+  });*/
+  const mutation = useMutation(createBooking, {
+    onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
+      if (paymentUid) {
+        return await router.push(
+          createPaymentLink({
+            paymentUid,
+            date,
+            name: attendees[0].name,
+            absolute: false,
+          })
+        );
+      }
+
+      const location = (function humanReadableLocation(location) {
+        if (!location) {
+          return;
+        }
+        if (location.includes("integration")) {
+          return t("web_conferencing_details_to_follow");
+        }
+        return location;
+      })(responseData.location);
+
+      return router.push({
+        pathname: "/success",
+        query: {
+          date,
+          type: props.eventType.id,
+          user: props.profile.slug,
+          reschedule: !!rescheduleUid,
+          name: attendees[0].name,
+          email: attendees[0].email,
+          location,
+        },
+      });
+    },
+  });
+
+  const rescheduleUid = router.query.rescheduleUid as string;
   const { isReady } = useTheme(props.profile.theme);
 
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const [guestToggle, setGuestToggle] = useState(false);
-  const [guestEmails, setGuestEmails] = useState([]);
-  const locations = props.eventType.locations || [];
 
-  const [selectedLocation, setSelectedLocation] = useState<LocationType>(
-    locations.length === 1 ? locations[0].type : ""
+  // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
+  const locations: { type: LocationType }[] = useMemo(
+    () => (props.eventType.locations as { type: LocationType }[]) || [],
+    [props.eventType.locations]
   );
 
-  const telemetry = useTelemetry();
+  useEffect(() => {
+    if (router.query.guest) {
+      setGuestToggle(true);
+    }
+  }, [router.query.guest]);
 
+  const telemetry = useTelemetry();
   useEffect(() => {
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
-  }, []);
-
-  function toggleGuestEmailInput() {
-    setGuestToggle(!guestToggle);
-  }
+  }, [telemetry]);
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
@@ -76,113 +125,105 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Daily]: "Daily.co Video",
   };
 
-  const _bookingHandler = (event) => {
-    const book = async () => {
-      setLoading(true);
-      setError(false);
-      let notes = "";
-      if (props.eventType.customInputs) {
-        notes = props.eventType.customInputs
-          .map((input) => {
-            const data = event.target["custom_" + input.id];
-            if (data) {
-              if (input.type === EventTypeCustomInputType.BOOL) {
-                return input.label + "\n" + (data.checked ? t("yes") : t("no"));
-              } else {
-                return input.label + "\n" + data.value;
-              }
-            }
-          })
-          .join("\n\n");
-      }
-      if (!!notes && !!event.target.notes.value) {
-        notes += `\n\n${t("additional_notes")}:\n` + event.target.notes.value;
-      } else {
-        notes += event.target.notes.value;
-      }
-
-      const payload: BookingCreateBody = {
-        start: dayjs(date).format(),
-        end: dayjs(date).add(props.eventType.length, "minute").format(),
-        name: event.target.name.value,
-        email: event.target.email.value,
-        notes: notes,
-        guests: guestEmails,
-        eventTypeId: props.eventType.id,
-        timeZone: timeZone(),
-        language: i18n.language,
-      };
-      if (typeof rescheduleUid === "string") payload.rescheduleUid = rescheduleUid;
-      if (typeof router.query.user === "string") payload.user = router.query.user;
-
-      if (selectedLocation) {
-        switch (selectedLocation) {
-          case LocationType.Phone:
-            payload["location"] = event.target.phone.value;
-            break;
-
-          case LocationType.InPerson:
-            payload["location"] = locationInfo(selectedLocation).address;
-            break;
-
-          // Catches all other location types, such as Google Meet, Zoom etc.
-          default:
-            payload["location"] = selectedLocation;
-        }
-      }
-
-      telemetry.withJitsu((jitsu) =>
-        jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
-      );
-
-      const content = await createBooking(payload).catch((e) => {
-        console.error(e.message);
-        setLoading(false);
-        setError(true);
-      });
-
-      if (content?.id) {
-        const params: { [k: string]: any } = {
-          date,
-          type: props.eventType.id,
-          user: props.profile.slug,
-          reschedule: !!rescheduleUid,
-          name: payload.name,
-          email: payload.email,
-        };
-
-        if (payload["location"]) {
-          if (payload["location"].includes("integration")) {
-            params.location = t("web_conferencing_details_to_follow");
-          } else {
-            params.location = payload["location"];
-          }
-        }
-
-        const query = stringify(params);
-        let successUrl = `/success?${query}`;
-
-        if (content?.paymentUid) {
-          successUrl = createPaymentLink({
-            paymentUid: content?.paymentUid,
-            name: payload.name,
-            date,
-            absolute: false,
-          });
-        }
-
-        await router.push(successUrl);
-      } else {
-        setLoading(false);
-        setError(true);
-      }
+  type BookingFormValues = {
+    name: string;
+    email: string;
+    notes?: string;
+    locationType?: LocationType;
+    guests?: string[];
+    phone?: string;
+    customInputs?: {
+      [key: string]: string;
     };
-
-    event.preventDefault();
-    book();
   };
 
-  const bookingHandler = useCallback(_bookingHandler, [guestEmails]);
+  // can be shortened using .filter(), except TypeScript doesn't know what to make of the types.
+  const guests = router.query.guest
+    ? Array.isArray(router.query.guest)
+      ? router.query.guest
+      : [router.query.guest]
+    : [];
+
+  const bookingForm = useForm<BookingFormValues>({
+    defaultValues: {
+      name: (router.query.name as string) || "",
+      email: (router.query.email as string) || "",
+      notes: (router.query.notes as string) || "",
+      guests,
+      customInputs: props.eventType.customInputs.reduce(
+        (customInputs, input) => ({
+          ...customInputs,
+          [input.id]: router.query[slugify(input.label)],
+        }),
+        {}
+      ),
+    },
+  });
+
+  const selectedLocation = useWatch({
+    control: bookingForm.control,
+    name: "locationType",
+    defaultValue: ((): LocationType | undefined => {
+      if (router.query.location) {
+        return router.query.location as LocationType;
+      }
+      if (locations.length === 1) {
+        return locations[0]?.type;
+      }
+    })(),
+  });
+
+  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+    const { locationType } = booking;
+    switch (locationType) {
+      case LocationType.Phone: {
+        return booking.phone;
+      }
+      case LocationType.InPerson: {
+        return locationInfo(locationType).address;
+      }
+      // Catches all other location types, such as Google Meet, Zoom etc.
+      default:
+        return selectedLocation;
+    }
+  };
+
+  const bookEvent = (booking: BookingFormValues) => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
+    );
+
+    // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
+    // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
+    const metadata = Object.keys(router.query)
+      .filter((key) => key.startsWith("metadata"))
+      .reduce(
+        (metadata, key) => ({
+          ...metadata,
+          [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+        }),
+        {}
+      );
+
+    mutation.mutate({
+      ...booking,
+      start: dayjs(date).format(),
+      end: dayjs(date).add(props.eventType.length, "minute").format(),
+      eventTypeId: props.eventType.id,
+      timeZone: timeZone(),
+      language: i18n.language,
+      rescheduleUid,
+      user: router.query.user as string,
+      location: getLocationValue(booking),
+      metadata,
+      customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        value: booking.customInputs![inputId],
+      })),
+    });
+  };
 
   return (
     <div>
@@ -253,20 +294,20 @@ const BookingPage = (props: BookingPageProps) => {
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
-                <form onSubmit={bookingHandler}>
+                <Form form={bookingForm} handleSubmit={bookEvent}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("your_name")}
                     </label>
                     <div className="mt-1">
                       <input
+                        {...bookingForm.register("name")}
                         type="text"
                         name="name"
                         id="name"
                         required
                         className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                         placeholder="John Doe"
-                        defaultValue={props.booking ? props.booking.attendees[0].name : ""}
                       />
                     </div>
                   </div>
@@ -278,6 +319,7 @@ const BookingPage = (props: BookingPageProps) => {
                     </label>
                     <div className="mt-1">
                       <input
+                        {...bookingForm.register("email")}
                         type="email"
                         name="email"
                         id="email"
@@ -285,7 +327,6 @@ const BookingPage = (props: BookingPageProps) => {
                         required
                         className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                         placeholder="you@example.com"
-                        defaultValue={props.booking ? props.booking.attendees[0].email : ""}
                       />
                     </div>
                   </div>
@@ -294,16 +335,14 @@ const BookingPage = (props: BookingPageProps) => {
                       <span className="block text-sm font-medium text-gray-700 dark:text-white">
                         {t("location")}
                       </span>
-                      {locations.map((location) => (
-                        <label key={location.type} className="block">
+                      {locations.map((location, i) => (
+                        <label key={i} className="block">
                           <input
                             type="radio"
-                            required
-                            onChange={(e) => setSelectedLocation(e.target.value)}
                             className="w-4 h-4 mr-2 text-black border-gray-300 location focus:ring-black"
-                            name="location"
+                            {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
-                            checked={selectedLocation === location.type}
+                            defaultChecked={selectedLocation === location.type}
                           />
                           <span className="ml-2 text-sm dark:text-gray-500">
                             {locationLabels[location.type]}
@@ -324,74 +363,78 @@ const BookingPage = (props: BookingPageProps) => {
                       </div>
                     </div>
                   )}
-                  {props.eventType.customInputs &&
-                    props.eventType.customInputs
-                      .sort((a, b) => a.id - b.id)
-                      .map((input) => (
-                        <div className="mb-4" key={"input-" + input.label.toLowerCase}>
-                          {input.type !== EventTypeCustomInputType.BOOL && (
+                  {props.eventType.customInputs
+                    .sort((a, b) => a.id - b.id)
+                    .map((input) => (
+                      <div className="mb-4" key={input.id}>
+                        {input.type !== EventTypeCustomInputType.BOOL && (
+                          <label
+                            htmlFor={"custom_" + input.id}
+                            className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                            {input.label}
+                          </label>
+                        )}
+                        {input.type === EventTypeCustomInputType.TEXTLONG && (
+                          <textarea
+                            {...bookingForm.register(`customInputs.${input.id}`, {
+                              required: input.required,
+                            })}
+                            id={"custom_" + input.id}
+                            rows={3}
+                            className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                            placeholder={input.placeholder}
+                          />
+                        )}
+                        {input.type === EventTypeCustomInputType.TEXT && (
+                          <input
+                            type="text"
+                            {...bookingForm.register(`customInputs.${input.id}`, {
+                              required: input.required,
+                            })}
+                            id={"custom_" + input.id}
+                            className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                            placeholder={input.placeholder}
+                          />
+                        )}
+                        {input.type === EventTypeCustomInputType.NUMBER && (
+                          <input
+                            type="number"
+                            {...bookingForm.register(`customInputs.${input.id}`, {
+                              required: input.required,
+                            })}
+                            id={"custom_" + input.id}
+                            className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                            placeholder=""
+                          />
+                        )}
+                        {input.type === EventTypeCustomInputType.BOOL && (
+                          <div className="flex items-center h-5">
+                            <input
+                              type="checkbox"
+                              {...bookingForm.register(`customInputs.${input.id}`, {
+                                required: input.required,
+                              })}
+                              id={"custom_" + input.id}
+                              className="w-4 h-4 mr-2 text-black border-gray-300 rounded focus:ring-black"
+                              placeholder=""
+                            />
                             <label
                               htmlFor={"custom_" + input.id}
                               className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
                               {input.label}
                             </label>
-                          )}
-                          {input.type === EventTypeCustomInputType.TEXTLONG && (
-                            <textarea
-                              name={"custom_" + input.id}
-                              id={"custom_" + input.id}
-                              required={input.required}
-                              rows={3}
-                              className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
-                              placeholder={input.placeholder}
-                            />
-                          )}
-                          {input.type === EventTypeCustomInputType.TEXT && (
-                            <input
-                              type="text"
-                              name={"custom_" + input.id}
-                              id={"custom_" + input.id}
-                              required={input.required}
-                              className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
-                              placeholder={input.placeholder}
-                            />
-                          )}
-                          {input.type === EventTypeCustomInputType.NUMBER && (
-                            <input
-                              type="number"
-                              name={"custom_" + input.id}
-                              id={"custom_" + input.id}
-                              required={input.required}
-                              className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
-                              placeholder=""
-                            />
-                          )}
-                          {input.type === EventTypeCustomInputType.BOOL && (
-                            <div className="flex items-center h-5">
-                              <input
-                                type="checkbox"
-                                name={"custom_" + input.id}
-                                id={"custom_" + input.id}
-                                className="w-4 h-4 mr-2 text-black border-gray-300 rounded focus:ring-black"
-                                placeholder=""
-                                required={input.required}
-                              />
-                              <label
-                                htmlFor={"custom_" + input.id}
-                                className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
-                                {input.label}
-                              </label>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   {!props.eventType.disableGuests && (
                     <div className="mb-4">
                       {!guestToggle && (
                         <label
-                          onClick={toggleGuestEmailInput}
+                          onClick={() => setGuestToggle(!guestToggle)}
                           htmlFor="guests"
-                          className="block mb-1 text-sm font-medium text-blue-500 dark:text-white hover:cursor-pointer">
+                          className="block mb-1 text-sm font-medium dark:text-white hover:cursor-pointer">
+                          {/*<UserAddIcon className="inline-block w-5 h-5 mr-1 -mt-1" />*/}
                           {t("additional_guests")}
                         </label>
                       )}
@@ -402,27 +445,31 @@ const BookingPage = (props: BookingPageProps) => {
                             className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
                             {t("guests")}
                           </label>
-                          <ReactMultiEmail
-                            className="relative"
-                            placeholder="guest@example.com"
-                            emails={guestEmails}
-                            onChange={(_emails: string[]) => {
-                              setGuestEmails(_emails);
-                            }}
-                            getLabel={(
-                              email: string,
-                              index: number,
-                              removeEmail: (index: number) => void
-                            ) => {
-                              return (
-                                <div data-tag key={index}>
-                                  {email}
-                                  <span data-tag-handle onClick={() => removeEmail(index)}>
-                                    ×
-                                  </span>
-                                </div>
-                              );
-                            }}
+                          <Controller
+                            control={bookingForm.control}
+                            name="guests"
+                            render={({ field: { onChange, value } }) => (
+                              <ReactMultiEmail
+                                className="relative"
+                                placeholder="guest@example.com"
+                                emails={value}
+                                onChange={onChange}
+                                getLabel={(
+                                  email: string,
+                                  index: number,
+                                  removeEmail: (index: number) => void
+                                ) => {
+                                  return (
+                                    <div data-tag key={index}>
+                                      {email}
+                                      <span data-tag-handle onClick={() => removeEmail(index)}>
+                                        ×
+                                      </span>
+                                    </div>
+                                  );
+                                }}
+                              />
+                            )}
                           />
                         </div>
                       )}
@@ -435,24 +482,23 @@ const BookingPage = (props: BookingPageProps) => {
                       {t("additional_notes")}
                     </label>
                     <textarea
-                      name="notes"
+                      {...bookingForm.register("notes")}
                       id="notes"
                       rows={3}
                       className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                       placeholder={t("share_additional_notes")}
-                      defaultValue={props.booking ? props.booking.description : ""}
                     />
                   </div>
                   <div className="flex items-start space-x-2">
-                    <Button type="submit" loading={loading}>
+                    <Button type="submit" loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
                       {t("cancel")}
                     </Button>
                   </div>
-                </form>
-                {error && (
+                </Form>
+                {mutation.isError && (
                   <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
                     <div className="flex">
                       <div className="flex-shrink-0">
