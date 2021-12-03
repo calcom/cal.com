@@ -19,6 +19,7 @@ import { createPaymentLink } from "@ee/lib/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
+import { ensureArray } from "@lib/ensureArray";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
@@ -137,19 +138,12 @@ const BookingPage = (props: BookingPageProps) => {
     };
   };
 
-  // can be shortened using .filter(), except TypeScript doesn't know what to make of the types.
-  const guests = router.query.guest
-    ? Array.isArray(router.query.guest)
-      ? router.query.guest
-      : [router.query.guest]
-    : [];
-
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: {
       name: (router.query.name as string) || "",
       email: (router.query.email as string) || "",
       notes: (router.query.notes as string) || "",
-      guests,
+      guests: ensureArray(router.query.guest),
       customInputs: props.eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -213,7 +207,7 @@ const BookingPage = (props: BookingPageProps) => {
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
-      user: router.query.user as string,
+      user: router.query.user,
       location: getLocationValue(booking),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
