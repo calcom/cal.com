@@ -19,6 +19,9 @@ export type BookingCreateBody = {
   users?: string[];
   user?: string;
   language: string;
+  metadata: {
+    [key: string]: string;
+  };
 };
 
 export type BookingResponse = Booking & {

@@ -92,10 +92,10 @@ const BookingPage = (props: BookingPageProps) => {
   );
 
   useEffect(() => {
-    if (router.query.guests) {
+    if (router.query.guest) {
       setGuestToggle(true);
     }
-  }, [router.query.guests]);
+  }, [router.query.guest]);
 
   const telemetry = useTelemetry();
   useEffect(() => {
@@ -125,12 +125,18 @@ const BookingPage = (props: BookingPageProps) => {
     };
   };
 
+  const guests = router.query.guest
+    ? Array.isArray(router.query.guest)
+      ? router.query.guest
+      : [router.query.guest]
+    : [];
+
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: {
       name: (router.query.name as string) || "",
       email: (router.query.email as string) || "",
       notes: (router.query.notes as string) || "",
-      guests: Array.isArray(router.query.guests) ? router.query.guests : [router.query.guests],
+      guests,
       customInput: props.eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -174,6 +180,18 @@ const BookingPage = (props: BookingPageProps) => {
       jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
     );
 
+    // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
+    // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
+    const metadata = Object.keys(router.query)
+      .filter((key) => key.startsWith("metadata"))
+      .reduce(
+        (metadata, key) => ({
+          ...metadata,
+          [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+        }),
+        {}
+      );
+
     mutation.mutate({
       ...booking,
       start: dayjs(date).format(),
@@ -184,6 +202,7 @@ const BookingPage = (props: BookingPageProps) => {
       rescheduleUid,
       user: router.query.user as string,
       location: getLocationValue(booking),
+      metadata,
     });
   };
 
@@ -395,7 +414,8 @@ const BookingPage = (props: BookingPageProps) => {
                         <label
                           onClick={() => setGuestToggle(!guestToggle)}
                           htmlFor="guests"
-                          className="block mb-1 text-sm font-medium text-blue-500 dark:text-white hover:cursor-pointer">
+                          className="block mb-1 text-sm font-medium dark:text-white hover:cursor-pointer">
+                          {/*<UserAddIcon className="inline-block w-5 h-5 mr-1 -mt-1" />*/}
                           {t("additional_guests")}
                         </label>
                       )}
@@ -413,7 +433,7 @@ const BookingPage = (props: BookingPageProps) => {
                               <ReactMultiEmail
                                 className="relative"
                                 placeholder="guest@example.com"
-                                emails={Array.isArray(value) ? value : [value]}
+                                emails={value}
                                 onChange={onChange}
                                 getLabel={(
                                   email: string,

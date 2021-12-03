@@ -238,7 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const invitee = [{ email: reqBody.email, name: reqBody.name, timeZone: reqBody.timeZone }];
-  const guests = reqBody.guests.map((guest) => {
+  const guests = (reqBody.guests || []).map((guest) => {
     const g = {
       email: guest,
       name: "",
@@ -513,13 +513,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getSubscribers(user.id, eventTrigger);
-  console.log("evt:", evt);
+  console.log("evt:", {
+    ...evt,
+    metadata: reqBody.metadata,
+  });
   const promises = subscribers.map((sub) =>
-    sendPayload(eventTrigger, new Date().toISOString(), sub.subscriberUrl, evt, sub.payloadTemplate).catch(
-      (e) => {
-        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-      }
-    )
+    sendPayload(
+      eventTrigger,
+      new Date().toISOString(),
+      sub.subscriberUrl,
+      {
+        ...evt,
+        metadata: reqBody.metadata,
+      },
+      sub.payloadTemplate
+    ).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+    })
   );
   await Promise.all(promises);
 
