@@ -42,11 +42,11 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
       // todo some extra validation maybe.
-      const utcOffsetAsDate = dayjs(dateString.substr(11, 14), "Hmm");
+      const utcOffsetAsDate = dayjs(dateString.substring(11, 14), "Hmm");
       const utcOffset = parseInt(
-        dateString.substr(10, 1) + (utcOffsetAsDate.hour() * 60 + utcOffsetAsDate.minute())
+        dateString.substring(10, 1) + (utcOffsetAsDate.hour() * 60 + utcOffsetAsDate.minute())
       );
-      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffset, true);
+      const date = dayjs(dateString.substring(0, 10)).utcOffset(utcOffset, true);
       return date.isValid() ? date : null;
     }
     return null;
