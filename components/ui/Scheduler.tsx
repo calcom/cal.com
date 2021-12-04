@@ -4,9 +4,12 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import React, { useEffect, useState } from "react";
-import TimezoneSelect from "react-timezone-select";
+import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import { WorkingHours } from "@lib/types/schedule";
+
+import Button from "@components/ui/Button";
 
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";
@@ -17,44 +20,30 @@ dayjs.extend(timezone);
 type Props = {
   timeZone: string;
   availability: Availability[];
-  setTimeZone: unknown;
+  setTimeZone: (timeZone: string) => void;
+  setAvailability: (schedule: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] }) => void;
 };
 
-export const Scheduler = ({
-  availability,
-  setAvailability,
-  timeZone: selectedTimeZone,
-  setTimeZone,
-}: Props) => {
-  const { t } = useLocale();
+/**
+ * @deprecated
+ */
+export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone }: Props) => {
+  const { t, i18n } = useLocale();
   const [editSchedule, setEditSchedule] = useState(-1);
-  const [dateOverrides, setDateOverrides] = useState([]);
-  const [openingHours, setOpeningHours] = useState([]);
+  const [openingHours, setOpeningHours] = useState<Availability[]>([]);
 
   useEffect(() => {
-    setOpeningHours(
-      availability
-        .filter((item: Availability) => item.days.length !== 0)
-        .map((item) => {
-          item.startDate = dayjs().utc().startOf("day").add(item.startTime, "minutes");
-          item.endDate = dayjs().utc().startOf("day").add(item.endTime, "minutes");
-          return item;
-        })
-    );
-    setDateOverrides(availability.filter((item: Availability) => item.date));
+    setOpeningHours(availability.filter((item: Availability) => item.days.length !== 0));
   }, []);
 
-  // updates availability to how it should be formatted outside this component.
   useEffect(() => {
-    setAvailability({
-      dateOverrides: dateOverrides,
-      openingHours: openingHours,
-    });
-  }, [dateOverrides, openingHours]);
+    setAvailability({ openingHours, dateOverrides: [] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openingHours]);
 
   const addNewSchedule = () => setEditSchedule(openingHours.length);
 
-  const applyEditSchedule = (changed) => {
+  const applyEditSchedule = (changed: Availability) => {
     // new entry
     if (!changed.days) {
       changed.days = [1, 2, 3, 4, 5]; // Mon - Fri
@@ -63,39 +52,33 @@ export const Scheduler = ({
       // update
       const replaceWith = { ...openingHours[editSchedule], ...changed };
       openingHours.splice(editSchedule, 1, replaceWith);
-      setOpeningHours([].concat(openingHours));
+      setOpeningHours([...openingHours]);
     }
   };
 
   const removeScheduleAt = (toRemove: number) => {
     openingHours.splice(toRemove, 1);
-    setOpeningHours([].concat(openingHours));
+    setOpeningHours([...openingHours]);
   };
 
-  const OpeningHours = ({ idx, item }) => (
-    <li className="py-2 flex justify-between border-b">
+  const OpeningHours = ({ idx, item }: { idx: number; item: Availability }) => (
+    <li className="flex justify-between py-2 border-b">
       <div className="flex flex-col space-y-4 lg:inline-flex">
         <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
         <button
-          className="text-sm bg-neutral-100 rounded-sm py-2 px-3"
+          className="px-3 py-2 text-sm rounded-sm bg-neutral-100"
           type="button"
           onClick={() => setEditSchedule(idx)}>
-          {dayjs()
-            .startOf("day")
-            .add(item.startTime, "minutes")
-            .format(item.startTime % 60 === 0 ? "ha" : "h:mma")}
+          {item.startTime.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" })}
           &nbsp;{t("until")}&nbsp;
-          {dayjs()
-            .startOf("day")
-            .add(item.endTime, "minutes")
-            .format(item.endTime % 60 === 0 ? "ha" : "h:mma")}
+          {item.endTime.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" })}
         </button>
       </div>
       <button
         type="button"
         onClick={() => removeScheduleAt(idx)}
-        className="btn-sm bg-transparent px-2 py-1 ml-1">
-        <TrashIcon className="h-5 w-5 inline text-gray-400 -mt-1" />
+        className="px-2 py-1 ml-1 bg-transparent btn-sm">
+        <TrashIcon className="inline w-5 h-5 -mt-1 text-gray-400" />
       </button>
     </li>
   );
@@ -111,9 +94,9 @@ export const Scheduler = ({
             <div className="mt-1">
               <TimezoneSelect
                 id="timeZone"
-                value={{ value: selectedTimeZone }}
-                onChange={(tz) => setTimeZone(tz.value)}
-                className="shadow-sm focus:ring-black focus:border-brand mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+                value={timeZone}
+                onChange={(tz: ITimezoneOption) => setTimeZone(tz.value)}
+                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
               />
             </div>
           </div>
@@ -122,16 +105,36 @@ export const Scheduler = ({
               <OpeningHours key={idx} idx={idx} item={item} />
             ))}
           </ul>
-          <button type="button" onClick={addNewSchedule} className="btn-white btn-sm mt-2">
+          <Button type="button" onClick={addNewSchedule} className="mt-2" color="secondary" size="sm">
             {t("add_another")}
-          </button>
+          </Button>
         </div>
       </div>
       {editSchedule >= 0 && (
         <SetTimesModal
-          startTime={openingHours[editSchedule] ? openingHours[editSchedule].startTime : 540}
-          endTime={openingHours[editSchedule] ? openingHours[editSchedule].endTime : 1020}
-          onChange={(times) => applyEditSchedule({ ...(openingHours[editSchedule] || {}), ...times })}
+          startTime={
+            openingHours[editSchedule]
+              ? new Date(openingHours[editSchedule].startTime).getHours() * 60 +
+                new Date(openingHours[editSchedule].startTime).getMinutes()
+              : 540
+          }
+          endTime={
+            openingHours[editSchedule]
+              ? new Date(openingHours[editSchedule].endTime).getHours() * 60 +
+                new Date(openingHours[editSchedule].endTime).getMinutes()
+              : 1020
+          }
+          onChange={(times: { startTime: number; endTime: number }) =>
+            applyEditSchedule({
+              ...(openingHours[editSchedule] || {}),
+              startTime: new Date(
+                new Date().setHours(Math.floor(times.startTime / 60), times.startTime % 60, 0, 0)
+              ),
+              endTime: new Date(
+                new Date().setHours(Math.floor(times.endTime / 60), times.endTime % 60, 0, 0)
+              ),
+            })
+          }
           onExit={() => setEditSchedule(-1)}
         />
       )}

@@ -7,11 +7,12 @@ import { refund } from "@ee/lib/stripe/server";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
+import { sendCancelledEmails } from "@lib/emails/email-manager";
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
-import getSubscriberUrls from "@lib/webhooks/subscriberUrls";
+import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -101,17 +102,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return retObj;
     }),
     uid: bookingToDelete?.uid,
+    location: bookingToDelete?.location,
     language: t,
   };
 
   // Hook up the webhook logic here
   const eventTrigger = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscriberUrls = await getSubscriberUrls(bookingToDelete.userId, eventTrigger);
-  const promises = subscriberUrls.map((url) =>
-    sendPayload(eventTrigger, new Date().toISOString(), url, evt).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${url}`, e);
-    })
+  const subscribers = await getSubscribers(bookingToDelete.userId, eventTrigger);
+  const promises = subscribers.map((sub) =>
+    sendPayload(eventTrigger, new Date().toISOString(), sub.subscriberUrl, evt, sub.payloadTemplate).catch(
+      (e) => {
+        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+      }
+    )
   );
   await Promise.all(promises);
 
@@ -187,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
 
-  //TODO Perhaps send emails to user and client to tell about the cancellation
+  await sendCancelledEmails(evt);
 
   res.status(204).end();
 }
