@@ -1,17 +1,19 @@
 import React, { forwardRef, InputHTMLAttributes, ReactNode } from "react";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
-  label: ReactNode;
+  label?: ReactNode;
 };
 
 const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, ref) => {
   return (
     <div className="block sm:flex">
-      <div className="mb-4 min-w-48 sm:mb-0">
-        <label htmlFor={rest.id} className="flex items-center h-full text-sm font-medium text-neutral-700">
-          {label}
-        </label>
-      </div>
+      {!!label && (
+        <div className="mb-4 min-w-48 sm:mb-0">
+          <label htmlFor={rest.id} className="flex items-center h-full text-sm font-medium text-neutral-700">
+            {label}
+          </label>
+        </div>
+      )}
       <div className="w-full">
         <div className="relative rounded-sm shadow-sm">
           <input

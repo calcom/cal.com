@@ -27,8 +27,8 @@ export default function Teams() {
 
   if (loading) return <Loader />;
 
-  const teams = data?.filter((m) => m.role !== "INVITEE") || [];
-  const invites = data?.filter((m) => m.role === "INVITEE") || [];
+  const teams = data?.filter((m) => m.accepted) || [];
+  const invites = data?.filter((m) => !m.accepted) || [];
 
   return (
     <Shell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>

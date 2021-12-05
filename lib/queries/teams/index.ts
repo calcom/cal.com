@@ -67,20 +67,26 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
 
   const members = team.members.map((obj) => {
     const membership = memberships.find((membership) => obj.user.id === membership.userId);
-    return { ...obj.user, role: membership?.accepted ? membership?.role : "INVITEE" };
+    return {
+      ...obj.user,
+      role: membership?.role,
+      accepted: membership?.role === "OWNER" ? true : membership?.accepted,
+    };
   });
 
   return { ...team, members };
 }
-
+// also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
-  return !!(await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-    },
-  }));
+  return (
+    (await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+      },
+    })) || false
+  );
 }
 export async function isTeamOwner(userId: number, teamId: number) {
   return !!(await prisma.membership.findFirst({

@@ -1,5 +1,4 @@
 import { PlusIcon } from "@heroicons/react/solid";
-// import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -53,7 +52,7 @@ export function TeamSettingsPage() {
         <>
           <div className="block sm:flex md:max-w-5xl">
             <div className="w-full mr-2 sm:w-9/12">
-              <div className="p-2 py-2 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
+              <div className="px-4 -mx-0 bg-white border rounded-sm border-neutral-200 sm:px-6">
                 {isAdmin ? (
                   <TeamSettings team={team} />
                 ) : (
@@ -77,9 +76,9 @@ export function TeamSettingsPage() {
                   </div>
                 )}
               </div>
-              <MemberList teamId={team.id} members={team.members || []} />
+              <MemberList team={team} members={team.members || []} />
             </div>
-            <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-32">
+            <div className="w-full px-2 mt-8 ml-2 md:w-3/12 sm:mt-0 min-w-32">
               <TeamSettingsRightSidebar role={team.membership.role} team={team} />
             </div>
           </div>
@@ -91,24 +90,5 @@ export function TeamSettingsPage() {
     </Shell>
   );
 }
-
-// export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-//   const session = await getSession(context);
-
-//   if (!session?.user?.id) {
-//     return {
-//       redirect: {
-//         permanent: false,
-//         destination: "/auth/login",
-//       },
-//     };
-//   }
-
-//   // const team = await getTeamWithMembers(Number(context.params?.id));
-
-//   // if (!team) return { notFound: true };
-
-//   return { props: { id: Number(context.query?.id) } };
-// };
 
 export default TeamSettingsPage;

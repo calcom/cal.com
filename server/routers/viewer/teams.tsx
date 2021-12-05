@@ -6,6 +6,7 @@ import { z } from "zod";
 import { BASE_URL } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
+import { getUserAvailability } from "@lib/queries/availability";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
 import slugify from "@lib/slugify";
 
@@ -25,7 +26,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-      return { ...team, membership: { role: membership?.role } };
+      return { ...team, membership: { role: membership?.role as MembershipRole } };
     },
   })
   // Returns teams I a member of
@@ -46,7 +47,8 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
 
       return memberships.map((membership) => ({
-        role: membership.accepted ? membership.role : "INVITEE",
+        role: membership.role,
+        accepted: membership.role === "OWNER" ? true : membership.accepted,
         ...teams.find((team) => team.id === membership.teamId),
       }));
     },
@@ -318,5 +320,36 @@ export const viewerTeamsRouter = createProtectedRouter()
           role: input.role,
         },
       });
+    },
+  })
+  .query("getMemberAvailability", {
+    input: z.object({
+      teamId: z.number(),
+      memberId: z.number(),
+      timezone: z.string(),
+      dateFrom: z.string(),
+      dateTo: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const team = await isTeamAdmin(ctx.user?.id, input.teamId);
+      if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      // verify member is in team
+      const members = await ctx.prisma.membership.findMany({
+        where: { teamId: input.teamId },
+        include: { user: true },
+      });
+      const member = members?.find((m) => m.userId === input.memberId);
+      if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
+
+      // get availability for this member
+      const availability = await getUserAvailability({
+        username: member.user.username,
+        timezone: input.timezone,
+        dateFrom: input.dateFrom,
+        dateTo: input.dateTo,
+      });
+
+      return availability;
     },
   });

@@ -47,7 +47,7 @@ export default function TeamListItem(props: {
   const declineInvite = () => acceptOrLeave(false);
 
   const isOwner = props.team.role === "OWNER";
-  const isInvitee = props.team.role === "INVITEE";
+  const isInvitee = !props.team.accepted;
   const isAdmin = props.team.role === "OWNER" || props.team.role === "ADMIN";
 
   if (!team) return <></>;
@@ -58,7 +58,7 @@ export default function TeamListItem(props: {
         size={9}
         imageSrc={getPlaceholderAvatar(props.team?.logo, props.team?.name)}
         alt="Team Logo"
-        className="rounded-full w-9 h-9"
+        className="rounded-full w-9 h-9 min-w-9 min-h-9"
       />
       <div className="inline-block ml-3">
         <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>

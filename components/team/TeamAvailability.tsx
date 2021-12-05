@@ -1,23 +1,131 @@
-import { useEffect, useState } from "react";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import React, { useState, useEffect } from "react";
+import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
-import { handleErrorsJson } from "@lib/errors";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+// import { useLocale } from "@lib/hooks/useLocale";
+import { Member } from "@lib/member";
+import getSlots from "@lib/slots";
+import { trpc } from "@lib/trpc";
 import { Team } from "@lib/types/team";
 
-interface TeamAvailabilityProps {
-  team: Team;
+import Avatar from "@components/ui/Avatar";
+import { DatePicker } from "@components/ui/form/DatePicker";
+import MinutesField from "@components/ui/form/MinutesField";
+
+import Loader from "../Loader";
+
+interface Props {
+  team?: Team;
+  member?: Member;
 }
 
-export default function TeamAvailability(props: TeamAvailabilityProps) {
-  const [teamMembers, setTeamMembers] = useState();
+dayjs.extend(utc);
+
+export default function TeamAvailability(props: Props) {
+  const utils = trpc.useContext();
+  // const { t } = useLocale();
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(dayjs.tz.guess);
+  const [frequency, setFrequency] = useState<number>(30);
+
+  const { data, isLoading } = trpc.useQuery([
+    "viewer.teams.getMemberAvailability",
+    {
+      teamId: props.team?.id as number,
+      memberId: props.member?.id as number,
+      dateFrom: selectedDate.toString(),
+      dateTo: selectedDate.add(1, "day").toString(),
+      timezone: `${selectedTimeZone.toString()}`,
+    },
+  ]);
 
   useEffect(() => {
-    fetch("/api/teams/" + props.team?.id + "/membership")
-      .then(handleErrorsJson)
-      .then((data) => {
-        setTeamMembers(data.members);
-      })
-      .catch(console.log);
-  }, [props.team?.id]);
+    utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
+  }, [selectedTimeZone, selectedDate]);
 
-  return <div>{JSON.stringify({ team: props.team, members: teamMembers || [] })}</div>;
+  if (isLoading) return <Loader />;
+  if (!data) return <></>;
+
+  const times = getSlots({
+    frequency,
+    inviteeDate: selectedDate,
+    workingHours: data.workingHours,
+    minimumBookingNotice: 0,
+  });
+
+  return (
+    <div className="flex flex-row  max-h-[600px]  space-x-8">
+      <div className="w-64 p-5 pr-0 space-y-5 min-w-64">
+        <div className="flex">
+          <Avatar
+            imageSrc={getPlaceholderAvatar(props.member?.avatar, props.member?.name)}
+            alt={props.member?.name || ""}
+            className="rounded-full w-14 h-14"
+          />
+          <div className="inline-block pt-1 ml-3">
+            <span className="text-lg font-bold text-neutral-700">{props.member?.name}</span>
+            <span className="block -mt-1 text-sm text-gray-400">{props.member.email}</span>
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-600">Date</span>
+          <DatePicker
+            date={selectedDate.toDate()}
+            onDatesChange={(newDate) => {
+              setSelectedDate(dayjs(newDate));
+            }}
+          />
+        </div>
+        <div>
+          <span className="font-bold text-gray-600">Timezone</span>
+          <TimezoneSelect
+            id="timeZone"
+            value={selectedTimeZone}
+            onChange={(timezone) => setSelectedTimeZone(timezone.value)}
+            classNamePrefix="react-select"
+            className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+          />
+        </div>
+        <div>
+          <span className="font-bold text-gray-600">Slot Length</span>
+          <MinutesField
+            id="length"
+            label=""
+            required
+            min="10"
+            placeholder="15"
+            defaultValue={frequency}
+            onChange={(e) => {
+              setFrequency(Number(e.target.value));
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex-grow p-5 pl-0 overflow-scroll min-w-60">
+        {!isLoading && times.length === 0 && (
+          <div className="flex flex-col items-center justify-center pt-4">
+            <span className="text-sm text-gray-500">No Available Slots</span>
+          </div>
+        )}
+        {times.map((time) => (
+          <div key={time.format()} className="flex flex-row items-center">
+            <a
+              className="flex-grow block py-2 mb-2 mr-3 font-medium text-center bg-white border rounded-sm min-w-48 dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-brand dark:border-transparent hover:text-white hover:bg-brand dark:hover:border-black dark:hover:bg-black"
+              data-testid="time">
+              {time.format("HH:mm")}
+            </a>
+            {/* <div className="min-w-40">
+              <Avatar
+                imageSrc={getPlaceholderAvatar(props.member?.avatar, props.member?.name)}
+                alt={props.member?.name || ""}
+                className="flex-shrink w-5 h-5 rounded-full"
+              />
+            </div> */}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

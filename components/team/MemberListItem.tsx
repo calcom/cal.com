@@ -7,6 +7,7 @@ import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
 import showToast from "@lib/notification";
+import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -14,17 +15,20 @@ import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
+import ModalContainer from "@components/ui/ModalContainer";
 
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
+import TeamAvailability from "./TeamAvailability";
 import TeamRole from "./TeamRole";
 import { MembershipRole } from ".prisma/client";
 
-export default function MemberListItem(props: { teamId: number; member: Member }) {
+export default function MemberListItem(props: { team: TeamWithMembers; member: Member }) {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
+  const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
 
   const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
     async onSuccess() {
@@ -43,7 +47,8 @@ export default function MemberListItem(props: { teamId: number; member: Member }
       return emailName.charAt(0).toUpperCase() + emailName.slice(1);
     })();
 
-  const removeMember = () => removeMemberMutation.mutate({ teamId: props.teamId, memberId: props.member.id });
+  const removeMember = () =>
+    removeMemberMutation.mutate({ teamId: props.team?.id, memberId: props.member.id });
 
   return (
     <li className="divide-y">
@@ -60,14 +65,15 @@ export default function MemberListItem(props: { teamId: number; member: Member }
               <span className="block -mt-1 text-xs text-gray-400">{props.member.email}</span>
             </div>
           </div>
-          <div className="flex justify-center">
-            {props.member.role === "INVITEE" && <TeamRole invitePending />}
+          <div className="flex justify-center mr-2">
+            {!props.member.accepted && <TeamRole invitePending />}
             <TeamRole role={props.member.role} />
           </div>
         </div>
         <div className="flex">
           <Tooltip content={t("View user availability")}>
             <Button
+              onClick={() => setShowTeamAvailabilityModal(true)}
               color="minimal"
               className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white">
               <ClockIcon className="w-5 h-5 group-hover:text-gray-800" />
@@ -129,11 +135,20 @@ export default function MemberListItem(props: { teamId: number; member: Member }
       </div>
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal
-          teamId={props.teamId}
+          teamId={props.team?.id}
           memberId={props.member.id}
           initialRole={props.member.role as MembershipRole}
           onExit={() => setShowChangeMemberRoleModal(false)}
         />
+      )}
+      {showTeamAvailabilityModal && (
+        <ModalContainer wide noPadding>
+          <TeamAvailability team={props.team} member={props.member} />
+          <div className="p-5 space-x-2 border-t">
+            <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
+            <Button color="secondary">{t("Open Team Availability")}</Button>
+          </div>
+        </ModalContainer>
       )}
     </li>
   );
