@@ -44,6 +44,8 @@ export default function User(props: inferSSRProps<typeof getStaticProps>) {
   const { user, eventTypes } = query.data;
   const nameOrUsername = user.name || user.username || "";
 
+  console.log(router.locale);
+
   return (
     <>
       <HeadSeo

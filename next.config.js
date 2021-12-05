@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withTM = require("@vercel/edge-functions-ui/transpile")(["react-timezone-select"]);
+const path = require("path");
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.BASE_URL) {
@@ -61,6 +62,12 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
   typescript: {
     ignoreBuildErrors: true,
   },
+  i18n: {
+    defaultLocale: "default",
+    localeDetection: false,
+    locales: ["default", "en", "fr", "it", "ru", "es", "de", "pt", "ro", "nl", "pt-BR", "es-419", "ko", "ja"],
+  },
+  localePath: path.resolve("./public/static/locales"),
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
