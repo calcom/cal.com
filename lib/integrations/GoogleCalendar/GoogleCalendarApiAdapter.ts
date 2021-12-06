@@ -166,8 +166,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
             },
             attendees: event.attendees,
             reminders: {
-              useDefault: false,
-              overrides: [{ method: "email", minutes: 10 }],
+              useDefault: true,
             },
           };
 
