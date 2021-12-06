@@ -438,6 +438,9 @@
   "confirm_delete_event_type": "Ja, verwijder evenement",
   "integrations": "Integraties",
   "settings": "Instellingen",
+  "account_created_with_identity_provider": "Your account was created using an Identity Provider.",
+  "signin_with_google": "Sign in with Google",
+  "signin_with_saml": "Sign in with SAML",
   "next_step": "Stap overslaan",
   "prev_step": "Vorige stap"
 }

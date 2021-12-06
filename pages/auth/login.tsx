@@ -37,8 +37,7 @@ export default function Login({
     [ErrorCode.UserNotFound]: t("no_account_exists"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
-    // TODO: when another identity provider is added, rework this message.
-    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("google_account"),
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
   const callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";

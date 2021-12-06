@@ -476,7 +476,6 @@
   "little_something_about": "A little something about yourself.",
   "profile_updated_successfully": "Profile updated successfully",
   "your_user_profile_updated_successfully": "Your user profile has been updated successfully.",
-  "saml_config_updated_successfully": "SAML configuration updated successfully",
   "user_cannot_found_db": "User seems logged in but cannot be found in the db",
   "embed_and_webhooks": "Embed & Webhooks",
   "enabled": "Enabled",
@@ -537,9 +536,6 @@
   "confirm_delete_event_type": "Yes, delete event type",
   "integrations": "Integrations",
   "settings": "Settings",
-  "google_account": "Your account was created using Google.",
-  "signin_with_google": "Sign in with Google",
-  "signin_with_saml": "Sign in with SAML",
   "event_type_moved_successfully": "Event type has been moved successfully",
   "next_step": "Skip step",
   "prev_step": "Prev step",
@@ -554,5 +550,9 @@
   "calendar": "Calendar",
   "not_installed": "Not installed",
   "error_password_mismatch": "Passwords don't match.",
-  "error_required_field": "This field is required."
+  "error_required_field": "This field is required.",
+  "saml_config_updated_successfully": "SAML configuration updated successfully",
+  "account_created_with_identity_provider": "Your account was created using an Identity Provider.",
+  "signin_with_google": "Sign in with Google",
+  "signin_with_saml": "Sign in with SAML"
 }
