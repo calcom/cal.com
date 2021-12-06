@@ -121,6 +121,7 @@ export default class AttendeeScheduledEmail {
   ${this.calEvent.language("emailed_you_and_any_other_attendees")}
   ${this.getWhat()}
   ${this.getWhen()}
+  ${this.getWho()}
   ${this.getLocation()}
   ${this.getAdditionalNotes()}
   ${this.calEvent.language("need_to_reschedule_or_cancel")}
@@ -380,7 +381,9 @@ ${this.getAdditionalNotes()}
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.language("where")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${
+        providerName || this.calEvent.location
+      }</p>
     </div>
     `;
   }
