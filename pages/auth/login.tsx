@@ -188,7 +188,7 @@ export default function Login({
             <button
               onClick={async () => await signIn("google")}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              Sign in with Google
+              {t("signin_with_google")}
             </button>
           )}
           {isSAMLLoginEnabled && (

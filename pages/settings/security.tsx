@@ -23,12 +23,15 @@ export default function Security() {
           <>
             <div className="mt-6">
               <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">
-                Your account is managed by {identityProviderNameMap[user.identityProvider]}
+                {t("account_managed_by_identity_provider", {
+                  provider: identityProviderNameMap[user.identityProvider],
+                })}
               </h2>
             </div>
             <p className="mt-1 text-sm text-gray-500">
-              To change your email, password, enable two-factor authentication and more, please visit your{" "}
-              {identityProviderNameMap[user.identityProvider]} account settings.
+              {t("account_managed_by_identity_provider_description", {
+                provider: identityProviderNameMap[user.identityProvider],
+              })}
             </p>
           </>
         ) : (
