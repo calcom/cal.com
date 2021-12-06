@@ -605,8 +605,30 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
 
+      const enabled = isSAMLLoginEnabled && isSAMLAdmin(user.email);
+      let provider;
+      if (enabled) {
+        const params = new URLSearchParams();
+        params.append("tenant", samlTenantID);
+        params.append("product", samlProductID);
+
+        const response = await fetch(`${samlApiUrl}/api/v1/saml/config/get`, {
+          method: "POST",
+          body: params,
+          headers: { Authorization: `api-key ${samlServiceApiKey}` },
+        });
+
+        if (response.status !== 200) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration fetch failed" });
+        }
+
+        const resp: any = await response.json();
+        provider = resp.provider;
+      }
+
       return {
-        isSAMLLoginEnabled: isSAMLLoginEnabled && isSAMLAdmin(user.email),
+        isSAMLLoginEnabled: enabled,
+        provider,
       };
     },
   })
@@ -631,6 +653,8 @@ const loggedInViewerRouter = createProtectedRouter()
       if (response.status !== 200) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration update failed" });
       }
+
+      return await response.json();
     },
   });
 

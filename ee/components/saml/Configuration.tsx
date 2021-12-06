@@ -8,18 +8,22 @@ import { Alert } from "@components/ui/Alert";
 
 export default function SAMLConfiguration() {
   const [isSAMLLoginEnabled, setIsSAMLLoginEnabled] = useState(false);
+  const [samlConfig, setSAMLConfig] = useState(null);
 
   const query = trpc.useQuery(["viewer.isSAMLLoginEnabled"]);
 
   useEffect(() => {
     const data = query.data;
     setIsSAMLLoginEnabled(data?.isSAMLLoginEnabled ?? false);
+    setSAMLConfig(data?.provider ?? null);
   }, [query.data]);
 
   const mutation = trpc.useMutation("viewer.updateSAMLConfig", {
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       showToast(t("saml_config_updated_successfully"), "success");
       setHasErrors(false); // dismiss any open errors
+      setSAMLConfig(data.provider);
+      samlConfigRef.current.value = "";
     },
     onError: (err) => {
       setHasErrors(true);
@@ -54,6 +58,11 @@ export default function SAMLConfiguration() {
             <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">SAML Configuration</h2>
           </div>
           {hasErrors && <Alert severity="error" title={errorMessage} />}
+          <div className="mt-6">
+            <p className="mt-1 text-sm text-gray-500">
+              {samlConfig ? `SAML configured for provider: ${samlConfig}` : "SAML not configured yet"}
+            </p>
+          </div>
           <p className="mt-1 text-sm text-gray-500">
             Please paste the SAML metadata from your Identity Provider in the textbox below to update your
             SAML configuration.
