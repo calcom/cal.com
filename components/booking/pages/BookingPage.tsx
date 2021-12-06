@@ -208,7 +208,7 @@ const BookingPage = (props: BookingPageProps) => {
       language: i18n.language,
       rescheduleUid,
       user: router.query.user,
-      location: getLocationValue(booking),
+      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -278,7 +278,7 @@ const BookingPage = (props: BookingPageProps) => {
                 {selectedLocation === LocationType.InPerson && (
                   <p className="mb-2 text-gray-500">
                     <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                    {locationInfo(selectedLocation).address}
+                    {getLocationValue({ locationType: selectedLocation })}
                   </p>
                 )}
                 <p className="mb-4 text-green-500">
