@@ -443,7 +443,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
-          <div className="relative -mb-2 group cursor-pointer" onClick={() => setEditIcon(false)}>
+          <div className="relative group cursor-pointer" onClick={() => setEditIcon(false)}>
             {editIcon ? (
               <>
                 <h1
@@ -454,16 +454,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <PencilIcon className="-mt-1 ml-1 inline w-4 h-4 text-gray-700 group-hover:text-gray-500" />
               </>
             ) : (
-              <input
-                type="text"
-                autoFocus
-                style={{ top: -6, fontSize: 22 }}
-                required
-                className="w-full relative pl-0 h-10 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
-                placeholder={t("quick_chat")}
-                {...formMethods.register("title")}
-                defaultValue={eventType.title}
-              />
+              <div style={{ marginBottom: -11 }}>
+                <input
+                  type="text"
+                  autoFocus
+                  style={{ top: -6, fontSize: 22 }}
+                  required
+                  className="w-full relative pl-0 h-10 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
+                  placeholder={t("quick_chat")}
+                  {...formMethods.register("title")}
+                  defaultValue={eventType.title}
+                />
+              </div>
             )}
           </div>
         }
