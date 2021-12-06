@@ -1,8 +1,4 @@
 import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -10,11 +6,6 @@ import { getIntegrationName } from "@lib/integrations";
 
 import { CalendarEvent } from "./calendarClient";
 import { BASE_URL } from "./config/constants";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
 
 const translator = short();
 
