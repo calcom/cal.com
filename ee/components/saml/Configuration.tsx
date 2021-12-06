@@ -55,18 +55,19 @@ export default function SAMLConfiguration() {
       {isSAMLLoginEnabled ? (
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateSAMLConfigHandler}>
           <div className="mt-6">
-            <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">SAML Configuration</h2>
+            <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">
+              {t("saml_configuration")}
+            </h2>
           </div>
           {hasErrors && <Alert severity="error" title={errorMessage} />}
           <div className="mt-6">
             <p className="mt-1 text-sm text-gray-500">
-              {samlConfig ? `SAML configured for provider: ${samlConfig}` : "SAML not configured yet"}
+              {samlConfig
+                ? t("saml_configured_for_provider", { provider: samlConfig })
+                : t("saml_not_configured_yet")}
             </p>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
-            Please paste the SAML metadata from your Identity Provider in the textbox below to update your
-            SAML configuration.
-          </p>
+          <p className="mt-1 text-sm text-gray-500">{t("saml_configuration_description")}</p>
           <div className="mt-6">
             <textarea
               ref={samlConfigRef}
@@ -75,7 +76,7 @@ export default function SAMLConfiguration() {
               required={true}
               rows={10}
               className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
-              placeholder="Please paste the SAML metadata from your Identity Provider here"
+              placeholder={t("saml_configuration_placeholder")}
             />
           </div>
           <div className="flex justify-end py-8">

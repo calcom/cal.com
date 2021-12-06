@@ -554,5 +554,10 @@
   "saml_config_updated_successfully": "SAML configuration updated successfully",
   "account_created_with_identity_provider": "Your account was created using an Identity Provider.",
   "signin_with_google": "Sign in with Google",
-  "signin_with_saml": "Sign in with SAML"
+  "signin_with_saml": "Sign in with SAML",
+  "saml_configuration": "SAML Configuration",
+  "saml_configured_for_provider": "SAML configured for {{provider}}",
+  "saml_not_configured_yet": "SAML not configured yet",
+  "saml_configuration_description": "Please paste the SAML metadata from your Identity Provider in the textbox below to update your SAML configuration.",
+  "saml_configutation_placeholder": "Please paste the SAML metadata from your Identity Provider here"
 }
