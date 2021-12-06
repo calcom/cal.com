@@ -1,12 +1,12 @@
 import { Logger } from "tslog";
 
-const isProduction = process.env.NODE_ENV === "production";
+import { IS_PRODUCTION } from "@lib/config/constants";
 
 const logger = new Logger({
   dateTimePattern: "hour:minute:second.millisecond timeZoneName",
   displayFunctionName: false,
   displayFilePath: "hidden",
-  dateTimeTimezone: isProduction ? "utc" : Intl.DateTimeFormat().resolvedOptions().timeZone,
+  dateTimeTimezone: IS_PRODUCTION ? "utc" : Intl.DateTimeFormat().resolvedOptions().timeZone,
   prettyInspectHighlightStyles: {
     name: "yellow",
     number: "blue",
@@ -14,7 +14,7 @@ const logger = new Logger({
     boolean: "blue",
   },
   maskValuesOfKeys: ["password", "passwordConfirmation", "credentials", "credential"],
-  exposeErrorCodeFrame: !isProduction,
+  exposeErrorCodeFrame: !IS_PRODUCTION,
 });
 
 export default logger;

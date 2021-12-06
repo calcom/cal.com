@@ -123,21 +123,19 @@ export default class EventManager {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    // 1. list all user's remote calendar
-    // 2. check if destination calendar exist
-    // 3a) - not exists - pick first one
-    // 3b) - exists - use destination calendar
-
-    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    const results: Array<EventResult> = await this.createAllCalendarEvents(evt);
+    const results: Array<EventResult> = [];
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
       }
+
       results.push(result);
     }
+
+    // Create the calendar event with the proper video call data
+    results.push(...(await this.createAllCalendarEvents(evt)));
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
@@ -197,8 +195,7 @@ export default class EventManager {
     }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    const results: Array<EventResult> = await this.updateAllCalendarEvents(evt, booking);
+    const results: Array<EventResult> = [];
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
@@ -207,6 +204,9 @@ export default class EventManager {
       }
       results.push(result);
     }
+
+    // Update all calendar events.
+    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -236,10 +236,15 @@ export default class EventManager {
   }
 
   /**
-   * Creates event entriy for the destination calendar in the credentials.
-   * If no destination is found, it uses the first one it can find
+   * Creates event entries for all calendar integrations given in the credentials.
+   * When noMail is true, no mails will be sent. This is used when the event is
+   * a video meeting because then the mail containing the video credentials will be
+   * more important than the mails created for these bare calendar events.
+   *
+   * When the optional uid is set, it will be used instead of the auto generated uid.
    *
    * @param event
+   * @param noMail
    * @private
    */
 
