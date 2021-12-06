@@ -376,7 +376,6 @@
   "little_something_about": "Een introductie over uzelf.",
   "profile_updated_successfully": "Profiel bijgewerkt",
   "your_user_profile_updated_successfully": "Uw profiel is is met succes bijgewerkt.",
-  "saml_config_updated_successfully": "SAML configuration updated successfully",
   "user_cannot_found_db": "Gebruiker lijkt ingelogd maar kan niet gevonden worden in de db",
   "embed_and_webhooks": "Insluiten & Webhooks",
   "enabled": "Ingeschakeld",
@@ -438,9 +437,6 @@
   "confirm_delete_event_type": "Ja, verwijder evenement",
   "integrations": "Integraties",
   "settings": "Instellingen",
-  "account_created_with_identity_provider": "Your account was created using an Identity Provider.",
-  "signin_with_google": "Sign in with Google",
-  "signin_with_saml": "Sign in with SAML",
   "next_step": "Stap overslaan",
   "prev_step": "Vorige stap"
 }
