@@ -17,7 +17,6 @@ import Team from "@components/team/screens/Team";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Button from "@components/ui/Button";
-import Text from "@components/ui/Text";
 
 function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme();
@@ -61,38 +60,43 @@ function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
     isReady && (
       <div>
         <HeadSeo title={teamName} description={teamName} />
-        <div className="pt-24 pb-12 px-4">
-          <div className="mb-8 text-center">
-            <Avatar alt={teamName} imageSrc={team.logo} className="mx-auto w-20 h-20 rounded-full mb-4" />
-            <Text variant="headline">{teamName}</Text>
-          </div>
-          {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
-          {!showMembers.isOn && team.eventTypes.length > 0 && (
-            <div className="mx-auto max-w-3xl">
-              {eventTypes}
-
-              <div className="relative mt-12">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-gray-200 dark:border-gray-900" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-2 bg-gray-100 text-sm text-gray-500 dark:bg-brand dark:text-gray-500">
-                    {t("or")}
-                  </span>
-                </div>
-              </div>
-
-              <aside className="text-center dark:text-white mt-8">
-                <Button
-                  color="secondary"
-                  EndIcon={ArrowRightIcon}
-                  href={`/team/${team.slug}?members=1`}
-                  shallow={true}>
-                  {t("book_a_team_member")}
-                </Button>
-              </aside>
+        <div className="h-screen bg-neutral-50 dark:bg-black">
+          <main className="max-w-3xl px-4 py-24 mx-auto">
+            <div className="mb-8 text-center">
+              <Avatar alt={teamName} imageSrc={team.logo} className="mx-auto w-20 h-20 rounded-full mb-4" />
+              <h1 className="mb-1 text-3xl font-bold font-cal text-neutral-900 dark:text-white">
+                {teamName}
+              </h1>
+              <p className="text-neutral-500 dark:text-white">{team.bio}</p>
             </div>
-          )}
+            {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+            {!showMembers.isOn && team.eventTypes.length > 0 && (
+              <div className="mx-auto max-w-3xl">
+                {eventTypes}
+
+                <div className="relative mt-12">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="w-full border-t border-gray-200 dark:border-gray-900" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-2 bg-gray-100 text-sm text-gray-500 dark:bg-brand dark:text-gray-500">
+                      {t("or")}
+                    </span>
+                  </div>
+                </div>
+
+                <aside className="text-center dark:text-white mt-8">
+                  <Button
+                    color="secondary"
+                    EndIcon={ArrowRightIcon}
+                    href={`/team/${team.slug}?members=1`}
+                    shallow={true}>
+                    {t("book_a_team_member")}
+                  </Button>
+                </aside>
+              </div>
+            )}
+          </main>
         </div>
       </div>
     )
@@ -116,6 +120,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     name: true,
     slug: true,
     logo: true,
+    bio: true,
     members: {
       select: {
         user: {
