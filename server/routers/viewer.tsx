@@ -498,6 +498,9 @@ const loggedInViewerRouter = createProtectedRouter()
             throw new TRPCError({
               code: "BAD_REQUEST",
               message: t("unsupported_mime_type", {
+                // The translation will escape the / in the mime type
+                // so get only the image type and pass that
+                // have image/ in the translation
                 mime_type: e.message.replace("Unsupported MIME type: image/", ""),
               }),
             });
