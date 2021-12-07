@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "DestinationCalendar" (
-    "id" INTEGER NOT NULL,
+    "id" SERIAL NOT NULL,
     "integration" TEXT NOT NULL,
     "externalId" TEXT NOT NULL,
     "userId" INTEGER,
@@ -11,10 +11,13 @@ CREATE TABLE "DestinationCalendar" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "DestinationCalendar_userId_unique" ON "DestinationCalendar"("userId");
+CREATE UNIQUE INDEX "DestinationCalendar.userId_unique" ON "DestinationCalendar"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "DestinationCalendar_bookingId_unique" ON "DestinationCalendar"("bookingId");
+CREATE UNIQUE INDEX "DestinationCalendar.bookingId_unique" ON "DestinationCalendar"("bookingId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "DestinationCalendar.eventTypeId_unique" ON "DestinationCalendar"("eventTypeId");
 
 -- AddForeignKey
 ALTER TABLE "DestinationCalendar" ADD FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

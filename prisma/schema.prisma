@@ -72,15 +72,15 @@ enum UserPlan {
 }
 
 model DestinationCalendar {
-  id          Int        @id
+  id          Int        @id @default(autoincrement())
   integration String
   externalId  String
   user        User?      @relation(fields: [userId], references: [id])
-  userId      Int?
+  userId      Int?       @unique
   booking     Booking?   @relation(fields: [bookingId], references: [id])
-  bookingId   Int?
+  bookingId   Int?       @unique
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
-  eventTypeId Int?
+  eventTypeId Int?       @unique
 }
 
 model User {
