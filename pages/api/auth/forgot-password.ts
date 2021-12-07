@@ -4,8 +4,8 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import sendEmail from "@lib/emails/sendMail";
-import { buildForgotPasswordMessage } from "@lib/forgot-password/messaging/forgot-password";
+import { sendPasswordResetEmail } from "@lib/emails/email-manager";
+import { PasswordReset, PASSWORD_RESET_EXPIRY_HOURS } from "@lib/emails/templates/forgot-password-email";
 import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (maybePreviousRequest && maybePreviousRequest?.length >= 1) {
       passwordRequest = maybePreviousRequest[0];
     } else {
-      const expiry = dayjs().add(6, "hours").toDate();
+      const expiry = dayjs().add(PASSWORD_RESET_EXPIRY_HOURS, "hours").toDate();
       const createdResetPasswordRequest = await prisma.resetPasswordRequest.create({
         data: {
           email: rawEmail,
@@ -61,20 +61,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       passwordRequest = createdResetPasswordRequest;
     }
 
-    const passwordResetLink = `${process.env.BASE_URL}/auth/forgot-password/${passwordRequest.id}`;
-    const { subject, message } = buildForgotPasswordMessage({
+    const passwordEmail: PasswordReset = {
       language: t,
       user: {
         name: maybeUser.name,
+        email: rawEmail,
       },
-      link: passwordResetLink,
-    });
+      resetLink: `${process.env.BASE_URL}/auth/forgot-password/${passwordRequest.id}`,
+    };
 
-    await sendEmail({
-      to: rawEmail,
-      subject: subject,
-      text: message,
-    });
+    await sendPasswordResetEmail(passwordEmail);
 
     return res.status(201).json({ message: "Reset Requested" });
   } catch (reason) {
