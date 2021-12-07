@@ -14,16 +14,12 @@ import {
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
+import { BaseCalendarApiAdapter } from "@lib/BaseCalendarApiAdapter";
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
-import {
-  BaseCalendarApiAdapter,
-  CalendarApiAdapter,
-  CalendarEvent,
-  IntegrationCalendar,
-} from "../../calendarClient";
+import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
 
 dayjs.extend(utc);
 

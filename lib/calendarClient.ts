@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Credential, DestinationCalendar, SelectedCalendar } from "@prisma/client";
-import dayjs from "dayjs";
-import { Attendee, DateArray, DurationObject } from "ics";
 import { TFunction } from "next-i18next";
 
 import { PaymentInfo } from "@ee/lib/stripe/server";
@@ -69,26 +67,6 @@ export interface CalendarEvent {
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
-}
-
-export class BaseCalendarApiAdapter {
-  convertDate(date: string): DateArray {
-    return dayjs(date)
-      .utc()
-      .toArray()
-      .slice(0, 6)
-      .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray;
-  }
-
-  getDuration(start: string, end: string): DurationObject {
-    return {
-      minutes: dayjs(end).diff(dayjs(start), "minute"),
-    };
-  }
-
-  getAttendees(attendees: Person[]): Attendee[] {
-    return attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
-  }
 }
 
 export interface CalendarApiAdapter {
