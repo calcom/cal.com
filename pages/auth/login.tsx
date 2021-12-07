@@ -185,14 +185,16 @@ export default function Login({
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </form>
           {isGoogleLoginEnabled && (
-            <button
-              onClick={async () => await signIn("google")}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-              {t("signin_with_google")}
-            </button>
+            <div style={{ marginTop: "12px" }}>
+              <button
+                onClick={async () => await signIn("google")}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                {t("signin_with_google")}
+              </button>
+            </div>
           )}
           {isSAMLLoginEnabled && (
-            <div style={{ marginTop: "24px" }}>
+            <div style={{ marginTop: "12px" }}>
               <button
                 onClick={async () => await signIn("saml")}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
