@@ -389,7 +389,7 @@ const loggedInViewerRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const id = ctx.user.id;
+      const userId = ctx.user.id;
       const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
@@ -401,15 +401,15 @@ const loggedInViewerRouter = createProtectedRouter()
       }
       await ctx.prisma.destinationCalendar.upsert({
         where: {
-          id,
+          userId,
         },
         update: {
           ...input,
-          id,
+          userId,
         },
         create: {
           ...input,
-          id,
+          userId,
         },
       });
     },
