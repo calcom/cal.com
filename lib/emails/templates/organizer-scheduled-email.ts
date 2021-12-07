@@ -6,7 +6,7 @@ import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
 import nodemailer from "nodemailer";
 
-import { getCancelLink } from "@lib/CalEventParser";
+import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
 import { CalendarEvent, Person } from "@lib/calendarClient";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getIntegrationName } from "@lib/integrations";
@@ -123,14 +123,9 @@ export default class OrganizerScheduledEmail {
     return `
 ${this.calEvent.language("new_event_scheduled")}
 ${this.calEvent.language("emailed_you_and_any_other_attendees")}
-${this.getWhat()}
-${this.getWhen()}
-${this.getWho()}
-${this.getLocation()}
-${this.getAdditionalNotes()}
-${this.calEvent.language("need_to_reschedule_or_cancel")}
-${getCancelLink(this.calEvent)}
-`.replace(/(<([^>]+)>)/gi, "");
+
+${getRichDescription(this.calEvent)}
+`.trim();
   }
 
   protected printNodeMailerError(error: Error): void {
@@ -352,12 +347,12 @@ ${getCancelLink(this.calEvent)}
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
         <p style="color: #494949;">${this.calEvent.language("where")}</p>
-        <p style="color: #494949; font-weight: 400; line-height: 24px;">${
-          hangoutLink &&
-          `<a href="${hangoutLink}" target="_blank" alt="${this.calEvent.language(
-            "meeting_url"
-          )}"><img src="${linkIcon()}" width="12px"></img></a>`
-        }</p>
+        <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName} ${
+        hangoutLink &&
+        `<a href="${hangoutLink}" target="_blank" alt="${this.calEvent.language(
+          "meeting_url"
+        )}"><img src="${linkIcon()}" width="12px"></img></a>`
+      }</p>
         <div style="color: #494949; font-weight: 400; line-height: 24px;"><a href="${hangoutLink}" alt="${this.calEvent.language(
         "meeting_url"
       )}" style="color: #3E3E3E" target="_blank">${hangoutLink}</a></div>
