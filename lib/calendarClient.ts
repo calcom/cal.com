@@ -21,6 +21,8 @@ import {
 import logger from "@lib/logger";
 import { VideoCallData } from "@lib/videoClient";
 
+import { Ensure } from "./types/utils";
+
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
 
 export type Person = { name: string; email: string; timeZone: string };
@@ -64,7 +66,7 @@ export interface CalendarEvent {
   destinationCalendar?: DestinationCalendar | null;
 }
 
-export interface IntegrationCalendar extends Partial<SelectedCalendar> {
+export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
 }
@@ -102,11 +104,9 @@ function getCalendarAdapterOrNull(credential: Credential): CalendarApiAdapter | 
     case "office365_calendar":
       return Office365CalendarApiAdapter(credential);
     case "caldav_calendar":
-      // FIXME types wrong & type casting should not be needed
-      return new CalDavCalendar(credential) as never as CalendarApiAdapter;
+      return new CalDavCalendar(credential);
     case "apple_calendar":
-      // FIXME types wrong & type casting should not be needed
-      return new AppleCalendar(credential) as never as CalendarApiAdapter;
+      return new AppleCalendar(credential);
   }
   return null;
 }
