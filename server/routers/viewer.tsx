@@ -14,7 +14,6 @@ import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
-import { getTranslation } from "../lib/i18n";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 import { webhookRouter } from "./viewer/webhook";
 
@@ -477,8 +476,6 @@ const loggedInViewerRouter = createProtectedRouter()
       const data: Prisma.UserUpdateInput = {
         ...input,
       };
-      const t = await getTranslation(input.locale ?? "en", "common");
-
       if (input.username) {
         const username = slugify(input.username);
         // Only validate if we're changing usernames
@@ -491,19 +488,7 @@ const loggedInViewerRouter = createProtectedRouter()
         }
       }
       if (input.avatar) {
-        try {
-          data.avatar = await resizeBase64Image(input.avatar);
-        } catch (e) {
-          if (e.message.includes("Unsupported MIME type:")) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: t("unsupported_mime_type", {
-                mime_type: e.message.replace("Unsupported MIME type: image/", ""),
-              }),
-            });
-          }
-          throw e;
-        }
+        data.avatar = await resizeBase64Image(input.avatar);
       }
 
       await prisma.user.update({
