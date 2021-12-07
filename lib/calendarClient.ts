@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { DestinationCalendar, Credential, SelectedCalendar } from "@prisma/client";
+import { Credential, DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import dayjs from "dayjs";
+import { DateArray } from "ics";
 import { TFunction } from "next-i18next";
 
 import { PaymentInfo } from "@ee/lib/stripe/server";
@@ -9,12 +11,12 @@ import { Event, EventResult } from "@lib/events/EventManager";
 import { AppleCalendar } from "@lib/integrations/Apple/AppleCalendarAdapter";
 import { CalDavCalendar } from "@lib/integrations/CalDav/CalDavCalendarAdapter";
 import {
-  GoogleCalendarApiAdapter,
   ConferenceData,
+  GoogleCalendarApiAdapter,
 } from "@lib/integrations/GoogleCalendar/GoogleCalendarApiAdapter";
 import {
-  Office365CalendarApiAdapter,
   BufferedBusyTime,
+  Office365CalendarApiAdapter,
 } from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
 import logger from "@lib/logger";
 import { VideoCallData } from "@lib/videoClient";
@@ -65,6 +67,16 @@ export interface CalendarEvent {
 export interface IntegrationCalendar extends Partial<SelectedCalendar> {
   primary?: boolean;
   name?: string;
+}
+
+export class BaseCalendarApiAdapter {
+  convertDate(date: string): DateArray {
+    return dayjs(date)
+      .utc()
+      .toArray()
+      .slice(0, 6)
+      .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray;
+  }
 }
 
 export interface CalendarApiAdapter {
