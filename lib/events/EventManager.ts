@@ -201,6 +201,7 @@ export default class EventManager {
       const result = await this.updateVideoEvent(evt, booking);
       if (result.updatedEvent) {
         evt.videoCallData = result.updatedEvent;
+        evt.location = result.updatedEvent.url;
       }
       results.push(result);
     }
