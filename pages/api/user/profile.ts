@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(422).json({
         message: t("unsupported_mime_type", {
           // The translation will escape the / in the mime type
-          // so get only the image type and pass that
+          // soget only the image type and pass that
           // have image/ in the translation
           mime_type: e.message.replace("Unsupported MIME type: image/", ""),
         }),
