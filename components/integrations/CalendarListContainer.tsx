@@ -169,7 +169,7 @@ function PrimaryCalendarSelector() {
     const selected = query.data?.connectedCalendars
       .map((connected) => connected.calendars ?? [])
       .flat()
-      .find((cal) => cal.externalId === query.data.UserDestinationCalendar?.externalId);
+      .find((cal) => cal.externalId === query.data.destinationCalendar?.externalId);
 
     if (!selected) {
       return null;
