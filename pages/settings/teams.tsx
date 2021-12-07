@@ -13,6 +13,7 @@ import Shell from "@components/Shell";
 import EditTeam from "@components/team/EditTeam";
 import TeamList from "@components/team/TeamList";
 import TeamListItem from "@components/team/TeamListItem";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 export default function Teams() {
@@ -24,6 +25,8 @@ export default function Teams() {
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [editTeamEnabled, setEditTeamEnabled] = useState(false);
   const [teamToEdit, setTeamToEdit] = useState<Team | null>();
+  const [hasErrors, setHasErrors] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
   const handleErrors = async (resp: Response) => {
@@ -48,6 +51,11 @@ export default function Teams() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    setHasErrors(false);
+    setErrorMessage("");
+  }, [showCreateTeamModal]);
+
   if (loading) {
     return <Loader />;
   }
@@ -60,10 +68,16 @@ export default function Teams() {
       headers: {
         "Content-Type": "application/json",
       },
-    }).then(() => {
-      loadData();
-      setShowCreateTeamModal(false);
-    });
+    })
+      .then(handleErrors)
+      .then(() => {
+        loadData();
+        setShowCreateTeamModal(false);
+      })
+      .catch((err) => {
+        setHasErrors(true);
+        setErrorMessage(err.message);
+      });
   };
 
   const editTeam = (team: Team) => {
@@ -162,6 +176,7 @@ export default function Teams() {
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       {t("name")}
                     </label>
+                    {hasErrors && <Alert className="mt-1 mb-2" severity="error" message={errorMessage} />}
                     <input
                       ref={nameRef}
                       type="text"

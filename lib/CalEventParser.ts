@@ -1,32 +1,26 @@
-import dayjs from "dayjs";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { getIntegrationName } from "@lib/integrations";
 
-import { CalendarEvent } from "./calendarClient";
+import { CalendarEvent, Person } from "./calendarClient";
 import { BASE_URL } from "./config/constants";
 
 const translator = short();
 
+// The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
+
 export const getWhat = (calEvent: CalendarEvent) => {
   return `
-${calEvent.language("what")}
+${calEvent.language("what")}:
 ${calEvent.type}
   `;
 };
 
 export const getWhen = (calEvent: CalendarEvent) => {
-  const inviteeStart = dayjs(calEvent.startTime).tz(calEvent.attendees[0].timeZone);
-  const inviteeEnd = dayjs(calEvent.endTime).tz(calEvent.attendees[0].timeZone);
-
   return `
-${calEvent.language("when")}
-${calEvent.language(inviteeStart.format("dddd").toLowerCase())}, ${calEvent.language(
-    inviteeStart.format("MMMM").toLowerCase()
-  )} ${inviteeStart.format("D")}, ${inviteeStart.format("YYYY")} | ${inviteeStart.format(
-    "h:mma"
-  )} - ${inviteeEnd.format("h:mma")} (${calEvent.attendees[0].timeZone})
+${calEvent.language("invitee_timezone")}:
+${calEvent.attendees[0].timeZone}
   `;
 };
 
@@ -46,14 +40,14 @@ ${calEvent.organizer.email}
   `;
 
   return `
-${calEvent.language("who")}
+${calEvent.language("who")}:
 ${organizer + attendees}
   `;
 };
 
 export const getAdditionalNotes = (calEvent: CalendarEvent) => {
   return `
-${calEvent.language("additional_notes")}
+${calEvent.language("additional_notes")}:
 ${calEvent.description}
   `;
 };
@@ -92,13 +86,28 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
   return BASE_URL + "/cancel/" + getUid(calEvent);
 };
 
-export const getRichDescription = (calEvent: CalendarEvent) => {
+export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {
+  // Only the original attendee can make changes to the event
+  // Guests cannot
+
+  if (attendee && attendee === calEvent.attendees[0]) {
+    return `
+${getWhat(calEvent)}
+${getWhen(calEvent)}
+${getWho(calEvent)}
+${calEvent.language("where")}:
+${getLocation(calEvent)}
+${getAdditionalNotes(calEvent)}
+  `.trim();
+  }
+
   return `
-  ${getWhat(calEvent)}
-  ${getWhen(calEvent)}
-  ${getWho(calEvent)}
-  ${getLocation(calEvent)}
-  ${getAdditionalNotes(calEvent)}
-  ${getManageLink(calEvent)}
-  `;
+${getWhat(calEvent)}
+${getWhen(calEvent)}
+${getWho(calEvent)}
+${calEvent.language("where")}:
+${getLocation(calEvent)}
+${getAdditionalNotes(calEvent)}
+${getManageLink(calEvent)}
+  `.trim();
 };

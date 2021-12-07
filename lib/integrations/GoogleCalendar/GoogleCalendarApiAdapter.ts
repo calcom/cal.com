@@ -7,7 +7,7 @@ import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "@lib/cal
 import prisma from "@lib/prisma";
 
 export interface ConferenceData {
-  createRequest: calendar_v3.Schema$CreateConferenceRequest;
+  createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
 const googleAuth = (credential: Credential) => {
@@ -91,7 +91,19 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                   if (err) {
                     reject(err);
                   }
-                  resolve(Object.values(apires.data.calendars).flatMap((item) => item["busy"]));
+                  let result: Prisma.PromiseReturnType<CalendarApiAdapter["getAvailability"]> = [];
+                  if (apires?.data.calendars) {
+                    result = Object.values(apires.data.calendars).reduce((c, i) => {
+                      i.busy?.forEach((busyTime) => {
+                        c.push({
+                          start: busyTime.start || "",
+                          end: busyTime.end || "",
+                        });
+                      });
+                      return c;
+                    }, [] as typeof result);
+                  }
+                  resolve(result);
                 }
               );
             })
@@ -146,7 +158,14 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                 console.error("There was an error contacting google calendar service: ", err);
                 return reject(err);
               }
-              return resolve(event.data);
+              return resolve({
+                ...event.data,
+                id: event.data.id || "",
+                hangoutLink: event.data.hangoutLink || "",
+                type: "google_calendar",
+                password: "",
+                url: "",
+              });
             }
           );
         })
