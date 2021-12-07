@@ -6,7 +6,7 @@ import {
   ExternalLinkIcon,
   LinkIcon,
   LogoutIcon,
-  PuzzleIcon,
+  ViewGridIcon,
 } from "@heroicons/react/solid";
 import { signOut, useSession } from "next-auth/client";
 import Link from "next/link";
@@ -118,6 +118,7 @@ export default function Shell(props: {
   subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
+  large?: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -146,10 +147,10 @@ export default function Shell(props: {
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: t("integrations"),
-      href: "/integrations",
-      icon: PuzzleIcon,
-      current: router.asPath.startsWith("/integrations"),
+      name: t("apps"),
+      href: "/apps",
+      icon: ViewGridIcon,
+      current: router.asPath.startsWith("/apps"),
     },
     {
       name: t("settings"),
@@ -195,11 +196,11 @@ export default function Shell(props: {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden bg-gray-100">
+      <div className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}>
         <div className="hidden md:flex lg:flex-shrink-0">
           <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
-              <div className="flex flex-col flex-1 pt-3 lg:pt-5 pb-4 overflow-y-auto">
+              <div className="flex flex-col flex-1 pt-3 pb-4 overflow-y-auto lg:pt-5">
                 <Link href="/event-types">
                   <a className="px-4 md:hidden lg:inline">
                     <Logo small />
@@ -211,7 +212,7 @@ export default function Shell(props: {
                     <Logo small icon />
                   </a>
                 </Link>
-                <nav className="flex-1 px-2 mt-2 lg:mt-5 space-y-1 bg-white">
+                <nav className="flex-1 px-2 mt-2 space-y-1 bg-white lg:mt-5">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
@@ -269,12 +270,14 @@ export default function Shell(props: {
                 <UserDropdown small />
               </div>
             </nav>
-            <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
+            <div className={classNames(props.centered && "md:max-w-5xl mx-auto", !props.large && "py-8")}>
+              <div
+                className={classNames(
+                  "block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]",
+                  props.large && "bg-gray-100 pt-12 pb-4 mb-12"
+                )}>
                 <div className="w-full mb-8">
-                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
-                    {props.heading}
-                  </h1>
+                  <h1 className="mb-1 text-xl tracking-wide text-gray-900 font-cal">{props.heading}</h1>
                   <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
                 </div>
                 <div className="flex-shrink-0 mb-4">{props.CTA}</div>

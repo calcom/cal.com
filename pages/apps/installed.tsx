@@ -547,7 +547,7 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("integrations")} subtitle={t("connect_your_favourite_apps")}>
+    <Shell heading={t("apps")} subtitle={t("connect_your_favourite_apps")}>
       <ClientSuspense fallback={<Loader />}>
         <IntegrationsContainer />
         <CalendarListContainer />
