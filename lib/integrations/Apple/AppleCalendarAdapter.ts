@@ -14,6 +14,7 @@ import {
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
+import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
@@ -77,8 +78,8 @@ export class AppleCalendar implements CalendarApiAdapter {
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
-        description: event.description ?? "",
-        location: event.location !== null ? event.location : undefined,
+        description: getRichDescription(event),
+        location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event.attendees),
       });
@@ -132,8 +133,8 @@ export class AppleCalendar implements CalendarApiAdapter {
         start: this.convertDate(event.startTime),
         duration: this.getDuration(event.startTime, event.endTime),
         title: event.title,
-        description: event.description ?? "",
-        location: event.location !== null ? event.location : undefined,
+        description: getRichDescription(event),
+        location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event.attendees),
       });

@@ -2,6 +2,7 @@ import { Credential, Prisma } from "@prisma/client";
 import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { Auth, calendar_v3, google } from "googleapis";
 
+import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
 
@@ -117,7 +118,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
         auth.getToken().then((myGoogleAuth) => {
           const payload: calendar_v3.Schema$Event = {
             summary: event.title,
-            description: event.description,
+            description: getRichDescription(event),
             start: {
               dateTime: event.startTime,
               timeZone: event.organizer.timeZone,
@@ -134,7 +135,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           };
 
           if (event.location) {
-            payload["location"] = event.location;
+            payload["location"] = getLocation(event);
           }
 
           if (event.conferenceData && event.location === "integrations:google:meet") {
@@ -174,7 +175,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
         auth.getToken().then((myGoogleAuth) => {
           const payload: calendar_v3.Schema$Event = {
             summary: event.title,
-            description: event.description,
+            description: getRichDescription(event),
             start: {
               dateTime: event.startTime,
               timeZone: event.organizer.timeZone,
@@ -190,7 +191,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           };
 
           if (event.location) {
-            payload["location"] = event.location;
+            payload["location"] = getLocation(event);
           }
 
           const calendar = google.calendar({

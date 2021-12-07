@@ -181,7 +181,7 @@ const updateEvent = async (
   const uid = getUid(calEvent);
   let success = true;
 
-  const updationResult =
+  const updatedResult =
     credential && bookingRefUid
       ? await calendars([credential])[0]
           .updateEvent(bookingRefUid, calEvent)
@@ -192,7 +192,7 @@ const updateEvent = async (
           })
       : undefined;
 
-  if (!updationResult) {
+  if (!updatedResult) {
     return {
       type: credential.type,
       success,
@@ -205,7 +205,7 @@ const updateEvent = async (
     type: credential.type,
     success,
     uid,
-    updatedEvent: updationResult,
+    updatedEvent: updatedResult,
     originalEvent: calEvent,
   };
 };
