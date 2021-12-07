@@ -550,5 +550,6 @@
   "calendar": "Calendar",
   "not_installed": "Not installed",
   "error_password_mismatch": "Passwords don't match.",
-  "error_required_field": "This field is required."
+  "error_required_field": "This field is required.",
+  "unsupported_mime_type": "Unsupported MIME type: image/{{mime_type}}"
 }
