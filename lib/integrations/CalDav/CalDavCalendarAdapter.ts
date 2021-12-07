@@ -2,7 +2,7 @@ import { Credential } from "@prisma/client";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
-import { Attendee, createEvent, DurationObject, Person } from "ics";
+import { createEvent } from "ics";
 import {
   createAccount,
   createCalendarObject,
@@ -55,16 +55,6 @@ export class CalDavCalendar extends BaseCalendarApiAdapter implements CalendarAp
       username,
       password,
     });
-  }
-
-  getDuration(start: string, end: string): DurationObject {
-    return {
-      minutes: dayjs(end).diff(dayjs(start), "minute"),
-    };
-  }
-
-  getAttendees(attendees: Person[]): Attendee[] {
-    return attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
   }
 
   async createEvent(event: CalendarEvent) {

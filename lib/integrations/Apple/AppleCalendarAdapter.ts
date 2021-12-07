@@ -2,15 +2,15 @@ import { Credential } from "@prisma/client";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
-import { createEvent, DurationObject, Attendee, Person } from "ics";
+import { createEvent } from "ics";
 import {
   createAccount,
-  fetchCalendars,
-  fetchCalendarObjects,
-  getBasicAuthHeaders,
   createCalendarObject,
-  updateCalendarObject,
   deleteCalendarObject,
+  fetchCalendarObjects,
+  fetchCalendars,
+  getBasicAuthHeaders,
+  updateCalendarObject,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
@@ -19,10 +19,10 @@ import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
 import {
-  IntegrationCalendar,
+  BaseCalendarApiAdapter,
   CalendarApiAdapter,
   CalendarEvent,
-  BaseCalendarApiAdapter,
+  IntegrationCalendar,
 } from "../../calendarClient";
 
 dayjs.extend(utc);
@@ -54,16 +54,6 @@ export class AppleCalendar extends BaseCalendarApiAdapter implements CalendarApi
       username,
       password,
     });
-  }
-
-  getDuration(start: string, end: string): DurationObject {
-    return {
-      minutes: dayjs(end).diff(dayjs(start), "minute"),
-    };
-  }
-
-  getAttendees(attendees: Person[]): Attendee[] {
-    return attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
   }
 
   async createEvent(event: CalendarEvent) {
