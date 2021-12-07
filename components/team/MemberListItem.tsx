@@ -19,8 +19,8 @@ import ModalContainer from "@components/ui/ModalContainer";
 
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
-import TeamAvailability from "./TeamAvailability";
 import TeamRole from "./TeamRole";
+import TeamAvailabilityModal from "./availability/TeamAvailabilityModal";
 import { MembershipRole } from ".prisma/client";
 
 export default function MemberListItem(props: { team: TeamWithMembers; member: Member }) {
@@ -143,10 +143,12 @@ export default function MemberListItem(props: { team: TeamWithMembers; member: M
       )}
       {showTeamAvailabilityModal && (
         <ModalContainer wide noPadding>
-          <TeamAvailability team={props.team} member={props.member} />
+          <TeamAvailabilityModal team={props.team} member={props.member} />
           <div className="p-5 space-x-2 border-t">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-            <Button color="secondary">{t("Open Team Availability")}</Button>
+            <Link href={`/settings/teams/${props.team.id}/availability`}>
+              <Button color="secondary">{t("Open Team Availability")}</Button>
+            </Link>
           </div>
         </ModalContainer>
       )}
