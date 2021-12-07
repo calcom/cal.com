@@ -68,7 +68,7 @@ export const getLocation = (calEvent: CalendarEvent) => {
     return calEvent.additionInformation.hangoutLink;
   }
 
-  return providerName || calEvent.location;
+  return providerName || calEvent.location || "Unknown location";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {
