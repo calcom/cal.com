@@ -18,19 +18,25 @@ import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
-import { IntegrationCalendar, CalendarApiAdapter, CalendarEvent } from "../../calendarClient";
+import {
+  IntegrationCalendar,
+  CalendarApiAdapter,
+  CalendarEvent,
+  BaseCalendarApiAdapter,
+} from "../../calendarClient";
 
 dayjs.extend(utc);
 
 const log = logger.getChildLogger({ prefix: ["[[lib] apple calendar"] });
 
-export class AppleCalendar implements CalendarApiAdapter {
+export class AppleCalendar extends BaseCalendarApiAdapter implements CalendarApiAdapter {
   private url: string;
   private credentials: Record<string, string>;
   private headers: Record<string, string>;
   private readonly integrationName: string = "apple_calendar";
 
   constructor(credential: Credential) {
+    super();
     const decryptedCredential = JSON.parse(
       symmetricDecrypt(credential.key as string, process.env.CALENDSO_ENCRYPTION_KEY!)
     );
@@ -48,14 +54,6 @@ export class AppleCalendar implements CalendarApiAdapter {
       username,
       password,
     });
-  }
-
-  convertDate(date: string): [number, number, number] {
-    return dayjs(date)
-      .utc()
-      .toArray()
-      .slice(0, 6)
-      .map((v, i) => (i === 1 ? v + 1 : v)) as [number, number, number];
   }
 
   getDuration(start: string, end: string): DurationObject {

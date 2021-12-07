@@ -18,19 +18,25 @@ import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
-import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "../../calendarClient";
+import {
+  BaseCalendarApiAdapter,
+  CalendarApiAdapter,
+  CalendarEvent,
+  IntegrationCalendar,
+} from "../../calendarClient";
 
 dayjs.extend(utc);
 
 const log = logger.getChildLogger({ prefix: ["[lib] caldav"] });
 
-export class CalDavCalendar implements CalendarApiAdapter {
+export class CalDavCalendar extends BaseCalendarApiAdapter implements CalendarApiAdapter {
   private url: string;
   private credentials: Record<string, string>;
   private headers: Record<string, string>;
   private readonly integrationName: string = "caldav_calendar";
 
   constructor(credential: Credential) {
+    super();
     const decryptedCredential = JSON.parse(
       symmetricDecrypt(credential.key as string, process.env.CALENDSO_ENCRYPTION_KEY!)
     );
@@ -49,14 +55,6 @@ export class CalDavCalendar implements CalendarApiAdapter {
       username,
       password,
     });
-  }
-
-  convertDate(date: string): [number, number, number] {
-    return dayjs(date)
-      .utc()
-      .toArray()
-      .slice(0, 6)
-      .map((v, i) => (i === 1 ? v + 1 : v)) as [number, number, number];
   }
 
   getDuration(start: string, end: string): DurationObject {
