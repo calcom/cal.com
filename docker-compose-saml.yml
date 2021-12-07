@@ -1,4 +1,4 @@
-# this file is a helper to run Cal.com locally
+# this file is a helper to run Cal.com locally (with SAML login support)
 # starts a postgres instance on port 5450 to use as a local db
 version: "3.6"
 services:
@@ -10,7 +10,17 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:
+      POSTGRES_DB: "cal-saml"
       POSTGRES_PASSWORD: ""
       POSTGRES_HOST_AUTH_METHOD: trust
+  boxyhq_saml:
+    image: boxyhq/jackson:e4a34c9
+    ports:
+      - "5000:5000"
+      - "6000:6000"
+    restart: always
+    environment:
+      DB_URL: "postgresql://postgres:postgres@postgres:5432/cal-saml"
+      JACKSON_API_KEYS: $JACKSON_API_KEYS
 volumes:
   db_data:
