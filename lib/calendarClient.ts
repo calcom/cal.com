@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Credential, DestinationCalendar, SelectedCalendar } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
@@ -19,6 +18,7 @@ import {
 import logger from "@lib/logger";
 import { VideoCallData } from "@lib/videoClient";
 
+import notEmpty from "./notEmpty";
 import { Ensure } from "./types/utils";
 
 const log = logger.getChildLogger({ prefix: ["[lib] calendarClient"] });
@@ -99,61 +99,30 @@ function getCalendarAdapterOrNull(credential: Credential): CalendarApiAdapter | 
   return null;
 }
 
-/**
- * @deprecated
- */
-const calendars = (withCredentials: Credential[]): CalendarApiAdapter[] =>
-  withCredentials
-    .map((cred) => {
-      switch (cred.type) {
-        case "google_calendar":
-          return GoogleCalendarApiAdapter(cred);
-        case "office365_calendar":
-          return Office365CalendarApiAdapter(cred);
-        case "caldav_calendar":
-          return new CalDavCalendar(cred);
-        case "apple_calendar":
-          return new AppleCalendar(cred);
-        default:
-          return; // unknown credential, could be legacy? In any case, ignore
-      }
-    })
-    .flatMap((item) => (item ? [item as CalendarApiAdapter] : []));
-
-const getBusyCalendarTimes = (
+const getBusyCalendarTimes = async (
   withCredentials: Credential[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
-) =>
-  Promise.all(
-    calendars(withCredentials).map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
-  ).then((results) => {
-    return results.reduce((acc, availability) => acc.concat(availability), []);
-  });
-
-/**
- *
- * @param withCredentials
- * @deprecated
- */
-const listCalendars = (withCredentials: Credential[]) =>
-  Promise.all(calendars(withCredentials).map((c) => c.listCalendars())).then((results) =>
-    results.reduce((acc, calendars) => acc.concat(calendars), []).filter((c) => c != null)
+) => {
+  const adapters = withCredentials.map(getCalendarAdapterOrNull).filter(notEmpty);
+  const results = await Promise.all(
+    adapters.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
   );
+  return results.reduce((acc, availability) => acc.concat(availability), []);
+};
 
 const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
   const uid: string = getUid(calEvent);
+  const adapter = getCalendarAdapterOrNull(credential);
   let success = true;
 
-  const creationResult = credential
-    ? await calendars([credential])[0]
-        .createEvent(calEvent)
-        .catch((e) => {
-          log.error("createEvent failed", e, calEvent);
-          success = false;
-          return undefined;
-        })
+  const creationResult = adapter
+    ? await adapter.createEvent(calEvent).catch((e) => {
+        log.error("createEvent failed", e, calEvent);
+        success = false;
+        return undefined;
+      })
     : undefined;
 
   if (!creationResult) {
@@ -180,17 +149,16 @@ const updateEvent = async (
   bookingRefUid: string | null
 ): Promise<EventResult> => {
   const uid = getUid(calEvent);
+  const adapter = getCalendarAdapterOrNull(credential);
   let success = true;
 
   const updatedResult =
-    credential && bookingRefUid
-      ? await calendars([credential])[0]
-          .updateEvent(bookingRefUid, calEvent)
-          .catch((e) => {
-            log.error("updateEvent failed", e, calEvent);
-            success = false;
-            return undefined;
-          })
+    adapter && bookingRefUid
+      ? await adapter.updateEvent(bookingRefUid, calEvent).catch((e) => {
+          log.error("updateEvent failed", e, calEvent);
+          success = false;
+          return undefined;
+        })
       : undefined;
 
   if (!updatedResult) {
@@ -212,18 +180,12 @@ const updateEvent = async (
 };
 
 const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
-  if (credential) {
-    return calendars([credential])[0].deleteEvent(uid);
+  const adapter = getCalendarAdapterOrNull(credential);
+  if (adapter) {
+    return adapter.deleteEvent(uid);
   }
 
   return Promise.resolve({});
 };
 
-export {
-  getBusyCalendarTimes,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  listCalendars,
-  getCalendarAdapterOrNull,
-};
+export { getBusyCalendarTimes, createEvent, updateEvent, deleteEvent, getCalendarAdapterOrNull };
