@@ -133,7 +133,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
     timeZone: true,
     credentials: true,
     bufferTime: true,
-    UserDestinationCalendar: true,
+    destinationCalendar: true,
   },
 });
 

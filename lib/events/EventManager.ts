@@ -1,4 +1,4 @@
-import { Credential, UserDestinationCalendar } from "@prisma/client";
+import { Credential, DestinationCalendar } from "@prisma/client";
 import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
@@ -88,7 +88,7 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 
 type EventManagerUser = {
   credentials: Credential[];
-  UserDestinationCalendar: UserDestinationCalendar | null;
+  destinationCalendar: DestinationCalendar | null;
 };
 export default class EventManager {
   calendarCredentials: Array<Credential>;
@@ -101,7 +101,7 @@ export default class EventManager {
    * @param credentials
    */
   constructor(user: EventManagerUser) {
-    this.calendarDestination = user.UserDestinationCalendar;
+    this.calendarDestination = user.destinationCalendar;
     this.calendarCredentials = user.credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
 
@@ -186,7 +186,7 @@ export default class EventManager {
             meetingUrl: true,
           },
         },
-        BookingDestinationCalendar: true,
+        destinationCalendar: true,
       },
     });
 

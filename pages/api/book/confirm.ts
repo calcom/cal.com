@@ -1,4 +1,4 @@
-import { User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
+import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: true,
       name: true,
       username: true,
-      UserDestinationCalendar: true,
+      destinationCalendar: true,
     },
   });
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { BookingDestinationCalendar, Credential, SelectedCalendar } from "@prisma/client";
+import { DestinationCalendar, Credential, SelectedCalendar } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
 import { PaymentInfo } from "@ee/lib/stripe/server";
@@ -59,7 +59,7 @@ export interface CalendarEvent {
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
-  BookingDestinationCalendar?: BookingDestinationCalendar | null;
+  destinationCalendar?: DestinationCalendar | null;
 }
 
 export interface IntegrationCalendar extends Partial<SelectedCalendar> {

@@ -61,7 +61,7 @@ async function getUserFromSession({
         },
       },
       completedOnboarding: true,
-      UserDestinationCalendar: true,
+      destinationCalendar: true,
       locale: true,
     },
   });

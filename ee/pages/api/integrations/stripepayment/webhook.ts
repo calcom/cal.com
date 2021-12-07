@@ -57,7 +57,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
               email: true,
               name: true,
               locale: true,
-              UserDestinationCalendar: true,
+              destinationCalendar: true,
             },
           },
         },
