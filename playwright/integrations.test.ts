@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { kont } from "kont";
 
 import { loginProvider } from "./lib/loginProvider";
@@ -35,14 +34,11 @@ describe("webhooks", () => {
     // page contains the url
     await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
 
-    // --- go to tomorrow in the pro user's "30min"-event
-    const tomorrow = dayjs().add(1, "day");
-    const tomorrowFormatted = tomorrow.format("YYYY-MM-DDZZ");
-
-    await page.goto(`http://localhost:3000/pro/30min?date=${encodeURIComponent(tomorrowFormatted)}`);
-
-    // click first time available
-    await page.click("[data-testid=time]");
+    // --- Book the first available day next month in the pro user's "30min"-event
+    await page.goto(`http://localhost:3000/pro/30min`);
+    await page.click('[data-testid="incrementMonth"]');
+    await page.click('[data-testid="day"]');
+    await page.click('[data-testid="time"]');
 
     // --- fill form
     await page.fill('[name="name"]', "Test Testson");
@@ -67,6 +63,7 @@ describe("webhooks", () => {
     }
     body.payload.organizer.timeZone = dynamic;
     body.payload.uid = dynamic;
+    body.payload.additionInformation = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
@@ -74,6 +71,7 @@ describe("webhooks", () => {
     Object {
       "createdAt": "[redacted/dynamic]",
       "payload": Object {
+        "additionInformation": "[redacted/dynamic]",
         "attendees": Array [
           Object {
             "email": "test@example.com",
@@ -89,7 +87,7 @@ describe("webhooks", () => {
           "timeZone": "[redacted/dynamic]",
         },
         "startTime": "[redacted/dynamic]",
-        "title": "30min with Test Testson",
+        "title": "30min between Pro Example and Test Testson",
         "type": "30min",
         "uid": "[redacted/dynamic]",
       },

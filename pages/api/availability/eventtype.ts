@@ -1,8 +1,13 @@
-import { Availability, EventTypeCustomInput, MembershipRole, Prisma } from "@prisma/client";
+import { EventTypeCustomInput, MembershipRole, Prisma, PeriodType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
+import { WorkingHours } from "@lib/types/schedule";
+
+function handlePeriodType(periodType: string): PeriodType {
+  return PeriodType[periodType.toUpperCase()];
+}
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
   if (!customInputs || !customInputs?.length) return undefined;
@@ -111,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       locations: req.body.locations,
       eventName: req.body.eventName,
       customInputs: handleCustomInputs(req.body.customInputs as EventTypeCustomInput[], req.body.id),
-      periodType: req.body.periodType,
+      periodType: req.body.periodType ? handlePeriodType(req.body.periodType) : undefined,
       periodDays: req.body.periodDays,
       periodStartDate: req.body.periodStartDate,
       periodEndDate: req.body.periodEndDate,
@@ -160,7 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (req.body.availability) {
-        const openingHours = req.body.availability.openingHours || [];
+        const openingHours: WorkingHours[] = req.body.availability.openingHours || [];
         // const overrides = req.body.availability.dateOverrides || [];
 
         const eventTypeId = +req.body.id;
@@ -172,20 +177,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
-        Promise.all(
-          openingHours.map((schedule: Pick<Availability, "days" | "startTime" | "endTime">) =>
-            prisma.availability.create({
-              data: {
-                eventTypeId: +req.body.id,
-                days: schedule.days,
-                startTime: schedule.startTime,
-                endTime: schedule.endTime,
-              },
-            })
-          )
-        ).catch((error) => {
-          console.log(error);
-        });
+        const availabilityToCreate = openingHours.map((openingHour) => ({
+          startTime: openingHour.startTime,
+          endTime: openingHour.endTime,
+          days: openingHour.days,
+        }));
+
+        data.availability = {
+          createMany: {
+            data: availabilityToCreate,
+          },
+        };
       }
 
       const eventType = await prisma.eventType.update({
