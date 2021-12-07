@@ -2,17 +2,12 @@ import { Credential } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import CalEventParser from "@lib/CalEventParser";
-import "@lib/emails/EventMail";
-import { getIntegrationName } from "@lib/emails/helpers";
+import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
+import { PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
-import { AdditionInformation, CalendarEvent, EntryPoint } from "./calendarClient";
-import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
-import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
-import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
-import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
+import { CalendarEvent } from "./calendarClient";
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
 import ZoomVideoApiAdapter from "./integrations/Zoom/ZoomVideoApiAdapter";
 import { Ensure } from "./types/utils";
@@ -31,9 +26,9 @@ export interface VideoCallData {
 type EventBusyDate = Record<"start" | "end", Date>;
 
 export interface VideoApiAdapter {
-  createMeeting(event: CalendarEvent): Promise<any>;
+  createMeeting(event: CalendarEvent): Promise<VideoCallData>;
 
-  updateMeeting(uid: string, event: CalendarEvent): Promise<any>;
+  updateMeeting(bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData>;
 
   deleteMeeting(uid: string): Promise<unknown>;
 
@@ -65,8 +60,7 @@ const createMeeting = async (
   credential: Credential,
   calEvent: Ensure<CalendarEvent, "language">
 ): Promise<EventResult> => {
-  const parser: CalEventParser = new CalEventParser(calEvent);
-  const uid: string = parser.getUid();
+  const uid: string = getUid(calEvent);
 
   if (!credential) {
     throw new Error(
@@ -92,98 +86,41 @@ const createMeeting = async (
     };
   }
 
-  const videoCallData: VideoCallData = {
-    type: credential.type,
-    id: createdMeeting.id,
-    password: createdMeeting.password,
-    url: createdMeeting.join_url,
-  };
-
-  if (credential.type === "daily_video") {
-    videoCallData.type = "Daily.co Video";
-    videoCallData.id = createdMeeting.name;
-    videoCallData.url = process.env.BASE_URL + "/call/" + uid;
-  }
-
-  const entryPoint: EntryPoint = {
-    entryPointType: getIntegrationName(videoCallData),
-    uri: videoCallData.url,
-    label: calEvent.language("enter_meeting"),
-    pin: videoCallData.password,
-  };
-
-  const additionInformation: AdditionInformation = {
-    entryPoints: [entryPoint],
-  };
-
-  calEvent.additionInformation = additionInformation;
-  calEvent.videoCallData = videoCallData;
-
-  try {
-    const organizerMail = new VideoEventOrganizerMail(calEvent);
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
-
-  if (!createdMeeting || !createdMeeting.disableConfirmationEmail) {
-    try {
-      const attendeeMail = new VideoEventAttendeeMail(calEvent);
-      await attendeeMail.sendEmail();
-    } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
-    }
-  }
-
   return {
     type: credential.type,
     success,
     uid,
     createdEvent: createdMeeting,
     originalEvent: calEvent,
-    videoCallData: videoCallData,
   };
 };
 
 const updateMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  bookingRefUid: string | null
+  bookingRef: PartialReference | null
 ): Promise<EventResult> => {
-  const uid: string = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
-
-  if (!credential) {
-    throw new Error(
-      "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
-    );
-  }
+  const uid = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
   let success = true;
 
   const [firstVideoAdapter] = getVideoAdapters([credential]);
   const updatedMeeting =
-    credential && bookingRefUid
-      ? await firstVideoAdapter.updateMeeting(bookingRefUid, calEvent).catch((e) => {
+    credential && bookingRef
+      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch((e) => {
           log.error("updateMeeting failed", e, calEvent);
           success = false;
           return undefined;
         })
       : undefined;
 
-  try {
-    const organizerMail = new EventOrganizerRescheduledMail(calEvent);
-    await organizerMail.sendEmail();
-  } catch (e) {
-    console.error("organizerMail.sendEmail failed", e);
-  }
-
-  if (!updatedMeeting.disableConfirmationEmail) {
-    try {
-      const attendeeMail = new EventAttendeeRescheduledMail(calEvent);
-      await attendeeMail.sendEmail();
-    } catch (e) {
-      console.error("attendeeMail.sendEmail failed", e);
-    }
+  if (!updatedMeeting) {
+    return {
+      type: credential.type,
+      success,
+      uid,
+      originalEvent: calEvent,
+    };
   }
 
   return {

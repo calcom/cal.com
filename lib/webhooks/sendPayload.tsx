@@ -25,7 +25,7 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   subscriberUrl: string,
-  data: Omit<CalendarEvent, "language">,
+  data: Omit<CalendarEvent, "language"> & { metadata?: { [key: string]: string } },
   template?: string | null
 ) => {
   if (!subscriberUrl || !data) {

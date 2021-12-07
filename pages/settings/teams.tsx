@@ -13,6 +13,7 @@ import Shell from "@components/Shell";
 import EditTeam from "@components/team/EditTeam";
 import TeamList from "@components/team/TeamList";
 import TeamListItem from "@components/team/TeamListItem";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 export default function Teams() {
@@ -24,6 +25,8 @@ export default function Teams() {
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [editTeamEnabled, setEditTeamEnabled] = useState(false);
   const [teamToEdit, setTeamToEdit] = useState<Team | null>();
+  const [hasErrors, setHasErrors] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
   const handleErrors = async (resp: Response) => {
@@ -48,6 +51,11 @@ export default function Teams() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    setHasErrors(false);
+    setErrorMessage("");
+  }, [showCreateTeamModal]);
+
   if (loading) {
     return <Loader />;
   }
@@ -60,10 +68,16 @@ export default function Teams() {
       headers: {
         "Content-Type": "application/json",
       },
-    }).then(() => {
-      loadData();
-      setShowCreateTeamModal(false);
-    });
+    })
+      .then(handleErrors)
+      .then(() => {
+        loadData();
+        setShowCreateTeamModal(false);
+      })
+      .catch((err) => {
+        setHasErrors(true);
+        setErrorMessage(err.message);
+      });
   };
 
   const editTeam = (team: Team) => {
@@ -98,10 +112,7 @@ export default function Teams() {
                   )}
                 </div>
                 <div className="flex items-start mb-4">
-                  <Button
-                    type="button"
-                    onClick={() => setShowCreateTeamModal(true)}
-                    className="btn btn-white">
+                  <Button type="button" onClick={() => setShowCreateTeamModal(true)} color="secondary">
                     <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
                     {t("new_team")}
                   </Button>
@@ -114,7 +125,7 @@ export default function Teams() {
 
                 {!!invites.length && (
                   <div>
-                    <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">Open Invitations</h2>
+                    <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">Open Invitations</h2>
                     <ul className="px-4 mt-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
                       {invites.map((team: Team) => (
                         <TeamListItem
@@ -165,6 +176,7 @@ export default function Teams() {
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       {t("name")}
                     </label>
+                    {hasErrors && <Alert className="mt-1 mb-2" severity="error" message={errorMessage} />}
                     <input
                       ref={nameRef}
                       type="text"
@@ -176,15 +188,14 @@ export default function Teams() {
                     />
                   </div>
                   <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                    <button type="submit" className="btn btn-primary">
-                      {t("create_team")}
-                    </button>
-                    <button
+                    <Button type="submit">{t("create_team")}</Button>
+                    <Button
                       onClick={() => setShowCreateTeamModal(false)}
                       type="button"
-                      className="mr-2 btn btn-white">
+                      className="mr-2"
+                      color="secondary">
                       {t("cancel")}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>
