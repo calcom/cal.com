@@ -571,6 +571,11 @@
     intl-messageformat "9.9.6"
     tslib "^2.1.0"
 
+"@glidejs/glide@^3.5.2":
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/@glidejs/glide/-/glide-3.5.2.tgz#7012c5920ecf202bbda44d8526fc979984b6dd54"
+  integrity sha512-7jGciNJ2bQ4eZLSNlSZ+VAyW63kALf420CvkEpK4lEsUfWJq9odqimci0YCiyNyMUFB+pWHwLYyNc57dijYsCg==
+
 "@hapi/accept@5.0.2":
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@hapi/accept/-/accept-5.0.2.tgz#ab7043b037e68b722f93f376afb05e85c0699523"
@@ -1929,6 +1934,11 @@
   version "0.0.39"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
   integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
+
+"@types/glidejs__glide@^3.4.1":
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/@types/glidejs__glide/-/glidejs__glide-3.4.1.tgz#220bbce087500eda3700e476c728e17d096eb6f0"
+  integrity sha512-ib2VRchnLSXGOdiZFfCt6QEIYviw5g+Yey8Q2+kMzUxGXsnR9ZwZi1qPXI1ttrvR/AtUYZmSSHDVVSoIyt6LPw==
 
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"

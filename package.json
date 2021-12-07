@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.21.0",
+    "@glidejs/glide": "^3.5.2",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@hookform/resolvers": "^2.8.3",
@@ -91,8 +92,8 @@
     "react-use-intercom": "1.4.0",
     "short-uuid": "^4.2.0",
     "stripe": "^8.191.0",
-    "tsdav": "^1.1.5",
     "superjson": "1.8.0",
+    "tsdav": "^1.1.5",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2",
     "zod": "^3.8.2"
@@ -103,6 +104,7 @@
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.10",
     "@types/bcryptjs": "^2.4.2",
+    "@types/glidejs__glide": "^3.4.1",
     "@types/jest": "^27.0.3",
     "@types/lodash": "^4.14.177",
     "@types/micro": "^7.3.6",
