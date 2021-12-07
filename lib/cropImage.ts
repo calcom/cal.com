@@ -17,12 +17,6 @@ const createImage = (url: string) =>
   });
 
 export async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
-  // Get the mimeType of the image from the base64 string, e.g. "data:image/jpeg;base64,"
-  // This lets us save and store the image as the correct mimeType
-  // Without this and saving just as image/jpeg it will remove transparency from formats that allow it
-  // Such as PNG, SVG, WebP, AVIF, etc.
-  const mimeType = imageSrc.substring(imageSrc.indexOf(":") + 1, imageSrc.indexOf(";"));
-
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -51,7 +45,7 @@ export async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<
   // on very low ratios, the quality of the resize becomes awful. For this reason the resizeRatio is limited to 0.75
   if (resizeRatio <= 0.75) {
     // With a smaller image, thus improved ratio. Keep doing this until the resizeRatio > 0.75.
-    return getCroppedImg(canvas.toDataURL("image/jpeg"), {
+    return getCroppedImg(canvas.toDataURL("image/png"), {
       width: canvas.width,
       height: canvas.height,
       x: 0,
@@ -59,5 +53,5 @@ export async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<
     });
   }
 
-  return canvas.toDataURL(mimeType);
+  return canvas.toDataURL("image/png");
 }
