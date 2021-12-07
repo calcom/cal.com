@@ -533,5 +533,6 @@
   "calendar": "Agenda",
   "not_installed": "Pas installé",
   "error_password_mismatch": "Les mots de passe ne correspondent pas.",
-  "error_required_field": "Ce champ est requis."
+  "error_required_field": "Ce champ est requis.",
+  "status": "Statut"
 }
