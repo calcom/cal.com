@@ -4,7 +4,7 @@ import dayjs, { Dayjs } from "dayjs";
 // Then, include dayjs-business-time
 import dayjsBusinessTime from "dayjs-business-time";
 import utc from "dayjs/plugin/utc";
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -28,6 +28,36 @@ type DatePickerProps = {
   minimumBookingNotice: number;
 };
 
+function isOutOfBounds(
+  checkedDate: dayjs.ConfigType,
+  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
+) {
+  const date = dayjs(checkedDate);
+
+  if (date.endOf("day").isBefore(dayjs())) {
+    return true;
+  }
+
+  switch (periodType) {
+    case "rolling": {
+      const periodRollingEndDay = periodCountCalendarDays
+        ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
+        : dayjs().tz(timeZone).addBusinessTime(periodDays, "days").endOf("day");
+      return date.endOf("day").isAfter(periodRollingEndDay);
+    }
+
+    case "range": {
+      const periodRangeStartDay = dayjs(periodStartDate).tz(timeZone).endOf("day");
+      const periodRangeEndDay = dayjs(periodEndDate).tz(timeZone).endOf("day");
+      return date.endOf("day").isBefore(periodRangeStartDay) || date.endOf("day").isAfter(periodRangeEndDay);
+    }
+
+    case "unlimited":
+    default:
+      return false;
+  }
+}
+
 function DatePicker({
   weekStart,
   onDatePicked,
@@ -42,104 +72,54 @@ function DatePicker({
   minimumBookingNotice,
 }: DatePickerProps): JSX.Element {
   const { t } = useLocale();
-  const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
-
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    date
-      ? periodType === PeriodType.RANGE
-        ? dayjs(periodStartDate).utcOffset(date.utcOffset()).month()
-        : date.month()
-      : dayjs().month() /* High chance server is going to have the same month */
-  );
-
-  useEffect(() => {
-    if (dayjs().month() !== selectedMonth) {
-      setSelectedMonth(dayjs().month());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [browsingDate, setBrowsingDate] = useState(date || dayjs().startOf("month"));
 
   // Handle month changes
   const incrementMonth = () => {
-    setSelectedMonth((selectedMonth ?? 0) + 1);
+    setBrowsingDate(browsingDate.add(1, "month"));
   };
 
   const decrementMonth = () => {
-    setSelectedMonth((selectedMonth ?? 0) - 1);
+    setBrowsingDate(browsingDate.subtract(1, "month"));
   };
 
-  const inviteeDate = (): Dayjs => (date || dayjs()).month(selectedMonth);
-
-  useEffect(() => {
+  const days = useMemo(() => {
     // Create placeholder elements for empty days in first week
-    let weekdayOfFirst = inviteeDate().date(1).day();
+    let weekdayOfFirst = browsingDate.startOf("month").day();
     if (weekStart === "Monday") {
       weekdayOfFirst -= 1;
       if (weekdayOfFirst < 0) weekdayOfFirst = 6;
     }
 
-    const days = Array(weekdayOfFirst).fill(null);
-
     const isDisabled = (day: number) => {
-      const date: Dayjs = inviteeDate().date(day);
-      switch (periodType) {
-        case PeriodType.ROLLING: {
-          if (!periodDays) {
-            throw new Error("PeriodType rolling requires periodDays");
-          }
-          const periodRollingEndDay = periodCountCalendarDays
-            ? dayjs.utc().add(periodDays, "days").endOf("day")
-            : (dayjs.utc() as Dayjs).addBusinessTime(periodDays, "days").endOf("day");
-          return (
-            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
-            date.endOf("day").isAfter(periodRollingEndDay) ||
-            !getSlots({
-              inviteeDate: date,
-              frequency: eventLength,
-              minimumBookingNotice,
-              workingHours,
-            }).length
-          );
-        }
-
-        case PeriodType.RANGE: {
-          const periodRangeStartDay = dayjs(periodStartDate).utc().endOf("day");
-          const periodRangeEndDay = dayjs(periodEndDate).utc().endOf("day");
-          return (
-            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
-            date.endOf("day").isBefore(periodRangeStartDay) ||
-            date.endOf("day").isAfter(periodRangeEndDay) ||
-            !getSlots({
-              inviteeDate: date,
-              frequency: eventLength,
-              minimumBookingNotice,
-              workingHours,
-            }).length
-          );
-        }
-
-        case PeriodType.UNLIMITED:
-        default:
-          return (
-            date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
-            !getSlots({
-              inviteeDate: date,
-              frequency: eventLength,
-              minimumBookingNotice,
-              workingHours,
-            }).length
-          );
-      }
+      const checkedDate = browsingDate.date(day);
+      return (
+        isOutOfBounds(checkedDate, {
+          periodType,
+          periodStartDate,
+          periodEndDate,
+          periodDays,
+          periodCountCalendarDays,
+        }) ||
+        !getSlots({
+          inviteeDate: checkedDate,
+          frequency: eventLength,
+          minimumBookingNotice,
+          workingHours,
+        }).length
+      );
     };
 
-    const daysInMonth = inviteeDate().daysInMonth();
+    const days: ({ disabled: boolean; date: number } | null)[] = Array(weekdayOfFirst).fill(null) as null[];
+
+    const daysInMonth = browsingDate.daysInMonth();
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({ disabled: isDisabled(i), date: i });
     }
 
-    setDays(days);
+    return days;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonth]);
+  }, [browsingDate.month()]);
 
   return (
     <div
@@ -152,20 +132,18 @@ function DatePicker({
       <div className="flex mb-4 text-xl font-light text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">
-            {t(inviteeDate().format("MMMM").toLowerCase())}
+            {t(browsingDate.format("MMMM").toLowerCase())}
           </strong>{" "}
-          <span className="text-gray-500">{inviteeDate().format("YYYY")}</span>
+          <span className="text-gray-500">{browsingDate.format("YYYY")}</span>
         </span>
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
             className={classNames(
               "group mr-2 p-1",
-              typeof selectedMonth === "number" &&
-                selectedMonth <= dayjs().month() &&
-                "text-gray-400 dark:text-gray-600"
+              dayjs().isAfter(browsingDate.startOf("month")) && "text-gray-400 dark:text-gray-600"
             )}
-            disabled={typeof selectedMonth === "number" && selectedMonth <= dayjs().month()}
+            disabled={dayjs().isAfter(browsingDate.startOf("month"))}
             data-testid="decrementMonth">
             <ChevronLeftIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
@@ -195,7 +173,7 @@ function DatePicker({
               <div key={`e-${idx}`} />
             ) : (
               <button
-                onClick={() => onDatePicked(inviteeDate().date(day.date))}
+                onClick={() => onDatePicked(browsingDate.date(day.date))}
                 disabled={day.disabled}
                 className={classNames(
                   "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
@@ -203,7 +181,7 @@ function DatePicker({
                   day.disabled
                     ? "text-gray-400 font-light hover:border-0 cursor-default"
                     : "dark:text-white text-primary-500 font-medium",
-                  date && date.isSame(inviteeDate().date(day.date), "day")
+                  browsingDate.date(day.date).isSame(date, "day")
                     ? "bg-brand text-white-important"
                     : !day.disabled
                     ? " bg-gray-100 dark:bg-gray-600"
