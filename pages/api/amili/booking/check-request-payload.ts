@@ -45,7 +45,7 @@ export const checkRequestPayload = async (
     },
   });
 
-  const { userId: organizerId } = selectedEventType;
+  const { userId: organizerId } = selectedEventType || {};
   const currentUser = await prisma.user.findFirst({
     where: {
       id: organizerId,
