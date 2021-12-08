@@ -136,13 +136,13 @@ export default function Shell(props: {
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
-      icon: ClockIcon,
+      icon: CalendarIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
       name: t("availability"),
       href: "/availability",
-      icon: CalendarIcon,
+      icon: ClockIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
