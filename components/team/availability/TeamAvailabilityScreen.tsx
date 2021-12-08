@@ -4,9 +4,7 @@ import React, { useState, useEffect } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { Member } from "@lib/member";
-import { trpc } from "@lib/trpc";
-import { Team } from "@lib/types/team";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
@@ -17,8 +15,8 @@ import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 dayjs.extend(utc);
 
 interface Props {
-  team?: Team;
-  members?: Member[];
+  team?: inferQueryOutput<"viewer.teams.get">;
+  members?: inferQueryOutput<"viewer.teams.get">["members"];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
@@ -29,11 +27,11 @@ export default function TeamAvailabilityModal(props: Props) {
 
   useEffect(() => {
     utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
-  }, [selectedTimeZone, selectedDate]);
+  }, [utils, selectedTimeZone, selectedDate]);
 
   return (
-    <div className="flex flex-row p-5 bg-white border rounded-sm border-neutral-200">
-      <div className="w-64 pr-0 space-y-5 min-w-64">
+    <div className="flex flex-col h-full p-5 bg-white border rounded-sm border-neutral-200">
+      <div className="flex w-full pb-5 pr-0 space-x-5 border-b border-gray-200">
         <div className="flex flex-col">
           <span className="font-bold text-gray-600">Date</span>
           <DatePicker
@@ -43,14 +41,14 @@ export default function TeamAvailabilityModal(props: Props) {
             }}
           />
         </div>
-        <div>
+        <div className="flex flex-col">
           <span className="font-bold text-gray-600">Timezone</span>
           <TimezoneSelect
             id="timeZone"
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+            className="block w-full border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
           />
         </div>
         <div>
@@ -68,17 +66,18 @@ export default function TeamAvailabilityModal(props: Props) {
           />
         </div>
       </div>
-      <div className="flex flex-row ml-10">
+      <div className="flex flex-row overflow-scroll">
         {props.members?.map((member) => (
           <div key={member.id} className="mr-6 border-r border-gray-200">
             <TeamAvailabilityTimes
-              team={props.team}
+              // team will be defined if this code is reached
+              team={props.team as inferQueryOutput<"viewer.teams.get">}
               member={member}
               frequency={frequency}
               selectedDate={selectedDate}
               selectedTimeZone={selectedTimeZone}
               HeaderComponent={
-                <div className="flex items-center mb-4">
+                <div className="flex items-center mb-6">
                   <Avatar
                     imageSrc={getPlaceholderAvatar(member?.avatar, member?.name as string)}
                     alt={member?.name || ""}

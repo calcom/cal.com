@@ -1,9 +1,13 @@
-import { Member } from "@lib/member";
-import { TeamWithMembers } from "@lib/queries/teams";
+import { inferQueryOutput } from "@lib/trpc";
 
 import MemberListItem from "./MemberListItem";
 
-export default function MemberList(props: { team: TeamWithMembers; members: Member[] }) {
+interface Props {
+  team: inferQueryOutput<"viewer.teams.get">;
+  members: inferQueryOutput<"viewer.teams.get">["members"];
+}
+
+export default function MemberList(props: Props) {
   if (!props.members.length) return <></>;
 
   return (

@@ -6,8 +6,7 @@ import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
-import { trpc } from "@lib/trpc";
-import { Team } from "@lib/types/team";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import { Tooltip } from "@components/Tooltip";
@@ -23,11 +22,13 @@ import Dropdown, {
 import TeamRole from "./TeamRole";
 import { MembershipRole } from ".prisma/client";
 
-export default function TeamListItem(props: {
+interface Props {
+  team: inferQueryOutput<"viewer.teams.list">[number];
   key: number;
-  team: Team;
   onActionSelect: (text: string) => void;
-}) {
+}
+
+export default function TeamListItem(props: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const team = props.team;
@@ -39,16 +40,16 @@ export default function TeamListItem(props: {
   });
   function acceptOrLeave(accept: boolean) {
     acceptOrLeaveMutation.mutate({
-      teamId: team.id,
+      teamId: team?.id as number,
       accept,
     });
   }
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
 
-  const isOwner = props.team.role === "OWNER";
+  const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
-  const isAdmin = props.team.role === "OWNER" || props.team.role === "ADMIN";
+  const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
 
   if (!team) return <></>;
 
@@ -56,14 +57,14 @@ export default function TeamListItem(props: {
     <div className="flex px-5 py-5">
       <Avatar
         size={9}
-        imageSrc={getPlaceholderAvatar(props.team?.logo, props.team?.name)}
+        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
         alt="Team Logo"
         className="rounded-full w-9 h-9 min-w-9 min-h-9"
       />
       <div className="inline-block ml-3">
-        <span className="text-sm font-bold text-neutral-700">{props.team.name}</span>
+        <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
-          {process.env.NEXT_PUBLIC_APP_URL}/team/{props.team.slug}
+          {process.env.NEXT_PUBLIC_APP_URL}/team/{team.slug}
         </span>
       </div>
     </div>
@@ -77,8 +78,8 @@ export default function TeamListItem(props: {
           !isInvitee && "group hover:bg-neutral-50"
         )}>
         {!isInvitee ? (
-          <Link href={"/settings/teams/" + props.team.id}>
-            <a className="flex-grow text-sm truncate cursor-pointer" title={`${props.team.name}`}>
+          <Link href={"/settings/teams/" + team.id}>
+            <a className="flex-grow text-sm truncate cursor-pointer" title={`${team.name}`}>
               {teamInfo}
             </a>
           </Link>
@@ -98,14 +99,12 @@ export default function TeamListItem(props: {
           )}
           {!isInvitee && (
             <div className="flex space-x-2">
-              <TeamRole role={props.team.role as MembershipRole} />
+              <TeamRole role={team.role as MembershipRole} />
 
               <Tooltip content={t("copy_link_team")}>
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(
-                      process.env.NEXT_PUBLIC_APP_URL + "/team/" + props.team.slug
-                    );
+                    navigator.clipboard.writeText(process.env.NEXT_PUBLIC_APP_URL + "/team/" + team.slug);
                     showToast(t("link_copied"), "success");
                   }}
                   className="w-10 h-10 transition-none"
@@ -122,7 +121,7 @@ export default function TeamListItem(props: {
                 <DropdownMenuContent>
                   {isAdmin && (
                     <DropdownMenuItem>
-                      <Link href={"/settings/teams/" + props.team.id}>
+                      <Link href={"/settings/teams/" + team.id}>
                         <a>
                           <Button type="button" color="minimal" className="w-full" StartIcon={PencilIcon}>
                             {t("edit_team")}
@@ -132,7 +131,7 @@ export default function TeamListItem(props: {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem>
-                    <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team.slug}`} passHref={true}>
+                    <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
                           {" "}

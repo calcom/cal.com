@@ -4,9 +4,7 @@ import React, { useState, useEffect } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { Member } from "@lib/member";
-import { trpc } from "@lib/trpc";
-import { Team } from "@lib/types/team";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
@@ -17,8 +15,8 @@ import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 dayjs.extend(utc);
 
 interface Props {
-  team?: Team;
-  member?: Member;
+  team?: inferQueryOutput<"viewer.teams.get">;
+  member?: inferQueryOutput<"viewer.teams.get">["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
@@ -29,7 +27,7 @@ export default function TeamAvailabilityModal(props: Props) {
 
   useEffect(() => {
     utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
-  }, [selectedTimeZone, selectedDate]);
+  }, [utils, selectedTimeZone, selectedDate]);
 
   return (
     <div className="flex flex-row max-h-[500px] min-h-[500px]  space-x-8">

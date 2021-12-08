@@ -4,16 +4,14 @@ import utc from "dayjs/plugin/utc";
 import React from "react";
 import { ITimezone } from "react-timezone-select";
 
-import { Member } from "@lib/member";
 import getSlots from "@lib/slots";
-import { trpc } from "@lib/trpc";
-import { Team } from "@lib/types/team";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 
 interface Props {
-  team: Team;
-  member: Member;
+  team: inferQueryOutput<"viewer.teams.get">;
+  member: inferQueryOutput<"viewer.teams.get">["members"][number];
   selectedDate: Dayjs;
   selectedTimeZone: ITimezone;
   frequency: number;

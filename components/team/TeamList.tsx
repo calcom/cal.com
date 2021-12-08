@@ -1,16 +1,19 @@
 import showToast from "@lib/notification";
-import { trpc } from "@lib/trpc";
-import { Team } from "@lib/types/team";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import TeamListItem from "./TeamListItem";
 
-export default function TeamList(props: { teams: Team[] }) {
+interface Props {
+  teams: inferQueryOutput<"viewer.teams.list">;
+}
+
+export default function TeamList(props: Props) {
   const utils = trpc.useContext();
 
-  function selectAction(action: string, team: Team) {
+  function selectAction(action: string, teamId: number) {
     switch (action) {
       case "disband":
-        deleteTeam(team.id);
+        deleteTeam(teamId);
         break;
     }
   }
@@ -31,11 +34,11 @@ export default function TeamList(props: { teams: Team[] }) {
   return (
     <div>
       <ul className="mb-2 bg-white border divide-y rounded divide-neutral-200">
-        {props.teams.map((team: Team) => (
+        {props.teams.map((team) => (
           <TeamListItem
-            key={team.id}
+            key={team?.id as number}
             team={team}
-            onActionSelect={(action: string) => selectAction(action, team)}></TeamListItem>
+            onActionSelect={(action: string) => selectAction(action, team?.id as number)}></TeamListItem>
         ))}
       </ul>
     </div>

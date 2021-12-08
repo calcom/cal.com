@@ -5,10 +5,8 @@ import React, { useState } from "react";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
-import { Member } from "@lib/member";
 import showToast from "@lib/notification";
-import { TeamWithMembers } from "@lib/queries/teams";
-import { trpc } from "@lib/trpc";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import { Tooltip } from "@components/Tooltip";
@@ -23,7 +21,12 @@ import TeamRole from "./TeamRole";
 import TeamAvailabilityModal from "./availability/TeamAvailabilityModal";
 import { MembershipRole } from ".prisma/client";
 
-export default function MemberListItem(props: { team: TeamWithMembers; member: Member }) {
+interface Props {
+  team: inferQueryOutput<"viewer.teams.get">;
+  member: inferQueryOutput<"viewer.teams.get">["members"][number];
+}
+
+export default function MemberListItem(props: Props) {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
@@ -93,7 +96,9 @@ export default function MemberListItem(props: { team: TeamWithMembers; member: M
                   </a>
                 </Link>
               </DropdownMenuItem>
-              {props.member.role != "OWNER" && (
+
+              {(props.team.membership.role === MembershipRole.OWNER ||
+                props.team.membership.role === MembershipRole.ADMIN) && (
                 <>
                   <DropdownMenuItem>
                     <Button
@@ -104,7 +109,6 @@ export default function MemberListItem(props: { team: TeamWithMembers; member: M
                       {t("edit_role")}
                     </Button>
                   </DropdownMenuItem>
-
                   <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>

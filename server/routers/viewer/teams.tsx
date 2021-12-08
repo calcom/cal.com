@@ -301,14 +301,34 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      const membership = await ctx.prisma.membership.findFirst({
-        where: { userId: input.memberId, teamId: input.teamId },
+      const memberships = await ctx.prisma.membership.findMany({
+        where: {
+          teamId: input.teamId,
+        },
       });
 
-      if (membership?.role === "OWNER") {
+      const targetMembership = memberships.find((m) => m.userId === input.memberId);
+      const myMembership = memberships.find((m) => m.userId === ctx.user.id);
+      const teamHasMoreThanOneOwner = memberships.some((m) => m.role === MembershipRole.OWNER);
+
+      if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You can not change the role of the owner of a team.",
+          code: "FORBIDDEN",
+          message: "You can not change the role of an owner if you are an admin.",
+        });
+      }
+
+      if (!teamHasMoreThanOneOwner) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can not change the role of the only owner of a team.",
+        });
+      }
+
+      if (myMembership?.role === MembershipRole.ADMIN && input.memberId === ctx.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can not change yourself to a higher role.",
         });
       }
 
