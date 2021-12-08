@@ -125,15 +125,6 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
       })
     : undefined;
 
-  if (!creationResult) {
-    return {
-      type: credential.type,
-      success,
-      uid,
-      originalEvent: calEvent,
-    };
-  }
-
   return {
     type: credential.type,
     success,
@@ -160,15 +151,6 @@ const updateEvent = async (
           return undefined;
         })
       : undefined;
-
-  if (!updatedResult) {
-    return {
-      type: credential.type,
-      success,
-      uid,
-      originalEvent: calEvent,
-    };
-  }
 
   return {
     type: credential.type,

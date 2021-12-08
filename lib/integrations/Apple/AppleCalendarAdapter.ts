@@ -54,8 +54,9 @@ export class AppleCalendar extends BaseCalendarApiAdapter implements CalendarApi
 
   async createEvent(event: CalendarEvent) {
     try {
-      const calendars = await this.listCalendars();
+      const calendars = await this.listCalendars(event);
       const uid = uuidv4();
+      /** We create local ICS files */
       const { error, value: iCalString } = createEvent({
         uid,
         startInputType: "utc",
@@ -72,6 +73,7 @@ export class AppleCalendar extends BaseCalendarApiAdapter implements CalendarApi
 
       if (!iCalString) throw new Error("Error creating iCalString");
 
+      /** We create the event directly on iCal */
       await Promise.all(
         calendars.map((calendar) => {
           return createCalendarObject({
@@ -218,7 +220,7 @@ export class AppleCalendar extends BaseCalendarApiAdapter implements CalendarApi
     }
   }
 
-  async listCalendars(): Promise<IntegrationCalendar[]> {
+  async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     try {
       const account = await this.getAccount();
       const calendars = await fetchCalendars({
@@ -226,17 +228,18 @@ export class AppleCalendar extends BaseCalendarApiAdapter implements CalendarApi
         headers: this.headers,
       });
 
-      return calendars
-        .filter((calendar) => {
-          return calendar.components?.includes("VEVENT");
-        })
-        .map((calendar, index) => ({
+      return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
+        if (!calendar.components?.includes("VEVENT")) return newCalendars;
+        newCalendars.push({
           externalId: calendar.url,
           name: calendar.displayName ?? "",
-          // FIXME Find a better way to set the primary calendar
-          primary: index === 0,
+          primary: event?.destinationCalendar?.externalId
+            ? event.destinationCalendar.externalId === calendar.url
+            : false,
           integration: this.integrationName,
-        }));
+        });
+        return newCalendars;
+      }, []);
     } catch (reason) {
       console.error(reason);
       throw reason;

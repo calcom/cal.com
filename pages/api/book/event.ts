@@ -371,6 +371,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let referencesToCreate: PartialReference[] = [];
   let user: User | null = null;
 
+  /** Let's start cheking for availability */
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);

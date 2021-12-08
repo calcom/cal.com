@@ -91,9 +91,9 @@ type EventManagerUser = {
   destinationCalendar: DestinationCalendar | null;
 };
 export default class EventManager {
-  calendarCredentials: Array<Credential>;
-  videoCredentials: Array<Credential>;
-  private calendarDestination;
+  calendarCredentials: Credential[];
+  videoCredentials: Credential[];
+  private calendarDestination: DestinationCalendar | null;
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -248,13 +248,21 @@ export default class EventManager {
    * @param noMail
    * @private
    */
-
   private async createAllCalendarEvents(event: CalendarEvent): Promise<Array<EventResult>> {
-    const [firstCalendar] = this.calendarCredentials;
-    if (!firstCalendar) {
+    /** Can I use destinationCalendar here? */
+    /* How can I link a DC to a cred? */
+    if (event.destinationCalendar) {
+      const destinationCalendarCredentials = this.calendarCredentials.filter(
+        (c) => c.type === event.destinationCalendar?.integration
+      );
+      return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
+    }
+
+    const [credential] = this.calendarCredentials;
+    if (!credential) {
       return [];
     }
-    return [await createEvent(firstCalendar, event)];
+    return [await createEvent(credential, event)];
   }
 
   /**
