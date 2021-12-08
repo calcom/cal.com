@@ -89,7 +89,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile: {
         ...eventTypeObject.team,
         slug: "team/" + eventTypeObject.slug,
-        image: eventTypeObject.team?.logo || null,
+        image:
+          eventTypeObject.team?.logo ||
+          "https://eu.ui-avatars.com/api/?background=fff&color=039be5&name=" +
+            encodeURIComponent(eventTypeObject.team.name || ""),
         theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
       },
       eventType: eventTypeObject,
