@@ -36,6 +36,7 @@ export default function TeamAvailabilityModal(props: Props) {
           <span className="font-bold text-gray-600">Date</span>
           <DatePicker
             date={selectedDate.toDate()}
+            className="p-1.5"
             onDatesChange={(newDate) => {
               setSelectedDate(dayjs(newDate));
             }}
@@ -48,7 +49,7 @@ export default function TeamAvailabilityModal(props: Props) {
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="block w-full border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+            className="w-full border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
           />
         </div>
         <div>
@@ -58,6 +59,7 @@ export default function TeamAvailabilityModal(props: Props) {
             label=""
             required
             min="10"
+            className="p-2.5"
             placeholder="15"
             defaultValue={frequency}
             onChange={(e) => {
