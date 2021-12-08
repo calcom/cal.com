@@ -21,6 +21,7 @@ export type BookingCreateBody = {
   users?: string[];
   user?: string;
   language: string;
+  redeemCode: string;
 };
 
 export type BookingResponse = Booking & {

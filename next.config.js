@@ -57,9 +57,11 @@ plugins.push(withTM);
 module.exports = () => plugins.reduce((acc, next) => next(acc), {
   publicRuntimeConfig: {
     origins: {
-      bullbitcoin: process.env.BULL_BITCOIN_ORIGIN
+      bullbitcoin: process.env.BULL_BITCOIN_ORIGIN,
+      ugraph: process.env.UGRAPH_ORIGIN
     }
   },
+  serverRuntimeConfig: { ugraphAuthSecret: process.env.UGRAPH_AUTH_SECRET },
   i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.

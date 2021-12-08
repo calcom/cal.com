@@ -6,6 +6,7 @@ import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
+import getConfig from "next/config";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -24,6 +25,7 @@ import { BufferedBusyTime } from "@lib/integrations/Office365Calendar/Office365C
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
+import { setRedeemableItemToBooked } from "@lib/ugraph";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -39,6 +41,8 @@ const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 type BufferedBusyTimes = BufferedBusyTime[];
+
+const { serverRuntimeConfig } = getConfig();
 
 /**
  * Refreshes a Credential with fresh data from the database.
@@ -127,6 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const reqBody = req.body as BookingCreateBody;
 
   console.log("\n reqBody \n", reqBody, "\n");
+  console.log("\n serverRuntimeConfig \n", serverRuntimeConfig, "\n");
 
   const eventTypeId = reqBody.eventTypeId;
   const t = await getTranslation(reqBody.language ?? "en", "common");
@@ -538,6 +543,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+
+  // Update redeemableItem status to "Booked"
+  await setRedeemableItemToBooked({ redeemCode: reqBody.redeemCode });
 
   // booking successful
   return res.status(201).json(booking);
