@@ -161,7 +161,9 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.insert(
             {
               auth: myGoogleAuth,
-              calendarId: "primary",
+              calendarId: event.destinationCalendar?.externalId
+                ? event.destinationCalendar.externalId
+                : "primary",
               requestBody: payload,
               conferenceDataVersion: 1,
             },
@@ -213,7 +215,9 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.update(
             {
               auth: myGoogleAuth,
-              calendarId: "primary",
+              calendarId: event.destinationCalendar?.externalId
+                ? event.destinationCalendar.externalId
+                : "primary",
               eventId: uid,
               sendNotifications: true,
               sendUpdates: "all",
@@ -239,7 +243,9 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.delete(
             {
               auth: myGoogleAuth,
-              calendarId: "primary",
+              calendarId: event.destinationCalendar?.externalId
+                ? event.destinationCalendar.externalId
+                : "primary",
               eventId: uid,
               sendNotifications: true,
               sendUpdates: "all",
