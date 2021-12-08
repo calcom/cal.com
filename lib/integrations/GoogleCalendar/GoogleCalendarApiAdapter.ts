@@ -243,9 +243,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.delete(
             {
               auth: myGoogleAuth,
-              calendarId: event.destinationCalendar?.externalId
-                ? event.destinationCalendar.externalId
-                : "primary",
+              calendarId: "primary",
               eventId: uid,
               sendNotifications: true,
               sendUpdates: "all",
