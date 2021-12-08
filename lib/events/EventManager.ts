@@ -93,7 +93,6 @@ type EventManagerUser = {
 export default class EventManager {
   calendarCredentials: Credential[];
   videoCredentials: Credential[];
-  private calendarDestination: DestinationCalendar | null;
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -101,7 +100,6 @@ export default class EventManager {
    * @param credentials
    */
   constructor(user: EventManagerUser) {
-    this.calendarDestination = user.destinationCalendar;
     this.calendarCredentials = user.credentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
 
