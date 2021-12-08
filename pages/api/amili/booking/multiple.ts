@@ -35,10 +35,16 @@ enum BookingPaymentStatus {
   "UNPAID" = "UNPAID",
 }
 
-type CoachProgram = {
+type Product = {
   id: string;
   name: string;
   description: string;
+  image: string;
+};
+
+type CoachProgram = {
+  id: string;
+  product: Product;
 };
 
 type CoachProfile = {
@@ -137,7 +143,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const { assUserId } = user;
       const { assEventTypeId, coachProgram } = coachProfileProgram;
-      const { name: title, description } = coachProgram;
+      const { product } = coachProgram;
+      const { name: title, description } = product;
 
       const [isExisted, reqAttendee] = await checkUserExisted(assUserId);
 
