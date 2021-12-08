@@ -22,16 +22,21 @@ interface Props {
 dayjs.extend(utc);
 
 export default function TeamAvailabilityTimes(props: Props) {
-  const { data, isLoading } = trpc.useQuery([
-    "viewer.teams.getMemberAvailability",
+  const { data, isLoading } = trpc.useQuery(
+    [
+      "viewer.teams.getMemberAvailability",
+      {
+        teamId: props.team.id,
+        memberId: props.member.id,
+        dateFrom: props.selectedDate.toString(),
+        dateTo: props.selectedDate.add(1, "day").toString(),
+        timezone: `${props.selectedTimeZone.toString()}`,
+      },
+    ],
     {
-      teamId: props.team.id,
-      memberId: props.member.id,
-      dateFrom: props.selectedDate.toString(),
-      dateTo: props.selectedDate.add(1, "day").toString(),
-      timezone: `${props.selectedTimeZone.toString()}`,
-    },
-  ]);
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const times = !isLoading
     ? getSlots({

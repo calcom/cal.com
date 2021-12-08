@@ -122,6 +122,8 @@ export default function Shell(props: {
   CTA?: ReactNode;
   HeadingLeftIcon?: ReactNode;
   showBackButton?: boolean;
+  // use when content needs to expand with flex
+  flexChildrenContainer?: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -203,7 +205,7 @@ export default function Shell(props: {
         <div className="hidden md:flex lg:flex-shrink-0">
           <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
-              <div className="flex flex-col flex-1 pt-3 lg:pt-5 pb-4 overflow-y-auto">
+              <div className="flex flex-col flex-1 pt-3 pb-4 overflow-y-auto lg:pt-5">
                 <Link href="/event-types">
                   <a className="px-4 md:hidden lg:inline">
                     <Logo small />
@@ -215,7 +217,7 @@ export default function Shell(props: {
                     <Logo small icon />
                   </a>
                 </Link>
-                <nav className="flex-1 px-2 mt-2 lg:mt-5 space-y-1 bg-white">
+                <nav className="flex-1 px-2 mt-2 space-y-1 bg-white lg:mt-5">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
@@ -253,7 +255,11 @@ export default function Shell(props: {
         </div>
 
         <div className="flex flex-col flex-1 w-0 overflow-hidden">
-          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]">
+          <main
+            className={classNames(
+              "flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]",
+              props.flexChildrenContainer && "flex flex-col"
+            )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
             <nav className="flex items-center justify-between p-4 bg-white border-b border-gray-200 md:hidden">
               <Link href="/event-types">
@@ -273,7 +279,12 @@ export default function Shell(props: {
                 <UserDropdown small />
               </div>
             </nav>
-            <div className={classNames(props.centered && "md:max-w-5xl mx-auto", "py-8")}>
+            <div
+              className={classNames(
+                props.centered && "md:max-w-5xl mx-auto",
+                props.flexChildrenContainer && "flex flex-col flex-1",
+                "py-8"
+              )}>
               {props.showBackButton && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button onClick={() => router.back()} StartIcon={ArrowLeftIcon} color="secondary">
@@ -291,7 +302,13 @@ export default function Shell(props: {
                 </div>
                 <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>
-              <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
+              <div
+                className={classNames(
+                  "px-4 sm:px-6 md:px-8",
+                  props.flexChildrenContainer && "flex flex-col flex-1"
+                )}>
+                {props.children}
+              </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}

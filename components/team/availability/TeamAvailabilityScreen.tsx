@@ -2,6 +2,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import React, { useState, useEffect } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { FixedSizeList as List } from "react-window";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { trpc, inferQueryOutput } from "@lib/trpc";
@@ -19,18 +21,51 @@ interface Props {
   members?: inferQueryOutput<"viewer.teams.get">["members"];
 }
 
-export default function TeamAvailabilityModal(props: Props) {
+// type Member = inferQueryOutput<"viewer.teams.get">["members"][number];
+
+export default function TeamAvailabilityScreen(props: Props) {
   const utils = trpc.useContext();
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(dayjs.tz.guess);
+  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(dayjs.tz.guess());
   const [frequency, setFrequency] = useState<number>(30);
 
   useEffect(() => {
     utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
-  }, [utils, selectedTimeZone, selectedDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTimeZone, selectedDate]);
+
+  const Item = ({ index, style }: { index: number; style: Record<string, string> }) => {
+    const member = props.members?.[index];
+    if (!member) return <></>;
+
+    return (
+      <div key={member.id} style={style} className="flex pl-4 border-r border-gray-200 ">
+        <TeamAvailabilityTimes
+          team={props.team as inferQueryOutput<"viewer.teams.get">}
+          member={member}
+          frequency={frequency}
+          selectedDate={selectedDate}
+          selectedTimeZone={selectedTimeZone}
+          HeaderComponent={
+            <div className="flex items-center mb-6">
+              <Avatar
+                imageSrc={getPlaceholderAvatar(member?.avatar, member?.name as string)}
+                alt={member?.name || ""}
+                className="w-10 h-10 mt-1 rounded-full"
+              />
+              <div className="inline-block pt-1 ml-3">
+                <span className="text-lg font-bold text-neutral-700">{member?.name}</span>
+                <span className="block -mt-1 text-sm text-gray-400">{member?.email}</span>
+              </div>
+            </div>
+          }
+        />
+      </div>
+    );
+  };
 
   return (
-    <div className="flex flex-col h-full p-5 bg-white border rounded-sm border-neutral-200">
+    <div className="flex flex-col flex-1 p-5 bg-white border rounded-sm border-neutral-200">
       <div className="flex w-full pb-5 pr-0 space-x-5 border-b border-gray-200">
         <div className="flex flex-col">
           <span className="font-bold text-gray-600">Date</span>
@@ -68,32 +103,20 @@ export default function TeamAvailabilityModal(props: Props) {
           />
         </div>
       </div>
-      <div className="flex flex-row overflow-scroll">
-        {props.members?.map((member) => (
-          <div key={member.id} className="mr-6 border-r border-gray-200">
-            <TeamAvailabilityTimes
-              // team will be defined if this code is reached
-              team={props.team as inferQueryOutput<"viewer.teams.get">}
-              member={member}
-              frequency={frequency}
-              selectedDate={selectedDate}
-              selectedTimeZone={selectedTimeZone}
-              HeaderComponent={
-                <div className="flex items-center mb-6">
-                  <Avatar
-                    imageSrc={getPlaceholderAvatar(member?.avatar, member?.name as string)}
-                    alt={member?.name || ""}
-                    className="w-10 h-10 mt-1 rounded-full"
-                  />
-                  <div className="inline-block pt-1 ml-3">
-                    <span className="text-lg font-bold text-neutral-700">{member?.name}</span>
-                    <span className="block -mt-1 text-sm text-gray-400">{member?.email}</span>
-                  </div>
-                </div>
-              }
-            />
-          </div>
-        ))}
+      <div className="flex flex-1 h-full">
+        <AutoSizer>
+          {({ height, width }) => (
+            <List
+              itemSize={240}
+              itemCount={props.members?.length || 0}
+              className="List"
+              height={height}
+              direction="horizontal"
+              width={width}>
+              {Item}
+            </List>
+          )}
+        </AutoSizer>
       </div>
     </div>
   );

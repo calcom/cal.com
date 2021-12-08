@@ -16,6 +16,7 @@ export function TeamSettingsPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
+    refetchOnWindowFocus: false,
     onError: (e) => {
       setErrorMessage(e.message);
     },
@@ -25,6 +26,7 @@ export function TeamSettingsPage() {
     <Shell
       showBackButton={!errorMessage}
       heading={team?.name}
+      flexChildrenContainer
       subtitle={team && "Your team's availability at a glance"}
       HeadingLeftIcon={
         team && (
