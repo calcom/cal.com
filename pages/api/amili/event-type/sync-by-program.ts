@@ -3,12 +3,17 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
 
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+};
+
 type ReqPayload = {
   coachProgramId: string;
   data: {
-    name?: string;
-    description?: string;
     duration?: number;
+    product: Product;
   };
 };
 
@@ -28,7 +33,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     description: "description",
   };
 
-  const updatedData = Object.keys(data).reduce((ac, key) => ({ ...ac, [keyMapping[key]]: data[key] }), {});
+  const updatedData = Object.keys(data).reduce((ac, key) => {
+    if (key === "product") {
+      const { name, description } = data[key];
+
+      return { ...ac, [keyMapping["name"]]: name, [keyMapping["description"]]: description };
+    } else {
+      return { ...ac, [keyMapping[key]]: data[key] };
+    }
+  }, {});
 
   await prisma.eventType.updateMany({
     where: {

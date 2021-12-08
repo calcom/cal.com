@@ -9,6 +9,12 @@ export enum CoachProfileProgramStatus {
   PAUSED = "PAUSED",
 }
 
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+};
+
 type CoachProfileProgramAvailability = {
   id?: string;
   coachProfileProgramId: string;
@@ -19,9 +25,8 @@ type CoachProfileProgramAvailability = {
 
 type HealthCoachProgram = {
   id: string;
-  name: string;
-  description?: string;
   duration?: number;
+  product: Product;
 };
 
 type CoachProfileProgram = {
@@ -123,7 +128,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           userId: +assUserId,
         }));
 
-        const { name = "", description = "", duration = 0 } = program || {};
+        const { duration = 0, product } = program || {};
+        const { name = "", description = "" } = product;
 
         const newCoachProgram = {
           description,
