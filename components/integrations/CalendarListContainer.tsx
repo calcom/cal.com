@@ -277,6 +277,7 @@ export function CalendarListContainer(props: { heading?: false }) {
           actions={<div className="block"></div>}
         />
       )}
+      <p className="mr-4 text-sm text-neutral-500">{t("select_destination_calendar")}</p>
       <PrimaryCalendarSelector />
       <ConnectedCalendarsList onChanged={onChanged} />
       {!!query.data?.connectedCalendars.length && (
