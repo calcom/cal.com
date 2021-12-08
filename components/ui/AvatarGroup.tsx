@@ -28,11 +28,15 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
 
   return (
     <ul className={classNames("flex -space-x-2 overflow-hidden", props.className)}>
-      {props.items.slice(0, props.truncateAfter).map((item, idx) => (
-        <li key={idx} className="inline-block">
-          <Avatar imageSrc={item.image} title={item.title} alt={item.alt || ""} size={props.size} />
-        </li>
-      ))}
+      {props.items.slice(0, props.truncateAfter).map((item, idx) => {
+        if (item.image != null) {
+          return (
+            <li key={idx} className="inline-block">
+              <Avatar imageSrc={item.image} title={item.title} alt={item.alt || ""} size={props.size} />
+            </li>
+          );
+        }
+      })}
       {/*props.items.length > props.truncateAfter && (
         <li className="relative inline-block">
           <Tooltip.Tooltip delayDuration="300">
