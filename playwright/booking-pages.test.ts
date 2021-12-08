@@ -40,7 +40,7 @@ describe("pro user", () => {
     // Click [data-testid="incrementMonth"]
     await page.click('[data-testid="incrementMonth"]');
     // Click [data-testid="day"]
-    await page.click('[data-testid="day"]');
+    await page.click('[data-testid="day"][data-disabled="false"]');
     // Click [data-testid="time"]
     await page.click('[data-testid="time"]');
     // --- fill form

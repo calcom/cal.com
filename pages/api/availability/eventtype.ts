@@ -1,9 +1,13 @@
-import { EventTypeCustomInput, MembershipRole, Prisma } from "@prisma/client";
+import { EventTypeCustomInput, MembershipRole, Prisma, PeriodType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
-import { OpeningHours } from "@lib/types/event-type";
+import { WorkingHours } from "@lib/types/schedule";
+
+function handlePeriodType(periodType: string): PeriodType {
+  return PeriodType[periodType.toUpperCase()];
+}
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
   if (!customInputs || !customInputs?.length) return undefined;
@@ -112,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       locations: req.body.locations,
       eventName: req.body.eventName,
       customInputs: handleCustomInputs(req.body.customInputs as EventTypeCustomInput[], req.body.id),
-      periodType: req.body.periodType,
+      periodType: req.body.periodType ? handlePeriodType(req.body.periodType) : undefined,
       periodDays: req.body.periodDays,
       periodStartDate: req.body.periodStartDate,
       periodEndDate: req.body.periodEndDate,
@@ -161,7 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (req.body.availability) {
-        const openingHours: OpeningHours[] = req.body.availability.openingHours || [];
+        const openingHours: WorkingHours[] = req.body.availability.openingHours || [];
         // const overrides = req.body.availability.dateOverrides || [];
 
         const eventTypeId = +req.body.id;

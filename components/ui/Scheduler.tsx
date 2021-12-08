@@ -7,7 +7,9 @@ import React, { useEffect, useState } from "react";
 import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { OpeningHours, DateOverride } from "@lib/types/event-type";
+import { WorkingHours } from "@lib/types/schedule";
+
+import Button from "@components/ui/Button";
 
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";
@@ -19,7 +21,7 @@ type Props = {
   timeZone: string;
   availability: Availability[];
   setTimeZone: (timeZone: string) => void;
-  setAvailability: (schedule: { openingHours: OpeningHours[]; dateOverrides: DateOverride[] }) => void;
+  setAvailability: (schedule: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] }) => void;
 };
 
 /**
@@ -103,9 +105,9 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
               <OpeningHours key={idx} idx={idx} item={item} />
             ))}
           </ul>
-          <button type="button" onClick={addNewSchedule} className="mt-2 btn-white btn-sm">
+          <Button type="button" onClick={addNewSchedule} className="mt-2" color="secondary" size="sm">
             {t("add_another")}
-          </button>
+          </Button>
         </div>
       </div>
       {editSchedule >= 0 && (

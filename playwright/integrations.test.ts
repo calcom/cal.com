@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { kont } from "kont";
 
 import { loginProvider } from "./lib/loginProvider";
@@ -35,14 +34,11 @@ describe("webhooks", () => {
     // page contains the url
     await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
 
-    // --- go to tomorrow in the pro user's "30min"-event
-    const tomorrow = dayjs().add(1, "day");
-    const tomorrowFormatted = tomorrow.format("YYYY-MM-DDZZ");
-
-    await page.goto(`http://localhost:3000/pro/30min?date=${encodeURIComponent(tomorrowFormatted)}`);
-
-    // click first time available
-    await page.click("[data-testid=time]");
+    // --- Book the first available day next month in the pro user's "30min"-event
+    await page.goto(`http://localhost:3000/pro/30min`);
+    await page.click('[data-testid="incrementMonth"]');
+    await page.click('[data-testid="day"]');
+    await page.click('[data-testid="time"]');
 
     // --- fill form
     await page.fill('[name="name"]', "Test Testson");

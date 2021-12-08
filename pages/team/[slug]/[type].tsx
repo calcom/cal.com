@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { getWorkingHours } from "@lib/availability";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -43,6 +44,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               avatar: true,
               username: true,
               timeZone: true,
+              hideBranding: true,
+              plan: true,
             },
           },
           title: true,
@@ -50,8 +53,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           description: true,
           length: true,
           schedulingType: true,
+          periodType: true,
           periodStartDate: true,
           periodEndDate: true,
+          periodDays: true,
+          periodCountCalendarDays: true,
+          minimumBookingNotice: true,
+          price: true,
+          currency: true,
+          timeZone: true,
         },
       },
     },
@@ -65,26 +75,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const [eventType] = team.eventTypes;
 
-  type Availability = typeof eventType["availability"];
-  const getWorkingHours = (availability: Availability) =>
-    availability?.length
-      ? availability.map((schedule) => ({
-          ...schedule,
-          startTime: schedule.startTime.getUTCHours() * 60 + schedule.startTime.getUTCMinutes(),
-          endTime: schedule.endTime.getUTCHours() * 60 + schedule.endTime.getUTCMinutes(),
-        }))
-      : null;
-  const workingHours =
-    getWorkingHours(eventType.availability) ||
-    [
-      {
-        days: [0, 1, 2, 3, 4, 5, 6],
-        startTime: 0,
-        endTime: 1440,
-      },
-    ].filter((availability): boolean => typeof availability["days"] !== "undefined");
-
-  workingHours.sort((a, b) => a.startTime - b.startTime);
+  const workingHours = getWorkingHours(
+    {
+      timeZone: eventType.timeZone || undefined,
+    },
+    eventType.availability
+  );
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
@@ -98,8 +94,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       profile: {
         name: team.name,
         slug: team.slug,
-        image: team.logo || null,
+        image: team.logo,
         theme: null,
+        weekStart: "Sunday",
       },
       date: dateParam,
       eventType: eventTypeObject,

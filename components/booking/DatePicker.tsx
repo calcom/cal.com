@@ -1,40 +1,52 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import { PeriodType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 // Then, include dayjs-business-time
 import dayjsBusinessTime from "dayjs-business-time";
-import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
+import { WorkingHours } from "@lib/types/schedule";
 
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
-// FIXME prop types
+type DatePickerProps = {
+  weekStart: string;
+  onDatePicked: (pickedDate: Dayjs) => void;
+  workingHours: WorkingHours[];
+  eventLength: number;
+  date: Dayjs | null;
+  periodType: string;
+  periodStartDate: Date | null;
+  periodEndDate: Date | null;
+  periodDays: number | null;
+  periodCountCalendarDays: boolean | null;
+  minimumBookingNotice: number;
+};
+
 function DatePicker({
   weekStart,
   onDatePicked,
   workingHours,
-  organizerTimeZone,
   eventLength,
   date,
-  periodType = "unlimited",
+  periodType = PeriodType.UNLIMITED,
   periodStartDate,
   periodEndDate,
   periodDays,
   periodCountCalendarDays,
   minimumBookingNotice,
-}: any): JSX.Element {
+}: DatePickerProps): JSX.Element {
   const { t } = useLocale();
   const [days, setDays] = useState<({ disabled: boolean; date: number } | null)[]>([]);
 
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(
+  const [selectedMonth, setSelectedMonth] = useState<number>(
     date
-      ? periodType === "range"
+      ? periodType === PeriodType.RANGE
         ? dayjs(periodStartDate).utcOffset(date.utcOffset()).month()
         : date.month()
       : dayjs().month() /* High chance server is going to have the same month */
@@ -71,10 +83,13 @@ function DatePicker({
     const isDisabled = (day: number) => {
       const date: Dayjs = inviteeDate().date(day);
       switch (periodType) {
-        case "rolling": {
+        case PeriodType.ROLLING: {
+          if (!periodDays) {
+            throw new Error("PeriodType rolling requires periodDays");
+          }
           const periodRollingEndDay = periodCountCalendarDays
-            ? dayjs().tz(organizerTimeZone).add(periodDays, "days").endOf("day")
-            : dayjs().tz(organizerTimeZone).addBusinessTime(periodDays, "days").endOf("day");
+            ? dayjs.utc().add(periodDays, "days").endOf("day")
+            : (dayjs.utc() as Dayjs).addBusinessTime(periodDays, "days").endOf("day");
           return (
             date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isAfter(periodRollingEndDay) ||
@@ -83,14 +98,13 @@ function DatePicker({
               frequency: eventLength,
               minimumBookingNotice,
               workingHours,
-              organizerTimeZone,
             }).length
           );
         }
 
-        case "range": {
-          const periodRangeStartDay = dayjs(periodStartDate).tz(organizerTimeZone).endOf("day");
-          const periodRangeEndDay = dayjs(periodEndDate).tz(organizerTimeZone).endOf("day");
+        case PeriodType.RANGE: {
+          const periodRangeStartDay = dayjs(periodStartDate).utc().endOf("day");
+          const periodRangeEndDay = dayjs(periodEndDate).utc().endOf("day");
           return (
             date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
             date.endOf("day").isBefore(periodRangeStartDay) ||
@@ -100,12 +114,11 @@ function DatePicker({
               frequency: eventLength,
               minimumBookingNotice,
               workingHours,
-              organizerTimeZone,
             }).length
           );
         }
 
-        case "unlimited":
+        case PeriodType.UNLIMITED:
         default:
           return (
             date.endOf("day").isBefore(dayjs().utcOffset(date.utcOffset())) ||
@@ -114,7 +127,6 @@ function DatePicker({
               frequency: eventLength,
               minimumBookingNotice,
               workingHours,
-              organizerTimeZone,
             }).length
           );
       }
@@ -137,7 +149,7 @@ function DatePicker({
           ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
           : "w-full sm:pl-4")
       }>
-      <div className="flex text-gray-600 font-light text-xl mb-4">
+      <div className="flex mb-4 text-xl font-light text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">
             {t(inviteeDate().format("MMMM").toLowerCase())}
@@ -155,18 +167,18 @@ function DatePicker({
             )}
             disabled={typeof selectedMonth === "number" && selectedMonth <= dayjs().month()}
             data-testid="decrementMonth">
-            <ChevronLeftIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
+            <ChevronLeftIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
-          <button className="group p-1" onClick={incrementMonth} data-testid="incrementMonth">
-            <ChevronRightIcon className="group-hover:text-black dark:group-hover:text-white w-5 h-5" />
+          <button className="p-1 group" onClick={incrementMonth} data-testid="incrementMonth">
+            <ChevronRightIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 text-center border-b border-t dark:border-gray-800 sm:border-0">
+      <div className="grid grid-cols-7 gap-4 text-center border-t border-b dark:border-gray-800 sm:border-0">
         {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
           .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
           .map((weekDay) => (
-            <div key={weekDay} className="uppercase text-gray-500 text-xs tracking-widest my-4">
+            <div key={weekDay} className="my-4 text-xs tracking-widest text-gray-500 uppercase">
               {t(weekDay.toLowerCase()).substring(0, 3)}
             </div>
           ))}
@@ -178,7 +190,7 @@ function DatePicker({
             style={{
               paddingTop: "100%",
             }}
-            className="w-full relative">
+            className="relative w-full">
             {day === null ? (
               <div key={`e-${idx}`} />
             ) : (

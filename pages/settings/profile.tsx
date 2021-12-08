@@ -81,9 +81,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
             <DialogClose asChild>
-              <Button
-                className="table-cell text-center btn-wide btn-primary"
-                onClick={() => setModalOpen(false)}>
+              <Button className="table-cell text-center btn-wide" onClick={() => setModalOpen(false)}>
                 {t("dismiss")}
               </Button>
             </DialogClose>
@@ -136,6 +134,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const avatarRef = useRef<HTMLInputElement>(null!);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const brandColorRef = useRef<HTMLInputElement>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>();
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
@@ -166,6 +166,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredName = nameRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
+    const enteredBrandColor = brandColorRef.current.value;
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
@@ -182,6 +183,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       weekStart: asStringOrUndefined(enteredWeekStartDay),
       hideBranding: enteredHideBranding,
       theme: asStringOrNull(selectedTheme?.value),
+      brandColor: enteredBrandColor,
       locale: enteredLanguage,
     });
   }
@@ -371,6 +373,23 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               </div>
             </div>
             <div>
+              <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
+                {t("brand_color")}
+              </label>
+              <div className="flex mt-1">
+                <input
+                  ref={brandColorRef}
+                  type="text"
+                  name="brandColor"
+                  id="brandColor"
+                  placeholder="#hex-code"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  defaultValue={props.user.brandColor}
+                />
+              </div>
+              <hr className="mt-6" />
+            </div>
+            <div>
               <div className="relative flex items-start">
                 <div className="flex items-center h-5">
                   <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
@@ -434,6 +453,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding: true,
       theme: true,
       plan: true,
+      brandColor: true,
     },
   });
 

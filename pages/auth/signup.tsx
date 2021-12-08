@@ -13,6 +13,8 @@ import { HeadSeo } from "@components/seo/head-seo";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
+import { ssrInit } from "@server/lib/ssr";
+
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 type FormValues = {
@@ -133,6 +135,7 @@ export default function Signup({ email }: Props) {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(ctx);
   const token = asStringOrNull(ctx.query.token);
   if (!token) {
     return {
@@ -169,9 +172,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   if (existingUser) {
     return {
-      redirect: { permanent: false, destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl },
+      redirect: {
+        permanent: false,
+        destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
+      },
     };
   }
 
-  return { props: { email: verificationRequest.identifier } };
+  return {
+    props: {
+      email: verificationRequest.identifier,
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };

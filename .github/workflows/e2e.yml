@@ -53,9 +53,9 @@ jobs:
           path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}-nextjs
 
-      - run: yarn test
       - run: yarn prisma migrate deploy
       - run: yarn db-seed
+      - run: yarn test
       - run: yarn build
       - run: yarn start &
       - run: npx wait-port 3000 --timeout 10000

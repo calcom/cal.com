@@ -124,7 +124,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 "hover:bg-neutral-50 flex justify-between items-center ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="group flex items-center justify-between w-full px-4 py-4 sm:px-6 hover:bg-neutral-50">
+              <div className="flex items-center justify-between w-full px-4 py-4 group sm:px-6 hover:bg-neutral-50">
                 <button
                   className="absolute mb-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
                   onClick={() => moveEventType(index, -1)}>
@@ -331,14 +331,17 @@ const EventTypesPage = () => {
         CTA={
           query.data &&
           query.data.eventTypeGroups.length !== 0 && (
-            <CreateNewEventButton canAddEvents={query.data.canAddEvents} profiles={query.data.profiles} />
+            <CreateNewEventButton
+              canAddEvents={query.data.viewer.canAddEvents}
+              profiles={query.data.profiles}
+            />
           )
         }>
         <QueryCell
           query={query}
           success={({ data }) => (
             <>
-              {data.user.plan === "FREE" && !data.canAddEvents && (
+              {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (
                 <Alert
                   severity="warning"
                   title={<>{t("plan_upgrade")}</>}
@@ -353,26 +356,25 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
-              {data.eventTypeGroups &&
-                data.eventTypeGroups.map((input) => (
-                  <Fragment key={input.profile.slug}>
-                    {/* hide list heading when there is only one (current user) */}
-                    {(data.eventTypeGroups.length !== 1 || input.teamId) && (
-                      <EventTypeListHeading
-                        profile={input.profile}
-                        membershipCount={input.metadata.membershipCount}
-                      />
-                    )}
-                    <EventTypeList
-                      types={input.eventTypes}
-                      profile={input.profile}
-                      readOnly={input.metadata.readOnly}
+              {data.eventTypeGroups.map((group) => (
+                <Fragment key={group.profile.slug}>
+                  {/* hide list heading when there is only one (current user) */}
+                  {(data.eventTypeGroups.length !== 1 || group.teamId) && (
+                    <EventTypeListHeading
+                      profile={group.profile}
+                      membershipCount={group.metadata.membershipCount}
                     />
-                  </Fragment>
-                ))}
+                  )}
+                  <EventTypeList
+                    types={group.eventTypes}
+                    profile={group.profile}
+                    readOnly={group.metadata.readOnly}
+                  />
+                </Fragment>
+              ))}
 
               {data.eventTypeGroups.length === 0 && (
-                <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.canAddEvents} />
+                <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
             </>
           )}
@@ -581,7 +583,7 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
               </RadioArea.Group>
             </div>
           )}
-          <div className="mt-8 sm:flex sm:flex-row-reverse gap-x-2">
+          <div className="flex flex-row-reverse mt-8 gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>

@@ -12,7 +12,7 @@ export type AvatarGroupProps = {
   items: {
     image: string;
     title?: string;
-    alt: string;
+    alt?: string;
   }[];
   className?: string;
 };
@@ -28,19 +28,23 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
 
   return (
     <ul className={classNames("flex -space-x-2 overflow-hidden", props.className)}>
-      {props.items.slice(0, props.truncateAfter).map((item, idx) => (
-        <li key={idx} className="inline-block">
-          <Avatar imageSrc={item.image} title={item.title} alt={item.alt} size={props.size} />
-        </li>
-      ))}
+      {props.items.slice(0, props.truncateAfter).map((item, idx) => {
+        if (item.image != null) {
+          return (
+            <li key={idx} className="inline-block">
+              <Avatar imageSrc={item.image} title={item.title} alt={item.alt || ""} size={props.size} />
+            </li>
+          );
+        }
+      })}
       {/*props.items.length > props.truncateAfter && (
-        <li className="inline-block relative">
+        <li className="relative inline-block">
           <Tooltip.Tooltip delayDuration="300">
             <Tooltip.TooltipTrigger className="cursor-default">
               <span className="w-16 absolute bottom-1.5 border-2 border-gray-300 flex-inline items-center text-white pt-4 text-2xl top-0 rounded-full block bg-neutral-600">+1</span>
             </Tooltip.TooltipTrigger>
             {truncatedAvatars.length !== 0 && (
-              <Tooltip.Content className="p-2 rounded-sm text-sm bg-brand text-white shadow-sm">
+              <Tooltip.Content className="p-2 text-sm text-white rounded-sm shadow-sm bg-brand">
                 <Tooltip.Arrow />
                 <ul>
                   {truncatedAvatars.map((title) => (

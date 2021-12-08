@@ -1,5 +1,7 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { Dayjs, ConfigType } from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
@@ -10,6 +12,9 @@ import { TimeRange } from "@lib/types/schedule";
 
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 /** Begin Time Increments For Select */
 const increment = 15;
@@ -43,16 +48,17 @@ type TimeRangeFieldProps = {
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
-
-  const getOption = (time: Date) => ({
-    value: time.valueOf(),
-    label: time.toLocaleTimeString("nl-NL", { minute: "numeric", hour: "numeric" }),
+  // const { i18n } = useLocale();
+  const getOption = (time: ConfigType) => ({
+    value: dayjs(time).toDate().valueOf(),
+    label: dayjs(time).utc().format("HH:mm"),
+    // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
   });
 
   const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
     const { limit, offset } = offsetOrLimit;
     return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (t) => getOption(t.toDate())
+      (t) => getOption(t)
     );
   }, []);
 
@@ -115,7 +121,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   };
 
   return (
-    <fieldset className="flex justify-between py-5 min-h-[86px]">
+    <fieldset className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row justify-between py-5 min-h-[86px]">
       <div className="w-1/3">
         <label className="flex items-center space-x-2">
           <input

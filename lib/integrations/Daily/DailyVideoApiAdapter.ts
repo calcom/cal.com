@@ -1,9 +1,11 @@
 import { Credential } from "@prisma/client";
 
 import { CalendarEvent } from "@lib/calendarClient";
+import { BASE_URL } from "@lib/config/constants";
 import { handleErrorsJson } from "@lib/errors";
+import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
-import { VideoApiAdapter } from "@lib/videoClient";
+import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
 
 export interface DailyReturnType {
   /** Long UID string ie: 987b5eb5-d116-4a4e-8e2c-14fcb5710966 */
@@ -67,7 +69,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     });
   }
 
-  async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent) {
+  async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
     if (!event.uid) {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
@@ -89,7 +91,12 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       },
     });
 
-    return dailyEvent;
+    return Promise.resolve({
+      type: "daily_video",
+      id: dailyEvent.name,
+      password: "",
+      url: BASE_URL + "/call/" + event.uid,
+    });
   }
 
   const translateEvent = (event: CalendarEvent) => {
@@ -97,6 +104,23 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     // added a 1 hour buffer for room expiration and room entry
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
     const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 60;
+    const scalePlan = process.env.DAILY_SCALE_PLAN;
+
+    if (scalePlan === "true") {
+      return {
+        privacy: "private",
+        properties: {
+          enable_new_call_ui: true,
+          enable_prejoin_ui: true,
+          enable_knocking: true,
+          enable_screenshare: true,
+          enable_chat: true,
+          exp: exp,
+          nbf: nbf,
+          enable_recording: "local",
+        },
+      };
+    }
     return {
       privacy: "private",
       properties: {
@@ -116,15 +140,20 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     getAvailability: () => {
       return Promise.resolve([]);
     },
-    createMeeting: async (event: CalendarEvent) => createOrUpdateMeeting("/rooms", event),
-    deleteMeeting: (uid: string) =>
-      fetch("https://api.daily.co/v1/rooms/" + uid, {
+    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> =>
+      createOrUpdateMeeting("/rooms", event),
+    deleteMeeting: async (uid: string): Promise<void> => {
+      await fetch("https://api.daily.co/v1/rooms/" + uid, {
         method: "DELETE",
         headers: {
           Authorization: "Bearer " + dailyApiToken,
         },
-      }).then(handleErrorsJson),
-    updateMeeting: (uid: string, event: CalendarEvent) => createOrUpdateMeeting("/rooms/" + uid, event),
+      }).then(handleErrorsJson);
+
+      return Promise.resolve();
+    },
+    updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
+      createOrUpdateMeeting("/rooms/" + bookingRef.uid, event),
   };
 };
 

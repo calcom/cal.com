@@ -1,9 +1,12 @@
 import { CheckIcon } from "@heroicons/react/outline";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export default function Logout() {
   const { t } = useLocale();
@@ -44,4 +47,14 @@ export default function Logout() {
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
 }

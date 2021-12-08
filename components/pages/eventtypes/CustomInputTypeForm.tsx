@@ -5,6 +5,8 @@ import Select, { OptionTypeBase } from "react-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
+import Button from "@components/ui/Button";
+
 interface Props {
   onSubmit: SubmitHandler<IFormInput>;
   onCancel: () => void;
@@ -82,7 +84,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             <input
               type="text"
               id="placeholder"
-              className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+              className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               defaultValue={selectedCustomInput?.placeholder}
               {...register("placeholder")}
             />
@@ -114,12 +116,10 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         {...register("id", { valueAsNumber: true })}
       />
       <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-        <button type="submit" className="btn btn-primary">
-          {t("save")}
-        </button>
-        <button onClick={onCancel} type="button" className="mr-2 btn btn-white">
+        <Button type="submit">{t("save")}</Button>
+        <Button onClick={onCancel} type="button" color="secondary" className="mr-2">
           {t("cancel")}
-        </button>
+        </Button>
       </div>
     </form>
   );

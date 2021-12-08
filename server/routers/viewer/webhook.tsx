@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getErrorFromUnknown } from "@lib/errors";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
+import sendPayload from "@lib/webhooks/sendPayload";
 
 import { createProtectedRouter } from "@server/createRouter";
 
@@ -38,6 +39,7 @@ export const webhookRouter = createProtectedRouter()
       subscriberUrl: z.string().url().optional(),
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
       active: z.boolean().optional(),
+      payloadTemplate: z.string().nullable(),
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;
@@ -88,50 +90,39 @@ export const webhookRouter = createProtectedRouter()
     input: z.object({
       url: z.string().url(),
       type: z.string(),
+      payloadTemplate: z.string().optional().nullable(),
     }),
     async resolve({ input }) {
-      const { url, type } = input;
+      const { url, type, payloadTemplate } = input;
 
-      const responseBodyMocks: Record<"PING", unknown> = {
-        PING: {
-          triggerEvent: "PING",
-          createdAt: new Date().toISOString(),
-          payload: {
-            type: "Test",
-            title: "Test trigger event",
-            description: "",
-            startTime: new Date().toISOString(),
-            endTime: new Date().toISOString(),
-            organizer: {
-              name: "Cal",
-              email: "",
-              timeZone: "Europe/London",
-            },
+      const data = {
+        type: "Test",
+        title: "Test trigger event",
+        description: "",
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        attendees: [
+          {
+            email: "jdoe@example.com",
+            name: "John Doe",
+            timeZone: "Europe/London",
           },
+        ],
+        organizer: {
+          name: "Cal",
+          email: "",
+          timeZone: "Europe/London",
         },
       };
 
-      const body = responseBodyMocks[type as "PING"];
-      if (!body) {
-        throw new Error(`Unknown type '${type}'`);
-      }
-
       try {
-        const res = await fetch(url, {
-          method: "POST",
-          // [...]
-          body: JSON.stringify(body),
-        });
-        const text = await res.text();
-        return {
-          status: res.status,
-          message: text,
-        };
+        return await sendPayload(type, new Date().toISOString(), url, data, payloadTemplate);
       } catch (_err) {
-        const err = getErrorFromUnknown(_err);
+        const error = getErrorFromUnknown(_err);
         return {
+          ok: false,
           status: 500,
-          message: err.message,
+          message: error.message,
         };
       }
     },
