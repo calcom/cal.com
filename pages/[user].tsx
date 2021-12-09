@@ -1,6 +1,7 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -18,6 +19,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme(props.user.theme);
   const { user, eventTypes } = props;
   const { t } = useLocale();
+  const router = useRouter();
 
   const nameOrUsername = user.name || user.username || "";
 
@@ -30,15 +32,15 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         avatar={user.avatar || undefined}
       />
       {isReady && (
-        <div className="bg-neutral-50 dark:bg-black h-screen">
-          <main className="max-w-3xl mx-auto py-24 px-4">
+        <div className="h-screen bg-neutral-50 dark:bg-black">
+          <main className="max-w-3xl px-4 py-24 mx-auto">
             <div className="mb-8 text-center">
               <Avatar
                 imageSrc={user.avatar}
-                className="mx-auto w-24 h-24 rounded-full mb-4"
+                className="w-24 h-24 mx-auto mb-4 rounded-full"
                 alt={nameOrUsername}
               />
-              <h1 className="font-cal text-3xl font-bold text-neutral-900 dark:text-white mb-1">
+              <h1 className="mb-1 text-3xl font-bold font-cal text-neutral-900 dark:text-white">
                 {nameOrUsername}
               </h1>
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
@@ -47,9 +49,15 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               {eventTypes.map((type) => (
                 <div
                   key={type.id}
-                  className="group relative dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 bg-white hover:bg-gray-50 border border-neutral-200 hover:border-brand rounded-sm">
-                  <ArrowRightIcon className="absolute transition-opacity h-4 w-4 right-3 top-3 text-black dark:text-white opacity-0 group-hover:opacity-100" />
-                  <Link href={`/${user.username}/${type.slug}`}>
+                  className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-brand">
+                  <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
+                  <Link
+                    href={{
+                      pathname: `/${user.username}/${type.slug}`,
+                      query: {
+                        ...router.query,
+                      },
+                    }}>
                     <a className="block px-6 py-4" data-testid="event-type-link">
                       <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
@@ -59,9 +67,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               ))}
             </div>
             {eventTypes.length === 0 && (
-              <div className="shadow overflow-hidden rounded-sm">
+              <div className="overflow-hidden rounded-sm shadow">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
-                  <h2 className="font-cal font-semibold text-3xl text-gray-600 dark:text-white">
+                  <h2 className="text-3xl font-semibold text-gray-600 font-cal dark:text-white">
                     {t("uh_oh")}
                   </h2>
                   <p className="max-w-md mx-auto">{t("no_event_types_have_been_setup")}</p>

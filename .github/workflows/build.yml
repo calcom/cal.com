@@ -2,6 +2,7 @@ name: Build
 on: [push]
 jobs:
   build:
+    timeout-minutes: 5
     name: Build on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     env:

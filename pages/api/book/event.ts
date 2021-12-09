@@ -18,6 +18,7 @@ import {
   sendRescheduledEmails,
   sendOrganizerRequestEmail,
 } from "@lib/emails/email-manager";
+import { ensureArray } from "@lib/ensureArray";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
@@ -127,6 +128,59 @@ function isOutOfBounds(
   }
 }
 
+const userSelect = Prisma.validator<Prisma.UserArgs>()({
+  select: {
+    id: true,
+    email: true,
+    name: true,
+    username: true,
+    timeZone: true,
+    credentials: true,
+    bufferTime: true,
+  },
+});
+
+const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNames: string[]) => {
+  const users = await prisma.user.findMany({
+    where: {
+      username: { in: selectedUserNames },
+      bookings: {
+        some: {
+          startTime: {
+            gt: new Date(),
+          },
+          eventTypeId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+
+  const userNamesWithBookingCounts = await Promise.all(
+    users.map(async (user) => ({
+      username: user.username,
+      bookingCount: await prisma.booking.count({
+        where: {
+          user: {
+            id: user.id,
+          },
+          startTime: {
+            gt: new Date(),
+          },
+          eventTypeId,
+        },
+      }),
+    }))
+  );
+
+  return userNamesWithBookingCounts;
+};
+
+type User = Prisma.UserGetPayload<typeof userSelect>;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
 
@@ -152,28 +206,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json(error);
   }
 
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
-    id: true,
-    email: true,
-    name: true,
-    username: true,
-    timeZone: true,
-    credentials: true,
-    bufferTime: true,
-  });
-
-  const userData = Prisma.validator<Prisma.UserArgs>()({
-    select: userSelect,
-  });
-
   const eventType = await prisma.eventType.findUnique({
     where: {
       id: eventTypeId,
     },
     select: {
-      users: {
-        select: userSelect,
-      },
+      users: userSelect,
       team: {
         select: {
           id: true,
@@ -206,47 +244,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: {
         id: eventType.userId,
       },
-      select: userSelect,
+      ...userSelect,
     });
     if (!eventTypeUser) return res.status(404).json({ message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    const selectedUsers = reqBody.users || [];
-    const selectedUsersDataWithBookingsCount = await prisma.user.findMany({
-      where: {
-        username: { in: selectedUsers },
-        bookings: {
-          every: {
-            startTime: {
-              gt: new Date(),
-            },
-          },
-        },
-      },
-      select: {
-        username: true,
-        _count: {
-          select: { bookings: true },
-        },
-      },
-    });
+    const bookingCounts = await getUserNameWithBookingCounts(
+      eventTypeId,
+      ensureArray(reqBody.user) || users.map((user) => user.username)
+    );
 
-    const bookingCounts = selectedUsersDataWithBookingsCount.map((userData) => ({
-      username: userData.username,
-      bookingCount: userData._count?.bookings || 0,
-    }));
-
-    if (!bookingCounts.length) users.slice(0, 1);
-
-    const [firstMostAvailableUser] = bookingCounts.sort((a, b) => (a.bookingCount > b.bookingCount ? 1 : -1));
-    const luckyUser = users.find((user) => user.username === firstMostAvailableUser?.username);
-    users = luckyUser ? [luckyUser] : users;
+    users = getLuckyUsers(users, bookingCounts);
   }
 
   const invitee = [{ email: reqBody.email, name: reqBody.name, timeZone: reqBody.timeZone }];
-  const guests = reqBody.guests.map((guest) => {
+  const guests = (reqBody.guests || []).map((guest) => {
     const g = {
       email: guest,
       name: "",
@@ -277,10 +291,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     t,
   };
 
+  const description =
+    reqBody.notes +
+    reqBody.customInputs.reduce(
+      (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
+      ""
+    );
+
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject),
-    description: reqBody.notes,
+    description,
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
@@ -356,7 +377,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let results: EventResult[] = [];
   let referencesToCreate: PartialReference[] = [];
-  type User = Prisma.UserGetPayload<typeof userData>;
   let user: User | null = null;
 
   for (const currentUser of users) {
@@ -521,13 +541,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getSubscribers(user.id, eventTrigger);
-  console.log("evt:", evt);
+  console.log("evt:", {
+    ...evt,
+    metadata: reqBody.metadata,
+  });
   const promises = subscribers.map((sub) =>
-    sendPayload(eventTrigger, new Date().toISOString(), sub.subscriberUrl, evt, sub.payloadTemplate).catch(
-      (e) => {
-        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-      }
-    )
+    sendPayload(
+      eventTrigger,
+      new Date().toISOString(),
+      sub.subscriberUrl,
+      {
+        ...evt,
+        metadata: reqBody.metadata,
+      },
+      sub.payloadTemplate
+    ).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+    })
   );
   await Promise.all(promises);
 
@@ -549,4 +579,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // booking successful
   return res.status(201).json(booking);
+}
+
+export function getLuckyUsers(
+  users: User[],
+  bookingCounts: Prisma.PromiseReturnType<typeof getUserNameWithBookingCounts>
+) {
+  if (!bookingCounts.length) users.slice(0, 1);
+
+  const [firstMostAvailableUser] = bookingCounts.sort((a, b) => (a.bookingCount > b.bookingCount ? 1 : -1));
+  const luckyUser = users.find((user) => user.username === firstMostAvailableUser?.username);
+  return luckyUser ? [luckyUser] : users;
 }

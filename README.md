@@ -157,7 +157,7 @@ yarn dx
    npx prisma studio
    ```
 8. Click on the `User` model to add a new user record.
-9. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+9. Fill out the fields `email`, `username`, and `password` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
 
@@ -293,7 +293,6 @@ Contributions are what make the open source community such an amazing place to b
 2.  From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3.  Copy your API key.
 4.  Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
-5.  If you have a [Daily Scale Plan](https://www.daily.co/pricing) can also enable the ability to record Daily video meetings. To do so, set the `DAILY_SCALE_PLAN` environment variable to `'true'`
 
 <!-- LICENSE -->
 

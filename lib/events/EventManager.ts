@@ -117,16 +117,19 @@ export default class EventManager {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    const results: Array<EventResult> = await this.createAllCalendarEvents(evt);
+    const results: Array<EventResult> = [];
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
       }
+
       results.push(result);
     }
+
+    // Create the calendar event with the proper video call data
+    results.push(...(await this.createAllCalendarEvents(evt)));
 
     const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
@@ -185,8 +188,7 @@ export default class EventManager {
     }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-    // First, create all calendar events. If this is a dedicated integration event, don't send a mail right here.
-    const results: Array<EventResult> = await this.updateAllCalendarEvents(evt, booking);
+    const results: Array<EventResult> = [];
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
@@ -195,6 +197,9 @@ export default class EventManager {
       }
       results.push(result);
     }
+
+    // Update all calendar events.
+    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
