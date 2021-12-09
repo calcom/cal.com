@@ -1,7 +1,12 @@
 import { getApps } from "../../lib/getApps";
 import AppCard from "./AppCard";
 
-export default function AllApps(props: any) {
+interface AllAppsProps {
+  showModalFunction: () => void;
+  setSelectedAppFunction: () => void;
+}
+
+export default function AllApps(props: AllAppsProps) {
   const apps = getApps();
 
   return (

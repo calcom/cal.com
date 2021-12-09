@@ -2,7 +2,17 @@ import { StarIcon } from "@heroicons/react/solid";
 
 import Button from "@components/ui/Button";
 
-export default function AppCard(props: any) {
+interface AppCardProps {
+  showModalFunction: () => void;
+  setSelectedAppFunction: () => void;
+  logo: string;
+  name: string;
+  category: string;
+  description: string;
+  rating: number;
+}
+
+export default function AppCard(props: AppCardProps) {
   return (
     <div
       className="p-5 border border-gray-300 rounded-sm hover:bg-gray-200"

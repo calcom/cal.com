@@ -5,7 +5,12 @@ import { useEffect } from "react";
 import { getApps } from "../../lib/getApps";
 import AppCard from "./AppCard";
 
-export default function Slider(props: any) {
+interface SliderProps {
+  showModalFunction: () => void;
+  setSelectedAppFunction: () => void;
+}
+
+export default function Slider(props: SliderProps) {
   const apps = getApps();
 
   useEffect(() => {
