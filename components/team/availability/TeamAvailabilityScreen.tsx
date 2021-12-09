@@ -51,11 +51,11 @@ export default function TeamAvailabilityScreen(props: Props) {
               <Avatar
                 imageSrc={getPlaceholderAvatar(member?.avatar, member?.name as string)}
                 alt={member?.name || ""}
-                className="w-10 h-10 mt-1 rounded-full"
+                className="w-10 h-10 mt-1 rounded-full min-w-10 min-h-10"
               />
-              <div className="inline-block pt-1 ml-3">
-                <span className="text-lg font-bold text-neutral-700">{member?.name}</span>
-                <span className="block -mt-1 text-sm text-gray-400">{member?.email}</span>
+              <div className="inline-block pt-1 ml-3 overflow-hidden">
+                <span className="text-lg font-bold truncate text-neutral-700">{member?.name}</span>
+                <span className="block -mt-1 text-sm text-gray-400 truncate">{member?.email}</span>
               </div>
             </div>
           }
@@ -65,8 +65,8 @@ export default function TeamAvailabilityScreen(props: Props) {
   };
 
   return (
-    <div className="flex flex-col flex-1 p-5 bg-white border rounded-sm border-neutral-200">
-      <div className="flex w-full pb-5 pr-0 space-x-5 border-b border-gray-200">
+    <div className="flex flex-col flex-1 bg-white border rounded-sm border-neutral-200">
+      <div className="flex w-full p-5 pr-0 space-x-5 border-b border-gray-200">
         <div className="flex flex-col">
           <span className="font-bold text-gray-600">Date</span>
           <DatePicker
