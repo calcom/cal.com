@@ -80,7 +80,9 @@ describe("webhooks", () => {
           },
         ],
         "description": "",
+        "destinationCalendar": null,
         "endTime": "[redacted/dynamic]",
+        "metadata": Object {},
         "organizer": Object {
           "email": "pro@example.com",
           "name": "Pro Example",
