@@ -2,11 +2,12 @@ import { Credential, Prisma } from "@prisma/client";
 import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { Auth, calendar_v3, google } from "googleapis";
 
+import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
 
 export interface ConferenceData {
-  createRequest: calendar_v3.Schema$CreateConferenceRequest;
+  createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
 const googleAuth = (credential: Credential) => {
@@ -90,7 +91,19 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                   if (err) {
                     reject(err);
                   }
-                  resolve(Object.values(apires.data.calendars).flatMap((item) => item["busy"]));
+                  let result: Prisma.PromiseReturnType<CalendarApiAdapter["getAvailability"]> = [];
+                  if (apires?.data.calendars) {
+                    result = Object.values(apires.data.calendars).reduce((c, i) => {
+                      i.busy?.forEach((busyTime) => {
+                        c.push({
+                          start: busyTime.start || "",
+                          end: busyTime.end || "",
+                        });
+                      });
+                      return c;
+                    }, [] as typeof result);
+                  }
+                  resolve(result);
                 }
               );
             })
@@ -105,7 +118,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
         auth.getToken().then((myGoogleAuth) => {
           const payload: calendar_v3.Schema$Event = {
             summary: event.title,
-            description: event.description,
+            description: getRichDescription(event),
             start: {
               dateTime: event.startTime,
               timeZone: event.organizer.timeZone,
@@ -122,7 +135,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           };
 
           if (event.location) {
-            payload["location"] = event.location;
+            payload["location"] = getLocation(event);
           }
 
           if (event.conferenceData && event.location === "integrations:google:meet") {
@@ -145,7 +158,14 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                 console.error("There was an error contacting google calendar service: ", err);
                 return reject(err);
               }
-              return resolve(event.data);
+              return resolve({
+                ...event.data,
+                id: event.data.id || "",
+                hangoutLink: event.data.hangoutLink || "",
+                type: "google_calendar",
+                password: "",
+                url: "",
+              });
             }
           );
         })
@@ -155,7 +175,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
         auth.getToken().then((myGoogleAuth) => {
           const payload: calendar_v3.Schema$Event = {
             summary: event.title,
-            description: event.description,
+            description: getRichDescription(event),
             start: {
               dateTime: event.startTime,
               timeZone: event.organizer.timeZone,
@@ -166,13 +186,12 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
             },
             attendees: event.attendees,
             reminders: {
-              useDefault: false,
-              overrides: [{ method: "email", minutes: 10 }],
+              useDefault: true,
             },
           };
 
           if (event.location) {
-            payload["location"] = event.location;
+            payload["location"] = getLocation(event);
           }
 
           const calendar = google.calendar({

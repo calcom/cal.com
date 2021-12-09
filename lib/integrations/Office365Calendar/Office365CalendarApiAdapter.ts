@@ -1,6 +1,7 @@
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { Credential } from "@prisma/client";
 
+import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "@lib/calendarClient";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
 import prisma from "@lib/prisma";
@@ -65,7 +66,7 @@ export const Office365CalendarApiAdapter = (credential: Credential): CalendarApi
       subject: event.title,
       body: {
         contentType: "HTML",
-        content: event.description,
+        content: getRichDescription(event),
       },
       start: {
         dateTime: event.startTime,
@@ -82,7 +83,7 @@ export const Office365CalendarApiAdapter = (credential: Credential): CalendarApi
         },
         type: "required",
       })),
-      location: event.location ? { displayName: event.location } : undefined,
+      location: event.location ? { displayName: getLocation(event) } : undefined,
     };
   };
 

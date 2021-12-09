@@ -123,7 +123,6 @@ export default class EventManager {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
-        evt.location = result.createdEvent.url;
       }
 
       results.push(result);
@@ -195,7 +194,6 @@ export default class EventManager {
       const result = await this.updateVideoEvent(evt, booking);
       if (result.updatedEvent) {
         evt.videoCallData = result.updatedEvent;
-        evt.location = result.updatedEvent.url;
       }
       results.push(result);
     }

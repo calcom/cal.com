@@ -140,12 +140,9 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
   const users = await prisma.user.findMany({
     where: {
       username: { in: selectedUserNames },
-      bookings: {
+      eventTypes: {
         some: {
-          startTime: {
-            gt: new Date(),
-          },
-          eventTypeId,
+          id: eventTypeId,
         },
       },
     },
@@ -284,10 +281,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const description =
-    reqBody.customInputs.reduce((str, input) => str + input.label + "\n" + input.value + "\n\n", "") +
-    t("additional_notes") +
-    ":\n" +
-    reqBody.notes;
+    reqBody.notes +
+    reqBody.customInputs.reduce(
+      (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
+      ""
+    );
 
   const evt: CalendarEvent = {
     type: eventType.title,
