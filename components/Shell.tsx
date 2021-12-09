@@ -328,15 +328,14 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center space-x-2 cursor-pointer group">
-          <Avatar
-            imageSrc={user?.avatar || ""}
-            alt={user?.username || "Nameless User"}
-            className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}
-          />
+        <div className="flex items-center space-x-2 cursor-pointer group w-full">
+          <span
+            className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}>
+            <Avatar imageSrc={user?.avatar || ""} alt={user?.username || "Nameless User"} />
+          </span>
           {!small && (
-            <>
-              <span className="flex-grow text-sm">
+            <span className="flex flex-grow items-center truncate">
+              <span className="flex-grow text-sm truncate">
                 <span className="block font-medium text-gray-900 truncate">
                   {user?.username || "Nameless User"}
                 </span>
@@ -348,7 +347,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
-            </>
+            </span>
           )}
         </div>
       </DropdownMenuTrigger>
