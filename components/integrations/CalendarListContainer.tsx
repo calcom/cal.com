@@ -162,6 +162,7 @@ function ConnectedCalendarsList(props: Props) {
 }
 
 function PrimaryCalendarSelector() {
+  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"], {
     suspense: true,
   });
@@ -196,28 +197,37 @@ function PrimaryCalendarSelector() {
       })),
     })) ?? [];
   return (
-    <Select
-      name={"primarySelectedCalendar"}
-      options={options}
-      isSearchable={false}
-      className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
-      onChange={(option) => {
-        setSelectedOption(option);
-        if (!option) {
-          return;
-        }
+    <div className="relative">
+      {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
+      <div className="absolute z-10 pointer-events-none">
+        <Button size="sm" color="secondary" className="border-transparent m-[1px] rounded-sm">
+          {t("select_destination_calendar")}: {selectedOption?.label || ""}
+        </Button>
+      </div>
+      <Select
+        name={"primarySelectedCalendar"}
+        placeholder={`${t("select_destination_calendar")}:`}
+        options={options}
+        isSearchable={false}
+        className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
+        onChange={(option) => {
+          setSelectedOption(option);
+          if (!option) {
+            return;
+          }
 
-        /* Split only the first `:`, since Apple uses the full URL as externalId */
-        const [integration, externalId] = option.value.split(/:(.+)/);
+          /* Split only the first `:`, since Apple uses the full URL as externalId */
+          const [integration, externalId] = option.value.split(/:(.+)/);
 
-        mutation.mutate({
-          integration,
-          externalId,
-        });
-      }}
-      isLoading={mutation.isLoading}
-      value={selectedOption}
-    />
+          mutation.mutate({
+            integration,
+            externalId,
+          });
+        }}
+        isLoading={mutation.isLoading}
+        value={selectedOption}
+      />
+    </div>
   );
 }
 
@@ -266,7 +276,7 @@ export function CalendarListContainer(props: { heading?: false }) {
     <>
       {heading && (
         <ShellSubHeading
-          className="mt-10"
+          className="mt-10 mb-0"
           title={
             <SubHeadingTitleWithConnections
               title="Calendars"
@@ -274,11 +284,13 @@ export function CalendarListContainer(props: { heading?: false }) {
             />
           }
           subtitle={t("configure_how_your_event_types_interact")}
-          actions={<div className="block"></div>}
+          actions={
+            <div className="block max-w-full sm:min-w-80">
+              <PrimaryCalendarSelector />
+            </div>
+          }
         />
       )}
-      <p className="mr-4 text-sm text-neutral-500">{t("select_destination_calendar")}</p>
-      <PrimaryCalendarSelector />
       <ConnectedCalendarsList onChanged={onChanged} />
       {!!query.data?.connectedCalendars.length && (
         <ShellSubHeading
