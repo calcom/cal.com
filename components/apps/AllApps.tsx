@@ -20,6 +20,7 @@ export default function AllApps(props: AllAppsProps) {
             description={app.description}
             logo={app.logo}
             rating={app.rating}
+            reviews={app.reviews}
             showModalFunction={props.showModalFunction}
             setSelectedAppFunction={props.setSelectedAppFunction}
           />

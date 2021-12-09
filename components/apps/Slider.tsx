@@ -23,16 +23,16 @@ export default function Slider(props: SliderProps) {
   return (
     <div className="mb-16">
       <div className="glide">
-        <div className="flex">
+        <div className="flex cursor-default">
           <div>
             <h2 className="mb-2 text-lg font-semibold text-gray-900">Trending apps</h2>
           </div>
           <div className="ml-auto glide__arrows" data-glide-el="controls">
             <button data-glide-dir="<" className="mr-4">
-              <ArrowLeftIcon className="w-5 h-5" />
+              <ArrowLeftIcon className="w-5 h-5 text-gray-600 hover:text-black" />
             </button>
             <button data-glide-dir=">">
-              <ArrowRightIcon className="w-5 h-5" />
+              <ArrowRightIcon className="w-5 h-5 text-gray-600 hover:text-black" />
             </button>
           </div>
         </div>
@@ -48,6 +48,7 @@ export default function Slider(props: SliderProps) {
                       description={app.description}
                       logo={app.logo}
                       rating={app.rating}
+                      reviews={app.reviews}
                       showModalFunction={props.showModalFunction}
                       setSelectedAppFunction={props.setSelectedAppFunction}
                     />

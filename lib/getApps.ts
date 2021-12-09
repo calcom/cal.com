@@ -7,6 +7,7 @@ export function getApps() {
         "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
       logo: "/integrations/zoom.svg",
       rating: 4.3,
+      reviews: 69,
     },
     {
       name: "Daily.co",
@@ -16,6 +17,7 @@ export function getApps() {
       logo: "/integrations/daily.svg",
       rating: 4.8,
       trending: true,
+      reviews: 69,
     },
     {
       name: "Google Meet",
@@ -25,6 +27,7 @@ export function getApps() {
       logo: "https://cdn.iconscout.com/icon/free/png-256/google-meet-2923654-2416657.png",
       rating: 4.4,
       trending: true,
+      reviews: 69,
     },
     {
       name: "Stripe",
@@ -33,6 +36,7 @@ export function getApps() {
       logo: "/integrations/stripe.svg",
       rating: 4.6,
       trending: true,
+      reviews: 69,
     },
     {
       name: "Google Calendar",
@@ -41,6 +45,7 @@ export function getApps() {
         "Google Calendar is the most popular calendar platform for personal and business calendars.",
       logo: "/integrations/google-calendar.svg",
       rating: 4.9,
+      reviews: 69,
     },
     {
       name: "Microsoft 365/Outlook Calendar",
@@ -49,6 +54,7 @@ export function getApps() {
         "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
       logo: "/integrations/outlook.svg",
       rating: 4.2,
+      reviews: 69,
     },
     {
       name: "CalDAV",
@@ -56,6 +62,7 @@ export function getApps() {
       description: "CalDAV is an open calendar standard which connects to virtually every calendar.",
       logo: "/integrations/caldav.svg",
       rating: 3.6,
+      reviews: 69,
     },
     {
       name: "iCloud Calendar",
@@ -64,6 +71,7 @@ export function getApps() {
         "iCloud Calendar is Apple's calendar platform for users of iCloud, and is used in the Apple Calendar app on iOS and macOS.",
       logo: "/integrations/apple-calendar.svg",
       rating: 3.8,
+      reviews: 69,
     },
   ];
 }
