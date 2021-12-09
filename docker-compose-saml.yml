@@ -14,7 +14,7 @@ services:
       POSTGRES_PASSWORD: ""
       POSTGRES_HOST_AUTH_METHOD: trust
   boxyhq_saml:
-    image: boxyhq/jackson:e4a34c9
+    image: boxyhq/jackson:e3ba514
     ports:
       - "5000:5000"
       - "6000:6000"

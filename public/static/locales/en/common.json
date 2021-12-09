@@ -561,5 +561,6 @@
   "saml_configured_for_provider": "SAML configured for {{provider}}",
   "saml_not_configured_yet": "SAML not configured yet",
   "saml_configuration_description": "Please paste the SAML metadata from your Identity Provider in the textbox below to update your SAML configuration.",
-  "saml_configuration_placeholder": "Please paste the SAML metadata from your Identity Provider here"
+  "saml_configuration_placeholder": "Please paste the SAML metadata from your Identity Provider here",
+  "saml_email_required": "Please enter an email so we can find your SAML Identity Provider"
 }

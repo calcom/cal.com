@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { ErrorCode, getSession, isGoogleLoginEnabled } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-import { isSAMLLoginEnabled } from "@lib/saml";
+import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
@@ -18,10 +18,16 @@ export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
   isSAMLLoginEnabled,
+  hostedCal,
+  samlTenantID,
+  samlProductID,
 }: {
   csrfToken: string;
   isGoogleLoginEnabled: boolean;
   isSAMLLoginEnabled: boolean;
+  hostedCal: boolean;
+  samlTenantID: string;
+  samlProductID: string;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -82,6 +88,19 @@ export default function Login({
       setIsSubmitting(false);
     }
   }
+
+  const samlSignIn = async () => {
+    if (!hostedCal) {
+      await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });
+    } else {
+      if (email.length === 0) {
+        setErrorMessage(t("saml_email_required"));
+        return;
+      }
+
+      // hosted solution, TODO: fetch tenant and product from the backend
+    }
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -196,7 +215,7 @@ export default function Login({
           {isSAMLLoginEnabled && (
             <div style={{ marginTop: "12px" }}>
               <button
-                onClick={async () => await signIn("saml")}
+                onClick={samlSignIn}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_saml")}
               </button>
@@ -236,6 +255,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       isGoogleLoginEnabled,
       isSAMLLoginEnabled,
+      hostedCal,
+      samlTenantID,
+      samlProductID,
     },
   };
 }
