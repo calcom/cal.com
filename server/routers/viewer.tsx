@@ -376,7 +376,42 @@ const loggedInViewerRouter = createProtectedRouter()
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
-      return connectedCalendars;
+      return {
+        connectedCalendars,
+        destinationCalendar: user.destinationCalendar,
+      };
+    },
+  })
+  .mutation("setUserDestinationCalendar", {
+    input: z.object({
+      integration: z.string(),
+      externalId: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const userId = ctx.user.id;
+      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+
+      if (
+        !allCals.find((cal) => cal.externalId === input.externalId && cal.integration === input.integration)
+      ) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
+      }
+      await ctx.prisma.destinationCalendar.upsert({
+        where: {
+          userId,
+        },
+        update: {
+          ...input,
+          userId,
+        },
+        create: {
+          ...input,
+          userId,
+        },
+      });
     },
   })
   .query("integrations", {
