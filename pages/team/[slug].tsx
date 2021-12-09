@@ -18,7 +18,9 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
-function TeamPage({ team }: inferSSRProps<typeof getServerSideProps>) {
+export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
+
+function TeamPage({ team }: TeamPageProps) {
   const { isReady } = useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();

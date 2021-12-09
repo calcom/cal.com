@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "@heroicons/react/outline";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
 import classnames from "classnames";
 import Link from "next/link";
+import { TeamPageProps } from "pages/team/[slug]";
 import React from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -10,10 +11,14 @@ import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
-const Team = ({ team }) => {
+type TeamType = TeamPageProps["team"];
+type MembersType = TeamType["members"];
+type MemberType = MembersType[number];
+
+const Team = ({ team }: TeamPageProps) => {
   const { t } = useLocale();
 
-  const Member = ({ member }) => {
+  const Member = ({ member }: { member: MemberType }) => {
     const classes = classnames(
       "group",
       "relative",
@@ -42,7 +47,7 @@ const Team = ({ team }) => {
           />
 
           <div>
-            <Avatar displayName={member.name} imageSrc={member.avatar} className="w-12 h-12" />
+            <Avatar alt={member.name || ""} imageSrc={member.avatar} className="w-12 h-12" />
             <section className="space-y-2">
               <Text variant="title">{member.name}</Text>
               <Text variant="subtitle" className="w-6/8">
@@ -55,7 +60,7 @@ const Team = ({ team }) => {
     );
   };
 
-  const Members = ({ members }) => {
+  const Members = ({ members }: { members: MembersType }) => {
     if (!members || members.length === 0) {
       return null;
     }
