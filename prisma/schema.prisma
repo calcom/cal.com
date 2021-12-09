@@ -193,7 +193,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?     @unique
+  bookingId  Int?
 }
 
 model Booking {
