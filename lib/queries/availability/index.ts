@@ -1,16 +1,11 @@
 // import { getBusyVideoTimes } from "@lib/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import { getBusyCalendarTimes } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export async function getUserAvailability(query: {
   username: string;
