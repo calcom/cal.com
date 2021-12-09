@@ -1,6 +1,5 @@
-import { PaymentType } from "@prisma/client";
+import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
-import { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 
 import { CalendarEvent } from "@lib/calendarClient";
@@ -39,7 +38,7 @@ export async function handlePayment(
     price: number;
     currency: string;
   },
-  stripeCredential: { key: JsonValue },
+  stripeCredential: { key: Prisma.JsonValue },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
@@ -74,7 +73,7 @@ export async function handlePayment(
       data: Object.assign({}, paymentIntent, {
         stripe_publishable_key,
         stripeAccount: stripe_user_id,
-      }) as PaymentData as unknown as JsonValue,
+      }) as PaymentData as unknown as Prisma.JsonValue,
       externalId: paymentIntent.id,
     },
   });
@@ -103,7 +102,7 @@ export async function refund(
       success: boolean;
       refunded: boolean;
       externalId: string;
-      data: JsonValue;
+      data: Prisma.JsonValue;
       type: PaymentType;
     }[];
   },
@@ -113,7 +112,7 @@ export async function refund(
     const payment = booking.payment.find((e) => e.success && !e.refunded);
     if (!payment) return;
 
-    if (payment.type != PaymentType.STRIPE) {
+    if (payment.type !== PaymentType.STRIPE) {
       await handleRefundError({
         event: calEvent,
         reason: "cannot refund non Stripe payment",

@@ -11,10 +11,7 @@ import {
   ConferenceData,
   GoogleCalendarApiAdapter,
 } from "@lib/integrations/GoogleCalendar/GoogleCalendarApiAdapter";
-import {
-  BufferedBusyTime,
-  Office365CalendarApiAdapter,
-} from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
+import { Office365CalendarApiAdapter } from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
 import logger from "@lib/logger";
 import { VideoCallData } from "@lib/videoClient";
 
@@ -69,6 +66,8 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   name?: string;
 }
 
+type EventBusyDate = Record<"start" | "end", Date | string>;
+
 export interface CalendarApiAdapter {
   createEvent(event: CalendarEvent): Promise<Event>;
 
@@ -80,7 +79,7 @@ export interface CalendarApiAdapter {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
-  ): Promise<BufferedBusyTime[]>;
+  ): Promise<EventBusyDate[]>;
 
   listCalendars(): Promise<IntegrationCalendar[]>;
 }

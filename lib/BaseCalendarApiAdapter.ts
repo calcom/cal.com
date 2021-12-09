@@ -116,7 +116,7 @@ export class BaseCalendarApiAdapter {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<unknown> {
+  async updateEvent(uid: string, event: CalendarEvent) {
     try {
       const calendars = await this.listCalendars();
       const events = [];

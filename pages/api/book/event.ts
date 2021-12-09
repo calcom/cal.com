@@ -23,6 +23,7 @@ import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
 import { BufferedBusyTime } from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
 import logger from "@lib/logger";
+import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
@@ -394,8 +395,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedCalendars
       );
 
-      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter((time) => time);
-      calendarBusyTimes.push(...(videoBusyTimes as any[])); // FIXME add types
+      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
+      calendarBusyTimes.push(...videoBusyTimes);
       console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
       const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({

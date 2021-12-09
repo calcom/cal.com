@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "User not found" });
   }
 
-  if (req.method == "PATCH") {
+  if (req.method === "PATCH") {
     const booking = await prisma.booking.findFirst({
       where: {
         id: bookingId,
