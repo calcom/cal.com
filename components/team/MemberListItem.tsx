@@ -3,6 +3,8 @@ import { ClockIcon, ExternalLinkIcon, DotsHorizontalIcon } from "@heroicons/reac
 import Link from "next/link";
 import React, { useState } from "react";
 
+import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
+
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
@@ -18,7 +20,6 @@ import ModalContainer from "@components/ui/ModalContainer";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamRole from "./TeamRole";
-import TeamAvailabilityModal from "./availability/TeamAvailabilityModal";
 import { MembershipRole } from ".prisma/client";
 
 interface Props {
