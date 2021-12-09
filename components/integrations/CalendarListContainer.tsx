@@ -104,7 +104,7 @@ function ConnectedCalendarsList(props: Props) {
           return null;
         }
         return (
-          <List className="-mt-2">
+          <List>
             {data.connectedCalendars.map((item) => (
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
