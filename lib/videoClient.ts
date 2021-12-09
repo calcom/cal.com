@@ -51,7 +51,7 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     return acc;
   }, []);
 
-const getBusyVideoTimes: (withCredentials: Credential[]) => Promise<unknown[]> = (withCredentials) =>
+const getBusyVideoTimes = (withCredentials: Credential[]) =>
   Promise.all(getVideoAdapters(withCredentials).map((c) => c.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );

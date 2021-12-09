@@ -37,6 +37,7 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
+  destinationCalendar     DestinationCalendar[]
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
@@ -70,39 +71,53 @@ enum UserPlan {
   PRO
 }
 
+model DestinationCalendar {
+  id          Int        @id @default(autoincrement())
+  integration String
+  externalId  String
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      Int?       @unique
+  booking     Booking?   @relation(fields: [bookingId], references: [id])
+  bookingId   Int?       @unique
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+  eventTypeId Int?       @unique
+}
+
 model User {
-  id                  Int                @id @default(autoincrement())
-  username            String?            @unique
+  id                  Int                  @id @default(autoincrement())
+  username            String?              @unique
   name                String?
-  email               String             @unique
+  email               String               @unique
   emailVerified       DateTime?
   password            String?
   bio                 String?
   avatar              String?
-  timeZone            String             @default("Europe/London")
-  weekStart           String             @default("Sunday")
+  timeZone            String               @default("Europe/London")
+  weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
-  startTime           Int                @default(0)
-  endTime             Int                @default(1440)
+  startTime           Int                  @default(0)
+  endTime             Int                  @default(1440)
   // </DEPRECATED>
-  bufferTime          Int                @default(0)
-  hideBranding        Boolean            @default(false)
+  bufferTime          Int                  @default(0)
+  hideBranding        Boolean              @default(false)
   theme               String?
-  createdDate         DateTime           @default(now()) @map(name: "created")
-  eventTypes          EventType[]        @relation("user_eventtype")
+  createdDate         DateTime             @default(now()) @map(name: "created")
+  eventTypes          EventType[]          @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
   availability        Availability[]
   selectedCalendars   SelectedCalendar[]
-  completedOnboarding Boolean            @default(false)
+  completedOnboarding Boolean              @default(false)
   locale              String?
   twoFactorSecret     String?
-  twoFactorEnabled    Boolean            @default(false)
-  plan                UserPlan           @default(PRO)
+  twoFactorEnabled    Boolean              @default(false)
+  plan                UserPlan             @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
-  brandColor          String             @default("#292929")
+  brandColor          String               @default("#292929")
+  // the location where the events will end up
+  destinationCalendar DestinationCalendar?
 
   @@map(name: "users")
 }
@@ -181,31 +196,28 @@ model DailyEventReference {
 }
 
 model Booking {
-  id          Int                @id @default(autoincrement())
-  uid         String             @unique
-  user        User?              @relation(fields: [userId], references: [id])
-  userId      Int?
-  references  BookingReference[]
-  eventType   EventType?         @relation(fields: [eventTypeId], references: [id])
-  eventTypeId Int?
-
-  title       String
-  description String?
-  startTime   DateTime
-  endTime     DateTime
-
-  attendees Attendee[]
-  location  String?
-
-  dailyRef DailyEventReference?
-
-  createdAt DateTime      @default(now())
-  updatedAt DateTime?
-  confirmed Boolean       @default(true)
-  rejected  Boolean       @default(false)
-  status    BookingStatus @default(ACCEPTED)
-  paid      Boolean       @default(false)
-  payment   Payment[]
+  id                  Int                  @id @default(autoincrement())
+  uid                 String               @unique
+  user                User?                @relation(fields: [userId], references: [id])
+  userId              Int?
+  references          BookingReference[]
+  eventType           EventType?           @relation(fields: [eventTypeId], references: [id])
+  eventTypeId         Int?
+  title               String
+  description         String?
+  startTime           DateTime
+  endTime             DateTime
+  attendees           Attendee[]
+  location            String?
+  dailyRef            DailyEventReference?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime?
+  confirmed           Boolean              @default(true)
+  rejected            Boolean              @default(false)
+  status              BookingStatus        @default(ACCEPTED)
+  paid                Boolean              @default(false)
+  payment             Payment[]
+  destinationCalendar DestinationCalendar?
 }
 
 model Schedule {
