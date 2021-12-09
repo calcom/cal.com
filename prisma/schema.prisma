@@ -135,6 +135,7 @@ model Team {
 
 enum MembershipRole {
   MEMBER
+  ADMIN
   OWNER
 }
 
