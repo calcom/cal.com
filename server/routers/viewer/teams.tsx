@@ -361,6 +361,8 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
       const member = members?.find((m) => m.userId === input.memberId);
       if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
+      if (!member.user.username)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });
 
       // get availability for this member
       const availability = await getUserAvailability({

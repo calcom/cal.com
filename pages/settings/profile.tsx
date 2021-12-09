@@ -2,8 +2,8 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { ComponentProps, FormEvent, RefObject, useEffect, useRef, useState, useMemo } from "react";
-import Select, { OptionTypeBase } from "react-select";
+import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -125,37 +125,32 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     { value: "light", label: t("light") },
     { value: "dark", label: t("dark") },
   ];
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const usernameRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const nameRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const avatarRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const brandColorRef = useRef<HTMLInputElement>(null!);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
-  const [selectedTheme, setSelectedTheme] = useState<OptionTypeBase>();
+  const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
-  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState<OptionTypeBase>({
+  const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
     value: props.user.weekStart,
     label: nameOfDay(props.localeProp, props.user.weekStart === "Sunday" ? 0 : 1),
   });
 
-  const [selectedLanguage, setSelectedLanguage] = useState<OptionTypeBase>({
-    value: props.localeProp,
-    label: localeOptions.find((option) => option.value === props.localeProp)?.label,
+  const [selectedLanguage, setSelectedLanguage] = useState({
+    value: props.localeProp || "",
+    label: localeOptions.find((option) => option.value === props.localeProp)?.label || "",
   });
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    setSelectedTheme(
-      props.user.theme ? themeOptions.find((theme) => theme.value === props.user.theme) : undefined
-    );
+    if (!props.user.theme) return;
+    const userTheme = themeOptions.find((theme) => theme.value === props.user.theme);
+    if (!userTheme) return;
+    setSelectedTheme(userTheme);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -311,7 +306,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 <Select
                   id="languageSelect"
                   value={selectedLanguage || props.localeProp}
-                  onChange={setSelectedLanguage}
+                  onChange={(v) => v && setSelectedLanguage(v)}
                   classNamePrefix="react-select"
                   className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
                   options={localeOptions}
@@ -326,7 +321,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 <TimezoneSelect
                   id="timeZone"
                   value={selectedTimeZone}
-                  onChange={setSelectedTimeZone}
+                  onChange={(v) => v && setSelectedTimeZone(v)}
                   classNamePrefix="react-select"
                   className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
                 />
@@ -340,7 +335,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 <Select
                   id="weekStart"
                   value={selectedWeekStartDay}
-                  onChange={setSelectedWeekStartDay}
+                  onChange={(v) => v && setSelectedWeekStartDay(v)}
                   classNamePrefix="react-select"
                   className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
                   options={[
@@ -360,7 +355,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   isDisabled={!selectedTheme}
                   defaultValue={selectedTheme || themeOptions[0]}
                   value={selectedTheme || themeOptions[0]}
-                  onChange={setSelectedTheme}
+                  onChange={(v) => v && setSelectedTheme(v)}
                   className="shadow-sm | { value: string } focus:ring-neutral-800 focus:border-neutral-800 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
                   options={themeOptions}
                 />

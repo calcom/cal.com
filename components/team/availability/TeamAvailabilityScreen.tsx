@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, CSSProperties } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
@@ -13,8 +12,6 @@ import { DatePicker } from "@components/ui/form/DatePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
-
-dayjs.extend(utc);
 
 interface Props {
   team?: inferQueryOutput<"viewer.teams.get">;
@@ -34,7 +31,7 @@ export default function TeamAvailabilityScreen(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTimeZone, selectedDate]);
 
-  const Item = ({ index, style }: { index: number; style: Record<string, string> }) => {
+  const Item = ({ index, style }: { index: number; style: CSSProperties }) => {
     const member = props.members?.[index];
     if (!member) return <></>;
 
