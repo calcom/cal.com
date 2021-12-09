@@ -4,10 +4,21 @@ import Button from "@components/ui/Button";
 
 export default function AppCard(props: any) {
   return (
-    <div className="p-5 border border-gray-300 rounded-sm hover:bg-gray-200">
+    <div
+      className="p-5 border border-gray-300 rounded-sm hover:bg-gray-200"
+      onClick={() => {
+        props.showModalFunction(true);
+        props.setSelectedAppFunction(props);
+      }}>
       <div className="flex">
         <img src={props.logo} alt={props.name + " Logo"} className="w-12 h-12 mb-2 rounded-sm" />
-        <Button color="secondary" className="flex self-start ml-auto">
+        <Button
+          color="secondary"
+          className="flex self-start ml-auto"
+          onClick={() => {
+            // TODO: Actually add the integration
+            console.log("The magic is supposed to happen here");
+          }}>
           Add
         </Button>
       </div>

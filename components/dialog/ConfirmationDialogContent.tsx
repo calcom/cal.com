@@ -13,7 +13,8 @@ export type ConfirmationDialogContentProps = {
   cancelBtnText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
-  variety?: "danger" | "warning" | "success";
+  variety?: "danger" | "warning" | "success" | "custom";
+  customIcon?: string;
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
@@ -21,6 +22,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
   const {
     title,
     variety,
+    customIcon,
     confirmBtnText = t("confirm"),
     cancelBtnText = t("cancel"),
     onConfirm,
@@ -33,27 +35,30 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
         {variety && (
           <div className="mr-3 mt-0.5">
             {variety === "danger" && (
-              <div className="text-center p-2 rounded-full mx-auto bg-red-100">
+              <div className="p-2 mx-auto text-center bg-red-100 rounded-full">
                 <ExclamationIcon className="w-5 h-5 text-red-600" />
               </div>
             )}
             {variety === "warning" && (
-              <div className="text-center p-2 rounded-full mx-auto bg-orange-100">
+              <div className="p-2 mx-auto text-center bg-orange-100 rounded-full">
                 <ExclamationIcon className="w-5 h-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (
-              <div className="text-center p-2 rounded-full mx-auto bg-green-100">
+              <div className="p-2 mx-auto text-center bg-green-100 rounded-full">
                 <CheckIcon className="w-5 h-5 text-green-600" />
+              </div>
+            )}
+            {variety === "custom" && (
+              <div>
+                <img src={customIcon} className="w-12 h-12" />
               </div>
             )}
           </div>
         )}
         <div>
-          <DialogPrimitive.Title className="font-cal text-xl font-bold text-gray-900">
-            {title}
-          </DialogPrimitive.Title>
-          <DialogPrimitive.Description className="text-neutral-500 text-sm">
+          <DialogPrimitive.Title className="text-xl text-gray-900 font-cal">{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Description className="text-sm text-neutral-500">
             {children}
           </DialogPrimitive.Description>
         </div>

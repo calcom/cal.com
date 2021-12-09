@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { getApps } from "../../lib/getApps";
 import AppCard from "./AppCard";
 
-export default function Slider() {
+export default function Slider(props: any) {
   const apps = getApps();
 
   useEffect(() => {
@@ -43,6 +43,8 @@ export default function Slider() {
                       description={app.description}
                       logo={app.logo}
                       rating={app.rating}
+                      showModalFunction={props.showModalFunction}
+                      setSelectedAppFunction={props.setSelectedAppFunction}
                     />
                   </li>
                 )
