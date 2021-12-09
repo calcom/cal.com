@@ -11,27 +11,15 @@ export default function Apps() {
   const popularCategories = [
     {
       name: "Payments",
-      count: 5,
+      count: 1,
     },
     {
       name: "Video Conferencing",
-      count: 10,
+      count: 3,
     },
     {
-      name: "Payments",
-      count: 5,
-    },
-    {
-      name: "Video Conferencing",
-      count: 10,
-    },
-    {
-      name: "Payments",
-      count: 5,
-    },
-    {
-      name: "Video Conferencing",
-      count: 10,
+      name: "Calendar",
+      count: 4,
     },
   ];
 

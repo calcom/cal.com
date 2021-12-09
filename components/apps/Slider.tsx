@@ -2,15 +2,19 @@ import Glide from "@glidejs/glide";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
 import { useEffect } from "react";
 
+import { getApps } from "../../lib/getApps";
 import AppCard from "./AppCard";
 
 export default function Slider() {
+  const apps = getApps();
+
   useEffect(() => {
     new Glide(".glide", {
       type: "carousel",
       perView: 3,
     }).mount();
   });
+
   return (
     <div className="mb-16">
       <div className="glide">
@@ -29,14 +33,21 @@ export default function Slider() {
         </div>
         <div className="glide__track" data-glide-el="track">
           <ul className="glide__slides">
-            <li className="glide__slide">
-              <AppCard
-                name="Zoom"
-                description="Zoom provides video conferencing services."
-                logo="https://st3.zoom.us/static/5.2.3509/image/thumb.png"
-                rating={4.8}
-              />
-            </li>
+            {apps.map((app) => {
+              return (
+                app.trending && (
+                  <li key={app.name} className="glide__slide">
+                    <AppCard
+                      key={app.name}
+                      name={app.name}
+                      description={app.description}
+                      logo={app.logo}
+                      rating={app.rating}
+                    />
+                  </li>
+                )
+              );
+            })}
           </ul>
         </div>
       </div>
