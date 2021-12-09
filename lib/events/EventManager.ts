@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { Credential, DestinationCalendar } from "@prisma/client";
 import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
@@ -86,18 +86,22 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   return event;
 };
 
+type EventManagerUser = {
+  credentials: Credential[];
+  destinationCalendar: DestinationCalendar | null;
+};
 export default class EventManager {
-  calendarCredentials: Array<Credential>;
-  videoCredentials: Array<Credential>;
+  calendarCredentials: Credential[];
+  videoCredentials: Credential[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param credentials
    */
-  constructor(credentials: Array<Credential>) {
-    this.calendarCredentials = credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    this.videoCredentials = credentials.filter((cred) => cred.type.endsWith("_video"));
+  constructor(user: EventManagerUser) {
+    this.calendarCredentials = user.credentials.filter((cred) => cred.type.endsWith("_calendar"));
+    this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
 
     //for  Daily.co video, temporarily pushes a credential for the daily-video-client
     const hasDailyIntegration = process.env.DAILY_API_KEY;
@@ -180,6 +184,7 @@ export default class EventManager {
             meetingUrl: true,
           },
         },
+        destinationCalendar: true,
       },
     });
 
@@ -194,6 +199,7 @@ export default class EventManager {
       const result = await this.updateVideoEvent(evt, booking);
       if (result.updatedEvent) {
         evt.videoCallData = result.updatedEvent;
+        evt.location = result.updatedEvent.url;
       }
       results.push(result);
     }
@@ -240,13 +246,21 @@ export default class EventManager {
    * @param noMail
    * @private
    */
-
   private async createAllCalendarEvents(event: CalendarEvent): Promise<Array<EventResult>> {
-    const [firstCalendar] = this.calendarCredentials;
-    if (!firstCalendar) {
+    /** Can I use destinationCalendar here? */
+    /* How can I link a DC to a cred? */
+    if (event.destinationCalendar) {
+      const destinationCalendarCredentials = this.calendarCredentials.filter(
+        (c) => c.type === event.destinationCalendar?.integration
+      );
+      return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
+    }
+
+    const [credential] = this.calendarCredentials;
+    if (!credential) {
       return [];
     }
-    return [await createEvent(firstCalendar, event)];
+    return [await createEvent(credential, event)];
   }
 
   /**

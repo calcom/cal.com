@@ -10,18 +10,30 @@ export interface ConferenceData {
   createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
+class MyGoogleAuth extends google.auth.OAuth2 {
+  constructor(client_id: string, client_secret: string, redirect_uri: string) {
+    super(client_id, client_secret, redirect_uri);
+  }
+
+  isTokenExpiring() {
+    return super.isTokenExpiring();
+  }
+
+  async refreshToken(token: string | null | undefined) {
+    return super.refreshToken(token);
+  }
+}
+
 const googleAuth = (credential: Credential) => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS!).web;
-  const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  const myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
   const googleCredentials = credential.key as Auth.Credentials;
   myGoogleAuth.setCredentials(googleCredentials);
 
-  // FIXME - type errors IDK Why this is a protected method ¯\_(ツ)_/¯
   const isExpired = () => myGoogleAuth.isTokenExpiring();
 
   const refreshAccessToken = () =>
     myGoogleAuth
-      // FIXME - type errors IDK Why this is a protected method ¯\_(ツ)_/¯
       .refreshToken(googleCredentials.refresh_token)
       .then((res: GetTokenResponse) => {
         const token = res.res?.data;
@@ -149,7 +161,9 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.insert(
             {
               auth: myGoogleAuth,
-              calendarId: "primary",
+              calendarId: event.destinationCalendar?.externalId
+                ? event.destinationCalendar.externalId
+                : "primary",
               requestBody: payload,
               conferenceDataVersion: 1,
             },
@@ -201,7 +215,9 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.update(
             {
               auth: myGoogleAuth,
-              calendarId: "primary",
+              calendarId: event.destinationCalendar?.externalId
+                ? event.destinationCalendar.externalId
+                : "primary",
               eventId: uid,
               sendNotifications: true,
               sendUpdates: "all",

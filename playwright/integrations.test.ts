@@ -37,7 +37,7 @@ describe("webhooks", () => {
     // --- Book the first available day next month in the pro user's "30min"-event
     await page.goto(`http://localhost:3000/pro/30min`);
     await page.click('[data-testid="incrementMonth"]');
-    await page.click('[data-testid="day"]');
+    await page.click('[data-testid="day"][data-disabled="false"]');
     await page.click('[data-testid="time"]');
 
     // --- fill form
@@ -80,7 +80,9 @@ describe("webhooks", () => {
           },
         ],
         "description": "",
+        "destinationCalendar": null,
         "endTime": "[redacted/dynamic]",
+        "metadata": Object {},
         "organizer": Object {
           "email": "pro@example.com",
           "name": "Pro Example",
