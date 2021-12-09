@@ -108,7 +108,7 @@ export function ShellSubHeading(props: {
         </h2>
         {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
       </div>
-      {props.actions && <div className="flex-shrink-0 mb-4">{props.actions}</div>}
+      {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
     </div>
   );
 }
@@ -357,13 +357,13 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center space-x-2 cursor-pointer group w-full">
+        <div className="flex items-center w-full space-x-2 cursor-pointer group">
           <span
             className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}>
             <Avatar imageSrc={user?.avatar || ""} alt={user?.username || "Nameless User"} />
           </span>
           {!small && (
-            <span className="flex flex-grow items-center truncate">
+            <span className="flex items-center flex-grow truncate">
               <span className="flex-grow text-sm truncate">
                 <span className="block font-medium text-gray-900 truncate">
                   {user?.username || "Nameless User"}
