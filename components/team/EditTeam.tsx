@@ -141,7 +141,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
           </div>
         </div>
         <hr className="mt-2" />
-        <h3 className="font-cal font-bold leading-6 text-gray-900 mt-7 text-md">{t("profile")}</h3>
+        <h3 className="font-bold leading-6 text-gray-900 font-cal mt-7 text-md">{t("profile")}</h3>
         <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateTeamHandler}>
           {hasErrors && <ErrorAlert message={errorMessage} />}
           <div className="py-6 lg:pb-8">
@@ -213,7 +213,7 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                   <hr className="mt-6" />
                 </div>
                 <div className="flex justify-between mt-7">
-                  <h3 className="font-cal font-bold leading-6 text-gray-900 text-md">{t("members")}</h3>
+                  <h3 className="font-bold leading-6 text-gray-900 font-cal text-md">{t("members")}</h3>
                   <div className="relative flex items-center">
                     <Button
                       type="button"
@@ -255,13 +255,10 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
                 <div>
                   <div className="relative flex items-start">
                     <Dialog>
-                      <DialogTrigger
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                        className="btn-sm btn-white">
-                        <TrashIcon className="group-hover:text-red text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
-                        {t("disband_team")}
+                      <DialogTrigger asChild>
+                        <Button type="button" color="secondary" StartIcon={TrashIcon}>
+                          {t("disband_team")}
+                        </Button>
                       </DialogTrigger>
                       <ConfirmationDialogContent
                         variety="danger"

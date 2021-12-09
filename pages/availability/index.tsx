@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -68,9 +67,9 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
             <p>{t("troubleshoot_availability")}</p>
           </div>
           <div className="mt-5">
-            <Link href="/availability/troubleshoot">
-              <a className="btn btn-white">{t("launch_troubleshooter")}</a>
-            </Link>
+            <Button href="/availability/troubleshoot" color="secondary">
+              {t("launch_troubleshooter")}
+            </Button>
           </div>
         </div>
       </div>

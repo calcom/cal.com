@@ -1,12 +1,14 @@
-import { User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
+import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
-import { CalendarEvent } from "@lib/calendarClient";
-import EventRejectionMail from "@lib/emails/EventRejectionMail";
+import { CalendarEvent, AdditionInformation } from "@lib/calendarClient";
+import { sendDeclinedEmails } from "@lib/emails/email-manager";
+import { sendScheduledEmails } from "@lib/emails/email-manager";
 import EventManager from "@lib/events/EventManager";
+import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
 
@@ -38,6 +40,8 @@ const authorized = async (
   return false;
 };
 
+const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const t = await getTranslation(req.body.language ?? "en", "common");
 
@@ -59,10 +63,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     select: {
       id: true,
-      credentials: true,
+      credentials: {
+        orderBy: { id: "desc" as Prisma.SortOrder },
+      },
       timeZone: true,
       email: true,
       name: true,
+      username: true,
+      destinationCalendar: true,
     },
   });
 
@@ -70,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "User not found" });
   }
 
-  if (req.method == "PATCH") {
+  if (req.method === "PATCH") {
     const booking = await prisma.booking.findFirst({
       where: {
         id: bookingId,
@@ -121,8 +129,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (reqBody.confirmed) {
-      const eventManager = new EventManager(currentUser.credentials);
+      const eventManager = new EventManager(currentUser);
       const scheduleResult = await eventManager.create(evt);
+
+      const results = scheduleResult.results;
+
+      if (results.length > 0 && results.every((res) => !res.success)) {
+        const error = {
+          errorCode: "BookingCreatingMeetingFailed",
+          message: "Booking failed",
+        };
+
+        log.error(`Booking ${currentUser.username} failed`, error, results);
+      } else {
+        const metadata: AdditionInformation = {};
+
+        if (results.length) {
+          // TODO: Handle created event metadata more elegantly
+          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+          metadata.conferenceData = results[0].createdEvent?.conferenceData;
+          metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        }
+        await sendScheduledEmails({ ...evt, additionInformation: metadata });
+      }
 
       await prisma.booking.update({
         where: {
@@ -149,8 +178,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: BookingStatus.REJECTED,
         },
       });
-      const attendeeMail = new EventRejectionMail(evt);
-      await attendeeMail.sendEmail();
+
+      await sendDeclinedEmails(evt);
 
       res.status(204).end();
     }

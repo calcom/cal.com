@@ -136,13 +136,13 @@ export default function Shell(props: {
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
-      icon: ClockIcon,
+      icon: CalendarIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
       name: t("availability"),
       href: "/availability",
-      icon: CalendarIcon,
+      icon: ClockIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
@@ -196,16 +196,22 @@ export default function Shell(props: {
       </div>
 
       <div className="flex h-screen overflow-hidden bg-gray-100">
-        <div className="hidden md:flex md:flex-shrink-0">
-          <div className="flex flex-col w-56">
+        <div className="hidden md:flex lg:flex-shrink-0">
+          <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
-              <div className="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+              <div className="flex flex-col flex-1 pt-3 lg:pt-5 pb-4 overflow-y-auto">
                 <Link href="/event-types">
-                  <a className="px-4">
+                  <a className="px-4 md:hidden lg:inline">
                     <Logo small />
                   </a>
                 </Link>
-                <nav className="flex-1 px-2 mt-5 space-y-1 bg-white">
+                {/* logo icon for tablet */}
+                <Link href="/event-types">
+                  <a className="md:inline lg:hidden">
+                    <Logo small icon />
+                  </a>
+                </Link>
+                <nav className="flex-1 px-2 mt-2 lg:mt-5 space-y-1 bg-white">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
@@ -224,14 +230,19 @@ export default function Shell(props: {
                           )}
                           aria-hidden="true"
                         />
-                        {item.name}
+                        <span className="hidden lg:inline">{item.name}</span>
                       </a>
                     </Link>
                   ))}
                 </nav>
               </div>
               <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
-                <UserDropdown />
+                <span className="hidden lg:inline">
+                  <UserDropdown />
+                </span>
+                <span className="hidden md:inline lg:hidden">
+                  <UserDropdown small />
+                </span>
               </div>
             </div>
           </div>
@@ -317,15 +328,14 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center space-x-2 cursor-pointer group">
-          <Avatar
-            imageSrc={user?.avatar || ""}
-            alt={user?.username || "Nameless User"}
-            className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}
-          />
+        <div className="flex items-center space-x-2 cursor-pointer group w-full">
+          <span
+            className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}>
+            <Avatar imageSrc={user?.avatar || ""} alt={user?.username || "Nameless User"} />
+          </span>
           {!small && (
-            <>
-              <span className="flex-grow text-sm">
+            <span className="flex flex-grow items-center truncate">
+              <span className="flex-grow text-sm truncate">
                 <span className="block font-medium text-gray-900 truncate">
                   {user?.username || "Nameless User"}
                 </span>
@@ -337,7 +347,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
-            </>
+            </span>
           )}
         </div>
       </DropdownMenuTrigger>

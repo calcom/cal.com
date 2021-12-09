@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { CalendarEvent } from "@lib/calendarClient";
-import EventOrganizerRequestReminderMail from "@lib/emails/EventOrganizerRequestReminderMail";
+import { sendOrganizerRequestReminderEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -90,7 +90,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         language: t,
       };
 
-      await new EventOrganizerRequestReminderMail(evt).sendEmail();
+      await sendOrganizerRequestReminderEmail(evt);
+
       await prisma.reminderMail.create({
         data: {
           referenceId: booking.id,

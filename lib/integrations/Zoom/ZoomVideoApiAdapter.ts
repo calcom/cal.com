@@ -2,11 +2,13 @@ import { Credential } from "@prisma/client";
 
 import { CalendarEvent } from "@lib/calendarClient";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
+import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
-import { VideoApiAdapter } from "@lib/videoClient";
+import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 export interface ZoomEventResult {
+  password: string;
   created_at: string;
   duration: number;
   host_id: string;
@@ -168,37 +170,56 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
           return [];
         });
     },
-    createMeeting: (event: CalendarEvent) =>
-      auth.getToken().then((accessToken) =>
-        fetch("https://api.zoom.us/v2/users/me/meetings", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(translateEvent(event)),
-        }).then(handleErrorsJson)
-      ),
-    deleteMeeting: (uid: string) =>
-      auth.getToken().then((accessToken) =>
-        fetch("https://api.zoom.us/v2/meetings/" + uid, {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-          },
-        }).then(handleErrorsRaw)
-      ),
-    updateMeeting: (uid: string, event: CalendarEvent) =>
-      auth.getToken().then((accessToken: string) =>
-        fetch("https://api.zoom.us/v2/meetings/" + uid, {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(translateEvent(event)),
-        }).then(handleErrorsRaw)
-      ),
+    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+      const accessToken = await auth.getToken();
+
+      const result = await fetch("https://api.zoom.us/v2/users/me/meetings", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsJson);
+
+      return Promise.resolve({
+        type: "zoom_video",
+        id: result.id as string,
+        password: result.password ?? "",
+        url: result.join_url,
+      });
+    },
+    deleteMeeting: async (uid: string): Promise<void> => {
+      const accessToken = await auth.getToken();
+
+      await fetch("https://api.zoom.us/v2/meetings/" + uid, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+      }).then(handleErrorsRaw);
+
+      return Promise.resolve();
+    },
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+      const accessToken = await auth.getToken();
+
+      await fetch("https://api.zoom.us/v2/meetings/" + bookingRef.uid, {
+        method: "PATCH",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsRaw);
+
+      return Promise.resolve({
+        type: "zoom_video",
+        id: bookingRef.meetingId as string,
+        password: bookingRef.meetingPassword as string,
+        url: bookingRef.meetingUrl as string,
+      });
+    },
   };
 };
 
