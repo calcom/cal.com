@@ -5,7 +5,7 @@ export default function AppStoreCategories(props: any) {
   return (
     <div className="mb-16">
       <h2 className="mb-2 text-lg font-semibold text-gray-900">Popular Categories</h2>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {props.categories.map((category: any) => (
           <Link key={category.name} href={"/apps/categories/" + category.name}>
             <a className="flex px-6 py-4 bg-gray-100 rounded-sm">

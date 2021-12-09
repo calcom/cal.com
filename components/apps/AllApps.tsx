@@ -12,7 +12,7 @@ export default function AllApps(props: AllAppsProps) {
   return (
     <div className="mb-16">
       <h2 className="mb-2 text-lg font-semibold text-gray-900">All apps</h2>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-col-1 md:grid-cols-3 gap-3">
         {apps.map((app) => (
           <AppCard
             key={app.name}
