@@ -140,12 +140,9 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
   const users = await prisma.user.findMany({
     where: {
       username: { in: selectedUserNames },
-      bookings: {
+      eventTypes: {
         some: {
-          startTime: {
-            gt: new Date(),
-          },
-          eventTypeId,
+          id: eventTypeId,
         },
       },
     },
