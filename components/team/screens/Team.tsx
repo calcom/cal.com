@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "@heroicons/react/outline";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
 import classnames from "classnames";
 import Link from "next/link";
+import { TeamPageProps } from "pages/team/[slug]";
 import React from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -10,10 +11,14 @@ import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
-const Team = ({ team }) => {
+type TeamType = TeamPageProps["team"];
+type MembersType = TeamType["members"];
+type MemberType = MembersType[number];
+
+const Team = ({ team }: TeamPageProps) => {
   const { t } = useLocale();
 
-  const Member = ({ member }) => {
+  const Member = ({ member }: { member: MemberType }) => {
     const classes = classnames(
       "group",
       "relative",
@@ -29,7 +34,7 @@ const Team = ({ team }) => {
     );
 
     return (
-      <Link key={member.id} href={`/${member.user.username}`}>
+      <Link key={member.id} href={`/${member.username}`}>
         <div className={classes}>
           <ArrowRightIcon
             className={classnames(
@@ -42,11 +47,11 @@ const Team = ({ team }) => {
           />
 
           <div>
-            <Avatar displayName={member.user.name} imageSrc={member.user.avatar} className="w-12 h-12" />
+            <Avatar alt={member.name || ""} imageSrc={member.avatar} className="w-12 h-12" />
             <section className="space-y-2">
-              <Text variant="title">{member.user.name}</Text>
-              <Text variant="subtitle" className="w-6/8 max-w-md">
-                {member.user.bio}
+              <Text variant="title">{member.name}</Text>
+              <Text variant="subtitle" className="w-6/8">
+                {member.bio}
               </Text>
             </section>
           </div>
@@ -55,15 +60,15 @@ const Team = ({ team }) => {
     );
   };
 
-  const Members = ({ members }) => {
+  const Members = ({ members }: { members: MembersType }) => {
     if (!members || members.length === 0) {
       return null;
     }
 
     return (
-      <section className="mx-auto min-w-full lg:min-w-lg max-w-5xl flex flex-wrap gap-x-12 gap-y-6 justify-center">
+      <section className="flex flex-wrap justify-center max-w-5xl min-w-full mx-auto lg:min-w-lg gap-x-12 gap-y-6">
         {members.map((member) => {
-          return member.user.username !== null && <Member key={member.id} member={member} />;
+          return member.username !== null && <Member key={member.id} member={member} />;
         })}
       </section>
     );
@@ -73,7 +78,7 @@ const Team = ({ team }) => {
     <div>
       <Members members={team.members} />
       {team.eventTypes.length > 0 && (
-        <aside className="text-center dark:text-white mt-8">
+        <aside className="mt-8 text-center dark:text-white">
           <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
             {t("go_back")}
           </Button>

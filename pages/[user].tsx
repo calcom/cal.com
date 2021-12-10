@@ -20,6 +20,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { user, eventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
+  const query = { ...router.query };
+  delete query.user; // So it doesn't display in the Link (and make tests fail)
 
   const nameOrUsername = user.name || user.username || "";
 
@@ -54,9 +56,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <Link
                     href={{
                       pathname: `/${user.username}/${type.slug}`,
-                      query: {
-                        ...router.query,
-                      },
+                      query,
                     }}>
                     <a className="block px-6 py-4" data-testid="event-type-link">
                       <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>

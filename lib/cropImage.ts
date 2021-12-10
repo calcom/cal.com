@@ -45,7 +45,7 @@ export async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<
   // on very low ratios, the quality of the resize becomes awful. For this reason the resizeRatio is limited to 0.75
   if (resizeRatio <= 0.75) {
     // With a smaller image, thus improved ratio. Keep doing this until the resizeRatio > 0.75.
-    return getCroppedImg(canvas.toDataURL("image/jpeg"), {
+    return getCroppedImg(canvas.toDataURL("image/png"), {
       width: canvas.width,
       height: canvas.height,
       x: 0,
@@ -53,5 +53,5 @@ export async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<
     });
   }
 
-  return canvas.toDataURL("image/jpeg");
+  return canvas.toDataURL("image/png");
 }
