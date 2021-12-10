@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import { BASE_URL } from "@lib/config/constants";
 
 import prisma from "../../../../lib/prisma";
 
@@ -18,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const redirectUri = encodeURI(process.env.BASE_URL + "/api/integrations/zoomvideo/callback");
+  const redirectUri = encodeURI(BASE_URL + "/api/integrations/zoomvideo/callback");
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
   const result = await fetch(
     "https://zoom.us/oauth/token?grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri,
