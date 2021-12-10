@@ -12,9 +12,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
 
   // Check that user is authenticated
-  const session = await getSession({ req: req });
+  const session = await getSession({ req });
 
-  if (!session) {
+  if (!session?.user?.id) {
     res.status(401).json({ message: "You must be logged in to do this" });
     return;
   }
@@ -32,12 +32,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
   const json = await result.json();
 
-  await prisma.credential.create({
+  await prisma.user.update({
+    where: {
+      id: session.user.id,
+    },
     data: {
-      type: "zoom_video",
-      key: json,
-      userId: session.user.id,
+      credentials: {
+        create: {
+          type: "zoom_video",
+          key: json,
+        },
+      },
     },
   });
+
   res.redirect("/integrations");
 }
