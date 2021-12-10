@@ -115,9 +115,12 @@ export const Office365CalendarApiAdapter = (credential: Credential): CalendarApi
 
   return {
     getAvailability: (dateFrom, dateTo, selectedCalendars) => {
-      const filter = `?startdatetime=${encodeURIComponent(dateFrom)}&enddatetime=${encodeURIComponent(
-        dateTo
-      )}`;
+      const dateFromParsed = new Date(dateFrom);
+      const dateToParsed = new Date(dateTo);
+
+      const filter = `?startdatetime=${encodeURIComponent(
+        dateFromParsed.toISOString()
+      )}&enddatetime=${encodeURIComponent(dateToParsed.toISOString())}`;
       return auth
         .getToken()
         .then((accessToken) => {
@@ -138,9 +141,6 @@ export const Office365CalendarApiAdapter = (credential: Credential): CalendarApi
             const requests = ids.map((calendarId, id) => ({
               id,
               method: "GET",
-              headers: {
-                Prefer: 'outlook.timezone="Etc/GMT"',
-              },
               url: `/me/calendars/${calendarId}/calendarView${filter}`,
             }));
 
