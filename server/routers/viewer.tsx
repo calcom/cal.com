@@ -14,6 +14,8 @@ import {
   samlProductID,
   samlServiceApiKey,
   isSAMLAdmin,
+  hostedCal,
+  tenantPrefix,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
@@ -42,6 +44,50 @@ const publicViewerRouter = createRouter()
       return {
         i18n,
         locale,
+      };
+    },
+  })
+  .mutation("samlTenantProduct", {
+    input: z.object({
+      email: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const { prisma } = ctx;
+
+      const notFoundErr = new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Could not find a SAML Identity Provider for your email. Please contact your admin to ensure you have been given access to Cal",
+      });
+
+      const { email } = input;
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Unauthorized Request",
+        });
+      }
+
+      // TODO: check if one of the user's teams has a SAML configuration
+      const memberships = await prisma.membership.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      if (memberships.length === 0) {
+        throw notFoundErr;
+      }
+
+      return {
+        tenant: tenantPrefix + memberships[0].teamId,
+        product: samlProductID,
       };
     },
   });
@@ -601,15 +647,35 @@ const loggedInViewerRouter = createProtectedRouter()
       }
     },
   })
-  .query("isSAMLLoginEnabled", {
-    async resolve({ ctx }) {
+  .query("showSAMLView", {
+    input: z.object({
+      teamsView: z.boolean(),
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input, ctx }) {
       const { user } = ctx;
+      const { teamsView, teamId } = input;
 
-      const enabled = isSAMLLoginEnabled && isSAMLAdmin(user.email);
+      if ((teamsView && !hostedCal) || (!teamsView && hostedCal)) {
+        // We are in teams view but not hostedCal
+        return {
+          isSAMLLoginEnabled: false,
+          hostedCal,
+        };
+      }
+
+      let enabled = isSAMLLoginEnabled;
+
+      if (teamsView) {
+        // TODO: check if PRO tier and Owner
+      } else {
+        enabled = enabled && isSAMLAdmin(user.email);
+      }
+
       let provider;
       if (enabled) {
         const params = new URLSearchParams();
-        params.append("tenant", samlTenantID);
+        params.append("tenant", teamId ? tenantPrefix + teamId : samlTenantID);
         params.append("product", samlProductID);
 
         const response = await fetch(`${samlApiUrl}/api/v1/saml/config/get`, {
@@ -628,6 +694,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         isSAMLLoginEnabled: enabled,
+        hostedCal,
         provider,
       };
     },
@@ -635,13 +702,16 @@ const loggedInViewerRouter = createProtectedRouter()
   .mutation("updateSAMLConfig", {
     input: z.object({
       rawMetadata: z.string(),
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
     async resolve({ input }) {
+      const { rawMetadata, teamId } = input;
+
       const params = new URLSearchParams();
-      params.append("rawMetadata", input.rawMetadata);
+      params.append("rawMetadata", rawMetadata);
       params.append("defaultRedirectUrl", `${process.env.BASE_URL}/login/saml`);
       params.append("redirectUrl", JSON.stringify([`${process.env.BASE_URL}/*`]));
-      params.append("tenant", samlTenantID);
+      params.append("tenant", teamId ? tenantPrefix + teamId : samlTenantID);
       params.append("product", samlProductID);
 
       const response = await fetch(`${samlApiUrl}/api/v1/saml/config`, {

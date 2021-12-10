@@ -6,11 +6,17 @@ import { trpc } from "@lib/trpc";
 
 import { Alert } from "@components/ui/Alert";
 
-export default function SAMLConfiguration() {
+export default function SAMLConfiguration({
+  teamsView,
+  teamId,
+}: {
+  teamsView: boolean;
+  teamId: null | undefined | number;
+}) {
   const [isSAMLLoginEnabled, setIsSAMLLoginEnabled] = useState(false);
   const [samlConfig, setSAMLConfig] = useState(null);
 
-  const query = trpc.useQuery(["viewer.isSAMLLoginEnabled"]);
+  const query = trpc.useQuery(["viewer.showSAMLView", { teamsView, teamId }]);
 
   useEffect(() => {
     const data = query.data;
@@ -44,6 +50,7 @@ export default function SAMLConfiguration() {
 
     mutation.mutate({
       rawMetadata: rawMetadata,
+      teamId,
     });
   }
 

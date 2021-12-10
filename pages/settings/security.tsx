@@ -41,7 +41,7 @@ export default function Security() {
           </>
         )}
 
-        <SAMLConfiguration />
+        <SAMLConfiguration teamsView={false} teamId={null} />
       </SettingsShell>
     </Shell>
   );

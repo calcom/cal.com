@@ -9,7 +9,8 @@ export const samlProductID = "Cal.com";
 export const samlServiceApiKey = (process.env.JACKSON_API_KEYS || "").split(",")[0];
 
 const samlAdmins = (process.env.SAML_ADMINS || "").split(",");
-export const hostedCal = isSAMLLoginEnabled && samlAdmins.length === 0;
+export const hostedCal = process.env.NEXT_PUBLIC_APP_URL === "https://cal.com";
+export const tenantPrefix = "team-";
 
 export const isSAMLAdmin = (email: string) => {
   for (const admin of samlAdmins) {

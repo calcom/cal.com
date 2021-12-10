@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ErrorCode, getSession, isGoogleLoginEnabled } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
+import { trpc } from "@lib/trpc";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
@@ -89,7 +90,18 @@ export default function Login({
     }
   }
 
-  const samlSignIn = async () => {
+  const mutation = trpc.useMutation("viewer.samlTenantProduct", {
+    onSuccess: (data: any) => {
+      signIn("saml", {}, { tenant: data.tenant, product: data.product });
+    },
+    onError: (err) => {
+      setErrorMessage(err.message);
+    },
+  });
+
+  const samlSignIn = async (event: any) => {
+    event.preventDefault();
+
     if (!hostedCal) {
       await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });
     } else {
@@ -98,7 +110,10 @@ export default function Login({
         return;
       }
 
-      // hosted solution, TODO: fetch tenant and product from the backend
+      // hosted solution, fetch tenant and product from the backend
+      mutation.mutate({
+        email,
+      });
     }
   };
 

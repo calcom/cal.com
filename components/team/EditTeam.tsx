@@ -1,6 +1,8 @@
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import React, { useEffect, useRef, useState } from "react";
 
+import SAMLConfiguration from "@ee/components/saml/Configuration";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { Member } from "@lib/member";
 import showToast from "@lib/notification";
@@ -283,6 +285,8 @@ export default function EditTeam(props: { team: Team | undefined | null; onClose
         {showMemberInvitationModal && (
           <MemberInvitationModal team={inviteModalTeam} onExit={onMemberInvitationModalExit} />
         )}
+
+        <SAMLConfiguration teamsView={true} teamId={props.team?.id} />
       </div>
     </div>
   );
