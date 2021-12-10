@@ -182,16 +182,19 @@ export const Office365CalendarApiAdapter = (credential: Credential): CalendarApi
         });
     },
     createEvent: (event: CalendarEvent) =>
-      auth.getToken().then((accessToken) =>
-        fetch("https://graph.microsoft.com/v1.0/me/calendar/events", {
+      auth.getToken().then((accessToken) => {
+        const calendarId = event.destinationCalendar?.externalId
+          ? `${event.destinationCalendar.externalId}/`
+          : "";
+        return fetch(`https://graph.microsoft.com/v1.0/me/calendar/${calendarId}events`, {
           method: "POST",
           headers: {
             Authorization: "Bearer " + accessToken,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(translateEvent(event)),
-        }).then(handleErrorsJson)
-      ),
+        }).then(handleErrorsJson);
+      }),
     deleteEvent: (uid: string) =>
       auth.getToken().then((accessToken) =>
         fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
