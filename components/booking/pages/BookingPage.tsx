@@ -11,6 +11,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import InputMask from "react-input-mask";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
@@ -380,7 +381,7 @@ const BookingPage = (props: BookingPageProps) => {
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
-                          <input
+                          <InputMask
                             type="text"
                             {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
@@ -388,6 +389,8 @@ const BookingPage = (props: BookingPageProps) => {
                             id={"custom_" + input.id}
                             className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                             placeholder={input.placeholder}
+                            mask={input.inputMask}
+                            maskPlaceholder="-"
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -400,6 +403,16 @@ const BookingPage = (props: BookingPageProps) => {
                             className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                             placeholder=""
                           />
+                        )}
+                        {input.type === EventTypeCustomInputType.PHONE && (
+                          <div className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm">
+                            <PhoneInput
+                              name={"custom_" + input.id}
+                              id={"custom_" + input.id}
+                              placeholder={t("enter_phone_number")}
+                              required={input.required}
+                            />
+                          </div>
                         )}
                         {input.type === EventTypeCustomInputType.BOOL && (
                           <div className="flex items-center h-5">

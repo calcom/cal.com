@@ -19,6 +19,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   const { t } = useLocale();
   const inputOptions: OptionTypeBase[] = [
     { value: EventTypeCustomInputType.TEXT, label: t("text") },
+    { value: EventTypeCustomInputType.PHONE, label: t("phone") },
     { value: EventTypeCustomInputType.TEXTLONG, label: t("multiline_text") },
     { value: EventTypeCustomInputType.NUMBER, label: t("number") },
     { value: EventTypeCustomInputType.BOOL, label: t("checkbox") },
@@ -87,6 +88,23 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               defaultValue={selectedCustomInput?.placeholder}
               {...register("placeholder")}
+            />
+          </div>
+        </div>
+      )}
+      {(selectedInputType === EventTypeCustomInputType.TEXT ||
+        selectedInputType === EventTypeCustomInputType.TEXTLONG) && (
+        <div className="mb-2">
+          <label htmlFor="inputMask" className="block text-sm font-medium text-gray-700">
+            {t("inputMask")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              id="inputMask"
+              className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-sm"
+              defaultValue={selectedCustomInput?.inputMask}
+              {...register("inputMask")}
             />
           </div>
         </div>
