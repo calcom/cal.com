@@ -702,9 +702,8 @@ const loggedInViewerRouter = createProtectedRouter()
 
       let enabled = isSAMLLoginEnabled;
 
-      if (teamsView) {
-        // TODO: check if PRO tier and Owner
-      } else {
+      // in teams view we already check for isAdmin
+      if (!teamsView) {
         enabled = enabled && isSAMLAdmin(user.email);
       }
 
