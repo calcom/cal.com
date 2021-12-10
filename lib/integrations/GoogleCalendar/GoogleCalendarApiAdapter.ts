@@ -2,25 +2,38 @@ import { Credential, Prisma } from "@prisma/client";
 import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { Auth, calendar_v3, google } from "googleapis";
 
+import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { CalendarApiAdapter, CalendarEvent, IntegrationCalendar } from "@lib/calendarClient";
 import prisma from "@lib/prisma";
 
 export interface ConferenceData {
-  createRequest: calendar_v3.Schema$CreateConferenceRequest;
+  createRequest?: calendar_v3.Schema$CreateConferenceRequest;
+}
+
+class MyGoogleAuth extends google.auth.OAuth2 {
+  constructor(client_id: string, client_secret: string, redirect_uri: string) {
+    super(client_id, client_secret, redirect_uri);
+  }
+
+  isTokenExpiring() {
+    return super.isTokenExpiring();
+  }
+
+  async refreshToken(token: string | null | undefined) {
+    return super.refreshToken(token);
+  }
 }
 
 const googleAuth = (credential: Credential) => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS!).web;
-  const myGoogleAuth = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  const myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
   const googleCredentials = credential.key as Auth.Credentials;
   myGoogleAuth.setCredentials(googleCredentials);
 
-  // FIXME - type errors IDK Why this is a protected method ¯\_(ツ)_/¯
   const isExpired = () => myGoogleAuth.isTokenExpiring();
 
   const refreshAccessToken = () =>
     myGoogleAuth
-      // FIXME - type errors IDK Why this is a protected method ¯\_(ツ)_/¯
       .refreshToken(googleCredentials.refresh_token)
       .then((res: GetTokenResponse) => {
         const token = res.res?.data;
@@ -90,7 +103,19 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                   if (err) {
                     reject(err);
                   }
-                  resolve(Object.values(apires.data.calendars).flatMap((item) => item["busy"]));
+                  let result: Prisma.PromiseReturnType<CalendarApiAdapter["getAvailability"]> = [];
+                  if (apires?.data.calendars) {
+                    result = Object.values(apires.data.calendars).reduce((c, i) => {
+                      i.busy?.forEach((busyTime) => {
+                        c.push({
+                          start: busyTime.start || "",
+                          end: busyTime.end || "",
+                        });
+                      });
+                      return c;
+                    }, [] as typeof result);
+                  }
+                  resolve(result);
                 }
               );
             })
@@ -105,7 +130,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
         auth.getToken().then((myGoogleAuth) => {
           const payload: calendar_v3.Schema$Event = {
             summary: event.title,
-            description: event.description,
+            description: getRichDescription(event),
             start: {
               dateTime: event.startTime,
               timeZone: event.organizer.timeZone,
@@ -122,7 +147,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           };
 
           if (event.location) {
-            payload["location"] = event.location;
+            payload["location"] = getLocation(event);
           }
 
           if (event.conferenceData && event.location === "integrations:google:meet") {
@@ -136,7 +161,9 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.insert(
             {
               auth: myGoogleAuth,
-              calendarId: "primary",
+              calendarId: event.destinationCalendar?.externalId
+                ? event.destinationCalendar.externalId
+                : "primary",
               requestBody: payload,
               conferenceDataVersion: 1,
             },
@@ -145,7 +172,14 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
                 console.error("There was an error contacting google calendar service: ", err);
                 return reject(err);
               }
-              return resolve(event.data);
+              return resolve({
+                ...event.data,
+                id: event.data.id || "",
+                hangoutLink: event.data.hangoutLink || "",
+                type: "google_calendar",
+                password: "",
+                url: "",
+              });
             }
           );
         })
@@ -155,7 +189,7 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
         auth.getToken().then((myGoogleAuth) => {
           const payload: calendar_v3.Schema$Event = {
             summary: event.title,
-            description: event.description,
+            description: getRichDescription(event),
             start: {
               dateTime: event.startTime,
               timeZone: event.organizer.timeZone,
@@ -166,13 +200,12 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
             },
             attendees: event.attendees,
             reminders: {
-              useDefault: false,
-              overrides: [{ method: "email", minutes: 10 }],
+              useDefault: true,
             },
           };
 
           if (event.location) {
-            payload["location"] = event.location;
+            payload["location"] = getLocation(event);
           }
 
           const calendar = google.calendar({
@@ -182,7 +215,9 @@ export const GoogleCalendarApiAdapter = (credential: Credential): CalendarApiAda
           calendar.events.update(
             {
               auth: myGoogleAuth,
-              calendarId: "primary",
+              calendarId: event.destinationCalendar?.externalId
+                ? event.destinationCalendar.externalId
+                : "primary",
               eventId: uid,
               sendNotifications: true,
               sendUpdates: "all",

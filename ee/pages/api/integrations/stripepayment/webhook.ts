@@ -57,6 +57,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
               email: true,
               name: true,
               locale: true,
+              destinationCalendar: true,
             },
           },
         },
@@ -91,7 +92,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   if (booking.location) evt.location = booking.location;
 
   if (booking.confirmed) {
-    const eventManager = new EventManager(user.credentials);
+    const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
 
     await prisma.booking.update({
