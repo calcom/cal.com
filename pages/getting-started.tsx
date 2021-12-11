@@ -124,7 +124,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
-  const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
   const [selectedTimeZone, setSelectedTimeZone] = useState(props.user.timeZone ?? dayjs.tz.guess());
@@ -251,9 +250,16 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 autoComplete="given-name"
                 placeholder={t("your_name")}
                 defaultValue={props.user.name ?? enteredName}
+                disabled={true}
                 required
-                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm disabled_input_read_only"
               />
+              <p className="mt-2 text-sm text-gray-500" id="email-description">
+                {t("change_fullname_contact")}{" "}
+                <a className="text-blue-500" href="mailto:talent-support@theskills.com">
+                  talent-support@theskills.com
+                </a>
+              </p>
             </fieldset>
 
             <fieldset>
@@ -342,7 +348,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       hideConfirm: true,
       showCancel: false,
     },
-    {
+    /*     {
       id: "profile",
       title: t("nearly_there"),
       description: t("nearly_there_instructions"),
@@ -402,7 +408,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           setSubmitting(false);
         }
       },
-    },
+    }, */
   ];
   /** End Onboarding Steps */
 
@@ -419,7 +425,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   return (
     <div className="min-h-screen bg-brand text-brandcontrast">
       <Head>
-        <title>Cal.com - {t("getting_started")}</title>
+        <title>Skills 1on1 Instructor Dashboard - {t("getting_started")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

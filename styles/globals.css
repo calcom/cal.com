@@ -249,6 +249,10 @@
   padding: 1px;
 }
 
+.disabled_input_read_only {
+  background: #dddddd;
+}
+
 /* !important to override react-dates */
 .DateRangePickerInput__withBorder {
   border: 0 !important;
