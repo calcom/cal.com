@@ -313,6 +313,7 @@ enum WebhookTriggerEvents {
   BOOKING_CREATED
   BOOKING_RESCHEDULED
   BOOKING_CANCELLED
+  BOOKING_CONFIRMED
 }
 
 model Webhook {

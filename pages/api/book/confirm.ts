@@ -11,6 +11,8 @@ import EventManager from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
+import sendPayload from "@lib/webhooks/sendPayload";
+import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -84,6 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: bookingId,
       },
       select: {
+        userId: true,
         title: true,
         description: true,
         startTime: true,
@@ -152,6 +155,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         await sendScheduledEmails({ ...evt, additionInformation: metadata });
       }
+
+      // Hook up the webhook logic here
+      const eventTrigger = "BOOKING_CONFIRMED";
+      // Send Webhook call if hooked to BOOKING.CONFIRMED
+      const subscribers = await getSubscribers(booking.userId, eventTrigger);
+      const promises = subscribers.map((sub) =>
+        sendPayload(
+          eventTrigger,
+          new Date().toISOString(),
+          sub.subscriberUrl,
+          evt,
+          sub.payloadTemplate
+        ).catch((e) => {
+          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+        })
+      );
+      await Promise.all(promises);
 
       await prisma.booking.update({
         where: {
