@@ -264,6 +264,28 @@ export default NextAuth({
         });
 
         if (existingUserWithEmail) {
+          // check if user was invited
+          if (
+            !existingUserWithEmail.password &&
+            !existingUserWithEmail.emailVerified &&
+            !existingUserWithEmail.username
+          ) {
+            await prisma.user.update({
+              where: { email: user.email! },
+              data: {
+                // Slugify the incoming name and append a few random characters to
+                // prevent conflicts for users with the same name.
+                username: slugify(user.name!) + "-" + randomString(6),
+                emailVerified: new Date(Date.now()),
+                name: user.name,
+                identityProvider: idP,
+                identityProviderId: user.id as string,
+              },
+            });
+
+            return true;
+          }
+
           if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
           }
@@ -276,6 +298,8 @@ export default NextAuth({
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
             username: slugify(user.name!) + "-" + randomString(6),
+            emailVerified: new Date(Date.now()),
+            name: user.name,
             email: user.email!,
             identityProvider: idP,
             identityProviderId: user.id as string,
