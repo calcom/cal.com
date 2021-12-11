@@ -6,7 +6,7 @@ import { createHttpServer, waitFor } from "./lib/testUtils";
 jest.setTimeout(60e3);
 jest.retryTimes(3);
 
-describe("webhooks", () => {
+describe("integrations", () => {
   const ctx = kont()
     .useBeforeEach(
       loginProvider({
@@ -16,6 +16,18 @@ describe("webhooks", () => {
       })
     )
     .done();
+
+  test.todo("Can add Zoom integration");
+
+  test.todo("Can add Stripe integration");
+
+  test.todo("Can add Google Calendar");
+
+  test.todo("Can add Office 365 Calendar");
+
+  test.todo("Can add CalDav Calendar");
+
+  test.todo("Can add Apple Calendar");
 
   test("add webhook & test that creating an event triggers a webhook call", async () => {
     const { page } = ctx;
