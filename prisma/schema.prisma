@@ -120,6 +120,7 @@ model User {
   twoFactorEnabled    Boolean              @default(false)
   identityProvider    IdentityProvider     @default(CAL)
   identityProviderId  String?
+  invitedTo           Int?
   plan                UserPlan             @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]

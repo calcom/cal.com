@@ -5,7 +5,7 @@ import { authenticator } from "otplib";
 import { ErrorCode, isGoogleLoginEnabled, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
-import { isSAMLLoginEnabled, samlLoginUrl, samlProductID, samlTenantID } from "@lib/saml";
+import { isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { IdentityProvider } from ".prisma/client";
@@ -125,7 +125,7 @@ if (isSAMLLoginEnabled) {
       };
     },
     scope: "",
-    clientId: `tenant=${samlTenantID}&product=${samlProductID}`,
+    clientId: "dummy",
     clientSecret: "dummy",
   });
 }

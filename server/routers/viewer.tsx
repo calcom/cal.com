@@ -66,6 +66,10 @@ const publicViewerRouter = createRouter()
         where: {
           email,
         },
+        select: {
+          id: true,
+          invitedTo: true,
+        },
       });
 
       if (!user) {
@@ -75,19 +79,12 @@ const publicViewerRouter = createRouter()
         });
       }
 
-      // TODO: check if one of the user's teams has a SAML configuration
-      const memberships = await prisma.membership.findMany({
-        where: {
-          userId: user.id,
-        },
-      });
-
-      if (memberships.length === 0) {
+      if (!user.invitedTo) {
         throw notFoundErr;
       }
 
       return {
-        tenant: tenantPrefix + memberships[0].teamId,
+        tenant: tenantPrefix + user.invitedTo,
         product: samlProductID,
       };
     },
@@ -693,7 +690,6 @@ const loggedInViewerRouter = createProtectedRouter()
       const { teamsView, teamId } = input;
 
       if ((teamsView && !hostedCal) || (!teamsView && hostedCal)) {
-        // We are in teams view but not hostedCal
         return {
           isSAMLLoginEnabled: false,
           hostedCal,
@@ -703,7 +699,9 @@ const loggedInViewerRouter = createProtectedRouter()
       let enabled = isSAMLLoginEnabled;
 
       // in teams view we already check for isAdmin
-      if (!teamsView) {
+      if (teamsView) {
+        enabled = enabled && user.plan === "PRO";
+      } else {
         enabled = enabled && isSAMLAdmin(user.email);
       }
 

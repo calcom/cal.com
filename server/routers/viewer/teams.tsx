@@ -202,15 +202,17 @@ export const viewerTeamsRouter = createProtectedRouter()
           });
 
         // valid email given, create User
-        await ctx.prisma.user.create({ data: { email: input.usernameOrEmail } }).then((invitee) =>
-          ctx.prisma.membership.create({
-            data: {
-              teamId: input.teamId,
-              userId: invitee.id,
-              role: input.role as MembershipRole,
-            },
-          })
-        );
+        await ctx.prisma.user
+          .create({ data: { email: input.usernameOrEmail, invitedTo: input.teamId } })
+          .then((invitee) =>
+            ctx.prisma.membership.create({
+              data: {
+                teamId: input.teamId,
+                userId: invitee.id,
+                role: input.role as MembershipRole,
+              },
+            })
+          );
 
         const token: string = randomBytes(32).toString("hex");
 
