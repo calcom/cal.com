@@ -32,14 +32,14 @@ const handleRescheduleBooking = async (
   const user = coachProfileProgram?.coachProfile?.user;
 
   const { assUserId } = user;
-  const { assEventTypeId, coachProgram } = coachProfileProgram;
-  const { name: title, description } = coachProgram;
+  const { assEventTypeId } = coachProfileProgram;
 
   console.log({ startTime, endTime, timezone });
 
   const selectedEventType = await prisma.eventType.findFirst({
     where: { id: assEventTypeId },
     select: {
+      description: true,
       eventName: true,
       title: true,
       length: true,
@@ -69,8 +69,8 @@ const handleRescheduleBooking = async (
   ];
 
   let evt: CalendarEvent = {
-    title,
-    description,
+    title: selectedEventType.title,
+    description: selectedEventType.description,
     attendees,
     startTime,
     endTime,
@@ -115,8 +115,8 @@ const handleRescheduleBooking = async (
   const newBookingData = {
     startTime,
     endTime,
-    title,
-    description,
+    title: selectedEventType.title,
+    description: selectedEventType.description,
     userId: +assUserId,
     eventTypeId: +assEventTypeId,
     uid: hashUID,
@@ -172,6 +172,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(200).json(result);
     }
   } catch (e) {
+    console.log({ e });
     const { error, status } = e;
 
     return res.status(status).json(error);
