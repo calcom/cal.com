@@ -24,9 +24,10 @@ const getMinuteOffset = (date: Dayjs, step: number) => {
   return Math.ceil(minuteOffset / step) * step;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
   // current date in invitee tz
-  let startDate = dayjs(inviteeDate).add(minimumBookingNotice, "minute");
+  let startDate = dayjs(inviteeDate); // .add(minimumBookingNotice, "minute");
   // checks if the start date is in the past
   if (startDate.isBefore(dayjs(), "day")) {
     return [];
