@@ -84,7 +84,7 @@ export class BaseCalendarApiAdapter {
       if (!iCalString) throw new Error("Error creating iCalString");
 
       /** We create the event directly on iCal */
-      await Promise.all(
+      const responses = await Promise.all(
         calendars
           .filter((c) =>
             event.destinationCalendar?.externalId
@@ -97,11 +97,18 @@ export class BaseCalendarApiAdapter {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              iCalString,
+              // need to get rid of METHOD according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1
+              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
           )
       );
+
+      if (responses.some((r) => !r.ok)) {
+        throw new Error(
+          `Error creating event: ${(await Promise.all(responses.map((r) => r.text()))).join(", ")}`
+        );
+      }
 
       return {
         uid,
