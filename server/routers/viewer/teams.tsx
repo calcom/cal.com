@@ -159,7 +159,7 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       await ctx.prisma.membership.delete({
         where: {
-          userId_teamId: { userId: ctx.user?.id, teamId: input.teamId },
+          userId_teamId: { userId: input.memberId, teamId: input.teamId },
         },
       });
     },
