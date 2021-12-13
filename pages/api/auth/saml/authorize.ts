@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log("authorize:", req.query);
     const { oauthController } = await jackson();
     const { redirect_url } = await oauthController.authorize(req.query);
-    res.redirect(redirect_url);
+    res.redirect(302, redirect_url);
   } catch (err: any) {
     console.error("authorize error:", err);
     const { message, statusCode = 500 } = err;
