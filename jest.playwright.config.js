@@ -3,7 +3,6 @@ const opts = {
   headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
   collectCoverage: false, // not possible in Next.js 12
   executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
-  locale: "en", // So tests won't fail if local machine is not in english
 };
 
 console.log("⚙️ Playwright options:", JSON.stringify(opts, null, 4));
@@ -20,11 +19,14 @@ module.exports = {
       browsers: ["chromium" /*, 'firefox', 'webkit'*/],
       exitOnPageError: false,
       launchType: "LAUNCH",
+      locale: "en-US", // So tests won't fail if local machine is not in english
       launchOptions: {
         headless: opts.headless,
         executablePath: opts.executablePath,
+        locale: "en-US", // So tests won't fail if local machine is not in english
       },
       contextOptions: {
+        locale: "en-US", // So tests won't fail if local machine is not in english
         recordVideo: {
           dir: "playwright/videos",
         },
