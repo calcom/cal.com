@@ -76,7 +76,8 @@ export class BaseCalendarApiAdapter {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: this.getAttendees(event.attendees),
+        // according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component. "Attendees" MUST NOT be present
+        // attendees: this.getAttendees(event.attendees),
       });
 
       if (error) throw new Error("Error creating iCalString");
@@ -97,7 +98,7 @@ export class BaseCalendarApiAdapter {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              // need to get rid of METHOD according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1
+              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
               iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
