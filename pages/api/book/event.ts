@@ -575,7 +575,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // Update redeemableItem status to "Booked"
-  await setRedeemableItemToBooked({ redeemCode: reqBody.redeemCode });
+  await setRedeemableItemToBooked({ redeemCode: reqBody.metadata.redeemCode });
 
   // booking successful
   return res.status(201).json(booking);
