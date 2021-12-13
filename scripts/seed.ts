@@ -28,6 +28,7 @@ async function createUserAndEventType(opts: {
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
+    locale: "en",
     availability: {
       createMany: {
         data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
