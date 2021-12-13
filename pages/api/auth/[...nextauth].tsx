@@ -111,9 +111,9 @@ if (isSAMLLoginEnabled) {
     params: {
       grant_type: "authorization_code",
     },
-    accessTokenUrl: `${samlLoginUrl}/oauth/token`,
-    authorizationUrl: `${samlLoginUrl}/oauth/authorize?response_type=code&provider=saml`,
-    profileUrl: `${samlLoginUrl}/oauth/userinfo`,
+    accessTokenUrl: `${samlLoginUrl}/api/auth/saml/token`,
+    authorizationUrl: `${samlLoginUrl}/api/auth/saml/authorize?response_type=code&provider=saml`,
+    profileUrl: `${samlLoginUrl}/api/auth/saml/userinfo`,
     profile: (profile: any) => {
       return {
         id: profile.id || "",

@@ -1,18 +1,16 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import _ from "lodash";
-import fetch from "node-fetch";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
+import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
-  samlApiUrl,
   samlTenantID,
   samlProductID,
-  samlServiceApiKey,
   isSAMLAdmin,
   hostedCal,
   tenantPrefix,
@@ -707,22 +705,18 @@ const loggedInViewerRouter = createProtectedRouter()
 
       let provider;
       if (enabled) {
-        const params = new URLSearchParams();
-        params.append("tenant", teamId ? tenantPrefix + teamId : samlTenantID);
-        params.append("product", samlProductID);
+        const { apiController } = await jackson();
 
-        const response = await fetch(`${samlApiUrl}/api/v1/saml/config/get`, {
-          method: "POST",
-          body: params,
-          headers: { Authorization: `api-key ${samlServiceApiKey}` },
-        });
-
-        if (response.status !== 200) {
+        try {
+          const resp = await apiController.getConfig({
+            tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+            product: samlProductID,
+          });
+          provider = resp.provider;
+        } catch (err) {
+          console.error("Error getting SAML config", err);
           throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration fetch failed" });
         }
-
-        const resp: any = await response.json();
-        provider = resp.provider;
       }
 
       return {
@@ -740,24 +734,20 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ input }) {
       const { rawMetadata, teamId } = input;
 
-      const params = new URLSearchParams();
-      params.append("rawMetadata", rawMetadata);
-      params.append("defaultRedirectUrl", `${process.env.BASE_URL}/login/saml`);
-      params.append("redirectUrl", JSON.stringify([`${process.env.BASE_URL}/*`]));
-      params.append("tenant", teamId ? tenantPrefix + teamId : samlTenantID);
-      params.append("product", samlProductID);
+      const { apiController } = await jackson();
 
-      const response = await fetch(`${samlApiUrl}/api/v1/saml/config`, {
-        method: "POST",
-        body: params,
-        headers: { Authorization: `api-key ${samlServiceApiKey}` },
-      });
-
-      if (response.status !== 200) {
+      try {
+        return await apiController.config({
+          rawMetadata,
+          defaultRedirectUrl: `${process.env.BASE_URL}/api/auth/saml/idp`,
+          redirectUrl: JSON.stringify([`${process.env.BASE_URL}/*`]),
+          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+          product: samlProductID,
+        });
+      } catch (err) {
+        console.error("Error setting SAML config", err);
         throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration update failed" });
       }
-
-      return await response.json();
     },
   });
 

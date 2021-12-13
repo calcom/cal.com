@@ -1,12 +1,12 @@
-export const samlLoginUrl = process.env.SAML_LOGIN_URL;
-export const samlApiUrl = process.env.SAML_API_URL;
+import { BASE_URL } from "@lib/config/constants";
 
-export const isSAMLLoginEnabled = !!samlLoginUrl;
+export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
+export const samlLoginUrl = BASE_URL;
+
+export const isSAMLLoginEnabled = samlDatabaseUrl.length > 0;
 
 export const samlTenantID = "Cal.com";
 export const samlProductID = "Cal.com";
-
-export const samlServiceApiKey = (process.env.JACKSON_API_KEYS || "").split(",")[0];
 
 const samlAdmins = (process.env.SAML_ADMINS || "").split(",");
 export const hostedCal = process.env.NEXT_PUBLIC_APP_URL === "https://cal.com";

@@ -39,6 +39,7 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
+    "@boxyhq/saml-jackson": "0.2.1",
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
@@ -68,6 +69,7 @@
     "async": "^3.2.1",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
+    "cors": "2.8.5",
     "dayjs": "^1.10.6",
     "dayjs-business-time": "^1.0.4",
     "googleapis": "^84.0.0",
@@ -82,7 +84,6 @@
     "next-i18next": "^8.9.0",
     "next-seo": "^4.26.0",
     "next-transpile-modules": "^9.0.0",
-    "node-fetch": "3.1.0",
     "nodemailer": "^6.7.1",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.0",
