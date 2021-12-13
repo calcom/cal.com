@@ -22,10 +22,10 @@ function hexToRGB(hex: string) {
 }
 
 function getContrastingTextColor(bgColor: string): string {
+  bgColor = bgColor == "" ? "#292929" : bgColor;
   const rgb = hexToRGB(bgColor);
   const whiteContrastRatio = computeContrastRatio(rgb, [255, 255, 255]);
   const blackContrastRatio = computeContrastRatio(rgb, [41, 41, 41]); //#292929
-  console.log("white:black", whiteContrastRatio, " : ", blackContrastRatio);
   return whiteContrastRatio > blackContrastRatio ? "#ffffff" : "#292929";
 }
 
@@ -33,7 +33,6 @@ const BrandColor = ({ val = "#292929" }: { val: string | undefined | null }) => 
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-color", val);
     document.documentElement.style.setProperty("--brand-text-color", getContrastingTextColor(val));
-    console.log("contrasting Text:", getContrastingTextColor(val));
   }, [val]);
   return null;
 };
