@@ -21,8 +21,8 @@ function hexToRGB(hex: string) {
   return [parseInt(color.slice(0, 2), 16), parseInt(color.slice(2, 4), 16), parseInt(color.slice(4, 6), 16)];
 }
 
-function getContrastingTextColor(bgColor: string): string {
-  bgColor = bgColor == "" ? "#292929" : bgColor;
+function getContrastingTextColor(bgColor: string | null): string {
+  bgColor = bgColor == "" || bgColor == null ? "#292929" : bgColor;
   const rgb = hexToRGB(bgColor);
   const whiteContrastRatio = computeContrastRatio(rgb, [255, 255, 255]);
   const blackContrastRatio = computeContrastRatio(rgb, [41, 41, 41]); //#292929
