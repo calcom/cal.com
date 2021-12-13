@@ -76,7 +76,8 @@ export class BaseCalendarApiAdapter {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: this.getAttendees(event.attendees),
+        // according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component. "Attendees" MUST NOT be present
+        // attendees: this.getAttendees(event.attendees),
       });
 
       if (error) throw new Error("Error creating iCalString");
@@ -84,7 +85,7 @@ export class BaseCalendarApiAdapter {
       if (!iCalString) throw new Error("Error creating iCalString");
 
       /** We create the event directly on iCal */
-      await Promise.all(
+      const responses = await Promise.all(
         calendars
           .filter((c) =>
             event.destinationCalendar?.externalId
@@ -97,11 +98,18 @@ export class BaseCalendarApiAdapter {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              iCalString,
+              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
+              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
           )
       );
+
+      if (responses.some((r) => !r.ok)) {
+        throw new Error(
+          `Error creating event: ${(await Promise.all(responses.map((r) => r.text()))).join(", ")}`
+        );
+      }
 
       return {
         uid,
