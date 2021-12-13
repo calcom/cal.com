@@ -1,7 +1,7 @@
 import Cors from "cors";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import jackson from "../../../../lib/jackson";
+import jackson from "@lib/jackson";
 
 // Initializing the cors middleware
 const cors = Cors({
@@ -24,8 +24,6 @@ function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: any) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    console.log("token:", req.query, req.body);
-
     await runMiddleware(req, res, cors);
 
     const { oauthController } = await jackson();

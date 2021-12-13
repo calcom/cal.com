@@ -112,6 +112,7 @@
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.10",
     "@types/bcryptjs": "^2.4.2",
+    "@types/cors": "^2.8.12",
     "@types/jest": "^27.0.3",
     "@types/lodash": "^4.14.177",
     "@types/micro": "^7.3.6",

@@ -1,11 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import jackson from "../../../../lib/jackson";
+import jackson from "@lib/jackson";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    console.log("callback:", req.query, req.body);
-
     const { oauthController } = await jackson();
     const { redirect_url } = await oauthController.samlResponse(req.body);
 

@@ -17,16 +17,18 @@ const opts = {
 let apiController: any;
 let oauthController: any;
 
+const g = global as any;
+
 export default async function init() {
-  if (!global.apiController || !global.oauthController) {
+  if (!g.apiController || !g.oauthController) {
     const ret = await jackson(opts);
     apiController = ret.apiController;
     oauthController = ret.oauthController;
-    global.apiController = apiController;
-    global.oauthController = oauthController;
+    g.apiController = apiController;
+    g.oauthController = oauthController;
   } else {
-    apiController = global.apiController;
-    oauthController = global.oauthController;
+    apiController = g.apiController;
+    oauthController = g.oauthController;
   }
 
   return {

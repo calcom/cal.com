@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import jackson from "../../../../lib/jackson";
+import jackson from "@lib/jackson";
 
 const extractAuthToken = (req: NextApiRequest) => {
   const authHeader = req.headers["authorization"];
@@ -14,7 +14,6 @@ const extractAuthToken = (req: NextApiRequest) => {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    console.log("userinfo:", req.query, req.body);
     const { oauthController } = await jackson();
     let token: string | null = extractAuthToken(req);
 
