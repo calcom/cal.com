@@ -204,7 +204,7 @@ function DatePicker({
                     ? "text-gray-400 font-light hover:border-0 cursor-default"
                     : "dark:text-white text-primary-500 font-medium",
                   date && date.isSame(inviteeDate().date(day.date), "day")
-                    ? "bg-brand text-white-important"
+                    ? "bg-brand text-brandtext"
                     : !day.disabled
                     ? " bg-gray-100 dark:bg-gray-600"
                     : ""

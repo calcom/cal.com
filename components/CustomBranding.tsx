@@ -32,6 +32,7 @@ function getContrastingTextColor(bgColor: string): string {
 const BrandColor = ({ val = "#292929" }: { val: string | undefined | null }) => {
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-color", val);
+    document.documentElement.style.setProperty("--brand-text-color", getContrastingTextColor(val));
     console.log("contrasting Text:", getContrastingTextColor(val));
   }, [val]);
   return null;
