@@ -202,7 +202,7 @@ const BookingPage = (props: BookingPageProps) => {
         {}
       );
 
-    metatdata.redeemCode = redeemCode;
+    metadata.redeemCode = redeemCode;
 
     mutation.mutate({
       ...booking,

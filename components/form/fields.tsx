@@ -109,6 +109,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
+              console.error(err);
               showToast(`${getErrorFromUnknown(err).message}`, "error");
             });
         }}
