@@ -54,19 +54,12 @@
     "@radix-ui/react-tooltip": "^0.1.0",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.16.0",
-<<<<<<< HEAD
+    "@tailwindcss/forms": "^0.4.0",
     "@trpc/client": "^9.15.0",
     "@trpc/next": "^9.15.0",
     "@trpc/react": "^9.15.0",
     "@trpc/server": "^9.15.0",
-=======
-    "@tailwindcss/forms": "^0.3.4",
-    "@trpc/client": "^9.14.0",
-    "@trpc/next": "^9.14.0",
-    "@trpc/react": "^9.14.0",
-    "@trpc/server": "^9.14.0",
     "@types/jsonwebtoken": "^8.5.6",
->>>>>>> 59148c5 (CU-1zfcgpx - Authenticate Thetis JWT in NextAuth)
     "@vercel/edge-functions-ui": "^0.2.1",
     "@wojtekmaj/react-daterange-picker": "^3.3.1",
     "accept-language-parser": "^1.5.0",
@@ -112,6 +105,7 @@
     "short-uuid": "^4.2.0",
     "stripe": "^8.191.0",
     "superjson": "1.8.0",
+    "tailwindcss": "^3.0.0",
     "tsdav": "^1.1.5",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2",
@@ -157,16 +151,9 @@
     "playwright": "^1.16.2",
     "postcss": "^8.4.4",
     "prettier": "^2.3.2",
-<<<<<<< HEAD
-    "prisma": "^2.30.2",
-    "tailwindcss": "^3.0.0",
-    "ts-jest": "^26.0.0",
-=======
     "prettier-plugin-prisma": "^2.28.0",
     "prisma": "^3.1.1",
-    "tailwindcss": "^2.2.19",
     "ts-jest": "^27.0.7",
->>>>>>> 59148c5 (CU-1zfcgpx - Authenticate Thetis JWT in NextAuth)
     "ts-node": "^10.2.1",
     "typescript": "^4.5.2"
   },

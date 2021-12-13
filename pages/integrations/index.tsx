@@ -545,14 +545,15 @@ function IntegrationsContainer() {
 
 export default function IntegrationsPage() {
   const { t } = useLocale();
+  const SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS = false;
 
   return (
     <Shell heading={t("integrations")} subtitle={t("connect_your_favourite_apps")}>
       <ClientSuspense fallback={<Loader />}>
-        <IntegrationsContainer />
+        {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <IntegrationsContainer />}
         <CalendarListContainer />
-        <WebhookListContainer />
-        <IframeEmbedContainer />
+        {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <WebhookListContainer />}
+        {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <IframeEmbedContainer />}
       </ClientSuspense>
     </Shell>
   );
