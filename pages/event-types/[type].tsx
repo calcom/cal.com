@@ -60,6 +60,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const DAILY_ONLY = true;
   const { t } = useLocale();
   const PERIOD_TYPES = [
     {
@@ -124,6 +125,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
   useEffect(() => {
+    formMethods.setValue("locations", [{ type: LocationType.Daily }]);
     setSelectedTimeZone(eventType.timeZone || "");
   }, []);
 
@@ -269,10 +271,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const Locations = () => {
     return (
       <div className="w-full">
-        {formMethods.getValues("locations").length === 0 && (
+        {(formMethods.getValues("locations").length === 0 || DAILY_ONLY) && (
           <div className="flex">
             <Select
+              isDisabled={true}
               options={locationOptions}
+              defaultValue={locationOptions.find((lo) => lo.value === LocationType.Daily)}
               isSearchable={false}
               classNamePrefix="react-select"
               className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -283,7 +287,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             />
           </div>
         )}
-        {formMethods.getValues("locations").length > 0 && (
+        {formMethods.getValues("locations").length > 0 && !DAILY_ONLY && (
           <ul>
             {formMethods.getValues("locations").map((location) => (
               <li
