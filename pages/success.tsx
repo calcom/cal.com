@@ -145,7 +145,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                   </div>
                   {!needsConfirmation && (
-                    <div className="flex pt-2 pb-4 mt-5 text-center border-b sm:mt-0 sm:pt-4">
+                    <div className="flex pt-2 pb-4 mt-5 text-center border-b dark:border-gray-900 sm:mt-0 sm:pt-4">
                       <span className="flex self-center mr-2 font-medium text-gray-700 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
