@@ -355,6 +355,10 @@ body {
   background-color: #f3f4f6;
 }
 
+hr {
+  @apply border-gray-200;
+}
+
 .text-white-important {
   color: white !important;
 }
