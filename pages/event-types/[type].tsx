@@ -59,6 +59,19 @@ import * as RadioArea from "@components/ui/form/radio-area";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const addDefaultLocationOptions = (
+  defaultLocations: OptionTypeBase[],
+  locationOptions: OptionTypeBase[]
+): void => {
+  const existingLocationOptions = locationOptions.flatMap((locationOptionItem) => [locationOptionItem.value]);
+
+  defaultLocations.map((item) => {
+    if (!existingLocationOptions.includes(item.value)) {
+      locationOptions.push(item);
+    }
+  });
+};
+
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
   const PERIOD_TYPES = [
@@ -77,10 +90,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   ];
   const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
     props;
-  locationOptions.push(
+
+  /** Appending default locations */
+
+  const defaultLocations = [
     { value: LocationType.InPerson, label: t("in_person_meeting") },
-    { value: LocationType.Phone, label: t("phone_call") }
-  );
+    { value: LocationType.Phone, label: t("phone_call") },
+  ];
+
+  addDefaultLocationOptions(defaultLocations, locationOptions);
 
   const router = useRouter();
 
