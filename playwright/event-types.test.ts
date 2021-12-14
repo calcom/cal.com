@@ -2,16 +2,21 @@ import { expect, test } from "@playwright/test";
 
 import { randomString } from "./lib/testUtils";
 
+test.beforeEach(async ({ page }) => {
+  await page.goto("/event-types");
+});
+
 test.describe("pro user", () => {
-  test.use({ storageState: "proStorageState.json" });
+  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test("has at least 2 events", async ({ page }) => {
-    const $eventTypes = await page.$$("[data-testid=event-types] > *");
-
-    expect($eventTypes.length).toBeGreaterThanOrEqual(2);
-    for (const $el of $eventTypes) {
-      expect(await $el.getAttribute("data-disabled")).toBe("0");
-    }
+    const eventTypes = page.locator("[data-testid=event-types] > *");
+    expect(eventTypes.count()).toBeGreaterThanOrEqual(2);
+    eventTypes.evaluateAll((els) => {
+      for (const $el of els) {
+        expect($el.getAttribute("data-disabled")).toBe("0");
+      }
+    });
   });
 
   test("can add new event type", async ({ page }) => {
@@ -29,26 +34,25 @@ test.describe("pro user", () => {
       },
     });
 
-    await page.goto("http://localhost:3000/event-types");
+    await page.goto("/event-types");
 
     expect(page.locator(`text='${eventTitle}'`)).toBeTruthy();
   });
 });
 
 test.describe("free user", () => {
-  test.use({ storageState: "freeStorageState.json" });
+  test.use({ storageState: "playwright/artifacts/freeStorageState.json" });
 
   test("has at least 2 events where first is enabled", async ({ page }) => {
-    const $eventTypes = await page.$$("[data-testid=event-types] > *");
-
-    expect($eventTypes.length).toBeGreaterThanOrEqual(2);
-    const [$first] = $eventTypes;
-    const $last = $eventTypes.pop()!;
-    expect(await $first.getAttribute("data-disabled")).toBe("0");
-    expect(await $last.getAttribute("data-disabled")).toBe("1");
+    const eventTypes = page.locator("[data-testid=event-types] > *");
+    expect(eventTypes.count()).toBeGreaterThanOrEqual(2);
+    const first = eventTypes.first();
+    const last = eventTypes.last();
+    expect(await first.getAttribute("data-disabled")).toBe("0");
+    expect(await last.getAttribute("data-disabled")).toBe("1");
   });
 
   test("can not add new event type", async ({ page }) => {
-    await expect(page.$("[data-testid=new-event-type]")).toBeDisabled();
+    await expect(page.locator("[data-testid=new-event-type]")).toBeDisabled();
   });
 });

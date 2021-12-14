@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { createHttpServer, todo, waitFor } from "./lib/testUtils";
 
 test.describe("integrations", () => {
-  test.use({ storageState: "proStorageState.json" });
+  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/integrations");

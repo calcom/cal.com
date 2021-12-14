@@ -11,6 +11,7 @@ console.log("⚙️ Playwright options:", JSON.stringify(opts, null, 4));
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
+  testDir: "playwright",
   timeout: 60e3,
   retries: process.env.CI ? 3 : 0,
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
