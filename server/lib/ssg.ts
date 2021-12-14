@@ -8,6 +8,12 @@ import prisma from "@lib/prisma";
 import { appRouter } from "@server/routers/_app";
 import { createSSGHelpers } from "@trpc/react/ssg";
 
+/**
+ * Initialize static site rendering tRPC helpers.
+ * Provides a method to prefetch tRPC-queries in a `getStaticProps`-function.
+ * Automatically prefetches i18n based on the passed in `context`-object to prevent i18n-flickering.
+ * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
+ */
 export async function ssgInit<TParams extends { locale?: string }>(opts: GetStaticPropsContext<TParams>) {
   const requestedLocale = opts.params?.locale || opts.locale || i18n.defaultLocale;
   const isSupportedLocale = i18n.locales.includes(requestedLocale);
