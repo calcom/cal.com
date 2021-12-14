@@ -61,6 +61,7 @@ export interface ZoomEventResult {
 interface ZoomToken {
   scope: "meeting:write";
   expiry_date: number;
+  expires_in?: number; // deprecated, purely for backwards compatibility; superseeded by expiry_date.
   token_type: "bearer";
   access_token: string;
   refresh_token: string;
@@ -106,7 +107,7 @@ const zoomAuth = (credential: Credential) => {
 
   return {
     getToken: () =>
-      !isExpired(credentialKey.expiry_date)
+      !isExpired(credentialKey.expires_in || credentialKey.expiry_date)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token),
   };
