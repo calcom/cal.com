@@ -3,8 +3,9 @@ import { SchedulingType } from "@prisma/client";
 import { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 
+import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
@@ -43,6 +44,12 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     minimumBookingNotice,
     eventTypeId,
   });
+
+  const [brand, setBrand] = useState("#292929");
+
+  useEffect(() => {
+    setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
+  }, []);
 
   return (
     <div className="flex flex-col mt-8 text-center sm:pl-4 sm:mt-0 sm:w-1/3 md:-mb-5">
@@ -84,7 +91,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               <div key={slot.time.format()}>
                 <Link href={bookingUrl}>
                   <a
-                    className="block py-4 mb-2 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-brand dark:border-transparent hover:text-white hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:bg-brand dark:hover:text-brandcontrast"
+                    className={classNames(
+                      "block py-4 mb-2 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 dark:border-transparent hover:text-white hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:bg-brand dark:hover:text-brandcontrast",
+                      brand === "#fff" || brand === "#fffff" ? "border-brandcontrast" : "border-brand"
+                    )}
                     data-testid="time">
                     {slot.time.format(timeFormat)}
                   </a>
