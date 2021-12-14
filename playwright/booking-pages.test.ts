@@ -7,7 +7,9 @@ test.describe("free user", () => {
     await expect(page.locator(`[href="/free/60min"]`)).not.toBeVisible();
   });
 
-  // TODO: make sure `/free/30min` is bookable and that `/free/60min` is not
+  test.todo("`/free/30min` is bookable");
+
+  test.todo("`/free/60min` is not bookable");
 });
 
 test.describe("pro user", () => {
@@ -41,4 +43,8 @@ test.describe("pro user", () => {
       },
     });
   });
+
+  test.todo("Can reschedule the recently created booking");
+
+  test.todo("Can cancel the recently created booking");
 });

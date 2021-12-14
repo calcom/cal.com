@@ -36,7 +36,7 @@
     "types": [
       "@types/jest",
     ],
-    "allowJs": false,
+    "allowJs": true,
     "incremental": true
   },
   "include": [
