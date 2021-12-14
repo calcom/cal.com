@@ -1,6 +1,7 @@
 import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
 import { ChevronRightIcon } from "@heroicons/react/solid";
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPaths, GetStaticPropsContext } from "next";
+import { i18n } from "next-i18next.config";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
@@ -9,7 +10,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
-import { ssrInit } from "@server/lib/ssr";
+import { ssgInit } from "@server/lib/ssg";
 
 export default function Custom404() {
   const { t } = useLocale();
@@ -174,8 +175,18 @@ export default function Custom404() {
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: i18n.locales.map((locale) => ({
+      locale,
+      params: {},
+    })),
+    fallback: "blocking",
+  };
+};
+
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const ssr = await ssgInit(context);
 
   return {
     props: {
