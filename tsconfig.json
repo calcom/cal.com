@@ -35,8 +35,6 @@
     "jsx": "preserve",
     "types": [
       "@types/jest",
-      "jest-playwright-preset",
-      "expect-playwright"
     ],
     "allowJs": false,
     "incremental": true

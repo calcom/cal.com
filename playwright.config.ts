@@ -16,9 +16,6 @@ const config: PlaywrightTestConfig = {
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
   use: {
     baseURL: "http://localhost:3000",
-    launchOptions: {
-      executablePath: opts.executablePath,
-    },
     locale: "en-US",
     trace: "on-first-retry",
     headless: opts.headless,
@@ -31,7 +28,7 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], launchOptions: { executablePath: opts.executablePath } },
     },
     /*  {
       name: "firefox",
