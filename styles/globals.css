@@ -12,7 +12,7 @@
   @apply text-sm border-0 focus:ring-0;
 }
 .dark .PhoneInputInput {
-  @apply bg-brand;
+  @apply bg-black;
 }
 .PhoneInputCountrySelect {
   @apply text-black;
