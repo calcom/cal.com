@@ -17,6 +17,7 @@ import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@components/ui/Dropdown";
 
 import TeamRole from "./TeamRole";
@@ -123,23 +124,33 @@ export default function TeamListItem(props: Props) {
                     <DropdownMenuItem>
                       <Link href={"/settings/teams/" + team.id}>
                         <a>
-                          <Button type="button" color="minimal" className="w-full" StartIcon={PencilIcon}>
+                          <Button
+                            type="button"
+                            color="minimal"
+                            className="w-full font-normal"
+                            StartIcon={PencilIcon}>
                             {t("edit_team")}
                           </Button>
                         </a>
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  {isAdmin && <DropdownMenuSeparator className="h-px bg-gray-200" />}
                   <DropdownMenuItem>
                     <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${team.slug}`} passHref={true}>
                       <a target="_blank">
-                        <Button type="button" color="minimal" className="w-full" StartIcon={ExternalLinkIcon}>
+                        <Button
+                          type="button"
+                          color="minimal"
+                          className="w-full font-normal"
+                          StartIcon={ExternalLinkIcon}>
                           {" "}
                           {t("preview_team")}
                         </Button>
                       </a>
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator className="h-px bg-gray-200" />
                   {isOwner && (
                     <DropdownMenuItem>
                       <Dialog>
@@ -150,7 +161,7 @@ export default function TeamListItem(props: Props) {
                             }}
                             color="warn"
                             StartIcon={TrashIcon}
-                            className="w-full">
+                            className="w-full font-normal">
                             {t("disband_team")}
                           </Button>
                         </DialogTrigger>
@@ -164,6 +175,7 @@ export default function TeamListItem(props: Props) {
                       </Dialog>
                     </DropdownMenuItem>
                   )}
+
                   {!isOwner && (
                     <DropdownMenuItem>
                       <Dialog>

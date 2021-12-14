@@ -17,7 +17,12 @@ import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import ModalContainer from "@components/ui/ModalContainer";
 
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/Dropdown";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamRole from "./TeamRole";
 import { MembershipRole } from ".prisma/client";
@@ -91,13 +96,13 @@ export default function MemberListItem(props: Props) {
               <DropdownMenuItem>
                 <Link href={"/" + props.member.username}>
                   <a target="_blank">
-                    <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full">
+                    <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full font-normal">
                       {t("view_public_page")}
                     </Button>
                   </a>
                 </Link>
               </DropdownMenuItem>
-
+              <DropdownMenuSeparator className="h-px bg-gray-200" />
               {(props.team.membership.role === MembershipRole.OWNER ||
                 props.team.membership.role === MembershipRole.ADMIN) && (
                 <>
@@ -106,10 +111,11 @@ export default function MemberListItem(props: Props) {
                       onClick={() => setShowChangeMemberRoleModal(true)}
                       color="minimal"
                       StartIcon={PencilIcon}
-                      className="flex-shrink-0 w-full">
+                      className="flex-shrink-0 w-full font-normal">
                       {t("edit_role")}
                     </Button>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator className="h-px bg-gray-200" />
                   <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>
@@ -119,7 +125,7 @@ export default function MemberListItem(props: Props) {
                           }}
                           color="warn"
                           StartIcon={UserRemoveIcon}
-                          className="w-full">
+                          className="w-full font-normal">
                           {t("remove_member")}
                         </Button>
                       </DialogTrigger>
