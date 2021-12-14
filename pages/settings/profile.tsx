@@ -161,10 +161,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredName = nameRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
-    const enteredBrandColor = brandColorRef.current.value;
+    const enteredBrandColor = brandColorRef?.current?.value;
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
-    const enteredHideBranding = hideBrandingRef.current.checked;
+    const enteredHideBranding = hideBrandingRef?.current?.checked;
     const enteredLanguage = selectedLanguage.value;
 
     // TODO: Add validation
@@ -192,21 +192,30 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
             <div className="block sm:flex">
               <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
                 <TextField
+                  disabled={true}
                   name="username"
+                  className="text-gray-500"
                   addOnLeading={
                     <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
-                      {process.env.NEXT_PUBLIC_APP_URL}/{"team/"}
+                      {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }
                   ref={usernameRef}
                   defaultValue={props.user.username || undefined}
                 />
+                <p className="mt-2 text-sm text-gray-500" id="email-description">
+                  {t("change_username_fullname_contact")}{" "}
+                  <a className="text-blue-500" href="mailto:talent-support@theskills.com">
+                    talent-support@theskills.com
+                  </a>
+                </p>
               </div>
               <div className="w-full sm:w-1/2 sm:ml-2">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
                 </label>
                 <input
+                  disabled={true}
                   ref={nameRef}
                   type="text"
                   name="name"
@@ -214,7 +223,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   autoComplete="given-name"
                   placeholder={t("your_name")}
                   required
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm text-gray-500 bg-gray-50"
                   defaultValue={props.user.name || undefined}
                 />
               </div>
@@ -236,8 +245,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
                   {t("change_email_contact")}{" "}
-                  <a className="text-blue-500" href="mailto:help@cal.com">
-                    help@cal.com
+                  <a className="text-blue-500" href="mailto:talent-support@theskills.com">
+                    talent-support@theskills.com
                   </a>
                 </p>
               </div>
@@ -345,70 +354,76 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 />
               </div>
             </div>
-            <div>
-              <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                {t("single_theme")}
-              </label>
-              <div className="my-1">
-                <Select
-                  id="theme"
-                  isDisabled={!selectedTheme}
-                  defaultValue={selectedTheme || themeOptions[0]}
-                  value={selectedTheme || themeOptions[0]}
-                  onChange={(v) => v && setSelectedTheme(v)}
-                  className="shadow-sm | { value: string } focus:ring-neutral-800 focus:border-neutral-800 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
-                  options={themeOptions}
-                />
-              </div>
-              <div className="relative flex items-start mt-8">
-                <div className="flex items-center h-5">
-                  <input
-                    id="theme-adjust-os"
-                    name="theme-adjust-os"
-                    type="checkbox"
-                    onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
-                    checked={!selectedTheme}
-                    className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-800 text-neutral-900"
+            {process.env.SKILLS_ENABLE_THEME_SETTINGS && (
+              <div>
+                <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
+                  {t("single_theme")}
+                </label>
+                <div className="my-1">
+                  <Select
+                    id="theme"
+                    isDisabled={!selectedTheme}
+                    defaultValue={selectedTheme || themeOptions[0]}
+                    value={selectedTheme || themeOptions[0]}
+                    onChange={(v) => v && setSelectedTheme(v)}
+                    className="shadow-sm | { value: string } focus:ring-neutral-800 focus:border-neutral-800 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
+                    options={themeOptions}
                   />
                 </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                    {t("automatically_adjust_theme")}
-                  </label>
+                <div className="relative flex items-start mt-8">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="theme-adjust-os"
+                      name="theme-adjust-os"
+                      type="checkbox"
+                      onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
+                      checked={!selectedTheme}
+                      className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-800 text-neutral-900"
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
+                      {t("automatically_adjust_theme")}
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div>
-              <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
-                {t("brand_color")}
-              </label>
-              <div className="flex mt-1">
-                <input
-                  ref={brandColorRef}
-                  type="text"
-                  name="brandColor"
-                  id="brandColor"
-                  placeholder="#hex-code"
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
-                  defaultValue={props.user.brandColor}
-                />
-              </div>
-              <hr className="mt-6" />
-            </div>
-            <div>
-              <div className="relative flex items-start">
-                <div className="flex items-center h-5">
-                  <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
+            )}
+            {process.env.SKILLS_ENABLE_THEME_SETTINGS && (
+              <div>
+                <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
+                  {t("brand_color")}
+                </label>
+                <div className="flex mt-1">
+                  <input
+                    ref={brandColorRef}
+                    type="text"
+                    name="brandColor"
+                    id="brandColor"
+                    placeholder="#hex-code"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                    defaultValue={props.user.brandColor}
+                  />
                 </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                    {t("disable_cal_branding")}{" "}
-                    {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
-                  </label>
-                  <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
+                <hr className="mt-6" />
+              </div>
+            )}
+            {process.env.SKILLS_ENABLE_THEME_SETTINGS && (
+              <div>
+                <div className="relative flex items-start">
+                  <div className="flex items-center h-5">
+                    <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                      {t("disable_cal_branding")}{" "}
+                      {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
+                    </label>
+                    <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         <hr className="mt-8" />

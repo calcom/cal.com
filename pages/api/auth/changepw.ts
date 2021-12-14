@@ -6,6 +6,11 @@ import { ErrorCode, hashPassword, verifyPassword } from "../../../lib/auth";
 import prisma from "../../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!process.env.SKILLS_ENABLE_SECURITY_SETTINGS) {
+    res.status(403).json({ message: "This setting not enabled for The Skills" });
+    return;
+  }
+
   const session = await getSession({ req: req });
 
   if (!session) {

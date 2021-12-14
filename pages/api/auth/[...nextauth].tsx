@@ -37,24 +37,25 @@ export default NextAuth({
       const { secret, token } = params || {};
       const decodedToken = jwt.verify(token || "", secret || process.env.JWT_SECRET || "") as JWT;
 
-      let user;
-      user = await prisma.user.findUnique({
-        where: {
-          thetisId: decodedToken?.userId as string,
-        },
-      });
+      if (!decodedToken?.email) {
+        console.error(`"Thetis user could not be found or created due to missing decoded email."`);
+        throw new Error(ErrorCode.InternalServerError);
+      }
 
-      if (!user && decodedToken?.email) {
+      let user;
+      if (decodedToken?.email) {
         user = await prisma.user.upsert({
           where: {
             email: decodedToken?.email?.toLowerCase(),
           },
           update: {
+            hideBranding: true,
             thetisId: decodedToken?.userId as string,
             username: decodedToken?.instructorProfileHandle as string,
             name: decodedToken?.instructorProfilePublicName as string,
           },
           create: {
+            hideBranding: true,
             email: decodedToken?.email?.toLowerCase(),
             thetisId: decodedToken?.userId as string,
             username: decodedToken?.instructorProfileHandle as string,

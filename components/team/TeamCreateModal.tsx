@@ -23,7 +23,11 @@ export default function TeamCreate(props: Props) {
 
   const createTeam = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    createTeamMutation.mutate({ name: nameRef?.current?.value });
+    if (process.env.SKILLS_ENABLE_TEAM_SETTINGS) {
+      createTeamMutation.mutate({ name: nameRef?.current?.value });
+    } else {
+      alert("This setting not enabled for The Skills");
+    }
   };
 
   return (

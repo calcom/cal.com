@@ -14,22 +14,31 @@ export default function SettingsShell({ children }: { children: React.ReactNode 
       href: "/settings/profile",
       icon: UserIcon,
     },
-    {
-      name: t("security"),
-      href: "/settings/security",
-      icon: KeyIcon,
-    },
-    {
+  ];
+
+  if (process.env.SKILLS_ENABLE_TEAM_SETTINGS) {
+    tabs.push({
       name: t("teams"),
       href: "/settings/teams",
       icon: UserGroupIcon,
-    },
-    {
+    });
+  }
+
+  if (process.env.SKILLS_ENABLE_SECURITY_SETTINGS) {
+    tabs.push({
+      name: t("security"),
+      href: "/settings/security",
+      icon: KeyIcon,
+    });
+  }
+
+  if (process.env.SKILLS_ENABLE_BILLING_SETTINGS) {
+    tabs.push({
       name: t("billing"),
       href: "/settings/billing",
       icon: CreditCardIcon,
-    },
-  ];
+    });
+  }
 
   return (
     <>

@@ -7,6 +7,11 @@ import slugify from "@lib/slugify";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
 
+  if (!process.env.SKILLS_ENABLE_TEAM_SETTINGS) {
+    res.status(403).json({ message: "This setting not enabled for The Skills" });
+    return;
+  }
+
   if (!session?.user?.id) {
     res.status(401).json({ message: "Not authenticated" });
     return;
