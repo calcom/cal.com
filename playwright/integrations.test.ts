@@ -1,36 +1,27 @@
-import { kont } from "kont";
+import { expect, test } from "@playwright/test";
 
-import { loginProvider } from "./lib/loginProvider";
-import { createHttpServer, waitFor } from "./lib/testUtils";
-
-jest.setTimeout(60e3);
-jest.retryTimes(3);
+import { createHttpServer, todo, waitFor } from "./lib/testUtils";
 
 describe("integrations", () => {
-  const ctx = kont()
-    .useBeforeEach(
-      loginProvider({
-        user: "pro",
-        path: "/integrations",
-        waitForSelector: '[data-testid="new_webhook"]',
-      })
-    )
-    .done();
+  test.use({ storageState: "proStorageState.json" });
 
-  test.todo("Can add Zoom integration");
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/integrations");
+  });
 
-  test.todo("Can add Stripe integration");
+  todo("Can add Zoom integration");
 
-  test.todo("Can add Google Calendar");
+  todo("Can add Stripe integration");
 
-  test.todo("Can add Office 365 Calendar");
+  todo("Can add Google Calendar");
 
-  test.todo("Can add CalDav Calendar");
+  todo("Can add Office 365 Calendar");
 
-  test.todo("Can add Apple Calendar");
+  todo("Can add CalDav Calendar");
 
-  test("add webhook & test that creating an event triggers a webhook call", async () => {
-    const { page } = ctx;
+  todo("Can add Apple Calendar");
+
+  test("add webhook & test that creating an event triggers a webhook call", async ({ page }) => {
     const webhookReceiver = createHttpServer();
 
     // --- add webhook
@@ -79,7 +70,7 @@ describe("integrations", () => {
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
-    expect(body).toMatchInlineSnapshot(`
+    expect(body).toMatchSnapshot(`
     Object {
       "createdAt": "[redacted/dynamic]",
       "payload": Object {

@@ -1,20 +1,9 @@
-import { kont } from "kont";
+import { test } from "@playwright/test";
 
-import { loginProvider } from "./lib/loginProvider";
+test.use({ storageState: "onboardingStorageState.json" });
 
-jest.setTimeout(60e3);
-jest.retryTimes(2);
-
-const ctx = kont()
-  .useBeforeEach(
-    loginProvider({
-      user: "onboarding",
-    })
-  )
-  .done();
-
-test("redirects to /getting-started after login", async () => {
-  await ctx.page.waitForNavigation({
+test("redirects to /getting-started after login", async ({ page }) => {
+  await page.waitForNavigation({
     url(url) {
       return url.pathname === "/getting-started";
     },

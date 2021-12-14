@@ -1,24 +1,11 @@
-import { kont } from "kont";
+import { test } from "@playwright/test";
 
-import { loginProvider } from "./lib/loginProvider";
 import { randomString } from "./lib/testUtils";
 
-jest.setTimeout(60e3);
-jest.retryTimes(3);
-
 describe("pro user", () => {
-  const ctx = kont()
-    .useBeforeEach(
-      loginProvider({
-        user: "pro",
-        path: "/event-types",
-        waitForSelector: "[data-testid=event-types]",
-      })
-    )
-    .done();
+  test.use({ storageState: "proStorageState.json" });
 
-  test("has at least 2 events", async () => {
-    const { page } = ctx;
+  test("has at least 2 events", async ({ page }) => {
     const $eventTypes = await page.$$("[data-testid=event-types] > *");
 
     expect($eventTypes.length).toBeGreaterThanOrEqual(2);
@@ -27,8 +14,7 @@ describe("pro user", () => {
     }
   });
 
-  test("can add new event type", async () => {
-    const { page } = ctx;
+  test("can add new event type", async ({ page }) => {
     await page.click("[data-testid=new-event-type]");
     const nonce = randomString(3);
     const eventTitle = `hello ${nonce}`;
@@ -50,18 +36,9 @@ describe("pro user", () => {
 });
 
 describe("free user", () => {
-  const ctx = kont()
-    .useBeforeEach(
-      loginProvider({
-        user: "free",
-        path: "/event-types",
-        waitForSelector: "[data-testid=event-types]",
-      })
-    )
-    .done();
+  test.use({ storageState: "freeStorageState.json" });
 
-  test("has at least 2 events where first is enabled", async () => {
-    const { page } = ctx;
+  test("has at least 2 events where first is enabled", async ({ page }) => {
     const $eventTypes = await page.$$("[data-testid=event-types] > *");
 
     expect($eventTypes.length).toBeGreaterThanOrEqual(2);
@@ -71,9 +48,7 @@ describe("free user", () => {
     expect(await $last.getAttribute("data-disabled")).toBe("1");
   });
 
-  test("can not add new event type", async () => {
-    const { page } = ctx;
-
+  test("can not add new event type", async ({ page }) => {
     await expect(page.$("[data-testid=new-event-type]")).toBeDisabled();
   });
 });
