@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { createHttpServer, todo, waitFor } from "./lib/testUtils";
 
-describe("integrations", () => {
+test.describe("integrations", () => {
   test.use({ storageState: "proStorageState.json" });
 
   test.beforeEach(async ({ page }) => {
@@ -26,16 +26,16 @@ describe("integrations", () => {
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
-    await expect(page).toHaveSelector("[data-testid='WebhookDialogForm']");
+    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeTruthy();
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
     await page.click("[type=submit]");
 
     // dialog is closed
-    await expect(page).not.toHaveSelector("[data-testid='WebhookDialogForm']");
+    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeFalsy();
     // page contains the url
-    await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeTruthy();
 
     // --- Book the first available day next month in the pro user's "30min"-event
     await page.goto(`http://localhost:3000/pro/30min`);

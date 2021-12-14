@@ -3,8 +3,8 @@ import { test, expect } from "@playwright/test";
 test.describe("free user", () => {
   test("only one visible event", async ({ page }) => {
     await page.goto("/free");
-    await expect(page).toHaveSelector(`[href="/free/30min"]`);
-    await expect(page).not.toHaveSelector(`[href="/free/60min"]`);
+    await expect(page.locator(`[href="/free/30min"]`)).toBeVisible();
+    await expect(page.locator(`[href="/free/60min"]`)).not.toBeVisible();
   });
 
   // TODO: make sure `/free/30min` is bookable and that `/free/60min` is not

@@ -1,8 +1,8 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { randomString } from "./lib/testUtils";
 
-describe("pro user", () => {
+test.describe("pro user", () => {
   test.use({ storageState: "proStorageState.json" });
 
   test("has at least 2 events", async ({ page }) => {
@@ -31,11 +31,11 @@ describe("pro user", () => {
 
     await page.goto("http://localhost:3000/event-types");
 
-    await expect(page).toHaveSelector(`text='${eventTitle}'`);
+    expect(page.locator(`text='${eventTitle}'`)).toBeTruthy();
   });
 });
 
-describe("free user", () => {
+test.describe("free user", () => {
   test.use({ storageState: "freeStorageState.json" });
 
   test("has at least 2 events where first is enabled", async ({ page }) => {
