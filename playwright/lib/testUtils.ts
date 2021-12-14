@@ -1,10 +1,9 @@
 import { test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
 
-import noop from "@lib/noop";
-
 export function todo(title: string) {
-  test.skip(title, noop);
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  test.skip(title, () => {});
 }
 
 export function randomString(length = 12) {
