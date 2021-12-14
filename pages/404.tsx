@@ -1,7 +1,6 @@
 import { BookOpenIcon, CheckIcon, CodeIcon, DocumentTextIcon } from "@heroicons/react/outline";
 import { ChevronRightIcon } from "@heroicons/react/solid";
-import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { i18n } from "next-i18next.config";
+import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
@@ -174,16 +173,6 @@ export default function Custom404() {
     </>
   );
 }
-
-export const getStaticPaths: GetStaticPaths = async () => {
-  return {
-    paths: i18n.locales.map((locale) => ({
-      locale,
-      params: {},
-    })),
-    fallback: "blocking",
-  };
-};
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const ssr = await ssgInit(context);
