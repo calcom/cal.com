@@ -34,7 +34,7 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
               }}
               className={`
               w-10 h-10
-                      bg-brand text-white focus:outline-none px-3 py-1 rounded 
+                      bg-brand text-brandcontrast focus:outline-none px-3 py-1 rounded 
                     ${activeDays[idx + 1] ? "rounded-r-none" : ""} 
                     ${activeDays[idx - 1] ? "rounded-l-none" : ""} 
                     ${idx === 0 ? "rounded-l" : ""} 
