@@ -47,7 +47,7 @@ const TimeOptions: FC<Props> = (props) => {
               checked={is24hClock}
               onChange={handle24hClockToggle}
               className={classNames(
-                is24hClock ? "bg-brand text-brandtext" : "dark:bg-gray-600 bg-gray-200",
+                is24hClock ? "bg-brand text-brandcontrast" : "dark:bg-gray-600 bg-gray-200",
                 "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
               )}>
               <span className="sr-only">{t("use_setting")}</span>
