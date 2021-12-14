@@ -10,13 +10,12 @@ test.describe("pro user", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test("has at least 2 events", async ({ page }) => {
-    const eventTypes = page.locator("[data-testid=event-types] > *");
-    expect(eventTypes.count()).toBeGreaterThanOrEqual(2);
-    eventTypes.evaluateAll((els) => {
-      for (const $el of els) {
-        expect($el.getAttribute("data-disabled")).toBe("0");
-      }
-    });
+    const $eventTypes = await page.$$("[data-testid=event-types] > *");
+
+    expect($eventTypes.length).toBeGreaterThanOrEqual(2);
+    for (const $el of $eventTypes) {
+      expect(await $el.getAttribute("data-disabled")).toBe("0");
+    }
   });
 
   test("can add new event type", async ({ page }) => {
@@ -44,12 +43,13 @@ test.describe("free user", () => {
   test.use({ storageState: "playwright/artifacts/freeStorageState.json" });
 
   test("has at least 2 events where first is enabled", async ({ page }) => {
-    const eventTypes = page.locator("[data-testid=event-types] > *");
-    expect(eventTypes.count()).toBeGreaterThanOrEqual(2);
-    const first = eventTypes.first();
-    const last = eventTypes.last();
-    expect(await first.getAttribute("data-disabled")).toBe("0");
-    expect(await last.getAttribute("data-disabled")).toBe("1");
+    const $eventTypes = await page.$$("[data-testid=event-types] > *");
+
+    expect($eventTypes.length).toBeGreaterThanOrEqual(2);
+    const [$first] = $eventTypes;
+    const $last = $eventTypes.pop()!;
+    expect(await $first.getAttribute("data-disabled")).toBe("0");
+    expect(await $last.getAttribute("data-disabled")).toBe("1");
   });
 
   test("can not add new event type", async ({ page }) => {

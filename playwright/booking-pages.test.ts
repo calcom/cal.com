@@ -16,8 +16,8 @@ test.describe("pro user", () => {
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
-    const eventTypes = page.locator("[data-testid=event-types] > *");
-    expect(eventTypes.count()).toBeGreaterThanOrEqual(2);
+    const $eventTypes = await page.$$("[data-testid=event-types] > *");
+    expect($eventTypes.length).toBeGreaterThanOrEqual(2);
   });
 
   test("book an event first day in next month", async ({ page }) => {
