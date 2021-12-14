@@ -4,6 +4,7 @@
 
 :root {
   --brand-color: #292929;
+  --brand-text-color: #ffffff;
 }
 
 /* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
