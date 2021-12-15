@@ -11,7 +11,33 @@ test.describe("integrations", () => {
 
   todo("Can add Zoom integration");
 
-  todo("Can add Stripe integration");
+  test("Can add Stripe integration", async ({ page }) => {
+    /** We should see the "Connect" button for Stripe */
+    expect(page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`))
+      .toContainText("Connect")
+      .catch(() => {
+        console.error(
+          `Make sure Stripe it's properly installed and that an integration hasn't been already added.`
+        );
+      });
+
+    /** We start the Stripe flow */
+    await Promise.all([
+      page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
+      await page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
+    ]);
+
+    await Promise.all([
+      page.waitForNavigation({ url: "/integrations" }),
+      /** We skip filling Stripe forms (testing mode only) */
+      await page.click('[id="skip-account-app"]'),
+    ]);
+
+    /** If Stripe is added correctly we should see the "Disconnect" button */
+    expect(
+      page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
+    ).toContainText("Disconnect");
+  });
 
   todo("Can add Google Calendar");
 
