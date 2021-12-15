@@ -11,6 +11,7 @@ const opts = {
     engine: "sql",
     type: "postgres",
     url: samlDatabaseUrl,
+    encryptionKey: process.env.CALENDSO_ENCRYPTION_KEY,
   },
 };
 
