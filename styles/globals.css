@@ -4,6 +4,7 @@
 
 :root {
   --brand-color: #292929;
+  --brand-text-color: #ffffff;
 }
 
 /* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
@@ -355,6 +356,10 @@ body {
   background-color: #f3f4f6;
 }
 
+hr {
+  @apply border-gray-200;
+}
+
 .text-white-important {
   color: white !important;
 }
@@ -373,4 +378,9 @@ body {
 .weekdaySelect button.active {
   background: #000;
   color: #fff;
+}
+
+/* react-date-picker forces a border upon us, cast it away */
+.react-date-picker__wrapper {
+  border: none !important;
 }

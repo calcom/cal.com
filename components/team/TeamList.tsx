@@ -1,39 +1,44 @@
-import { Team } from "@lib/team";
+import showToast from "@lib/notification";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import TeamListItem from "./TeamListItem";
 
-export default function TeamList(props: {
-  teams: Team[];
-  onChange: () => void;
-  onEditTeam: (text: Team) => void;
-}) {
-  const selectAction = (action: string, team: Team) => {
+interface Props {
+  teams: inferQueryOutput<"viewer.teams.list">;
+}
+
+export default function TeamList(props: Props) {
+  const utils = trpc.useContext();
+
+  function selectAction(action: string, teamId: number) {
     switch (action) {
-      case "edit":
-        props.onEditTeam(team);
-        break;
       case "disband":
-        deleteTeam(team);
+        deleteTeam(teamId);
         break;
     }
-  };
+  }
 
-  const deleteTeam = async (team: Team) => {
-    await fetch("/api/teams/" + team.id, {
-      method: "DELETE",
-    });
-    return props.onChange();
-  };
+  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.list"]);
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  function deleteTeam(teamId: number) {
+    deleteTeamMutation.mutate({ teamId });
+  }
 
   return (
     <div>
-      <ul className="px-4 mb-2 bg-white border divide-y divide-gray-200 rounded">
-        {props.teams.map((team: Team) => (
+      <ul className="mb-2 bg-white border divide-y rounded divide-neutral-200">
+        {props.teams.map((team) => (
           <TeamListItem
-            onChange={props.onChange}
-            key={team.id}
+            key={team?.id as number}
             team={team}
-            onActionSelect={(action: string) => selectAction(action, team)}></TeamListItem>
+            onActionSelect={(action: string) => selectAction(action, team?.id as number)}></TeamListItem>
         ))}
       </ul>
     </div>

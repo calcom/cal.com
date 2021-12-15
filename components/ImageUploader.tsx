@@ -110,7 +110,7 @@ export default function ImageUploader({
         (opened) => !opened && setFile(null) // unset file on close
       }>
       <DialogTrigger asChild>
-        <div className="flex items-center px-3">
+        <div className="flex items-center">
           <Button color="secondary" type="button" className="py-1 text-xs">
             {buttonMsg}
           </Button>

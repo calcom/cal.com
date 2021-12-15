@@ -16,7 +16,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm",
+        "mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm",
         props.className
       )}
     />
@@ -54,9 +54,11 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   } = props;
   return (
     <div>
-      <Label htmlFor={id} {...labelProps}>
-        {label}
-      </Label>
+      {!!props.name && (
+        <Label htmlFor={id} {...labelProps}>
+          {label}
+        </Label>
+      )}
       {addOnLeading ? (
         <div className="flex mt-1 rounded-md shadow-sm">
           {addOnLeading}
