@@ -21,7 +21,7 @@ test.describe("integrations", () => {
 
   todo("Can add Apple Calendar");
 
-  test("add webhook & test that creating an event triggers a webhook call", async ({ page }) => {
+  test("add webhook & test that creating an event triggers a webhook call", async ({ page }, testInfo) => {
     const webhookReceiver = createHttpServer();
 
     // --- add webhook
@@ -70,6 +70,8 @@ test.describe("integrations", () => {
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
+    // Text files shouldn't have platform specific suffixes
+    testInfo.snapshotSuffix = "";
     expect(JSON.stringify(body)).toMatchSnapshot(`webhookResponse.txt`);
 
     webhookReceiver.close();
