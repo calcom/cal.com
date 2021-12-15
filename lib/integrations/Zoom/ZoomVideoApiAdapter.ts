@@ -68,7 +68,13 @@ interface ZoomToken {
 
 const zoomAuth = (credential: Credential) => {
   const credentialKey = credential.key as unknown as ZoomToken;
-  const isExpired = (expiryDate: number) => expiryDate < +new Date();
+  const isTokenValid = (token: ZoomToken) =>
+    token &&
+    token.token_type &&
+    token.access_token &&
+    token.expires_in !== undefined &&
+    token.expires_in !== null &&
+    token.expires_in < +new Date();
   const authHeader =
     "Basic " +
     Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
@@ -103,7 +109,7 @@ const zoomAuth = (credential: Credential) => {
 
   return {
     getToken: () =>
-      !isExpired(credentialKey.expires_in)
+      !isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token),
   };
