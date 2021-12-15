@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import fs from "fs";
 
 import prisma from "../lib/prisma";
 import { randomString } from "../playwright/lib/testUtils";
@@ -10,32 +9,26 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 async function tmpMigration() {
-  //   console.log(
-  //     await prisma.$queryRaw(`
-  //   select
-  //   id as "userId",
-  //   CAST(CONCAT(CAST(("startTime") AS text), ' minute')::interval AS time) as "startTime",
-  //   CAST(CONCAT(CAST(("endTime") AS text), ' minute')::interval AS time)  as "endTime",
-  //   ARRAY [0,1,2,3,4,5,6]
-  // from
-  //   (
-  //     select
-  //       users.id,
-  //       users."startTime",
-  //       users."endTime",
-  //       users."timeZone",
-  //       count("Availability".id) as availability_count
-  //     from users
-  //     left join "Availability" on "Availability"."userId" = users.id
-  //     group by users.id
-  //   ) usersWithAvailabilityNumber
-  // where availability_count < 1
-  // `)
-  //   );
-  const MIGRATION_SQL = fs
-    .readFileSync(__dirname + "/../prisma/migrations/20211115182559_availability_issue/migration.sql")
-    .toString();
-  await prisma.$queryRaw`${MIGRATION_SQL}`;
+  await prisma.$queryRaw`
+    select
+    id as "userId",
+    CAST(CONCAT(CAST(("startTime") AS text), ' minute')::interval AS time) as "startTime",
+    CAST(CONCAT(CAST(("endTime") AS text), ' minute')::interval AS time)  as "endTime",
+    ARRAY [0,1,2,3,4,5,6]
+  from
+    (
+      select
+        users.id,
+        users."startTime",
+        users."endTime",
+        users."timeZone",
+        count("Availability".id) as availability_count
+      from users
+      left join "Availability" on "Availability"."userId" = users.id
+      group by users.id
+    ) usersWithAvailabilityNumber
+  where availability_count < 1
+  `;
   return NaN;
 }
 afterAll(async () => {
