@@ -19,7 +19,7 @@ export type GetSlots = {
 
 const getMinuteOffset = (date: Dayjs, step: number) => {
   // Diffs the current time with the given date and iff same day; (handled by 1440) - return difference; otherwise 0
-  const minuteOffset = Math.min(date.diff(dayjs().startOf("day"), "minute"), 1440) % 1440;
+  const minuteOffset = Math.min(date.diff(date.hour(0).minute(0).second(0), "minute"), 1440) % 1440;
   // round down to nearest step
   return Math.ceil(minuteOffset / step) * step;
 };
@@ -44,8 +44,8 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
 
   const slots: Dayjs[] = [];
   for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
-    const slot = inviteeDate.startOf("day").add(minutes, "minute");
-
+    const slot = inviteeDate.hour(0).minute(0).second(0).add(minutes, "minute");
+    // check if slot happened already
     if (slot.isBefore(startDate)) {
       continue;
     }

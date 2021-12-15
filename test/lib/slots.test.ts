@@ -16,7 +16,7 @@ it("can fit 24 hourly slots for an empty day", async () => {
   // 24h in a day.
   expect(
     getSlots({
-      inviteeDate: dayjs().add(1, "day"),
+      inviteeDate: dayjs.utc().add(1, "day").startOf("day"),
       frequency: 60,
       minimumBookingNotice: 0,
       workingHours: [
@@ -31,11 +31,11 @@ it("can fit 24 hourly slots for an empty day", async () => {
 });
 
 // TODO: This test is sound; it should pass!
-it.skip("only shows future booking slots on the same day", async () => {
+it("only shows future booking slots on the same day", async () => {
   // The mock date is 1s to midday, so 12 slots should be open given 0 booking notice.
   expect(
     getSlots({
-      inviteeDate: dayjs(),
+      inviteeDate: dayjs.utc(),
       frequency: 60,
       minimumBookingNotice: 0,
       workingHours: [
@@ -76,7 +76,7 @@ it("can cut off dates that due to invitee timezone differences fall on the previ
   ];
   expect(
     getSlots({
-      inviteeDate: dayjs().startOf("day"), // time translation -01:00
+      inviteeDate: dayjs().tz("Atlantic/Cape_Verde").startOf("day"), // time translation -01:00
       frequency: 60,
       minimumBookingNotice: 0,
       workingHours,
@@ -88,9 +88,9 @@ it("adds minimum booking notice correctly", async () => {
   // 24h in a day.
   expect(
     getSlots({
-      inviteeDate: dayjs().add(1, "day").startOf("day"),
+      inviteeDate: dayjs.utc().add(1, "day").startOf("day"),
       frequency: 60,
-      minimumBookingNotice: 1440,
+      minimumBookingNotice: 1500,
       workingHours: [
         {
           days: Array.from(Array(7).keys()),
@@ -99,5 +99,5 @@ it("adds minimum booking notice correctly", async () => {
         },
       ],
     })
-  ).toHaveLength(10);
+  ).toHaveLength(11);
 });
