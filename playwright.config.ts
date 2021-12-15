@@ -1,13 +1,5 @@
 import { PlaywrightTestConfig, devices } from "@playwright/test";
 
-const opts = {
-  // launch headless on CI, in browser locally
-  headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
-  executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
-};
-
-console.log("⚙️ Playwright options:", JSON.stringify(opts, null, 4));
-
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   testDir: "playwright",
@@ -18,7 +10,7 @@ const config: PlaywrightTestConfig = {
     baseURL: "http://localhost:3000",
     locale: "en-US",
     trace: "on-first-retry",
-    headless: opts.headless,
+    headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
     contextOptions: {
       recordVideo: {
         dir: "playwright/videos",
@@ -28,7 +20,7 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"], launchOptions: { executablePath: opts.executablePath } },
+      use: { ...devices["Desktop Chrome"] },
     },
     /*  {
       name: "firefox",
