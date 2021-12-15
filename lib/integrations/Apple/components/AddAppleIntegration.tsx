@@ -30,7 +30,7 @@ export function AddAppleIntegrationModal(props: DialogProps) {
           title="Connect to Apple Server"
           subtitle={
             <>
-              Generate an app specific password to use with Cal.com at{" "}
+              Generate an app specific password to use with The Skills Meeting Dashboard at{" "}
               <a
                 className="text-indigo-400"
                 href="https://appleid.apple.com/account/manage"
