@@ -48,6 +48,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                   hideBranding: true,
                   plan: true,
                   theme: true,
+                  thetisId: true,
                 },
               },
               team: {

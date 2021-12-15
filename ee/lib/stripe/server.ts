@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CalendarEvent } from "@lib/calendarClient";
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
+import { getInstructor } from "@lib/integrations/Thetis/ThetisApiAdapter";
 import prisma from "@lib/prisma";
 
 import { createPaymentLink } from "./client";
@@ -35,8 +36,10 @@ const stripe = new Stripe(stripePrivateKey, {
 export async function handlePayment(
   evt: CalendarEvent,
   selectedEventType: {
+    users: { thetisId: string }[];
     price: number;
     currency: string;
+    description: string;
   },
   stripeCredential: { key: Prisma.JsonValue },
   booking: {
@@ -49,16 +52,35 @@ export async function handlePayment(
   const paymentFee = Math.round(
     selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}`)
   );
-  const { stripe_user_id, stripe_publishable_key } = stripeCredential.key as Stripe.OAuthToken;
+  const { stripe_user_id } = stripeCredential.key as Stripe.OAuthToken;
+
+  const stripe_publishable_key = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY;
+
+  const [user] = selectedEventType.users;
+  if (!user) return { notFound: true };
+
+  if (!user.thetisId) return { notFound: true };
+
+  const instructor = await getInstructor(user.thetisId);
+  if (!instructor) return { notFound: true };
+
+  const stripeConnectAccountId = instructor.data?.stripeConnectAccountId;
+  if (!stripeConnectAccountId) return { notFound: true };
 
   const params: Stripe.PaymentIntentCreateParams = {
     amount: selectedEventType.price,
+    setup_future_usage: "off_session",
     currency: selectedEventType.currency,
     payment_method_types: ["card"],
     application_fee_amount: paymentFee,
+    //TODO: add Stripe customer
+    description: selectedEventType.description,
+    transfer_data: {
+      destination: stripeConnectAccountId,
+    },
   };
 
-  const paymentIntent = await stripe.paymentIntents.create(params, { stripeAccount: stripe_user_id });
+  const paymentIntent = await stripe.paymentIntents.create(params);
 
   const payment = await prisma.payment.create({
     data: {
@@ -78,16 +100,18 @@ export async function handlePayment(
     },
   });
 
-  await sendAwaitingPaymentEmail({
-    ...evt,
-    paymentInfo: {
-      link: createPaymentLink({
-        paymentUid: payment.uid,
-        name: booking.user?.name,
-        date: booking.startTime.toISOString(),
-      }),
-    },
-  });
+  if (process.env.SKILLS_SEND_AWAITING_PAYMENT_EMAIL) {
+    await sendAwaitingPaymentEmail({
+      ...evt,
+      paymentInfo: {
+        link: createPaymentLink({
+          paymentUid: payment.uid,
+          name: booking.user?.name,
+          date: booking.startTime.toISOString(),
+        }),
+      },
+    });
+  }
 
   return payment;
 }

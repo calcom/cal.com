@@ -2,6 +2,7 @@ import { EventTypeCustomInput, MembershipRole, Prisma, PeriodType } from "@prism
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import { getInstructor } from "@lib/integrations/Thetis/ThetisApiAdapter";
 import prisma from "@lib/prisma";
 import { WorkingHours } from "@lib/types/schedule";
 
@@ -105,6 +106,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method == "PATCH" || req.method == "POST") {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!user) {
+      console.warn(`User ${session.user.id} could not be found.`);
+      return res.status(404).json({ message: "No user exists matching that id." });
+    }
+
+    const instructor = await getInstructor(String(user?.thetisId));
+
+    if (!instructor) {
+      console.warn(`Thetis instructor could not be found for ${user?.thetisId}`);
+      return res.status(404).json({ message: "No instructor exists matching that id." });
+    }
+
+    const product1on1 = instructor.data?.products?.find((p) => p.name === "1-on-1");
+
+    if (!product1on1) {
+      console.warn(`Active 1-on-1 product could not be found for ${instructor.data?.publicName}`);
+      return res.status(404).json({ message: "No active 1-on-1 product exists for that instructor." });
+    }
+
     const data: Prisma.EventTypeCreateInput | Prisma.EventTypeUpdateInput = {
       title: req.body.title,
       slug: req.body.slug.trim(),
@@ -124,7 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       minimumBookingNotice: req.body.minimumBookingNotice
         ? parseInt(req.body.minimumBookingNotice)
         : undefined,
-      price: req.body.price,
+      price: product1on1.price,
       currency: req.body.currency,
     };
 

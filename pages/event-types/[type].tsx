@@ -1365,7 +1365,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (hasIntegration(integrations, "zoom_video")) {
     locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });
   }
-  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  const hasPaymentIntegration = false; // hasIntegration(integrations, "stripe_payment");
+
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
   }

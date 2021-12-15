@@ -51,8 +51,6 @@ export default NextAuth({
           update: {
             hideBranding: true,
             thetisId: decodedToken?.userId as string,
-            username: decodedToken?.instructorProfileHandle as string,
-            name: decodedToken?.instructorProfilePublicName as string,
           },
           create: {
             hideBranding: true,

@@ -135,6 +135,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
     credentials: true,
     bufferTime: true,
     destinationCalendar: true,
+    thetisId: true,
   },
 });
 
@@ -209,6 +210,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           name: true,
         },
       },
+      description: true,
       title: true,
       length: true,
       eventName: true,
@@ -520,6 +522,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
       if (!booking.user) booking.user = user;
+
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
       res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment.uid });
