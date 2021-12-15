@@ -1,9 +1,7 @@
-import { IS_PRODUCTION, BASE_URL } from "@lib/config/constants";
+import { BASE_URL } from "@lib/config/constants";
 
 export const emailBodyLogo = (): string => {
-  const image = IS_PRODUCTION
-    ? BASE_URL + "/emails/CalLogo@2x.png"
-    : "https://app.cal.com/emails/CalLogo@2x.png";
+  const image = `${BASE_URL}/static/bblogo.png`;
 
   return `
   <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -23,7 +21,7 @@ export const emailBodyLogo = (): string => {
                           <tr>
                             <td style="width:89px;">
                               <a href="${BASE_URL}" target="_blank">
-                                <img height="19" src="${image}" style="border:0;display:block;outline:none;text-decoration:none;height:19px;width:100%;font-size:13px;" width="89" />
+                                <img src="${image}" style="border:0;display:block;outline:none;text-decoration:none;height:19px;width:100%;font-size:13px;"/>
                               </a>
                             </td>
                           </tr>
