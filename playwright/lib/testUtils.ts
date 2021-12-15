@@ -3,7 +3,7 @@ import { createServer, IncomingMessage, ServerResponse } from "http";
 
 export function todo(title: string) {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  test.fixme(title, () => {});
+  test.skip(title, () => {});
 }
 
 export function randomString(length = 12) {
