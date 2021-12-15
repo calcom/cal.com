@@ -1,42 +1,32 @@
-import { kont } from "kont";
+import { test, expect } from "@playwright/test";
 
-import { pageProvider } from "./lib/pageProvider";
+import { todo } from "./lib/testUtils";
 
-jest.setTimeout(60e3);
-if (process.env.CI) {
-  jest.retryTimes(3);
-}
-
-describe("free user", () => {
-  const ctx = kont()
-    .useBeforeEach(pageProvider({ path: "/free" }))
-    .done();
-
-  test("only one visible event", async () => {
-    const { page } = ctx;
-    await expect(page).toHaveSelector(`[href="/free/30min"]`);
-    await expect(page).not.toHaveSelector(`[href="/free/60min"]`);
+test.describe("free user", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/free");
+  });
+  test("only one visible event", async ({ page }) => {
+    await expect(page.locator(`[href="/free/30min"]`)).toBeVisible();
+    await expect(page.locator(`[href="/free/60min"]`)).not.toBeVisible();
   });
 
-  test.todo("`/free/30min` is bookable");
+  todo("`/free/30min` is bookable");
 
-  test.todo("`/free/60min` is not bookable");
+  todo("`/free/60min` is not bookable");
 });
 
-describe("pro user", () => {
-  const ctx = kont()
-    .useBeforeEach(pageProvider({ path: "/pro" }))
-    .done();
+test.describe("pro user", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/pro");
+  });
 
-  test("pro user's page has at least 2 visible events", async () => {
-    const { page } = ctx;
+  test("pro user's page has at least 2 visible events", async ({ page }) => {
     const $eventTypes = await page.$$("[data-testid=event-types] > *");
-
     expect($eventTypes.length).toBeGreaterThanOrEqual(2);
   });
 
-  test("book an event first day in next month", async () => {
-    const { page } = ctx;
+  test("book an event first day in next month", async ({ page }) => {
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
     // Click [data-testid="incrementMonth"]
@@ -58,7 +48,7 @@ describe("pro user", () => {
     });
   });
 
-  test.todo("Can reschedule the recently created booking");
+  todo("Can reschedule the recently created booking");
 
-  test.todo("Can cancel the recently created booking");
+  todo("Can cancel the recently created booking");
 });

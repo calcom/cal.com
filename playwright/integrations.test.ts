@@ -1,41 +1,44 @@
-import { kont } from "kont";
+import { expect, test } from "@playwright/test";
 
-import { loginProvider } from "./lib/loginProvider";
-import { createHttpServer, waitFor } from "./lib/testUtils";
+import { createHttpServer, todo, waitFor } from "./lib/testUtils";
 
-jest.setTimeout(60e3);
-jest.retryTimes(3);
+test.describe("integrations", () => {
+  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
-describe("webhooks", () => {
-  const ctx = kont()
-    .useBeforeEach(
-      loginProvider({
-        user: "pro",
-        path: "/integrations",
-        waitForSelector: '[data-testid="new_webhook"]',
-      })
-    )
-    .done();
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/integrations");
+  });
 
-  test("add webhook & test that creating an event triggers a webhook call", async () => {
-    const { page } = ctx;
+  todo("Can add Zoom integration");
+
+  todo("Can add Stripe integration");
+
+  todo("Can add Google Calendar");
+
+  todo("Can add Office 365 Calendar");
+
+  todo("Can add CalDav Calendar");
+
+  todo("Can add Apple Calendar");
+
+  test("add webhook & test that creating an event triggers a webhook call", async ({ page }, testInfo) => {
     const webhookReceiver = createHttpServer();
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
-    await expect(page).toHaveSelector("[data-testid='WebhookDialogForm']");
+    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeVisible();
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
     await page.click("[type=submit]");
 
     // dialog is closed
-    await expect(page).not.toHaveSelector("[data-testid='WebhookDialogForm']");
+    expect(page.locator(`[data-testid='WebhookDialogForm']`)).not.toBeVisible();
     // page contains the url
-    await expect(page).toHaveSelector(`text='${webhookReceiver.url}'`);
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
     // --- Book the first available day next month in the pro user's "30min"-event
-    await page.goto(`http://localhost:3000/pro/30min`);
+    await page.goto(`/pro/30min`);
     await page.click('[data-testid="incrementMonth"]');
     await page.click('[data-testid="day"][data-disabled="false"]');
     await page.click('[data-testid="time"]');
@@ -67,35 +70,9 @@ describe("webhooks", () => {
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
-    expect(body).toMatchInlineSnapshot(`
-    Object {
-      "createdAt": "[redacted/dynamic]",
-      "payload": Object {
-        "additionInformation": "[redacted/dynamic]",
-        "attendees": Array [
-          Object {
-            "email": "test@example.com",
-            "name": "Test Testson",
-            "timeZone": "[redacted/dynamic]",
-          },
-        ],
-        "description": "",
-        "destinationCalendar": null,
-        "endTime": "[redacted/dynamic]",
-        "metadata": Object {},
-        "organizer": Object {
-          "email": "pro@example.com",
-          "name": "Pro Example",
-          "timeZone": "[redacted/dynamic]",
-        },
-        "startTime": "[redacted/dynamic]",
-        "title": "30min between Pro Example and Test Testson",
-        "type": "30min",
-        "uid": "[redacted/dynamic]",
-      },
-      "triggerEvent": "BOOKING_CREATED",
-    }
-  `);
+    // Text files shouldn't have platform specific suffixes
+    testInfo.snapshotSuffix = "";
+    expect(JSON.stringify(body)).toMatchSnapshot(`webhookResponse.txt`);
 
     webhookReceiver.close();
   });
