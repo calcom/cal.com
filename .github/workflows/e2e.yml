@@ -71,7 +71,7 @@ jobs:
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: yarn playwright install-deps && yarn playwright install
+        run: yarn playwright install --with-deps
 
       - run: yarn test-playwright
 
