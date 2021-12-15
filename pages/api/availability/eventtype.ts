@@ -121,9 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       periodStartDate: req.body.periodStartDate,
       periodEndDate: req.body.periodEndDate,
       periodCountCalendarDays: req.body.periodCountCalendarDays,
-      minimumBookingNotice: req.body.minimumBookingNotice
-        ? parseInt(req.body.minimumBookingNotice)
-        : undefined,
+      minimumBookingNotice: req.body.minimumBookingNotice ?? parseInt(req.body.minimumBookingNotice, 10),
       price: req.body.price,
       currency: req.body.currency,
     };
