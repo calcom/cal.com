@@ -36,7 +36,7 @@ const { publicRuntimeConfig } = getConfig();
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location, name, reschedule } = router.query;
+  const { location, email, reschedule } = router.query;
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
@@ -49,7 +49,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const { redeemCode } = useBullBitcoinParams();
 
-  const attendeeName = typeof name === "string" ? name : "Nameless";
+  const attendeeName = email;
 
   const eventNameObject = {
     attendeeName,
@@ -254,7 +254,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
                   <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
                     <a href={`${publicRuntimeConfig.origins.bullbitcoin}/claim/${redeemCode}`}>
-                      <Button className="min-w-max" color="primary">
+                      <Button className="min-w-max" color="primary" style={{ background: "#ca1010" }}>
                         <Image src="/static/bullbitcoin-logo.svg" height="32" width="38" />
                         <div className="pl-3">Back to Bull Bitcoin</div>
                       </Button>

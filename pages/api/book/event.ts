@@ -292,6 +292,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const description =
     reqBody.notes +
+    "For internal use: " +
+    reqBody.metadata.redeemCode +
+    "<br /><br />" +
     reqBody.customInputs.reduce(
       (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
       ""
