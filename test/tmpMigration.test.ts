@@ -33,10 +33,9 @@ async function tmpMigration() {
   // `)
   //   );
   const MIGRATION_SQL = fs
-    .readFileSync(`${__dirname}/../prisma/migrations/20211115182559_availability_issue/migration.sql`)
+    .readFileSync(__dirname + "/../prisma/migrations/20211115182559_availability_issue/migration.sql")
     .toString();
   await prisma.$queryRaw`${MIGRATION_SQL}`;
-
   return NaN;
 }
 afterAll(async () => {
