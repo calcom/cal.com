@@ -13,14 +13,14 @@ export default function AddToHomescreen() {
     }
   }
   return !closeBanner ? (
-    <div className="fixed sm:hidden bottom-0 inset-x-0 pb-2 sm:pb-5">
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+    <div className="fixed inset-x-0 bottom-0 pb-2 sm:hidden sm:pb-5">
+      <div className="px-2 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="p-2 rounded-lg shadow-lg sm:p-3" style={{ background: "#2F333D" }}>
-          <div className="flex items-center justify-between flex-wrap">
-            <div className="w-0 flex-1 flex items-center">
-              <span className="flex p-2 rounded-lg bg-opacity-30 bg-brand">
+          <div className="flex flex-wrap items-center justify-between">
+            <div className="flex items-center flex-1 w-0">
+              <span className="flex p-2 rounded-lg bg-opacity-30 bg-brand text-brandcontrast">
                 <svg
-                  className="h-7 w-7 text-indigo-500 fill-current"
+                  className="text-indigo-500 fill-current h-7 w-7"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 50 50"
                   enableBackground="new 0 0 50 50">
@@ -34,13 +34,13 @@ export default function AddToHomescreen() {
               </p>
             </div>
 
-            <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
+            <div className="flex-shrink-0 order-2 sm:order-3 sm:ml-2">
               <button
                 onClick={() => setCloseBanner(true)}
                 type="button"
-                className="-mr-1 flex p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
+                className="flex p-2 -mr-1 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
                 <span className="sr-only">{t("dismiss")}</span>
-                <XIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                <XIcon className="w-6 h-6 text-white" aria-hidden="true" />
               </button>
             </div>
           </div>
