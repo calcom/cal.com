@@ -26,19 +26,19 @@ test.describe("integrations", () => {
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
-    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeTruthy();
+    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeVisible();
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
     await page.click("[type=submit]");
 
     // dialog is closed
-    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeFalsy();
+    expect(page.locator(`[data-testid='WebhookDialogForm']`)).not.toBeVisible();
     // page contains the url
-    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeTruthy();
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
     // --- Book the first available day next month in the pro user's "30min"-event
-    await page.goto(`http://localhost:3000/pro/30min`);
+    await page.goto(`/pro/30min`);
     await page.click('[data-testid="incrementMonth"]');
     await page.click('[data-testid="day"][data-disabled="false"]');
     await page.click('[data-testid="time"]');
@@ -70,35 +70,7 @@ test.describe("integrations", () => {
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
-    expect(body).toMatchSnapshot(`
-    Object {
-      "createdAt": "[redacted/dynamic]",
-      "payload": Object {
-        "additionInformation": "[redacted/dynamic]",
-        "attendees": Array [
-          Object {
-            "email": "test@example.com",
-            "name": "Test Testson",
-            "timeZone": "[redacted/dynamic]",
-          },
-        ],
-        "description": "",
-        "destinationCalendar": null,
-        "endTime": "[redacted/dynamic]",
-        "metadata": Object {},
-        "organizer": Object {
-          "email": "pro@example.com",
-          "name": "Pro Example",
-          "timeZone": "[redacted/dynamic]",
-        },
-        "startTime": "[redacted/dynamic]",
-        "title": "30min between Pro Example and Test Testson",
-        "type": "30min",
-        "uid": "[redacted/dynamic]",
-      },
-      "triggerEvent": "BOOKING_CREATED",
-    }
-  `);
+    expect(JSON.stringify(body)).toMatchSnapshot(`webhookResponse.txt`);
 
     webhookReceiver.close();
   });

@@ -4,6 +4,8 @@ import { randomString } from "./lib/testUtils";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/event-types");
+  // We wait until loading is finished
+  await page.waitForSelector('[data-testid="event-types"]');
 });
 
 test.describe("pro user", () => {

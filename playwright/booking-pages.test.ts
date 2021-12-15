@@ -1,20 +1,24 @@
 import { test, expect } from "@playwright/test";
 
+import { todo } from "./lib/testUtils";
+
 test.describe("free user", () => {
-  test("only one visible event", async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto("/free");
+  });
+  test("only one visible event", async ({ page }) => {
     await expect(page.locator(`[href="/free/30min"]`)).toBeVisible();
     await expect(page.locator(`[href="/free/60min"]`)).not.toBeVisible();
   });
 
-  test.todo("`/free/30min` is bookable");
+  todo("`/free/30min` is bookable");
 
-  test.todo("`/free/60min` is not bookable");
+  todo("`/free/60min` is not bookable");
 });
 
 test.describe("pro user", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/free");
+    await page.goto("/pro");
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
@@ -44,7 +48,7 @@ test.describe("pro user", () => {
     });
   });
 
-  test.todo("Can reschedule the recently created booking");
+  todo("Can reschedule the recently created booking");
 
-  test.todo("Can cancel the recently created booking");
+  todo("Can cancel the recently created booking");
 });
