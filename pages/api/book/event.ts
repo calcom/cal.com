@@ -6,7 +6,6 @@ import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
-import getConfig from "next/config";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -27,7 +26,7 @@ import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
-import { setRedeemableItemToBooked } from "@lib/ugraph";
+import { checkIfRedeemCodeValid, setRedeemableItemToBooked } from "@lib/ugraph";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -43,8 +42,6 @@ const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 type BufferedBusyTimes = BufferedBusyTime[];
-
-const { serverRuntimeConfig } = getConfig();
 
 /**
  * Refreshes a Credential with fresh data from the database.
@@ -182,11 +179,21 @@ type User = Prisma.UserGetPayload<typeof userSelect>;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
+  const eventTypeId = reqBody.eventTypeId;
 
   console.log("\n reqBody \n", reqBody, "\n");
-  console.log("\n serverRuntimeConfig \n", serverRuntimeConfig, "\n");
 
-  const eventTypeId = reqBody.eventTypeId;
+  const isRedeemCodeValid = await checkIfRedeemCodeValid({ redeemCode: reqBody.metadata.redeemCode });
+  if (!isRedeemCodeValid) {
+    const error = {
+      errorCode: "RedeemCodeInvalid",
+      message: "Attempting to create a meeting for a non-existent redeemable item.",
+    };
+
+    log.error(`Booking ${eventTypeId} failed`, error);
+    return res.status(400).json(error);
+  }
+
   const t = await getTranslation(reqBody.language ?? "en", "common");
 
   log.debug(`Booking eventType ${eventTypeId} started`);
