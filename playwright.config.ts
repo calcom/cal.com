@@ -9,8 +9,9 @@ const config: PlaywrightTestConfig = {
   use: {
     baseURL: "http://localhost:3000",
     locale: "en-US",
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
     headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
+    video: "on-first-retry",
     contextOptions: {
       recordVideo: {
         dir: "playwright/videos",
