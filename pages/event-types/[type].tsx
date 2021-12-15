@@ -24,7 +24,7 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
-import Select, { OptionTypeBase } from "react-select";
+import Select from "react-select";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -58,6 +58,12 @@ import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+type OptionTypeBase = {
+  label: string;
+  value: LocationType;
+  disabled?: boolean;
+};
 
 const addDefaultLocationOptions = (
   defaultLocations: OptionTypeBase[],
@@ -295,8 +301,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               classNamePrefix="react-select"
               className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               onChange={(e) => {
-                locationFormMethods.setValue("locationType", e?.value);
-                openLocationModal(e?.value);
+                if (e?.value) {
+                  locationFormMethods.setValue("locationType", e.value);
+                  openLocationModal(e.value);
+                }
               }}
             />
           </div>
@@ -461,7 +469,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
-          <div className="relative group cursor-pointer" onClick={() => setEditIcon(false)}>
+          <div className="relative cursor-pointer group" onClick={() => setEditIcon(false)}>
             {editIcon ? (
               <>
                 <h1
@@ -469,7 +477,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
                   {eventType.title}
                 </h1>
-                <PencilIcon className="-mt-1 ml-1 inline w-4 h-4 text-gray-700 group-hover:text-gray-500" />
+                <PencilIcon className="inline w-4 h-4 ml-1 -mt-1 text-gray-700 group-hover:text-gray-500" />
               </>
             ) : (
               <div style={{ marginBottom: -11 }}>
@@ -478,7 +486,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   autoFocus
                   style={{ top: -6, fontSize: 22 }}
                   required
-                  className="w-full relative pl-0 h-10 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
+                  className="relative w-full h-10 pl-0 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
                   placeholder={t("quick_chat")}
                   {...formMethods.register("title")}
                   defaultValue={eventType.title}
@@ -639,6 +647,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             value={asStringOrUndefined(eventType.schedulingType)}
                             options={schedulingTypeOptions}
                             onChange={(val) => {
+                              // FIXME
+                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                              // @ts-ignore
                               formMethods.setValue("schedulingType", val);
                             }}
                           />
@@ -1154,8 +1165,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       classNamePrefix="react-select"
                       className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                       onChange={(val) => {
-                        locationFormMethods.setValue("locationType", val.value);
-                        setSelectedLocation(val);
+                        if (val) {
+                          locationFormMethods.setValue("locationType", val.value);
+                          setSelectedLocation(val);
+                        }
                       }}
                     />
                   )}

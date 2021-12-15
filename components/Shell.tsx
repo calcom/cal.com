@@ -201,7 +201,7 @@ export default function Shell(props: {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden bg-gray-100">
+      <div className="flex h-screen overflow-hidden bg-gray-100" data-testid="dashboard-shell">
         <div className="hidden md:flex lg:flex-shrink-0">
           <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
