@@ -59,7 +59,7 @@ test.describe.serial("Stripe integration", () => {
 
     // We lookup Stripe's iframe
     const stripeFrame = page.frame({
-      url: "https://js.stripe.com/v3/elements-inner-card-*",
+      url: (url) => url.href.startsWith("https://js.stripe.com/v3/elements-inner-card-"),
     });
 
     if (!stripeFrame) throw new Error("Stripe frame not found");
