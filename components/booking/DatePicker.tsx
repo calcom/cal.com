@@ -68,7 +68,7 @@ function DatePicker({
     setSelectedMonth((selectedMonth ?? 0) - 1);
   };
 
-  const inviteeDate = (): Dayjs => (date || dayjs()).month(selectedMonth);
+  const inviteeDate = (): Dayjs => dayjs().month(selectedMonth);
 
   useEffect(() => {
     // Create placeholder elements for empty days in first week
