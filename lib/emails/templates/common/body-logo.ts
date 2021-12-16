@@ -21,7 +21,7 @@ export const emailBodyLogo = (): string => {
                           <tr>
                             <td style="width:89px;">
                               <a href="${BASE_URL}" target="_blank">
-                                <img src="${image}" style="border:0;display:block;outline:none;text-decoration:none;height:19px;width:100%;font-size:13px;"/>
+                                <img src="${image}" style="border:0;display:block;outline:none;text-decoration:none;width:100%;font-size:13px;"/>
                               </a>
                             </td>
                           </tr>
