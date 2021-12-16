@@ -227,7 +227,7 @@ async function main() {
         title: "paid",
         slug: "paid",
         length: 60,
-        price: 20,
+        price: 50,
       },
     ],
   });
