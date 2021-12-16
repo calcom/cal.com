@@ -19,6 +19,7 @@ import LicenseBanner from "@ee/components/LicenseBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
+import { SITE_NAME } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -190,7 +191,7 @@ export default function Shell(props: {
     <>
       <CustomBranding val={user?.brandColor} />
       <HeadSeo
-        title={pageTitle ?? "Cal.com"}
+        title={pageTitle ?? SITE_NAME}
         description={props.subtitle ? props.subtitle?.toString() : ""}
         nextSeoProps={{
           nofollow: true,

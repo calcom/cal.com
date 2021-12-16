@@ -1,5 +1,7 @@
 import { DefaultSeoProps } from "next-seo";
 
+import { SITE_NAME } from "@lib/config/constants";
+
 import { HeadSeoProps } from "@components/seo/head-seo";
 
 const seoImages = {
@@ -16,7 +18,7 @@ export const seoConfig: {
   defaultNextSeo: DefaultSeoProps;
 } = {
   headSeo: {
-    siteName: "Cal.com",
+    siteName: SITE_NAME,
   },
   defaultNextSeo: {
     twitter: {

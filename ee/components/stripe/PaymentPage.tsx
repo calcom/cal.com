@@ -12,6 +12,7 @@ import PaymentComponent from "@ee/components/stripe/Payment";
 import getStripe from "@ee/lib/stripe/client";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
+import { SITE_NAME } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 
@@ -36,7 +37,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
     <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
       <Head>
         <title>
-          {t("payment")} | {eventName} | Cal.com
+          {t("payment")} | {eventName} | {SITE_NAME}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>

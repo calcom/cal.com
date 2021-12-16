@@ -4,6 +4,8 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
+import { SITE_NAME } from "@lib/config/constants";
+
 import { emailHead, emailSchedulingBodyHeader, emailBodyLogo, emailSchedulingBodyDivider } from "./common";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
@@ -25,7 +27,7 @@ export default class OrganizerPaymentRefundFailedEmail extends OrganizerSchedule
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${SITE_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.language("refund_failed_subject", {
         eventType: this.calEvent.type,

@@ -17,6 +17,7 @@ import TimezoneSelect from "react-timezone-select";
 
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
+import { SITE_NAME } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
@@ -419,7 +420,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   return (
     <div className="min-h-screen bg-brand" data-testid="onboarding">
       <Head>
-        <title>Cal.com - {t("getting_started")}</title>
+        <title>
+          {SITE_NAME} - {t("getting_started")}
+        </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

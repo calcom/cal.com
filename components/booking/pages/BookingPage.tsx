@@ -19,6 +19,7 @@ import { createPaymentLink } from "@ee/lib/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
+import { SITE_NAME } from "@lib/config/constants";
 import { ensureArray } from "@lib/ensureArray";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
@@ -232,7 +233,7 @@ const BookingPage = (props: BookingPageProps) => {
                 eventTypeTitle: props.eventType.title,
                 profileName: props.profile.name,
               })}{" "}
-          | Cal.com
+          | {SITE_NAME}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>

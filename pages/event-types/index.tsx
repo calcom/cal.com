@@ -19,6 +19,7 @@ import { useMutation } from "react-query";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
+import { SITE_NAME } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -322,7 +323,7 @@ const EventTypesPage = () => {
   return (
     <div>
       <Head>
-        <title>Home | Cal.com</title>
+        <title>Home | {SITE_NAME}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell

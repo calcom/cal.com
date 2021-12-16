@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 
-import { HeadSeo } from "@components/seo/head-seo";
+import { SITE_NAME } from "@lib/config/constants";
+import prisma from "@lib/prisma";
 
-import prisma from "../../lib/prisma";
+import { HeadSeo } from "@components/seo/head-seo";
 
 export default function JoinCall(props, session) {
   const router = useRouter();
@@ -115,7 +116,7 @@ export default function JoinCall(props, session) {
           <img
             className="fixed z-10 hidden w-auto h-5 sm:inline-block"
             src="https://cal.com/logo-white.svg"
-            alt="Cal.com Logo"
+            alt={`${SITE_NAME} Logo`}
             style={{
               top: 46,
               left: 24,

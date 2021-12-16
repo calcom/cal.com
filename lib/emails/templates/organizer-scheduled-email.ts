@@ -8,6 +8,7 @@ import nodemailer from "nodemailer";
 
 import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
 import { CalendarEvent, Person } from "@lib/calendarClient";
+import { SITE_NAME } from "@lib/config/constants";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getIntegrationName } from "@lib/integrations";
 import { serverConfig } from "@lib/serverConfig";
@@ -94,7 +95,7 @@ export default class OrganizerScheduledEmail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${SITE_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.language("confirmed_event_type_subject", {
         eventType: this.calEvent.type,

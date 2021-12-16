@@ -1,6 +1,7 @@
 import { TFunction } from "next-i18next";
 import nodemailer from "nodemailer";
 
+import { SITE_NAME } from "@lib/config/constants";
 import { getErrorFromUnknown } from "@lib/errors";
 import { serverConfig } from "@lib/serverConfig";
 
@@ -51,7 +52,7 @@ export default class ForgotPasswordEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${SITE_NAME} <${this.getMailerOptions().from}>`,
       subject: this.passwordEvent.language("reset_password_subject"),
       html: this.getHtmlBody(),
       text: this.getTextBody(),

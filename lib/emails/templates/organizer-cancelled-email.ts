@@ -4,6 +4,8 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
+import { SITE_NAME } from "@lib/config/constants";
+
 import {
   emailHead,
   emailSchedulingBodyHeader,
@@ -31,7 +33,7 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${SITE_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.language("event_cancelled_subject", {
         eventType: this.calEvent.type,

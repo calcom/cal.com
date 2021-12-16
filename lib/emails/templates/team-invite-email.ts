@@ -1,6 +1,7 @@
 import { TFunction } from "next-i18next";
 import nodemailer from "nodemailer";
 
+import { SITE_NAME } from "@lib/config/constants";
 import { getErrorFromUnknown } from "@lib/errors";
 import { serverConfig } from "@lib/serverConfig";
 
@@ -48,7 +49,7 @@ export default class TeamInviteEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: this.teamInviteEvent.to,
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${SITE_NAME} <${this.getMailerOptions().from}>`,
       subject: this.teamInviteEvent.language("user_invited_you", {
         user: this.teamInviteEvent.from,
         team: this.teamInviteEvent.teamName,
