@@ -39,7 +39,7 @@ import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 import Button from "./ui/Button";
 
-function useMeQuery() {
+export function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {
     retry(failureCount) {
       return failureCount > 3;

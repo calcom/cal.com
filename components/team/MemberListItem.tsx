@@ -157,9 +157,11 @@ export default function MemberListItem(props: Props) {
           <TeamAvailabilityModal team={props.team} member={props.member} />
           <div className="p-5 space-x-2 border-t">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-            <Link href={`/settings/teams/${props.team.id}/availability`}>
-              <Button color="secondary">{t("Open Team Availability")}</Button>
-            </Link>
+            {props.team.membership.role !== MembershipRole.MEMBER && (
+              <Link href={`/settings/teams/${props.team.id}/availability`}>
+                <Button color="secondary">{t("Open Team Availability")}</Button>
+              </Link>
+            )}
           </div>
         </ModalContainer>
       )}
