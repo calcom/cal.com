@@ -57,7 +57,7 @@ const Team = ({ team }: TeamPageProps) => {
             <section className="w-full mt-2 space-y-1">
               <Text variant="title">{member.name}</Text>
               <Text variant="subtitle" className="">
-                {member.bio || member.name + " from " + team.name}
+                {member.bio || t("user_from_team", { user: member.name, team: team.name })}
               </Text>
             </section>
           </div>
