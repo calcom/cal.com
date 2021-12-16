@@ -5,34 +5,37 @@ import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
 test.describe.serial("Stripe integration", () => {
   test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
 
-  test("Can add Stripe integration", async ({ page }) => {
+  test.describe.serial("Stripe integration dashboard", () => {
     test.use({ storageState: "playwright/artifacts/proStorageState.json" });
-    await page.goto("/integrations");
-    /** We should see the "Connect" button for Stripe */
-    expect(page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`))
-      .toContainText("Connect")
-      .catch(() => {
-        console.error(
-          `Make sure Stripe it's properly installed and that an integration hasn't been already added.`
-        );
-      });
 
-    /** We start the Stripe flow */
-    await Promise.all([
-      page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
-      await page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
-    ]);
+    test("Can add Stripe integration", async ({ page }) => {
+      await page.goto("/integrations");
+      /** We should see the "Connect" button for Stripe */
+      expect(page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`))
+        .toContainText("Connect")
+        .catch(() => {
+          console.error(
+            `Make sure Stripe it's properly installed and that an integration hasn't been already added.`
+          );
+        });
 
-    await Promise.all([
-      page.waitForNavigation({ url: "/integrations" }),
-      /** We skip filling Stripe forms (testing mode only) */
-      await page.click('[id="skip-account-app"]'),
-    ]);
+      /** We start the Stripe flow */
+      await Promise.all([
+        page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
+        await page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
+      ]);
 
-    /** If Stripe is added correctly we should see the "Disconnect" button */
-    expect(
-      page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
-    ).toContainText("Disconnect");
+      await Promise.all([
+        page.waitForNavigation({ url: "/integrations" }),
+        /** We skip filling Stripe forms (testing mode only) */
+        await page.click('[id="skip-account-app"]'),
+      ]);
+
+      /** If Stripe is added correctly we should see the "Disconnect" button */
+      expect(
+        page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
+      ).toContainText("Disconnect");
+    });
   });
 
   test("Can book a paid booking", async ({ page }) => {
@@ -51,6 +54,8 @@ test.describe.serial("Stripe integration", () => {
       page.waitForNavigation({ url: "/payment/*" }),
       await page.press('[name="email"]', "Enter"),
     ]);
+
+    await page.waitForSelector('iframe[src^="https://js.stripe.com/v3/elements-inner-card-"]');
 
     // We lookup Stripe's iframe
     const stripeFrame = page.frame({
