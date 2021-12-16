@@ -6,7 +6,7 @@ import prisma from "@lib/prisma";
 import { WorkingHours } from "@lib/types/schedule";
 
 function handlePeriodType(periodType: string): PeriodType {
-  return PeriodType[periodType.toUpperCase()];
+  return PeriodType[periodType.toUpperCase() as PeriodType];
 }
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
@@ -104,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  if (req.method == "PATCH" || req.method == "POST") {
+  if (req.method === "PATCH" || req.method === "POST") {
     const data: Prisma.EventTypeCreateInput | Prisma.EventTypeUpdateInput = {
       title: req.body.title,
       slug: req.body.slug.trim(),
