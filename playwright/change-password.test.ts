@@ -11,7 +11,7 @@ test('change password', async ({ page }) => {
   await page.waitForSelector("[data-testid=event-types]");
 
   // Go to http://localhost:3000/settings/security
-  await page.goto('http://localhost:3000/settings/security');
+  await page.goto('/settings/security');
 
   // Fill form
   await page.fill('[name="current_password"]', "pro");
