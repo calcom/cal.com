@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
 import { createHttpServer, todo, waitFor } from "./lib/testUtils";
 
 test.describe("integrations", () => {
@@ -11,36 +10,6 @@ test.describe("integrations", () => {
   });
 
   todo("Can add Zoom integration");
-
-  test("Can add Stripe integration", async ({ page }) => {
-    test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
-
-    /** We should see the "Connect" button for Stripe */
-    expect(page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`))
-      .toContainText("Connect")
-      .catch(() => {
-        console.error(
-          `Make sure Stripe it's properly installed and that an integration hasn't been already added.`
-        );
-      });
-
-    /** We start the Stripe flow */
-    await Promise.all([
-      page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
-      await page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
-    ]);
-
-    await Promise.all([
-      page.waitForNavigation({ url: "/integrations" }),
-      /** We skip filling Stripe forms (testing mode only) */
-      await page.click('[id="skip-account-app"]'),
-    ]);
-
-    /** If Stripe is added correctly we should see the "Disconnect" button */
-    expect(
-      page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
-    ).toContainText("Disconnect");
-  });
 
   todo("Can add Google Calendar");
 
