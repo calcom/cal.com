@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
+import { todo } from "./lib/testUtils";
 
 test.describe.serial("Stripe integration", () => {
   test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
@@ -72,8 +73,6 @@ test.describe.serial("Stripe integration", () => {
     await stripeFrame.fill('[placeholder="CVC"]', "111");
     // Fill [placeholder="ZIP"]
     await stripeFrame.fill('[placeholder="ZIP"]', "111111");
-    // Press Enter
-    // await stripeFrame.press('[placeholder="ZIP"]', "Enter");
     // Click button:has-text("Pay now")
     await page.click('button:has-text("Pay now")');
 
@@ -84,4 +83,11 @@ test.describe.serial("Stripe integration", () => {
       },
     });
   });
+
+  todo("Pending payment booking should not be confirmed by default");
+  todo("Payment should confirm pending payment booking");
+  todo("Payment should trigger a BOOKING_PAID webhook");
+  todo("Paid booking should be able to be rescheduled");
+  todo("Paid booking should be able to be cancelled");
+  todo("Cancelled paid booking should be refunded");
 });
