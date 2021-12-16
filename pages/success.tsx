@@ -22,6 +22,8 @@ import CustomBranding from "@components/CustomBranding";
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
+import { ssrInit } from "@server/lib/ssr";
+
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
@@ -145,7 +147,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                   </div>
                   {!needsConfirmation && (
-                    <div className="flex pt-2 pb-4 mt-5 text-center border-b sm:mt-0 sm:pt-4">
+                    <div className="flex pt-2 pb-4 mt-5 text-center border-b dark:border-gray-900 sm:mt-0 sm:pt-4">
                       <span className="flex self-center mr-2 font-medium text-gray-700 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
@@ -258,7 +260,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           id="email"
                           inputMode="email"
                           defaultValue={router.query.email}
-                          className="block w-full text-gray-600 border-gray-300 shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                          className="block w-full text-gray-600 border-gray-300 shadow-sm dark:bg-brand dark:text-brandcontrast dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button type="submit" className="min-w-max" color="primary">
@@ -279,6 +281,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
 
   if (isNaN(typeId)) {
@@ -358,6 +361,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
       profile,
       eventType,
+      trpcState: ssr.dehydrate(),
     },
   };
 }

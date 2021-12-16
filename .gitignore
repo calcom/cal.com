@@ -14,6 +14,7 @@
 .nyc_output
 playwright/videos
 playwright/screenshots
+playwright/artifacts
 
 # next.js
 /.next/

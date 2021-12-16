@@ -59,7 +59,7 @@ export default function TeamAvailabilityTimes(props: Props) {
       {times.map((time) => (
         <div key={time.format()} className="flex flex-row items-center">
           <a
-            className="flex-grow block py-2 mb-2 mr-3 font-medium text-center bg-white border rounded-sm min-w-48 dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-brand dark:border-transparent hover:text-white hover:bg-brand dark:hover:border-black dark:hover:bg-black"
+            className="flex-grow block py-2 mb-2 mr-3 font-medium text-center bg-white border rounded-sm min-w-48 dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-brand dark:border-transparent hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:text-white dark:hover:bg-black"
             data-testid="time">
             {time.format("HH:mm")}
           </a>
