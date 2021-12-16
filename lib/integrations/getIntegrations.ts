@@ -1,7 +1,11 @@
 import { Prisma } from "@prisma/client";
 import _ from "lodash";
 
-import { validJson } from "@lib/jsonUtils";
+/**
+ *  We can't use aliases in playwright tests (yet)
+ * https://github.com/microsoft/playwright/issues/7121
+ */
+import { validJson } from "../../lib/jsonUtils";
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true },
