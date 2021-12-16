@@ -332,7 +332,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
         description: evt.description,
-        confirmed: !eventType.requiresConfirmation || !!rescheduleUid || !eventType.price,
+        confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
         eventType: {
           connect: {
