@@ -15,6 +15,8 @@ import CustomBranding from "@components/CustomBranding";
 import { HeadSeo } from "@components/seo/head-seo";
 import { Button } from "@components/ui/Button";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   // Get router variables
@@ -145,6 +147,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const session = await getSession(context);
   const booking = await prisma.booking.findUnique({
     where: {
@@ -202,6 +205,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking: bookingObj,
       cancellationAllowed:
         (!!session?.user && session.user?.id === booking.user?.id) || booking.startTime >= new Date(),
+      trpcState: ssr.dehydrate(),
     },
   };
 };
