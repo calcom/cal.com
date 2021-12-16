@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
 import { createHttpServer, todo, waitFor } from "./lib/testUtils";
 
 test.describe("integrations", () => {
@@ -12,6 +13,8 @@ test.describe("integrations", () => {
   todo("Can add Zoom integration");
 
   test("Can add Stripe integration", async ({ page }) => {
+    test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
+
     /** We should see the "Connect" button for Stripe */
     expect(page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`))
       .toContainText("Connect")

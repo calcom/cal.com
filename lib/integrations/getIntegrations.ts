@@ -115,5 +115,8 @@ export function hasIntegration(integrations: IntegrationMeta, type: string): boo
     (i) => i.type === type && !!i.installed && (type === "daily_video" || i.credentials.length > 0)
   );
 }
+export function hasIntegrationInstalled(type: Integration["type"]): boolean {
+  return ALL_INTEGRATIONS.some((i) => i.type === type && !!i.installed);
+}
 
 export default getIntegrations;
