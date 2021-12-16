@@ -87,18 +87,17 @@ function DatePicker({
   const [browsingDate, setBrowsingDate] = useState<Dayjs | null>(date);
 
   useEffect(() => {
-    if (!browsingDate) {
-      setBrowsingDate(dayjs().tz(timeZone()));
+    if (!browsingDate || (date && browsingDate.utcOffset() !== date?.utcOffset())) {
+      setBrowsingDate(date || dayjs().tz(timeZone()));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [date, browsingDate]);
 
   const days = useMemo(() => {
     if (!browsingDate) {
       return [];
     }
     // Create placeholder elements for empty days in first week
-    let weekdayOfFirst = dayjs().year(browsingDate.year()).month(browsingDate.month()).day();
+    let weekdayOfFirst = browsingDate.startOf("month").day();
     if (weekStart === "Monday") {
       weekdayOfFirst -= 1;
       if (weekdayOfFirst < 0) weekdayOfFirst = 6;
