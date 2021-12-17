@@ -2,7 +2,7 @@ import { Browser, chromium } from "@playwright/test";
 
 async function loginAsUser(username: string, browser: Browser) {
   const page = await browser.newPage();
-  await page.goto("http://localhost:3000/auth/login");
+  await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
   // Click input[name="email"]
   await page.click('input[name="email"]');
   // Fill input[name="email"]
