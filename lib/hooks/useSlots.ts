@@ -107,7 +107,6 @@ export const useSlots = (props: UseSlotsProps) => {
       workingHours: responseBody.workingHours,
       minimumBookingNotice,
     });
-
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
       responseBody.busy.every((busyTime): boolean => {

@@ -5,13 +5,13 @@ import React from "react";
 import { ITimezone } from "react-timezone-select";
 
 import getSlots from "@lib/slots";
-import { inferQueryOutput, trpc } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 
 interface Props {
-  team: inferQueryOutput<"viewer.teams.get">;
-  member: inferQueryOutput<"viewer.teams.get">["members"][number];
+  teamId: number;
+  memberId: number;
   selectedDate: Dayjs;
   selectedTimeZone: ITimezone;
   frequency: number;
@@ -26,8 +26,8 @@ export default function TeamAvailabilityTimes(props: Props) {
     [
       "viewer.teams.getMemberAvailability",
       {
-        teamId: props.team.id,
-        memberId: props.member.id,
+        teamId: props.teamId,
+        memberId: props.memberId,
         dateFrom: props.selectedDate.toString(),
         dateTo: props.selectedDate.add(1, "day").toString(),
         timezone: `${props.selectedTimeZone.toString()}`,

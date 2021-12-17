@@ -3,6 +3,7 @@ import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
 
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -63,9 +64,16 @@ function TeamPage({ team }: TeamPageProps) {
       <div>
         <HeadSeo title={teamName} description={teamName} />
         <div className="px-4 pt-24 pb-12">
-          <div className="mb-8 text-center">
-            <Avatar alt={teamName} imageSrc={team.logo} className="w-20 h-20 mx-auto mb-4 rounded-full" />
-            <Text variant="headline">{teamName}</Text>
+          <div className="mx-auto mb-8 text-center max-w-96">
+            <Avatar
+              alt={teamName}
+              imageSrc={getPlaceholderAvatar(team.logo, team.name)}
+              className="w-20 h-20 mx-auto mb-4 rounded-full"
+            />
+            <Text variant="largetitle">{teamName}</Text>
+            <Text variant="subtitle" className="mt-2">
+              {team.bio}
+            </Text>
           </div>
           {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
           {!showMembers.isOn && team.eventTypes.length > 0 && (
