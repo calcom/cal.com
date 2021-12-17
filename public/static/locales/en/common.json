@@ -427,6 +427,7 @@
   "leave_team": "Leave team",
   "confirm_leave_team": "Yes, leave team",
   "leave_team_confirmation_message": "Are you sure you want to leave this team? You will no longer be able to book using it.",
+  "user_from_team": "{{user}} from {{team}}",
   "preview": "Preview",
   "link_copied": "Link copied!",
   "title": "Title",
