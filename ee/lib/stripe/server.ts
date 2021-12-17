@@ -64,7 +64,11 @@ export async function handlePayment(
     data: {
       type: PaymentType.STRIPE,
       uid: uuidv4(),
-      bookingId: booking.id,
+      booking: {
+        connect: {
+          id: booking.id,
+        },
+      },
       amount: selectedEventType.price,
       fee: paymentFee,
       currency: selectedEventType.currency,
