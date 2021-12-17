@@ -1,7 +1,11 @@
 import { Prisma } from "@prisma/client";
 import _ from "lodash";
 
-import { validJson } from "@lib/jsonUtils";
+/**
+ *  We can't use aliases in playwright tests (yet)
+ * https://github.com/microsoft/playwright/issues/7121
+ */
+import { validJson } from "../../lib/jsonUtils";
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true },
@@ -114,6 +118,9 @@ export function hasIntegration(integrations: IntegrationMeta, type: string): boo
   return !!integrations.find(
     (i) => i.type === type && !!i.installed && (type === "daily_video" || i.credentials.length > 0)
   );
+}
+export function hasIntegrationInstalled(type: Integration["type"]): boolean {
+  return ALL_INTEGRATIONS.some((i) => i.type === type && !!i.installed);
 }
 
 export default getIntegrations;

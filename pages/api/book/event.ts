@@ -198,6 +198,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const eventType = await prisma.eventType.findUnique({
+    rejectOnNotFound: true,
     where: {
       id: eventTypeId,
     },
@@ -331,7 +332,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
         description: evt.description,
-        confirmed: !eventType?.requiresConfirmation || !!rescheduleUid,
+        confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
         eventType: {
           connect: {
