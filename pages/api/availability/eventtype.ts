@@ -86,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isAuthorized = (function () {
       if (event.team) {
         return event.team.members
-          .filter((member) => member.role === MembershipRole.OWNER)
+          .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
           .map((member) => member.userId)
           .includes(session.user.id);
       }
