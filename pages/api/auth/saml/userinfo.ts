@@ -14,6 +14,10 @@ const extractAuthToken = (req: NextApiRequest) => {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    if (req.method !== "GET") {
+      throw new Error("Method not allowed");
+    }
+
     const { oauthController } = await jackson();
     let token: string | null = extractAuthToken(req);
 

@@ -4,6 +4,10 @@ import jackson from "@lib/jackson";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    if (req.method !== "GET") {
+      throw new Error("Method not allowed");
+    }
+
     const { oauthController } = await jackson();
     const { redirect_url } = await oauthController.authorize(req.query);
     res.redirect(302, redirect_url);
