@@ -6,6 +6,12 @@ const config: PlaywrightTestConfig = {
   timeout: 60_000,
   retries: process.env.CI ? 3 : 0,
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
+  webServer: {
+    command: "yarn start",
+    port: 3000,
+    timeout: 60_000,
+    reuseExistingServer: !process.env.CI,
+  },
   use: {
     baseURL: "http://localhost:3000",
     locale: "en-US",

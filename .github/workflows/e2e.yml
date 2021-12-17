@@ -67,8 +67,6 @@ jobs:
       - run: yarn db-seed
       - run: yarn test
       - run: yarn build
-      - run: yarn start &
-      - run: npx wait-port 3000 --timeout 10000
 
       - name: Cache playwright binaries
         uses: actions/cache@v2
