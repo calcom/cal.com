@@ -334,6 +334,7 @@ const loggedInViewerRouter = createProtectedRouter()
           endTime: true,
           eventType: {
             select: {
+              price: true,
               team: {
                 select: {
                   name: true,
@@ -342,6 +343,7 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           },
           status: true,
+          paid: true,
         },
         orderBy,
         take: take + 1,

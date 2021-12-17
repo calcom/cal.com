@@ -115,7 +115,7 @@ function ConnectedCalendarsList(props: Props) {
                       <DisconnectIntegration
                         id={item.credentialId}
                         render={(btnProps) => (
-                          <Button {...btnProps} color="warn">
+                          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
                             {t("disconnect")}
                           </Button>
                         )}
@@ -143,7 +143,7 @@ function ConnectedCalendarsList(props: Props) {
                       <DisconnectIntegration
                         id={item.credentialId}
                         render={(btnProps) => (
-                          <Button {...btnProps} color="warn">
+                          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
                             Disconnect
                           </Button>
                         )}
@@ -248,7 +248,7 @@ function CalendarList(props: Props) {
                 <ConnectIntegration
                   type={item.type}
                   render={(btnProps) => (
-                    <Button color="secondary" {...btnProps}>
+                    <Button color="secondary" {...btnProps} data-testid="integration-connection-button">
                       {t("connect")}
                     </Button>
                   )}

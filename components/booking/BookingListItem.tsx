@@ -9,7 +9,7 @@ import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
-type BookingItem = inferQueryOutput<"viewer.bookings">[number];
+type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 function BookingListItem(booking: BookingItem) {
   const { t, i18n } = useLocale();
@@ -73,20 +73,17 @@ function BookingListItem(booking: BookingItem) {
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
 
   return (
-    <tr>
+    <tr className="flex">
       <td className="hidden px-6 py-4 align-top sm:table-cell whitespace-nowrap">
         <div className="text-sm leading-6 text-gray-900">{startTime}</div>
         <div className="text-sm text-gray-500">
           {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
       </td>
-      <td className={"px-6 py-4" + (booking.rejected ? " line-through" : "")}>
+      <td className={"px-6 py-4 flex-1" + (booking.rejected ? " line-through" : "")}>
         <div className="sm:hidden">
-          {!booking.confirmed && !booking.rejected && (
-            <span className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-              {t("unconfirmed")}
-            </span>
-          )}
+          {!booking.confirmed && !booking.rejected && <Tag className="mb-2 mr-2">{t("unconfirmed")}</Tag>}
+          {!!booking?.eventType?.price && !booking.paid && <Tag className="mb-2 mr-2">Pending payment</Tag>}
           <div className="text-sm font-medium text-gray-900">
             {startTime}:{" "}
             <small className="text-sm text-gray-500">
@@ -94,13 +91,14 @@ function BookingListItem(booking: BookingItem) {
             </small>
           </div>
         </div>
-        <div className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-52 md:max-w-96">
+        <div className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-52 md:max-w-max">
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
+          {!!booking?.eventType?.price && !booking.paid && (
+            <Tag className="hidden ml-2 sm:inline-flex">Pending payment</Tag>
+          )}
           {!booking.confirmed && !booking.rejected && (
-            <span className="ml-2 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-              {t("unconfirmed")}
-            </span>
+            <Tag className="hidden ml-2 sm:inline-flex">{t("unconfirmed")}</Tag>
           )}
         </div>
         {booking.description && (
@@ -129,5 +127,14 @@ function BookingListItem(booking: BookingItem) {
     </tr>
   );
 }
+
+const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
+  return (
+    <span
+      className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800 ${className}`}>
+      {children}
+    </span>
+  );
+};
 
 export default BookingListItem;
