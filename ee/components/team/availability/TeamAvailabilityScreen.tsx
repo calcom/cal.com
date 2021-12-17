@@ -9,22 +9,21 @@ import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
-import MinutesField from "@components/ui/form/MinutesField";
+import Select from "@components/ui/form/Select";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
   team?: inferQueryOutput<"viewer.teams.get">;
-  members?: inferQueryOutput<"viewer.teams.get">["members"];
 }
-
-// type Member = inferQueryOutput<"viewer.teams.get">["members"][number];
 
 export default function TeamAvailabilityScreen(props: Props) {
   const utils = trpc.useContext();
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(dayjs.tz.guess());
-  const [frequency, setFrequency] = useState<number>(30);
+  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(
+    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()
+  );
+  const [frequency, setFrequency] = useState<15 | 30 | 60>(30);
 
   useEffect(() => {
     utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
@@ -32,14 +31,14 @@ export default function TeamAvailabilityScreen(props: Props) {
   }, [selectedTimeZone, selectedDate]);
 
   const Item = ({ index, style }: { index: number; style: CSSProperties }) => {
-    const member = props.members?.[index];
+    const member = props.team?.members?.[index];
     if (!member) return <></>;
 
     return (
       <div key={member.id} style={style} className="flex pl-4 border-r border-gray-200 ">
         <TeamAvailabilityTimes
-          team={props.team as inferQueryOutput<"viewer.teams.get">}
-          member={member}
+          teamId={props.team?.id as number}
+          memberId={member.id}
           frequency={frequency}
           selectedDate={selectedDate}
           selectedTimeZone={selectedTimeZone}
@@ -86,17 +85,17 @@ export default function TeamAvailabilityScreen(props: Props) {
         </div>
         <div>
           <span className="font-bold text-gray-600">Slot Length</span>
-          <MinutesField
-            id="length"
-            label=""
-            required
-            min="10"
-            className="p-2.5"
-            placeholder="15"
-            defaultValue={frequency}
-            onChange={(e) => {
-              setFrequency(Number(e.target.value));
-            }}
+          <Select
+            options={[
+              { value: 15, label: "15 minutes" },
+              { value: 30, label: "30 minutes" },
+              { value: 60, label: "60 minutes" },
+            ]}
+            isSearchable={false}
+            classNamePrefix="react-select"
+            className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            value={{ value: frequency, label: `${frequency} minutes` }}
+            onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
           />
         </div>
       </div>
@@ -105,10 +104,10 @@ export default function TeamAvailabilityScreen(props: Props) {
           {({ height, width }) => (
             <List
               itemSize={240}
-              itemCount={props.members?.length || 0}
+              itemCount={props.team?.members?.length ?? 0}
               className="List"
               height={height}
-              direction="horizontal"
+              layout="horizontal"
               width={width}>
               {Item}
             </List>
