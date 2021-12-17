@@ -445,6 +445,7 @@
   "hidden": "Hidden",
   "readonly": "Readonly",
   "plan_upgrade": "You need to upgrade your plan to have more than one active event type.",
+  "plan_upgrade_teams": "You need to upgrade your plan to create a team.",
   "plan_upgrade_instructions": "To upgrade, go to <a href=\"https://cal.com/upgrade\" className=\"underline\">https://cal.com/upgrade</a>",
   "event_types_page_title": "Event Types",
   "event_types_page_subtitle": "Create events to share for people to book on your calendar.",

@@ -87,7 +87,7 @@ export default function TeamSettings(props: Props) {
                   htmlFor="team-url"
                   Input={
                     <TextField
-                      name="team-url"
+                      name="" // typescript requires name but we don't want component to render name label
                       id="team-url"
                       addOnLeading={
                         <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">

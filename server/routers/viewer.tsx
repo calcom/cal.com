@@ -1,4 +1,4 @@
-import { BookingStatus, Prisma } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { z } from "zod";
 
@@ -57,6 +57,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         brandColor,
+        plan,
       } = ctx.user;
       const me = {
         id,
@@ -72,6 +73,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         brandColor,
+        plan,
       };
       return me;
     },
@@ -231,7 +233,7 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           metadata: {
             membershipCount: membership.team.members.length,
-            readOnly: membership.role !== "OWNER",
+            readOnly: membership.role === MembershipRole.MEMBER,
           },
           eventTypes: membership.team.eventTypes,
         }))
