@@ -431,7 +431,7 @@
   "add_new_event_type": "Een nieuw type afspraak toevoegen",
   "new_event_type_to_book_description": "Maak een nieuw afspraak type voor bezoekers om tijden mee te reserveren.",
   "length": "Lengte",
-  "minimum_booking_notice": "Minimale voorbereidingstijd",
+  "minimum_booking_notice": "Minimum vooruitboeken",
   "delete_event_type_description": "Weet u zeker dat u dit evenement wilt verwijderen? Iedereen met wie u deze link heeft gedeeld zal hem niet meer kunnen gebruiken om te boeken.",
   "delete_event_type": "Verwijder Evenement",
   "confirm_delete_event_type": "Ja, verwijder evenement",
