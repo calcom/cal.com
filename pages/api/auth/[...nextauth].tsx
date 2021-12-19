@@ -29,7 +29,7 @@ export default NextAuth({
       async authorize(credentials) {
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email.toLowerCase(),
+            email: credentials.email,
           },
         });
 
