@@ -16,6 +16,7 @@ type AvailableTimesProps = {
   minimumBookingNotice: number;
   eventTypeId: number;
   eventLength: number;
+  slotInterval: number | null;
   date: Dayjs;
   users: {
     username: string | null;
@@ -27,6 +28,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventLength,
   eventTypeId,
+  slotInterval,
   minimumBookingNotice,
   timeFormat,
   users,
@@ -38,6 +40,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
   const { slots, loading, error } = useSlots({
     date,
+    slotInterval,
     eventLength,
     schedulingType,
     users,
