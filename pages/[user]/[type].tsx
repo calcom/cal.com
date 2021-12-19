@@ -44,6 +44,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     schedulingType: true,
     minimumBookingNotice: true,
     timeZone: true,
+    slotInterval: true,
     users: {
       select: {
         avatar: true,
