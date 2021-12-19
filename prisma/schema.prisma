@@ -53,6 +53,7 @@ model EventType {
   Schedule                Schedule[]
   price                   Int                    @default(0)
   currency                String                 @default("usd")
+  slotInterval            Int?
 
   @@unique([userId, slug])
 }

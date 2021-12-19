@@ -97,9 +97,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const { t } = useLocale();
   const router = useRouter();
   const mutation = trpc.useMutation("viewer.updateProfile", {
-    onSuccess: () => {
+    onSuccess: async () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
       setHasErrors(false); // dismiss any open errors
+      await utils.invalidateQueries(["viewer.me"]);
     },
     onError: (err) => {
       setHasErrors(true);

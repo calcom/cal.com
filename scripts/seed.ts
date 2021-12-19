@@ -223,6 +223,12 @@ async function main() {
         slug: "60min",
         length: 60,
       },
+      {
+        title: "paid",
+        slug: "paid",
+        length: 60,
+        price: 50,
+      },
     ],
   });
 

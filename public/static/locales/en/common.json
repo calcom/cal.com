@@ -541,6 +541,8 @@
   "new_event_type_to_book_description": "Create a new event type for people to book times with.",
   "length": "Length",
   "minimum_booking_notice": "Minimum booking notice",
+  "slot_interval": "Time-slot intervals",
+  "slot_interval_default": "Use event length (default)",
   "delete_event_type_description": "Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link with will no longer be able to book using it.",
   "delete_event_type": "Delete Event Type",
   "confirm_delete_event_type": "Yes, delete event type",

@@ -11,8 +11,6 @@ test.describe("integrations", () => {
 
   todo("Can add Zoom integration");
 
-  todo("Can add Stripe integration");
-
   todo("Can add Google Calendar");
 
   todo("Can add Office 365 Calendar");
