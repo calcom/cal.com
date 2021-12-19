@@ -13,6 +13,7 @@ const opts = {
     url: samlDatabaseUrl,
     encryptionKey: process.env.CALENDSO_ENCRYPTION_KEY,
   },
+  samlAudience: "https://saml.cal.com",
 };
 
 let apiController: any;
