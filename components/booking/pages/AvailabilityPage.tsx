@@ -220,6 +220,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
+                    slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
                     date={selectedDate}
                     users={eventType.users}
