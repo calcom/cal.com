@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
+import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
@@ -82,8 +83,7 @@ function DatePicker({
   periodCountCalendarDays,
   minimumBookingNotice,
 }: DatePickerProps): JSX.Element {
-  const { t } = useLocale();
-
+  const { i18n } = useLocale();
   const [browsingDate, setBrowsingDate] = useState<Dayjs | null>(date);
 
   useEffect(() => {
@@ -157,7 +157,7 @@ function DatePicker({
       <div className="flex mb-4 text-xl font-light text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">
-            {t(browsingDate.format("MMMM").toLowerCase())}
+            {browsingDate.toDate().toLocaleString(i18n.language, { month: "long" })}
           </strong>{" "}
           <span className="text-gray-500">{browsingDate.format("YYYY")}</span>
         </span>
@@ -178,13 +178,11 @@ function DatePicker({
         </div>
       </div>
       <div className="grid grid-cols-7 gap-4 text-center border-t border-b dark:border-gray-800 sm:border-0">
-        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-          .sort((a, b) => (weekStart.startsWith(a) ? -1 : weekStart.startsWith(b) ? 1 : 0))
-          .map((weekDay) => (
-            <div key={weekDay} className="my-4 text-xs tracking-widest text-gray-500 uppercase">
-              {t(weekDay.toLowerCase()).substring(0, 3)}
-            </div>
-          ))}
+        {weekdayNames(i18n.language, weekStart === "Sunday" ? 0 : 1, "short").map((weekDay) => (
+          <div key={weekDay} className="my-4 text-xs tracking-widest text-gray-500 uppercase">
+            {weekDay}
+          </div>
+        ))}
       </div>
       <div className="grid grid-cols-7 gap-2 text-center">
         {days.map((day, idx) => (

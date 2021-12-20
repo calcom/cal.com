@@ -34,7 +34,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   users,
   schedulingType,
 }) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
 
@@ -58,10 +58,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     <div className="flex flex-col mt-8 text-center sm:pl-4 sm:mt-0 sm:w-1/3 md:-mb-5">
       <div className="mb-4 text-lg font-light text-left text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong>{t(date.format("dddd").toLowerCase())}</strong>
+          <strong>{date.toDate().toLocaleString(i18n.language, { weekday: "long" })}</strong>
           <span className="text-gray-500">
-            {date.format(", DD ")}
-            {t(date.format("MMMM").toLowerCase())}
+            {date.format(", D ")}
+            {date.toDate().toLocaleString(i18n.language, { month: "long" })}
           </span>
         </span>
       </div>
