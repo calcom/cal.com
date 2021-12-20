@@ -196,7 +196,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="username"
                   addOnLeading={
                     <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
-                      {process.env.NEXT_PUBLIC_APP_URL}/{"team/"}
+                      {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }
                   ref={usernameRef}
