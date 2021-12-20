@@ -2266,6 +2266,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-input-mask@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/react-input-mask/-/react-input-mask-3.0.1.tgz#9cba08b3084fe1f9426274dff086e12b4696a3aa"
+  integrity sha512-rGOW8t2Ac558TAAnaq5ZZDGHu1siTblBeY30ggAQ9sX89y2MX0/FFVDLd2DT85QRpYIQOrb7QzkF9RCoV2+nZg==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-phone-number-input@^3.0.13":
   version "3.0.13"
   resolved "https://registry.yarnpkg.com/@types/react-phone-number-input/-/react-phone-number-input-3.0.13.tgz#4eb7dcd278dcf9eb2a8d2ce2cb304657cbf1b4e5"
@@ -8193,6 +8200,15 @@ react-i18next@^11.8.13:
     "@babel/runtime" "^7.14.5"
     html-parse-stringify "^3.0.1"
 
+react-input-mask@^3.0.0-alpha.2:
+  version "3.0.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/react-input-mask/-/react-input-mask-3.0.0-alpha.2.tgz#113102942a557edc7a192e66020b8ce1ba699a5c"
+  integrity sha512-9U7qL+mvDMOJcbOFPdt6Vj+zzmCMNnBjhhjGDrL8BGQmymgvMVKhu/oOVfAkl+5VWOsLr+G3EhZOmae5fBcAkA==
+  dependencies:
+    invariant "^2.2.4"
+    prop-types "^15.7.2"
+    warning "^4.0.3"
+
 react-intl@^5.22.0:
   version "5.22.0"
   resolved "https://registry.yarnpkg.com/react-intl/-/react-intl-5.22.0.tgz#52c76bf551399257b95315a8bce307182ba786c8"
@@ -9886,6 +9902,13 @@ walker@^1.0.7, walker@~1.0.5:
   integrity sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==
   dependencies:
     makeerror "1.0.12"
+
+warning@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/warning/-/warning-4.0.3.tgz#16e9e077eb8a86d6af7d64aa1e05fd85b4678ca3"
+  integrity sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==
+  dependencies:
+    loose-envify "^1.0.0"
 
 watchpack@2.3.0:
   version "2.3.0"
