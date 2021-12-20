@@ -543,7 +543,7 @@
   "minimum_booking_notice": "Minimum booking notice",
   "slot_interval": "Time-slot intervals",
   "slot_interval_default": "Use event length (default)",
-  "delete_event_type_description": "Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link with will no longer be able to book using it.",
+  "delete_event_type_description": "Are you sure you want to delete this event type? Anyone who you've shared this link with will no longer be able to book using it.",
   "delete_event_type": "Delete Event Type",
   "confirm_delete_event_type": "Yes, delete event type",
   "integrations": "Integrations",
