@@ -7,6 +7,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
+import { EmailInput } from "@components/form/fields";
 import Button from "@components/ui/Button";
 
 export default function MemberInvitationModal(props: { team: TeamWithMembers | null; onExit: () => void }) {
@@ -80,7 +81,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                 <label htmlFor="inviteUser" className="block text-sm font-medium text-gray-700">
                   {t("email_or_username")}
                 </label>
-                <input
+                <EmailInput
                   type="text"
                   name="inviteUser"
                   id="inviteUser"
