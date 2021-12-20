@@ -19,6 +19,7 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
+import { EmailInput } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
@@ -254,11 +255,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
                         }}
                         className="flex mt-4">
-                        <input
-                          type="email"
+                        <EmailInput
                           name="email"
                           id="email"
-                          inputMode="email"
                           defaultValue={router.query.email}
                           className="block w-full text-gray-600 border-gray-300 shadow-sm dark:bg-brand dark:text-brandcontrast dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                           placeholder="rick.astley@cal.com"

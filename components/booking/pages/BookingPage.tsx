@@ -29,7 +29,7 @@ import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import CustomBranding from "@components/CustomBranding";
-import { Form } from "@components/form/fields";
+import { EmailInput, Form } from "@components/form/fields";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
 import PhoneInput from "@components/ui/form/PhoneInput";
@@ -315,12 +315,8 @@ const BookingPage = (props: BookingPageProps) => {
                       {t("email_address")}
                     </label>
                     <div className="mt-1">
-                      <input
+                      <EmailInput
                         {...bookingForm.register("email")}
-                        type="email"
-                        name="email"
-                        id="email"
-                        inputMode="email"
                         required
                         className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                         placeholder="you@example.com"
