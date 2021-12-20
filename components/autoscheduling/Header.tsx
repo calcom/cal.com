@@ -19,9 +19,13 @@ export default function AutoSchedulingHeader() {
 
     if (brokePath.length >= 3) {
       if (brokePath[1] === DEFAULT_PATH_1 && brokePath[2] === DEFAULT_PATH_2) {
-        const actualStep = brokePath[2];
+        const actualStep = brokePath[3];
 
         switch (actualStep) {
+          case "data":
+            setTitle("Dados Pessoais");
+            setStep("2");
+            break;
           case "terms":
           default:
             setTitle(DEFAULT_TITLE);
