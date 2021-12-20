@@ -457,7 +457,7 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
           </DropdownMenuContent>
         </Dropdown>
       )}
-      <DialogContent>
+      <DialogContent onPointerDownOutside={() => router.back()}>
         <div className="mb-8">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
