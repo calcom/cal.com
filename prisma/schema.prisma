@@ -88,7 +88,7 @@ model User {
   id                  Int                  @id @default(autoincrement())
   username            String?              @unique
   name                String?
-  email               String               @unique
+  email               String               @unique @db.Citext
   emailVerified       DateTime?
   password            String?
   bio                 String?
