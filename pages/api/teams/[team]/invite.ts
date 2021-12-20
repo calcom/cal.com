@@ -58,21 +58,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
     // valid email given, create User
-    await prisma.user
-      .create({
-        data: {
-          email: usernameOrEmail,
-        },
-      })
-      .then((invitee) =>
-        prisma.membership.create({
-          data: {
-            teamId: parseInt(req.query.team as string),
-            userId: invitee.id,
+    await prisma.user.create({
+      data: {
+        email: usernameOrEmail,
+        teams: {
+          create: {
+            team: {
+              connect: {
+                id: parseInt(req.query.team as string),
+              },
+            },
             role,
           },
-        })
-      );
+        },
+      },
+    });
 
     const token: string = randomBytes(32).toString("hex");
 
