@@ -587,7 +587,7 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose asChild>
+            <DialogClose onClick={() => router.back()} asChild>
               <Button color="secondary">{t("cancel")}</Button>
             </DialogClose>
           </div>
