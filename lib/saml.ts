@@ -9,7 +9,7 @@ export const samlTenantID = "Cal.com";
 export const samlProductID = "Cal.com";
 
 const samlAdmins = (process.env.SAML_ADMINS || "").split(",");
-export const hostedCal = process.env.NEXT_PUBLIC_APP_URL === "https://cal.com";
+export const hostedCal = BASE_URL === "https://app.cal.com";
 export const tenantPrefix = "team-";
 
 export const isSAMLAdmin = (email: string) => {
