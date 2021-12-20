@@ -98,9 +98,10 @@ const BookingPage = (props: BookingPageProps) => {
 
   const [guestToggle, setGuestToggle] = useState(false);
 
+  type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: { type: LocationType }[] = useMemo(
-    () => (props.eventType.locations as { type: LocationType }[]) || [],
+  const locations: Location[] = useMemo(
+    () => (props.eventType.locations as Location[]) || [],
     [props.eventType.locations]
   );
 
@@ -171,14 +172,14 @@ const BookingPage = (props: BookingPageProps) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
-        return booking.phone;
+        return booking.phone || "";
       }
       case LocationType.InPerson: {
-        return locationInfo(locationType).address;
+        return locationInfo(locationType)?.address || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
-        return selectedLocation;
+        return selectedLocation || "";
     }
   };
 
@@ -244,12 +245,12 @@ const BookingPage = (props: BookingPageProps) => {
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup
                   size={14}
-                  items={[{ image: props.profile.image, alt: props.profile.name }].concat(
+                  items={[{ image: props.profile.image || "", alt: props.profile.name || "" }].concat(
                     props.eventType.users
                       .filter((user) => user.name !== props.profile.name)
                       .map((user) => ({
-                        image: user.avatar,
-                        title: user.name,
+                        image: user.avatar || "",
+                        alt: user.name || "",
                       }))
                   )}
                 />
@@ -283,8 +284,8 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {date &&
-                    parseZone(date).format(timeFormat) +
+                  {(date && parseZone(date)?.format(timeFormat)) ||
+                    "No date" +
                       ", " +
                       dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" })}
                 </p>
