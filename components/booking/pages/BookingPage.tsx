@@ -283,7 +283,10 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
+                  {date &&
+                    parseZone(date).format(timeFormat) +
+                      ", " +
+                      dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" })}
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
