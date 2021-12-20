@@ -30,6 +30,7 @@ export async function getSession(options: GetSessionOptions): Promise<Session | 
 
 export enum ErrorCode {
   UserNotFound = "user-not-found",
+  UserNotFoundWithActiveProductType = "user-active-product-type-not-found",
   IncorrectPassword = "incorrect-password",
   UserMissingPassword = "missing-password",
   TwoFactorDisabled = "two-factor-disabled",

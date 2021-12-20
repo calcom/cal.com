@@ -42,7 +42,15 @@ export default NextAuth({
         throw new Error(ErrorCode.InternalServerError);
       }
 
+      if (!decodedToken?.hasProductType1on1) {
+        console.error(
+          `"Thetis user: ${decodedToken?.email?.toLowerCase()} does not have active Product of type 1-on-1"`
+        );
+        throw new Error(ErrorCode.UserNotFoundWithActiveProductType);
+      }
+
       let user;
+
       if (decodedToken?.email) {
         user = await prisma.user.upsert({
           where: {

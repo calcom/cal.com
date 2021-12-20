@@ -87,6 +87,11 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         destination: "/bookings/upcoming",
         permanent: true,
       },
+      {
+        source: "/auth/login",
+        destination: `${process.env.THETIS_SITE_HOST}/sign-in`,
+        permanent: true,
+      },
     ];
   },
 });
