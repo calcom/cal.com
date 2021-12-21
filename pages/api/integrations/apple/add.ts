@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import { symmetricEncrypt } from "@lib/crypto";
-import { AppleCalendar } from "@lib/integrations/Apple/AppleCalendarAdapter";
+import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 
@@ -35,11 +35,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     try {
-      const dav = new AppleCalendar({
+      const dav = getCalendar({
         id: 0,
         ...data,
       });
-      await dav.listCalendars();
+      await dav?.listCalendars();
       await prisma.credential.create({
         data,
       });
