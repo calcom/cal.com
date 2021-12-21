@@ -14,6 +14,7 @@ import {
   isSAMLAdmin,
   hostedCal,
   tenantPrefix,
+  samlTenantProduct,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
@@ -52,39 +53,9 @@ const publicViewerRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       const { prisma } = ctx;
-
-      const notFoundErr = new TRPCError({
-        code: "BAD_REQUEST",
-        message:
-          "Could not find a SAML Identity Provider for your email. Please contact your admin to ensure you have been given access to Cal",
-      });
-
       const { email } = input;
-      const user = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-        select: {
-          id: true,
-          invitedTo: true,
-        },
-      });
 
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Unauthorized Request",
-        });
-      }
-
-      if (!user.invitedTo) {
-        throw notFoundErr;
-      }
-
-      return {
-        tenant: tenantPrefix + user.invitedTo,
-        product: samlProductID,
-      };
+      return await samlTenantProduct(prisma, email);
     },
   });
 
