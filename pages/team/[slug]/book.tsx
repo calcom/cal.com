@@ -39,6 +39,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodEndDate: true,
       periodCountCalendarDays: true,
       disableGuests: true,
+      price: true,
+      currency: true,
       team: {
         select: {
           slug: true,
@@ -91,6 +93,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         slug: "team/" + eventTypeObject.slug,
         image: eventTypeObject.team?.logo || null,
         theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
+        brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
       },
       eventType: eventTypeObject,
       booking,
