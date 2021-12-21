@@ -21,12 +21,12 @@ export default function Terms() {
           <p className="text-sm text-gray-600">{termsMock}</p>
         </div>
       </div>
-      <div className="min-h-24 bg-white py-2 px-4">
+      <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
         <div className="flex flex-row w-full">
-          <Button className="w-full mr-4 justify-center">Eu concordo</Button>
           <Button color="secondary" className="w-full justify-center">
             Cancelar
           </Button>
+          <Button className="w-full ml-4 justify-center">Eu concordo</Button>
         </div>
       </div>
     </div>
