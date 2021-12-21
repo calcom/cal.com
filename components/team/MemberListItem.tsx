@@ -80,9 +80,16 @@ export default function MemberListItem(props: Props) {
           </div>
         </div>
         <div className="flex">
-          <Tooltip content={t("View user availability")}>
+          <Tooltip content={t("team_view_user_availability")}>
             <Button
-              onClick={() => setShowTeamAvailabilityModal(true)}
+              // Disabled buttons don't trigger Tooltips
+              title={
+                props.member.accepted
+                  ? t("team_view_user_availability")
+                  : t("team_view_user_availability_disabled")
+              }
+              disabled={!props.member.accepted}
+              onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
               className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white">
               <ClockIcon className="w-5 h-5 group-hover:text-gray-800" />
