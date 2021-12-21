@@ -30,6 +30,10 @@ export default function AutoSchedulingHeader() {
             setTitle("Serviço");
             setStep("3");
             break;
+          case "site":
+            setTitle("Local");
+            setStep("4");
+            break;
           case "terms":
           default:
             setTitle(DEFAULT_TITLE);
