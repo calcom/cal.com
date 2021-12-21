@@ -30,6 +30,7 @@ type DatePickerProps = {
   periodDays: number | null;
   periodCountCalendarDays: boolean | null;
   minimumBookingNotice: number;
+  noMargin?: boolean;
 };
 
 function isOutOfBounds(
@@ -81,6 +82,7 @@ function DatePicker({
   periodDays,
   periodCountCalendarDays,
   minimumBookingNotice,
+  noMargin,
 }: DatePickerProps): JSX.Element {
   const { t } = useLocale();
 
@@ -149,10 +151,11 @@ function DatePicker({
   return (
     <div
       className={
-        "mt-8 sm:mt-0 sm:min-w-[455px] " +
+        "sm:mt-0 sm:min-w-[455px] " +
         (date
           ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
-          : "w-full sm:pl-4")
+          : "w-full sm:pl-4") +
+        (noMargin ? "" : " mt-8")
       }>
       <div className="flex mb-4 text-xl font-light text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">

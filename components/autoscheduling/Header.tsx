@@ -34,6 +34,10 @@ export default function AutoSchedulingHeader() {
             setTitle("Local");
             setStep("4");
             break;
+          case "book":
+            setTitle("Data e horário");
+            setStep("5");
+            break;
           case "terms":
           default:
             setTitle(DEFAULT_TITLE);
