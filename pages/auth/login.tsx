@@ -10,6 +10,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
+import { EmailInput } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -75,24 +76,24 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-center min-h-screen py-12 bg-neutral-50 sm:px-6 lg:px-8">
       <HeadSeo title={t("login")} description={t("login")} />
 
       {isSubmitting && (
-        <div className="z-50 absolute w-full h-screen bg-gray-50 flex items-center">
+        <div className="absolute z-50 flex items-center w-full h-screen bg-gray-50">
           <Loader />
         </div>
       )}
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
-        <h2 className="font-cal mt-6 text-center text-3xl font-bold text-neutral-900">
+        <h2 className="mt-6 text-3xl font-bold text-center font-cal text-neutral-900">
           {t("sign_in_account")}
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 mx-2 rounded-sm sm:px-10 border border-neutral-200">
+        <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-neutral-200">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <input name="csrfToken" type="hidden" defaultValue={csrfToken || undefined} hidden />
             <div>
@@ -100,16 +101,13 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
                 {t("email_address")}
               </label>
               <div className="mt-1">
-                <input
+                <EmailInput
                   id="email"
                   name="email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
                   required
                   value={email}
                   onInput={(e) => setEmail(e.currentTarget.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
                 />
               </div>
             </div>
@@ -123,7 +121,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
                 </div>
                 <div className="w-1/2 text-right">
                   <Link href="/auth/forgot-password">
-                    <a tabIndex={-1} className="font-medium text-primary-600 text-sm">
+                    <a tabIndex={-1} className="text-sm font-medium text-primary-600">
                       {t("forgot")}
                     </a>
                   </Link>
@@ -138,7 +136,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
                   required
                   value={password}
                   onInput={(e) => setPassword(e.currentTarget.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
                 />
               </div>
             </div>
@@ -158,7 +156,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
                     inputMode="numeric"
                     value={code}
                     onInput={(e) => setCode(e.currentTarget.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-neutral-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                    className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
                   />
                 </div>
               </div>
@@ -168,7 +166,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("sign_in")}
               </button>
             </div>
@@ -176,7 +174,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </form>
         </div>
-        <div className="mt-4 text-neutral-600 text-center text-sm">
+        <div className="mt-4 text-sm text-center text-neutral-600">
           {t("dont_have_an_account")} {/* replace this with your account creation flow */}
           <a href="https://cal.com/signup" className="font-medium text-neutral-900">
             {t("create_an_account")}

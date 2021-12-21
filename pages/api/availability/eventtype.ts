@@ -132,6 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         req.body.minimumBookingNotice || req.body.minimumBookingNotice === 0
           ? parseInt(req.body.minimumBookingNotice, 10)
           : undefined,
+      slotInterval: req.body.slotInterval,
       price: req.body.price,
       currency: req.body.currency,
     };
