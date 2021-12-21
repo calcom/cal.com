@@ -87,7 +87,8 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
+              /** according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1,
+               * Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property. */
               iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
@@ -158,7 +159,7 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(uid: string): Promise<any> {
     try {
       const events = await this.getEventsByUID(uid);
 
