@@ -26,6 +26,10 @@ export default function AutoSchedulingHeader() {
             setTitle("Dados Pessoais");
             setStep("2");
             break;
+          case "service":
+            setTitle("Serviço");
+            setStep("3");
+            break;
           case "terms":
           default:
             setTitle(DEFAULT_TITLE);
