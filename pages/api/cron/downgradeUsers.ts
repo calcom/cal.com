@@ -16,6 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  /**
+   * TODO:
+   * We should add and extra check for non-paying customers in Stripe so we can
+   * downgrade them here.
+   */
+
   await prisma.user.updateMany({
     data: {
       plan: "FREE",

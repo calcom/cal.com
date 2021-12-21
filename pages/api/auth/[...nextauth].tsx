@@ -23,7 +23,7 @@ function randomString(length = 12) {
 async function authorize(credentials: any) {
   const user = await prisma.user.findUnique({
     where: {
-      email: credentials.email,
+      email: credentials.email.toLowerCase(),
     },
   });
 
