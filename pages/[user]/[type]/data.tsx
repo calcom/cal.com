@@ -39,12 +39,12 @@ export default function PersonalData() {
           />
         </div>
       </div>
-      <div className="min-h-24 bg-white py-2 px-4">
+      <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
         <div className="flex flex-row w-full">
-          <Button className="w-full mr-4 justify-center">Confirmar</Button>
           <Button color="secondary" className="w-full justify-center">
-            Cancelar
+            Anterior
           </Button>
+          <Button className="w-full ml-4 justify-center">Próximo</Button>
         </div>
       </div>
     </div>
