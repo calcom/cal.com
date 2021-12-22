@@ -12,6 +12,7 @@ export type AdvancedOptions = {
   requiresConfirmation?: boolean;
   disableGuests?: boolean;
   minimumBookingNotice?: number;
+  slotInterval?: number | null;
   price?: number;
   currency?: string;
   schedulingType?: SchedulingType;

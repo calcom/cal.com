@@ -5,8 +5,15 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 import { WorkingHours } from "@lib/types/schedule";
 
-function handlePeriodType(periodType: string): PeriodType {
-  return PeriodType[periodType.toUpperCase()];
+function isPeriodType(keyInput: string): keyInput is PeriodType {
+  return Object.keys(PeriodType).includes(keyInput);
+}
+
+function handlePeriodType(periodType: string): PeriodType | undefined {
+  if (typeof periodType !== "string") return undefined;
+  const passedPeriodType = periodType.toUpperCase();
+  if (!isPeriodType(passedPeriodType)) return undefined;
+  return PeriodType[passedPeriodType];
 }
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
@@ -86,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isAuthorized = (function () {
       if (event.team) {
         return event.team.members
-          .filter((member) => member.role === MembershipRole.OWNER)
+          .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
           .map((member) => member.userId)
           .includes(session.user.id);
       }
@@ -104,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  if (req.method == "PATCH" || req.method == "POST") {
+  if (req.method === "PATCH" || req.method === "POST") {
     const data: Prisma.EventTypeCreateInput | Prisma.EventTypeUpdateInput = {
       title: req.body.title,
       slug: req.body.slug.trim(),
@@ -116,14 +123,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       locations: req.body.locations,
       eventName: req.body.eventName,
       customInputs: handleCustomInputs(req.body.customInputs as EventTypeCustomInput[], req.body.id),
-      periodType: req.body.periodType ? handlePeriodType(req.body.periodType) : undefined,
+      periodType: handlePeriodType(req.body.periodType),
       periodDays: req.body.periodDays,
       periodStartDate: req.body.periodStartDate,
       periodEndDate: req.body.periodEndDate,
       periodCountCalendarDays: req.body.periodCountCalendarDays,
-      minimumBookingNotice: req.body.minimumBookingNotice
-        ? parseInt(req.body.minimumBookingNotice)
-        : undefined,
+      minimumBookingNotice:
+        req.body.minimumBookingNotice || req.body.minimumBookingNotice === 0
+          ? parseInt(req.body.minimumBookingNotice, 10)
+          : undefined,
+      slotInterval: req.body.slotInterval,
       price: req.body.price,
       currency: req.body.currency,
     };
@@ -178,8 +187,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const availabilityToCreate = openingHours.map((openingHour) => ({
-          startTime: openingHour.startTime,
-          endTime: openingHour.endTime,
+          startTime: new Date(openingHour.startTime),
+          endTime: new Date(openingHour.endTime),
           days: openingHour.days,
         }));
 
