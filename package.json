@@ -134,7 +134,6 @@
     "@typescript-eslint/parser": "^4.33.0",
     "autoprefixer": "^10.4.0",
     "babel-jest": "^27.3.1",
-    "env-cmd": "10.1.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
