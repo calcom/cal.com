@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import React from "react";
 
 import AutoSchedulingHeader from "@components/autoscheduling/Header";
@@ -13,6 +14,8 @@ const termsMock =
   "Phasellus ornare diam a orci tincidunt, varius molestie ligula imperdiet. Praesent congue lorem vitae leo vehicula dignissim. Curabitur et ante ultricies, feugiat orci quis, finibus orci. Etiam ut fringilla elit. Vestibulum in aliquam quam, quis vestibulum risus. Cras ac leo et tortor volutpat condimentum. Donec sit amet felis at ipsum imperdiet tempus eu vel dui. Suspendisse at urna vestibulum justo molestie finibus non ac dui. Mauris auctor congue augue, quis ultricies nisl convallis sit amet. Curabitur convallis ullamcorper quam. In gravida tempus diam, quis venenatis mi. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. ";
 
 export default function Terms() {
+  const router = useRouter();
+
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
@@ -26,7 +29,11 @@ export default function Terms() {
           <Button color="secondary" className="w-full justify-center">
             Cancelar
           </Button>
-          <Button className="w-full ml-4 justify-center">Eu concordo</Button>
+          <Button
+            className="w-full ml-4 justify-center"
+            onClick={() => router.push({ pathname: "data", query: router.query })}>
+            Eu concordo
+          </Button>
         </div>
       </div>
     </div>

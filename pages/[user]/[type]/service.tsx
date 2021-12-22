@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 
 import AutoSchedulingHeader from "@components/autoscheduling/Header";
@@ -15,7 +16,13 @@ const availableServices = [
 ];
 
 export default function Service() {
+  const router = useRouter();
+
   const [selectedService, setSelectedService] = useState<string | undefined>(undefined);
+
+  const handleBack = () => {
+    router.push({ pathname: "data", query: router.query });
+  };
 
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
@@ -44,7 +51,7 @@ export default function Service() {
       </div>
       <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
         <div className="flex flex-row w-full">
-          <Button color="secondary" className="w-full justify-center">
+          <Button color="secondary" className="w-full justify-center" onClick={handleBack}>
             Anterior
           </Button>
           <Button className="w-full ml-4 justify-center" disabled={!selectedService}>
