@@ -10,7 +10,7 @@ declare global {
 export const prisma =
   globalThis.prisma ||
   new PrismaClient({
-    log: ["query", "error", "warn"],
+    log: ["error", "warn"],
   });
 
 if (!IS_PRODUCTION) {
