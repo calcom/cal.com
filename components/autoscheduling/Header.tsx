@@ -10,7 +10,7 @@ const DEFAULT_STEP = "1";
 export default function AutoSchedulingHeader() {
   const router = useRouter();
   const [title, setTitle] = useState<string>(DEFAULT_TITLE);
-  const [step, setStep] = useState<string>(DEFAULT_STEP);
+  const [step, setStep] = useState<string | undefined>(DEFAULT_STEP);
 
   useEffect(() => {
     const path = router.pathname;
@@ -38,6 +38,10 @@ export default function AutoSchedulingHeader() {
             setTitle("Data e horário");
             setStep("5");
             break;
+          case "review":
+            setTitle("Revise sua solicitação");
+            setStep(undefined);
+            break;
           case "terms":
           default:
             setTitle(DEFAULT_TITLE);
@@ -51,7 +55,7 @@ export default function AutoSchedulingHeader() {
   return (
     <div className="flex flex-row justify-between items-center">
       <h1 className="text-2xl font-bold">{title}</h1>
-      <p className="text-xs text-gray-500 font-bold">{`${step}/5`}</p>
+      {step && <p className="text-xs text-gray-500 font-bold">{`${step}/5`}</p>}
     </div>
   );
 }
