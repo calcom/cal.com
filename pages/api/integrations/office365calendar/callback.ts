@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import { BASE_URL } from "@lib/config/constants";
 
 import prisma from "../../../../lib/prisma";
 import { decodeOAuthState } from "../utils";
@@ -31,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: process.env.BASE_URL + "/api/integrations/office365calendar/callback",
+    redirect_uri: BASE_URL + "/api/integrations/office365calendar/callback",
     client_secret: process.env.MS_GRAPH_CLIENT_SECRET!,
   });
 

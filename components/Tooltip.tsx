@@ -23,7 +23,7 @@ export function Tooltip({
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
-        className="bg-brand text-xs -mt-2 text-white px-1 py-0.5 shadow-lg rounded-sm"
+        className="bg-black text-xs -mt-2 text-white px-1 py-0.5 shadow-lg rounded-sm"
         side="top"
         align="center"
         {...props}>

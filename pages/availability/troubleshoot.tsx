@@ -51,12 +51,12 @@ const AvailabilityView = ({ user }: { user: User }) => {
   }, [selectedDate]);
 
   return (
-    <div className="bg-white max-w-xl overflow-hidden shadow rounded-sm">
+    <div className="max-w-xl overflow-hidden bg-white rounded-sm shadow">
       <div className="px-4 py-5 sm:p-6">
         {t("overview_of_day")}{" "}
         <input
           type="date"
-          className="inline border-none h-8 p-0"
+          className="inline h-8 p-0 border-none"
           defaultValue={selectedDate.format("YYYY-MM-DD")}
           onChange={(e) => {
             setSelectedDate(dayjs(e.target.value));
@@ -64,8 +64,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
         />
         <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
         <div className="mt-4 space-y-4">
-          <div className="bg-brand overflow-hidden rounded-sm">
-            <div className="px-4 sm:px-6 py-2 text-white">
+          <div className="overflow-hidden rounded-sm bg-brand">
+            <div className="px-4 py-2 sm:px-6 text-brandcontrast">
               {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
             </div>
           </div>
@@ -73,8 +73,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
             <Loader />
           ) : availability.length > 0 ? (
             availability.map((slot) => (
-              <div key={slot.start} className="bg-neutral-100 overflow-hidden rounded-sm">
-                <div className="px-4 py-5 sm:p-6 text-black">
+              <div key={slot.start} className="overflow-hidden rounded-sm bg-neutral-100">
+                <div className="px-4 py-5 text-black sm:p-6">
                   {t("calendar_shows_busy_between")}{" "}
                   <span className="font-medium text-neutral-800" title={slot.start}>
                     {dayjs(slot.start).format("HH:mm")}
@@ -89,13 +89,13 @@ const AvailabilityView = ({ user }: { user: User }) => {
               </div>
             ))
           ) : (
-            <div className="bg-neutral-100 overflow-hidden rounded-sm">
-              <div className="px-4 py-5 sm:p-6 text-black">{t("calendar_no_busy_slots")}</div>
+            <div className="overflow-hidden rounded-sm bg-neutral-100">
+              <div className="px-4 py-5 text-black sm:p-6">{t("calendar_no_busy_slots")}</div>
             </div>
           )}
 
-          <div className="bg-brand overflow-hidden rounded-sm">
-            <div className="px-4 sm:px-6 py-2 text-white">
+          <div className="overflow-hidden rounded-sm bg-brand">
+            <div className="px-4 py-2 sm:px-6 text-brandcontrast">
               {t("your_day_ends_at")} {convertMinsToHrsMins(user.endTime)}
             </div>
           </div>

@@ -12,7 +12,13 @@ jobs:
       GOOGLE_API_CREDENTIALS: "{}"
       # GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       # CRON_API_KEY: xxx
-      # CALENDSO_ENCRYPTION_KEY: xxx
+      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+      STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+      PAYMENT_FEE_PERCENTAGE: 0.005
+      PAYMENT_FEE_FIXED: 10
       # NEXTAUTH_URL: xxx
       # EMAIL_FROM: xxx
       # EMAIL_SERVER_HOST: xxx
@@ -51,14 +57,16 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}-nextjs
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
-      - run: yarn test
       - run: yarn prisma migrate deploy
       - run: yarn db-seed
+      - run: yarn test
       - run: yarn build
-      - run: yarn start &
-      - run: npx wait-port 3000 --timeout 10000
 
       - name: Cache playwright binaries
         uses: actions/cache@v2
@@ -71,7 +79,7 @@ jobs:
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: yarn playwright install-deps
+        run: yarn playwright install --with-deps
 
       - run: yarn test-playwright
 

@@ -23,6 +23,7 @@ import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
 import { BufferedBusyTime } from "@lib/integrations/Office365Calendar/Office365CalendarApiAdapter";
 import logger from "@lib/logger";
+import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
@@ -133,6 +134,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
     timeZone: true,
     credentials: true,
     bufferTime: true,
+    destinationCalendar: true,
   },
 });
 
@@ -140,12 +142,9 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
   const users = await prisma.user.findMany({
     where: {
       username: { in: selectedUserNames },
-      bookings: {
+      eventTypes: {
         some: {
-          startTime: {
-            gt: new Date(),
-          },
-          eventTypeId,
+          id: eventTypeId,
         },
       },
     },
@@ -199,6 +198,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const eventType = await prisma.eventType.findUnique({
+    rejectOnNotFound: true,
     where: {
       id: eventTypeId,
     },
@@ -284,10 +284,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const description =
-    reqBody.customInputs.reduce((str, input) => str + input.label + "\n" + input.value + "\n\n", "") +
-    t("additional_notes") +
-    ":\n" +
-    reqBody.notes;
+    reqBody.notes +
+    reqBody.customInputs.reduce(
+      (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
+      ""
+    );
 
   const evt: CalendarEvent = {
     type: eventType.title,
@@ -303,6 +304,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
     language: t,
+    /** For team events, we will need to handle each member destinationCalendar eventually */
+    destinationCalendar: users[0].destinationCalendar,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -329,7 +332,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
         description: evt.description,
-        confirmed: !eventType?.requiresConfirmation || !!rescheduleUid,
+        confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
         eventType: {
           connect: {
@@ -370,6 +373,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let referencesToCreate: PartialReference[] = [];
   let user: User | null = null;
 
+  /** Let's start cheking for availability */
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);
@@ -392,8 +396,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedCalendars
       );
 
-      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter((time) => time);
-      calendarBusyTimes.push(...(videoBusyTimes as any[])); // FIXME add types
+      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
+      calendarBusyTimes.push(...videoBusyTimes);
       console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
       const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
@@ -451,7 +455,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!user) throw Error("Can't continue, user not found.");
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const eventManager = new EventManager(await refreshCredentials(user.credentials));
+  const credentials = await refreshCredentials(user.credentials);
+  const eventManager = new EventManager({ ...user, credentials });
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.

@@ -35,18 +35,23 @@
     "jsx": "preserve",
     "types": [
       "@types/jest",
-      "jest-playwright-preset",
-      "expect-playwright"
     ],
-    "allowJs": false,
+    "allowJs": true,
     "incremental": true
   },
   "include": [
     "next-env.d.ts",
+    "@types/*.d.ts",
     "**/*.ts",
     "**/*.tsx"
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "types": ["node"],
+    }
+  }
 }

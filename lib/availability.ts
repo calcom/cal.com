@@ -79,7 +79,7 @@ export function getWorkingHours(
     ];
   }
 
-  const utcOffset = relativeTimeUnit.utcOffset || dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
+  const utcOffset = relativeTimeUnit.utcOffset ?? dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
 
   const workingHours = availability.reduce((workingHours: WorkingHours[], schedule) => {
     // Get times localised to the given utcOffset/timeZone
