@@ -1,12 +1,28 @@
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 
 import AutoSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
 
-import { sitesTranslation } from "../../../common/mock/sites";
+import { sitesTranslation } from "../../../../common/mock/sites";
 
 export default function Site() {
+  const router = useRouter();
   const [selectedSite, setSelectedSite] = useState<string | undefined>(undefined);
+
+  const handleBack = () => {
+    router.push({ pathname: "service", query: router.query });
+  };
+
+  const handleSubmit = () => {
+    const query = {
+      ...router.query,
+      slug: selectedSite,
+      type: selectedSite,
+    };
+
+    router.push({ pathname: "/team/projects/pac/[slug]/[type]/review", query });
+  };
 
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
@@ -34,10 +50,10 @@ export default function Site() {
       </div>
       <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
         <div className="flex flex-row w-full">
-          <Button color="secondary" className="w-full justify-center">
+          <Button color="secondary" onClick={handleBack} className="w-full justify-center">
             Anterior
           </Button>
-          <Button className="w-full ml-4 justify-center" disabled={!selectedSite}>
+          <Button className="w-full ml-4 justify-center" onClick={handleSubmit} disabled={!selectedSite}>
             Próximo
           </Button>
         </div>

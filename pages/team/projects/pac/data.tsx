@@ -9,8 +9,8 @@ import { TextField } from "@components/form/fields";
 import Button from "@components/ui/Button";
 import PhoneInput from "@components/ui/form/PhoneInput";
 
-import { IBeneficiary, setSSBeneficiary } from "../../../common/utils/localstorage";
-import { validateCpf, validateEmail, validateName, validatePhone } from "../../../common/utils/validators";
+import { IBeneficiary, setSSBeneficiary } from "../../../../common/utils/localstorage";
+import { validateCpf, validateEmail, validateName, validatePhone } from "../../../../common/utils/validators";
 
 type TError = "email" | "beneficiary" | "document" | "phone";
 
