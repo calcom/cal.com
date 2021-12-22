@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import AutoSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
 
-const availableServices = [
+export const availableServices = [
   {
     name: "RG 1ª via",
     id: "0",
