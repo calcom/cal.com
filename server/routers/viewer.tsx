@@ -297,7 +297,10 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         ],
       };
-      const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
+      const bookingListingOrderby: Record<
+        typeof bookingListingByStatus,
+        Prisma.BookingOrderByWithAggregationInput
+      > = {
         upcoming: { startTime: "desc" },
         past: { startTime: "desc" },
         cancelled: { startTime: "desc" },
