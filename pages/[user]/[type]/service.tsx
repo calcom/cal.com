@@ -20,6 +20,10 @@ export default function Service() {
 
   const [selectedService, setSelectedService] = useState<string | undefined>(undefined);
 
+  const handleSubmit = () => {
+    router.push({ pathname: "site", query: { ...router.query, service: selectedService } });
+  };
+
   const handleBack = () => {
     router.push({ pathname: "data", query: router.query });
   };
@@ -54,7 +58,7 @@ export default function Service() {
           <Button color="secondary" className="w-full justify-center" onClick={handleBack}>
             Anterior
           </Button>
-          <Button className="w-full ml-4 justify-center" disabled={!selectedService}>
+          <Button className="w-full ml-4 justify-center" disabled={!selectedService} onClick={handleSubmit}>
             Próximo
           </Button>
         </div>
