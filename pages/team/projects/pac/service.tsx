@@ -31,7 +31,7 @@ export default function Service() {
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
-        <AutoSchedulingHeader />
+        <AutoSchedulingHeader page="service" />
         <p className="mt-4 text-gray-900 text-sm mb-2">Selecionar serviço:</p>
         {availableServices.map((service) => {
           let style =

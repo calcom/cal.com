@@ -1,60 +1,48 @@
-import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
 
-const DEFAULT_PATH_1 = "[user]";
-const DEFAULT_PATH_2 = "[type]";
-
 const DEFAULT_TITLE = "Termos e Condições";
 const DEFAULT_STEP = "1";
 
+type TPage = "data" | "service" | "site" | "book" | "review" | "terms";
+
 interface IAutoSchedulingHeaderProps {
+  page: TPage;
   className?: string;
 }
 
-export default function AutoSchedulingHeader({ className }: IAutoSchedulingHeaderProps) {
-  const router = useRouter();
+export default function AutoSchedulingHeader({ page, className }: IAutoSchedulingHeaderProps) {
   const [title, setTitle] = useState<string>(DEFAULT_TITLE);
   const [step, setStep] = useState<string | undefined>(DEFAULT_STEP);
 
   useEffect(() => {
-    const path = router.pathname;
-
-    const brokePath = path.split("/");
-
-    if (brokePath.length >= 3) {
-      if (brokePath[1] === DEFAULT_PATH_1 && brokePath[2] === DEFAULT_PATH_2) {
-        const actualStep = brokePath[3];
-
-        switch (actualStep) {
-          case "data":
-            setTitle("Dados Pessoais");
-            setStep("2");
-            break;
-          case "service":
-            setTitle("Serviço");
-            setStep("3");
-            break;
-          case "site":
-            setTitle("Local");
-            setStep("4");
-            break;
-          case "book":
-            setTitle("Data e horário");
-            setStep("5");
-            break;
-          case "review":
-            setTitle("Revise sua solicitação");
-            setStep(undefined);
-            break;
-          case "terms":
-          default:
-            setTitle(DEFAULT_TITLE);
-            setStep(DEFAULT_STEP);
-            break;
-        }
-      }
+    switch (page) {
+      case "data":
+        setTitle("Dados Pessoais");
+        setStep("2");
+        break;
+      case "service":
+        setTitle("Serviço");
+        setStep("3");
+        break;
+      case "site":
+        setTitle("Local");
+        setStep("4");
+        break;
+      case "book":
+        setTitle("Data e horário");
+        setStep("5");
+        break;
+      case "review":
+        setTitle("Revise sua solicitação");
+        setStep(undefined);
+        break;
+      case "terms":
+      default:
+        setTitle(DEFAULT_TITLE);
+        setStep(DEFAULT_STEP);
+        break;
     }
   }, []); // eslint-disable-line
 

@@ -49,7 +49,7 @@ export default function Review() {
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
-        <AutoSchedulingHeader />
+        <AutoSchedulingHeader page="review" />
         <div className="mt-4 overflow-auto">
           <div className="border-y border-y-gray-100">
             <p className="text-gray-500 font-bold text-sm mt-4">Dados do beneficiário</p>

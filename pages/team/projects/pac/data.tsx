@@ -92,7 +92,7 @@ export default function PersonalData() {
       </div>
       <div className="bg-gray-200 h-screen flex flex-col justify-between">
         <div className="p-4 bg-white">
-          <AutoSchedulingHeader />
+          <AutoSchedulingHeader page="data" />
           <div className="mt-4">
             <TextField
               required

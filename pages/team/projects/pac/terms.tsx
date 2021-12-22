@@ -19,7 +19,7 @@ export default function Terms() {
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
-        <AutoSchedulingHeader />
+        <AutoSchedulingHeader page="terms" />
         <div className="mt-4 max-h-60 overflow-auto">
           <p className="text-sm text-gray-600">{termsMock}</p>
         </div>
