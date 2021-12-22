@@ -1,13 +1,19 @@
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
+import classNames from "@lib/classNames";
+
 const DEFAULT_PATH_1 = "[user]";
 const DEFAULT_PATH_2 = "[type]";
 
 const DEFAULT_TITLE = "Termos e Condições";
 const DEFAULT_STEP = "1";
 
-export default function AutoSchedulingHeader() {
+interface IAutoSchedulingHeaderProps {
+  className?: string;
+}
+
+export default function AutoSchedulingHeader({ className }: IAutoSchedulingHeaderProps) {
   const router = useRouter();
   const [title, setTitle] = useState<string>(DEFAULT_TITLE);
   const [step, setStep] = useState<string | undefined>(DEFAULT_STEP);
@@ -53,7 +59,7 @@ export default function AutoSchedulingHeader() {
   }, []); // eslint-disable-line
 
   return (
-    <div className="flex flex-row justify-between items-center">
+    <div className={classNames("flex flex-row justify-between items-center", className)}>
       <h1 className="text-2xl font-bold">{title}</h1>
       {step && <p className="text-xs text-gray-500 font-bold">{`${step}/5`}</p>}
     </div>

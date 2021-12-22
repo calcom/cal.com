@@ -10,9 +10,9 @@ export default function Site() {
 
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
-      <div className="p-4 bg-white overflow-hidden">
-        <AutoSchedulingHeader />
-        <div className="overflow-auto mt-4 h-auto">
+      <div className="px-4 bg-white overflow-hidden flex flex-col">
+        <AutoSchedulingHeader className="py-4" />
+        <div className="overflow-auto flex-1">
           <p className="text-gray-900 text-sm mb-2">Selecionar local:</p>
           {Object.entries(sitesTranslation).map(([key, name]: [string, string]) => {
             let style =
