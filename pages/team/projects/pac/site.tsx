@@ -21,7 +21,7 @@ export default function Site() {
       type: selectedSite,
     };
 
-    router.push({ pathname: "/team/projects/pac/[slug]/[type]/review", query });
+    router.push({ pathname: "/team/projects/pac/[slug]/[type]/book", query });
   };
 
   return (

@@ -3,7 +3,11 @@ import React from "react";
 import AutoSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
 
+import { getSSBeneficiary } from "../../../../../../common/utils/localstorage";
+
 export default function Review() {
+  const beneficiary = getSSBeneficiary();
+
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
@@ -15,19 +19,19 @@ export default function Review() {
               <tbody>
                 <tr>
                   <td className="font-bold pb-2 pt-4">Beneficiário</td>
-                  <td className="pb-2 pt-4">José da Silva</td>
+                  <td className="pb-2 pt-4">{beneficiary?.name}</td>
                 </tr>
                 <tr>
                   <td className="font-bold py-2">E-mail</td>
-                  <td className="py-2">jose.silva@gmail.com</td>
+                  <td className="py-2">{beneficiary?.email}</td>
                 </tr>
                 <tr>
                   <td className="font-bold py-2">CPF</td>
-                  <td className="py-2">123.456.789-00</td>
+                  <td className="py-2">{beneficiary?.document}</td>
                 </tr>
                 <tr>
                   <td className="font-bold py-2">Telefone</td>
-                  <td className="py-2">92 99332-2233 </td>
+                  <td className="py-2">{beneficiary?.phone}</td>
                 </tr>
                 <tr>
                   <td className="font-bold pt-2 pb-1">Grupo</td>
