@@ -471,7 +471,7 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
             e.preventDefault();
 
             const target = e.target as unknown as Record<
-              "title" | "slug" | "description" | "length" | "schedulingType" | "scAddress",
+              "title" | "slug" | "description" | "length" | "schedulingType",
               { value: string }
             >;
 
@@ -479,7 +479,6 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
               title: target.title.value,
               slug: target.slug.value,
               description: target.description.value,
-              scAddress: target.scAddress.value,
               length: parseInt(target.length.value),
             };
 
@@ -563,20 +562,6 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-400">
                   {t("minutes")}
                 </div>
-              </div>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="scAddress" className="block text-sm font-medium text-gray-700">
-                {t("Smart Contract Address")}
-              </label>
-              <div className="relative mt-1 rounded-sm shadow-sm">
-                <input
-                  type="text"
-                  name="scAddress"
-                  id="scAddress"
-                  className="block w-full pr-20 border-gray-300 rounded-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder="Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f"
-                />
               </div>
             </div>
           </div>
