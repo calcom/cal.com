@@ -60,7 +60,8 @@ export interface ZoomEventResult {
 
 interface ZoomToken {
   scope: "meeting:write";
-  expires_in: number;
+  expiry_date: number;
+  expires_in?: number; // deprecated, purely for backwards compatibility; superseeded by expiry_date.
   token_type: "bearer";
   access_token: string;
   refresh_token: string;
@@ -68,7 +69,7 @@ interface ZoomToken {
 
 const zoomAuth = (credential: Credential) => {
   const credentialKey = credential.key as unknown as ZoomToken;
-  const isExpired = (expiryDate: number) => expiryDate < +new Date();
+  const isExpired = (expiryDate: number) => expiryDate < Date.now();
   const authHeader =
     "Basic " +
     Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
@@ -87,6 +88,9 @@ const zoomAuth = (credential: Credential) => {
     })
       .then(handleErrorsJson)
       .then(async (responseBody) => {
+        // set expiry date as offset from current time.
+        responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
+        delete responseBody.expires_in;
         // Store new tokens in database.
         await prisma.credential.update({
           where: {
@@ -96,14 +100,14 @@ const zoomAuth = (credential: Credential) => {
             key: responseBody,
           },
         });
+        credentialKey.expiry_date = responseBody.expiry_date;
         credentialKey.access_token = responseBody.access_token;
-        credentialKey.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
         return credentialKey.access_token;
       });
 
   return {
     getToken: () =>
-      !isExpired(credentialKey.expires_in)
+      !isExpired(credentialKey.expires_in || credentialKey.expiry_date)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token),
   };

@@ -23,6 +23,7 @@ type Slot = {
 };
 
 type UseSlotsProps = {
+  slotInterval: number | null;
   eventLength: number;
   eventTypeId: number;
   minimumBookingNotice?: number;
@@ -32,7 +33,7 @@ type UseSlotsProps = {
 };
 
 export const useSlots = (props: UseSlotsProps) => {
-  const { eventLength, minimumBookingNotice = 0, date, users, eventTypeId } = props;
+  const { slotInterval, eventLength, minimumBookingNotice = 0, date, users, eventTypeId } = props;
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -102,12 +103,11 @@ export const useSlots = (props: UseSlotsProps) => {
   const handleAvailableSlots = async (res: Response) => {
     const responseBody: AvailabilityUserResponse = await res.json();
     const times = getSlots({
-      frequency: eventLength,
+      frequency: slotInterval || eventLength,
       inviteeDate: date,
       workingHours: responseBody.workingHours,
       minimumBookingNotice,
     });
-
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
       responseBody.busy.every((busyTime): boolean => {

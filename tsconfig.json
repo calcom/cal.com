@@ -35,8 +35,6 @@
     "jsx": "preserve",
     "types": [
       "@types/jest",
-      "jest-playwright-preset",
-      "expect-playwright"
     ],
     "allowJs": true,
     "incremental": true
@@ -49,5 +47,11 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "types": ["node"],
+    }
+  }
 }

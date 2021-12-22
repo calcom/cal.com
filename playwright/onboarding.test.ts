@@ -1,22 +1,14 @@
-import { kont } from "kont";
+import { test } from "@playwright/test";
 
-import { loginProvider } from "./lib/loginProvider";
+test.describe("Onboarding", () => {
+  test.use({ storageState: "playwright/artifacts/onboardingStorageState.json" });
 
-jest.setTimeout(60e3);
-jest.retryTimes(2);
-
-const ctx = kont()
-  .useBeforeEach(
-    loginProvider({
-      user: "onboarding",
-    })
-  )
-  .done();
-
-test("redirects to /getting-started after login", async () => {
-  await ctx.page.waitForNavigation({
-    url(url) {
-      return url.pathname === "/getting-started";
-    },
+  test("redirects to /getting-started after login", async ({ page }) => {
+    await page.goto("/event-types");
+    await page.waitForNavigation({
+      url(url) {
+        return url.pathname === "/getting-started";
+      },
+    });
   });
 });
