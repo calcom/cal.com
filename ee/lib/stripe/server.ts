@@ -77,7 +77,7 @@ export async function handlePayment(
       data: Object.assign({}, paymentIntent, {
         stripe_publishable_key,
         stripeAccount: stripe_user_id,
-      }) as PaymentData as unknown as Prisma.JsonValue,
+      }) /* We should treat this */ as PaymentData /* but Prisma doesn't know how to handle it, so it we treat it */ as unknown /* and then */ as Prisma.InputJsonValue,
       externalId: paymentIntent.id,
     },
   });

@@ -43,7 +43,7 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
 
         <Form
           form={form}
-          onSubmit={form.handleSubmit(async (values) => {
+          handleSubmit={async (values) => {
             setErrorMessage("");
             const res = await fetch("/api/integrations/caldav/add", {
               method: "POST",
@@ -58,7 +58,7 @@ export function AddCalDavIntegrationModal(props: DialogProps) {
             } else {
               props.onOpenChange?.(false);
             }
-          })}>
+          }}>
           <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
             <TextField
               required
