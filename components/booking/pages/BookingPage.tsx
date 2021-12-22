@@ -137,6 +137,7 @@ const BookingPage = (props: BookingPageProps) => {
     customInputs?: {
       [key: string]: string;
     };
+    scAddress?: string;
   };
 
   const bookingForm = useForm<BookingFormValues>({
@@ -145,6 +146,7 @@ const BookingPage = (props: BookingPageProps) => {
       email: (router.query.email as string) || "",
       notes: (router.query.notes as string) || "",
       guests: ensureArray(router.query.guest),
+      scAddress: (router.query.scAddress as string) || "",
       customInputs: props.eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -290,6 +292,7 @@ const BookingPage = (props: BookingPageProps) => {
                       dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" })}
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
+                <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.scAddress}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>

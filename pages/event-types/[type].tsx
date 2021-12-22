@@ -255,6 +255,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const formMethods = useForm<{
     title: string;
     eventTitle: string;
+    scAddress: string;
     slug: string;
     length: number;
     description: string;
@@ -514,6 +515,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     advancedPayload.periodEndDate = values.periodDates.endDate || undefined;
                     advancedPayload.minimumBookingNotice = values.minimumBookingNotice;
                     advancedPayload.slotInterval = values.slotInterval;
+                    advancedPayload.scAddress = values.scAddress;
                     // prettier-ignore
                     advancedPayload.price =
                       !requirePayment ? undefined :
@@ -718,6 +720,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               placeholder={t("meeting_with_user")}
                               defaultValue={eventType.eventName || ""}
                               {...formMethods.register("eventTitle")}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="items-center block sm:flex">
+                        <div className="mb-4 min-w-48 sm:mb-0">
+                          <label htmlFor="scAddress" className="flex text-sm font-medium text-neutral-700">
+                            {t("Smart Contract Address")}
+                          </label>
+                        </div>
+                        <div className="w-full">
+                          <div className="relative mt-1 rounded-sm shadow-sm">
+                            <input
+                              type="text"
+                              className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                              placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                              defaultValue={eventType.scAddress || ""}
+                              {...formMethods.register("scAddress")}
                             />
                           </div>
                         </div>
@@ -1366,6 +1386,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       customInputs: true,
       timeZone: true,
       periodType: true,
+      scAddress: true,
       periodDays: true,
       periodStartDate: true,
       periodEndDate: true,

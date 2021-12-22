@@ -56,6 +56,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodDays: true,
       periodStartDate: true,
       periodEndDate: true,
+      scAddress: true,
       periodCountCalendarDays: true,
       price: true,
       currency: true,

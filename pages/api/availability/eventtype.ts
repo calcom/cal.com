@@ -135,6 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       slotInterval: req.body.slotInterval,
       price: req.body.price,
       currency: req.body.currency,
+      scAddress: req.body.scAddress,
     };
 
     if (req.body.schedulingType) {

@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     hidden: true,
     price: true,
     currency: true,
+    scAddress: true,
     users: {
       select: {
         id: true,

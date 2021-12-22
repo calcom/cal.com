@@ -3,6 +3,7 @@ import { EventType, SchedulingType } from "@prisma/client";
 import { WorkingHours } from "./schedule";
 
 export type AdvancedOptions = {
+  scAddress?: string;
   eventName?: string;
   periodType?: string;
   periodDays?: number;
@@ -37,6 +38,7 @@ export type CreateEventType = {
   length: number;
   teamId?: number;
   schedulingType?: SchedulingType;
+  scAddress?: string;
 };
 
 export type CreateEventTypeResponse = {
