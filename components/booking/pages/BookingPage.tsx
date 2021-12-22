@@ -291,8 +291,13 @@ const BookingPage = (props: BookingPageProps) => {
                       ", " +
                       dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" })}
                 </p>
+                {props.eventType.scAddress && (
+                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                    Requires ownership of a token belonging to the following address:{" "}
+                    {props.eventType.scAddress}
+                  </p>
+                )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
-                <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.scAddress}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>
@@ -485,6 +490,14 @@ const BookingPage = (props: BookingPageProps) => {
                       className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                       placeholder={t("share_additional_notes")}
                     />
+                  </div>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="wallet"
+                      className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                      {t("Wallet verification")}
+                    </label>
+                    <Button>Verify wallet</Button>
                   </div>
                   <div className="flex items-start space-x-2">
                     <Button type="submit" loading={mutation.isLoading}>
