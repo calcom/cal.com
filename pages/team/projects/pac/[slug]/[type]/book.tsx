@@ -62,6 +62,8 @@ export default function BookPage({ profile, eventType, workingHours }: Availabil
     );
   };
 
+  console.info(eventType);
+
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white overflow-hidden">

@@ -1,6 +1,22 @@
 import dayjs from "dayjs";
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { useMutation } from "react-query";
+
+import { createPaymentLink } from "@ee/lib/stripe/client";
+
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
+import { ensureArray } from "@lib/ensureArray";
+import { useLocale } from "@lib/hooks/useLocale";
+import { LocationType } from "@lib/location";
+import createBooking from "@lib/mutations/bookings/create-booking";
+import prisma from "@lib/prisma";
+import slugify from "@lib/slugify";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AutoSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
@@ -9,10 +25,28 @@ import { sitesTranslation, TSite } from "../../../../../../common/mock/sites";
 import { getSSBeneficiary } from "../../../../../../common/utils/localstorage";
 import { availableServices } from "../../service";
 
-export default function Review() {
+type BookingFormValues = {
+  name: string;
+  email: string;
+  notes?: string;
+  locationType?: LocationType;
+  guests?: string[];
+  phone?: string;
+  customInputs?: {
+    [key: string]: string;
+  };
+};
+
+export type TReviewPageProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Review(props: TReviewPageProps) {
   const router = useRouter();
+  const telemetry = useTelemetry();
+  const { t, i18n } = useLocale();
 
   const beneficiary = getSSBeneficiary();
+
+  const rescheduleUid = router.query.rescheduleUid as string;
 
   let service = "RG";
   const queryService = router.query.service;
@@ -43,6 +77,133 @@ export default function Review() {
     router.push({
       pathname: "book",
       query: router.query,
+    });
+  };
+
+  // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
+  const locations: { type: LocationType }[] = useMemo(
+    () => (props.eventType.locations as { type: LocationType }[]) || [],
+    [props.eventType.locations]
+  );
+
+  const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
+
+  const bookingForm = useForm<BookingFormValues>({
+    defaultValues: {
+      name: (router.query.name as string) || "",
+      email: (router.query.email as string) || "",
+      notes: (router.query.notes as string) || "",
+      guests: ensureArray(router.query.guest),
+      customInputs: props.eventType.customInputs.reduce(
+        (customInputs, input) => ({
+          ...customInputs,
+          [input.id]: router.query[slugify(input.label)],
+        }),
+        {}
+      ),
+    },
+  });
+
+  const selectedLocation = useWatch({
+    control: bookingForm.control,
+    name: "locationType",
+    defaultValue: ((): LocationType | undefined => {
+      if (router.query.location) {
+        return router.query.location as LocationType;
+      }
+      if (locations.length === 1) {
+        return locations[0]?.type;
+      }
+    })(),
+  });
+
+  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+    const { locationType } = booking;
+    switch (locationType) {
+      case LocationType.Phone: {
+        return booking.phone;
+      }
+      case LocationType.InPerson: {
+        return locationInfo(locationType).address;
+      }
+      // Catches all other location types, such as Google Meet, Zoom etc.
+      default:
+        return selectedLocation;
+    }
+  };
+
+  const mutation = useMutation(createBooking, {
+    onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
+      if (paymentUid) {
+        return await router.push(
+          createPaymentLink({
+            paymentUid,
+            date,
+            name: attendees[0].name,
+            absolute: false,
+          })
+        );
+      }
+
+      const location = (function humanReadableLocation(location) {
+        if (!location) {
+          return;
+        }
+        if (location.includes("integration")) {
+          return t("web_conferencing_details_to_follow");
+        }
+        return location;
+      })(responseData.location);
+
+      return router.push({
+        pathname: "/book/pac-event",
+        query: {
+          date,
+          type: props.eventType.id,
+          user: props.profile.slug,
+          reschedule: !!rescheduleUid,
+          name: attendees[0].name,
+          email: attendees[0].email,
+          location,
+        },
+      });
+    },
+  });
+
+  const bookEvent = (booking: BookingFormValues) => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
+    );
+
+    // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
+    // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
+    const metadata = Object.keys(router.query)
+      .filter((key) => key.startsWith("metadata"))
+      .reduce(
+        (metadata, key) => ({
+          ...metadata,
+          [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+        }),
+        {}
+      );
+
+    mutation.mutate({
+      ...booking,
+      start: dayjs(date).format(),
+      end: dayjs(date).add(props.eventType.length, "minute").format(),
+      eventTypeId: props.eventType.id,
+      timeZone: timeZone(),
+      language: i18n.language,
+      rescheduleUid,
+      user: router.query.user,
+      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
+      metadata,
+      customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        value: booking.customInputs![inputId],
+      })),
     });
   };
 
@@ -108,9 +269,96 @@ export default function Review() {
           <Button color="secondary" className="w-full justify-center" onClick={handleBack}>
             Anterior
           </Button>
-          <Button className="w-full ml-4 justify-center">Próximo</Button>
+          <Button className="w-full ml-4 justify-center" onClick={bookEvent}>
+            Próximo
+          </Button>
         </div>
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const eventTypeId = parseInt(asStringOrThrow(context.query.type));
+  if (eventTypeId % 1 !== 0) {
+    return {
+      notFound: true,
+    } as const;
+  }
+
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      id: eventTypeId,
+    },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      locations: true,
+      customInputs: true,
+      periodType: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      disableGuests: true,
+      team: {
+        select: {
+          slug: true,
+          name: true,
+          logo: true,
+        },
+      },
+      users: {
+        select: {
+          avatar: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!eventType) return { notFound: true };
+
+  const eventTypeObject = [eventType].map((e) => {
+    return {
+      ...e,
+      periodStartDate: e.periodStartDate?.toString() ?? null,
+      periodEndDate: e.periodEndDate?.toString() ?? null,
+    };
+  })[0];
+
+  let booking = null;
+
+  if (context.query.rescheduleUid) {
+    booking = await prisma.booking.findFirst({
+      where: {
+        uid: asStringOrThrow(context.query.rescheduleUid),
+      },
+      select: {
+        description: true,
+        attendees: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  return {
+    props: {
+      profile: {
+        ...eventTypeObject.team,
+        slug: "team/" + eventTypeObject.slug,
+        image: eventTypeObject.team?.logo || null,
+        theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
+      },
+      eventType: eventTypeObject,
+      booking,
+    },
+  };
 }

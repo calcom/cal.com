@@ -84,6 +84,11 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         destination: "/bookings/upcoming",
         permanent: true,
       },
+      {
+        source: "/team/projects/pac",
+        destination: "/team/projects/pac/terms",
+        permanent: true,
+      }
     ];
   },
 });
