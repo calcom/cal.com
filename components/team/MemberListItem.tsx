@@ -17,7 +17,12 @@ import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import ModalContainer from "@components/ui/ModalContainer";
 
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/Dropdown";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/Dropdown";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamRole from "./TeamRole";
 import { MembershipRole } from ".prisma/client";
@@ -75,9 +80,16 @@ export default function MemberListItem(props: Props) {
           </div>
         </div>
         <div className="flex">
-          <Tooltip content={t("View user availability")}>
+          <Tooltip content={t("team_view_user_availability")}>
             <Button
-              onClick={() => setShowTeamAvailabilityModal(true)}
+              // Disabled buttons don't trigger Tooltips
+              title={
+                props.member.accepted
+                  ? t("team_view_user_availability")
+                  : t("team_view_user_availability_disabled")
+              }
+              disabled={!props.member.accepted}
+              onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
               className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white">
               <ClockIcon className="w-5 h-5 group-hover:text-gray-800" />
@@ -91,13 +103,13 @@ export default function MemberListItem(props: Props) {
               <DropdownMenuItem>
                 <Link href={"/" + props.member.username}>
                   <a target="_blank">
-                    <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full">
+                    <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full font-normal">
                       {t("view_public_page")}
                     </Button>
                   </a>
                 </Link>
               </DropdownMenuItem>
-
+              <DropdownMenuSeparator className="h-px bg-gray-200" />
               {(props.team.membership.role === MembershipRole.OWNER ||
                 props.team.membership.role === MembershipRole.ADMIN) && (
                 <>
@@ -106,10 +118,11 @@ export default function MemberListItem(props: Props) {
                       onClick={() => setShowChangeMemberRoleModal(true)}
                       color="minimal"
                       StartIcon={PencilIcon}
-                      className="flex-shrink-0 w-full">
+                      className="flex-shrink-0 w-full font-normal">
                       {t("edit_role")}
                     </Button>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator className="h-px bg-gray-200" />
                   <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>
@@ -119,7 +132,7 @@ export default function MemberListItem(props: Props) {
                           }}
                           color="warn"
                           StartIcon={UserRemoveIcon}
-                          className="w-full">
+                          className="w-full font-normal">
                           {t("remove_member")}
                         </Button>
                       </DialogTrigger>
@@ -151,9 +164,11 @@ export default function MemberListItem(props: Props) {
           <TeamAvailabilityModal team={props.team} member={props.member} />
           <div className="p-5 space-x-2 border-t">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-            <Link href={`/settings/teams/${props.team.id}/availability`}>
-              <Button color="secondary">{t("Open Team Availability")}</Button>
-            </Link>
+            {props.team.membership.role !== MembershipRole.MEMBER && (
+              <Link href={`/settings/teams/${props.team.id}/availability`}>
+                <Button color="secondary">{t("Open Team Availability")}</Button>
+              </Link>
+            )}
           </div>
         </ModalContainer>
       )}

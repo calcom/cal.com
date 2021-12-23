@@ -6,7 +6,7 @@ import stripe from "@ee/lib/stripe/server";
 
 import { CalendarEvent } from "@lib/calendarClient";
 import { IS_PRODUCTION } from "@lib/config/constants";
-import { HttpError } from "@lib/core/http/error";
+import { HttpError as HttpCode } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
@@ -31,6 +31,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       booking: {
         update: {
           paid: true,
+          confirmed: true,
         },
       },
     },
@@ -97,7 +98,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
     await prisma.booking.update({
       where: {
-        id: payment.bookingId,
+        id: booking.id,
       },
       data: {
         references: {
@@ -106,6 +107,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       },
     });
   }
+
+  throw new HttpCode({
+    statusCode: 200,
+    message: `Booking with id '${booking.id}' was paid and confirmed.`,
+  });
 }
 
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
@@ -117,15 +123,15 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {
-      throw new HttpError({ statusCode: 405, message: "Method Not Allowed" });
+      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
     const sig = req.headers["stripe-signature"];
     if (!sig) {
-      throw new HttpError({ statusCode: 400, message: "Missing stripe-signature" });
+      throw new HttpCode({ statusCode: 400, message: "Missing stripe-signature" });
     }
 
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      throw new HttpError({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET" });
+      throw new HttpCode({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET" });
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
@@ -137,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await handler(event);
     } else {
       /** Not really an error, just letting Stripe know that the webhook was received but unhandled */
-      throw new HttpError({
+      throw new HttpCode({
         statusCode: 202,
         message: `Unhandled Stripe Webhook event type ${event.type}`,
       });
