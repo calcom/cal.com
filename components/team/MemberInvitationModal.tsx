@@ -99,7 +99,6 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                   className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm">
                   <option value="MEMBER">{t("member")}</option>
                   <option value="ADMIN">{t("admin")}</option>
-                  <option value="OWNER">{t("owner")}</option>
                 </select>
               </div>
               <div className="relative flex items-start">
