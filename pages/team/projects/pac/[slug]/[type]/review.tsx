@@ -138,7 +138,7 @@ export default function Review(props: TReviewPageProps) {
       <div className="p-4 bg-white">
         <SelfSchedulingHeader page="review" />
         <p className="mt-2 text-sm text-gray-500">
-          Verifique suas informações pois erros podem influenciar na aprovação do seu agengamento.
+          Verifique suas informações pois erros podem influenciar na aprovação do seu agendamento.
         </p>
         <div className="mt-4 overflow-auto">
           <div className="border-y border-y-gray-100">
