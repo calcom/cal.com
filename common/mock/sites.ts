@@ -8,11 +8,6 @@ const availableSites = [
   "pac-educandos",
   "pac-compensa",
   "pac-leste",
-  "pac-iranduba",
-  "pac-parintins",
-  "pac-itacoatiara",
-  "pac-manacapuru",
-  "paac-posto-avancado-atendimento-cidadania",
 ] as const;
 
 export type TSite = typeof availableSites[number];
@@ -27,9 +22,4 @@ export const sitesTranslation: Record<TSite, string> = {
   "pac-educandos": "PAC Educandos",
   "pac-compensa": "PAC Compensa",
   "pac-leste": "PAC Leste",
-  "pac-iranduba": "PAC Iranduba",
-  "pac-parintins": "PAC Parintins",
-  "pac-itacoatiara": "PAC Itacoatiara",
-  "pac-manacapuru": "PAC Manacapuru",
-  "paac-posto-avancado-atendimento-cidadania": "PAAC Posto Avançado Atendimento Cidadania",
 };
