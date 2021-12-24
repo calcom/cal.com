@@ -7,11 +7,11 @@ import Button from "@components/ui/Button";
 export const availableServices = [
   {
     name: "RG 1ª via",
-    id: "0",
+    id: "rg_1via",
   },
   {
     name: "RG 2ª via",
-    id: "1",
+    id: "rg_2via",
   },
 ];
 

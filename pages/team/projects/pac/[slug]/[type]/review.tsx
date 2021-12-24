@@ -110,6 +110,7 @@ export default function Review(props: TReviewPageProps) {
       );
 
     const parsedSite = asStringOrUndefined(router.query.slug);
+    const service = asStringOrUndefined(router.query.service);
 
     mutation.mutate({
       start: dayjs(date).format(),
@@ -126,6 +127,8 @@ export default function Review(props: TReviewPageProps) {
       customInputs: [
         { label: "CPF", value: beneficiary?.document || "" },
         { label: "PAC", value: parsedSite || "" },
+        { label: "servico", value: service || "" },
+        { label: "grupo", value: beneficiary?.group || "" },
       ],
     });
   };
