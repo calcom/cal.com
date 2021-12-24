@@ -10,7 +10,7 @@ import { TextField } from "@components/form/fields";
 import Button from "@components/ui/Button";
 import PhoneInput from "@components/ui/form/PhoneInput";
 
-import { IBeneficiary, setSSBeneficiary } from "../../../../common/utils/localstorage";
+import { getSSBeneficiary, IBeneficiary, setSSBeneficiary } from "../../../../common/utils/localstorage";
 import {
   validateCpf,
   validateEmail,
@@ -29,9 +29,20 @@ export default function PersonalData() {
   const [document, setDocument] = useState<string>();
   const [phone, setPhone] = useState<string>();
   const [group, setGroup] = useState<string>();
-  const [notes, setNotes] = useState<string>();
 
   const [error, setError] = useState<TError>();
+
+  useEffect(() => {
+    const beneficiary = getSSBeneficiary();
+
+    if (beneficiary) {
+      setName(beneficiary.name);
+      setEmail(beneficiary.email);
+      setDocument(beneficiary.document);
+      setPhone(beneficiary.phone);
+      setGroup(beneficiary.group);
+    }
+  }, []);
 
   const handleSubmit = () => {
     if (!name || !validateName(name)) {
@@ -61,7 +72,6 @@ export default function PersonalData() {
       document,
       phone,
       group,
-      notes,
     };
 
     setSSBeneficiary(beneficiary);
@@ -113,6 +123,7 @@ export default function PersonalData() {
           <div className="mt-4">
             <TextField
               required
+              value={name}
               className="my-4"
               name="beneficiary"
               label="Nome do Beneficiário:"
@@ -121,6 +132,7 @@ export default function PersonalData() {
             />
             <TextField
               required
+              value={email}
               className="my-4"
               name="email"
               label="E-mail:"
@@ -133,6 +145,7 @@ export default function PersonalData() {
               </label>
               <InputMask
                 required
+                value={document}
                 id="cpf"
                 type="text"
                 className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
@@ -157,6 +170,7 @@ export default function PersonalData() {
             </div>
             <TextField
               name="group"
+              value={group}
               label="Grupo:"
               placeholder="Insira o grupo"
               onChange={(e) => setGroup(e.target.value)}
@@ -164,15 +178,6 @@ export default function PersonalData() {
             <p className="text-xs text-gray-500 mb-4 text-justify">
               Acompanhe o progresso de atendimento dos grupos através da nossa plataforma.
             </p>
-            <label htmlFor="notes" className="text-sm font-medium text-gray-700">
-              Notas adicionais
-            </label>
-            <textarea
-              name="notes"
-              rows={3}
-              className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
-              onChange={(e) => setNotes(e.target.value)}
-            />
           </div>
         </div>
         <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">

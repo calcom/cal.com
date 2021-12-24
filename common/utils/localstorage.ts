@@ -4,7 +4,6 @@ export interface IBeneficiary {
   document: string;
   phone: string;
   group: string;
-  notes?: string;
 }
 
 // ? SS stands for session storage

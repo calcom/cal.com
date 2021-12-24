@@ -48,7 +48,7 @@ export default function Review(props: TReviewPageProps) {
 
   const handleBack = () => {
     router.push({
-      pathname: "book",
+      pathname: "/team/projects/pac/data",
       query: router.query,
     });
   };
@@ -116,7 +116,6 @@ export default function Review(props: TReviewPageProps) {
       end: dayjs(date).add(props.eventType.length, "minute").format(),
       name: beneficiary?.name || "",
       email: beneficiary?.email || "",
-      notes: beneficiary?.notes,
       eventTypeId: props.eventType.id,
       timeZone: timeZone(),
       language: i18n.language,
@@ -135,6 +134,9 @@ export default function Review(props: TReviewPageProps) {
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
         <SelfSchedulingHeader page="review" />
+        <p className="mt-2 text-sm text-gray-500">
+          Verifique suas informações pois erros podem influenciar na aprovação do seu agengamento.
+        </p>
         <div className="mt-4 overflow-auto">
           <div className="border-y border-y-gray-100">
             <p className="text-gray-500 font-bold text-sm mt-4">Dados do beneficiário</p>
@@ -158,7 +160,7 @@ export default function Review(props: TReviewPageProps) {
                 </tr>
                 <tr>
                   <td className="font-bold pt-2 pb-1">Grupo</td>
-                  <td className="pt-2 pb-1">012</td>
+                  <td className="pt-2 pb-1">{beneficiary?.group}</td>
                 </tr>
               </tbody>
             </table>
@@ -191,10 +193,10 @@ export default function Review(props: TReviewPageProps) {
       <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
         <div className="flex flex-row w-full">
           <Button color="secondary" className="w-full justify-center" onClick={handleBack}>
-            Anterior
+            Editar
           </Button>
           <Button className="w-full ml-4 justify-center" onClick={bookEvent}>
-            Próximo
+            Confirmar
           </Button>
         </div>
       </div>
