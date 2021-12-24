@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 
-import AutoSchedulingHeader from "@components/autoscheduling/Header";
+import SelfSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
 
 import { sitesTranslation } from "../../../../common/mock/sites";
@@ -27,7 +27,7 @@ export default function Site() {
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="px-4 bg-white overflow-hidden flex flex-col">
-        <AutoSchedulingHeader page="site" className="py-4" />
+        <SelfSchedulingHeader page="site" className="py-4" />
         <div className="overflow-auto flex-1">
           <p className="text-gray-900 text-sm mb-2">Selecionar local:</p>
           {Object.entries(sitesTranslation).map(([key, name]: [string, string]) => {

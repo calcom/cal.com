@@ -13,6 +13,10 @@ export const validateName = (name: string): boolean => {
   return false;
 };
 
+export const validateGroup = (group: string): boolean => {
+  return (group.length > 0 && group.length < 2) || !isNaN(parseInt(group, 10));
+};
+
 export const validateCpf = (cpf: string) => {
   cpf = cpf.replace(/[\s.-]*/gim, "");
   if (

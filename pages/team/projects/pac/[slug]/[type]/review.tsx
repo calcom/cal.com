@@ -14,7 +14,7 @@ import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import AutoSchedulingHeader from "@components/autoscheduling/Header";
+import SelfSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
 
 import { sitesTranslation, TSite } from "../../../../../../common/mock/sites";
@@ -134,7 +134,7 @@ export default function Review(props: TReviewPageProps) {
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
-        <AutoSchedulingHeader page="review" />
+        <SelfSchedulingHeader page="review" />
         <div className="mt-4 overflow-auto">
           <div className="border-y border-y-gray-100">
             <p className="text-gray-500 font-bold text-sm mt-4">Dados do beneficiário</p>

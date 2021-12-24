@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 
-import AutoSchedulingHeader from "@components/autoscheduling/Header";
+import SelfSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
 
 export const availableServices = [
@@ -31,7 +31,7 @@ export default function Service() {
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white">
-        <AutoSchedulingHeader page="service" />
+        <SelfSchedulingHeader page="service" />
         <p className="mt-4 text-gray-900 text-sm mb-2">Selecionar serviço:</p>
         {availableServices.map((service) => {
           let style =

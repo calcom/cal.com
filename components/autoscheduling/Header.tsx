@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import classNames from "@lib/classNames";
 
-const DEFAULT_TITLE = "Termos e Condições";
+const DEFAULT_TITLE = "Condições";
 const DEFAULT_STEP = "1";
 
 type TPage = "data" | "service" | "site" | "book" | "review" | "terms";
@@ -12,7 +12,7 @@ interface IAutoSchedulingHeaderProps {
   className?: string;
 }
 
-export default function AutoSchedulingHeader({ page, className }: IAutoSchedulingHeaderProps) {
+export default function SelfSchedulingHeader({ page, className }: IAutoSchedulingHeaderProps) {
   const [title, setTitle] = useState<string>(DEFAULT_TITLE);
   const [step, setStep] = useState<string | undefined>(DEFAULT_STEP);
 
@@ -23,11 +23,11 @@ export default function AutoSchedulingHeader({ page, className }: IAutoSchedulin
         setStep("2");
         break;
       case "service":
-        setTitle("Serviço");
+        setTitle("Serviços Disponíveis");
         setStep("3");
         break;
       case "site":
-        setTitle("Local");
+        setTitle("Locais Disponíveis");
         setStep("4");
         break;
       case "book":

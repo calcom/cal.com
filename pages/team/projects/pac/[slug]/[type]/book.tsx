@@ -8,7 +8,7 @@ import { getWorkingHours } from "@lib/availability";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
-import AutoSchedulingHeader from "@components/autoscheduling/Header";
+import SelfSchedulingHeader from "@components/autoscheduling/Header";
 import AvailableTimesNoReroute from "@components/booking/AvailableTimesNoReroute";
 import DatePicker from "@components/booking/DatePicker";
 import Button from "@components/ui/Button";
@@ -65,7 +65,7 @@ export default function BookPage({ profile, eventType, workingHours }: Availabil
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="p-4 bg-white overflow-hidden">
-        <AutoSchedulingHeader page="book" />
+        <SelfSchedulingHeader page="book" />
         <div className="h-[95%] overflow-auto mt-4">
           <DatePicker
             noMargin

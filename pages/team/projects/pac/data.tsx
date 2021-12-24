@@ -5,13 +5,19 @@ import InputMask from "react-input-mask";
 
 import showToast from "@lib/notification";
 
-import AutoSchedulingHeader from "@components/autoscheduling/Header";
+import SelfSchedulingHeader from "@components/autoscheduling/Header";
 import { TextField } from "@components/form/fields";
 import Button from "@components/ui/Button";
 import PhoneInput from "@components/ui/form/PhoneInput";
 
 import { IBeneficiary, setSSBeneficiary } from "../../../../common/utils/localstorage";
-import { validateCpf, validateEmail, validateName, validatePhone } from "../../../../common/utils/validators";
+import {
+  validateCpf,
+  validateEmail,
+  validateGroup,
+  validateName,
+  validatePhone,
+} from "../../../../common/utils/validators";
 
 type TError = "email" | "beneficiary" | "document" | "phone" | "group";
 
@@ -40,7 +46,7 @@ export default function PersonalData() {
       setError("document");
       return;
     }
-    if (!group || !validateCpf(group)) {
+    if (!group || !validateGroup(group)) {
       setError("group");
       return;
     }
@@ -103,7 +109,7 @@ export default function PersonalData() {
       </div>
       <div className="bg-gray-200 h-screen flex flex-col justify-between">
         <div className="p-4 bg-white">
-          <AutoSchedulingHeader page="data" />
+          <SelfSchedulingHeader page="data" />
           <div className="mt-4">
             <TextField
               required
@@ -150,7 +156,6 @@ export default function PersonalData() {
               />
             </div>
             <TextField
-              disabled
               name="group"
               label="Grupo:"
               placeholder="Insira o grupo"

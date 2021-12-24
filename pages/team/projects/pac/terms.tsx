@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import React from "react";
 
-import AutoSchedulingHeader from "@components/autoscheduling/Header";
+import SelfSchedulingHeader from "@components/autoscheduling/Header";
 import Button from "@components/ui/Button";
 
 const termsMock =
@@ -19,7 +19,7 @@ export default function Terms() {
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
       <div className="px-4 bg-white flex flex-col overflow-hidden">
-        <AutoSchedulingHeader page="terms" className="py-4" />
+        <SelfSchedulingHeader page="terms" className="py-4" />
         <div className="flex-1 overflow-auto pb-4">
           <p className="text-sm text-gray-600">{termsMock}</p>
         </div>
