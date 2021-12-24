@@ -24,7 +24,7 @@ export default function BookPage({ profile, eventType, workingHours }: Availabil
   const handleSubmit = () => {
     router.push({
       pathname: "review",
-      query: { ...router.query, time: selectedTime },
+      query: { ...router.query, time: selectedTime, eventId: eventType.id },
     });
   };
 
@@ -61,8 +61,6 @@ export default function BookPage({ profile, eventType, workingHours }: Availabil
       }
     );
   };
-
-  console.info(eventType);
 
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">

@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
+import InputMask from "react-input-mask";
 
 import showToast from "@lib/notification";
 
@@ -12,7 +13,7 @@ import PhoneInput from "@components/ui/form/PhoneInput";
 import { IBeneficiary, setSSBeneficiary } from "../../../../common/utils/localstorage";
 import { validateCpf, validateEmail, validateName, validatePhone } from "../../../../common/utils/validators";
 
-type TError = "email" | "beneficiary" | "document" | "phone";
+type TError = "email" | "beneficiary" | "document" | "phone" | "group";
 
 export default function PersonalData() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function PersonalData() {
   const [name, setName] = useState<string>();
   const [document, setDocument] = useState<string>();
   const [phone, setPhone] = useState<string>();
+  const [group, setGroup] = useState<string>();
   const [notes, setNotes] = useState<string>();
 
   const [error, setError] = useState<TError>();
@@ -38,6 +40,10 @@ export default function PersonalData() {
       setError("document");
       return;
     }
+    if (!group || !validateCpf(group)) {
+      setError("group");
+      return;
+    }
     if (!phone || !validatePhone(phone)) {
       setError("phone");
       return;
@@ -48,6 +54,7 @@ export default function PersonalData() {
       email,
       document,
       phone,
+      group,
       notes,
     };
 
@@ -76,6 +83,10 @@ export default function PersonalData() {
         case "document":
           errorMessage = "Por favor, digite um CPF válido.";
           break;
+        case "group":
+          errorMessage =
+            "Por favor, digite o seu grupo corretamente. Um grupo válido é um número entre 1 e 100.";
+          break;
         case "phone":
           errorMessage = "Por favor, digite um número de telefone válido.";
           break;
@@ -99,7 +110,7 @@ export default function PersonalData() {
               className="my-4"
               name="beneficiary"
               label="Nome do Beneficiário:"
-              placeholder="Ex. José da Silva"
+              placeholder="Insira o nome da pessoa a ser atendida"
               onChange={(e) => setName(e.target.value)}
             />
             <TextField
@@ -107,17 +118,24 @@ export default function PersonalData() {
               className="my-4"
               name="email"
               label="E-mail:"
-              placeholder="Ex. jose.silva@gmail.com"
+              placeholder="Insira o e-mail"
               onChange={(e) => setEmail(e.target.value)}
             />
-            <TextField
-              required
-              className="my-4"
-              name="cpf"
-              label="CPF:"
-              placeholder="Ex. 123.456.789-10"
-              onChange={(e) => setDocument(e.target.value)}
-            />
+            <div className="my-4">
+              <label htmlFor="cpf" className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                CPF:
+              </label>
+              <InputMask
+                required
+                id="cpf"
+                type="text"
+                className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                placeholder="Insira o CPF da pessoa a ser atendida"
+                mask="999.999.999-99"
+                maskPlaceholder="_"
+                onChange={(e) => setDocument(e.target.value)}
+              />
+            </div>
             <div className="my-4">
               <label className="text-sm font-medium text-gray-700" htmlFor="phone">
                 Número de telefone:
@@ -127,20 +145,20 @@ export default function PersonalData() {
                 defaultCountry="BR"
                 value={phone}
                 className="text-base"
-                placeholder="Ex. (99) 91234-5678"
+                placeholder="Insira um número de contato"
                 onChange={(value: string) => setPhone(value)}
               />
             </div>
-            {/*<TextField*/}
-            {/*  disabled*/}
-            {/*  name="group"*/}
-            {/*  label="Grupo:"*/}
-            {/*  placeholder="Ex. 012"*/}
-            {/*  onChange={(e) => setGroup(e.target.value)}*/}
-            {/*/>*/}
-            {/*<p className="text-xs text-gray-500 mb-4 text-justify">*/}
-            {/*  Acompanhe o progresso de atendimento dos grupos através da nossa plataforma.*/}
-            {/*</p>*/}
+            <TextField
+              disabled
+              name="group"
+              label="Grupo:"
+              placeholder="Insira o grupo"
+              onChange={(e) => setGroup(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mb-4 text-justify">
+              Acompanhe o progresso de atendimento dos grupos através da nossa plataforma.
+            </p>
             <label htmlFor="notes" className="text-sm font-medium text-gray-700">
               Notas adicionais
             </label>

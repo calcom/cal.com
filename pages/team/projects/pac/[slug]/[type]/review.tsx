@@ -1,20 +1,16 @@
 import dayjs from "dayjs";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React, { useMemo } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import React from "react";
 import { useMutation } from "react-query";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { ensureArray } from "@lib/ensureArray";
 import { useLocale } from "@lib/hooks/useLocale";
-import { LocationType } from "@lib/location";
-import createBooking from "@lib/mutations/bookings/create-booking";
+import { createBookingPac } from "@lib/mutations/bookings/create-booking";
 import prisma from "@lib/prisma";
-import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -24,18 +20,6 @@ import Button from "@components/ui/Button";
 import { sitesTranslation, TSite } from "../../../../../../common/mock/sites";
 import { getSSBeneficiary } from "../../../../../../common/utils/localstorage";
 import { availableServices } from "../../service";
-
-type BookingFormValues = {
-  name: string;
-  email: string;
-  notes?: string;
-  locationType?: LocationType;
-  guests?: string[];
-  phone?: string;
-  customInputs?: {
-    [key: string]: string;
-  };
-};
 
 export type TReviewPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -60,18 +44,7 @@ export default function Review(props: TReviewPageProps) {
     site = sitesTranslation[querySite as TSite] || "PAC";
   }
 
-  let date = "01-01-1990";
-  const queryDate = router.query.date;
-  if (queryDate && typeof queryDate === "string") {
-    date = dayjs(queryDate, "YYYY-MM-DDZZ").format("DD/MM/YYYY");
-  }
-
-  let time = "00:00";
-  const queryTime = router.query.time;
-  if (queryTime && typeof queryTime === "string") {
-    console.info(queryTime);
-    time = dayjs(queryTime, "YYYY-MM-DDTHH:mm:ssZ").format("HH:mm");
-  }
+  const date = asStringOrNull(router.query.time);
 
   const handleBack = () => {
     router.push({
@@ -80,59 +53,7 @@ export default function Review(props: TReviewPageProps) {
     });
   };
 
-  // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: { type: LocationType }[] = useMemo(
-    () => (props.eventType.locations as { type: LocationType }[]) || [],
-    [props.eventType.locations]
-  );
-
-  const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-
-  const bookingForm = useForm<BookingFormValues>({
-    defaultValues: {
-      name: (router.query.name as string) || "",
-      email: (router.query.email as string) || "",
-      notes: (router.query.notes as string) || "",
-      guests: ensureArray(router.query.guest),
-      customInputs: props.eventType.customInputs.reduce(
-        (customInputs, input) => ({
-          ...customInputs,
-          [input.id]: router.query[slugify(input.label)],
-        }),
-        {}
-      ),
-    },
-  });
-
-  const selectedLocation = useWatch({
-    control: bookingForm.control,
-    name: "locationType",
-    defaultValue: ((): LocationType | undefined => {
-      if (router.query.location) {
-        return router.query.location as LocationType;
-      }
-      if (locations.length === 1) {
-        return locations[0]?.type;
-      }
-    })(),
-  });
-
-  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
-    const { locationType } = booking;
-    switch (locationType) {
-      case LocationType.Phone: {
-        return booking.phone;
-      }
-      case LocationType.InPerson: {
-        return locationInfo(locationType).address;
-      }
-      // Catches all other location types, such as Google Meet, Zoom etc.
-      default:
-        return selectedLocation;
-    }
-  };
-
-  const mutation = useMutation(createBooking, {
+  const mutation = useMutation(createBookingPac, {
     onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
         return await router.push(
@@ -156,7 +77,7 @@ export default function Review(props: TReviewPageProps) {
       })(responseData.location);
 
       return router.push({
-        pathname: "/book/pac-event",
+        pathname: "/success",
         query: {
           date,
           type: props.eventType.id,
@@ -170,7 +91,8 @@ export default function Review(props: TReviewPageProps) {
     },
   });
 
-  const bookEvent = (booking: BookingFormValues) => {
+  const bookEvent = () => {
+    const beneficiary = getSSBeneficiary();
     telemetry.withJitsu((jitsu) =>
       jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
     );
@@ -187,23 +109,25 @@ export default function Review(props: TReviewPageProps) {
         {}
       );
 
+    const parsedSite = asStringOrUndefined(router.query.slug);
+
     mutation.mutate({
-      ...booking,
       start: dayjs(date).format(),
       end: dayjs(date).add(props.eventType.length, "minute").format(),
+      name: beneficiary?.name || "",
+      email: beneficiary?.email || "",
+      notes: beneficiary?.notes,
       eventTypeId: props.eventType.id,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
       user: router.query.user,
-      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
+      location: "default",
       metadata,
-      customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        value: booking.customInputs![inputId],
-      })),
+      customInputs: [
+        { label: "CPF", value: beneficiary?.document || "" },
+        { label: "PAC", value: parsedSite || "" },
+      ],
     });
   };
 
@@ -253,11 +177,11 @@ export default function Review(props: TReviewPageProps) {
                 </tr>
                 <tr>
                   <td className="font-bold py-2">Data</td>
-                  <td className="py-2">{date}</td>
+                  <td className="py-2">{dayjs(date).format("DD/MM/YYYY")}</td>
                 </tr>
                 <tr>
                   <td className="font-bold py-2">Horário</td>
-                  <td className="py-2">{time}</td>
+                  <td className="py-2">{dayjs(date).format("HH:mm")}</td>
                 </tr>
               </tbody>
             </table>
@@ -279,7 +203,7 @@ export default function Review(props: TReviewPageProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const eventTypeId = parseInt(asStringOrThrow(context.query.type));
+  const eventTypeId = parseInt(asStringOrThrow(context.query.eventId));
   if (eventTypeId % 1 !== 0) {
     return {
       notFound: true,

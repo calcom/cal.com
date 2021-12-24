@@ -3,6 +3,7 @@ export interface IBeneficiary {
   email: string;
   document: string;
   phone: string;
+  group: string;
   notes?: string;
 }
 
