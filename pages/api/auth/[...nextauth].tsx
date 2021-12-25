@@ -5,20 +5,11 @@ import { authenticator } from "otplib";
 import { ErrorCode, isGoogleLoginEnabled, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
+import { randomString } from "@lib/random";
 import { isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { IdentityProvider } from ".prisma/client";
-
-function randomString(length = 12) {
-  let result = "";
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
 
 async function authorize(credentials: any) {
   const user = await prisma.user.findUnique({
