@@ -9,11 +9,12 @@ import { EventTypeCustomInputType } from "@prisma/client";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
+import * as yup from "yup";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
@@ -36,12 +37,30 @@ import PhoneInput from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+import CryptoSection from "../CryptoSection";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { yupResolver } = require("@hookform/resolvers/yup");
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
+
+type BookingFormValues = {
+  name: string;
+  email: string;
+  notes?: string;
+  locationType?: LocationType;
+  guests?: string[];
+  phone?: string;
+  customInputs?: {
+    [key: string]: string;
+  };
+  hasToken: boolean;
+};
 
 const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
+  const [ethEnabled, toggleEthEnabled] = useState<boolean>(false);
   /*
    * This was too optimistic
    * I started, then I remembered what a beast book/event.ts is
@@ -52,6 +71,7 @@ const BookingPage = (props: BookingPageProps) => {
       // go to success page.
     },
   });*/
+
   const mutation = useMutation(createBooking, {
     onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
@@ -127,26 +147,35 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Daily]: "Daily.co Video",
   };
 
-  type BookingFormValues = {
-    name: string;
-    email: string;
-    notes?: string;
-    locationType?: LocationType;
-    guests?: string[];
-    phone?: string;
-    customInputs?: {
-      [key: string]: string;
-    };
-    scAddress?: string;
-  };
+  const createSchema = useCallback(() => {
+    let schema;
+
+    if (props.eventType.scAddress) {
+      schema = yup.object().shape({
+        email: yup.string().email().required(),
+        name: yup.string().required(),
+        hasToken: yup
+          .bool()
+          .oneOf([true], "Must own token belonging to specified smart contract, and verify wallet"),
+      });
+    } else {
+      schema = yup.object().shape({
+        email: yup.string().email().required(),
+        name: yup.string().required(),
+      });
+    }
+
+    return schema;
+  }, [props.eventType.scAddress]);
 
   const bookingForm = useForm<BookingFormValues>({
+    resolver: yupResolver(createSchema()),
     defaultValues: {
       name: (router.query.name as string) || "",
       email: (router.query.email as string) || "",
       notes: (router.query.notes as string) || "",
       guests: ensureArray(router.query.guest),
-      scAddress: (router.query.scAddress as string) || "",
+      hasToken: false,
       customInputs: props.eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -156,6 +185,8 @@ const BookingPage = (props: BookingPageProps) => {
       ),
     },
   });
+
+  console.log(bookingForm.formState.errors);
 
   const selectedLocation = useWatch({
     control: bookingForm.control,
@@ -491,14 +522,14 @@ const BookingPage = (props: BookingPageProps) => {
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="wallet"
-                      className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
-                      {t("Wallet verification")}
-                    </label>
-                    <Button>Verify wallet</Button>
-                  </div>
+                  {props.eventType.scAddress && (
+                    <CryptoSection
+                      bookingForm={bookingForm}
+                      scAddress={props.eventType.scAddress}
+                      toggleEthEnabled={toggleEthEnabled}
+                      ethEnabled={ethEnabled}
+                    />
+                  )}
                   <div className="flex items-start space-x-2">
                     <Button type="submit" loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
@@ -508,6 +539,22 @@ const BookingPage = (props: BookingPageProps) => {
                     </Button>
                   </div>
                 </Form>
+                {bookingForm.formState.errors.hasToken && (
+                  // Temporarily here, all crypto validation logic will need to move to the api eventually,
+                  // so errors will be captured by mutation.isError anyway when that happens
+                  <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-yellow-700">
+                          {bookingForm.formState.errors.hasToken.message}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {mutation.isError && (
                   <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
                     <div className="flex">

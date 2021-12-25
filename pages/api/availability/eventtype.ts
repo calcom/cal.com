@@ -112,6 +112,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH" || req.method === "POST") {
+    // Data validation
+    // @TODO: Move to dedicated data validation function when there's more data to validate
+    const { scAddress } = req.body;
+    if (scAddress) {
+      // @TODO: Check address actually exists on mainnet
+      if (scAddress.length !== 42)
+        return res.status(422).json({ message: "Invalid smart contract address." });
+      if (scAddress.slice(0, 2) !== "0x")
+        return res.status(422).json({ message: "Invalid smart contract address." });
+    }
+    //
+
     const data: Prisma.EventTypeCreateInput | Prisma.EventTypeUpdateInput = {
       title: req.body.title,
       slug: req.body.slug.trim(),

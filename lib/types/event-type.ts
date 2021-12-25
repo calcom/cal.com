@@ -38,7 +38,6 @@ export type CreateEventType = {
   length: number;
   teamId?: number;
   schedulingType?: SchedulingType;
-  scAddress?: string;
 };
 
 export type CreateEventTypeResponse = {

@@ -108,7 +108,6 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
       ids: newList.map((type) => type.id),
     });
   }
-
   return (
     <div className="mb-16 -mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
@@ -396,6 +395,7 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err: HttpError) => {
+      console.log(err);
       const message = `${err.statusCode}: ${err.message}`;
       showToast(message, "error");
     },
