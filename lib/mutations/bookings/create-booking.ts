@@ -8,7 +8,6 @@ const createBooking = async (data: BookingCreateBody) => {
 };
 
 export const createBookingPac = async (data: BookingCreateBody) => {
-  console.info("API call", data);
   const response = await fetch.post<BookingCreateBody, BookingResponse>("/api/book/pac-event", data);
 
   return response;

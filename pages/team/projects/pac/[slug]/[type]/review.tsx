@@ -56,8 +56,7 @@ export default function Review(props: TReviewPageProps) {
   };
 
   const mutation = useMutation(createBookingPac, {
-    onError: async (data) => {
-      console.info("ERROR", data);
+    onError: async () => {
       showToast("Erro ao enviar os dados. Por favor, tente novamente.", "error");
 
       return;

@@ -34,12 +34,10 @@ export default function Success() {
     const timeout1 = setTimeout(() => {
       setIsLoading(false);
       setWasApproved(true);
-      console.info("APPROVED");
     }, 5000);
 
     const timeout2 = setTimeout(() => {
       setWasApproved(false);
-      console.info("DENIED");
     }, 10000);
 
     return () => {
