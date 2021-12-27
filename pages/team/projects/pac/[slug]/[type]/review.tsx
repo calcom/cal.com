@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React from "react";
+import { Toaster } from "react-hot-toast";
 import { useMutation } from "react-query";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
@@ -10,6 +11,7 @@ import { asStringOrNull, asStringOrThrow, asStringOrUndefined } from "@lib/asStr
 import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
 import { createBookingPac } from "@lib/mutations/bookings/create-booking";
+import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -54,6 +56,12 @@ export default function Review(props: TReviewPageProps) {
   };
 
   const mutation = useMutation(createBookingPac, {
+    onError: async (data) => {
+      console.info("ERROR", data);
+      showToast("Erro ao enviar os dados. Por favor, tente novamente.", "error");
+
+      return;
+    },
     onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
         return await router.push(
@@ -77,7 +85,7 @@ export default function Review(props: TReviewPageProps) {
       })(responseData.location);
 
       return router.push({
-        pathname: "/success",
+        pathname: "team/projects/pac/success",
         query: {
           date,
           type: props.eventType.id,
@@ -134,76 +142,79 @@ export default function Review(props: TReviewPageProps) {
   };
 
   return (
-    <div className="bg-gray-200 h-screen flex flex-col justify-between">
-      <div className="p-4 bg-white">
-        <SelfSchedulingHeader page="review" />
-        <p className="mt-2 text-sm text-gray-500">
-          Verifique suas informações pois erros podem influenciar na aprovação do seu agendamento.
-        </p>
-        <div className="mt-4 overflow-auto">
-          <div className="border-y border-y-gray-100">
-            <p className="text-gray-500 font-bold text-sm mt-4">Dados do beneficiário</p>
-            <table className="w-full">
-              <tbody>
-                <tr>
-                  <td className="font-bold pb-2 pt-4">Beneficiário</td>
-                  <td className="pb-2 pt-4">{beneficiary?.name}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-2">E-mail</td>
-                  <td className="py-2">{beneficiary?.email}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-2">CPF</td>
-                  <td className="py-2">{beneficiary?.document}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-2">Telefone</td>
-                  <td className="py-2">{beneficiary?.phone}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold pt-2 pb-1">Grupo</td>
-                  <td className="pt-2 pb-1">{beneficiary?.group}</td>
-                </tr>
-              </tbody>
-            </table>
+    <>
+      <Toaster position="top-center" />
+      <div className="bg-gray-200 h-screen flex flex-col justify-between">
+        <div className="p-4 bg-white">
+          <SelfSchedulingHeader page="review" />
+          <p className="mt-2 text-sm text-gray-500">
+            Verifique suas informações pois erros podem influenciar na aprovação do seu agendamento.
+          </p>
+          <div className="mt-4 overflow-auto">
+            <div className="border-y border-y-gray-100">
+              <p className="text-gray-500 font-bold text-sm mt-4">Dados do beneficiário</p>
+              <table className="w-full">
+                <tbody>
+                  <tr>
+                    <td className="font-bold pb-2 pt-4">Beneficiário</td>
+                    <td className="pb-2 pt-4">{beneficiary?.name}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold py-2">E-mail</td>
+                    <td className="py-2">{beneficiary?.email}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold py-2">CPF</td>
+                    <td className="py-2">{beneficiary?.document}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold py-2">Telefone</td>
+                    <td className="py-2">{beneficiary?.phone}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold pt-2 pb-1">Grupo</td>
+                    <td className="pt-2 pb-1">{beneficiary?.group}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <p className="text-gray-500 font-bold text-sm mt-4">Solicitação</p>
+              <table className="w-full">
+                <tbody>
+                  <tr>
+                    <td className="font-bold pb-2 pt-4">Serviço</td>
+                    <td className="pb-2 pt-4">{service}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold py-2">Local</td>
+                    <td className="py-2">{site}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold py-2">Data</td>
+                    <td className="py-2">{dayjs(date).format("DD/MM/YYYY")}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold py-2">Horário</td>
+                    <td className="py-2">{dayjs(date).format("HH:mm")}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div>
-            <p className="text-gray-500 font-bold text-sm mt-4">Solicitação</p>
-            <table className="w-full">
-              <tbody>
-                <tr>
-                  <td className="font-bold pb-2 pt-4">Serviço</td>
-                  <td className="pb-2 pt-4">{service}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-2">Local</td>
-                  <td className="py-2">{site}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-2">Data</td>
-                  <td className="py-2">{dayjs(date).format("DD/MM/YYYY")}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-2">Horário</td>
-                  <td className="py-2">{dayjs(date).format("HH:mm")}</td>
-                </tr>
-              </tbody>
-            </table>
+        </div>
+        <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
+          <div className="flex flex-row w-full">
+            <Button color="secondary" className="w-full justify-center" onClick={handleBack}>
+              Editar
+            </Button>
+            <Button className="w-full ml-4 justify-center" onClick={bookEvent}>
+              Confirmar
+            </Button>
           </div>
         </div>
       </div>
-      <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
-        <div className="flex flex-row w-full">
-          <Button color="secondary" className="w-full justify-center" onClick={handleBack}>
-            Editar
-          </Button>
-          <Button className="w-full ml-4 justify-center" onClick={bookEvent}>
-            Confirmar
-          </Button>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 
