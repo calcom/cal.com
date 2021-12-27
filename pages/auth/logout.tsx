@@ -37,7 +37,7 @@ export default function Logout() {
             </div>
           </div>
           <div className="mt-5 sm:mt-6">
-            <Link href="/auth/login">
+            <Link href="https://theskills.com/sign-in">
               <a className="inline-flex justify-center w-full px-4 py-2 text-base font-medium border border-transparent rounded-md shadow-sm bg-brand text-brandcontrast focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black sm:text-sm">
                 {t("go_back_login")}
               </a>

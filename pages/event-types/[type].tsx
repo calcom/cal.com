@@ -1233,7 +1233,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login",
+        destination: "https://theskills.com/sign-in",
       },
     };
   }

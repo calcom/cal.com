@@ -174,7 +174,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
+        destination: "https://theskills.com/sign-in",
       },
     };
   }

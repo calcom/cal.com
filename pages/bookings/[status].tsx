@@ -42,15 +42,30 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
+  const statusError = (query: { status?: string; error?: { message?: string } | null }) => {
+    if (query?.status === "error") {
+      if (query?.error?.message === "UNAUTHORIZED") {
+        return (
+          <>
+            <p className="my-4 text-sm text-gray-500">{t("youve_been_logged_out")}</p>
+            <Button color="primary" href={"https://theskills.com/sign-in"}>
+              {t("sign_in_account")}
+            </Button>
+          </>
+        );
+      } else {
+        return <Alert severity="error" title={t("something_went_wrong")} message={query?.error?.message} />;
+      }
+    }
+  };
+
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <BookingsShell>
         <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              {query.status === "error" && (
-                <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-              )}
+              {statusError(query)}
               {(query.status === "loading" || query.status === "idle") && <Loader />}
               {query.status === "success" && !isEmpty && (
                 <>

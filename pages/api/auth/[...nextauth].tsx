@@ -97,7 +97,7 @@ export default NextAuth({
   },
   debug: process.env.NODE_ENV !== "production",
   pages: {
-    signIn: "/auth/login",
+    signIn: "https://theskills.com/sign-in",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
   },

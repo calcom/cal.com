@@ -509,7 +509,7 @@ export async function getServerSideProps(context: NextPageContext) {
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login",
+        destination: "https://theskills.com/sign-in",
       },
     };
   }

@@ -53,7 +53,7 @@ function useRedirectToLoginIfUnauthenticated() {
   useEffect(() => {
     if (!loading && !session) {
       router.replace({
-        pathname: "/auth/login",
+        pathname: "https://theskills.com/sign-in",
         query: {
           callbackUrl: `${location.pathname}${location.search}`,
         },

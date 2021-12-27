@@ -7,8 +7,11 @@ import {
   UseQueryResult,
 } from "react-query";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import Loader from "@components/Loader";
 import { Alert } from "@components/ui/Alert";
+import Button from "@components/ui/Button";
 
 type ErrorLike = {
   message: string;
@@ -48,6 +51,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
   const { query } = opts;
+  const { t } = useLocale();
 
   if (query.status === "success") {
     if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
@@ -57,11 +61,22 @@ export function QueryCell<TData, TError extends ErrorLike>(
     return opts.success(query as any);
   }
   if (query.status === "error") {
-    return (
-      opts.error?.(query) ?? (
-        <Alert severity="error" title="Something went wrong" message={query.error.message} />
-      )
-    );
+    if (query.error.message === "UNAUTHORIZED") {
+      return (
+        <>
+          <p className="my-4 text-sm text-gray-500">{t("youve_been_logged_out")}</p>
+          <Button color="primary" href={"https://theskills.com/sign-in"}>
+            {t("sign_in_account")}
+          </Button>
+        </>
+      );
+    } else {
+      return (
+        opts.error?.(query) ?? (
+          <Alert severity="error" title="Something went wrong" message={query.error.message} />
+        )
+      );
+    }
   }
   if (query.status === "loading") {
     return opts.loading?.(query) ?? <Loader />;

@@ -330,6 +330,7 @@ const EventTypesPage = () => {
         subtitle={t("event_types_page_subtitle")}
         CTA={
           query.data &&
+          query.data.viewer.canAddEvents &&
           query.data.eventTypeGroups.length !== 0 && (
             <CreateNewEventButton
               canAddEvents={query.data.viewer.canAddEvents}
@@ -373,7 +374,7 @@ const EventTypesPage = () => {
                 </Fragment>
               ))}
 
-              {data.eventTypeGroups.length === 0 && (
+              {data.eventTypeGroups.length === 0 && data.viewer.canAddEvents && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
             </>
