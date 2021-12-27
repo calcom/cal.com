@@ -59,6 +59,7 @@ test.describe("integrations", () => {
     body.createdAt = dynamic;
     body.payload.startTime = dynamic;
     body.payload.endTime = dynamic;
+    body.payload.location = dynamic;
     for (const attendee of body.payload.attendees) {
       attendee.timeZone = dynamic;
     }

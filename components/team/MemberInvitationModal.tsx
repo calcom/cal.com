@@ -7,6 +7,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
+import { EmailInput } from "@components/form/fields";
 import Button from "@components/ui/Button";
 
 export default function MemberInvitationModal(props: { team: TeamWithMembers | null; onExit: () => void }) {
@@ -80,7 +81,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                 <label htmlFor="inviteUser" className="block text-sm font-medium text-gray-700">
                   {t("email_or_username")}
                 </label>
-                <input
+                <EmailInput
                   type="text"
                   name="inviteUser"
                   id="inviteUser"
@@ -98,7 +99,6 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                   className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm">
                   <option value="MEMBER">{t("member")}</option>
                   <option value="ADMIN">{t("admin")}</option>
-                  <option value="OWNER">{t("owner")}</option>
                 </select>
               </div>
               <div className="relative flex items-start">

@@ -6,7 +6,7 @@ import React, { SyntheticEvent } from "react";
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 
-import { TextField } from "@components/form/fields";
+import { EmailField } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
@@ -95,14 +95,11 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
               <form className="space-y-6" onSubmit={handleSubmit} action="#">
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
 
-                <TextField
+                <EmailField
                   onChange={handleChange}
                   id="email"
                   name="email"
                   label={t("email_address")}
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
                   placeholder="john.doe@example.com"
                   required
                 />
