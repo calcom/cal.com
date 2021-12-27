@@ -65,7 +65,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
       return (
         <>
           <p className="my-4 text-sm text-gray-500">{t("youve_been_logged_out")}</p>
-          <Button color="primary" href={"https://theskills.com/sign-in"}>
+          <Button color="primary" href={`${process.env.THETIS_SITE_HOST}/sign-in`}>
             {t("sign_in_account")}
           </Button>
         </>

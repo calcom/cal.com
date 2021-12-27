@@ -40,7 +40,7 @@ export default function Error() {
             </div>
           </div>
           <div className="mt-5 sm:mt-6">
-            <Link href="https://theskills.com/sign-in">
+            <Link href={`${process.env.THETIS_SITE_HOST}/sign-in`}>
               <a className="inline-flex justify-center w-full rounded-sm border border-transparent shadow-sm px-4 py-2 bg-neutral-900 text-base font-medium text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 sm:text-sm">
                 {t("go_back_login")}
               </a>

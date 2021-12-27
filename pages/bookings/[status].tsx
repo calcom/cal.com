@@ -2,6 +2,7 @@ import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import { QueryCell } from "@lib/QueryCell";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryInput, trpc } from "@lib/trpc";
@@ -11,7 +12,6 @@ import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
-import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
@@ -42,66 +42,55 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
-  const statusError = (query: { status?: string; error?: { message?: string } | null }) => {
-    if (query?.status === "error") {
-      if (query?.error?.message === "UNAUTHORIZED") {
-        return (
-          <>
-            <p className="my-4 text-sm text-gray-500">{t("youve_been_logged_out")}</p>
-            <Button color="primary" href={"https://theskills.com/sign-in"}>
-              {t("sign_in_account")}
-            </Button>
-          </>
-        );
-      } else {
-        return <Alert severity="error" title={t("something_went_wrong")} message={query?.error?.message} />;
-      }
-    }
-  };
-
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <BookingsShell>
         <div className="flex flex-col -mx-4 sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              {statusError(query)}
-              {(query.status === "loading" || query.status === "idle") && <Loader />}
-              {query.status === "success" && !isEmpty && (
-                <>
-                  <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
-                        {query.data.pages.map((page, index) => (
-                          <Fragment key={index}>
-                            {page.bookings.map((booking) => (
-                              <BookingListItem key={booking.id} {...booking} />
-                            ))}
-                          </Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="text-center p-4" ref={buttonInView.ref}>
-                    <Button
-                      loading={query.isFetchingNextPage}
-                      disabled={!query.hasNextPage}
-                      onClick={() => query.fetchNextPage()}>
-                      {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-                    </Button>
-                  </div>
-                </>
-              )}
-              {query.status === "success" && isEmpty && (
-                <EmptyScreen
-                  Icon={CalendarIcon}
-                  headline={t("no_status_bookings_yet", { status: status })}
-                  description={t("no_status_bookings_yet_description", {
-                    status: status,
-                    description: descriptionByStatus[status],
-                  })}
-                />
-              )}
+              <QueryCell
+                query={query}
+                success={() => (
+                  <>
+                    {(query.status === "loading" || query.status === "idle") && <Loader />}
+                    {query.status === "success" && !isEmpty && (
+                      <>
+                        <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
+                              {query.data.pages.map((page, index) => (
+                                <Fragment key={index}>
+                                  {page.bookings.map((booking) => (
+                                    <BookingListItem key={booking.id} {...booking} />
+                                  ))}
+                                </Fragment>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="text-center p-4" ref={buttonInView.ref}>
+                          <Button
+                            loading={query.isFetchingNextPage}
+                            disabled={!query.hasNextPage}
+                            onClick={() => query.fetchNextPage()}>
+                            {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                    {query.status === "success" && isEmpty && (
+                      <EmptyScreen
+                        Icon={CalendarIcon}
+                        headline={t("no_status_bookings_yet", { status: status })}
+                        description={t("no_status_bookings_yet_description", {
+                          status: status,
+                          description: descriptionByStatus[status],
+                        })}
+                      />
+                    )}
+                  </>
+                )}
+              />
             </div>
           </div>
         </div>

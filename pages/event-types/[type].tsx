@@ -1233,7 +1233,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       redirect: {
         permanent: false,
-        destination: "https://theskills.com/sign-in",
+        destination: `${process.env.THETIS_SITE_HOST}/sign-in`,
       },
     };
   }

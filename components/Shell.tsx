@@ -53,7 +53,7 @@ function useRedirectToLoginIfUnauthenticated() {
   useEffect(() => {
     if (!loading && !session) {
       router.replace({
-        pathname: "https://theskills.com/sign-in",
+        pathname: `${process.env.THETIS_SITE_HOST}/sign-in`,
         query: {
           callbackUrl: `${location.pathname}${location.search}`,
         },

@@ -546,15 +546,21 @@ function IntegrationsContainer() {
 export default function IntegrationsPage() {
   const { t } = useLocale();
   const SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS = false;
+  const query = trpc.useQuery(["viewer.integrations"]);
 
   return (
     <Shell heading={t("integrations")} subtitle={t("connect_your_favourite_apps")}>
-      <ClientSuspense fallback={<Loader />}>
-        {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <IntegrationsContainer />}
-        <CalendarListContainer />
-        {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <WebhookListContainer />}
-        {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <IframeEmbedContainer />}
-      </ClientSuspense>
+      <QueryCell
+        query={query}
+        success={() => (
+          <ClientSuspense fallback={<Loader />}>
+            {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <IntegrationsContainer />}
+            <CalendarListContainer />
+            {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <WebhookListContainer />}
+            {SKILLS_SHOW_NON_CALENDAR_INTEGRATIONS && <IframeEmbedContainer />}
+          </ClientSuspense>
+        )}
+      />
     </Shell>
   );
 }

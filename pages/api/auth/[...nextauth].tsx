@@ -97,7 +97,7 @@ export default NextAuth({
   },
   debug: process.env.NODE_ENV !== "production",
   pages: {
-    signIn: "https://theskills.com/sign-in",
+    signIn: `${process.env.THETIS_SITE_HOST}/sign-in`,
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
   },
