@@ -244,12 +244,12 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   )}
                   {!props.hideBranding && (
                     <div className="pt-4 text-xs text-center text-gray-400 dark:border-gray-900 dark:text-white">
-                      <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
+                      <a href="https://theskills.com/sign-in">{t("create_booking_link_with_calcom")}</a>
 
                       <form
                         onSubmit={(e) => {
                           e.preventDefault();
-                          router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
+                          router.push(`https://theskills.com?email=` + (e as any).target.email.value);
                         }}
                         className="flex mt-4">
                         <input
@@ -259,7 +259,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           inputMode="email"
                           defaultValue={router.query.email}
                           className="block w-full text-gray-600 border-gray-300 shadow-sm dark:bg-brand dark:text-brandcontrast dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
-                          placeholder="rick.astley@cal.com"
+                          placeholder="rick.astley@theskills.com"
                         />
                         <Button type="submit" className="min-w-max" color="primary">
                           {t("try_for_free")}

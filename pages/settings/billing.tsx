@@ -39,7 +39,7 @@ export default function Billing() {
                 <p>{t("further_billing_help")}</p>
               </div>
               <div className="mt-5">
-                <Button href="mailto:help@cal.com" color="secondary" type="submit">
+                <Button href="mailto:talent-support@theskills.com" color="secondary" type="submit">
                   {t("contact_our_support_team")}
                 </Button>
               </div>

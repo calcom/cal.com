@@ -51,7 +51,7 @@ export default class ForgotPasswordEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `The Skills <${this.getMailerOptions().from}>`,
       subject: this.passwordEvent.language("reset_password_subject"),
       html: this.getHtmlBody(),
       text: this.getTextBody(),
@@ -180,7 +180,7 @@ ${this.passwordEvent.language("have_any_questions")} ${this.passwordEvent.langua
                               <div style="line-height: 6px;">
                                 <p style="font-weight: 400; line-height: 24px;">${this.passwordEvent.language(
                                   "have_any_questions"
-                                )} <a href="mailto:support@cal.com" style="color: #3E3E3E" target="_blank">${this.passwordEvent.language(
+                                )} <a href="mailto:talent-support@theskills.com" style="color: #3E3E3E" target="_blank">${this.passwordEvent.language(
       "contact_our_support_team"
     )}</a></p>
                               </div>

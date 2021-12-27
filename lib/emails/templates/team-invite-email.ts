@@ -48,7 +48,7 @@ export default class TeamInviteEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: this.teamInviteEvent.to,
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `The Skills <${this.getMailerOptions().from}>`,
       subject: this.teamInviteEvent.language("user_invited_you", {
         user: this.teamInviteEvent.from,
         team: this.teamInviteEvent.teamName,
@@ -170,7 +170,7 @@ export default class TeamInviteEmail {
                               <div style="line-height: 6px;">
                                 <p style="font-weight: 400; line-height: 24px;">${this.teamInviteEvent.language(
                                   "have_any_questions"
-                                )} <a href="mailto:support@cal.com" style="color: #3E3E3E" target="_blank">${this.teamInviteEvent.language(
+                                )} <a href="mailto:talent-support@theskills.com" style="color: #3E3E3E" target="_blank">${this.teamInviteEvent.language(
       "contact_our_support_team"
     )}</a></p>
                               </div>

@@ -99,8 +99,8 @@ const BookingPage = (props: BookingPageProps) => {
   const [guestToggle, setGuestToggle] = useState(false);
 
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: { type: LocationType }[] = useMemo(
-    () => (props.eventType.locations as { type: LocationType }[]) || [],
+  const locations: { type: LocationType; address?: string }[] = useMemo(
+    () => (props.eventType.locations as { type: LocationType; address?: string }[]) || [],
     [props.eventType.locations]
   );
 
@@ -174,7 +174,7 @@ const BookingPage = (props: BookingPageProps) => {
         return booking.phone;
       }
       case LocationType.InPerson: {
-        return locationInfo(locationType).address;
+        return locationInfo(locationType)?.address;
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
@@ -208,7 +208,7 @@ const BookingPage = (props: BookingPageProps) => {
       language: i18n.language,
       rescheduleUid,
       user: router.query.user,
-      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
+      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }) || "",
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -232,27 +232,30 @@ const BookingPage = (props: BookingPageProps) => {
                 eventTypeTitle: props.eventType.title,
                 profileName: props.profile.name,
               })}{" "}
-          | Cal.com
+          | The Skills
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <CustomBranding val={props.profile.brandColor} />
+      {"brandColor" in props.profile && <CustomBranding val={props.profile.brandColor} />}
       <main className="max-w-3xl mx-auto my-0 rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
           <div className="overflow-hidden bg-white border border-gray-200 dark:bg-neutral-900 dark:border-0 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
-                <AvatarGroup
-                  size={14}
-                  items={[{ image: props.profile.image, alt: props.profile.name }].concat(
-                    props.eventType.users
-                      .filter((user) => user.name !== props.profile.name)
-                      .map((user) => ({
-                        image: user.avatar,
-                        title: user.name,
-                      }))
-                  )}
-                />
+                {props.profile?.image && props.profile?.name && (
+                  <AvatarGroup
+                    size={14}
+                    items={[{ image: props.profile.image, alt: props.profile.name }].concat(
+                      props.eventType.users
+                        .filter((user) => user.name !== props.profile.name)
+                        .map((user) => ({
+                          alt: user.name || "",
+                          image: user.avatar || "",
+                          title: user.name,
+                        }))
+                    )}
+                  />
+                )}
                 <h2 className="mt-2 font-medium text-gray-500 font-cal dark:text-gray-300">
                   {props.profile.name}
                 </h2>
@@ -263,7 +266,7 @@ const BookingPage = (props: BookingPageProps) => {
                   <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {props.eventType.length} {t("minutes")}
                 </p>
-                {props.eventType.price > 0 && (
+                {"price" in props.eventType && props.eventType.price > 0 && (
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     <IntlProvider locale="en">
@@ -283,7 +286,7 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
+                  {parseZone(date)?.format(timeFormat + ", dddd DD MMMM YYYY")}
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>

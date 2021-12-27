@@ -36,7 +36,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
     <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
       <Head>
         <title>
-          {t("payment")} | {eventName} | Cal.com
+          {t("payment")} | {eventName} | The Skills
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -108,7 +108,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         payment={props.payment}
                         eventType={props.eventType}
                         user={props.user}
-                        location={props.booking.location}
+                        location={props.booking.location || ""}
                       />
                     </Elements>
                   )}
@@ -118,7 +118,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 </div>
                 {!props.profile.hideBranding && (
                   <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
-                    <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
+                    <a href="https://theskills.com">{t("create_booking_link_with_calcom")}</a>
                   </div>
                 )}
               </div>
