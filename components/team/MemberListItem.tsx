@@ -74,7 +74,7 @@ export default function MemberListItem(props: Props) {
               <span className="block -mt-1 text-xs text-gray-400">{props.member.email}</span>
             </div>
           </div>
-          <div className="flex justify-center mr-2">
+          <div className="flex mt-2 mr-2 sm:mt-0 sm:justify-center">
             {!props.member.accepted && <TeamRole invitePending />}
             <TeamRole role={props.member.role} />
           </div>
@@ -91,7 +91,7 @@ export default function MemberListItem(props: Props) {
               disabled={!props.member.accepted}
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
-              className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white">
+              className="hidden w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white sm:block">
               <ClockIcon className="w-5 h-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>
