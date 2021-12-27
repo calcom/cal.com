@@ -564,6 +564,7 @@
   "not_installed": "Не установлено",
   "error_password_mismatch": "Пароли не совпадают.",
   "error_required_field": "Это поле является обязательным.",
+  "status": "Status",
   "team_view_user_availability": "View user availability",
   "team_view_user_availability_disabled": "User needs to accept invite to view availability"
 }

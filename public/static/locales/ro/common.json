@@ -564,6 +564,7 @@
   "not_installed": "Nu este instalat",
   "error_password_mismatch": "Parolele nu se potrivesc.",
   "error_required_field": "Acest câmp este obligatoriu.",
+  "status": "Status",
   "team_view_user_availability": "View user availability",
   "team_view_user_availability_disabled": "User needs to accept invite to view availability"
 }

@@ -564,6 +564,7 @@
   "not_installed": "Niet geïnstalleerd",
   "error_password_mismatch": "Wachtwoorden komen niet overeen.",
   "error_required_field": "Dit veld is verplicht.",
+  "status": "Status",
   "team_view_user_availability": "View user availability",
   "team_view_user_availability_disabled": "User needs to accept invite to view availability"
 }

@@ -564,6 +564,7 @@
   "not_installed": "インストールされていません",
   "error_password_mismatch": "パスワードが一致しません。",
   "error_required_field": "この項目は必須です。",
+  "status": "Status",
   "team_view_user_availability": "View user availability",
   "team_view_user_availability_disabled": "User needs to accept invite to view availability"
 }

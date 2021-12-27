@@ -564,6 +564,7 @@
   "not_installed": "설치되지 않음",
   "error_password_mismatch": "비밀번호가 일치하지 않습니다.",
   "error_required_field": "이 필드는 필수입니다.",
+  "status": "Status",
   "team_view_user_availability": "View user availability",
   "team_view_user_availability_disabled": "User needs to accept invite to view availability"
 }
