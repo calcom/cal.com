@@ -18,8 +18,8 @@ import { AvailabilityPageProps } from "../../../../../[user]/[type]";
 export default function BookPage({ profile, eventType, workingHours }: AvailabilityPageProps) {
   const router = useRouter();
   const telemetry = useTelemetry();
-  const [timeFormat, setTimeFormat] = useState("h:mma"); // eslint-disable-line
-  const [selectedTime, setSelectedTime] = useState<string>(); // eslint-disable-line
+  const [timeFormat, setTimeFormat] = useState("HH:mm"); // eslint-disable-line
+  const [selectedTime, setSelectedTime] = useState<string>();
 
   const handleSubmit = () => {
     router.push({
