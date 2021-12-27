@@ -89,8 +89,8 @@ export default function LicenseBanner() {
           <li>{t("cannot_repackage_codebase")}</li>
           <li>
             {t("acquire_license")}:{" "}
-            <a className="text-blue-500 underline" href="mailto:talent-support@theskills.com">
-              talent-support@theskills.com
+            <a className="text-blue-500 underline" href="mailto:license@cal.com">
+              license@cal.com
             </a>
           </li>
         </ul>
