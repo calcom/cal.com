@@ -564,6 +564,7 @@
   "not_installed": "Não instalado",
   "error_password_mismatch": "As senhas não são iguais.",
   "error_required_field": "Este campo é obrigatório.",
+  "status": "Estado",
   "team_view_user_availability": "Ver disponibilidade do utilizador",
   "team_view_user_availability_disabled": "O utilizador tem de aceitar o convite para ver a disponibilidade"
 }
