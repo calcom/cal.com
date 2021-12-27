@@ -2036,32 +2036,32 @@
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
 
-"@trpc/client@^9.15.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.15.0.tgz#51675e01bfd2d7e9171c5894d5d9fa6be699f9fb"
-  integrity sha512-5mnCf4E5dLlJSjOdYCHOQYeQNvA0ZxGEt/4BnCnIJpEdOoJy4KtZ87Uo3OCJOf8Cu3KZPwqWAJoXVvg5XShtdw==
+"@trpc/client@^9.16.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.16.0.tgz#73c9ab291191bf6f3bb6b406f3b43a2bfb30306f"
+  integrity sha512-IwH3xQ792IKq9Q3nLOCYzxMe2xZg+B1iyiX0ueBF7P2blO/3791DJjUFyzVT3bXPJj3rISoL1Ermd0mtPRxGpQ==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/next@^9.15.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.15.0.tgz#dccec59fb6fc53ac09a24e5b20b3c114c0c8a8de"
-  integrity sha512-WigbVW/JX5qt9DI2uQAa/un9dkQ1vatwVLiV4EyShVJ522hP4lr+tvOpbJhAmtBOFFzUh0nzeS225n3v80xEEg==
+"@trpc/next@^9.16.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-9.16.0.tgz#294da9a256130257980659116d2dda9fcbd14c7c"
+  integrity sha512-j3gyZYqNTqzchWJKCEAQdwzr2aNoQjfW5sgpObktAD0YofTogXi3nl9mKzHq7HaiRQFEDU6/O6CSg4coVj+U7g==
   dependencies:
     "@babel/runtime" "^7.9.0"
     react-ssr-prepass "^1.4.0"
 
-"@trpc/react@^9.15.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.15.0.tgz#d73e29a581c8ea34f4558d2b8d35115f6f47c01b"
-  integrity sha512-hgI2WEapsKyEeiCBqSBazRADEEvu/7aB04h1Zw+mFRb2j/0s4tmMiaezw8+FBNRdLv69yDhyWAP6QM7cZg2+IQ==
+"@trpc/react@^9.16.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.16.0.tgz#1d4bfac470beb43b5f43557822c98b6947cd65f6"
+  integrity sha512-gaF+631mXWaziUlDYNksiAhRV7VdjcA04a7by9ZhFVgTzsHXc5VMX57X1Uo2LdWUcW7zOfWiaYBpYs7fRbAv9w==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/server@^9.15.0":
-  version "9.15.0"
-  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.15.0.tgz#84486aa174f6af20992472b57cbbc5ccc893538f"
-  integrity sha512-ikqF5JqA3EW9z/M8ABhlauhB82yOu29mWSZbhQ7LDViBnBq4y4I5vgBOn2kqk3lufyb9/opxBBtb/L5IwY1MBg==
+"@trpc/server@^9.16.0":
+  version "9.16.0"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.16.0.tgz#93fc30166f92a4f1286da63ad3bad42c955c7e15"
+  integrity sha512-IENsJs41ZR4oeFUJhsNNTSgEOtuRN0m9u7ec4u3eG/qOc7bIoo1nDoYtx4bl6OJJSQYEytG9tlcVz9G8OAaHbg==
   dependencies:
     tslib "^2.1.0"
 
@@ -7192,10 +7192,10 @@ nodemailer@^6.4.16:
   resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.7.0.tgz#86614722c4e0c33d1b5b02aecb90d6d629932b0d"
   integrity sha512-AtiTVUFHLiiDnMQ43zi0YgkzHOEWUkhDgPlBXrsDzJiJvB29Alo4OKxHQ0ugF3gRqRQIneCLtZU3yiUo7pItZw==
 
-nodemailer@^6.7.1:
-  version "6.7.1"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.7.1.tgz#09f72f8b375f7b259291757007bcd902c0174c6e"
-  integrity sha512-E1C8G3rnXrGjznwGP1k+OrW5k4rl0XtqTEB19f7vtJAMYwfxZVSsAu2iY5xJkrZsbVYr6PwwAwRmFlakPoFC0A==
+nodemailer@^6.7.2:
+  version "6.7.2"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.7.2.tgz#44b2ad5f7ed71b7067f7a21c4fedabaec62b85e0"
+  integrity sha512-Dz7zVwlef4k5R71fdmxwR8Q39fiboGbu3xgswkzGwczUfjp873rVxt1O46+Fh0j1ORnAC6L9+heI8uUpO6DT7Q==
 
 normalize-package-data@^2.3.2, normalize-package-data@^2.5.0:
   version "2.5.0"
@@ -7895,9 +7895,9 @@ prettier-linter-helpers@^1.0.0:
     fast-diff "^1.1.2"
 
 prettier@^2.3.2:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.4.1.tgz#671e11c89c14a4cfc876ce564106c4a6726c9f5c"
-  integrity sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA==
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.5.1.tgz#fff75fa9d519c54cf0fce328c1017d94546bc56a"
+  integrity sha512-vBZcPRUR5MZJwoyi3ZoyQlc1rXeEck8KgeC9AwwOn+exuxLxq5toTRDTSaVrXHxelDMHy9zlicw8u66yxoSUFg==
 
 pretty-format@^26.6.2:
   version "26.6.2"
@@ -8173,10 +8173,10 @@ react-fit@^1.0.3:
     detect-element-overflow "^1.2.0"
     prop-types "^15.6.0"
 
-react-hook-form@^7.20.2:
-  version "7.20.2"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.20.2.tgz#6fe76b680dd54ceb95c9c1a3c6338162081ba2e2"
-  integrity sha512-J5zkZW0Mf3KuMlk7Tl1tWYXoSjYhfKyEu//NfWTn2xzvv2vnDT5/EE/vHgtNb7kVeYpx6/mHIBd9aOfNnWcOsg==
+react-hook-form@^7.20.4:
+  version "7.20.4"
+  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.20.4.tgz#7c23dcaed54812fba9ac63be0313b7c5d11d2b93"
+  integrity sha512-Nvy6TnNMlBoR+qS8FpA8lrqtGJ4uoi/MRYEgMEdBMY0HwHVuC7wB1sk6wTjg7FjOUt7QqMAP2W/vOhTWbKrtkQ==
 
 react-hot-toast@^2.1.0:
   version "2.1.1"
@@ -8235,10 +8235,10 @@ react-phone-number-input@^3.1.41:
     libphonenumber-js "^1.9.43"
     prop-types "^15.7.2"
 
-react-query@^3.33.5:
-  version "3.33.5"
-  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.33.5.tgz#5d8a42bd3237e25a00173a8f8aa59c04b6af5729"
-  integrity sha512-gNpTzbY9Xw/s0ALeLsXdUGXtzXbXQcRAMa4Ina2JOJHbDr2mdA79O2SMNUwctKJ1/c0vKTdALIdn4taptv+MTQ==
+react-query@^3.33.7:
+  version "3.33.7"
+  resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.33.7.tgz#6ab1b2cb39e2e925a4fc44e8a269c7691e7eb2f3"
+  integrity sha512-uL/1ZatxcRyvfhbNPeuOlLVbcdMQKzQ2t+SQLJMrMM0plfa/Al3buaPbGsbsmIwvyWeI4CVkkSBKzQIkU4p9MQ==
   dependencies:
     "@babel/runtime" "^7.5.5"
     broadcast-channel "^3.4.1"
