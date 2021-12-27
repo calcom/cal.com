@@ -51,7 +51,7 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     return acc;
   }, []);
 
-const getBusyVideoTimes: (withCredentials: Credential[]) => Promise<unknown[]> = (withCredentials) =>
+const getBusyVideoTimes = (withCredentials: Credential[]) =>
   Promise.all(getVideoAdapters(withCredentials).map((c) => c.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
@@ -68,19 +68,16 @@ const createMeeting = async (
     );
   }
 
-  let success = true;
-
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
   const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch((e) => {
     log.error("createMeeting failed", e, calEvent);
-    success = false;
   });
 
   if (!createdMeeting) {
     return {
       type: credential.type,
-      success,
+      success: false,
       uid,
       originalEvent: calEvent,
     };
@@ -88,7 +85,7 @@ const createMeeting = async (
 
   return {
     type: credential.type,
-    success,
+    success: true,
     uid,
     createdEvent: createdMeeting,
     originalEvent: calEvent,

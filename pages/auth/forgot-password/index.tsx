@@ -1,13 +1,14 @@
 import debounce from "lodash/debounce";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/client";
-import Link from "next/link";
 import React, { SyntheticEvent } from "react";
 
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 
+import { EmailField } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
+import Button from "@components/ui/Button";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t, i18n } = useLocale();
@@ -69,7 +70,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const Success = () => {
     return (
       <div className="space-y-6">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">{t("done")}</h2>
+        <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">{t("done")}</h2>
         <p>{t("check_email_reset_password")}</p>
         {error && <p className="text-red-600">{error.message}</p>}
       </div>
@@ -77,78 +78,49 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <HeadSeo title={t("forgot_password")} description={t("forgot_password")} />
+    <div className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8">
+      <HeadSeo title={t("forgot_password")} description={t("request_password_reset")} />
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 mx-2 shadow rounded-lg sm:px-10 space-y-6">
+        <div className="px-4 pt-3 pb-8 mx-2 space-y-6 bg-white rounded-lg shadow sm:px-10">
           {success && <Success />}
           {!success && (
             <>
               <div className="space-y-6">
-                <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
+                <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900 font-cal">
                   {t("forgot_password")}
                 </h2>
-                <p>{t("reset_instructions")}</p>
+                <p className="text-sm text-gray-500">{t("reset_instructions")}</p>
                 {error && <p className="text-red-600">{error.message}</p>}
               </div>
               <form className="space-y-6" onSubmit={handleSubmit} action="#">
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    {t("email_address")}
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      onChange={handleChange}
-                      id="email"
-                      name="email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      placeholder="john.doe@example.com"
-                      required
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <button
+                <EmailField
+                  onChange={handleChange}
+                  id="email"
+                  name="email"
+                  label={t("email_address")}
+                  placeholder="john.doe@example.com"
+                  required
+                />
+                <div className="space-y-2">
+                  <Button
+                    className="justify-center w-full"
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
-                      loading ? "cursor-not-allowed" : ""
-                    }`}>
-                    {loading && (
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    )}
+                    aria-label={t("request_password_reset")}
+                    loading={loading}>
                     {t("request_password_reset")}
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  <Link href="/auth/login">
-                    <button
-                      type="button"
-                      className="w-full flex justify-center py-2 px-4 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                      {t("login")}
-                    </button>
-                  </Link>
+                  </Button>
+
+                  <Button
+                    href="/auth/login"
+                    color="minimal"
+                    role="button"
+                    aria-label={t("login_instead")}
+                    className="justify-center w-full">
+                    {t("login_instead")}
+                  </Button>
                 </div>
               </form>
             </>

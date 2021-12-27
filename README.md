@@ -294,7 +294,6 @@ Contributions are what make the open source community such an amazing place to b
 3.  Copy your API key.
 4.  Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 
-
 <!-- LICENSE -->
 
 ## License

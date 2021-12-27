@@ -1,4 +1,4 @@
-import { User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
+import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
@@ -70,6 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: true,
       name: true,
       username: true,
+      destinationCalendar: true,
     },
   });
 
@@ -77,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "User not found" });
   }
 
-  if (req.method == "PATCH") {
+  if (req.method === "PATCH") {
     const booking = await prisma.booking.findFirst({
       where: {
         id: bookingId,
@@ -128,7 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (reqBody.confirmed) {
-      const eventManager = new EventManager(currentUser.credentials);
+      const eventManager = new EventManager(currentUser);
       const scheduleResult = await eventManager.create(evt);
 
       const results = scheduleResult.results;

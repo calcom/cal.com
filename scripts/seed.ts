@@ -28,6 +28,7 @@ async function createUserAndEventType(opts: {
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
+    locale: "en",
     availability: {
       createMany: {
         data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
@@ -221,6 +222,12 @@ async function main() {
         title: "60min",
         slug: "60min",
         length: 60,
+      },
+      {
+        title: "paid",
+        slug: "paid",
+        length: 60,
+        price: 50,
       },
     ],
   });
