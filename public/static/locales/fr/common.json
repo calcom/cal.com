@@ -564,6 +564,7 @@
   "not_installed": "Non installé",
   "error_password_mismatch": "Les mots de passe ne correspondent pas.",
   "error_required_field": "Ce champ est requis.",
+  "status": "Statut",
   "team_view_user_availability": "View user availability",
   "team_view_user_availability_disabled": "User needs to accept invite to view availability"
 }
