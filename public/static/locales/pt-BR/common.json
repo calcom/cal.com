@@ -100,7 +100,7 @@
   "no_data_yet": "Ainda não há dados",
   "ping_test": "Teste de ping",
   "add_to_homescreen": "Adicione este app em sua tela inicial para um acesso mais rápido e uma melhor experiência.",
-  "upcoming": "Próximos",
+  "upcoming": "Próximas",
   "past": "Anteriores",
   "choose_a_file": "Escolher um arquivo...",
   "upload_image": "Enviar imagem",
@@ -564,6 +564,7 @@
   "not_installed": "Não instalado",
   "error_password_mismatch": "As senhas inseridas são difererentes.",
   "error_required_field": "Este campo é obrigatório.",
+  "status": "Status",
   "team_view_user_availability": "Ver disponibilidade do usuário",
   "team_view_user_availability_disabled": "O usuário precisa aceitar o convite para ver a disponibilidade"
 }
