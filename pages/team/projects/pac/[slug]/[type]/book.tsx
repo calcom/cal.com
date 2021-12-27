@@ -198,6 +198,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      minimumBookingNotice: true,
       disableGuests: true,
       team: {
         select: {
