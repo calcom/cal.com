@@ -541,8 +541,6 @@
   "new_event_type_to_book_description": "Создайте новый тип мероприятия, с помощью которого люди смогут забронировать время.",
   "length": "Продолжительность",
   "minimum_booking_notice": "Минимальный срок уведомления о встрече",
-  "slot_interval": "Time-slot intervals",
-  "slot_interval_default": "Use event length (default)",
   "delete_event_type_description": "Вы уверены, что хотите удалить этот шаблон встречи? Все с кем вы поделились ссылкой на эту встречу, больше не смогут её забронировать.",
   "delete_event_type": "Удалить шаблон события",
   "confirm_delete_event_type": "Да, удалить шаблон события",
@@ -563,7 +561,5 @@
   "calendar": "Календарь",
   "not_installed": "Не установлено",
   "error_password_mismatch": "Пароли не совпадают.",
-  "error_required_field": "Это поле является обязательным.",
-  "team_view_user_availability": "View user availability",
-  "team_view_user_availability_disabled": "User needs to accept invite to view availability"
+  "error_required_field": "Это поле является обязательным."
 }

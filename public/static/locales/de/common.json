@@ -541,8 +541,6 @@
   "new_event_type_to_book_description": "Erstellen Sie einen neuen Ereignistyp, mit dem Personen Zeiten buchen können.",
   "length": "Länge",
   "minimum_booking_notice": "Minimaler Abstand zwischen Terminen",
-  "slot_interval": "Time-slot intervals",
-  "slot_interval_default": "Use event length (default)",
   "delete_event_type_description": "Sind Sie sicher, dass Sie diesen Ereignistyp löschen möchten? Empfänger dieses Links können Sie nicht mehr buchen.",
   "delete_event_type": "Ereignistyp löschen",
   "confirm_delete_event_type": "Ja, Ereignistyp löschen",
@@ -563,7 +561,5 @@
   "calendar": "Kalender",
   "not_installed": "Nicht installiert",
   "error_password_mismatch": "Passwörter stimmen nicht überein.",
-  "error_required_field": "Dieses Feld ist erforderlich.",
-  "team_view_user_availability": "View user availability",
-  "team_view_user_availability_disabled": "User needs to accept invite to view availability"
+  "error_required_field": "Dieses Feld ist erforderlich."
 }
