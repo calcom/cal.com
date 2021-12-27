@@ -1,6 +1,6 @@
 import { Credential } from "@prisma/client";
 import dayjs from "dayjs";
-import tz from "dayjs/plugin/timezone";
+import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
 import { Attendee, createEvent, DateArray, DurationObject } from "ics";
@@ -22,7 +22,7 @@ import logger from "@lib/logger";
 import { CalendarEvent, IntegrationCalendar } from "./calendarClient";
 
 dayjs.extend(utc);
-dayjs.extend(tz);
+dayjs.extend(timezone);
 
 export type Person = { name: string; email: string; timeZone: string };
 
