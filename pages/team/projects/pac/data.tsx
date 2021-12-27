@@ -118,9 +118,9 @@ export default function PersonalData() {
         <Toaster position="top-center" />
       </div>
       <div className="bg-gray-200 h-screen flex flex-col justify-between">
-        <div className="p-4 bg-white">
+        <div className="px-4 bg-white flex flex-col overflow-hidden">
           <SelfSchedulingHeader page="data" />
-          <div className="mt-4">
+          <div className="flex-1 overflow-auto pb-4">
             <TextField
               required
               value={name}

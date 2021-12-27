@@ -30,28 +30,30 @@ export default function Service() {
 
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
-      <div className="p-4 bg-white">
+      <div className="px-4 bg-white flex flex-col overflow-hidden">
         <SelfSchedulingHeader page="service" />
-        <p className="mt-4 text-gray-900 text-sm mb-2">Selecionar serviço:</p>
-        {availableServices.map((service) => {
-          let style =
-            "block p-4 mb-2 font-medium border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 dark:border-transparent hover:text-white hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:bg-brand dark:hover:text-brandcontrast";
+        <div className="flex-1 overflow-auto pb-4">
+          <p className="mt-4 text-gray-900 text-sm mb-2">Selecionar serviço:</p>
+          {availableServices.map((service) => {
+            let style =
+              "block p-4 mb-2 font-medium border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 dark:border-transparent hover:text-white hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:bg-brand dark:hover:text-brandcontrast";
 
-          if (service.id === selectedService) {
-            style = `bg-gray-900 text-white-important ${style}`;
-          } else {
-            style = `bg-white text-black ${style}`;
-          }
+            if (service.id === selectedService) {
+              style = `bg-gray-900 text-white-important ${style}`;
+            } else {
+              style = `bg-white text-black ${style}`;
+            }
 
-          return (
-            <div
-              key={JSON.stringify(service)}
-              className={style}
-              onClick={() => setSelectedService(service.id)}>
-              {service.name}
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={JSON.stringify(service)}
+                className={style}
+                onClick={() => setSelectedService(service.id)}>
+                {service.name}
+              </div>
+            );
+          })}
+        </div>
       </div>
       <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
         <div className="flex flex-row w-full">

@@ -145,12 +145,12 @@ export default function Review(props: TReviewPageProps) {
     <>
       <Toaster position="top-center" />
       <div className="bg-gray-200 h-screen flex flex-col justify-between">
-        <div className="p-4 bg-white">
+        <div className="px-4 bg-white flex flex-col overflow-hidden">
           <SelfSchedulingHeader page="review" />
           <p className="mt-2 text-sm text-gray-500">
             Verifique suas informações pois erros podem influenciar na aprovação do seu agendamento.
           </p>
-          <div className="mt-4 overflow-auto">
+          <div className="flex-1 overflow-auto pb-4">
             <div className="border-y border-y-gray-100">
               <p className="text-gray-500 font-bold text-sm mt-4">Dados do beneficiário</p>
               <table className="w-full">

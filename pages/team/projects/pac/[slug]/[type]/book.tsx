@@ -64,9 +64,9 @@ export default function BookPage({ profile, eventType, workingHours }: Availabil
 
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
-      <div className="p-4 bg-white overflow-hidden">
+      <div className="px-4 bg-white flex flex-col overflow-hidden">
         <SelfSchedulingHeader page="book" />
-        <div className="h-[95%] overflow-auto mt-4">
+        <div className="flex-1 overflow-auto pb-4">
           <DatePicker
             noMargin
             date={selectedDate}

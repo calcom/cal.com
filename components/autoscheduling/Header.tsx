@@ -47,7 +47,7 @@ export default function SelfSchedulingHeader({ page, className }: IAutoSchedulin
   }, []); // eslint-disable-line
 
   return (
-    <div className={classNames("flex flex-row justify-between items-center", className)}>
+    <div className={classNames("flex flex-row justify-between items-center py-4", className)}>
       <h1 className="text-2xl font-bold">{title}</h1>
       {step && <p className="text-xs text-gray-500 font-bold">{`${step}/5`}</p>}
     </div>

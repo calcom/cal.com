@@ -70,10 +70,12 @@ export default function Success() {
 
   return (
     <div className="bg-gray-100 h-screen flex flex-col justify-between">
-      <div className="mt-4 px-4 flex flex-col items-center">
-        <Lottie options={animation} height={142} width={142} isClickToPauseDisabled />
-        <h2 className="text-2xl font-bold">{header}</h2>
-        <p className="text-gray-500 text-center mt-2">{helperText}</p>
+      <div className="mt-4 px-4 flex flex-col items-center overflow-hidden">
+        <div className="flex-1 overflow-auto pb-4 items-center">
+          <Lottie options={animation} height={142} width={142} isClickToPauseDisabled />
+          <h2 className="text-2xl font-bold text-center">{header}</h2>
+          <p className="text-gray-500 text-center mt-2">{helperText}</p>
+        </div>
       </div>
       <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
         <div className="flex flex-row w-full">
