@@ -137,6 +137,7 @@ export default function Review(props: TReviewPageProps) {
         { label: "PAC", value: parsedSite || "" },
         { label: "servico", value: service || "" },
         { label: "grupo", value: beneficiary?.group || "" },
+        { label: "telefone", value: beneficiary?.phone || "" },
       ],
     });
   };
