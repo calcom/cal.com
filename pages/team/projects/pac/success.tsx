@@ -8,14 +8,13 @@ import deniedAnimation from "../../../../assets/lottie/denied_animation.json";
 import waitingAnimation from "../../../../assets/lottie/timer-loader.json";
 
 const WAITING_HEADER = "Solicitação em análise";
-const WAITING_HELPER_TEXT = "Insira aqui o texto de solicitação em análise. Isso pode levar alguns segundos.";
+const WAITING_HELPER_TEXT = "Isso pode levar alguns segundos.";
 
 const APPROVED_HEADER = "Solicitação aprovada";
-const APPROVED_HELPER_TEXT =
-  "Insira aqui o texto de solicitação aprovada. Insira aqui o texto de solicitação aprovada. ";
+const APPROVED_HELPER_TEXT = "Parabéns! Sua solicitação de agendamento foi aprovada com sucesso. ";
 
 const DENIED_HEADER = "Solicitação negada";
-const DENIED_HELPER_TEXT = "Sua solicitação não pode ser aprovada pois motivo foi a causa.";
+const DENIED_HELPER_TEXT = "Revise os dados inseridos.";
 
 export default function Success() {
   const [wasApproved, setWasApproved] = useState<boolean | undefined>();
