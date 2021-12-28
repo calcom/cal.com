@@ -41,7 +41,6 @@ export async function handlePayment(
     currency: string;
     description: string;
   },
-  stripeCredential: { key: Prisma.JsonValue },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
@@ -52,7 +51,6 @@ export async function handlePayment(
   const paymentFee = Math.round(
     selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}`)
   );
-  const { stripe_user_id } = stripeCredential.key as Stripe.OAuthToken;
 
   const stripe_publishable_key = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY;
 
@@ -94,7 +92,7 @@ export async function handlePayment(
       refunded: false,
       data: Object.assign({}, paymentIntent, {
         stripe_publishable_key,
-        stripeAccount: stripe_user_id,
+        stripeAccount: stripeConnectAccountId,
       }) as PaymentData as unknown as Prisma.JsonValue,
       externalId: paymentIntent.id,
     },
