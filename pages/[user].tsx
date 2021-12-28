@@ -2,10 +2,12 @@ import { ArrowRightIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useState } from "react";
+import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
+import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -14,6 +16,12 @@ import { HeadSeo } from "@components/seo/head-seo";
 import Avatar from "@components/ui/Avatar";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import CryptoSection from "../components/CryptoSection";
+
+interface EvtsToVerify {
+  [evtId: string]: boolean;
+}
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { isReady } = useTheme(props.user.theme);
@@ -24,6 +32,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   delete query.user; // So it doesn't display in the Link (and make tests fail)
 
   const nameOrUsername = user.name || user.username || "";
+
+  const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
 
   return (
     <>
@@ -51,6 +61,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               {eventTypes.map((type) => (
                 <div
                   key={type.id}
+                  style={{ display: "flex" }}
                   className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-brand">
                   <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
                   <Link
@@ -58,11 +69,35 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       pathname: `/${user.username}/${type.slug}`,
                       query,
                     }}>
-                    <a className="block px-6 py-4" data-testid="event-type-link">
+                    <a
+                      onClick={(e) => {
+                        // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
+                        if (type.scAddress && !evtsToVerify[type.id]) {
+                          e.preventDefault();
+                          showToast(
+                            "You must verify a wallet with a token belonging to the specified smart contract first",
+                            "error"
+                          );
+                        }
+                      }}
+                      style={{
+                        flexGrow: 1,
+                      }}
+                      className="block px-6 py-4"
+                      data-testid="event-type-link">
                       <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
+                  {type.scAddress && (
+                    <CryptoSection
+                      id={type.id}
+                      scAddress={type.scAddress}
+                      verified={evtsToVerify[type.id]}
+                      setEvtsToVerify={setEvtsToVerify}
+                      oneStep
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -77,6 +112,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               </div>
             )}
           </main>
+          <Toaster position="bottom-right" />
         </div>
       )}
     </>
@@ -150,6 +186,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       schedulingType: true,
       price: true,
       currency: true,
+      scAddress: true,
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });

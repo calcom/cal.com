@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             schedulingType: true,
             slug: true,
             hidden: true,
+            scAddress: true,
           },
         },
       },

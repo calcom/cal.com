@@ -15,6 +15,7 @@ import {
 import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import axios from "axios";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -58,6 +59,17 @@ import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+interface Token {
+  name?: string;
+  address: string;
+  symbol: string;
+}
+
+interface NFT extends Token {
+  // Some OS NFTs have several contracts
+  contracts: Array<Token>;
+}
 
 type OptionTypeBase = {
   label: string;
@@ -139,6 +151,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
+  const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -146,6 +159,41 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchTokens = async () => {
+      // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
+      try {
+        const erc20sList: Array<Token> = [];
+        const nftsList: Array<Token> = [];
+
+        (await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)).data
+          .slice(0, 100)
+          .forEach((erc20: Token) => {
+            const { name, address, symbol } = erc20;
+            erc20sList.push({ name, address, symbol });
+          });
+
+        (await axios.get(`https://exodia.io/api/trending?page=1`)).data.forEach((nft: NFT) => {
+          const { name, contracts } = nft;
+          if (nft.contracts[0]) {
+            const { address, symbol } = contracts[0]; // Some OS NFTs have several contracts
+            nftsList.push({ name, address, symbol });
+          }
+        });
+
+        const unifiedList: Array<Token | NFT> = [...erc20sList, ...nftsList];
+
+        setTokensList(unifiedList);
+      } catch (err) {
+        showToast("Failed to load ERC20s & NFTs list. Please enter an address manually.", "error");
+      }
+    };
+
+    console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
+
+    fetchTokens();
+  }, []);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || "");

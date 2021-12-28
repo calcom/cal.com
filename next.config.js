@@ -55,6 +55,9 @@ plugins.push(withTM);
 
 // prettier-ignore
 module.exports = () => plugins.reduce((acc, next) => next(acc), {
+  env: {
+    BLOXY_API_KEY: process.env.BLOXY_API_KEY
+  },
   i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
