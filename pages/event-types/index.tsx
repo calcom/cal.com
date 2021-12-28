@@ -395,7 +395,6 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err: HttpError) => {
-      console.log(err);
       const message = `${err.statusCode}: ${err.message}`;
       showToast(message, "error");
     },
@@ -487,7 +486,6 @@ const CreateNewEventButton = ({ profiles, canAddEvents }: CreateEventTypeProps) 
               payload.schedulingType = target.schedulingType.value as SchedulingType;
             }
 
-            console.log(payload);
             createMutation.mutate(payload);
           }}>
           <div>

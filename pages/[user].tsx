@@ -80,12 +80,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                           );
                         }
                       }}
-                      style={{
-                        flexGrow: 1,
-                      }}
                       className="block px-6 py-4"
                       data-testid="event-type-link">
-                      <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                      <h2 className="font-semibold grow text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>

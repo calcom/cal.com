@@ -14,7 +14,7 @@ interface Window {
 }
 
 interface EvtsToVerify {
-  [evtId: string]: boolean;
+  [eventId: string]: boolean;
 }
 
 declare const window: Window;

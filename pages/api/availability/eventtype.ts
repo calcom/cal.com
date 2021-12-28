@@ -117,9 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { scAddress } = req.body;
     if (scAddress) {
       // @TODO: Check address actually exists on mainnet
-      if (scAddress.length !== 42)
-        return res.status(422).json({ message: "Invalid smart contract address." });
-      if (scAddress.slice(0, 2) !== "0x")
+      if (scAddress.length !== 42 || scAddress.slice(0, 2) !== "0x")
         return res.status(422).json({ message: "Invalid smart contract address." });
     }
     //

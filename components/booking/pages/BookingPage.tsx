@@ -49,7 +49,6 @@ type BookingFormValues = {
   customInputs?: {
     [key: string]: string;
   };
-  hasToken: boolean;
 };
 
 const BookingPage = (props: BookingPageProps) => {
@@ -148,7 +147,6 @@ const BookingPage = (props: BookingPageProps) => {
       email: (router.query.email as string) || "",
       notes: (router.query.notes as string) || "",
       guests: ensureArray(router.query.guest),
-      hasToken: false,
       customInputs: props.eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -502,22 +500,6 @@ const BookingPage = (props: BookingPageProps) => {
                     </Button>
                   </div>
                 </Form>
-                {bookingForm.formState.errors.hasToken && (
-                  // Temporarily here, all crypto validation logic will need to move to the api eventually,
-                  // so errors will be captured by mutation.isError anyway when that happens
-                  <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm text-yellow-700">
-                          {bookingForm.formState.errors.hasToken.message}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
                 {mutation.isError && (
                   <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
                     <div className="flex">

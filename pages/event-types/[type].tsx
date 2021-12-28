@@ -67,7 +67,7 @@ interface Token {
 }
 
 interface NFT extends Token {
-  // Some OS NFTs have several contracts
+  // Some OpenSea NFTs have several contracts
   contracts: Array<Token>;
 }
 
@@ -164,25 +164,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     const fetchTokens = async () => {
       // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
       try {
-        const erc20sList: Array<Token> = [];
-        const nftsList: Array<Token> = [];
-
-        (await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)).data
+        const erc20sList: Array<Token> = (
+          await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
+        ).data
           .slice(0, 100)
           .forEach((erc20: Token) => {
             const { name, address, symbol } = erc20;
             erc20sList.push({ name, address, symbol });
           });
 
-        (await axios.get(`https://exodia.io/api/trending?page=1`)).data.forEach((nft: NFT) => {
-          const { name, contracts } = nft;
-          if (nft.contracts[0]) {
-            const { address, symbol } = contracts[0]; // Some OS NFTs have several contracts
-            nftsList.push({ name, address, symbol });
+        const nftsList: Array<Token> = (await axios.get(`https://exodia.io/api/trending?page=1`)).data.map(
+          (nft: NFT) => {
+            const { name, contracts } = nft;
+            if (nft.contracts[0]) {
+              const { address, symbol } = contracts[0];
+              return { name, address, symbol };
+            }
           }
-        });
+        );
 
-        const unifiedList: Array<Token | NFT> = [...erc20sList, ...nftsList];
+        const unifiedList: Array<Token> = [...erc20sList, ...nftsList];
 
         setTokensList(unifiedList);
       } catch (err) {
