@@ -5,15 +5,6 @@ import SelfSchedulingHeader from "@components/autoscheduling/Header";
 import GroupNoticeModal from "@components/team/projects/pac/GroupNoticeModal";
 import Button from "@components/ui/Button";
 
-const termsMock =
-  "\n" +
-  "\n" +
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer semper tincidunt turpis ac semper. Vivamus in diam laoreet, tempor lorem dignissim, consectetur nibh. Aenean rhoncus, felis vehicula consectetur vestibulum, quam ex auctor libero, sit amet aliquet orci magna vitae justo. Nunc efficitur urna venenatis orci sollicitudin pulvinar. Fusce consectetur porta sapien non tempor. In sapien ante, congue iaculis aliquet sed, tempus vel orci. Mauris scelerisque justo at diam feugiat euismod.\n" +
-  "\n" +
-  "Fusce est sem, imperdiet in aliquam sed, consequat eu nisi. Nullam feugiat, felis eget rhoncus blandit, urna odio dignissim lacus, vel consequat leo quam quis nisi. Nullam vitae nisl ac nulla porta bibendum. Sed tellus lacus, sollicitudin bibendum scelerisque id, pulvinar id odio. Maecenas bibendum posuere sapien et fringilla. Maecenas commodo orci quis ultrices lacinia. Morbi feugiat molestie dolor vitae ornare. Fusce ac turpis sagittis, aliquam risus quis, sagittis urna. Praesent finibus velit sit amet elit elementum laoreet. In ex mi, rutrum quis lectus volutpat, malesuada eleifend ex.\n" +
-  "\n" +
-  "Phasellus ornare diam a orci tincidunt, varius molestie ligula imperdiet. Praesent congue lorem vitae leo vehicula dignissim. Curabitur et ante ultricies, feugiat orci quis, finibus orci. Etiam ut fringilla elit. Vestibulum in aliquam quam, quis vestibulum risus. Cras ac leo et tortor volutpat condimentum. Donec sit amet felis at ipsum imperdiet tempus eu vel dui. Suspendisse at urna vestibulum justo molestie finibus non ac dui. Mauris auctor congue augue, quis ultricies nisl convallis sit amet. Curabitur convallis ullamcorper quam. In gravida tempus diam, quis venenatis mi. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. ";
-
 export default function Terms() {
   const router = useRouter();
 
@@ -22,7 +13,42 @@ export default function Terms() {
       <div className="px-4 bg-white flex flex-col overflow-hidden">
         <SelfSchedulingHeader page="terms" />
         <div className="flex-1 overflow-auto pb-4">
-          <p className="text-sm text-gray-600">{termsMock}</p>
+          <p className="text-sm text-gray-600 text-justify">
+            <b>1.</b> Você confirma e garante que tem dezoito anos ou mais. Caso você seja menor de idade, seu
+            acesso será permitido desde que você esteja assistido ou representado por seus pais, tutores ou
+            curadores, na forma da Lei, os quais serão considerados responsáveis por todos os atos praticados
+            pelo menor;
+            <br />
+            <br />
+            <b>2.</b> Você entende e concorda que é de sua responsabilidade garantir que o App esteja
+            adequadamente instalado e configurado;
+            <br />
+            <br />
+            <b>3.</b> Você compreende e confirma que o conteúdo que você registrou é certo, claro, verídico,
+            possível e atualizado;
+            <br />
+            <br />
+            <b>4.</b> Você entende e concorda que você é o único responsável por atualizar o seu registro e os
+            seus dados;
+            <br />
+            <br />
+            <b>5.</b> Você entende e aceita toda a responsabilidade legal pelo conteúdo, precisão e
+            suficiência de todas as informações que forneceu;
+            <br />
+            <br />
+            <b>6.</b> Você entende que é de sua responsabilidade corrigir suas informações de usuário quando
+            estas estiverem erradas;
+            <br />
+            <br />
+            <b>7.</b> Ademais, criar qualquer informação falsa/errada intencionalmente poderá, inclusive,
+            importar no cancelamento de serviços;
+            <br />
+            <br />
+            <b>8.</b> Você entende e concorda que ao solicitar mais de uma vez um serviço, apenas seu último
+            cadastro será considerado para fins de prestação de serviços;
+            <br />
+            <br />
+          </p>
         </div>
       </div>
       <div className="min-h-24 bg-white py-2 px-4 drop-shadow-[0_-4px_8px_rgba(0,0,0,0.08)]">
