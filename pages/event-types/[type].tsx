@@ -24,7 +24,7 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
-import Select, { OptionTypeBase } from "react-select";
+import Select from "react-select";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -42,6 +42,7 @@ import { defaultAvatarSrc } from "@lib/profile";
 import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { WorkingHours } from "@lib/types/schedule";
+import { OptionTypeBase } from "@lib/types/utils";
 
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Shell from "@components/Shell";
@@ -58,6 +59,10 @@ import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+interface LocationOptionTypeBase extends OptionTypeBase {
+  value: LocationType;
+}
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const DAILY_ONLY = true;
@@ -110,12 +115,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [editIcon, setEditIcon] = useState(true);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [selectedLocation, setSelectedLocation] = useState<LocationOptionTypeBase | undefined>(undefined);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
+  const { email: userEmail } = props.session.user || {};
+  const isAdminUser = userEmail && process.env.THETIS_ADMIN_USER_EMAILS?.split(";").includes(userEmail);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -281,8 +288,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               classNamePrefix="react-select"
               className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               onChange={(e) => {
-                locationFormMethods.setValue("locationType", e?.value);
-                openLocationModal(e?.value);
+                if (e?.value) {
+                  locationFormMethods.setValue("locationType", e.value);
+                  openLocationModal(e.value);
+                }
               }}
             />
           </div>
@@ -537,9 +546,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
+                          readOnly
                           type="text"
                           required
-                          className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-gray-500"
                           defaultValue={eventType.slug}
                           {...formMethods.register("slug")}
                         />
@@ -625,7 +635,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             value={asStringOrUndefined(eventType.schedulingType)}
                             options={schedulingTypeOptions}
                             onChange={(val) => {
-                              formMethods.setValue("schedulingType", val);
+                              formMethods.setValue(
+                                "schedulingType",
+                                val.currentTarget.value as SchedulingType
+                              );
                             }}
                           />
                         )}
@@ -1070,19 +1083,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <LinkIcon className="w-4 h-4 mr-2 text-neutral-500" />
                 {t("copy_link")}
               </button>
-              <Dialog>
-                <DialogTrigger className="flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
-                  <TrashIcon className="w-4 h-4 mr-2 text-neutral-500" />
-                  {t("delete")}
-                </DialogTrigger>
-                <ConfirmationDialogContent
-                  variety="danger"
-                  title={t("delete_event_type")}
-                  confirmBtnText={t("confirm_delete_event_type")}
-                  onConfirm={deleteEventTypeHandler}>
-                  {t("delete_event_type_description")}
-                </ConfirmationDialogContent>
-              </Dialog>
+              {isAdminUser && (
+                <Dialog>
+                  <DialogTrigger className="flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
+                    <TrashIcon className="w-4 h-4 mr-2 text-neutral-500" />
+                    {t("delete")}
+                  </DialogTrigger>
+                  <ConfirmationDialogContent
+                    variety="danger"
+                    title={t("delete_event_type")}
+                    confirmBtnText={t("confirm_delete_event_type")}
+                    onConfirm={deleteEventTypeHandler}>
+                    {t("delete_event_type_description")}
+                  </ConfirmationDialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
         </div>
@@ -1140,8 +1155,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       classNamePrefix="react-select"
                       className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                       onChange={(val) => {
-                        locationFormMethods.setValue("locationType", val.value);
-                        setSelectedLocation(val);
+                        if (val) {
+                          locationFormMethods.setValue("locationType", val.value);
+                          setSelectedLocation(val);
+                        }
                       }}
                     />
                   )}
@@ -1360,7 +1377,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const integrations = getIntegrations(credentials);
 
-  const locationOptions: OptionTypeBase[] = [];
+  const locationOptions: LocationOptionTypeBase[] = [];
 
   if (hasIntegration(integrations, "zoom_video")) {
     locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });

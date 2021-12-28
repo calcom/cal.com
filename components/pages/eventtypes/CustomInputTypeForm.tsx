@@ -1,9 +1,10 @@
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
-import Select, { OptionTypeBase } from "react-select";
+import Select from "react-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import { OptionTypeBase } from "@lib/types/utils";
 
 import Button from "@components/ui/Button";
 
@@ -13,11 +14,15 @@ interface Props {
   selectedCustomInput?: EventTypeCustomInput;
 }
 
+interface EventOptionTypeBase extends OptionTypeBase {
+  value: EventTypeCustomInputType;
+}
+
 type IFormInput = EventTypeCustomInput;
 
 const CustomInputTypeForm: FC<Props> = (props) => {
   const { t } = useLocale();
-  const inputOptions: OptionTypeBase[] = [
+  const inputOptions: EventOptionTypeBase[] = [
     { value: EventTypeCustomInputType.TEXT, label: t("text") },
     { value: EventTypeCustomInputType.TEXTLONG, label: t("multiline_text") },
     { value: EventTypeCustomInputType.NUMBER, label: t("number") },
@@ -29,7 +34,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     defaultValues,
   });
   const selectedInputType = useWatch({ name: "type", control });
-  const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value)!;
+  const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value);
 
   const onCancel = () => {
     props.onCancel();
@@ -51,7 +56,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               options={inputOptions}
               isSearchable={false}
               className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
-              onChange={(option) => field.onChange(option.value)}
+              onChange={(option) => field.onChange(option?.value)}
               value={selectedInputOption}
               onBlur={field.onBlur}
               name={field.name}
