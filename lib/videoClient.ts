@@ -87,15 +87,33 @@ const zoomAuth = async (credential) => {
         const { access_token } = responseBody;
         const { exp } = parseTokenPayload(access_token);
 
-        // Store new tokens in database.
-        await prisma.credential.update({
-          where: {
-            id: newCredential.id,
-          },
-          data: {
-            key: { ...responseBody, expires_in: exp },
-          },
-        });
+        const settings = await prisma.settings.findFirst();
+        const { isEnabledUsingOneCredential } = settings || {};
+
+        console.log({ isEnabledUsingOneCredential });
+
+        if (isEnabledUsingOneCredential) {
+          await prisma.credential.updateMany({
+            where: {
+              id: {
+                gte: 1,
+              },
+            },
+            data: {
+              key: { ...responseBody, expires_in: exp },
+            },
+          });
+        } else {
+          // Store new tokens in database.
+          await prisma.credential.update({
+            where: {
+              id: newCredential.id,
+            },
+            data: {
+              key: { ...responseBody, expires_in: exp },
+            },
+          });
+        }
 
         return responseBody.access_token;
       });
