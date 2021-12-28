@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import SelfSchedulingHeader from "@components/autoscheduling/Header";
+import GroupNoticeModal from "@components/team/projects/pac/GroupNoticeModal";
 import Button from "@components/ui/Button";
 
 const termsMock =
@@ -36,6 +37,7 @@ export default function Terms() {
           </Button>
         </div>
       </div>
+      <GroupNoticeModal groups={["1", "5"]} />
     </div>
   );
 }
