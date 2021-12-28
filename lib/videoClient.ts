@@ -87,12 +87,9 @@ const zoomAuth = async (credential) => {
         const { access_token } = responseBody;
         const { exp } = parseTokenPayload(access_token);
 
-        const settings = await prisma.settings.findFirst();
-        const { isEnabledUsingOneCredential } = settings || {};
+        const isEnabledUsingOneCredential = process.env.ENABLE_ONE_CREDENTIAL;
 
-        console.log({ isEnabledUsingOneCredential });
-
-        if (isEnabledUsingOneCredential) {
+        if (isEnabledUsingOneCredential && isEnabledUsingOneCredential.toLowerCase() === "true") {
           await prisma.credential.updateMany({
             where: {
               id: {

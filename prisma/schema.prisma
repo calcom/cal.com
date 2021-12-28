@@ -48,11 +48,6 @@ model Credential {
   userId Int?
 }
 
-model Settings {
-  id                          Int            @id @default(autoincrement())
-  isEnabledUsingOneCredential Boolean        @default(false)
-}
-
 model User {
   id                   Int                        @id @default(autoincrement())
   username             String?
