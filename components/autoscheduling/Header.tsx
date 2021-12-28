@@ -13,8 +13,8 @@ interface IAutoSchedulingHeaderProps {
 }
 
 export default function SelfSchedulingHeader({ page, className }: IAutoSchedulingHeaderProps) {
-  const [title, setTitle] = useState<string>(DEFAULT_TITLE);
-  const [step, setStep] = useState<string | undefined>(DEFAULT_STEP);
+  const [title, setTitle] = useState<string>("");
+  const [step, setStep] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     switch (page) {
@@ -31,7 +31,7 @@ export default function SelfSchedulingHeader({ page, className }: IAutoSchedulin
         setStep("4");
         break;
       case "book":
-        setTitle("Data e horário");
+        setTitle("Data e hora disponíveis");
         setStep("5");
         break;
       case "review":
@@ -39,9 +39,10 @@ export default function SelfSchedulingHeader({ page, className }: IAutoSchedulin
         setStep(undefined);
         break;
       case "terms":
-      default:
         setTitle(DEFAULT_TITLE);
         setStep(DEFAULT_STEP);
+        break;
+      default:
         break;
     }
   }, []); // eslint-disable-line
