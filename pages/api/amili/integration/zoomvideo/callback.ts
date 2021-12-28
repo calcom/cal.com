@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../../../lib/prisma";
 
@@ -25,6 +26,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     }
   ).then((res) => res.json());
+
+  const isEnabledUsingOneCredential = process.env.ENABLE_ONE_CREDENTIAL;
+
+  const lastResult = { ...result };
+
+  if (isEnabledUsingOneCredential && isEnabledUsingOneCredential.toLowerCase() === "true") {
+    const previousCredential = await prisma.credential.findFirst();
+
+    if (previousCredential && previousCredential.key) {
+      const { key } = previousCredential;
+
+      Object.assign(lastResult, { ...(<Prisma.JsonObject>key) });
+    }
+  }
 
   await prisma.credential.create({
     data: {
