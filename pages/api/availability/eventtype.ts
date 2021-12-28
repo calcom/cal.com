@@ -7,7 +7,7 @@ import prisma from "@lib/prisma";
 import { WorkingHours } from "@lib/types/schedule";
 
 function handlePeriodType(periodType: string): PeriodType {
-  return PeriodType[periodType.toUpperCase()];
+  return PeriodType[periodType.toUpperCase() as PeriodType];
 }
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {

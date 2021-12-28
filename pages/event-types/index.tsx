@@ -31,7 +31,6 @@ import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
@@ -322,7 +321,7 @@ const EventTypesPage = () => {
   return (
     <div>
       <Head>
-        <title>Home | Cal.com</title>
+        <title>Home | The Skills</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
@@ -342,21 +341,6 @@ const EventTypesPage = () => {
           query={query}
           success={({ data }) => (
             <>
-              {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (
-                <Alert
-                  severity="warning"
-                  title={<>{t("plan_upgrade")}</>}
-                  message={
-                    <>
-                      {t("to_upgrade_go_to")}{" "}
-                      <a href={"https://cal.com/upgrade"} className="underline">
-                        {"https://cal.com/upgrade"}
-                      </a>
-                    </>
-                  }
-                  className="mb-4"
-                />
-              )}
               {data.eventTypeGroups.map((group) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}

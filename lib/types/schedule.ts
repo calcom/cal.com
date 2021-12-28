@@ -13,6 +13,6 @@ export type Schedule = TimeRange[][];
  */
 export type WorkingHours = {
   days: number[];
-  startTime: number;
-  endTime: number;
+  startTime: string | Date;
+  endTime: string | Date;
 };

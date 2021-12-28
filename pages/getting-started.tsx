@@ -122,10 +122,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
     let step = 0;
-    const hasSetUserNameOrTimeZone = props.user?.name && props.user?.timeZone;
-    if (hasSetUserNameOrTimeZone) {
-      step = 1;
-    }
 
     const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
     if (hasConfigureCalendar) {
@@ -154,7 +150,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       incrementStep();
       setSubmitting(false);
     } catch (error) {
-      console.log("handleConfirmStep", error);
+      console.error("handleConfirmStep", error);
       setSubmitting(false);
       setError(error as Error);
     }
@@ -265,7 +261,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 id="timeZone"
                 value={selectedTimeZone}
                 onChange={({ value }) => setSelectedTimeZone(value)}
-                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="text-black block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </fieldset>
           </section>
