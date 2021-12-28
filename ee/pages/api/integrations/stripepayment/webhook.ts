@@ -4,15 +4,19 @@ import Stripe from "stripe";
 
 import stripe from "@ee/lib/stripe/server";
 
-import { CalendarEvent } from "@lib/calendarClient";
+import { CalendarEvent, AdditionInformation } from "@lib/calendarClient";
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
+import { sendScheduledEmails } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
+import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { Ensure } from "@lib/types/utils";
 
 import { getTranslation } from "@server/lib/i18n";
+
+const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 export const config = {
   api: {
@@ -105,6 +109,27 @@ async function handlePaymentSuccess(event: Stripe.Event) {
         },
       },
     });
+
+    const results = scheduleResult.results;
+
+    if (results.length > 0 && results.every((res) => !res.success)) {
+      const error = {
+        errorCode: "BookingCreatingMeetingFailed",
+        message: "Booking failed",
+      };
+      log.error(`Booking ${user.name} failed`, error, results);
+    } else {
+      const metadata: AdditionInformation = {};
+
+      if (results.length) {
+        // TODO: Handle created event metadata more elegantly
+        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+        metadata.conferenceData = results[0].createdEvent?.conferenceData;
+        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+      }
+      log.info(`Booking ${user.name} succeeded.`, results);
+      await sendScheduledEmails({ ...evt, additionInformation: metadata });
+    }
   }
 }
 
