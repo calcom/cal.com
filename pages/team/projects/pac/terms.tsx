@@ -1,3 +1,4 @@
+import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import React from "react";
 
@@ -7,9 +8,14 @@ import Button from "@components/ui/Button";
 
 export default function Terms() {
   const router = useRouter();
+  const groups = ["1", "5"];
 
   return (
     <div className="bg-gray-200 h-screen flex flex-col justify-between">
+      <div className="flex items-center bg-indigo-100 px-4 py-2">
+        <CalendarIcon className="text-indigo-700 mr-2 w-8" />
+        <p className="text-sm font-bold text-indigo-700">{`Atenção! Estão sendo atendidos no momento os grupos: ${groups[0]} a ${groups[1]}.`}</p>
+      </div>
       <div className="px-4 bg-white flex flex-col overflow-hidden">
         <SelfSchedulingHeader page="terms" />
         <div className="flex-1 overflow-auto pb-4">
@@ -63,7 +69,7 @@ export default function Terms() {
           </Button>
         </div>
       </div>
-      <GroupNoticeModal groups={["1", "5"]} />
+      <GroupNoticeModal groups={groups} />
     </div>
   );
 }
