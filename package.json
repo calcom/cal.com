@@ -29,7 +29,9 @@
     "prepare": "husky install",
     "check-changed-files": "yarn ts-node scripts/ts-check-changed-files.ts",
     "prisma-migrate": "env-cmd -f .env.local npx prisma migrate dev",
-    "prisma-studio": "env-cmd -f .env.local npx prisma studio"
+    "prisma-studio": "env-cmd -f .env.local npx prisma studio",
+    "prisma-studio:staging": "env-cmd -f .env.staging.local npx prisma studio",
+    "prisma-studio:production": "env-cmd -f .env.production.local npx prisma studio"
   },
   "engines": {
     "node": ">=14.x",

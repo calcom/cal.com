@@ -54,6 +54,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("30min_meeting"),
       slug: "30min",
       length: 30,
+      locations: [{ type: "integrations:daily" }],
     },
   ];
 
