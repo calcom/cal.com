@@ -6,6 +6,7 @@ import _ from "lodash";
  * https://github.com/microsoft/playwright/issues/7121
  */
 import { validJson } from "../../lib/jsonUtils";
+import { PAYMENT_INTEGRATIONS_TYPES } from "../integrations/payment/constants/generals";
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true },
@@ -84,7 +85,7 @@ export const ALL_INTEGRATIONS = [
       process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
       process.env.STRIPE_PRIVATE_KEY
     ),
-    type: "stripe_payment",
+    type: PAYMENT_INTEGRATIONS_TYPES.stripe,
     title: "Stripe",
     imageSrc: "integrations/stripe.svg",
     description: "Collect payments",

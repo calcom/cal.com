@@ -2,13 +2,12 @@ import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
-import stripe from "@ee/lib/stripe/server";
-
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { STRIPE } from "@lib/integrations/payment/constants/stripeConstats";
 import prisma from "@lib/prisma";
 import { Ensure } from "@lib/types/utils";
 
@@ -136,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
 
-    const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    const event = STRIPE.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
     const handler = webhookHandlers[event.type];
     if (handler) {

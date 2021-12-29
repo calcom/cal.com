@@ -1,13 +1,13 @@
-import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
+import { Prisma, User, Booking, SchedulingType, BookingStatus, Credential } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import { sendDeclinedEmails } from "@lib/emails/email-manager";
 import { sendScheduledEmails } from "@lib/emails/email-manager";
 import EventManager from "@lib/events/EventManager";
 import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
+import { getPaymentMethod } from "@lib/integrations/payment/PaymentManager";
+import { PAYMENT_INTEGRATIONS_TYPES } from "@lib/integrations/payment/constants/generals";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
@@ -167,7 +167,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(204).end();
     } else {
-      await refund(booking, evt);
+      const paymentMethod = getPaymentMethod({ type: PAYMENT_INTEGRATIONS_TYPES.stripe } as Credential);
+      await paymentMethod?.refund(booking, evt);
 
       await prisma.booking.update({
         where: {

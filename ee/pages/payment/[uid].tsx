@@ -1,8 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 
-import { PaymentData } from "@ee/lib/stripe/server";
-
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { PaymentData } from "@lib/integrations/payment/constants/types";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

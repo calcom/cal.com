@@ -9,8 +9,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { handlePayment } from "@ee/lib/stripe/server";
-
 import {
   sendScheduledEmails,
   sendRescheduledEmails,
@@ -23,6 +21,8 @@ import EventManager, { EventResult, PartialReference } from "@lib/events/EventMa
 import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
 import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
 import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office365Calendar";
+import { getPaymentMethod } from "@lib/integrations/payment/PaymentManager";
+import { PAYMENT_INTEGRATIONS_TYPES } from "@lib/integrations/payment/constants/generals";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
@@ -520,11 +520,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (typeof eventType.price === "number" && eventType.price > 0) {
     try {
-      const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
+      const [firstStripeCredential] = user.credentials.filter(
+        (cred) => cred.type == PAYMENT_INTEGRATIONS_TYPES.stripe
+      );
       if (!booking.user) booking.user = user;
-      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
-      res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment.uid });
+      const paymentMethod = getPaymentMethod({ type: PAYMENT_INTEGRATIONS_TYPES.stripe } as Credential);
+      const payment = await paymentMethod?.handlePayment(evt, eventType, firstStripeCredential, booking);
+
+      res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment?.uid });
       return;
     } catch (e) {
       log.error(`Creating payment failed`, e);

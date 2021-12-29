@@ -9,11 +9,11 @@ import React, { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import PaymentComponent from "@ee/components/stripe/Payment";
-import getStripe from "@ee/lib/stripe/client";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
+import { getStripe } from "@lib/integrations/payment/utils/stripeUtils";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -108,7 +108,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         payment={props.payment}
                         eventType={props.eventType}
                         user={props.user}
-                        location={props.booking.location}
+                        location={props.booking.location || ""}
                       />
                     </Elements>
                   )}

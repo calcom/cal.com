@@ -1,8 +1,6 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, Credential } from "@prisma/client";
 import async from "async";
 import { NextApiRequest, NextApiResponse } from "next";
-
-import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -10,6 +8,8 @@ import { sendCancelledEmails } from "@lib/emails/email-manager";
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { getPaymentMethod } from "@lib/integrations/payment/PaymentManager";
+import { PAYMENT_INTEGRATIONS_TYPES } from "@lib/integrations/payment/constants/generals";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -165,7 +165,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       uid: bookingToDelete.uid ?? "",
       language: t,
     };
-    await refund(bookingToDelete, evt);
+
+    const paymentMethod = getPaymentMethod({ type: PAYMENT_INTEGRATIONS_TYPES.stripe } as Credential);
+    await paymentMethod?.refund(bookingToDelete, evt);
     await prisma.booking.update({
       where: {
         id: bookingToDelete.id,

@@ -4,10 +4,9 @@ import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import React, { SyntheticEvent, useEffect, useState } from "react";
 
-import { PaymentData } from "@ee/lib/stripe/server";
-
 import useDarkMode from "@lib/core/browser/useDarkMode";
 import { useLocale } from "@lib/hooks/useLocale";
+import { PaymentData } from "@lib/integrations/payment/constants/types";
 
 import Button from "@components/ui/Button";
 
