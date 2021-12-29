@@ -40,14 +40,20 @@ import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 const { CALENDSO_ENCRYPTION_KEY = "" } = process.env;
 
 export default abstract class BaseCalendarService implements Calendar {
-  private url: string;
-  private credentials: Record<string, string>;
-  private headers: Record<string, string>;
+  private url = "";
+  private credentials: Record<string, string> = {};
+  private headers: Record<string, string> = {};
   protected integrationName = DEFAULT_CALENDAR_INTEGRATION_NAME;
 
   log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
   constructor(credential: Credential, integrationName: string, url?: string) {
+    this.integrationName = integrationName;
+
+    this.getCredentials(credential, url);
+  }
+
+  async getCredentials(credential: Credential, url?: string): Promise<void> {
     const {
       username,
       password,
@@ -55,7 +61,7 @@ export default abstract class BaseCalendarService implements Calendar {
     } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
 
     this.url = url || credentialURL;
-    this.integrationName = integrationName;
+
     this.credentials = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });
   }
