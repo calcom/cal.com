@@ -2,6 +2,7 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
+import Avatar2 from "pages/[user]/avatar";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
@@ -220,7 +221,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 />
               </div>
             </div>
-
+            <Avatar2 />
             <div className="block sm:flex">
               <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
