@@ -62,9 +62,9 @@ export default function TeamAvailabilityScreen(props: Props) {
 
   return (
     <div className="flex flex-col flex-1 bg-white border rounded-sm border-neutral-200">
-      <div className="flex w-full p-5 pr-0 space-x-5 border-b border-gray-200">
+      <div className="flex w-full p-4 space-x-5 border-b border-gray-200">
         <div className="flex flex-col">
-          <span className="font-bold text-gray-600">Date</span>
+          <span className="text-sm font-medium text-neutral-700">Date</span>
           <DatePicker
             date={selectedDate.toDate()}
             className="p-1.5"
@@ -74,7 +74,7 @@ export default function TeamAvailabilityScreen(props: Props) {
           />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-gray-600">Timezone</span>
+          <span className="text-sm font-medium text-neutral-700">Timezone</span>
           <TimezoneSelect
             id="timeZone"
             value={selectedTimeZone}
@@ -83,8 +83,8 @@ export default function TeamAvailabilityScreen(props: Props) {
             className="w-full border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
           />
         </div>
-        <div>
-          <span className="font-bold text-gray-600">Slot Length</span>
+        <div className="hidden sm:block">
+          <span className="text-sm font-medium text-neutral-700">Slot Length</span>
           <Select
             options={[
               { value: 15, label: "15 minutes" },
