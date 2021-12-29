@@ -41,6 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    return res.status(200).json({ message: "Events.", data: user.eventTypes });
+    return res.status(200).json({ message: "Events.", data: user?.eventTypes });
   }
 }

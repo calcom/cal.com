@@ -1,6 +1,6 @@
-import { MetaMaskInpageProvider } from "@metamask/providers";
 import { useCallback, useMemo, useState } from "react";
 import Web3 from "web3";
+import { AbiItem } from "web3-utils";
 
 import showToast from "@lib/notification";
 
@@ -9,7 +9,7 @@ import { Button } from "@components/ui/Button";
 import genericAbi from "../web3/abis/abiWithGetBalance.json";
 
 interface Window {
-  ethereum: MetaMaskInpageProvider;
+  ethereum: any;
   web3: Web3;
 }
 
@@ -43,7 +43,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   const verifyWallet = useCallback(async () => {
     try {
-      const contract = new window.web3.eth.Contract(genericAbi, props.scAddress);
+      const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.scAddress);
       const balance = await contract.methods.balanceOf(window.ethereum.selectedAddress).call();
 
       const hasToken = balance > 0;
