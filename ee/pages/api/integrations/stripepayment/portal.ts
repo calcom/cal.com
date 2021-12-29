@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let customerId = "";
 
-    if (user?.metadata && typeof user?.metadata === "object" && "stripeCustomerId" in user?.metadata) {
+    if (user?.metadata && typeof user.metadata === "object" && "stripeCustomerId" in user.metadata) {
       customerId = (user?.metadata as Prisma.JsonObject).stripeCustomerId as string;
     } else {
       /* We fallback to finding the customer by email (which is not optimal) */
