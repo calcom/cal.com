@@ -1,4 +1,4 @@
-import { DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import { DestinationCalendar, SelectedCalendar, Credential } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
 import { PaymentInfo } from "@ee/lib/stripe/server";
@@ -62,6 +62,8 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
 type EventBusyDate = Record<"start" | "end", Date | string>;
 
 export interface Calendar {
+  getCredentials?(credential: Credential, url?: string): Promise<void>;
+
   createEvent(event: CalendarEvent): Promise<NewCalendarEventType>;
 
   updateEvent(uid: string, event: CalendarEvent): Promise<any>;
