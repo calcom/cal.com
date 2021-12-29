@@ -26,13 +26,13 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
 
-import { StripeData } from "@ee/lib/stripe/server";
-
-import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
+import { asNumberOrUndefined, asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { PAYMENT_INTEGRATIONS_TYPES } from "@lib/integrations/payment/constants/generals";
+import { StripeData } from "@lib/integrations/payment/constants/types";
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
@@ -1675,7 +1675,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       disabled: true,
     });
   }
-  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  const hasPaymentIntegration = hasIntegration(integrations, PAYMENT_INTEGRATIONS_TYPES.stripe);
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({
       value: LocationType.GoogleMeet,
@@ -1704,8 +1704,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     locationOptions.push({ value: LocationType.Tandem, label: "Tandem Video" });
   }
   const currency =
-    (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
-      ?.default_currency || "usd";
+    (
+      credentials.find((integration) => integration.type === PAYMENT_INTEGRATIONS_TYPES.stripe)
+        ?.key as unknown as StripeData
+    )?.default_currency || "usd";
 
   if (hasIntegration(integrations, "office365_calendar")) {
     // TODO: Add default meeting option of the office integration.

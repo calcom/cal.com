@@ -1,9 +1,8 @@
 import { DestinationCalendar, SelectedCalendar } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
-import { PaymentInfo } from "@ee/lib/stripe/server";
-
 import type { Event } from "@lib/events/EventManager";
+import { PaymentInfo } from "@lib/integrations/payment/constants/types";
 import { Ensure } from "@lib/types/utils";
 import { VideoCallData } from "@lib/videoClient";
 

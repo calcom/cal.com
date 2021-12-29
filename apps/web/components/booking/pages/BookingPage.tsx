@@ -12,13 +12,13 @@ import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 
-import { createPaymentLink } from "@ee/lib/stripe/client";
-
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
+import { PaymentLinkDetail } from "@lib/integrations/payment/interfaces/PaymentMethod";
+import { createPaymentLink } from "@lib/integrations/payment/utils/stripeUtils";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
@@ -70,14 +70,14 @@ const BookingPage = (props: BookingPageProps) => {
     onSuccess: async (responseData) => {
       const { attendees, paymentUid } = responseData;
       if (paymentUid) {
-        return await router.push(
-          createPaymentLink({
-            paymentUid,
-            date,
-            name: attendees[0].name,
-            absolute: false,
-          })
-        );
+        const paymentLinkDetail = {
+          paymentUid,
+          date,
+          name: attendees[0].name,
+          absolute: false,
+        } as PaymentLinkDetail;
+
+        return await router.push(createPaymentLink(paymentLinkDetail));
       }
 
       const location = (function humanReadableLocation(location) {
