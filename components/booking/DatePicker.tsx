@@ -97,7 +97,7 @@ function DatePicker({
       return [];
     }
     // Create placeholder elements for empty days in first week
-    let weekdayOfFirst = browsingDate.startOf("month").day();
+    let weekdayOfFirst = browsingDate.date(1).day();
     if (weekStart === "Monday") {
       weekdayOfFirst -= 1;
       if (weekdayOfFirst < 0) weekdayOfFirst = 6;
