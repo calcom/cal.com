@@ -1,6 +1,9 @@
 import { Browser, chromium } from "@playwright/test";
+import fs from "fs";
 
 async function loginAsUser(username: string, browser: Browser) {
+  // Skip is file exists
+  if (fs.existsSync(`playwright/artifacts/${username}StorageState.json`)) return;
   const page = await browser.newPage();
   await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
   // Click input[name="email"]
