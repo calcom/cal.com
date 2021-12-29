@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import { BASE_URL } from "@lib/config/constants";
+import { VIDEO_CONFERENCING_INTEGRATIONS_TYPES } from "@lib/integrations/videoConferencing/constants/generals";
 
 import prisma from "../../../../lib/prisma";
 
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       credentials: {
         create: {
-          type: "zoom_video",
+          type: VIDEO_CONFERENCING_INTEGRATIONS_TYPES.zoom,
           key: responseBody,
         },
       },

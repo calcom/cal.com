@@ -3,13 +3,23 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
+<<<<<<< HEAD:apps/web/lib/events/EventManager.ts
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
+=======
+>>>>>>> [CAL-770] add video conferencing integration improvement:lib/events/EventManager.ts
 import { createEvent, updateEvent } from "@lib/integrations/calendar/CalendarManager";
 import { AdditionInformation, CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { createMeeting, updateMeeting } from "@lib/integrations/videoConferencing/VideoConferencingManager";
+import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/videoConferencing/constants/generals";
+import { VideoCallData } from "@lib/integrations/videoConferencing/interfaces/VideoConferencing";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
+<<<<<<< HEAD:apps/web/lib/events/EventManager.ts
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
+=======
+import { Ensure } from "@lib/types/utils";
+>>>>>>> [CAL-770] add video conferencing integration improvement:lib/events/EventManager.ts
 
 export type Event = AdditionInformation & VideoCallData;
 

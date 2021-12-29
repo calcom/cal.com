@@ -33,6 +33,7 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { VIDEO_CONFERENCING_INTEGRATIONS_TYPES } from "@lib/integrations/videoConferencing/constants/generals";
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
@@ -1668,12 +1669,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const locationOptions: OptionTypeBase[] = [];
 
+<<<<<<< HEAD:apps/web/pages/event-types/[type].tsx
   if (hasIntegration(integrations, "zoom_video")) {
     locationOptions.push({
       value: LocationType.Zoom,
       label: "Zoom Video",
       disabled: true,
     });
+=======
+  if (hasIntegration(integrations, VIDEO_CONFERENCING_INTEGRATIONS_TYPES.zoom)) {
+    locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });
+>>>>>>> [CAL-770] add video conferencing integration improvement:pages/event-types/[type].tsx
   }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {

@@ -4,8 +4,8 @@ import { TFunction } from "next-i18next";
 import { PaymentInfo } from "@ee/lib/stripe/server";
 
 import type { Event } from "@lib/events/EventManager";
+import { VideoCallData } from "@lib/integrations/videoConferencing/interfaces/VideoConferencing";
 import { Ensure } from "@lib/types/utils";
-import { VideoCallData } from "@lib/videoClient";
 
 import { NewCalendarEventType } from "../constants/types";
 import { ConferenceData } from "./GoogleCalendar";
