@@ -33,6 +33,7 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { VIDEO_CONFERENCING_INTEGRATIONS_TYPES } from "@lib/integrations/videoConferencing/constants/generals";
 import { LocationType } from "@lib/location";
 import deleteEventType from "@lib/mutations/event-types/delete-event-type";
 import updateEventType from "@lib/mutations/event-types/update-event-type";
@@ -1440,7 +1441,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const locationOptions: OptionTypeBase[] = [];
 
-  if (hasIntegration(integrations, "zoom_video")) {
+  if (hasIntegration(integrations, VIDEO_CONFERENCING_INTEGRATIONS_TYPES.zoom)) {
     locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });
   }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");

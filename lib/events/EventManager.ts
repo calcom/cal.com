@@ -3,13 +3,14 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
-import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { createEvent, updateEvent } from "@lib/integrations/calendar/CalendarManager";
 import { AdditionInformation, CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { createMeeting, updateMeeting } from "@lib/integrations/videoConferencing/VideoConferencingManager";
+import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/videoConferencing/constants/generals";
+import { VideoCallData } from "@lib/integrations/videoConferencing/interfaces/VideoConferencing";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { Ensure } from "@lib/types/utils";
-import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
 export type Event = AdditionInformation & VideoCallData;
 

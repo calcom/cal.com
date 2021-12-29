@@ -1,4 +1,3 @@
-// import { getBusyVideoTimes } from "@lib/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 
@@ -66,8 +65,6 @@ export async function getUserAvailability(query: {
     dateTo.format(),
     selectedCalendars
   );
-
-  // busyTimes.push(...await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format()));
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),

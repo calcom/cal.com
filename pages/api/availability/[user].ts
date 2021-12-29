@@ -1,4 +1,3 @@
-// import { getBusyVideoTimes } from "@lib/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -68,8 +67,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     dateTo.format(),
     selectedCalendars
   );
-
-  // busyTimes.push(...await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format()));
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),

@@ -23,11 +23,11 @@ import EventManager, { EventResult, PartialReference } from "@lib/events/EventMa
 import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
 import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
 import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office365Calendar";
+import { getBusyVideoTimes } from "@lib/integrations/videoConferencing/VideoConferencingManager";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
-import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 

@@ -7,11 +7,11 @@ import { refund } from "@ee/lib/stripe/server";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
-import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { deleteMeeting } from "@lib/integrations/videoConferencing/VideoConferencingManager";
+import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/videoConferencing/constants/generals";
 import prisma from "@lib/prisma";
-import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
