@@ -55,8 +55,8 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
       if (!hasToken)
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
-    } catch (err: Error) {
-      showToast(err.message, "error");
+    } catch (err) {
+      err instanceof Error ? showToast(err.message, "error") : showToast("An error has occurred", "error");
     }
   }, [props]);
 
