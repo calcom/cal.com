@@ -11,11 +11,6 @@ export const emailHead = (headerContent: string): string => {
       #outlook a {
         padding: 0;
       }
-      title{
-        font-weight: bold;
-        font-family: "Cal Sans", "sans-serif";
-        src: url('https://cal.com/cal.ttf');
-      }
       body {
         margin: 0;
         padding: 0;
