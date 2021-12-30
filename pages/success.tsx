@@ -64,7 +64,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     const event = createEvent({
       start: [
         date.toDate().getUTCFullYear(),
-        date.toDate().getUTCMonth(),
+        (date.toDate().getUTCMonth() as number) + 1,
         date.toDate().getUTCDate(),
         date.toDate().getUTCHours(),
         date.toDate().getUTCMinutes(),
