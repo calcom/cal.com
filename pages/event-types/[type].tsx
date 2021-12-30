@@ -516,12 +516,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     advancedPayload.periodEndDate = values.periodDates.endDate || undefined;
                     advancedPayload.minimumBookingNotice = values.minimumBookingNotice;
                     advancedPayload.slotInterval = values.slotInterval;
-                    // prettier-ignore
-                    advancedPayload.price =
-                      !requirePayment ? undefined :
-                        values.price ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100) :
-                          /* otherwise */   0;
-                    advancedPayload.currency = currency; //
+                    advancedPayload.price = requirePayment
+                      ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100)
+                      : 0;
+                    advancedPayload.currency = currency;
                     advancedPayload.availability = values.scheduler.enteredAvailability || undefined;
                     advancedPayload.customInputs = values.customInputs;
                     advancedPayload.timeZone = values.scheduler.selectedTimezone;
