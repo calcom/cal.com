@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     hidden: true,
     price: true,
     currency: true,
+    scAddress: true,
     users: {
       select: {
         id: true,
@@ -34,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = await prisma.user.findUnique({
     rejectOnNotFound: true,
     where: {
-      id: session.user.id,
+      id: session?.user?.id,
     },
     select: {
       id: true,
@@ -83,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // backwards compatibility, TMP:
   const typesRaw = await prisma.eventType.findMany({
     where: {
-      userId: session.user.id,
+      userId: session?.user?.id,
     },
     select: eventTypeSelect,
   });
@@ -109,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
   const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
     ...et,
-    $disabled: user.plan === "FREE" && index > 0,
+    $disabled: user?.plan === "FREE" && index > 0,
   }));
 
   return res.status(200).json({ eventTypes: mergedEventTypes });

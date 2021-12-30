@@ -9,7 +9,7 @@ import { EventTypeCustomInputType } from "@prisma/client";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
@@ -39,9 +39,22 @@ import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
+type BookingFormValues = {
+  name: string;
+  email: string;
+  notes?: string;
+  locationType?: LocationType;
+  guests?: string[];
+  phone?: string;
+  customInputs?: {
+    [key: string]: string;
+  };
+};
+
 const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
+
   /*
    * This was too optimistic
    * I started, then I remembered what a beast book/event.ts is
@@ -52,6 +65,7 @@ const BookingPage = (props: BookingPageProps) => {
       // go to success page.
     },
   });*/
+
   const mutation = useMutation(createBooking, {
     onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
@@ -312,6 +326,12 @@ const BookingPage = (props: BookingPageProps) => {
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {parseDate(date)}
                 </p>
+                {props.eventType.scAddress && (
+                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                    Requires ownership of a token belonging to the following address:{" "}
+                    {props.eventType.scAddress}
+                  </p>
+                )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
