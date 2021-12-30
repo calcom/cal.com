@@ -566,5 +566,7 @@
   "error_required_field": "This field is required.",
   "status": "Status",
   "team_view_user_availability": "View user availability",
-  "team_view_user_availability_disabled": "User needs to accept invite to view availability"
+  "team_view_user_availability_disabled": "User needs to accept invite to view availability",
+  "meet_people_with_the_same_tokens": "Meet people with the same tokens",
+  "only_book_people_and_allow": "Only book and allow bookings from people who share the same tokens, DAOs, or NFTs."
 }
