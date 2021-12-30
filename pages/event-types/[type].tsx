@@ -58,6 +58,8 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 
+import bloxyApi from "../../web3/dummyResps/bloxyApi";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -168,16 +170,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   useEffect(() => {
     const fetchTokens = async () => {
       // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
-
-      // TODO @danfesi we should also disable the API calls for web3 if it's disabled
       try {
-        const erc20sList: Array<Token> = (
-          await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
-        ).data
-          .slice(0, 100)
-          .forEach((erc20: Token) => {
+        const erc20sList: Array<Token> =
+          //   await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
+          // ).data
+          bloxyApi.slice(0, 100).map((erc20: Token) => {
             const { name, address, symbol } = erc20;
-            erc20sList.push({ name, address, symbol });
+            return { name, address, symbol };
           });
 
         const nftsList: Array<Token> = (await axios.get(`https://exodia.io/api/trending?page=1`)).data.map(
