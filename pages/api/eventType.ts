@@ -7,7 +7,7 @@ import prisma from "@lib/prisma";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
 
-  if (!session) {
+  if (!session?.user?.id) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = await prisma.user.findUnique({
     rejectOnNotFound: true,
     where: {
-      id: session?.user?.id,
+      id: session.user.id,
     },
     select: {
       id: true,
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // backwards compatibility, TMP:
   const typesRaw = await prisma.eventType.findMany({
     where: {
-      userId: session?.user?.id,
+      userId: session.user.id,
     },
     select: eventTypeSelect,
   });
