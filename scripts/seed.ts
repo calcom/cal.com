@@ -229,6 +229,12 @@ async function main() {
         length: 60,
         price: 50,
       },
+      {
+        title: "opt-in",
+        slug: "opt-in",
+        length: 60,
+        requiresConfirmation: true,
+      },
     ],
   });
 

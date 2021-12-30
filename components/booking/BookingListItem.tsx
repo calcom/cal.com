@@ -5,6 +5,7 @@ import { useMutation } from "react-query";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import TableActions, { ActionType } from "@components/ui/TableActions";
@@ -27,6 +28,7 @@ function BookingListItem(booking: BookingItem) {
       if (!res.ok) {
         throw new HttpError({ statusCode: res.status });
       }
+      showToast(t("booking_confirmed"), "success");
     },
     {
       async onSettled() {
