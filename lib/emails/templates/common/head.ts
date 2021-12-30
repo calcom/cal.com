@@ -10,7 +10,7 @@ export const emailHead = (headerContent: string): string => {
     <style type="text/css">
       @font-face {
         font-family: "Cal Sans";
-        src: url('https://cal.com/cal.ttf');
+        src: url('https://cal.com/cal.ttf') format('truetype');
       }
       #outlook a {
         padding: 0;
