@@ -22,7 +22,8 @@ declare const window: Window;
 interface CryptoSectionProps {
   id: number | string;
   scAddress: string;
-  oneStep: boolean; // When set to true, there will be only 1 button which will both connect Metamask and verify the user's wallet. Otherwise, it will be in 2 steps with 2 buttons.
+  /** When set to true, there will be only 1 button which will both connect Metamask and verify the user's wallet. Otherwise, it will be in 2 steps with 2 buttons. */
+  oneStep: boolean;
   verified: boolean | undefined;
   setEvtsToVerify: React.Dispatch<React.SetStateAction<Record<number | string, boolean>>>;
 }
