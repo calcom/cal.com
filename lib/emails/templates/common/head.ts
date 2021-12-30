@@ -11,7 +11,11 @@ export const emailHead = (headerContent: string): string => {
       #outlook a {
         padding: 0;
       }
-
+      title{
+        font-weight: bold;
+        font-family: "Cal Sans", "sans-serif";
+        src: url('https://cal.com/cal.ttf');
+      }
       body {
         margin: 0;
         padding: 0;
@@ -60,7 +64,7 @@ export const emailHead = (headerContent: string): string => {
     <style type="text/css">
       @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700);
     </style>
-    <!--<![endif]-->
+    <!--<![endif]-->          
     <style type="text/css">
       @media only screen and (min-width:480px) {
         .mj-column-per-100 {
