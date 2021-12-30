@@ -8,6 +8,10 @@ export const emailHead = (headerContent: string): string => {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
+      @font-face {
+        font-family: "Cal Sans";
+        src: url('https://cal.com/cal.ttf');
+      }
       #outlook a {
         padding: 0;
       }
