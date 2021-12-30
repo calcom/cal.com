@@ -61,6 +61,10 @@ import * as RadioArea from "@components/ui/form/radio-area";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+// TODO @danfesi we need to get this boolean from user_settings
+// we should also disable the other API calls for web3 if it's disabled
+const web3App = true;
+
 interface Token {
   name?: string;
   address: string;
@@ -164,6 +168,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   useEffect(() => {
     const fetchTokens = async () => {
       // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
+
+      // TODO @danfesi we should also disable the API calls for web3 if it's disabled
       try {
         const erc20sList: Array<Token> = (
           await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
@@ -775,24 +781,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                       </div>
-                      <div className="items-center block sm:flex">
-                        <div className="mb-4 min-w-48 sm:mb-0">
-                          <label htmlFor="scAddress" className="flex text-sm font-medium text-neutral-700">
-                            {t("Smart Contract Address")}
-                          </label>
-                        </div>
-                        <div className="w-full">
-                          <div className="relative mt-1 rounded-sm shadow-sm">
-                            <input
-                              type="text"
-                              className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                              placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                              defaultValue={eventType.scAddress || ""}
-                              {...formMethods.register("scAddress")}
-                            />
+                      {web3App && (
+                        <div className="items-center block sm:flex">
+                          <div className="mb-4 min-w-48 sm:mb-0">
+                            <label htmlFor="scAddress" className="flex text-sm font-medium text-neutral-700">
+                              {t("Smart Contract Address")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <div className="relative mt-1 rounded-sm shadow-sm">
+                              <input
+                                type="text"
+                                className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                                defaultValue={eventType.scAddress || ""}
+                                {...formMethods.register("scAddress")}
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                       <div className="items-center block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
                           <label
