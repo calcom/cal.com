@@ -543,6 +543,32 @@ function IntegrationsContainer() {
   );
 }
 
+function Web3Container() {
+  const { t } = useLocale();
+
+  return (
+    <>
+      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} />
+      <div className="lg:pb-8 lg:col-span-9">
+        <List>
+          <ListItem className={classNames("flex-col")}>
+            <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+              <Image width={40} height={40} src="/integrations/metamask.svg" alt="Embed" />
+              <div className="flex-grow pl-2 truncate">
+                <ListItemTitle component="h3">MetaMask</ListItemTitle>
+                <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
+              </div>
+              <Button color="secondary" onClick={() => alert("activate web3 app")} data-testid="new_webhook">
+                {t("connect")}
+              </Button>
+            </div>
+          </ListItem>
+        </List>
+      </div>
+    </>
+  );
+}
+
 export default function IntegrationsPage() {
   const { t } = useLocale();
 
@@ -553,6 +579,7 @@ export default function IntegrationsPage() {
         <CalendarListContainer />
         <WebhookListContainer />
         <IframeEmbedContainer />
+        <Web3Container />
       </ClientSuspense>
     </Shell>
   );
