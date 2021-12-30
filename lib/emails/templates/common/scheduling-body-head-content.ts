@@ -12,7 +12,7 @@ export const emailScheduledBodyHeaderContent = (title: string, subtitle: string)
                 <tbody>
                   <tr>
                     <td align="center" style="font-size:0px;padding:10px 25px;padding-top:24px;padding-bottom:0px;word-break:break-word;">
-                      <div style="font-family: "Cal Sans", "sans-serif";src: url('https://cal.com/cal.ttf');font-size:24px;font-weight:700;line-height:24px;text-align:center;color:#292929;">${title}</div>
+                      <div style="font-family: Cal Sans, sans-serif;src: url('https://cal.com/cal.ttf');font-size:24px;font-weight:700;line-height:24px;text-align:center;color:#292929;">${title}</div>
                     </td>
                   </tr>
                   <tr>
