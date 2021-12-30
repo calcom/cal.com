@@ -16,6 +16,7 @@ import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
+import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
@@ -242,6 +243,7 @@ export default function Shell(props: {
                   ))}
                 </nav>
               </div>
+              <TrialBanner />
               <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
                 <span className="hidden lg:inline">
                   <UserDropdown />
