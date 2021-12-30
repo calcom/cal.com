@@ -46,6 +46,7 @@ import { WorkingHours } from "@lib/types/schedule";
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -500,8 +501,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         <div className="block mx-auto sm:flex md:max-w-5xl">
           <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
-              <form
-                onSubmit={formMethods.handleSubmit(async (values) => {
+              <Form
+                form={formMethods}
+                handleSubmit={async (values) => {
                   const enteredTitle: string = values.title;
 
                   const advancedPayload: AdvancedOptions = {};
@@ -544,7 +546,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       : {}),
                   };
                   updateMutation.mutate(payload);
-                })}
+                }}
                 className="space-y-6">
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
@@ -1105,7 +1107,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </Button>
                   <Button type="submit">{t("update")}</Button>
                 </div>
-              </form>
+              </Form>
             </div>
           </div>
           <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-[177px] ">
@@ -1176,8 +1178,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </div>
                 </div>
               </div>
-              <form
-                onSubmit={locationFormMethods.handleSubmit(async (values) => {
+              <Form
+                form={locationFormMethods}
+                handleSubmit={async (values) => {
                   const newLocation = values.locationType;
 
                   let details = {};
@@ -1200,7 +1203,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   }
 
                   setShowLocationModal(false);
-                })}>
+                }}>
                 <Controller
                   name="locationType"
                   control={locationFormMethods.control}
@@ -1233,7 +1236,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     {t("cancel")}
                   </Button>
                 </div>
-              </form>
+              </Form>
             </div>
           </DialogContent>
         </Dialog>
