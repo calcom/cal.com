@@ -16,7 +16,7 @@ export function randomString(length = 12) {
   return result;
 }
 
-type Request = IncomingMessage & { body?: unknown };
+export type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
 type RequestHandler = (opts: RequestHandlerOptions) => void;
 
