@@ -23,11 +23,8 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/D
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
-<<<<<<< HEAD
-import { TextField } from "@components/form/fields";
-=======
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
->>>>>>> 24a005a9 (--WIP)
+import { TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
