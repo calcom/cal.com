@@ -120,25 +120,25 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
 
   const deleteAccount = async () => {
     // get all memberships
-    const memberships = await fetch("/api/user/membership")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("data", data);
-        return data;
-      });
+    // const memberships = await fetch("/api/user/membership")
+    //   .then((res) => res.json())
+    //   .then((data) => {
+    //     console.log("data", data);
+    //     return data;
+    //   });
 
-    console.log("Memberships", memberships.membership);
+    // console.log("Memberships", memberships.membership);
 
-    // // remove all memberships if any
-    for (const team of memberships.membership) {
-      await fetch("/api/user/membership", {
-        method: "DELETE",
-        body: JSON.stringify({ teamId: team.id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then(console.log("team: " + team.id + " membership removed"));
-    }
+    // // // remove all memberships if any
+    // for (const team of memberships.membership) {
+    //   await fetch("/api/user/membership", {
+    //     method: "DELETE",
+    //     body: JSON.stringify({ teamId: team.id }),
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }).then(console.log("team: " + team.id + " membership removed"));
+    // }
 
     // remove any related/selected calendars
 
