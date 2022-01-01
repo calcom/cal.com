@@ -1,10 +1,10 @@
-import jackson from "@boxyhq/saml-jackson";
+import jackson, { IAPIController, IOAuthController, JacksonOption } from "@boxyhq/saml-jackson";
 
 import { BASE_URL } from "@lib/config/constants";
 import { samlDatabaseUrl } from "@lib/saml";
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
-const opts = {
+const opts: JacksonOption = {
   externalUrl: BASE_URL,
   samlPath: "/api/auth/saml/callback",
   db: {
@@ -16,9 +16,10 @@ const opts = {
   samlAudience: "https://saml.cal.com",
 };
 
-let apiController: any;
-let oauthController: any;
+let apiController: IAPIController;
+let oauthController: IOAuthController;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const g = global as any;
 
 export default async function init() {
