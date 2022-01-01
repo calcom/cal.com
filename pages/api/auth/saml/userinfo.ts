@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!token) {
       res.status(401).json({ message: "Unauthorized" });
+      return;
     }
 
     const profile = await oauthController.userInfo(token);
