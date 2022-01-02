@@ -50,10 +50,6 @@ export default abstract class BaseCalendarService implements Calendar {
   constructor(credential: Credential, integrationName: string, url?: string) {
     this.integrationName = integrationName;
 
-    this.getCredentials(credential, url);
-  }
-
-  async getCredentials(credential: Credential, url?: string): Promise<void> {
     const {
       username,
       password,
@@ -205,9 +201,13 @@ export default abstract class BaseCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    this.log.info(`dateFrom: ${dateFrom}, dateTo: ${dateTo}, selectedCalendars: ${selectedCalendars}`);
+    this.log.warn(
+      `Method not implemented. dateFrom: ${dateFrom}, dateTo: ${dateTo}, selectedCalendars: ${selectedCalendars}`
+    );
 
-    throw new Error("Method not implemented.");
+    const eventsBusyDate: EventBusyDate[] = [];
+
+    return Promise.resolve(eventsBusyDate);
   }
 
   async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {

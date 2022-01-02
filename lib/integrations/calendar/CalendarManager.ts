@@ -10,9 +10,8 @@ import notEmpty from "@lib/notEmpty";
 import { ALL_INTEGRATIONS } from "../getIntegrations";
 import { CALENDAR_INTEGRATIONS_TYPES } from "./constants/generals";
 import { CalendarServiceType } from "./constants/types";
-import { CalendarEvent } from "./interfaces/Calendar";
+import { Calendar, CalendarEvent } from "./interfaces/Calendar";
 import AppleCalendarService from "./services/AppleCalendarService";
-import CalendarService from "./services/BaseCalendarService";
 import CalDavCalendarService from "./services/CalDavCalendarService";
 import GoogleCalendarService from "./services/GoogleCalendarService";
 import Office365CalendarService from "./services/Office365CalendarService";
@@ -26,7 +25,7 @@ const CALENDARS: Record<string, CalendarServiceType> = {
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = (credential: Credential): CalendarService | null => {
+export const getCalendar = (credential: Credential): Calendar | null => {
   const { type: calendarType } = credential;
 
   const calendar = CALENDARS[calendarType];
@@ -107,10 +106,18 @@ export const getBusyCalendarTimes = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ) => {
-  const calendars = withCredentials.map((credential) => getCalendar(credential)).filter(notEmpty);
+  const calendars = withCredentials
+    .filter((credential) => credential.type.endsWith("_calendar"))
+    .map((credential) => getCalendar(credential))
+    .filter(notEmpty);
+
   const results = await Promise.all(
     calendars.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
   );
+  console.log(results);
+
+  console.log("get results");
+  console.log(results);
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 

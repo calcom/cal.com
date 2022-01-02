@@ -3,20 +3,25 @@ import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2clien
 import { Auth, calendar_v3, google } from "googleapis";
 
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
+import { CALENDAR_INTEGRATIONS_TYPES } from "@lib/integrations/calendar/constants/generals";
+import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 
-import { CALENDAR_INTEGRATIONS_TYPES } from "../constants/generals";
 import { EventBusyDate, NewCalendarEventType } from "../constants/types";
-import { CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
+import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import CalendarService from "./BaseCalendarService";
 
 const { GOOGLE_API_CREDENTIALS = "" } = process.env;
 
-export default class GoogleCalendarService extends CalendarService {
-  private auth;
+export default class GoogleCalendarService implements Calendar {
+  private url = "";
+  private integrationName = "";
+  private auth: { getToken: () => Promise<MyGoogleAuth> };
+
+  log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
   constructor(credential: Credential) {
-    super(credential, CALENDAR_INTEGRATIONS_TYPES.google);
+    this.integrationName = CALENDAR_INTEGRATIONS_TYPES.google;
 
     this.auth = this.googleAuth(credential);
   }

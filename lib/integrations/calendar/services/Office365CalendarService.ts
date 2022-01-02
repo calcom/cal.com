@@ -3,22 +3,25 @@ import { Credential } from "@prisma/client";
 
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
+import { CALENDAR_INTEGRATIONS_TYPES } from "@lib/integrations/calendar/constants/generals";
+import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 
-import { CALENDAR_INTEGRATIONS_TYPES } from "../constants/generals";
 import { BatchResponse, EventBusyDate, NewCalendarEventType } from "../constants/types";
-import { CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
+import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import { BufferedBusyTime, O365AuthCredentials } from "../interfaces/Office365Calendar";
-import CalendarService from "./BaseCalendarService";
 
 const { MS_GRAPH_CLIENT_ID = "", MS_GRAPH_CLIENT_SECRET = "" } = process.env;
 
-export default class Office365CalendarService extends CalendarService {
-  private auth;
+export default class Office365CalendarService implements Calendar {
+  private url = "";
+  private integrationName = "";
+  auth: { getToken: () => Promise<string> };
+
+  log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
   constructor(credential: Credential) {
-    super(credential, CALENDAR_INTEGRATIONS_TYPES.office365);
-
+    this.integrationName = CALENDAR_INTEGRATIONS_TYPES.office365;
     this.auth = this.o365Auth(credential);
   }
 
