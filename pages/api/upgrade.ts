@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (req.method !== "POST") {
+  if (req.method !== "GET") {
     throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
   }
 
@@ -27,19 +27,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const response = await fetch(`${WEBSITE_URL}/api/upgrade`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      stripeCustomerId: (user.metadata as Prisma.JsonObject)?.stripeCustomerId,
-      email: user.email,
-      fromApp: true,
-    }),
-  });
-  const data = await response.json();
+  try {
+    const response = await fetch(`${WEBSITE_URL}/api/upgrade`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        stripeCustomerId: (user.metadata as Prisma.JsonObject)?.stripeCustomerId,
+        email: user.email,
+        fromApp: true,
+      }),
+    });
+    const data = await response.json();
 
-  res.status(response.status).json(data);
+    res.redirect(303, data.url);
+  } catch (error) {
+    res.redirect(303, req.headers.origin || "/");
+  }
 }

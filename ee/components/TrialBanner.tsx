@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 
-import getStripe from "@ee/lib/stripe/client";
-
+import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { useMeQuery } from "@components/Shell";
@@ -14,40 +13,17 @@ const TrialBanner = () => {
 
   if (!user || user.plan !== "TRIAL") return null;
 
-  const trialDaysLeft = dayjs(user.createdDate).add(14, "day").diff(dayjs(), "day");
-
-  const handleClick = async () => {
-    const response = await fetch(`/api/upgrade`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = await response.json();
-    console.log(`data`, data);
-
-    if (!(response.status >= 200 && response.status < 300)) {
-      alert(data.message);
-      return;
-    }
-
-    // Redirect to Checkout.
-    const stripe = await getStripe();
-    const { error } = await stripe!.redirectToCheckout({
-      sessionId: data.id,
-    });
-
-    console.warn(error.message);
-  };
+  const trialDaysLeft = dayjs(user.createdDate)
+    .add(TRIAL_LIMIT_DAYS + 1, "day")
+    .diff(dayjs(), "day");
 
   return (
     <div className="p-4 m-4 text-sm font-medium text-center text-gray-600 bg-yellow-200 rounded-md">
       <div className="mb-2 text-left">{t("trial_days_left", { days: trialDaysLeft })}</div>
       <Button
+        href="/api/upgrade"
         color="minimal"
-        className="justify-center w-full border-2 border-gray-600 hover:bg-yellow-100"
-        onClick={handleClick}>
+        className="justify-center w-full border-2 border-gray-600 hover:bg-yellow-100">
         {t("upgrade_now")}
       </Button>
     </div>
