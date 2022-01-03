@@ -18,7 +18,9 @@ const TrialBanner = () => {
     .diff(dayjs(), "day");
 
   return (
-    <div className="p-4 m-4 text-sm font-medium text-center text-gray-600 bg-yellow-200 rounded-md">
+    <div
+      className="p-4 m-4 text-sm font-medium text-center text-gray-600 bg-yellow-200 rounded-md"
+      data-testid="trial-banner">
       <div className="mb-2 text-left">{t("trial_days_left", { days: trialDaysLeft })}</div>
       <Button
         href="/api/upgrade"
