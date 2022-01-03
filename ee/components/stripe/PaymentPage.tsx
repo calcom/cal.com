@@ -64,7 +64,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     </h3>
                     <div className="mt-3">
                       <p className="text-sm text-neutral-600 dark:text-gray-300">
-                        {t("pay_later_instructions")}
+                        {/* {t("pay_later_instructions")} */}
                       </p>
                     </div>
                     <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b dark:text-gray-300 dark:border-gray-900">
