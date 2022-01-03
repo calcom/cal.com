@@ -74,13 +74,13 @@ function BookingListItem(booking: BookingItem) {
 
   return (
     <tr className="flex">
-      <td className="hidden px-6 py-4 align-top sm:table-cell whitespace-nowrap">
+      <td className="hidden py-4 pl-6 align-top sm:table-cell whitespace-nowrap">
         <div className="text-sm leading-6 text-gray-900">{startTime}</div>
         <div className="text-sm text-gray-500">
           {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
       </td>
-      <td className={"px-6 py-4 flex-1" + (booking.rejected ? " line-through" : "")}>
+      <td className={"pl-4 py-4 flex-1" + (booking.rejected ? " line-through" : "")}>
         <div className="sm:hidden">
           {!booking.confirmed && !booking.rejected && <Tag className="mb-2 mr-2">{t("unconfirmed")}</Tag>}
           {!!booking?.eventType?.price && !booking.paid && <Tag className="mb-2 mr-2">Pending payment</Tag>}
@@ -91,7 +91,9 @@ function BookingListItem(booking: BookingItem) {
             </small>
           </div>
         </div>
-        <div className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-52 md:max-w-max">
+        <div
+          title={booking.title}
+          className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-56 md:max-w-max">
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
           {!!booking?.eventType?.price && !booking.paid && (
@@ -113,7 +115,7 @@ function BookingListItem(booking: BookingItem) {
         )}
       </td>
 
-      <td className="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+      <td className="py-4 pr-4 text-sm font-medium text-right whitespace-nowrap">
         {isUpcoming && !isCancelled ? (
           <>
             {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}
