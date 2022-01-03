@@ -44,6 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.redirect(303, data.url);
   } catch (error) {
+    console.error(`error`, error);
     res.redirect(303, req.headers.origin || "/");
   }
 }
