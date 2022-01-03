@@ -26,7 +26,7 @@ async function globalSetup(/* config: FullConfig */) {
   await loginAsUser("onboarding", browser);
   //   await loginAsUser("free-first-hidden", browser);
   await loginAsUser("pro", browser);
-  //   await loginAsUser("trial", browser);
+  await loginAsUser("trial", browser);
   await loginAsUser("free", browser);
   //   await loginAsUser("usa", browser);
   //   await loginAsUser("teamfree", browser);
