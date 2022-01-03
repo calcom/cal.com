@@ -19,6 +19,7 @@ const TrialBanner = () => {
   const handleClick = async () => {
     const response = await fetch(`/api/upgrade`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

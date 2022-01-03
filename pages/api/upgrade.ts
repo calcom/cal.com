@@ -9,8 +9,7 @@ import prisma from "@lib/prisma";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
   if (!session?.user?.id) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return res.status(401).json({ message: "Not authenticated" });
   }
 
   if (req.method !== "POST") {
@@ -30,6 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const response = await fetch(`${WEBSITE_URL}/api/upgrade`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
