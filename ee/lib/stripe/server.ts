@@ -46,6 +46,7 @@ export async function handlePayment(
     id: number;
     startTime: { toISOString: () => string };
     uid: string;
+    attendees: [{ email: string; name: string }];
   }
 ) {
   const paymentFee = Math.round(
@@ -65,13 +66,30 @@ export async function handlePayment(
   const stripeConnectAccountId = instructor.data?.stripeConnectAccountId;
   if (!stripeConnectAccountId) return { notFound: true };
 
+  const [attendee] = booking.attendees;
+  if (!attendee) return { notFound: true };
+
+  const stripeCustomers: any = await stripe.customers.list({
+    email: attendee.email,
+  });
+
+  let [stripeCustomer] = stripeCustomers.data;
+  if (!stripeCustomer) {
+    stripeCustomer = await stripe.customers.create({
+      description: attendee.name,
+      name: attendee.name,
+      email: attendee.email,
+    });
+  }
+  if (!stripeCustomer) return { notFound: true };
+
   const params: Stripe.PaymentIntentCreateParams = {
     amount: selectedEventType.price,
     setup_future_usage: "off_session",
     currency: selectedEventType.currency,
     payment_method_types: ["card"],
     application_fee_amount: paymentFee,
-    //TODO: add Stripe customer
+    customer: stripeCustomer?.id,
     description: selectedEventType.description,
     transfer_data: {
       destination: stripeConnectAccountId,
