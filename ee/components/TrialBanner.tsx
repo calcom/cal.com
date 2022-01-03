@@ -14,7 +14,7 @@ const TrialBanner = () => {
 
   if (!user || user.plan !== "TRIAL") return null;
 
-  const trialDaysLeft = dayjs().add(14, "day").diff(user.createdDate, "day");
+  const trialDaysLeft = dayjs(user.createdDate).add(14, "day").diff(dayjs(), "day");
 
   const handleClick = async () => {
     const response = await fetch(`/api/upgrade`, {
