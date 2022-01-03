@@ -1,4 +1,5 @@
-import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { Stripe } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js/pure";
 import { stringify } from "querystring";
 
 import { Maybe } from "@trpc/server";

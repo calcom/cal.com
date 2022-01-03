@@ -1,4 +1,8 @@
 {
+  "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
+  "day": "{{count}} day", 
+  "day_plural": "{{count}} days",
+  "upgrade_now": "Upgrade now",
   "accept_invitation": "Accept Invitation",
   "calcom_explained": "Cal.com is the open source Calendly alternative putting you in control of your own data, workflow and appearance.",
   "have_any_questions": "Have questions? We're here to help.",
