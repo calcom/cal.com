@@ -8,7 +8,6 @@ test("test menu integrations", async ({ page }) => {
   await page.goto("/");
   // It should redirect you to the event-types page
   await page.waitForSelector("[data-testid=event-types]");
-  // Go to /bookings/upcoming
   await page.goto('/integrations');
   let pageTitle = await page.title();
   expect(pageTitle).toMatch('Integrations');
