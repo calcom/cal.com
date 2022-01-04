@@ -2,7 +2,7 @@
 <p align="center">
   <a href="https://github.com/calendso/calendso">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
-    
+
   </a>
 
   <h3 align="center">Cal.com (formerly Calendso)</h3>
@@ -29,7 +29,7 @@
   <a href="https://github.com/calendso/calendso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
   <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
-  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>  
+  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
   <a href="https://cal.crowdin.com/Cal"><img src="https://badges.crowdin.net/e/5a55420475b48696779e30e0208a1899/localized.svg" alt="Translate Slack"></a>
 </p>
 
@@ -96,6 +96,7 @@ You will also need Google API credentials. You can get this from the [Google API
 git clone git@github.com:calendso/calendso.git
 cd calendso
 yarn
+cp .env.example .env
 yarn dx
 ```
 
