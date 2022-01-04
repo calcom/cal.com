@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CookieOption } from "next-auth";
 import Providers from "next-auth/providers";
 import { authenticator } from "otplib";
 
@@ -10,18 +10,31 @@ import prisma from "@lib/prisma";
 const useSecureCookies = NEXTAUTH_URL.startsWith("https://");
 const cookiePrefix = useSecureCookies ? "__Secure-" : "";
 const hostName = new URL(NEXTAUTH_URL).hostname;
+const cookieOptions: CookieOption["options"] = {
+  httpOnly: true,
+  sameSite: "lax",
+  path: "/",
+  secure: useSecureCookies,
+  domain: process.env.NEXTAUTH_COOKIE_DOMAIN || hostName,
+};
 
 export default NextAuth({
   cookies: {
     sessionToken: {
       name: `${cookiePrefix}next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: useSecureCookies,
-        domain: process.env.NEXTAUTH_COOKIE_DOMAIN || hostName,
-      },
+      options: cookieOptions,
+    },
+    callbackUrl: {
+      name: `__Secure-next-auth.callback-url`,
+      options: { ...cookieOptions, httpOnly: false, secure: true },
+    },
+    csrfToken: {
+      name: `__Host-next-auth.csrf-token`,
+      options: { ...cookieOptions, secure: true },
+    },
+    pkceCodeVerifier: {
+      name: `${cookiePrefix}next-auth.pkce.code_verifier`,
+      options: cookieOptions,
     },
   },
   session: {
