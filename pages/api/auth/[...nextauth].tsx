@@ -3,12 +3,13 @@ import Providers from "next-auth/providers";
 import { authenticator } from "otplib";
 
 import { ErrorCode, Session, verifyPassword } from "@lib/auth";
+import { NEXTAUTH_URL } from "@lib/config/constants";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 
-const useSecureCookies = process.env.NEXTAUTH_URL!.startsWith("https://");
+const useSecureCookies = NEXTAUTH_URL.startsWith("https://");
 const cookiePrefix = useSecureCookies ? "__Secure-" : "";
-const hostName = new URL(process.env.NEXTAUTH_URL!).hostname;
+const hostName = new URL(NEXTAUTH_URL).hostname;
 
 export default NextAuth({
   cookies: {
