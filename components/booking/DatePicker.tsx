@@ -86,11 +86,23 @@ function DatePicker({
   const { i18n } = useLocale();
   const [browsingDate, setBrowsingDate] = useState<Dayjs | null>(date);
 
+  const [month, setMonth] = useState<string>("");
+  const [year, setYear] = useState<string>("");
+  const [isFirstMonth, setIsFirstMonth] = useState<boolean>(false);
+
   useEffect(() => {
     if (!browsingDate || (date && browsingDate.utcOffset() !== date?.utcOffset())) {
       setBrowsingDate(date || dayjs().tz(timeZone()));
     }
   }, [date, browsingDate]);
+
+  useEffect(() => {
+    if (browsingDate) {
+      setMonth(browsingDate.toDate().toLocaleString(i18n.language, { month: "long" }));
+      setYear(browsingDate.format("YYYY"));
+      setIsFirstMonth(browsingDate.startOf("month").isBefore(dayjs()));
+    }
+  }, [browsingDate, i18n.language]);
 
   const days = useMemo(() => {
     if (!browsingDate) {
@@ -156,19 +168,14 @@ function DatePicker({
       }>
       <div className="flex mb-4 text-xl font-light text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong className="text-gray-900 dark:text-white">
-            {browsingDate.toDate().toLocaleString(i18n.language, { month: "long" })}
-          </strong>{" "}
-          <span className="text-gray-500">{browsingDate.format("YYYY")}</span>
+          <strong className="text-gray-900 dark:text-white">{month}</strong>{" "}
+          <span className="text-gray-500">{year}</span>
         </span>
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
-            className={classNames(
-              "group mr-2 p-1",
-              browsingDate.startOf("month").isBefore(dayjs()) && "text-gray-400 dark:text-gray-600"
-            )}
-            disabled={browsingDate.startOf("month").isBefore(dayjs())}
+            className={classNames("group mr-2 p-1", isFirstMonth && "text-gray-400 dark:text-gray-600")}
+            disabled={isFirstMonth}
             data-testid="decrementMonth">
             <ChevronLeftIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
