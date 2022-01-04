@@ -31,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const updatedEventTypes = await prisma.eventType.updateMany({
       where: {
+        hidden: false,
         users: {
           every: {
             thetisId: id,
