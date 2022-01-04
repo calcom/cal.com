@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
 import { authenticator } from "otplib";
-import { URL } from "url";
 
 import { ErrorCode, Session, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
@@ -20,7 +19,7 @@ export default NextAuth({
         sameSite: "lax",
         path: "/",
         secure: useSecureCookies,
-        domain: `${hostName === "localhost" ? "" : "."}${hostName}`, // add a . in front so that subdomains are included
+        domain: process.env.NEXTAUTH_COOKIE_DOMAIN || hostName,
       },
     },
   },
