@@ -87,44 +87,29 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
     ];
   },
   async headers() {
-    // To help with local development...
-    if (process.env.VERCEL_ENV !== 'production') {
-      return [
-        {
-          source: "/api/auth/:path*",
-          has: [
-            { type: 'header', key: 'Origin', value: '(?<origin>.*)' },
-          ],
-          headers: [
-            { key: 'Access-Control-Allow-Credentials', value: 'true' },
-            { key: 'Access-Control-Allow-Origin', value: ':origin' },
-            { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS, PATCH, DELETE, POST, PUT' },
-            { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
-          ],
-        },
-      ];
-    }
-
-    // In the other environments...
+    const headerOriginHasValue =
+      process.env.NODE_ENV !== "production" && process.env.NEXTAUTH_COOKIE_DOMAIN
+        ? "(?<origin>.*)"
+        : `(?<origin>^https://.*${process.env.NEXTAUTH_COOKIE_DOMAIN}$)`;
     return [
       // https://vercel.com/support/articles/how-to-enable-cors#enabling-cors-in-a-next.js-app
       // https://nextjs.org/docs/api-reference/next.config.js/headers#header-cookie-and-query-matching
       {
         // matching all auth API routes
         source: "/api/auth/:path*",
-         // if the origin has '.cal.com'...
-        has: [
-          // eslint-disable-next-line no-useless-escape
-          { type: 'header', key: 'Origin', value: '(?<origin>^https:\/\/.*\.cal\.com$)' },
-        ],
+        has: [{ type: "header", key: "Origin", value: headerOriginHasValue }],
         // these headers will be applied
         headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: ':origin' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET, OPTIONS, PATCH, DELETE, POST, PUT' },
-          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          { key: "Access-Control-Allow-Origin", value: ":origin" },
+          { key: "Access-Control-Allow-Methods", value: "GET, OPTIONS, PATCH, DELETE, POST, PUT" },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+          },
         ],
       },
     ];
-  }
+  },
 });
