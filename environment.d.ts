@@ -26,5 +26,7 @@ declare namespace NodeJS {
     readonly PAYMENT_FEE_FIXED: number | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly NEXT_PUBLIC_INTERCOM_APP_ID: string | undefined;
+    /** This is used if you want to override the cookie domain (Ex. allow subdomains) */
+    readonly NEXTAUTH_COOKIE_DOMAIN: string | undefined;
   }
 }
