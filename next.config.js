@@ -89,7 +89,7 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
   async headers() {
     let headerOriginHasValue = "";
     if (process.env.NODE_ENV === 'development') headerOriginHasValue = "(?<origin>.*)";
-    if (process.env.NEXTAUTH_COOKIE_DOMAIN) headerOriginHasValue = `(?<origin>^https://.*${process.env.NEXTAUTH_COOKIE_DOMAIN.replace(/\./g,'\\.')}$)`;
+    if (process.env.NEXTAUTH_COOKIE_DOMAIN) headerOriginHasValue = `(?<origin>^https://.*?${process.env.NEXTAUTH_COOKIE_DOMAIN.replace(/\./g,'\\.')}$)`;
     if (!headerOriginHasValue) return [];
     return [
       // https://vercel.com/support/articles/how-to-enable-cors#enabling-cors-in-a-next.js-app
