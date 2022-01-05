@@ -572,5 +572,7 @@
   "team_view_user_availability": "View user availability",
   "team_view_user_availability_disabled": "User needs to accept invite to view availability",
   "set_as_away": "Set yourself as away",
-  "set_as_free": "Disable away status"
+  "set_as_free": "Disable away status",
+  "user_away": "This user is currently away.",
+  "user_away_description": "This user has set themselves to away, and therefore is not accepting new bookings."
 }
