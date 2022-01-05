@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { ErrorCode, getSession, isGoogleLoginEnabled } from "@lib/auth";
+import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
 import { trpc } from "@lib/trpc";
@@ -237,7 +238,7 @@ export default function Login({
         </div>
         <div className="mt-4 text-sm text-center text-neutral-600">
           {t("dont_have_an_account")} {/* replace this with your account creation flow */}
-          <a href="https://cal.com/signup" className="font-medium text-neutral-900">
+          <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
             {t("create_an_account")}
           </a>
         </div>
