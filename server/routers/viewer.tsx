@@ -80,6 +80,21 @@ const loggedInViewerRouter = createProtectedRouter()
       return me;
     },
   })
+  .mutation("away", {
+    input: z.object({
+      away: z.boolean(),
+    }),
+    async resolve({ input, ctx }) {
+      await ctx.prisma.user.update({
+        where: {
+          email: ctx.user.email,
+        },
+        data: {
+          away: input.away,
+        },
+      });
+    },
+  })
   .query("eventTypes", {
     async resolve({ ctx }) {
       const { prisma } = ctx;
