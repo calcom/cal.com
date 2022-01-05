@@ -361,8 +361,17 @@ function UserDropdown({ small }: { small?: boolean }) {
       <DropdownMenuTrigger asChild>
         <div className="flex items-center w-full space-x-2 cursor-pointer group">
           <span
-            className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}>
+            className={classNames(
+              small ? "w-8 h-8" : "w-10 h-10",
+              "bg-gray-300 rounded-full flex-shrink-0 relative"
+            )}>
             <Avatar imageSrc={user?.avatar || ""} alt={user?.username || "Nameless User"} />
+            {!user?.away && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            )}
+            {user?.away && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-500 border-2 border-white rounded-full"></div>
+            )}
           </span>
           {!small && (
             <span className="flex items-center flex-grow truncate">

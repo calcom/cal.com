@@ -58,6 +58,7 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled,
         brandColor,
         plan,
+        away,
       } = ctx.user;
       const me = {
         id,
@@ -74,6 +75,7 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled,
         brandColor,
         plan,
+        away,
       };
       return me;
     },
