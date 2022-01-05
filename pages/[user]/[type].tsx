@@ -13,6 +13,14 @@ import { ssrInit } from "@server/lib/ssr";
 export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
+  if (typeof window !== "undefined" && window.heap) {
+    window.heap.track("View Instructor Calendar", {
+      instructorName: props.profile.name,
+      eventTypeTitle: props.eventType.title,
+      eventTypeLength: props.eventType.length,
+      eventTypePrice: props.eventType.price,
+    });
+  }
   return <AvailabilityPage {...props} />;
 }
 
