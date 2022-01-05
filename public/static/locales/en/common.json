@@ -574,5 +574,5 @@
   "set_as_away": "Set yourself as away",
   "set_as_free": "Disable away status",
   "user_away": "This user is currently away.",
-  "user_away_description": "This user has set themselves to away, and therefore is not accepting new bookings."
+  "user_away_description": "The person you are trying to book has set themselves to away, and therefore is not accepting new bookings."
 }
