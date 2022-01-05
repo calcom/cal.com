@@ -670,10 +670,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@boxyhq/saml-jackson@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@boxyhq/saml-jackson/-/saml-jackson-0.3.1.tgz#552bc57abff6a92a784c56b3f866fb05f3c31fd2"
-  integrity sha512-g4IIrKFNPOCafVfTgZhaz299mKK2mmKM3b17L4PQqqwvH9Hv9DxCMu/7to43Zcj+hjMoiZwtAnIjXbd0wMWB6Q==
+"@boxyhq/saml-jackson@0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@boxyhq/saml-jackson/-/saml-jackson-0.3.2.tgz#c0160c8d0abc9bd3762cd9b13f8c482ae0b0bb69"
+  integrity sha512-mxiJYZesOXaA2BgxoCzSMNbxOLIXTqWwcICvZ7klJdovwLfYXs/28hgF4n9nYZJ7trKRPmczKzmSjfCYL2GDrQ==
   dependencies:
     "@boxyhq/saml20" "0.2.0"
     "@peculiar/webcrypto" "1.2.3"
