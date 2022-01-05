@@ -20,6 +20,17 @@ dayjs.extend(toArray);
 dayjs.extend(timezone);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
+  if (typeof window !== "undefined" && window.heap) {
+    window.heap.track("View Calendar Payment Form", {
+      instructorName: props.profile.name,
+      eventTypeTitle: props.eventType.title,
+      eventTypeLength: props.eventType.length,
+      eventTypePrice: props.eventType.price,
+      attendeeName: props.booking.attendees[0]?.name,
+      attendeeEmail: props.booking.attendees[0]?.email,
+    });
+  }
+
   const { t } = useLocale();
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));

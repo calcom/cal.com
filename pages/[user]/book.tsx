@@ -17,6 +17,14 @@ dayjs.extend(timezone);
 export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: BookPageProps) {
+  if (typeof window !== "undefined" && window.heap) {
+    window.heap.track("View Calendar Booking Form", {
+      instructorName: props.profile.name,
+      eventTypeTitle: props.eventType.title,
+      eventTypeLength: props.eventType.length,
+      eventTypePrice: props.eventType.price,
+    });
+  }
   return <BookingPage {...props} />;
 }
 

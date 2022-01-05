@@ -14,7 +14,7 @@ export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
   if (typeof window !== "undefined" && window.heap) {
-    window.heap.track("View Instructor Calendar", {
+    window.heap.track("View Calendar", {
       instructorName: props.profile.name,
       eventTypeTitle: props.eventType.title,
       eventTypeLength: props.eventType.length,

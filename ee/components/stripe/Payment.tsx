@@ -35,8 +35,8 @@ type Props = {
   payment: {
     data: PaymentData;
   };
-  eventType: { id: number };
-  user: { username: string | null };
+  eventType: { id: number; title: string; length: number; price: number };
+  user: { username: string | null; name: string | null };
   location: string;
 };
 
@@ -72,6 +72,18 @@ export default function PaymentComponent(props: Props) {
 
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
+
+    if (typeof window !== "undefined" && window.heap) {
+      window.heap.track("Purchase", {
+        productType: "1-on-1",
+        instructorProfile: props.user.name,
+        instructorName: props.user.name,
+        amount: props.eventType.price,
+        eventTypeTitle: props.eventType.title,
+        eventTypeLength: props.eventType.length,
+        eventTypePrice: props.eventType.price,
+      });
+    }
 
     if (!stripe || !elements) return;
     const card = elements.getElement(CardElement);

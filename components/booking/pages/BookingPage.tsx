@@ -38,6 +38,7 @@ import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
+type HeapIdentify = (email: string) => void;
 
 const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
@@ -183,6 +184,17 @@ const BookingPage = (props: BookingPageProps) => {
   };
 
   const bookEvent = (booking: BookingFormValues) => {
+    if (typeof window !== "undefined" && window.heap) {
+      (window.heap.identify as HeapIdentify)(booking.email);
+      window.heap.track("Submit Calendar Booking Form", {
+        instructorName: props.profile.name,
+        eventTypeTitle: props.eventType.title,
+        eventTypeLength: props.eventType.length,
+        attendeeName: booking.name,
+        attendeeEmail: booking.email,
+      });
+    }
+
     telemetry.withJitsu((jitsu) =>
       jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
     );
