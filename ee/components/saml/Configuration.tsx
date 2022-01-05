@@ -15,7 +15,7 @@ export default function SAMLConfiguration({
   teamId: null | undefined | number;
 }) {
   const [isSAMLLoginEnabled, setIsSAMLLoginEnabled] = useState(false);
-  const [samlConfig, setSAMLConfig] = useState(null);
+  const [samlConfig, setSAMLConfig] = useState<string | null>(null);
 
   const query = trpc.useQuery(["viewer.showSAMLView", { teamsView, teamId }]);
 
@@ -26,10 +26,10 @@ export default function SAMLConfiguration({
   }, [query.data]);
 
   const mutation = trpc.useMutation("viewer.updateSAMLConfig", {
-    onSuccess: (data: any) => {
+    onSuccess: (data: { provider: string | undefined }) => {
       showToast(t("saml_config_updated_successfully"), "success");
       setHasErrors(false); // dismiss any open errors
-      setSAMLConfig(data.provider);
+      setSAMLConfig(data?.provider ?? null);
       samlConfigRef.current.value = "";
     },
     onError: (err) => {
@@ -39,12 +39,12 @@ export default function SAMLConfiguration({
     },
   });
 
-  const samlConfigRef = useRef<HTMLTextAreaElement>(null!);
+  const samlConfigRef = useRef<HTMLTextAreaElement>() as React.MutableRefObject<HTMLTextAreaElement>;
 
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  async function updateSAMLConfigHandler(event: any) {
+  async function updateSAMLConfigHandler(event: React.FormEvent<HTMLElement>) {
     event.preventDefault();
 
     const rawMetadata = samlConfigRef.current.value;
