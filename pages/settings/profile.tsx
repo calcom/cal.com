@@ -1,5 +1,6 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { TrashIcon } from "@heroicons/react/solid";
+import { Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/client";
@@ -7,6 +8,8 @@ import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
+
+import stripe from "@ee/lib/stripe/server";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -116,35 +119,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   });
 
   const deleteAccount = async () => {
-    // get all memberships
-    // const memberships = await fetch("/api/user/membership")
-    //   .then((res) => res.json())
-    //   .then((data) => {
-    //     console.log("data", data);
-    //     return data;
-    //   });
-
-    // console.log("Memberships", memberships.membership);
-
-    // // // remove all memberships if any
-    // for (const team of memberships.membership) {
-    //   await fetch("/api/user/membership", {
-    //     method: "DELETE",
-    //     body: JSON.stringify({ teamId: team.id }),
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //   }).then(console.log("team: " + team.id + " membership removed"));
-    // }
-
-    // remove any related/selected calendars
-
-    // remove any saved credentials/integrations
-
-    // remove all event types
-    // remove Bookings
-    // remove Availability
-
     console.log(props.user.id);
     fetch("/api/user/" + props.user.id, {
       method: "DELETE",
@@ -153,7 +127,31 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       },
     });
 
+    // Check if the user is pro ?? and then go ahead with stripe code, else ignore??
+
     // remove stripe account
+    let customerId = "";
+
+    if (
+      props.user.metadata &&
+      typeof props.user.metadata === "object" &&
+      "stripeCustomerId" in props.user.metadata
+    ) {
+      customerId = (props.user.metadata as Prisma.JsonObject).stripeCustomerId as string;
+    } else {
+      /* We fallback to finding the customer by email (which is not optimal) */
+      const customersReponse = await stripe.customers.list({
+        email: props.user.email,
+        limit: 1,
+      });
+      if (customersReponse.data[0]?.id) {
+        customerId = customersReponse.data[0].id;
+      }
+    }
+
+    if (customerId) {
+      const deleted = await stripe.customers.del(customerId);
+    }
 
     // signout;
     signOut({ callbackUrl: "/auth/logout" });
@@ -526,6 +524,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       theme: true,
       plan: true,
       brandColor: true,
+      metadata: true,
     },
   });
 
