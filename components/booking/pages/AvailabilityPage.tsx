@@ -195,7 +195,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
 
                   <TimezoneDropdown />
 
-                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
+                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200 whitespace-pre-line">
+                    {eventType.description}
+                  </p>
                 </div>
                 <DatePicker
                   date={selectedDate}

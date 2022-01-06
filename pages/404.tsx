@@ -75,8 +75,8 @@ export default function Custom404() {
               </>
             )}
           </div>
-          <div className="mt-12">
-            <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase">
+          <div className="mt-12 hidden">
+            <h2 className="text-sm font-semibold text-gray-500 tracking-wide uppercase">
               {t("popular_pages")}
             </h2>
             {!isSubpage && process.env.NEXT_PUBLIC_BASE_URL == "https://app.cal.com" && (
