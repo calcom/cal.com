@@ -17,13 +17,14 @@ const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
+  private log: typeof logger;
   auth: { getToken: () => Promise<string> };
-
-  log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
   constructor(credential: Credential) {
     this.integrationName = CALENDAR_INTEGRATIONS_TYPES.office365;
     this.auth = this.o365Auth(credential);
+
+    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
