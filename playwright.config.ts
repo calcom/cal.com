@@ -31,7 +31,7 @@ const config: PlaywrightTestConfig = {
       use: {
         ...devices["Desktop Chrome"],
         extraHTTPHeaders: {
-          "X-Playwright-Secret": process.env.PLAYWRIGHT_SECRET!,
+          "X-Playwright-Secret": process.env.PLAYWRIGHT_SECRET || "",
         },
       },
     },
