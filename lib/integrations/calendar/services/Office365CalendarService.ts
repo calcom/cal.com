@@ -11,7 +11,8 @@ import { BatchResponse, EventBusyDate, NewCalendarEventType } from "../constants
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import { BufferedBusyTime, O365AuthCredentials } from "../interfaces/Office365Calendar";
 
-const { MS_GRAPH_CLIENT_ID = "", MS_GRAPH_CLIENT_SECRET = "" } = process.env;
+const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
+const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
 
 export default class Office365CalendarService implements Calendar {
   private url = "";

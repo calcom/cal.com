@@ -24,7 +24,7 @@ import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../const
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 
-const { CALENDSO_ENCRYPTION_KEY = "" } = process.env;
+const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";

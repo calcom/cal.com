@@ -11,7 +11,7 @@ import { EventBusyDate, NewCalendarEventType } from "../constants/types";
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import CalendarService from "./BaseCalendarService";
 
-const { GOOGLE_API_CREDENTIALS = "" } = process.env;
+const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "";
 
 export default class GoogleCalendarService implements Calendar {
   private url = "";
