@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -23,7 +22,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
   const createSchedule = async ({ schedule }: FormValues) => {
     const res = await fetch(`/api/schedule`, {
       method: "POST",
-      body: JSON.stringify({ schedule }),
+      body: JSON.stringify({ schedule, timeZone: props.timeZone }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -42,6 +41,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
       schedule: props.schedule || DEFAULT_SCHEDULE,
     },
   });
+
   return (
     <div className="grid grid-cols-3 gap-2">
       <Form
@@ -67,9 +67,9 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
             <p>{t("troubleshoot_availability")}</p>
           </div>
           <div className="mt-5">
-            <Link href="/availability/troubleshoot">
-              <a className="btn btn-white">{t("launch_troubleshooter")}</a>
-            </Link>
+            <Button href="/availability/troubleshoot" color="secondary">
+              {t("launch_troubleshooter")}
+            </Button>
           </div>
         </div>
       </div>

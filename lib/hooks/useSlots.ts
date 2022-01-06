@@ -1,4 +1,4 @@
-import { Availability, SchedulingType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
@@ -6,16 +6,15 @@ import { stringify } from "querystring";
 import { useEffect, useState } from "react";
 
 import getSlots from "@lib/slots";
-
-import { FreeBusyTime } from "@components/ui/Schedule/Schedule";
+import { TimeRange, WorkingHours } from "@lib/types/schedule";
 
 dayjs.extend(isBetween);
 dayjs.extend(utc);
 
 type AvailabilityUserResponse = {
-  busy: FreeBusyTime;
+  busy: TimeRange[];
   timeZone: string;
-  workingHours: Availability[];
+  workingHours: WorkingHours[];
 };
 
 type Slot = {
@@ -24,21 +23,17 @@ type Slot = {
 };
 
 type UseSlotsProps = {
+  slotInterval: number | null;
   eventLength: number;
   eventTypeId: number;
   minimumBookingNotice?: number;
   date: Dayjs;
-  workingHours: {
-    days: number[];
-    startTime: number;
-    endTime: number;
-  }[];
   users: { username: string | null }[];
   schedulingType: SchedulingType | null;
 };
 
 export const useSlots = (props: UseSlotsProps) => {
-  const { eventLength, minimumBookingNotice = 0, date, users, eventTypeId } = props;
+  const { slotInterval, eventLength, minimumBookingNotice = 0, date, users, eventTypeId } = props;
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -52,67 +47,67 @@ export const useSlots = (props: UseSlotsProps) => {
     const dateTo = date.endOf("day").format();
     const query = stringify({ dateFrom, dateTo, eventTypeId });
 
-    Promise.all(
-      users.map((user) =>
-        fetch(`/api/availability/${user.username}?${query}`)
-          .then(handleAvailableSlots)
-          .catch((e) => {
-            console.error(e);
-            setError(e);
-          })
-      )
-    ).then((results) => {
-      let loadedSlots: Slot[] = results[0];
-      if (results.length === 1) {
-        loadedSlots = loadedSlots?.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
+    Promise.all<Slot[]>(
+      users.map((user) => fetch(`/api/availability/${user.username}?${query}`).then(handleAvailableSlots))
+    )
+      .then((results) => {
+        let loadedSlots: Slot[] = results[0] || [];
+        if (results.length === 1) {
+          loadedSlots = loadedSlots?.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
+          setSlots(loadedSlots);
+          setLoading(false);
+          return;
+        }
+
+        let poolingMethod;
+        switch (props.schedulingType) {
+          // intersect by time, does not take into account eventLength (yet)
+          case SchedulingType.COLLECTIVE:
+            poolingMethod = (slots: Slot[], compareWith: Slot[]) =>
+              slots.filter((slot) => compareWith.some((compare) => compare.time.isSame(slot.time)));
+            break;
+          case SchedulingType.ROUND_ROBIN:
+            // TODO: Create a Reservation (lock this slot for X minutes)
+            //       this will make the following code redundant
+            poolingMethod = (slots: Slot[], compareWith: Slot[]) => {
+              compareWith.forEach((compare) => {
+                const match = slots.findIndex((slot) => slot.time.isSame(compare.time));
+                if (match !== -1) {
+                  slots[match].users?.push(compare.users![0]);
+                } else {
+                  slots.push(compare);
+                }
+              });
+              return slots;
+            };
+            break;
+        }
+
+        if (!poolingMethod) {
+          throw Error(`No poolingMethod found for schedulingType: "${props.schedulingType}""`);
+        }
+
+        for (let i = 1; i < results.length; i++) {
+          loadedSlots = poolingMethod(loadedSlots, results[i]);
+        }
+        loadedSlots = loadedSlots.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
         setSlots(loadedSlots);
         setLoading(false);
-        return;
-      }
-
-      let poolingMethod;
-      switch (props.schedulingType) {
-        // intersect by time, does not take into account eventLength (yet)
-        case SchedulingType.COLLECTIVE:
-          poolingMethod = (slots, compareWith) =>
-            slots.filter((slot) => compareWith.some((compare) => compare.time.isSame(slot.time)));
-          break;
-        case SchedulingType.ROUND_ROBIN:
-          // TODO: Create a Reservation (lock this slot for X minutes)
-          //       this will make the following code redundant
-          poolingMethod = (slots, compareWith) => {
-            compareWith.forEach((compare) => {
-              const match = slots.findIndex((slot) => slot.time.isSame(compare.time));
-              if (match !== -1) {
-                slots[match].users.push(compare.users[0]);
-              } else {
-                slots.push(compare);
-              }
-            });
-            return slots;
-          };
-          break;
-      }
-
-      for (let i = 1; i < results.length; i++) {
-        loadedSlots = poolingMethod(loadedSlots, results[i]);
-      }
-      loadedSlots = loadedSlots.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));
-      setSlots(loadedSlots);
-      setLoading(false);
-    });
+      })
+      .catch((e) => {
+        console.error(e);
+        setError(e);
+      });
   }, [date]);
 
-  const handleAvailableSlots = async (res) => {
+  const handleAvailableSlots = async (res: Response) => {
     const responseBody: AvailabilityUserResponse = await res.json();
     const times = getSlots({
-      frequency: eventLength,
+      frequency: slotInterval || eventLength,
       inviteeDate: date,
       workingHours: responseBody.workingHours,
       minimumBookingNotice,
-      organizerTimeZone: responseBody.timeZone,
     });
-
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
       responseBody.busy.every((busyTime): boolean => {

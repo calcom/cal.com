@@ -14,6 +14,7 @@ const config: Config.InitialOptions = {
     "^@components(.*)$": "<rootDir>/components$1",
     "^@lib(.*)$": "<rootDir>/lib$1",
     "^@server(.*)$": "<rootDir>/server$1",
+    "^@ee(.*)$": "<rootDir>/ee$1",
   },
 };
 

@@ -5,11 +5,13 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { ErrorCode, getSession } from "@lib/auth";
+import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
+import { EmailInput } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -93,19 +95,16 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-neutral-200">
-          <form className="space-y-6" onSubmit={handleSubmit} action="#">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <input name="csrfToken" type="hidden" defaultValue={csrfToken || undefined} hidden />
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
                 {t("email_address")}
               </label>
               <div className="mt-1">
-                <input
+                <EmailInput
                   id="email"
                   name="email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
                   required
                   value={email}
                   onInput={(e) => setEmail(e.currentTarget.value)}
@@ -178,7 +177,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
         </div>
         <div className="mt-4 text-sm text-center text-neutral-600">
           {t("dont_have_an_account")} {/* replace this with your account creation flow */}
-          <a href="https://cal.com/signup" className="font-medium text-neutral-900">
+          <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
             {t("create_an_account")}
           </a>
         </div>

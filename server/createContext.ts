@@ -44,6 +44,7 @@ async function getUserFromSession({
       avatar: true,
       twoFactorEnabled: true,
       brandColor: true,
+      plan: true,
       credentials: {
         select: {
           id: true,
@@ -61,6 +62,7 @@ async function getUserFromSession({
         },
       },
       completedOnboarding: true,
+      destinationCalendar: true,
       locale: true,
     },
   });

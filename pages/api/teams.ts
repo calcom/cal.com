@@ -1,14 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
-
-import prisma from "../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
 
-  if (!session) {
+  if (!session?.user?.id) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
@@ -23,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (nameCollisions > 0) {
-      return res.status(409).json({ errorCode: "TeamNameCollision", message: "Team name already take." });
+      return res.status(409).json({ errorCode: "TeamNameCollision", message: "Team name already taken." });
     }
 
     const createTeam = await prisma.team.create({

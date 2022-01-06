@@ -1,15 +1,19 @@
-import { PaymentType } from "@prisma/client";
+import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
-import { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 
-import { CalendarEvent } from "@lib/calendarClient";
-import EventOrganizerRefundFailedMail from "@lib/emails/EventOrganizerRefundFailedMail";
-import EventPaymentMail from "@lib/emails/EventPaymentMail";
+import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
+import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 
 import { createPaymentLink } from "./client";
+
+export type PaymentInfo = {
+  link?: string | null;
+  reason?: string | null;
+  id?: string | null;
+};
 
 export type PaymentData = Stripe.Response<Stripe.PaymentIntent> & {
   stripe_publishable_key: string;
@@ -34,7 +38,7 @@ export async function handlePayment(
     price: number;
     currency: string;
   },
-  stripeCredential: { key: JsonValue },
+  stripeCredential: { key: Prisma.JsonValue },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
@@ -60,7 +64,11 @@ export async function handlePayment(
     data: {
       type: PaymentType.STRIPE,
       uid: uuidv4(),
-      bookingId: booking.id,
+      booking: {
+        connect: {
+          id: booking.id,
+        },
+      },
       amount: selectedEventType.price,
       fee: paymentFee,
       currency: selectedEventType.currency,
@@ -69,20 +77,21 @@ export async function handlePayment(
       data: Object.assign({}, paymentIntent, {
         stripe_publishable_key,
         stripeAccount: stripe_user_id,
-      }) as PaymentData as unknown as JsonValue,
+      }) /* We should treat this */ as PaymentData /* but Prisma doesn't know how to handle it, so it we treat it */ as unknown /* and then */ as Prisma.InputJsonValue,
       externalId: paymentIntent.id,
     },
   });
 
-  const mail = new EventPaymentMail(
-    createPaymentLink({
-      paymentUid: payment.uid,
-      name: booking.user?.name,
-      date: booking.startTime.toISOString(),
-    }),
-    evt
-  );
-  await mail.sendEmail();
+  await sendAwaitingPaymentEmail({
+    ...evt,
+    paymentInfo: {
+      link: createPaymentLink({
+        paymentUid: payment.uid,
+        name: booking.user?.name,
+        date: booking.startTime.toISOString(),
+      }),
+    },
+  });
 
   return payment;
 }
@@ -97,7 +106,7 @@ export async function refund(
       success: boolean;
       refunded: boolean;
       externalId: string;
-      data: JsonValue;
+      data: Prisma.JsonValue;
       type: PaymentType;
     }[];
   },
@@ -107,7 +116,7 @@ export async function refund(
     const payment = booking.payment.find((e) => e.success && !e.refunded);
     if (!payment) return;
 
-    if (payment.type != PaymentType.STRIPE) {
+    if (payment.type !== PaymentType.STRIPE) {
       await handleRefundError({
         event: calEvent,
         reason: "cannot refund non Stripe payment",
@@ -153,11 +162,10 @@ export async function refund(
 
 async function handleRefundError(opts: { event: CalendarEvent; reason: string; paymentId: string }) {
   console.error(`refund failed: ${opts.reason} for booking '${opts.event.uid}'`);
-  try {
-    await new EventOrganizerRefundFailedMail(opts.event, opts.reason, opts.paymentId).sendEmail();
-  } catch (e) {
-    console.error("Error while sending refund error email", e);
-  }
+  await sendOrganizerPaymentRefundFailedEmail({
+    ...opts.event,
+    paymentInfo: { reason: opts.reason, id: opts.paymentId },
+  });
 }
 
 export default stripe;

@@ -1,20 +1,20 @@
-import { BookingStatus, Prisma } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
-import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
-import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
+import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 
 const checkUsername =
@@ -56,6 +56,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         brandColor,
+        plan,
       } = ctx.user;
       const me = {
         id,
@@ -71,6 +72,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         brandColor,
+        plan,
       };
       return me;
     },
@@ -230,7 +232,7 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           metadata: {
             membershipCount: membership.team.members.length,
-            readOnly: membership.role !== "OWNER",
+            readOnly: membership.role === MembershipRole.MEMBER,
           },
           eventTypes: membership.team.eventTypes,
         }))
@@ -239,8 +241,10 @@ const loggedInViewerRouter = createProtectedRouter()
       const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
 
       return {
-        canAddEvents,
-        user,
+        viewer: {
+          canAddEvents,
+          plan: user.plan,
+        },
         // don't display event teams without event types,
         eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
         // so we can show a dropdown when the user has teams
@@ -293,7 +297,10 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         ],
       };
-      const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
+      const bookingListingOrderby: Record<
+        typeof bookingListingByStatus,
+        Prisma.BookingOrderByWithAggregationInput
+      > = {
         upcoming: { startTime: "desc" },
         past: { startTime: "desc" },
         cancelled: { startTime: "desc" },
@@ -329,6 +336,7 @@ const loggedInViewerRouter = createProtectedRouter()
           endTime: true,
           eventType: {
             select: {
+              price: true,
               team: {
                 select: {
                   name: true,
@@ -337,6 +345,7 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           },
           status: true,
+          paid: true,
         },
         orderBy,
         take: take + 1,
@@ -374,7 +383,42 @@ const loggedInViewerRouter = createProtectedRouter()
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
-      return connectedCalendars;
+      return {
+        connectedCalendars,
+        destinationCalendar: user.destinationCalendar,
+      };
+    },
+  })
+  .mutation("setUserDestinationCalendar", {
+    input: z.object({
+      integration: z.string(),
+      externalId: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const userId = ctx.user.id;
+      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+
+      if (
+        !allCals.find((cal) => cal.externalId === input.externalId && cal.integration === input.integration)
+      ) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
+      }
+      await ctx.prisma.destinationCalendar.upsert({
+        where: {
+          userId,
+        },
+        update: {
+          ...input,
+          userId,
+        },
+        create: {
+          ...input,
+          userId,
+        },
+      });
     },
   })
   .query("integrations", {
@@ -420,12 +464,29 @@ const loggedInViewerRouter = createProtectedRouter()
           userId: user.id,
         },
       });
+
       const schedule = availabilityQuery.reduce(
         (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
             schedule[day].push({
-              start: new Date(new Date().toDateString() + " " + availability.startTime.toTimeString()),
-              end: new Date(new Date().toDateString() + " " + availability.endTime.toTimeString()),
+              start: new Date(
+                Date.UTC(
+                  new Date().getUTCFullYear(),
+                  new Date().getUTCMonth(),
+                  new Date().getUTCDate(),
+                  availability.startTime.getUTCHours(),
+                  availability.startTime.getUTCMinutes()
+                )
+              ),
+              end: new Date(
+                Date.UTC(
+                  new Date().getUTCFullYear(),
+                  new Date().getUTCMonth(),
+                  new Date().getUTCDate(),
+                  availability.endTime.getUTCHours(),
+                  availability.endTime.getUTCMinutes()
+                )
+              ),
             });
           });
           return schedule;
@@ -434,6 +495,7 @@ const loggedInViewerRouter = createProtectedRouter()
       );
       return {
         schedule,
+        timeZone: user.timeZone,
       };
     },
   })
@@ -575,4 +637,5 @@ const loggedInViewerRouter = createProtectedRouter()
 export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);

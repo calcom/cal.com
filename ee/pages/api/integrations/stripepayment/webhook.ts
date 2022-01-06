@@ -4,10 +4,11 @@ import Stripe from "stripe";
 
 import stripe from "@ee/lib/stripe/server";
 
-import { CalendarEvent } from "@lib/calendarClient";
-import { HttpError } from "@lib/core/http/error";
+import { IS_PRODUCTION } from "@lib/config/constants";
+import { HttpError as HttpCode } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
+import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 import { Ensure } from "@lib/types/utils";
 
@@ -30,6 +31,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       booking: {
         update: {
           paid: true,
+          confirmed: true,
         },
       },
     },
@@ -56,6 +58,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
               email: true,
               name: true,
               locale: true,
+              destinationCalendar: true,
             },
           },
         },
@@ -90,12 +93,12 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   if (booking.location) evt.location = booking.location;
 
   if (booking.confirmed) {
-    const eventManager = new EventManager(user.credentials);
+    const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
 
     await prisma.booking.update({
       where: {
-        id: payment.bookingId,
+        id: booking.id,
       },
       data: {
         references: {
@@ -104,49 +107,34 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       },
     });
   }
+
+  throw new HttpCode({
+    statusCode: 200,
+    message: `Booking with id '${booking.id}' was paid and confirmed.`,
+  });
 }
 
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
-  "customer.subscription.deleted": async (event) => {
-    const object = event.data.object as Stripe.Subscription;
-
-    const customerId = typeof object.customer === "string" ? object.customer : object.customer.id;
-
-    const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
-    if (typeof customer.email !== "string") {
-      throw new Error(`Couldn't find customer email for ${customerId}`);
-    }
-
-    await prisma.user.update({
-      where: {
-        email: customer.email,
-      },
-      data: {
-        plan: "FREE",
-      },
-    });
-  },
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {
-      throw new HttpError({ statusCode: 405, message: "Method Not Allowed" });
+      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
     const sig = req.headers["stripe-signature"];
     if (!sig) {
-      throw new HttpError({ statusCode: 400, message: "Missing stripe-signature" });
+      throw new HttpCode({ statusCode: 400, message: "Missing stripe-signature" });
     }
 
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      throw new HttpError({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET" });
+      throw new HttpCode({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET" });
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
-    // console.log("payload", payload);
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
@@ -154,14 +142,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (handler) {
       await handler(event);
     } else {
-      console.warn(`Unhandled Stripe Webhook event type ${event.type}`);
+      /** Not really an error, just letting Stripe know that the webhook was received but unhandled */
+      throw new HttpCode({
+        statusCode: 202,
+        message: `Unhandled Stripe Webhook event type ${event.type}`,
+      });
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     res.status(err.statusCode ?? 500).send({
       message: err.message,
-      stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.stack,
     });
     return;
   }

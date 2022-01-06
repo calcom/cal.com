@@ -1,12 +1,15 @@
 import { Credential } from "@prisma/client";
 
-import { CalendarEvent } from "@lib/calendarClient";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
+import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
-import { VideoApiAdapter } from "@lib/videoClient";
+import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
+
+import { CalendarEvent } from "../calendar/interfaces/Calendar";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 export interface ZoomEventResult {
+  password: string;
   created_at: string;
   duration: number;
   host_id: string;
@@ -58,7 +61,8 @@ export interface ZoomEventResult {
 
 interface ZoomToken {
   scope: "meeting:write";
-  expires_in: number;
+  expiry_date: number;
+  expires_in?: number; // deprecated, purely for backwards compatibility; superseeded by expiry_date.
   token_type: "bearer";
   access_token: string;
   refresh_token: string;
@@ -66,7 +70,8 @@ interface ZoomToken {
 
 const zoomAuth = (credential: Credential) => {
   const credentialKey = credential.key as unknown as ZoomToken;
-  const isExpired = (expiryDate: number) => expiryDate < +new Date();
+  const isTokenValid = (token: ZoomToken) =>
+    token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
   const authHeader =
     "Basic " +
     Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
@@ -85,6 +90,9 @@ const zoomAuth = (credential: Credential) => {
     })
       .then(handleErrorsJson)
       .then(async (responseBody) => {
+        // set expiry date as offset from current time.
+        responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
+        delete responseBody.expires_in;
         // Store new tokens in database.
         await prisma.credential.update({
           where: {
@@ -94,14 +102,14 @@ const zoomAuth = (credential: Credential) => {
             key: responseBody,
           },
         });
+        credentialKey.expiry_date = responseBody.expiry_date;
         credentialKey.access_token = responseBody.access_token;
-        credentialKey.expires_in = Math.round(+new Date() / 1000 + responseBody.expires_in);
         return credentialKey.access_token;
       });
 
   return {
     getToken: () =>
-      !isExpired(credentialKey.expires_in)
+      !isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token),
   };
@@ -168,37 +176,56 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
           return [];
         });
     },
-    createMeeting: (event: CalendarEvent) =>
-      auth.getToken().then((accessToken) =>
-        fetch("https://api.zoom.us/v2/users/me/meetings", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(translateEvent(event)),
-        }).then(handleErrorsJson)
-      ),
-    deleteMeeting: (uid: string) =>
-      auth.getToken().then((accessToken) =>
-        fetch("https://api.zoom.us/v2/meetings/" + uid, {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-          },
-        }).then(handleErrorsRaw)
-      ),
-    updateMeeting: (uid: string, event: CalendarEvent) =>
-      auth.getToken().then((accessToken: string) =>
-        fetch("https://api.zoom.us/v2/meetings/" + uid, {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(translateEvent(event)),
-        }).then(handleErrorsRaw)
-      ),
+    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+      const accessToken = await auth.getToken();
+
+      const result = await fetch("https://api.zoom.us/v2/users/me/meetings", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsJson);
+
+      return Promise.resolve({
+        type: "zoom_video",
+        id: result.id as string,
+        password: result.password ?? "",
+        url: result.join_url,
+      });
+    },
+    deleteMeeting: async (uid: string): Promise<void> => {
+      const accessToken = await auth.getToken();
+
+      await fetch("https://api.zoom.us/v2/meetings/" + uid, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+      }).then(handleErrorsRaw);
+
+      return Promise.resolve();
+    },
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+      const accessToken = await auth.getToken();
+
+      await fetch("https://api.zoom.us/v2/meetings/" + bookingRef.uid, {
+        method: "PATCH",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsRaw);
+
+      return Promise.resolve({
+        type: "zoom_video",
+        id: bookingRef.meetingId as string,
+        password: bookingRef.meetingPassword as string,
+        url: bookingRef.meetingUrl as string,
+      });
+    },
   };
 };
 

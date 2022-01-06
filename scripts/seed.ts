@@ -15,6 +15,7 @@ async function createUserAndEventType(opts: {
     plan: UserPlan;
     name: string;
     completedOnboarding?: boolean;
+    timeZone?: string;
   };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
@@ -27,6 +28,7 @@ async function createUserAndEventType(opts: {
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
+    locale: "en",
     availability: {
       createMany: {
         data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
@@ -221,6 +223,12 @@ async function main() {
         slug: "60min",
         length: 60,
       },
+      {
+        title: "paid",
+        slug: "paid",
+        length: 60,
+        price: 50,
+      },
     ],
   });
 
@@ -263,6 +271,24 @@ async function main() {
       {
         title: "60min",
         slug: "60min",
+        length: 30,
+      },
+    ],
+  });
+
+  await createUserAndEventType({
+    user: {
+      email: "usa@example.com",
+      password: "usa",
+      username: "usa",
+      name: "USA Timezone Example",
+      plan: "FREE",
+      timeZone: "America/Phoenix",
+    },
+    eventTypes: [
+      {
+        title: "30min",
+        slug: "30min",
         length: 30,
       },
     ],

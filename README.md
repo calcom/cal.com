@@ -2,7 +2,7 @@
 <p align="center">
   <a href="https://github.com/calendso/calendso">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
-    
+
   </a>
 
   <h3 align="center">Cal.com (formerly Calendso)</h3>
@@ -29,7 +29,7 @@
   <a href="https://github.com/calendso/calendso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
   <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
-  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>  
+  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
   <a href="https://cal.crowdin.com/Cal"><img src="https://badges.crowdin.net/e/5a55420475b48696779e30e0208a1899/localized.svg" alt="Translate Slack"></a>
 </p>
 
@@ -86,15 +86,17 @@ You will also need Google API credentials. You can get this from the [Google API
 ## Development
 
 ### Setup
+
 #### Quick start with `yarn dx`
 
-> - **Requires Docker to be installed**
+> - **Requires Docker and Docker Compose to be installed**
 > - Will start a local Postgres instance with a few test users - the credentials will be logged in the console
 
 ```bash
 git clone git@github.com:calendso/calendso.git
 cd calendso
 yarn
+cp .env.example .env
 yarn dx
 ```
 
@@ -156,7 +158,7 @@ yarn dx
    npx prisma studio
    ```
 8. Click on the `User` model to add a new user record.
-9. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+9. Fill out the fields `email`, `username`, and `password` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
 10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
 
@@ -217,11 +219,10 @@ yarn test-playwright
 ### Docker
 
 The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
-  
+
 If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
-  
 
 ### Railway
 
@@ -269,7 +270,7 @@ Contributions are what make the open source community such an amazing place to b
 3. Set **Who can use this application or access this API?** to **Accounts in any organizational directory (Any Azure AD directory - Multitenant)**
 4. Set the **Web** redirect URI to `<Cal.com URL>/api/integrations/office365calendar/callback` replacing Cal.com URL with the URI at which your application runs.
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
-6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attriubte
+6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
 
 ## Obtaining Zoom Client ID and Secret
 
@@ -289,11 +290,10 @@ Contributions are what make the open source community such an amazing place to b
 
 ## Obtaining Daily API Credentials
 
- 1. Open [Daily](https://www.daily.co/) and sign into your account.
- 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
- 3. Copy your API key.
- 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
- 5. If you have a [Daily Scale Plan](https://www.daily.co/pricing)  can also enable the ability to record Daily video meetings. To do so, set the `DAILY_SCALE_PLAN` environment variable to `'true'` 
+1.  Open [Daily](https://www.daily.co/) and sign into your account.
+2.  From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
+3.  Copy your API key.
+4.  Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 
 <!-- LICENSE -->
 

@@ -1,10 +1,4 @@
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  PencilAltIcon,
-  SwitchHorizontalIcon,
-  TrashIcon,
-} from "@heroicons/react/outline";
+import { ChevronRightIcon, PencilAltIcon, SwitchHorizontalIcon, TrashIcon } from "@heroicons/react/outline";
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
@@ -13,7 +7,6 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
-import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -61,7 +54,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="flex mt-2">
-            <span className="flex flex-col space-y-1 sm:space-y-0 text-xs sm:flex-row sm:space-x-2">
+            <span className="flex flex-col space-y-1 text-xs sm:space-y-0 sm:flex-row sm:space-x-2">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -114,6 +107,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
 
 function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
+  const payloadTemplate = useWatch({ name: "payloadTemplate" }) || null;
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const mutation = trpc.useMutation("viewer.webhook.testTrigger", {
@@ -124,13 +118,9 @@ function WebhookTestDisclosure() {
 
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
-      <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full text-sm"}>
-        {t("webhook_test")}{" "}
-        {open ? (
-          <ChevronUpIcon className="w-5 h-5 text-gray-700" />
-        ) : (
-          <ChevronDownIcon className="w-5 h-5 text-gray-700" />
-        )}
+      <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full"}>
+        <ChevronRightIcon className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-neutral-500`} />
+        <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
         <InputGroupBox className="px-0 space-y-0 border-0">
@@ -141,7 +131,7 @@ function WebhookTestDisclosure() {
               type="button"
               color="minimal"
               disabled={mutation.isLoading}
-              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING" })}>
+              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING", payloadTemplate })}>
               {t("ping_test")}
             </Button>
           </div>
@@ -152,9 +142,9 @@ function WebhookTestDisclosure() {
                 <div
                   className={classNames(
                     "px-2 py-1 w-max text-xs ml-auto",
-                    mutation.data.status === 200 ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
+                    mutation.data.ok ? "text-green-500 bg-green-50" : "text-red-500 bg-red-50"
                   )}>
-                  {mutation.data.status === 200 ? t("success") : t("failed")}
+                  {mutation.data.ok ? t("success") : t("failed")}
                 </div>
                 <pre className="overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</pre>
               </>
@@ -180,8 +170,11 @@ function WebhookDialogForm(props: {
       eventTriggers: WEBHOOK_TRIGGER_EVENTS,
       subscriberUrl: "",
       active: true,
-    },
+      payloadTemplate: null,
+    } as Omit<TWebhook, "userId" | "createdAt">,
   } = props;
+
+  const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
 
   const form = useForm({
     defaultValues,
@@ -190,24 +183,20 @@ function WebhookDialogForm(props: {
     <Form
       data-testid="WebhookDialogForm"
       form={form}
-      onSubmit={(event) => {
-        form
-          .handleSubmit(async (values) => {
-            if (values.id) {
-              await utils.client.mutation("viewer.webhook.edit", values);
-              await utils.invalidateQueries(["viewer.webhook.list"]);
-              showToast(t("webhook_updated_successfully"), "success");
-            } else {
-              await utils.client.mutation("viewer.webhook.create", values);
-              await utils.invalidateQueries(["viewer.webhook.list"]);
-              showToast(t("webhook_created_successfully"), "success");
-            }
-
-            props.handleClose();
-          })(event)
-          .catch((err) => {
-            showToast(`${getErrorFromUnknown(err).message}`, "error");
-          });
+      handleSubmit={async (event) => {
+        if (!useCustomPayloadTemplate && event.payloadTemplate) {
+          event.payloadTemplate = null;
+        }
+        if (event.id) {
+          await utils.client.mutation("viewer.webhook.edit", event);
+          await utils.invalidateQueries(["viewer.webhook.list"]);
+          showToast(t("webhook_updated_successfully"), "success");
+        } else {
+          await utils.client.mutation("viewer.webhook.create", event);
+          await utils.invalidateQueries(["viewer.webhook.list"]);
+          showToast(t("webhook_created_successfully"), "success");
+        }
+        props.handleClose();
       }}
       className="space-y-4">
       <input type="hidden" {...form.register("id")} />
@@ -255,6 +244,38 @@ function WebhookDialogForm(props: {
             />
           ))}
         </InputGroupBox>
+      </fieldset>
+      <fieldset className="space-y-2">
+        <FieldsetLegend>{t("payload_template")}</FieldsetLegend>
+        <div className="space-x-3 text-sm">
+          <label>
+            <input
+              className="text-neutral-900 focus:ring-neutral-500"
+              type="radio"
+              name="useCustomPayloadTemplate"
+              onChange={(value) => setUseCustomPayloadTemplate(!value.target.checked)}
+              defaultChecked={!useCustomPayloadTemplate}
+            />{" "}
+            Default
+          </label>
+          <label>
+            <input
+              className="text-neutral-900 focus:ring-neutral-500"
+              onChange={(value) => setUseCustomPayloadTemplate(value.target.checked)}
+              name="useCustomPayloadTemplate"
+              type="radio"
+              defaultChecked={useCustomPayloadTemplate}
+            />{" "}
+            Custom
+          </label>
+        </div>
+        {useCustomPayloadTemplate && (
+          <textarea
+            {...form.register("payloadTemplate")}
+            className="block w-full font-mono border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+            rows={5}
+            defaultValue={useCustomPayloadTemplate && (defaultValues.payloadTemplate || "")}></textarea>
+        )}
       </fieldset>
       <WebhookTestDisclosure />
       <DialogFooter>
@@ -440,7 +461,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       <DisconnectIntegration
         id={credentialId}
         render={(btnProps) => (
-          <Button {...btnProps} color="warn">
+          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
             {t("disconnect")}
           </Button>
         )}
@@ -467,7 +488,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
     <ConnectIntegration
       type={props.type}
       render={(btnProps) => (
-        <Button color="secondary" {...btnProps}>
+        <Button color="secondary" {...btnProps} data-testid="integration-connection-button">
           {t("connect")}
         </Button>
       )}
