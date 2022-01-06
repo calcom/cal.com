@@ -220,6 +220,7 @@ export default function Login({
           {isGoogleLoginEnabled && (
             <div style={{ marginTop: "12px" }}>
               <button
+                data-testid={"google"}
                 onClick={async () => await signIn("google")}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_google")}
@@ -229,6 +230,7 @@ export default function Login({
           {isSAMLLoginEnabled && (
             <div style={{ marginTop: "12px" }}>
               <button
+                data-testid={"saml"}
                 onClick={samlSignIn}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_saml")}
