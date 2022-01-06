@@ -140,7 +140,8 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                     className="flex-grow text-sm truncate"
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
-                      <span className="font-medium truncate text-neutral-900">{type.title}</span>
+                      <span className="font-medium truncate text-neutral-900">{type.title} </span>
+                      <small className="text-neutral-500">{`/${profile.slug}/${type.slug}`}</small>
                       {type.hidden && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                           {t("hidden")}
