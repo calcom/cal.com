@@ -114,10 +114,7 @@ export const getBusyCalendarTimes = async (
   const results = await Promise.all(
     calendars.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
   );
-  console.log(results);
 
-  console.log("get results");
-  console.log(results);
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
