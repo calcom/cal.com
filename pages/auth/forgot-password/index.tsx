@@ -35,6 +35,8 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       const json = await res.json();
       if (!res.ok) {
         setError(json);
+      } else if ("resetLink" in json) {
+        window.location = json.resetLink;
       } else {
         setSuccess(true);
       }
