@@ -17,13 +17,14 @@ export default class GoogleCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private auth: { getToken: () => Promise<MyGoogleAuth> };
-
-  log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+  private log: typeof logger;
 
   constructor(credential: Credential) {
     this.integrationName = CALENDAR_INTEGRATIONS_TYPES.google;
 
     this.auth = this.googleAuth(credential);
+
+    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private googleAuth = (credential: Credential) => {
@@ -299,7 +300,7 @@ export default class GoogleCalendarService implements Calendar {
               }) || []
             );
           })
-          .catch((err) => {
+          .catch((err: Error) => {
             this.log.error("There was an error contacting google calendar service: ", err);
 
             reject(err);

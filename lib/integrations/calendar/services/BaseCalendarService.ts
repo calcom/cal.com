@@ -31,8 +31,7 @@ export default abstract class BaseCalendarService implements Calendar {
   private credentials: Record<string, string> = {};
   private headers: Record<string, string> = {};
   protected integrationName = "";
-
-  log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+  private log: typeof logger;
 
   constructor(credential: Credential, integrationName: string, url?: string) {
     this.integrationName = integrationName;
@@ -47,6 +46,8 @@ export default abstract class BaseCalendarService implements Calendar {
 
     this.credentials = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });
+
+    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {

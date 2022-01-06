@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(401).json({ message: "You must be logged in to do this" });
     return;
   }
-  if (typeof code !== "string") {
+  if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;
   }
@@ -30,10 +30,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { client_secret, client_id } = JSON.parse(credentials).web;
   const redirect_uri = BASE_URL + "/api/integrations/googlecalendar/callback";
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
-  const token = await oAuth2Client.getToken(code);
 
-  const key = token.res?.data;
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
+
+  let key = "";
+
+  if (code) {
+    const token = await oAuth2Client.getToken(code);
+
+    key = token.res?.data;
+  }
+
   await prisma.credential.create({
     data: {
       type: "google_calendar",
