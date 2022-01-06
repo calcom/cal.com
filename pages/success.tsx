@@ -4,9 +4,9 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
-import { createEvent } from "ics";
+// import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
-import Link from "next/link";
+// import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -29,7 +29,11 @@ dayjs.extend(timezone);
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location, name, reschedule } = router.query;
+  const {
+    // location,
+    name,
+    reschedule,
+  } = router.query;
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
@@ -52,34 +56,34 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const eventName = getEventName(eventNameObject);
 
-  function eventLink(): string {
-    const optional: { location?: string } = {};
-    if (location) {
-      optional["location"] = Array.isArray(location) ? location[0] : location;
-    }
+  // function eventLink(): string {
+  //   const optional: { location?: string } = {};
+  //   if (location) {
+  //     optional["location"] = Array.isArray(location) ? location[0] : location;
+  //   }
 
-    const event = createEvent({
-      start: [
-        date.toDate().getUTCFullYear(),
-        date.toDate().getUTCMonth(),
-        date.toDate().getUTCDate(),
-        date.toDate().getUTCHours(),
-        date.toDate().getUTCMinutes(),
-      ],
-      startInputType: "utc",
-      title: eventName,
-      description: props.eventType.description ? props.eventType.description : undefined,
-      /** formatted to required type of description ^ */
-      duration: { minutes: props.eventType.length },
-      ...optional,
-    });
+  //   const event = createEvent({
+  //     start: [
+  //       date.toDate().getUTCFullYear(),
+  //       date.toDate().getUTCMonth() + 1,
+  //       date.toDate().getUTCDate(),
+  //       date.toDate().getUTCHours(),
+  //       date.toDate().getUTCMinutes(),
+  //     ],
+  //     startInputType: "utc",
+  //     title: eventName,
+  //     description: props.eventType.description ? props.eventType.description : undefined,
+  //     /** formatted to required type of description ^ */
+  //     duration: { minutes: props.eventType.length },
+  //     ...optional,
+  //   });
 
-    if (event.error) {
-      throw event.error;
-    }
+  //   if (event.error) {
+  //     throw event.error;
+  //   }
 
-    return encodeURIComponent(event.value ? event.value : false);
-  }
+  //   return encodeURIComponent(event.value ? event.value : false);
+  // }
 
   const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
 
@@ -135,16 +139,16 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                           </span>
                         </div>
-                        {location && (
+                        {/* {location && (
                           <>
                             <div className="font-medium">{t("where")}</div>
                             <div className="col-span-2">{location}</div>
                           </>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>
-                  {!needsConfirmation && (
+                  {/* {!needsConfirmation && (
                     <div className="flex pt-2 pb-4 mt-5 text-center border-b sm:mt-0 sm:pt-4">
                       <span className="flex self-center mr-2 font-medium text-gray-700 dark:text-gray-50">
                         {t("add_to_calendar")}
@@ -241,7 +245,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         </Link>
                       </div>
                     </div>
-                  )}
+                  )} */}
                   {!props.hideBranding && (
                     <div className="pt-4 text-xs text-center text-gray-400 dark:border-gray-900 dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>

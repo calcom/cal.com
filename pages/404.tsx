@@ -55,13 +55,13 @@ export default function Custom404() {
             {isEventType404 ? (
               <span className="inline-block mt-2 text-lg ">{t("check_spelling_mistakes_or_go_back")}</span>
             ) : (
-              <a href="https://cal.com/signup" className="inline-block mt-2 text-lg ">
+              <a href="https://cal.com/signup" className="inline-block mt-2 text-lg hidden">
                 {t("the_username")} <strong className="text-blue-500">cal.com{username}</strong>{" "}
                 {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
               </a>
             )}
           </div>
-          <div className="mt-12">
+          <div className="mt-12 hidden">
             <h2 className="text-sm font-semibold text-gray-500 tracking-wide uppercase">
               {t("popular_pages")}
             </h2>
