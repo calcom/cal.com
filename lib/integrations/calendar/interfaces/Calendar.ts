@@ -64,7 +64,7 @@ type EventBusyDate = Record<"start" | "end", Date | string>;
 export interface Calendar {
   createEvent(event: CalendarEvent): Promise<NewCalendarEventType>;
 
-  updateEvent(uid: string, event: CalendarEvent): Promise<any>;
+  updateEvent(uid: string, event: CalendarEvent): Promise<void>;
 
   deleteEvent(uid: string): Promise<unknown>;
 

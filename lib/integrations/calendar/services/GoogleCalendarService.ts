@@ -184,7 +184,7 @@ export default class GoogleCalendarService implements Calendar {
     );
   }
 
-  async deleteEvent(uid: string): Promise<any> {
+  async deleteEvent(uid: string): Promise<void> {
     return new Promise((resolve, reject) =>
       this.auth.getToken().then((myGoogleAuth) => {
         const calendar = google.calendar({

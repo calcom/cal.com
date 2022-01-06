@@ -71,7 +71,7 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string): Promise<any> {
+  async deleteEvent(uid: string): Promise<void> {
     try {
       const accessToken = await this.auth.getToken();
 
@@ -82,7 +82,7 @@ export default class Office365CalendarService implements Calendar {
         },
       });
 
-      return handleErrorsRaw(response);
+      handleErrorsRaw(response);
     } catch (error) {
       this.log.error(error);
 

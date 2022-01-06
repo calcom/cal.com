@@ -172,7 +172,7 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string): Promise<any> {
+  async deleteEvent(uid: string): Promise<void> {
     try {
       const events = await this.getEventsByUID(uid);
 
