@@ -1,4 +1,8 @@
 {
+  "trial_days_left": "Restam $t(day, {\"count\": {{days}} }) da sua avaliação da versão PRO",
+  "day": "{{count}} dia",
+  "day_plural": "{{count}} dias",
+  "upgrade_now": "Atualize agora",
   "accept_invitation": "Aceitar convite",
   "calcom_explained": "Cal.com é a alternativa de código aberto de Calendly que lhe dá o controlo dos seus próprios dados, do seu fluxo de trabalho e da apresentação.",
   "have_any_questions": "Tem perguntas? Estamos disponíveis para ajudar.",
