@@ -40,7 +40,7 @@ export default function CancelSuccess() {
                     <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
                       {t("cancellation_successful")}
                     </h3>
-                    {!loading && !session.user && (
+                    {!loading && !session && (
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">{t("free_to_pick_another_event_type")}</p>
                       </div>
@@ -49,8 +49,8 @@ export default function CancelSuccess() {
                 </div>
                 <div className="mt-5 sm:mt-6 text-center">
                   <div className="mt-5">
-                    {!loading && !session.user && <Button href={eventPage}>Pick another</Button>}
-                    {!loading && session.user && (
+                    {!loading && !session && <Button href={eventPage}>Pick another</Button>}
+                    {!loading && session && (
                       <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
                         {t("back_to_bookings")}
                       </Button>
