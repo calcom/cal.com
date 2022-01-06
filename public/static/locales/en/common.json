@@ -1,4 +1,8 @@
 {
+  "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
+  "day": "{{count}} day", 
+  "day_plural": "{{count}} days",
+  "upgrade_now": "Upgrade now",
   "accept_invitation": "Accept Invitation",
   "calcom_explained": "Cal.com is the open source Calendly alternative putting you in control of your own data, workflow and appearance.",
   "have_any_questions": "Have questions? We're here to help.",
@@ -427,6 +431,7 @@
   "leave_team": "Leave team",
   "confirm_leave_team": "Yes, leave team",
   "leave_team_confirmation_message": "Are you sure you want to leave this team? You will no longer be able to book using it.",
+  "user_from_team": "{{user}} from {{team}}",
   "preview": "Preview",
   "link_copied": "Link copied!",
   "title": "Title",
@@ -444,6 +449,7 @@
   "hidden": "Hidden",
   "readonly": "Readonly",
   "plan_upgrade": "You need to upgrade your plan to have more than one active event type.",
+  "plan_upgrade_teams": "You need to upgrade your plan to create a team.",
   "plan_upgrade_instructions": "To upgrade, go to <a href=\"https://cal.com/upgrade\" className=\"underline\">https://cal.com/upgrade</a>",
   "event_types_page_title": "Event Types",
   "event_types_page_subtitle": "Create events to share for people to book on your calendar.",
@@ -539,7 +545,9 @@
   "new_event_type_to_book_description": "Create a new event type for people to book times with.",
   "length": "Length",
   "minimum_booking_notice": "Minimum booking notice",
-  "delete_event_type_description": "Are you sure you want to delete this event type? Anyone who you&apos;ve shared this link with will no longer be able to book using it.",
+  "slot_interval": "Time-slot intervals",
+  "slot_interval_default": "Use event length (default)",
+  "delete_event_type_description": "Are you sure you want to delete this event type? Anyone who you've shared this link with will no longer be able to book using it.",
   "delete_event_type": "Delete Event Type",
   "confirm_delete_event_type": "Yes, delete event type",
   "integrations": "Integrations",
@@ -559,5 +567,8 @@
   "calendar": "Calendar",
   "not_installed": "Not installed",
   "error_password_mismatch": "Passwords don't match.",
-  "error_required_field": "This field is required."
+  "error_required_field": "This field is required.",
+  "status": "Status",
+  "team_view_user_availability": "View user availability",
+  "team_view_user_availability_disabled": "User needs to accept invite to view availability"
 }

@@ -63,6 +63,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           price: true,
           currency: true,
           timeZone: true,
+          slotInterval: true,
         },
       },
     },

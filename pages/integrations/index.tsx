@@ -461,7 +461,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       <DisconnectIntegration
         id={credentialId}
         render={(btnProps) => (
-          <Button {...btnProps} color="warn">
+          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
             {t("disconnect")}
           </Button>
         )}
@@ -488,7 +488,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
     <ConnectIntegration
       type={props.type}
       render={(btnProps) => (
-        <Button color="secondary" {...btnProps}>
+        <Button color="secondary" {...btnProps} data-testid="integration-connection-button">
           {t("connect")}
         </Button>
       )}

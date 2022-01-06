@@ -24,7 +24,7 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { useMutation } from "react-query";
-import Select, { OptionTypeBase } from "react-select";
+import Select from "react-select";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -46,6 +46,7 @@ import { WorkingHours } from "@lib/types/schedule";
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -58,6 +59,25 @@ import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+type OptionTypeBase = {
+  label: string;
+  value: LocationType;
+  disabled?: boolean;
+};
+
+const addDefaultLocationOptions = (
+  defaultLocations: OptionTypeBase[],
+  locationOptions: OptionTypeBase[]
+): void => {
+  const existingLocationOptions = locationOptions.flatMap((locationOptionItem) => [locationOptionItem.value]);
+
+  defaultLocations.map((item) => {
+    if (!existingLocationOptions.includes(item.value)) {
+      locationOptions.push(item);
+    }
+  });
+};
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
@@ -77,10 +97,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   ];
   const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
     props;
-  locationOptions.push(
+
+  /** Appending default locations */
+
+  const defaultLocations = [
     { value: LocationType.InPerson, label: t("in_person_meeting") },
-    { value: LocationType.Phone, label: t("phone_call") }
-  );
+    { value: LocationType.Phone, label: t("phone_call") },
+  ];
+
+  addDefaultLocationOptions(defaultLocations, locationOptions);
 
   const router = useRouter();
 
@@ -251,6 +276,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     periodDaysType: string;
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
+    slotInterval: number | null;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -277,8 +303,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               classNamePrefix="react-select"
               className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               onChange={(e) => {
-                locationFormMethods.setValue("locationType", e?.value);
-                openLocationModal(e?.value);
+                if (e?.value) {
+                  locationFormMethods.setValue("locationType", e.value);
+                  openLocationModal(e.value);
+                }
               }}
             />
           </div>
@@ -443,7 +471,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
-          <div className="relative group cursor-pointer" onClick={() => setEditIcon(false)}>
+          <div className="relative cursor-pointer group" onClick={() => setEditIcon(false)}>
             {editIcon ? (
               <>
                 <h1
@@ -451,7 +479,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
                   {eventType.title}
                 </h1>
-                <PencilIcon className="-mt-1 ml-1 inline w-4 h-4 text-gray-700 group-hover:text-gray-500" />
+                <PencilIcon className="inline w-4 h-4 ml-1 -mt-1 text-gray-700 group-hover:text-gray-500" />
               </>
             ) : (
               <div style={{ marginBottom: -11 }}>
@@ -460,7 +488,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   autoFocus
                   style={{ top: -6, fontSize: 22 }}
                   required
-                  className="w-full relative pl-0 h-10 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
+                  className="relative w-full h-10 pl-0 text-gray-900 bg-transparent border-none cursor-pointer focus:text-black hover:text-gray-700 focus:ring-0 focus:outline-none"
                   placeholder={t("quick_chat")}
                   {...formMethods.register("title")}
                   defaultValue={eventType.title}
@@ -473,8 +501,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         <div className="block mx-auto sm:flex md:max-w-5xl">
           <div className="w-full mr-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
-              <form
-                onSubmit={formMethods.handleSubmit(async (values) => {
+              <Form
+                form={formMethods}
+                handleSubmit={async (values) => {
                   const enteredTitle: string = values.title;
 
                   const advancedPayload: AdvancedOptions = {};
@@ -486,12 +515,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     advancedPayload.periodStartDate = values.periodDates.startDate || undefined;
                     advancedPayload.periodEndDate = values.periodDates.endDate || undefined;
                     advancedPayload.minimumBookingNotice = values.minimumBookingNotice;
-                    // prettier-ignore
-                    advancedPayload.price =
-                      !requirePayment ? undefined :
-                        values.price ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100) :
-                          /* otherwise */   0;
-                    advancedPayload.currency = currency; //
+                    advancedPayload.slotInterval = values.slotInterval;
+                    advancedPayload.price = requirePayment
+                      ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100)
+                      : 0;
+                    advancedPayload.currency = currency;
                     advancedPayload.availability = values.scheduler.enteredAvailability || undefined;
                     advancedPayload.customInputs = values.customInputs;
                     advancedPayload.timeZone = values.scheduler.selectedTimezone;
@@ -516,7 +544,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       : {}),
                   };
                   updateMutation.mutate(payload);
-                })}
+                }}
                 className="space-y-6">
                 <div className="space-y-3">
                   <div className="items-center block sm:flex">
@@ -621,6 +649,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             value={asStringOrUndefined(eventType.schedulingType)}
                             options={schedulingTypeOptions}
                             onChange={(val) => {
+                              // FIXME
+                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                              // @ts-ignore
                               formMethods.setValue("schedulingType", val);
                             }}
                           />
@@ -819,6 +850,53 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           />
                         )}
                       />
+
+                      <div className="items-center block sm:flex">
+                        <div className="mb-4 min-w-48 sm:mb-0">
+                          <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
+                            {t("slot_interval")}
+                          </label>
+                        </div>
+                        <div className="w-full">
+                          <div className="relative mt-1 rounded-sm shadow-sm">
+                            <Controller
+                              name="slotInterval"
+                              control={formMethods.control}
+                              render={() => {
+                                const slotIntervalOptions = [
+                                  {
+                                    label: t("slot_interval_default"),
+                                    value: -1,
+                                  },
+                                  ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                                    label: minutes + " " + t("minutes"),
+                                    value: minutes,
+                                  })),
+                                ];
+                                return (
+                                  <Select
+                                    isSearchable={false}
+                                    classNamePrefix="react-select"
+                                    className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                    onChange={(val) => {
+                                      formMethods.setValue(
+                                        "slotInterval",
+                                        val && (val.value || 0) > 0 ? val.value : null
+                                      );
+                                    }}
+                                    defaultValue={
+                                      slotIntervalOptions.find(
+                                        (option) => option.value === eventType.slotInterval
+                                      ) || slotIntervalOptions[0]
+                                    }
+                                    options={slotIntervalOptions}
+                                  />
+                                );
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
 
                       <div className="block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
@@ -1027,7 +1105,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </Button>
                   <Button type="submit">{t("update")}</Button>
                 </div>
-              </form>
+              </Form>
             </div>
           </div>
           <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-[177px] ">
@@ -1098,8 +1176,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </div>
                 </div>
               </div>
-              <form
-                onSubmit={locationFormMethods.handleSubmit(async (values) => {
+              <Form
+                form={locationFormMethods}
+                handleSubmit={async (values) => {
                   const newLocation = values.locationType;
 
                   let details = {};
@@ -1122,7 +1201,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   }
 
                   setShowLocationModal(false);
-                })}>
+                }}>
                 <Controller
                   name="locationType"
                   control={locationFormMethods.control}
@@ -1136,8 +1215,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       classNamePrefix="react-select"
                       className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                       onChange={(val) => {
-                        locationFormMethods.setValue("locationType", val.value);
-                        setSelectedLocation(val);
+                        if (val) {
+                          locationFormMethods.setValue("locationType", val.value);
+                          setSelectedLocation(val);
+                        }
                       }}
                     />
                   )}
@@ -1153,7 +1234,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     {t("cancel")}
                   </Button>
                 </div>
-              </form>
+              </Form>
             </div>
           </DialogContent>
         </Dialog>
@@ -1293,6 +1374,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       requiresConfirmation: true,
       disableGuests: true,
       minimumBookingNotice: true,
+      slotInterval: true,
       team: {
         select: {
           slug: true,
