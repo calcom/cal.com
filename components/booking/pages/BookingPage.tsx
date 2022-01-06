@@ -285,11 +285,13 @@ const BookingPage = (props: BookingPageProps) => {
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
                 </p>
-                <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
+                <p className="mb-8 text-gray-600 dark:text-white whitespace-pre-line">
+                  {props.eventType.description}
+                </p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>
-                  <div className="mb-4">
+                  <div className={"mb-4 " + (router.query.name != null ? "hidden" : "")}>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("your_name")}
                     </label>
@@ -305,7 +307,7 @@ const BookingPage = (props: BookingPageProps) => {
                       />
                     </div>
                   </div>
-                  <div className="mb-4">
+                  <div className={"mb-4 " + (router.query.email != null ? "hidden" : "")}>
                     <label
                       htmlFor="email"
                       className="block text-sm font-medium text-gray-700 dark:text-white">
@@ -478,7 +480,7 @@ const BookingPage = (props: BookingPageProps) => {
                     <textarea
                       {...bookingForm.register("notes")}
                       id="notes"
-                      rows={3}
+                      rows={7}
                       className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                       placeholder={t("share_additional_notes")}
                     />
