@@ -18,21 +18,8 @@ import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
-import {
-  DEFAULT_CALENDAR_INTEGRATION_NAME,
-  DEFAULT_PASSWORD,
-  DEFAULT_URL,
-  DEFAULT_CALENDAR_DISPLAY_NAME,
-  DEFAULT_TIMEZONE,
-} from "../constants/defaults";
 import { TIMEZONE_FORMAT } from "../constants/formats";
-import {
-  CALDAV_CALENDAR_TYPE,
-  TZID_CALENDAR_PROPERTY,
-  UTC_TIMEZONE_TYPE,
-  VEVENT_CALENDAR_COMPONENT,
-  VTIMEZONE_CALENDAR_COMPONENT,
-} from "../constants/generals";
+import { CALDAV_CALENDAR_TYPE } from "../constants/generals";
 import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../constants/types";
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
@@ -43,7 +30,7 @@ export default abstract class BaseCalendarService implements Calendar {
   private url = "";
   private credentials: Record<string, string> = {};
   private headers: Record<string, string> = {};
-  protected integrationName = DEFAULT_CALENDAR_INTEGRATION_NAME;
+  protected integrationName = "";
 
   log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
@@ -100,8 +87,7 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              /** according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1,
-               * Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property. */
+              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
               iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
@@ -118,8 +104,8 @@ export default abstract class BaseCalendarService implements Calendar {
         uid,
         id: uid,
         type: this.integrationName,
-        password: DEFAULT_PASSWORD,
-        url: DEFAULT_URL,
+        password: "",
+        url: "",
         additionalInfo: {},
       };
     } catch (reason) {
@@ -135,7 +121,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
       const { error, value: iCalString } = createEvent({
         uid,
-        startInputType: UTC_TIMEZONE_TYPE,
+        startInputType: "utc",
         start: convertDate(event.startTime),
         duration: getDuration(event.startTime, event.endTime),
         title: event.title,
@@ -220,11 +206,11 @@ export default abstract class BaseCalendarService implements Calendar {
       });
 
       return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
-        if (!calendar.components?.includes(VEVENT_CALENDAR_COMPONENT)) return newCalendars;
+        if (!calendar.components?.includes("VEVENT")) return newCalendars;
 
         newCalendars.push({
           externalId: calendar.url,
-          name: calendar.displayName ?? DEFAULT_CALENDAR_DISPLAY_NAME,
+          name: calendar.displayName ?? "",
           primary: event?.destinationCalendar?.externalId
             ? event.destinationCalendar.externalId === calendar.url
             : false,
@@ -268,13 +254,11 @@ export default abstract class BaseCalendarService implements Calendar {
 
           const vcalendar = new ICAL.Component(jcalData);
 
-          const vevent = vcalendar.getFirstSubcomponent(VEVENT_CALENDAR_COMPONENT.toLowerCase());
+          const vevent = vcalendar.getFirstSubcomponent("vevent");
           const event = new ICAL.Event(vevent);
 
           const calendarTimezone =
-            vcalendar
-              .getFirstSubcomponent(VTIMEZONE_CALENDAR_COMPONENT)
-              ?.getFirstPropertyValue(TZID_CALENDAR_PROPERTY) || DEFAULT_TIMEZONE;
+            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
 
           const startDate = calendarTimezone
             ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)

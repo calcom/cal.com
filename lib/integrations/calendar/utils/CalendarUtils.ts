@@ -1,8 +1,6 @@
 import dayjs from "dayjs";
 import { Attendee, DateArray, DurationObject, Person } from "ics";
 
-import { ATTENDEE_NEEDS_ACTION } from "../constants/generals";
-
 export const convertDate = (date: string): DateArray =>
   dayjs(date)
     .utc()
@@ -15,4 +13,4 @@ export const getDuration = (start: string, end: string): DurationObject => ({
 });
 
 export const getAttendees = (attendees: Person[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: ATTENDEE_NEEDS_ACTION }));
+  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
