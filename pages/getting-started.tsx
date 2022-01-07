@@ -8,7 +8,7 @@ import utc from "dayjs/plugin/utc";
 import debounce from "lodash/debounce";
 import omit from "lodash/omit";
 import { NextPageContext } from "next";
-import { useSession } from "next-auth/client";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
@@ -68,7 +68,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [enteredName, setEnteredName] = React.useState("");
-  const Sess = useSession();
+  const { status } = useSession();
+  const loading = status === "loading";
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -410,7 +411,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (Sess[1] || !ready) {
+  if (loading || !ready) {
     return <div className="loader"></div>;
   }
 
