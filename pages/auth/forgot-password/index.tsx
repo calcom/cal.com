@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { GetServerSidePropsContext } from "next";
-import { getCsrfToken } from "next-auth/client";
+import { getCsrfToken } from "next-auth/react";
 import React, { SyntheticEvent } from "react";
 
 import { getSession } from "@lib/auth";
@@ -35,6 +35,8 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       const json = await res.json();
       if (!res.ok) {
         setError(json);
+      } else if ("resetLink" in json) {
+        window.location = json.resetLink;
       } else {
         setSuccess(true);
       }
