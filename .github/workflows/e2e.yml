@@ -21,8 +21,7 @@ jobs:
       PAYMENT_FEE_FIXED: 10
       GOOGLE_CLIENT_ID: ${{ secrets.CI_GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.CI_GOOGLE_CLIENT_SECRET }}
-      CI_GOOGLE_TEST_USERNAME: ${{ secrets.CI_GOOGLE_TEST_USERNAME }}
-      CI_GOOGLE_TEST_PASSWORD: ${{ secrets.CI_GOOGLE_TEST_PASSWORD }}
+      SAML_ADMINS: pro@example.com
       # NEXTAUTH_URL: xxx
       # EMAIL_FROM: xxx
       # EMAIL_SERVER_HOST: xxx
