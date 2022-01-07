@@ -106,6 +106,7 @@ if (isSAMLLoginEnabled) {
     name: "BoxyHQ",
     type: "oauth",
     version: "2.0",
+    checks: ["pkce", "state"],
     authorization: `${samlLoginUrl}/api/auth/saml/authorize?response_type=code&provider=saml`,
     token: {
       url: `${samlLoginUrl}/api/auth/saml/token`,
