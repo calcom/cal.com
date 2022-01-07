@@ -92,3 +92,4 @@ jobs:
           path: |
             playwright/screenshots
             playwright/videos
+            playwright/results

@@ -7,6 +7,7 @@ const config: PlaywrightTestConfig = {
   retries: process.env.CI ? 3 : 0,
   reporter: "list",
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
+  outputDir: "playwright/results",
   webServer: {
     command: "yarn start",
     port: 3000,
