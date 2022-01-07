@@ -1,10 +1,11 @@
 import { GetServerSidePropsContext } from "next";
-import { getCsrfToken, signIn } from "next-auth/client";
+import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { ErrorCode, getSession } from "@lib/auth";
+import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -45,7 +46,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
     setErrorMessage(null);
 
     try {
-      const response = await signIn("credentials", {
+      const response = await signIn<"credentials">("credentials", {
         redirect: false,
         email,
         password,
@@ -176,7 +177,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
         </div>
         <div className="mt-4 text-sm text-center text-neutral-600">
           {t("dont_have_an_account")} {/* replace this with your account creation flow */}
-          <a href="https://cal.com/signup" className="font-medium text-neutral-900">
+          <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
             {t("create_an_account")}
           </a>
         </div>

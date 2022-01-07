@@ -1,10 +1,11 @@
 import { Credential } from "@prisma/client";
 
-import { CalendarEvent } from "@lib/calendarClient";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
+
+import { CalendarEvent } from "../calendar/interfaces/Calendar";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 export interface ZoomEventResult {
@@ -69,7 +70,8 @@ interface ZoomToken {
 
 const zoomAuth = (credential: Credential) => {
   const credentialKey = credential.key as unknown as ZoomToken;
-  const isExpired = (expiryDate: number) => expiryDate < Date.now();
+  const isTokenValid = (token: ZoomToken) =>
+    token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
   const authHeader =
     "Basic " +
     Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
@@ -107,7 +109,7 @@ const zoomAuth = (credential: Credential) => {
 
   return {
     getToken: () =>
-      !isExpired(credentialKey.expires_in || credentialKey.expiry_date)
+      !isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token),
   };

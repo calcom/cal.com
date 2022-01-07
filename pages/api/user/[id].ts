@@ -5,18 +5,19 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req: req });
+  const session = await getSession({ req });
 
-  if (!session) {
+  if (!session?.user.id) {
     return res.status(401).json({ message: "Not authenticated" });
   }
 
   const userIdQuery = req.query?.id ?? null;
-  const userId = Array.isArray(userIdQuery) ? parseInt(userIdQuery.pop()) : parseInt(userIdQuery);
+  const userId = Array.isArray(userIdQuery) ? parseInt(userIdQuery.pop() || "") : parseInt(userIdQuery);
 
   const authenticatedUser = await prisma.user.findFirst({
+    rejectOnNotFound: true,
     where: {
-      email: session.user.email,
+      id: session.user.id,
     },
     select: {
       id: true,

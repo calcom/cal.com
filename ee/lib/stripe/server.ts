@@ -2,9 +2,9 @@ import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 
-import { CalendarEvent } from "@lib/calendarClient";
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
+import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 
 import { createPaymentLink } from "./client";
@@ -77,7 +77,7 @@ export async function handlePayment(
       data: Object.assign({}, paymentIntent, {
         stripe_publishable_key,
         stripeAccount: stripe_user_id,
-      }) as PaymentData as unknown as Prisma.JsonValue,
+      }) /* We should treat this */ as PaymentData /* but Prisma doesn't know how to handle it, so it we treat it */ as unknown /* and then */ as Prisma.InputJsonValue,
       externalId: paymentIntent.id,
     },
   });

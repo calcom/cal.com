@@ -118,6 +118,7 @@ model User {
   brandColor          String               @default("#292929")
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
+  metadata            Json?
 
   @@map(name: "users")
 }

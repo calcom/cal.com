@@ -33,6 +33,7 @@
     "isolatedModules": true,
     "useUnknownInCatchVariables": true,
     "jsx": "preserve",
+    "typeRoots": ["./types"],
     "types": [
       "@types/jest",
     ],
