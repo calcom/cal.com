@@ -55,19 +55,19 @@ plugins.push(withTM);
 
 // prettier-ignore
 module.exports = () => plugins.reduce((acc, next) => next(acc), {
-  async Headers() {
-    return [
-      {
-        source: "/pages/[user]/avatar.tsx",
-        headers: [
-          {
-            key: "Content-type",
-            value: "image/png"
-          }
-        ],
-      }
-    ]
-  },  
+  // async headers() {
+  //   return [
+  //     {
+  //       source: '/:user/avatar',
+  //       headers: [
+  //         {
+  //           key: 'Content-Type',
+  //           value: 'image/png',
+  //         },
+  //       ],
+  //     },
+  //   ];
+  // },  
   i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
