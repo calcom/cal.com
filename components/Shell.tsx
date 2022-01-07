@@ -10,7 +10,7 @@ import {
   PuzzleIcon,
   MoonIcon,
 } from "@heroicons/react/solid";
-import { signOut, useSession } from "next-auth/client";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
@@ -52,7 +52,8 @@ export function useMeQuery() {
 }
 
 function useRedirectToLoginIfUnauthenticated() {
-  const [session, loading] = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   const router = useRouter();
 
   useEffect(() => {

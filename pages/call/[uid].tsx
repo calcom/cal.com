@@ -1,15 +1,20 @@
 import DailyIframe from "@daily-co/daily-js";
-import { getSession } from "next-auth/client";
+import { NextPageContext } from "next";
+import { getSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import { HeadSeo } from "@components/seo/head-seo";
 
-import prisma from "../../lib/prisma";
+export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function JoinCall(props, session) {
+export default function JoinCall(props: JoinCallPageProps) {
+  const session = props.session;
   const router = useRouter();
 
   //if no booking redirectis to the 404 page
@@ -23,8 +28,8 @@ export default function JoinCall(props, session) {
   console.log(enterDate);
 
   //find out if the meeting is upcoming or in the past
-  const isPast = new Date(props.booking.endTime) <= exitDate;
-  const isUpcoming = new Date(props.booking.startTime) >= enterDate;
+  const isPast = new Date(props.booking?.endTime || "") <= exitDate;
+  const isUpcoming = new Date(props.booking?.startTime || "") >= enterDate;
   const meetingUnavailable = isUpcoming == true || isPast == true;
 
   useEffect(() => {
@@ -33,16 +38,16 @@ export default function JoinCall(props, session) {
     }
 
     if (isUpcoming) {
-      router.push(`/call/meeting-not-started/${props.booking.uid}`);
+      router.push(`/call/meeting-not-started/${props.booking?.uid}`);
     }
 
     if (isPast) {
-      router.push(`/call/meeting-ended/${props.booking.uid}`);
+      router.push(`/call/meeting-ended/${props.booking?.uid}`);
     }
   });
 
   useEffect(() => {
-    if (!meetingUnavailable && !emptyBooking && session.userid !== props.booking.user.id) {
+    if (!meetingUnavailable && !emptyBooking && session?.userid !== props.booking.user?.id) {
       const callFrame = DailyIframe.createFrame({
         theme: {
           colors: {
@@ -66,11 +71,11 @@ export default function JoinCall(props, session) {
         },
       });
       callFrame.join({
-        url: props.booking.dailyRef.dailyurl,
+        url: props.booking.dailyRef?.dailyurl,
         showLeaveButton: true,
       });
     }
-    if (!meetingUnavailable && !emptyBooking && session.userid === props.booking.user.id) {
+    if (!meetingUnavailable && !emptyBooking && session?.userid === props.booking.user?.id) {
       const callFrame = DailyIframe.createFrame({
         theme: {
           colors: {
@@ -94,9 +99,9 @@ export default function JoinCall(props, session) {
         },
       });
       callFrame.join({
-        url: props.booking.dailyRef.dailyurl,
+        url: props.booking.dailyRef?.dailyurl,
         showLeaveButton: true,
-        token: props.booking.dailyRef.dailytoken,
+        token: props.booking.dailyRef?.dailytoken,
       });
     }
   }, []);
@@ -128,10 +133,10 @@ export default function JoinCall(props, session) {
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: NextPageContext) {
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: context.query.uid,
+      uid: context.query.uid as string,
     },
     select: {
       uid: true,
@@ -142,6 +147,7 @@ export async function getServerSideProps(context) {
       endTime: true,
       user: {
         select: {
+          id: true,
           credentials: true,
         },
       },
