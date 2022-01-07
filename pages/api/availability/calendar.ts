@@ -1,11 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
-
-import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
-import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });

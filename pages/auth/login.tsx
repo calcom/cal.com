@@ -1,5 +1,5 @@
 import { GetServerSidePropsContext } from "next";
-import { getCsrfToken, signIn } from "next-auth/client";
+import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -46,7 +46,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
     setErrorMessage(null);
 
     try {
-      const response = await signIn("credentials", {
+      const response = await signIn<"credentials">("credentials", {
         redirect: false,
         email,
         password,
