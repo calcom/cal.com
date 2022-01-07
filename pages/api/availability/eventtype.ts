@@ -114,10 +114,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "PATCH" || req.method === "POST") {
     // Data validation
     // @TODO: Move to dedicated data validation function when there's more data to validate
-    const { scAddress } = req.body;
-    if (scAddress) {
+    const { smartContractAddress } = req.body;
+    if (smartContractAddress) {
       // @TODO: Check address actually exists on mainnet
-      if (scAddress.length !== 42 || scAddress.slice(0, 2) !== "0x")
+      if (smartContractAddress.length !== 42 || smartContractAddress.slice(0, 2) !== "0x")
         return res.status(422).json({ message: "Invalid smart contract address." });
     }
     //
@@ -145,7 +145,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       slotInterval: req.body.slotInterval,
       price: req.body.price,
       currency: req.body.currency,
-      scAddress: req.body.scAddress,
+      smartContractAddress: req.body.smartContractAddress,
     };
 
     if (req.body.schedulingType) {

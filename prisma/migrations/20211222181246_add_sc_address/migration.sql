@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "EventType" ADD COLUMN     "scAddress" TEXT;
+ALTER TABLE "EventType" ADD COLUMN     "smartContractAddress" TEXT;

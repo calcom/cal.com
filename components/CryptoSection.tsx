@@ -21,7 +21,7 @@ declare const window: Window;
 
 interface CryptoSectionProps {
   id: number | string;
-  scAddress: string;
+  smartContractAddress: string;
   /** When set to true, there will be only 1 button which will both connect Metamask and verify the user's wallet. Otherwise, it will be in 2 steps with 2 buttons. */
   oneStep: boolean;
   verified: boolean | undefined;
@@ -44,7 +44,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   const verifyWallet = useCallback(async () => {
     try {
-      const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.scAddress);
+      const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.smartContractAddress);
       const balance = await contract.methods.balanceOf(window.ethereum.selectedAddress).call();
 
       const hasToken = balance > 0;

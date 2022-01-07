@@ -178,15 +178,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             return { name, address, symbol };
           });
 
-        const nftsList: Array<Token> = (await axios.get(`https://exodia.io/api/trending?page=1`)).data.map(
-          (nft: NFT) => {
-            const { name, contracts } = nft;
-            if (nft.contracts[0]) {
-              const { address, symbol } = contracts[0];
-              return { name, address, symbol };
-            }
+        const exodiaList = await (await fetch(`https://exodia.io/api/trending?page=1`)).json();
+
+        const nftsList: Array<Token> = exodiaList.map((nft: NFT) => {
+          const { name, contracts } = nft;
+          if (nft.contracts[0]) {
+            const { address, symbol } = contracts[0];
+            return { name, address, symbol };
           }
-        );
+        });
 
         const unifiedList: Array<Token> = [...erc20sList, ...nftsList];
 
@@ -309,7 +309,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const formMethods = useForm<{
     title: string;
     eventTitle: string;
-    scAddress: string;
+    smartContractAddress: string;
     slug: string;
     length: number;
     description: string;
@@ -569,7 +569,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     advancedPayload.periodEndDate = values.periodDates.endDate || undefined;
                     advancedPayload.minimumBookingNotice = values.minimumBookingNotice;
                     advancedPayload.slotInterval = values.slotInterval;
-                    advancedPayload.scAddress = values.scAddress;
+                    advancedPayload.smartContractAddress = values.smartContractAddress;
                     // prettier-ignore
                     advancedPayload.price =
                       !requirePayment ? undefined :
@@ -781,7 +781,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       {web3App && (
                         <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-48 sm:mb-0">
-                            <label htmlFor="scAddress" className="flex text-sm font-medium text-neutral-700">
+                            <label
+                              htmlFor="smartContractAddress"
+                              className="flex text-sm font-medium text-neutral-700">
                               {t("Smart Contract Address")}
                             </label>
                           </div>
@@ -791,8 +793,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 type="text"
                                 className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                 placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                                defaultValue={eventType.scAddress || ""}
-                                {...formMethods.register("scAddress")}
+                                defaultValue={eventType.smartContractAddress || ""}
+                                {...formMethods.register("smartContractAddress")}
                               />
                             </div>
                           </div>
@@ -1442,7 +1444,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       customInputs: true,
       timeZone: true,
       periodType: true,
-      scAddress: true,
+      smartContractAddress: true,
       periodDays: true,
       periodStartDate: true,
       periodEndDate: true,

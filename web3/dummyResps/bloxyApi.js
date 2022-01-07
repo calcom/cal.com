@@ -1,4 +1,4 @@
-export default resp = [
+const resp = [
   {
     symbol: "WETH",
     name: "Wrapped Ether",
@@ -7000,3 +7000,5 @@ export default resp = [
     txs: 100791,
   },
 ];
+
+export default resp;
