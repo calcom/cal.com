@@ -21,6 +21,7 @@ jobs:
       PAYMENT_FEE_FIXED: 10
       GOOGLE_CLIENT_ID: ${{ secrets.CI_GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.CI_GOOGLE_CLIENT_SECRET }}
+      SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       SAML_ADMINS: pro@example.com
       # NEXTAUTH_URL: xxx
       # EMAIL_FROM: xxx
