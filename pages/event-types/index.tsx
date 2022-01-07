@@ -126,12 +126,12 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
               )}>
               <div className="flex items-center justify-between w-full px-4 py-4 group sm:px-6 hover:bg-neutral-50">
                 <button
-                  className="absolute mb-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                  className="hidden sm:block absolute mb-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
                   onClick={() => moveEventType(index, -1)}>
                   <ArrowUpIcon />
                 </button>
                 <button
-                  className="absolute mt-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                  className="hidden sm:block absolute mt-8 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
                   onClick={() => moveEventType(index, 1)}>
                   <ArrowDownIcon />
                 </button>
@@ -140,7 +140,8 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                     className="flex-grow text-sm truncate"
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
-                      <span className="font-medium truncate text-neutral-900">{type.title}</span>
+                      <span className="font-medium truncate text-neutral-900">{type.title} </span>
+                      <small className="hidden sm:inline text-neutral-500">{`/${profile.slug}/${type.slug}`}</small>
                       {type.hidden && (
                         <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                           {t("hidden")}

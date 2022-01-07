@@ -3,8 +3,9 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
-import { AdditionInformation, CalendarEvent, createEvent, updateEvent } from "@lib/calendarClient";
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
+import { createEvent, updateEvent } from "@lib/integrations/calendar/CalendarManager";
+import { AdditionInformation, CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { Ensure } from "@lib/types/utils";

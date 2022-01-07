@@ -56,3 +56,5 @@ yarn-error.log*
 # Local History for Visual Studio Code
 .history/
 
+# Typescript 
+tsconfig.tsbuildinfo

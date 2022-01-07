@@ -1,10 +1,11 @@
 import { Credential } from "@prisma/client";
 
-import { CalendarEvent } from "@lib/calendarClient";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
+
+import { CalendarEvent } from "../calendar/interfaces/Calendar";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 export interface ZoomEventResult {
