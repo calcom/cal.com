@@ -1,8 +1,10 @@
-import NextAuth from "next-auth";
-import Providers, { AppProviders } from "next-auth/providers";
+import NextAuth, { Session } from "next-auth";
+import { Provider } from "next-auth/providers";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { authenticator } from "otplib";
 
-import { ErrorCode, isGoogleLoginEnabled, Session, verifyPassword } from "@lib/auth";
+import { ErrorCode, isGoogleLoginEnabled, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
@@ -11,84 +13,89 @@ import slugify from "@lib/slugify";
 
 import { IdentityProvider } from ".prisma/client";
 
-async function authorize(credentials: any) {
-  const user = await prisma.user.findUnique({
-    where: {
-      email: credentials.email.toLowerCase(),
-    },
-  });
-
-  if (!user) {
-    throw new Error(ErrorCode.UserNotFound);
-  }
-
-  if (user.identityProvider !== IdentityProvider.CAL) {
-    throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
-  }
-
-  if (!user.password) {
-    throw new Error(ErrorCode.UserMissingPassword);
-  }
-
-  const isCorrectPassword = await verifyPassword(credentials.password, user.password);
-  if (!isCorrectPassword) {
-    throw new Error(ErrorCode.IncorrectPassword);
-  }
-
-  if (user.twoFactorEnabled) {
-    if (!credentials.totpCode) {
-      throw new Error(ErrorCode.SecondFactorRequired);
-    }
-
-    if (!user.twoFactorSecret) {
-      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
-      throw new Error(ErrorCode.InternalServerError);
-    }
-
-    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-      console.error(`"Missing encryption key; cannot proceed with two factor login."`);
-      throw new Error(ErrorCode.InternalServerError);
-    }
-
-    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-    if (secret.length !== 32) {
-      console.error(
-        `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-      );
-      throw new Error(ErrorCode.InternalServerError);
-    }
-
-    const isValidToken = authenticator.check(credentials.totpCode, secret);
-    if (!isValidToken) {
-      throw new Error(ErrorCode.IncorrectTwoFactorCode);
-    }
-  }
-
-  return {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    name: user.name,
-  };
-}
-
-const providers: AppProviders = [
-  Providers.Credentials({
+const providers: Provider[] = [
+  CredentialsProvider({
+    id: "credentials",
     name: "Cal.com",
+    type: "credentials",
     credentials: {
       email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
       password: { label: "Password", type: "password", placeholder: "Your super secure password" },
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
     },
-    authorize,
+    async authorize(credentials) {
+      if (!credentials) {
+        console.error(`For some reason credentials are missing`);
+        throw new Error(ErrorCode.InternalServerError);
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {
+          email: credentials.email.toLowerCase(),
+        },
+      });
+
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      if (user.identityProvider !== IdentityProvider.CAL) {
+        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
+      }
+
+      if (!user.password) {
+        throw new Error(ErrorCode.UserMissingPassword);
+      }
+
+      const isCorrectPassword = await verifyPassword(credentials.password, user.password);
+      if (!isCorrectPassword) {
+        throw new Error(ErrorCode.IncorrectPassword);
+      }
+
+      if (user.twoFactorEnabled) {
+        if (!credentials.totpCode) {
+          throw new Error(ErrorCode.SecondFactorRequired);
+        }
+
+        if (!user.twoFactorSecret) {
+          console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+        if (secret.length !== 32) {
+          console.error(
+            `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+          );
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        const isValidToken = authenticator.check(credentials.totpCode, secret);
+        if (!isValidToken) {
+          throw new Error(ErrorCode.IncorrectTwoFactorCode);
+        }
+      }
+
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+      };
+    },
   }),
 ];
 
 if (isGoogleLoginEnabled) {
   providers.push(
-    Providers.Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     })
   );
 }
@@ -99,35 +106,34 @@ if (isSAMLLoginEnabled) {
     name: "BoxyHQ",
     type: "oauth",
     version: "2.0",
-    params: {
-      grant_type: "authorization_code",
+    authorization: `${samlLoginUrl}/api/auth/saml/authorize?response_type=code&provider=saml`,
+    token: {
+      url: `${samlLoginUrl}/api/auth/saml/token`,
+      params: { grant_type: "authorization_code" },
     },
-    accessTokenUrl: `${samlLoginUrl}/api/auth/saml/token`,
-    authorizationUrl: `${samlLoginUrl}/api/auth/saml/authorize?response_type=code&provider=saml`,
-    profileUrl: `${samlLoginUrl}/api/auth/saml/userinfo`,
-    profile: (profile: any) => {
+    userinfo: `${samlLoginUrl}/api/auth/saml/userinfo`,
+    profile: (profile) => {
       return {
         id: profile.id || "",
         firstName: profile.first_name || "",
         lastName: profile.last_name || "",
         email: profile.email || "",
         name: `${profile.firstName} ${profile.lastName}`,
-        verified_email: true,
+        email_verified: true,
       };
     },
-    scope: "",
-    clientId: "dummy",
-    clientSecret: "dummy",
+    options: {
+      clientId: "dummy",
+      clientSecret: "dummy",
+    },
   });
 }
 
 export default NextAuth({
   session: {
-    jwt: true,
+    strategy: "jwt",
   },
-  jwt: {
-    secret: process.env.JWT_SECRET,
-  },
+  secret: process.env.JWT_SECRET,
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
@@ -135,7 +141,7 @@ export default NextAuth({
   },
   providers,
   callbacks: {
-    async jwt(token, user, account, profile) {
+    async jwt({ token, user, account, profile }) {
       if (!user) {
         return token;
       }
@@ -182,7 +188,7 @@ export default NextAuth({
 
       return token;
     },
-    async session(session, token) {
+    async session({ session, token }) {
       const calendsoSession: Session = {
         ...session,
         user: {
@@ -193,7 +199,7 @@ export default NextAuth({
       };
       return calendsoSession;
     },
-    async signIn(user, account, profile) {
+    async signIn({ user, account, profile }) {
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
@@ -204,14 +210,22 @@ export default NextAuth({
         return false;
       }
 
+      if (!user.email) {
+        return false;
+      }
+
+      if (!user.name) {
+        return false;
+      }
+
       if (account.provider) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-        user.verified_email = user.verified_email || profile.verified_email;
+        user.email_verified = user.email_verified || profile.email_verified;
 
-        if (!user.verified_email) {
+        if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
         }
 
@@ -226,10 +240,6 @@ export default NextAuth({
           // hasn't changed since they last logged in.
           if (existingUser.email === user.email) {
             return true;
-          }
-
-          if (!user.email || !user.name) {
-            return false;
           }
 
           // If the email address doesn't match, check if an account already exists
@@ -251,7 +261,7 @@ export default NextAuth({
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
         const existingUserWithEmail = await prisma.user.findFirst({
-          where: { email: user.email! },
+          where: { email: user.email },
         });
 
         if (existingUserWithEmail) {
@@ -262,11 +272,11 @@ export default NextAuth({
             !existingUserWithEmail.username
           ) {
             await prisma.user.update({
-              where: { email: user.email! },
+              where: { email: user.email },
               data: {
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: slugify(user.name!) + "-" + randomString(6),
+                username: slugify(user.name) + "-" + randomString(6),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
@@ -288,10 +298,10 @@ export default NextAuth({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
-            username: slugify(user.name!) + "-" + randomString(6),
+            username: slugify(user.name) + "-" + randomString(6),
             emailVerified: new Date(Date.now()),
             name: user.name,
-            email: user.email!,
+            email: user.email,
             identityProvider: idP,
             identityProviderId: user.id as string,
           },

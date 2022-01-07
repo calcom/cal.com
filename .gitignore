@@ -15,6 +15,7 @@
 playwright/videos
 playwright/screenshots
 playwright/artifacts
+playwright/results
 
 # next.js
 /.next/

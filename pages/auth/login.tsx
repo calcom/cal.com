@@ -1,5 +1,5 @@
 import { GetServerSidePropsContext } from "next";
-import { getCsrfToken, signIn } from "next-auth/client";
+import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -62,7 +62,7 @@ export default function Login({
     setErrorMessage(null);
 
     try {
-      const response = await signIn("credentials", {
+      const response = await signIn<"credentials">("credentials", {
         redirect: false,
         email,
         password,
@@ -93,31 +93,13 @@ export default function Login({
   }
 
   const mutation = trpc.useMutation("viewer.samlTenantProduct", {
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
       signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },
     onError: (err) => {
       setErrorMessage(err.message);
     },
   });
-
-  const samlSignIn = async (event: any) => {
-    event.preventDefault();
-
-    if (!hostedCal) {
-      await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });
-    } else {
-      if (email.length === 0) {
-        setErrorMessage(t("saml_email_required"));
-        return;
-      }
-
-      // hosted solution, fetch tenant and product from the backend
-      mutation.mutate({
-        email,
-      });
-    }
-  };
 
   return (
     <div className="flex flex-col justify-center min-h-screen py-12 bg-neutral-50 sm:px-6 lg:px-8">
@@ -231,7 +213,23 @@ export default function Login({
             <div style={{ marginTop: "12px" }}>
               <button
                 data-testid={"saml"}
-                onClick={samlSignIn}
+                onClick={async (event) => {
+                  event.preventDefault();
+
+                  if (!hostedCal) {
+                    await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });
+                  } else {
+                    if (email.length === 0) {
+                      setErrorMessage(t("saml_email_required"));
+                      return;
+                    }
+
+                    // hosted solution, fetch tenant and product from the backend
+                    mutation.mutate({
+                      email,
+                    });
+                  }
+                }}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_saml")}
               </button>
