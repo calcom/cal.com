@@ -7,9 +7,9 @@ import { EventResult } from "@lib/events/EventManager";
 import { PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
-import { CalendarEvent } from "./calendarClient";
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
 import ZoomVideoApiAdapter from "./integrations/Zoom/ZoomVideoApiAdapter";
+import { CalendarEvent } from "./integrations/calendar/interfaces/Calendar";
 import { Ensure } from "./types/utils";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });

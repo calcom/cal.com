@@ -1,4 +1,8 @@
 {
+  "trial_days_left": "Sie haben noch $t(Tage, {\"count\": {{days}} }) im Testzeitraum der PRO-Version",
+  "day": "{{count}} Tag",
+  "day_plural": "{{count}} Tage",
+  "upgrade_now": "Jetzt upgraden",
   "accept_invitation": "Einladung annehmen",
   "calcom_explained": "Cal.com ist die Open Source Calendly Alternative, die Ihnen die Kontrolle über Ihre eigenen Daten, Workflow und Erscheinungsbild gibt.",
   "have_any_questions": "Haben Sie Fragen? Wir sind hier um Ihnen zu helfen.",
@@ -541,6 +545,8 @@
   "new_event_type_to_book_description": "Erstellen Sie einen neuen Ereignistyp, mit dem Personen Zeiten buchen können.",
   "length": "Länge",
   "minimum_booking_notice": "Minimaler Abstand zwischen Terminen",
+  "slot_interval": "Zeit-Slot-Intervalle",
+  "slot_interval_default": "Verwende Ereignislänge (Standard)",
   "delete_event_type_description": "Sind Sie sicher, dass Sie diesen Ereignistyp löschen möchten? Empfänger dieses Links können Sie nicht mehr buchen.",
   "delete_event_type": "Ereignistyp löschen",
   "confirm_delete_event_type": "Ja, Ereignistyp löschen",
@@ -561,5 +567,8 @@
   "calendar": "Kalender",
   "not_installed": "Nicht installiert",
   "error_password_mismatch": "Passwörter stimmen nicht überein.",
-  "error_required_field": "Dieses Feld ist erforderlich."
+  "error_required_field": "Dieses Feld ist erforderlich.",
+  "status": "Status",
+  "team_view_user_availability": "Verfügbarkeit des Benutzers anzeigen",
+  "team_view_user_availability_disabled": "Der Benutzer muss die Einladung annehmen, um die Verfügbarkeit zu sehen"
 }
