@@ -86,6 +86,7 @@ export default function SAMLConfiguration({
             {hasErrors && <Alert severity="error" title={errorMessage} />}
 
             <textarea
+              data-testid="saml_config"
               ref={samlConfigRef}
               name="saml_config"
               id="saml_config"
