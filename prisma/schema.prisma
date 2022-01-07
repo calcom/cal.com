@@ -53,7 +53,7 @@ model EventType {
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
-  scAddress               String?
+  smartContractAddress               String?
 
   @@unique([userId, slug])
 }

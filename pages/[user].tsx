@@ -74,7 +74,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                     <a
                       onClick={(e) => {
                         // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                        if (type.scAddress && !evtsToVerify[type.id]) {
+                        if (type.smartContractAddress && !evtsToVerify[type.id]) {
                           e.preventDefault();
                           showToast(
                             "You must verify a wallet with a token belonging to the specified smart contract first",
@@ -88,10 +88,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
-                  {type.scAddress && (
+                  {type.smartContractAddress && (
                     <CryptoSection
                       id={type.id}
-                      scAddress={type.scAddress}
+                      smartContractAddress={type.smartContractAddress}
                       verified={evtsToVerify[type.id]}
                       setEvtsToVerify={setEvtsToVerify}
                       oneStep
@@ -204,7 +204,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       schedulingType: true,
       price: true,
       currency: true,
-      scAddress: true,
+      smartContractAddress: true,
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });

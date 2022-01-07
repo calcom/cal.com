@@ -326,10 +326,10 @@ const BookingPage = (props: BookingPageProps) => {
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {parseDate(date)}
                 </p>
-                {props.eventType.scAddress && (
+                {props.eventType.smartContractAddress && (
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     Requires ownership of a token belonging to the following address:{" "}
-                    {props.eventType.scAddress}
+                    {props.eventType.smartContractAddress}
                   </p>
                 )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>

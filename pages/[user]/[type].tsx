@@ -44,7 +44,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     schedulingType: true,
     minimumBookingNotice: true,
     timeZone: true,
-    scAddress: true,
+    smartContractAddress: true,
     slotInterval: true,
     users: {
       select: {
