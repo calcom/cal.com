@@ -107,7 +107,14 @@ if (isSAMLLoginEnabled) {
     type: "oauth",
     version: "2.0",
     checks: ["pkce", "state"],
-    authorization: `${samlLoginUrl}/api/auth/saml/authorize?response_type=code&provider=saml`,
+    authorization: {
+      url: `${samlLoginUrl}/api/auth/saml/authorize`,
+      params: {
+        scope: "",
+        response_type: "code",
+        provider: "saml",
+      },
+    },
     token: {
       url: `${samlLoginUrl}/api/auth/saml/token`,
       params: { grant_type: "authorization_code" },
