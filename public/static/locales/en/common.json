@@ -366,7 +366,7 @@
   "additional_notes": "What are you requiring support with?",
   "booking_fail": "Could not book the meeting.",
   "reschedule_fail": "Could not reschedule the meeting.",
-  "share_additional_notes": "Please provide as much information as possible on your query and reason for booking this Ask Me Anything session so that your Support Coach is able to support you appropriately.",
+  "share_additional_notes": "Please provide as much information as possible on your query and reason for booking this Ask Me Anything session, so that the person you're booking with is able to support you appropriately.",
   "booking_confirmation": "Confirm your {{eventTypeTitle}} with {{profileName}}",
   "booking_reschedule_confirmation": "Reschedule your {{eventTypeTitle}} with {{profileName}}",
   "in_person_meeting": "Link or In-person meeting",
