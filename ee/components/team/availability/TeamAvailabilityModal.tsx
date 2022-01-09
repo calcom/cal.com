@@ -8,7 +8,7 @@ import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
-import MinutesField from "@components/ui/form/MinutesField";
+import Select from "@components/ui/form/Select";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
@@ -22,8 +22,10 @@ interface Props {
 export default function TeamAvailabilityModal(props: Props) {
   const utils = trpc.useContext();
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(dayjs.tz.guess);
-  const [frequency, setFrequency] = useState<number>(30);
+  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(
+    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()
+  );
+  const [frequency, setFrequency] = useState<15 | 30 | 60>(30);
 
   useEffect(() => {
     utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
@@ -64,24 +66,25 @@ export default function TeamAvailabilityModal(props: Props) {
         </div>
         <div>
           <span className="font-bold text-gray-600">Slot Length</span>
-          <MinutesField
-            id="length"
-            label=""
-            required
-            min="10"
-            placeholder="15"
-            defaultValue={frequency}
-            onChange={(e) => {
-              setFrequency(Number(e.target.value));
-            }}
+          <Select
+            options={[
+              { value: 15, label: "15 minutes" },
+              { value: 30, label: "30 minutes" },
+              { value: 60, label: "60 minutes" },
+            ]}
+            isSearchable={false}
+            classNamePrefix="react-select"
+            className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            value={{ value: frequency, label: `${frequency} minutes` }}
+            onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
           />
         </div>
       </div>
       {props.team && props.member && (
         <TeamAvailabilityTimes
           className="overflow-scroll"
-          team={props.team}
-          member={props.member}
+          teamId={props.team.id}
+          memberId={props.member.id}
           frequency={frequency}
           selectedDate={selectedDate}
           selectedTimeZone={selectedTimeZone}

@@ -14,6 +14,7 @@
 .nyc_output
 playwright/videos
 playwright/screenshots
+playwright/artifacts
 
 # next.js
 /.next/
@@ -36,6 +37,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
 
 # vercel
 .vercel
