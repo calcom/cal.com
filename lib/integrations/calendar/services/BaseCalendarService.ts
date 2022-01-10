@@ -29,6 +29,8 @@ import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
   private credentials: Record<string, string> = {};
