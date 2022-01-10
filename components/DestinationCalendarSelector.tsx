@@ -14,9 +14,7 @@ interface Props {
 
 const DestinationCalendarSelector = ({ onChange, isLoading, value }: Props): JSX.Element | null => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.connectedCalendars"], {
-    suspense: true,
-  });
+  const query = trpc.useQuery(["viewer.connectedCalendars"]);
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
 
   useEffect(() => {
