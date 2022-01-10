@@ -7,7 +7,6 @@ import { defaultAvatarSrc } from "@lib/profile";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const username = req.url?.substring(1, req.url.lastIndexOf("/"));
-  console.log("username=>", username);
   const user = await prisma.user.findUnique({
     where: {
       username: username,
