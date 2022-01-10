@@ -54,13 +54,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       passwordRequest = createdResetPasswordRequest;
     }
 
+    const resetLink = `${process.env.BASE_URL}/auth/forgot-password/${passwordRequest.id}`;
     const passwordEmail: PasswordReset = {
       language: t,
       user: maybeUser,
-      resetLink: `${process.env.BASE_URL}/auth/forgot-password/${passwordRequest.id}`,
+      resetLink,
     };
 
     await sendPasswordResetEmail(passwordEmail);
+
+    /** So we can test the password reset flow on CI */
+    if (
+      process.env.PLAYWRIGHT_SECRET &&
+      req.headers["x-playwright-secret"] === process.env.PLAYWRIGHT_SECRET
+    ) {
+      return res.status(201).json({ message: "Reset Requested", resetLink });
+    }
 
     return res.status(201).json({ message: "Reset Requested" });
   } catch (reason) {

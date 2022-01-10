@@ -9,7 +9,7 @@ import notEmpty from "@lib/notEmpty";
 
 import { ALL_INTEGRATIONS } from "../getIntegrations";
 import { CALENDAR_INTEGRATIONS_TYPES } from "./constants/generals";
-import { CalendarServiceType } from "./constants/types";
+import { CalendarServiceType, EventBusyDate } from "./constants/types";
 import { Calendar, CalendarEvent } from "./interfaces/Calendar";
 import AppleCalendarService from "./services/AppleCalendarService";
 import CalDavCalendarService from "./services/CalDavCalendarService";
@@ -111,9 +111,12 @@ export const getBusyCalendarTimes = async (
     .map((credential) => getCalendar(credential))
     .filter(notEmpty);
 
-  const results = await Promise.all(
-    calendars.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars))
-  );
+  let results: EventBusyDate[][] = [];
+  try {
+    results = await Promise.all(calendars.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars)));
+  } catch (error) {
+    log.warn(error);
+  }
 
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
