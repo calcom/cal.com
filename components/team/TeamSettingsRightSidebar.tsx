@@ -109,10 +109,9 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
           </Dialog>
         )}
       </div>
-      {/* TODO: Team availability */}
-      {props.team?.id && (
+      {props.team?.id && props.role !== MembershipRole.MEMBER && (
         <Link href={`/settings/teams/${props.team.id}/availability`}>
-          <div className="mt-5 space-y-1">
+          <div className="hidden mt-5 space-y-1 sm:block">
             <LinkIconButton Icon={ClockIcon}>{"View Availability"}</LinkIconButton>
             <p className="mt-2 text-sm text-gray-500">See your team members availability at a glance.</p>
           </div>

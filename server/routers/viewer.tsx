@@ -1,16 +1,15 @@
-import { BookingStatus, Prisma } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
-import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
-import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -57,6 +56,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         brandColor,
+        plan,
       } = ctx.user;
       const me = {
         id,
@@ -72,6 +72,7 @@ const loggedInViewerRouter = createProtectedRouter()
         completedOnboarding,
         twoFactorEnabled,
         brandColor,
+        plan,
       };
       return me;
     },
@@ -231,7 +232,7 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           metadata: {
             membershipCount: membership.team.members.length,
-            readOnly: membership.role !== "OWNER",
+            readOnly: membership.role === MembershipRole.MEMBER,
           },
           eventTypes: membership.team.eventTypes,
         }))
@@ -296,7 +297,10 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         ],
       };
-      const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
+      const bookingListingOrderby: Record<
+        typeof bookingListingByStatus,
+        Prisma.BookingOrderByWithAggregationInput
+      > = {
         upcoming: { startTime: "desc" },
         past: { startTime: "desc" },
         cancelled: { startTime: "desc" },
@@ -332,6 +336,7 @@ const loggedInViewerRouter = createProtectedRouter()
           endTime: true,
           eventType: {
             select: {
+              price: true,
               team: {
                 select: {
                   name: true,
@@ -340,6 +345,7 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           },
           status: true,
+          paid: true,
         },
         orderBy,
         take: take + 1,

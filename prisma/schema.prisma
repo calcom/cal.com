@@ -7,8 +7,7 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["selectRelationCount"]
+  provider = "prisma-client-js"
 }
 
 enum SchedulingType {
@@ -53,6 +52,7 @@ model EventType {
   Schedule                Schedule[]
   price                   Int                    @default(0)
   currency                String                 @default("usd")
+  slotInterval            Int?
 
   @@unique([userId, slug])
 }
@@ -118,6 +118,7 @@ model User {
   brandColor          String               @default("#292929")
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
+  metadata            Json?
 
   @@map(name: "users")
 }

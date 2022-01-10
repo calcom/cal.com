@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 import React from "react";
 
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Avatar from "@components/ui/Avatar";
@@ -25,6 +26,7 @@ const Team = ({ team }: TeamPageProps) => {
       "flex flex-col",
       "space-y-4",
       "p-4",
+      "min-w-full sm:min-w-64 sm:max-w-64",
       "bg-white dark:bg-neutral-900 dark:border-0 dark:bg-opacity-8",
       "border border-neutral-200",
       "hover:cursor-pointer",
@@ -47,11 +49,15 @@ const Team = ({ team }: TeamPageProps) => {
           />
 
           <div>
-            <Avatar alt={member.name || ""} imageSrc={member.avatar} className="w-12 h-12" />
-            <section className="space-y-2">
+            <Avatar
+              alt={member.name || ""}
+              imageSrc={getPlaceholderAvatar(member.avatar, member.username)}
+              className="w-12 h-12 -mt-4"
+            />
+            <section className="w-full mt-2 space-y-1">
               <Text variant="title">{member.name}</Text>
-              <Text variant="subtitle" className="w-6/8">
-                {member.bio}
+              <Text variant="subtitle" className="">
+                {member.bio || t("user_from_team", { user: member.name, team: team.name })}
               </Text>
             </section>
           </div>
@@ -66,7 +72,7 @@ const Team = ({ team }: TeamPageProps) => {
     }
 
     return (
-      <section className="flex flex-wrap justify-center max-w-5xl min-w-full mx-auto lg:min-w-lg gap-x-12 gap-y-6">
+      <section className="flex flex-wrap justify-center max-w-5xl min-w-full mx-auto lg:min-w-lg gap-x-6 gap-y-6">
         {members.map((member) => {
           return member.username !== null && <Member key={member.id} member={member} />;
         })}

@@ -8,7 +8,7 @@ import utc from "dayjs/plugin/utc";
 import debounce from "lodash/debounce";
 import omit from "lodash/omit";
 import { NextPageContext } from "next";
-import { useSession } from "next-auth/client";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
@@ -18,6 +18,7 @@ import TimezoneSelect from "react-timezone-select";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
+import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -31,9 +32,6 @@ import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 import Schedule from "@components/ui/form/Schedule";
-
-import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
-import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -70,7 +68,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [enteredName, setEnteredName] = React.useState("");
-  const Sess = useSession();
+  const { status } = useSession();
+  const loading = status === "loading";
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -412,12 +411,12 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (Sess[1] || !ready) {
+  if (loading || !ready) {
     return <div className="loader"></div>;
   }
 
   return (
-    <div className="min-h-screen bg-brand">
+    <div className="min-h-screen bg-brand" data-testid="onboarding">
       <Head>
         <title>Cal.com - {t("getting_started")}</title>
         <link rel="icon" href="/favicon.ico" />

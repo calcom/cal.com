@@ -30,7 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     }
   );
-  const json = await result.json();
+
+  const responseBody = await result.json();
+
+  responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
+  delete responseBody.expires_in;
 
   await prisma.user.update({
     where: {
@@ -40,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       credentials: {
         create: {
           type: "zoom_video",
-          key: json,
+          key: responseBody,
         },
       },
     },

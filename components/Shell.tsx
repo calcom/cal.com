@@ -9,13 +9,14 @@ import {
   LogoutIcon,
   PuzzleIcon,
 } from "@heroicons/react/solid";
-import { signOut, useSession } from "next-auth/client";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
+import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
@@ -39,7 +40,7 @@ import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 import Button from "./ui/Button";
 
-function useMeQuery() {
+export function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {
     retry(failureCount) {
       return failureCount > 3;
@@ -50,7 +51,8 @@ function useMeQuery() {
 }
 
 function useRedirectToLoginIfUnauthenticated() {
-  const [session, loading] = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   const router = useRouter();
 
   useEffect(() => {
@@ -201,7 +203,7 @@ export default function Shell(props: {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden bg-gray-100">
+      <div className="flex h-screen overflow-hidden bg-gray-100" data-testid="dashboard-shell">
         <div className="hidden md:flex lg:flex-shrink-0">
           <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
@@ -242,6 +244,7 @@ export default function Shell(props: {
                   ))}
                 </nav>
               </div>
+              <TrialBanner />
               <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
                 <span className="hidden lg:inline">
                   <UserDropdown />

@@ -2,7 +2,7 @@
 <p align="center">
   <a href="https://github.com/calendso/calendso">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
-    
+
   </a>
 
   <h3 align="center">Cal.com (formerly Calendso)</h3>
@@ -29,7 +29,7 @@
   <a href="https://github.com/calendso/calendso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
   <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
-  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>  
+  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
   <a href="https://cal.crowdin.com/Cal"><img src="https://badges.crowdin.net/e/5a55420475b48696779e30e0208a1899/localized.svg" alt="Translate Slack"></a>
 </p>
 
@@ -96,6 +96,7 @@ You will also need Google API credentials. You can get this from the [Google API
 git clone git@github.com:calendso/calendso.git
 cd calendso
 yarn
+cp .env.example .env
 yarn dx
 ```
 
@@ -269,7 +270,7 @@ Contributions are what make the open source community such an amazing place to b
 3. Set **Who can use this application or access this API?** to **Accounts in any organizational directory (Any Azure AD directory - Multitenant)**
 4. Set the **Web** redirect URI to `<Cal.com URL>/api/integrations/office365calendar/callback` replacing Cal.com URL with the URI at which your application runs.
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
-6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attriubte
+6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
 
 ## Obtaining Zoom Client ID and Secret
 
@@ -293,7 +294,6 @@ Contributions are what make the open source community such an amazing place to b
 2.  From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3.  Copy your API key.
 4.  Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
-
 
 <!-- LICENSE -->
 

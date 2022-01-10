@@ -1,10 +1,11 @@
+import { Person } from "ics";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { getIntegrationName } from "@lib/integrations";
 
-import { CalendarEvent, Person } from "./calendarClient";
 import { BASE_URL } from "./config/constants";
+import { CalendarEvent } from "./integrations/calendar/interfaces/Calendar";
 
 const translator = short();
 

@@ -1,9 +1,8 @@
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { StripeCardElementChangeEvent } from "@stripe/stripe-js";
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import stripejs, { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
-import React, { useState } from "react";
-import { SyntheticEvent } from "react";
+import React, { SyntheticEvent, useEffect, useState } from "react";
 
 import { PaymentData } from "@ee/lib/stripe/server";
 
@@ -12,10 +11,10 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
 
-const CARD_OPTIONS = {
+const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,
   classes: {
-    base: "block p-2 w-full border-solid border-2 border-gray-300 rounded-md shadow-sm dark:bg-brand dark:text-white dark:border-gray-900 focus-within:ring-black focus-within:border-brand sm:text-sm",
+    base: "block p-2 w-full border-solid border-2 border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-black focus-within:ring-black focus-within:border-black sm:text-sm",
   },
   style: {
     base: {
@@ -29,7 +28,7 @@ const CARD_OPTIONS = {
       },
     },
   },
-};
+} as const;
 
 type Props = {
   payment: {
@@ -47,18 +46,23 @@ type States =
   | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const { name, date } = router.query;
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
+
   const { isDarkMode } = useDarkMode();
 
+  useEffect(() => {
+    elements?.update({ locale: i18n.language as StripeElementLocale });
+  }, [elements, i18n.language]);
+
   if (isDarkMode) {
-    CARD_OPTIONS.style.base.color = "#fff";
-    CARD_OPTIONS.style.base.iconColor = "#fff";
-    CARD_OPTIONS.style.base["::placeholder"].color = "#fff";
+    CARD_OPTIONS.style!.base!.color = "#fff";
+    CARD_OPTIONS.style!.base!.iconColor = "#fff";
+    CARD_OPTIONS.style!.base!["::placeholder"]!.color = "#fff";
   }
 
   const handleChange = async (event: StripeCardElementChangeEvent) => {
