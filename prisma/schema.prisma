@@ -53,7 +53,7 @@ model EventType {
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
-  smartContractAddress               String?
+  smartContractAddress    String?
 
   @@unique([userId, slug])
 }
@@ -195,7 +195,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?
+  bookingId  Int?     @unique
 }
 
 model Booking {
@@ -326,4 +326,13 @@ model Webhook {
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
   user            User                   @relation(fields: [userId], references: [id])
+}
+
+model UserSettings {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
