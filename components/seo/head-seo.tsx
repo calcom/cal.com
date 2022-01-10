@@ -71,7 +71,7 @@ const constructImage = (name: string, description: string, username: string): st
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +
     ".png?md=1&images=https%3A%2F%2Fcal.com%2Flogo-white.svg&images=" +
-    process.env.BASE_URL +
+    process.env.NEXT_PUBLIC_APP_URL +
     "/" +
     username +
     "/avatar.png"
