@@ -29,9 +29,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
     <>
       <HeadSeo
         title={nameOrUsername}
-        description={nameOrUsername}
+        description={(user.bio as string) || ""}
         name={nameOrUsername}
-        avatar={user.avatar || undefined}
+        username={(user.username as string) || ""}
+        // avatar={user.avatar || undefined}
       />
       {isReady && (
         <div className="h-screen bg-neutral-50 dark:bg-black">

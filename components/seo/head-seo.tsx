@@ -10,8 +10,9 @@ export type HeadSeoProps = {
   description: string;
   siteName?: string;
   name?: string;
-  avatar?: string;
+  // avatar?: string;
   url?: string;
+  username?: string;
   canonical?: string;
   nextSeoProps?: NextSeoProps;
 };
@@ -66,11 +67,15 @@ const buildSeoMeta = (pageProps: {
   };
 };
 
-const constructImage = (name: string, avatar: string, description: string): string => {
+const constructImage = (name: string, description: string, username: string): string => {
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +
     ".png?md=1&images=https%3A%2F%2Fcal.com%2Flogo-white.svg&images=" +
-    encodeURIComponent(avatar)
+    process.env.BASE_URL +
+    "/" +
+    username +
+    "/avatar.png"
+    // encodeURIComponent(avatar)
   );
 };
 
@@ -82,7 +87,7 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
     title,
     description,
     name = null,
-    avatar = null,
+    username = null,
     siteName,
     canonical = defaultUrl,
     nextSeoProps = {},
@@ -91,9 +96,10 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
   const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({ title: pageTitle, image, description, canonical, siteName });
 
-  if (name && avatar) {
-    const pageImage = getSeoImage("ogImage") + constructImage(name, avatar, description);
+  if (name && username) {
+    const pageImage = getSeoImage("ogImage") + constructImage(name, description, username);
     seoObject = buildSeoMeta({ title: pageTitle, description, image: pageImage, canonical, siteName });
+    console.log("SEO META:::=>", seoObject);
   }
 
   const seoProps: NextSeoProps = merge(nextSeoProps, seoObject);
