@@ -36,7 +36,7 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
-  destinationCalendar     DestinationCalendar[]
+  destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
