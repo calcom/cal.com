@@ -183,6 +183,14 @@ const BookingPage = (props: BookingPageProps) => {
     }
   };
 
+  const parseDate = (date: string | null) => {
+    if (!date) return "No date";
+    const parsedZone = parseZone(date);
+    if (!parsedZone?.isValid()) return "Invalid date";
+    const formattedTime = parsedZone?.format(timeFormat);
+    return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
+  };
+
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
@@ -284,10 +292,7 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {(date && parseZone(date)?.format(timeFormat)) ||
-                    "No date" +
-                      ", " +
-                      dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" })}
+                  {parseDate(date)}
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
