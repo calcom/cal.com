@@ -10,7 +10,6 @@ export type HeadSeoProps = {
   description: string;
   siteName?: string;
   name?: string;
-  // avatar?: string;
   url?: string;
   username?: string;
   canonical?: string;
@@ -40,9 +39,6 @@ const buildSeoMeta = (pageProps: {
       images: [
         {
           url: image,
-          //width: 1077,
-          //height: 565,
-          //alt: "Alt image"
         },
       ],
     },
@@ -75,7 +71,6 @@ const constructImage = (name: string, description: string, username: string): st
     "/" +
     username +
     "/avatar.png"
-    // encodeURIComponent(avatar)
   );
 };
 
