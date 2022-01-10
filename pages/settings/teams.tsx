@@ -1,6 +1,6 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import { useSession } from "next-auth/client";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -16,7 +16,8 @@ import Button from "@components/ui/Button";
 
 export default function Teams() {
   const { t } = useLocale();
-  const [, loading] = useSession();
+  const { status } = useSession();
+  const loading = status === "loading";
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
