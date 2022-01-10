@@ -78,10 +78,6 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar",
       },
-      {
-        source: "/:user/avatar",
-        destination: "/api/user/avatar",
-      },
     ]
   },
   async redirects() {

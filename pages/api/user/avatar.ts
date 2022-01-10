@@ -6,7 +6,6 @@ import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  //   console.log("req=>", req.url);
   const username = req.url?.substring(1, req.url.lastIndexOf("/"));
   console.log("username=>", username);
   const user = await prisma.user.findUnique({
@@ -20,16 +19,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const emailMd5 = crypto.createHash("md5").update(user?.email).digest("hex");
-  // Add support for empty req.body.avatar (gravatar)
-  const img = user?.avatar || defaultAvatarSrc({ md5: emailMd5 });
-  //   console.log("sess=>", user);
-  const decoded = img.toString().replace("data:image/png;base64,", "").replace("data:image/jpeg;base64,", "");
-  const imageResp = Buffer.from(decoded, "base64");
-  res.writeHead(200, {
-    "Content-Type": "image/png",
-    "Content-Length": imageResp.length,
-  });
-  res.end(imageResp);
+  const img = user?.avatar;
+  if (img) {
+    const decoded = img
+      .toString()
+      .replace("data:image/png;base64,", "")
+      .replace("data:image/jpeg;base64,", "");
+    const imageResp = Buffer.from(decoded, "base64");
+    res.writeHead(200, {
+      "Content-Type": "image/png",
+      "Content-Length": imageResp.length,
+    });
+    res.end(imageResp);
+  } else {
+    res.writeHead(302, {
+      Location: defaultAvatarSrc({ md5: emailMd5 }),
+    });
+    res.end();
+  }
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
