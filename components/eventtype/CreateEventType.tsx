@@ -1,4 +1,3 @@
-// TODO: replace headlessui with radix-ui
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
@@ -13,6 +12,7 @@ import showToast from "@lib/notification";
 import { CreateEventType } from "@lib/types/event-type";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
+import { TextField, InputLeading, TextAreaField } from "@components/form/fields";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 import Dropdown, {
@@ -119,7 +119,7 @@ export default function CreateEventTypeButton(props: Props) {
       )}
 
       <DialogContent>
-        <div className="mb-8">
+        <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
           </h3>
@@ -150,100 +150,76 @@ export default function CreateEventTypeButton(props: Props) {
 
             createMutation.mutate(payload);
           }}>
-          <div>
-            <div className="mb-4">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                {t("title")}
-              </label>
-              <div className="mt-1">
-                <input
-                  onChange={(e) => {
-                    if (!slugRef.current) {
-                      return;
-                    }
-                    slugRef.current.value = e.target.value.replace(/\s+/g, "-").toLowerCase();
-                  }}
-                  type="text"
-                  name="title"
-                  id="title"
-                  required
-                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder={t("quick_chat")}
-                />
+          <div className="inline-block mt-3 space-y-4">
+            <TextField
+              label={t("title")}
+              name="title"
+              placeholder={t("quick_chat")}
+              onChange={(e) => {
+                if (!slugRef.current) {
+                  return;
+                }
+                slugRef.current.value = e.target.value.replace(/\s+/g, "-").toLowerCase();
+              }}
+            />
+
+            <TextField
+              label={t("url")}
+              ref={slugRef}
+              name="url"
+              required
+              addOnLeading={
+                <InputLeading>
+                  {process.env.NEXT_PUBLIC_APP_URL}/{pageSlug}/
+                </InputLeading>
+              }
+              onChange={(e) => {
+                if (!slugRef.current) return;
+                slugRef.current.value = e.target.value.replace(/\s+/g, "-").toLowerCase();
+              }}
+            />
+
+            <TextAreaField
+              label={t("description")}
+              name="description"
+              placeholder={t("quick_video_meeting")}
+            />
+
+            <div className="relative">
+              <TextField
+                type="number"
+                required
+                placeholder="15"
+                defaultValue={15}
+                label={t("length")}
+                className="pr-20"
+                name="length"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pt-4 mt-1.5 pr-3 text-sm text-gray-400">
+                {t("minutes")}
               </div>
             </div>
-            <div className="mb-4">
-              <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                {t("url")}
-              </label>
-              <div className="mt-1">
-                <div className="flex rounded-sm shadow-sm">
-                  <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 sm:text-sm">
-                    {process.env.NEXT_PUBLIC_APP_URL}/{pageSlug}/
-                  </span>
-                  <input
-                    ref={slugRef}
-                    type="text"
-                    name="slug"
-                    id="slug"
-                    required
-                    className="flex-1 block w-full min-w-0 border-gray-300 rounded-none focus:ring-neutral-900 focus:border-neutral-900 rounded-r-md sm:text-sm"
-                  />
-                </div>
+
+            {teamId && (
+              <div className="mb-4">
+                <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
+                  {t("scheduling_type")}
+                </label>
+                <RadioArea.Group
+                  name="schedulingType"
+                  className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
+                  <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
+                    <strong className="block mb-1">{t("collective")}</strong>
+                    <p>{t("collective_description")}</p>
+                  </RadioArea.Item>
+                  <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="w-1/2 text-sm">
+                    <strong className="block mb-1">{t("round_robin")}</strong>
+                    <p>{t("round_robin_description")}</p>
+                  </RadioArea.Item>
+                </RadioArea.Group>
               </div>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                {t("description")}
-              </label>
-              <div className="mt-1">
-                <textarea
-                  name="description"
-                  id="description"
-                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder={t("quick_video_meeting")}
-                />
-              </div>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="length" className="block text-sm font-medium text-gray-700">
-                {t("length")}
-              </label>
-              <div className="relative mt-1 rounded-sm shadow-sm">
-                <input
-                  type="number"
-                  name="length"
-                  id="length"
-                  required
-                  className="block w-full pr-20 border-gray-300 rounded-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-                  placeholder="15"
-                  defaultValue={15}
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-400">
-                  {t("minutes")}
-                </div>
-              </div>
-            </div>
+            )}
           </div>
-          {teamId && (
-            <div className="mb-4">
-              <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
-                {t("scheduling_type")}
-              </label>
-              <RadioArea.Group
-                name="schedulingType"
-                className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
-                <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
-                  <strong className="block mb-1">{t("collective")}</strong>
-                  <p>{t("collective_description")}</p>
-                </RadioArea.Item>
-                <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="w-1/2 text-sm">
-                  <strong className="block mb-1">{t("round_robin")}</strong>
-                  <p>{t("round_robin_description")}</p>
-                </RadioArea.Item>
-              </RadioArea.Group>
-            </div>
-          )}
           <div className="flex flex-row-reverse mt-8 gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
