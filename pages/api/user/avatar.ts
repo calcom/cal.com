@@ -18,7 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const emailMd5 = crypto.createHash("md5").update(user?.email).digest("hex");
+  const emailMd5 = crypto
+    .createHash("md5")
+    .update(user?.email as string)
+    .digest("hex");
   const img = user?.avatar;
   if (img) {
     const decoded = img
