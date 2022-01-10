@@ -93,13 +93,26 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
     nextSeoProps = {},
   } = props;
 
+  const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
+  console.log("desc=>", truncatedDescription);
   const pageTitle = title + " | Cal.com";
-  let seoObject = buildSeoMeta({ title: pageTitle, image, description, canonical, siteName });
+  let seoObject = buildSeoMeta({
+    title: pageTitle,
+    image,
+    description: truncatedDescription,
+    canonical,
+    siteName,
+  });
 
   if (name && username) {
-    const pageImage = getSeoImage("ogImage") + constructImage(name, description, username);
-    seoObject = buildSeoMeta({ title: pageTitle, description, image: pageImage, canonical, siteName });
-    console.log("SEO META:::=>", seoObject);
+    const pageImage = getSeoImage("ogImage") + constructImage(name, truncatedDescription, username);
+    seoObject = buildSeoMeta({
+      title: pageTitle,
+      description: truncatedDescription,
+      image: pageImage,
+      canonical,
+      siteName,
+    });
   }
 
   const seoProps: NextSeoProps = merge(nextSeoProps, seoObject);
