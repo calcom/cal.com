@@ -499,6 +499,22 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("userSettings", {
+    async resolve({ ctx }) {
+      const { prisma, user } = ctx;
+
+      const web3AppConfiguration = await prisma.userSettings.findFirst({
+        where: {
+          userId: user.id,
+          key: "web3App",
+        },
+      });
+
+      return {
+        web3App: (web3AppConfiguration?.value || "false") === "true",
+      };
+    },
+  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),

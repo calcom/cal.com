@@ -39,6 +39,7 @@ import updateEventType from "@lib/mutations/event-types/update-event-type";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
+import { trpc } from "@lib/trpc";
 import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { WorkingHours } from "@lib/types/schedule";
@@ -61,10 +62,6 @@ import bloxyApi from "../../web3/dummyResps/bloxyApi";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-// TODO @danfesi we need to get this boolean from user_settings
-// we should also disable the other API calls for web3 if it's disabled
-const web3App = true;
 
 interface Token {
   name?: string;
@@ -167,38 +164,42 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
   useEffect(() => {
-    const fetchTokens = async () => {
-      // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
-      try {
-        const erc20sList: Array<Token> =
-          //   await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
-          // ).data
-          bloxyApi.slice(0, 100).map((erc20: Token) => {
-            const { name, address, symbol } = erc20;
-            return { name, address, symbol };
+    const { data } = trpc.useQuery(["viewer.userSettings"]);
+
+    if (data?.web3App) {
+      const fetchTokens = async () => {
+        // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
+        try {
+          const erc20sList: Array<Token> =
+            //   await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
+            // ).data
+            bloxyApi.slice(0, 100).map((erc20: Token) => {
+              const { name, address, symbol } = erc20;
+              return { name, address, symbol };
+            });
+
+          const exodiaList = await (await fetch(`https://exodia.io/api/trending?page=1`)).json();
+
+          const nftsList: Array<Token> = exodiaList.map((nft: NFT) => {
+            const { name, contracts } = nft;
+            if (nft.contracts[0]) {
+              const { address, symbol } = contracts[0];
+              return { name, address, symbol };
+            }
           });
 
-        const exodiaList = await (await fetch(`https://exodia.io/api/trending?page=1`)).json();
+          const unifiedList: Array<Token> = [...erc20sList, ...nftsList];
 
-        const nftsList: Array<Token> = exodiaList.map((nft: NFT) => {
-          const { name, contracts } = nft;
-          if (nft.contracts[0]) {
-            const { address, symbol } = contracts[0];
-            return { name, address, symbol };
-          }
-        });
+          setTokensList(unifiedList);
+        } catch (err) {
+          showToast("Failed to load ERC20s & NFTs list. Please enter an address manually.", "error");
+        }
+      };
 
-        const unifiedList: Array<Token> = [...erc20sList, ...nftsList];
+      console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
 
-        setTokensList(unifiedList);
-      } catch (err) {
-        showToast("Failed to load ERC20s & NFTs list. Please enter an address manually.", "error");
-      }
-    };
-
-    console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
-
-    fetchTokens();
+      fetchTokens();
+    }
   }, []);
 
   useEffect(() => {
@@ -519,6 +520,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     );
   };
 
+  const { data } = trpc.useQuery(["viewer.userSettings"]);
+
   return (
     <div>
       <Shell
@@ -778,7 +781,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                       </div>
-                      {web3App && (
+                      {data?.web3App && (
                         <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-48 sm:mb-0">
                             <label

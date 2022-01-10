@@ -571,6 +571,7 @@ function Web3Container() {
 
 export default function IntegrationsPage() {
   const { t } = useLocale();
+  const { data } = trpc.useQuery(["viewer.userSettings"]);
 
   return (
     <Shell heading={t("integrations")} subtitle={t("connect_your_favourite_apps")}>
@@ -579,7 +580,7 @@ export default function IntegrationsPage() {
         <CalendarListContainer />
         <WebhookListContainer />
         <IframeEmbedContainer />
-        <Web3Container />
+        {data?.web3App && <Web3Container />}
       </ClientSuspense>
     </Shell>
   );
