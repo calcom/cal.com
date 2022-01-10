@@ -723,7 +723,27 @@ const loggedInViewerRouter = createProtectedRouter()
         });
       } catch (err) {
         console.error("Error setting SAML config", err);
-        throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration update failed" });
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+    },
+  })
+  .mutation("deleteSAMLConfig", {
+    input: z.object({
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input }) {
+      const { teamId } = input;
+
+      const { apiController } = await jackson();
+
+      try {
+        return await apiController.deleteConfig({
+          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+          product: samlProductID,
+        });
+      } catch (err) {
+        console.error("Error deleting SAML configuration", err);
+        throw new TRPCError({ code: "BAD_REQUEST" });
       }
     },
   });

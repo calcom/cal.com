@@ -4,8 +4,11 @@ import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
+import { Dialog, DialogTrigger } from "@components/Dialog";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
+import Button from "@components/ui/Button";
 
 export default function SAMLConfiguration({
   teamsView,
@@ -32,9 +35,23 @@ export default function SAMLConfiguration({
       setSAMLConfig(data?.provider ?? null);
       samlConfigRef.current.value = "";
     },
-    onError: (err) => {
+    onError: () => {
       setHasErrors(true);
-      setErrorMessage(err.message);
+      setErrorMessage(t("saml_configuration_update_failed"));
+      document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
+    },
+  });
+
+  const deleteMutation = trpc.useMutation("viewer.deleteSAMLConfig", {
+    onSuccess: () => {
+      showToast(t("saml_config_deleted_successfully"), "success");
+      setHasErrors(false); // dismiss any open errors
+      setSAMLConfig(null);
+      samlConfigRef.current.value = "";
+    },
+    onError: () => {
+      setHasErrors(true);
+      setErrorMessage(t("saml_configuration_delete_failed"));
       document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
     },
   });
@@ -51,6 +68,14 @@ export default function SAMLConfiguration({
 
     mutation.mutate({
       rawMetadata: rawMetadata,
+      teamId,
+    });
+  }
+
+  async function deleteSAMLConfigHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
+    event.preventDefault();
+
+    deleteMutation.mutate({
       teamId,
     });
   }
@@ -78,7 +103,32 @@ export default function SAMLConfiguration({
             </h2>
           </div>
 
-          <p className="mt-1 text-sm text-gray-500">{!samlConfig ? t("saml_not_configured_yet") : ""}</p>
+          {samlConfig ? (
+            <div className="mt-2 flex">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    color="warn"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}>
+                    {t("delete_saml_configuration")}
+                  </Button>
+                </DialogTrigger>
+                <ConfirmationDialogContent
+                  variety="danger"
+                  title={t("delete_saml_configuration")}
+                  confirmBtnText={t("confirm_delete_saml_configuration")}
+                  cancelBtnText={t("cancel")}
+                  onConfirm={deleteSAMLConfigHandler}>
+                  {t("delete_saml_configuration_confirmation_message")}
+                </ConfirmationDialogContent>
+              </Dialog>
+            </div>
+          ) : (
+            <p className="mt-1 text-sm text-gray-500">{!samlConfig ? t("saml_not_configured_yet") : ""}</p>
+          )}
 
           <p className="mt-1 text-sm text-gray-500">{t("saml_configuration_description")}</p>
 
