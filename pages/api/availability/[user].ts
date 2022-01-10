@@ -7,7 +7,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import { getBusyCalendarTimes } from "@lib/calendarClient";
+import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
 import prisma from "@lib/prisma";
 
 dayjs.extend(utc);

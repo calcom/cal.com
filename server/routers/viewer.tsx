@@ -5,12 +5,11 @@ import { z } from "zod";
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
-import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
-import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -298,7 +297,10 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         ],
       };
-      const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
+      const bookingListingOrderby: Record<
+        typeof bookingListingByStatus,
+        Prisma.BookingOrderByWithAggregationInput
+      > = {
         upcoming: { startTime: "desc" },
         past: { startTime: "desc" },
         cancelled: { startTime: "desc" },
