@@ -46,6 +46,7 @@ async function getUserFromSession({
       identityProvider: true,
       brandColor: true,
       plan: true,
+      away: true,
       credentials: {
         select: {
           id: true,

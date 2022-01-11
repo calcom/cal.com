@@ -79,6 +79,7 @@ const loggedInViewerRouter = createProtectedRouter()
         identityProvider,
         brandColor,
         plan,
+        away,
       } = ctx.user;
       const me = {
         id,
@@ -96,8 +97,24 @@ const loggedInViewerRouter = createProtectedRouter()
         identityProvider,
         brandColor,
         plan,
+        away,
       };
       return me;
+    },
+  })
+  .mutation("away", {
+    input: z.object({
+      away: z.boolean(),
+    }),
+    async resolve({ input, ctx }) {
+      await ctx.prisma.user.update({
+        where: {
+          email: ctx.user.email,
+        },
+        data: {
+          away: input.away,
+        },
+      });
     },
   })
   .query("eventTypes", {
