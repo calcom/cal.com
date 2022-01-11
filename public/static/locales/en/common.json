@@ -570,5 +570,9 @@
   "error_required_field": "This field is required.",
   "status": "Status",
   "team_view_user_availability": "View user availability",
-  "team_view_user_availability_disabled": "User needs to accept invite to view availability"
+  "team_view_user_availability_disabled": "User needs to accept invite to view availability",
+  "set_as_away": "Set yourself as away",
+  "set_as_free": "Disable away status",
+  "user_away": "This user is currently away.",
+  "user_away_description": "The person you are trying to book has set themselves to away, and therefore is not accepting new bookings."
 }
