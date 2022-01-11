@@ -81,8 +81,6 @@ export default function CreateEventTypeButton(props: Props) {
 
   // inject selection data into url for correct router history
   const openModal = (option: EventTypeParent) => {
-    console.log("HIHIHI");
-
     router.push({
       pathname: router.pathname,
       query: {
