@@ -76,7 +76,7 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
     return [
       {
         source: "/:user/avatar.png",
-        destination: "/api/user/avatar",
+        destination: "/api/user/avatar?username=:user",
       },
     ]
   },
