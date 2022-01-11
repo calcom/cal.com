@@ -1,5 +1,5 @@
 import { IdProvider } from "@radix-ui/react-id";
-import { Provider } from "next-auth/client";
+import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps } from "next/app";
 import React, { ComponentProps, ReactNode } from "react";
@@ -44,9 +44,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
     <TelemetryProvider value={createTelemetryClient()}>
       <IdProvider>
         <DynamicIntercomProvider>
-          <Provider session={session || undefined}>
+          <SessionProvider session={session || undefined}>
             <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
-          </Provider>
+          </SessionProvider>
         </DynamicIntercomProvider>
       </IdProvider>
     </TelemetryProvider>

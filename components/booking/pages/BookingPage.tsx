@@ -96,7 +96,7 @@ const BookingPage = (props: BookingPageProps) => {
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
 
-  const [guestToggle, setGuestToggle] = useState(false);
+  const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
   type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
@@ -139,20 +139,38 @@ const BookingPage = (props: BookingPageProps) => {
     };
   };
 
+  const defaultValues = () => {
+    if (!rescheduleUid) {
+      return {
+        name: (router.query.name as string) || "",
+        email: (router.query.email as string) || "",
+        notes: (router.query.notes as string) || "",
+        guests: ensureArray(router.query.guest) as string[],
+        customInputs: props.eventType.customInputs.reduce(
+          (customInputs, input) => ({
+            ...customInputs,
+            [input.id]: router.query[slugify(input.label)],
+          }),
+          {}
+        ),
+      };
+    }
+    if (!props.booking || !props.booking.attendees.length) {
+      return {};
+    }
+    const primaryAttendee = props.booking.attendees[0];
+    if (!primaryAttendee) {
+      return {};
+    }
+    return {
+      name: primaryAttendee.name || "",
+      email: primaryAttendee.email || "",
+      guests: props.booking.attendees.slice(1).map((attendee) => attendee.email),
+    };
+  };
+
   const bookingForm = useForm<BookingFormValues>({
-    defaultValues: {
-      name: (router.query.name as string) || "",
-      email: (router.query.email as string) || "",
-      notes: (router.query.notes as string) || "",
-      guests: ensureArray(router.query.guest),
-      customInputs: props.eventType.customInputs.reduce(
-        (customInputs, input) => ({
-          ...customInputs,
-          [input.id]: router.query[slugify(input.label)],
-        }),
-        {}
-      ),
-    },
+    defaultValues: defaultValues(),
   });
 
   const selectedLocation = useWatch({
@@ -181,6 +199,14 @@ const BookingPage = (props: BookingPageProps) => {
       default:
         return selectedLocation || "";
     }
+  };
+
+  const parseDate = (date: string | null) => {
+    if (!date) return "No date";
+    const parsedZone = parseZone(date);
+    if (!parsedZone?.isValid()) return "Invalid date";
+    const formattedTime = parsedZone?.format(timeFormat);
+    return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
   };
 
   const bookEvent = (booking: BookingFormValues) => {
@@ -284,10 +310,7 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {(date && parseZone(date)?.format(timeFormat)) ||
-                    "No date" +
-                      ", " +
-                      dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" })}
+                  {parseDate(date)}
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>

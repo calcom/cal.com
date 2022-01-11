@@ -6,9 +6,10 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { CalendarEvent, deleteEvent } from "@lib/calendarClient";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
+import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
+import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -138,9 +139,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {
-        return await deleteEvent(credential, bookingRefUid);
+        const calendar = getCalendar(credential);
+
+        return calendar?.deleteEvent(bookingRefUid);
       } else if (credential.type.endsWith("_video")) {
-        return await deleteMeeting(credential, bookingRefUid);
+        return deleteMeeting(credential, bookingRefUid);
       }
     }
   });

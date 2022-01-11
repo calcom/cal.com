@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import { getBusyCalendarTimes } from "@lib/calendarClient";
+import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
 import prisma from "@lib/prisma";
 
 export async function getUserAvailability(query: {
