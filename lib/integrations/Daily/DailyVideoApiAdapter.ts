@@ -109,7 +109,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 
     if (scalePlan === "true") {
       return {
-        privacy: "private",
+        privacy: "public",
         properties: {
           enable_new_call_ui: true,
           enable_prejoin_ui: true,
@@ -123,7 +123,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       };
     }
     return {
-      privacy: "private",
+      privacy: "public",
       properties: {
         enable_new_call_ui: true,
         enable_prejoin_ui: true,
