@@ -88,7 +88,7 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
     nextSeoProps = {},
   } = props;
 
-  const truncatedDescription = description.length > 32 ? description.substring(0, 31) + "..." : description;
+  const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
   const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({
     title: pageTitle,
