@@ -33,7 +33,7 @@ export function TeamSettingsPage() {
 
   return (
     <Shell
-      backPath={!errorMessage ? `/settings/profile` : undefined}
+      backPath={!errorMessage ? `/settings/teams` : undefined}
       heading={team?.name}
       subtitle={team && "Manage this team"}
       HeadingLeftIcon={
