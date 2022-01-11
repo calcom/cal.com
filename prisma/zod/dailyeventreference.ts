@@ -1,0 +1,26 @@
+import type { DailyEventReference } from "@prisma/client";
+import * as z from "zod";
+
+import { CompleteBooking, BookingModel } from "./index";
+
+export const _DailyEventReferenceModel = z.object({
+  id: z.number().int(),
+  dailyurl: z.string(),
+  dailytoken: z.string(),
+  bookingId: z.number().int().nullable(),
+});
+
+export interface CompleteDailyEventReference extends DailyEventReference {
+  booking: CompleteBooking | null;
+}
+
+/**
+ * DailyEventReferenceModel contains all relations on your model in addition to the scalars
+ *
+ * NOTE: Lazy required in case of potential circular dependencies within schema
+ */
+export const DailyEventReferenceModel: z.ZodSchema<CompleteDailyEventReference> = z.lazy(() =>
+  _DailyEventReferenceModel.extend({
+    booking: BookingModel.nullable(),
+  })
+);
