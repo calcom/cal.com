@@ -486,7 +486,7 @@
   "remove_cal_branding_description": "In order to remove the Cal branding from your booking pages, you need to upgrade to a Pro account.",
   "to_upgrade_go_to": "To upgrade go to",
   "edit_profile_info_description": "Edit your profile information, which shows on your scheduling link.",
-  "change_email_contact": "To change your email, please contact",
+  "change_email_tip": "You may need to log out and back in to see the change take effect.",
   "little_something_about": "A little something about yourself.",
   "profile_updated_successfully": "Profile updated successfully",
   "your_user_profile_updated_successfully": "Your user profile has been updated successfully.",

@@ -112,9 +112,6 @@ const BookingPage = (props: BookingPageProps) => {
   }, [router.query.guest]);
 
   const telemetry = useTelemetry();
-  useEffect(() => {
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
-  }, [telemetry]);
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
