@@ -22,7 +22,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .update(user?.email as string)
     .digest("hex");
   const img = user?.avatar;
-  if (img) {
+  if (!img) {
+    res.writeHead(302, {
+      Location: defaultAvatarSrc({ md5: emailMd5 }),
+    });
+    res.end();
+  } else if (!img.includes("data:image")) {
+    res.writeHead(302, {
+      Location: img,
+    });
+    res.end();
+  } else {
     const decoded = img
       .toString()
       .replace("data:image/png;base64,", "")
@@ -33,10 +43,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "Content-Length": imageResp.length,
     });
     res.end(imageResp);
-  } else {
-    res.writeHead(302, {
-      Location: defaultAvatarSrc({ md5: emailMd5 }),
-    });
-    res.end();
   }
 }
