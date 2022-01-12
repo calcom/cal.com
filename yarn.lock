@@ -10055,10 +10055,9 @@ yup@^0.32.9:
     property-expr "^2.0.4"
     toposort "^2.0.2"
 
-zod-prisma@^0.3.2:
+"zod-prisma@github:calendso/zod-prisma#main":
   version "0.3.2"
-  resolved "https://registry.yarnpkg.com/zod-prisma/-/zod-prisma-0.3.2.tgz#fe022cca96d481985b961d3cc2b2b349792b6c84"
-  integrity sha512-jl1KUemks9NRZsqMzbM3/Xv70J0qyZpxbgFL/7eNV03qv87eKiYijMsibPiY39LgQjC2rVv0yntbNE3XykXknQ==
+  resolved "https://codeload.github.com/calendso/zod-prisma/tar.gz/c829913e800bd5f9183d3427bf53294d6fd41ead"
   dependencies:
     "@prisma/generator-helper" "^3.3.0"
     ts-morph "^13.0.2"

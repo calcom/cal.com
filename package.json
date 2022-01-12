@@ -144,7 +144,7 @@
     "ts-jest": "^26.0.0",
     "ts-node": "^10.2.1",
     "typescript": "^4.5.2",
-    "zod-prisma": "^0.3.2"
+    "zod-prisma": "github:calendso/zod-prisma#main"
   },
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
