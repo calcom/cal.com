@@ -10,6 +10,7 @@ import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import LinkIconButton from "@components/ui/LinkIconButton";
 
 import { MembershipRole } from ".prisma/client";
@@ -49,6 +50,13 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
 
   return (
     <div className="px-2 space-y-6">
+      <CreateEventTypeButton
+        isIndividualTeam
+        canAddEvents={true}
+        options={[
+          { teamId: props.team?.id, name: props.team?.name, slug: props.team?.slug, image: props.team?.logo },
+        ]}
+      />
       {/* <Switch
         name="isHidden"
         defaultChecked={hidden}
