@@ -72,6 +72,14 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
 
     return config;
   },
+  async rewrites() {
+    return [
+      {
+        source: "/:user/avatar.png",
+        destination: "/api/user/avatar?username=:user",
+      },
+    ]
+  },
   async redirects() {
     return [
       {
