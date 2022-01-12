@@ -19,7 +19,7 @@ import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { FieldsetLegend, Form, InputGroupBox, TextField } from "@components/form/fields";
+import { FieldsetLegend, Form, InputGroupBox, TextField, TextArea } from "@components/form/fields";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
@@ -270,11 +270,11 @@ function WebhookDialogForm(props: {
           </label>
         </div>
         {useCustomPayloadTemplate && (
-          <textarea
+          <TextArea
             {...form.register("payloadTemplate")}
-            className="block w-full font-mono border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
-            rows={5}
-            defaultValue={useCustomPayloadTemplate && (defaultValues.payloadTemplate || "")}></textarea>
+            defaultValue={useCustomPayloadTemplate && (defaultValues.payloadTemplate || "")}
+            rows={3}
+          />
         )}
       </fieldset>
       <WebhookTestDisclosure />
