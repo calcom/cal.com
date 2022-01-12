@@ -360,7 +360,11 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
-  const mutation = trpc.useMutation("viewer.away");
+  const mutation = trpc.useMutation("viewer.away", {
+    onSettled() {
+      utils.invalidateQueries("viewer.me");
+    },
+  });
   const utils = trpc.useContext();
 
   return (
