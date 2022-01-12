@@ -124,7 +124,7 @@ export default function Shell(props: {
   children: ReactNode;
   CTA?: ReactNode;
   HeadingLeftIcon?: ReactNode;
-  showBackButton?: boolean;
+  backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
 }) {
@@ -289,9 +289,12 @@ export default function Shell(props: {
                 props.flexChildrenContainer && "flex flex-col flex-1",
                 "py-8"
               )}>
-              {props.showBackButton && (
+              {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
-                  <Button onClick={() => router.back()} StartIcon={ArrowLeftIcon} color="secondary">
+                  <Button
+                    onClick={() => router.push(props.backPath as string)}
+                    StartIcon={ArrowLeftIcon}
+                    color="secondary">
                     Back
                   </Button>
                 </div>
