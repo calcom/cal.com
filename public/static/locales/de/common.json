@@ -570,5 +570,9 @@
   "error_required_field": "Dieses Feld ist erforderlich.",
   "status": "Status",
   "team_view_user_availability": "Verfügbarkeit des Benutzers anzeigen",
-  "team_view_user_availability_disabled": "Der Benutzer muss die Einladung annehmen, um die Verfügbarkeit zu sehen"
+  "team_view_user_availability_disabled": "Der Benutzer muss die Einladung annehmen, um die Verfügbarkeit zu sehen",
+  "set_as_away": "Stelle deinen Status auf Abwesend",
+  "set_as_free": "Abwesenheitsstatus deaktivieren",
+  "user_away": "Dieser Benutzer ist derzeit abwesend.",
+  "user_away_description": "Dier Person, sie Sie zu Buchen versuchen, ist zur Zeit abwesend und aktzeptiert daher keine neuen Buchungen."
 }
