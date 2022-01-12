@@ -118,7 +118,14 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   });
 
   const deleteAccount = async () => {
-    console.log(props.user.id);
+    // Check if the user is pro ?? and then go ahead with stripe code, else ignore??
+    if (props.user.plan === "PRO") {
+      // remove stripe account
+      await fetch("/api/user/stripe", {
+        method: "DELETE",
+      });
+    }
+
     fetch("/api/user/" + props.user.id, {
       method: "DELETE",
       headers: {
@@ -126,34 +133,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       },
     });
 
-    // Check if the user is pro ?? and then go ahead with stripe code, else ignore??
-
-    // remove stripe account
-    // let customerId = "";
-
-    // if (
-    //   props.user.metadata &&
-    //   typeof props.user.metadata === "object" &&
-    //   "stripeCustomerId" in props.user.metadata
-    // ) {
-    //   customerId = (props.user.metadata as Prisma.JsonObject).stripeCustomerId as string;
-    // } else {
-    //   /* We fallback to finding the customer by email (which is not optimal) */
-    //   const customersReponse = await stripe.customers.list({
-    //     email: props.user.email,
-    //     limit: 1,
-    //   });
-    //   if (customersReponse.data[0]?.id) {
-    //     customerId = customersReponse.data[0].id;
-    //   }
-    // }
-
-    // if (customerId) {
-    //   const deleted = await stripe.customers.del(customerId);
-    // }
-
     // signout;
-    signOut({ callbackUrl: "/auth/logout" });
+    // signOut({ callbackUrl: "/auth/logout" });
+    console.log("Successfully deleted");
   };
 
   const localeOptions = useMemo(() => {
