@@ -1,6 +1,3 @@
-// Create an endpoint Ex. DELETE /users/me
-// There you can select user.metadata.stripeCustomerId
-// Use that to call stripe.customers.delete
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
