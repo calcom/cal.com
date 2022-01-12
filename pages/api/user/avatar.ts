@@ -23,16 +23,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .digest("hex");
   const img = user?.avatar;
   if (img) {
-    const decoded = img
-      .toString()
-      .replace("data:image/png;base64,", "")
-      .replace("data:image/jpeg;base64,", "");
-    const imageResp = Buffer.from(decoded, "base64");
-    res.writeHead(200, {
-      "Content-Type": "image/png",
-      "Content-Length": imageResp.length,
-    });
-    res.end(imageResp);
+    if (!img.includes("data:image")) {
+      res.writeHead(302, {
+        Location: img,
+      });
+      res.end();
+    } else {
+      const decoded = img
+        .toString()
+        .replace("data:image/png;base64,", "")
+        .replace("data:image/jpeg;base64,", "");
+      const imageResp = Buffer.from(decoded, "base64");
+      res.writeHead(200, {
+        "Content-Type": "image/png",
+        "Content-Length": imageResp.length,
+      });
+      res.end(imageResp);
+    }
   } else {
     res.writeHead(302, {
       Location: defaultAvatarSrc({ md5: emailMd5 }),
