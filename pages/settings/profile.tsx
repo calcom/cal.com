@@ -134,8 +134,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     });
 
     // signout;
-    // signOut({ callbackUrl: "/auth/logout" });
-    console.log("Successfully deleted");
+    signOut({ callbackUrl: "/auth/logout" });
   };
 
   const localeOptions = useMemo(() => {
