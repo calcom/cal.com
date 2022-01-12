@@ -570,5 +570,9 @@
   "error_required_field": "Este campo é obrigatório.",
   "status": "Estado",
   "team_view_user_availability": "Ver disponibilidade do utilizador",
-  "team_view_user_availability_disabled": "O utilizador tem de aceitar o convite para ver a disponibilidade"
+  "team_view_user_availability_disabled": "O utilizador tem de aceitar o convite para ver a disponibilidade",
+  "set_as_away": "Defina o seu estado como ausente",
+  "set_as_free": "Desactivar estado de ausência",
+  "user_away": "Este utilizador está ausente de momento.",
+  "user_away_description": "A pessoa com quem está a tentar fazer uma reserva está ausente, pelo que não está a aceitar novas reservas."
 }
