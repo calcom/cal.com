@@ -112,7 +112,17 @@ export default function CreateEventTypeButton(props: Props) {
         if (!isOpen) closeModal();
       }}>
       {!hasTeams || props.isIndividualTeam ? (
-        <Button onClick={() => openModal(props.options[0])} data-testid="new-event-type" StartIcon={PlusIcon}>
+        <Button
+          onClick={() => openModal(props.options[0])}
+          data-testid="new-event-type"
+          StartIcon={PlusIcon}
+          {...(props.canAddEvents
+            ? {
+                href: modalOpen.hrefOn,
+              }
+            : {
+                disabled: true,
+              })}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
