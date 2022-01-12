@@ -43,6 +43,7 @@ import { AdvancedOptions, EventTypeInput } from "@lib/types/event-type";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { WorkingHours } from "@lib/types/schedule";
 
+import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -277,6 +278,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
     slotInterval: number | null;
+    destinationCalendar: string | null;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -525,6 +527,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     advancedPayload.timeZone = values.scheduler.selectedTimezone;
                     advancedPayload.disableGuests = values.disableGuests;
                     advancedPayload.requiresConfirmation = values.requiresConfirmation;
+                    advancedPayload.destinationCalendar = values.destinationCalendar;
                   }
 
                   const payload: EventTypeInput = {
@@ -704,6 +707,37 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </span>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-6">
+                      <div className="items-center block sm:flex">
+                        <div className="mb-4 min-w-48 sm:mb-0">
+                          <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
+                            Create events on:
+                          </label>
+                        </div>
+                        <div className="w-full">
+                          <div className="relative mt-1 rounded-sm shadow-sm">
+                            <Controller
+                              control={formMethods.control}
+                              name="destinationCalendar"
+                              render={({ field: { onChange, value } }) => (
+                                <DestinationCalendarSelector
+                                  value={value || undefined}
+                                  onChange={onChange}
+                                  hidePlaceholder
+                                  //   defaultValue={eventType.destinationCalendar?.externalId}
+                                />
+                              )}
+                            />
+                            {/* <Controller
+                              name="destinationCalendar"
+                              control={formMethods.control}
+                              defaultValue={eventType.destinationCalendar?.externalId}
+                              render={({ field }) => (
+                                
+                              )}
+                            /> */}
+                          </div>
+                        </div>
+                      </div>
                       <div className="items-center block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
                           <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
@@ -1397,6 +1431,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       userId: true,
       price: true,
       currency: true,
+      destinationCalendar: true,
     },
   });
 

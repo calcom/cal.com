@@ -9,10 +9,16 @@ import Button from "@components/ui/Button";
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
   isLoading?: boolean;
+  hidePlaceholder?: boolean;
   value: string | undefined;
 }
 
-const DestinationCalendarSelector = ({ onChange, isLoading, value }: Props): JSX.Element | null => {
+const DestinationCalendarSelector = ({
+  onChange,
+  isLoading,
+  value,
+  hidePlaceholder,
+}: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
@@ -48,14 +54,16 @@ const DestinationCalendarSelector = ({ onChange, isLoading, value }: Props): JSX
   return (
     <div className="relative">
       {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
-      <div className="absolute z-10 pointer-events-none">
-        <Button size="sm" color="secondary" className="border-transparent m-[1px] rounded-sm">
-          {t("select_destination_calendar")}: {selectedOption?.label || ""}
-        </Button>
-      </div>
+      {!hidePlaceholder && (
+        <div className="absolute z-10 pointer-events-none">
+          <Button size="sm" color="secondary" className="border-transparent m-[1px] rounded-sm">
+            {t("select_destination_calendar")}: {selectedOption?.label || ""}
+          </Button>
+        </div>
+      )}
       <Select
         name={"primarySelectedCalendar"}
-        placeholder={`${t("select_destination_calendar")}:`}
+        placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         isSearchable={false}
         className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"

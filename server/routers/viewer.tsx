@@ -10,6 +10,7 @@ import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
+import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -393,6 +394,7 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
@@ -409,6 +411,7 @@ const loggedInViewerRouter = createProtectedRouter()
       await ctx.prisma.destinationCalendar.upsert({
         where: {
           userId,
+          eventTypeId: input.eventTypeId,
         },
         update: {
           ...input,
@@ -637,5 +640,6 @@ const loggedInViewerRouter = createProtectedRouter()
 export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("eventTypes.", eventTypesRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);

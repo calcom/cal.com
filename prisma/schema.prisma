@@ -10,6 +10,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider      = "zod-prisma"
+  output        = "./zod"
+  relationModel = "default"
+}
+
 enum SchedulingType {
   ROUND_ROBIN  @map("roundRobin")
   COLLECTIVE   @map("collective")

@@ -3,13 +3,17 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
+import { EventTypeInput } from "@lib/types/event-type";
 import { WorkingHours } from "@lib/types/schedule";
+
+import { createContext } from "@server/createContext";
+import { viewerRouter } from "@server/routers/viewer";
 
 function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
 }
 
-function handlePeriodType(periodType: string): PeriodType | undefined {
+function handlePeriodType(periodType: string | undefined): PeriodType | undefined {
   if (typeof periodType !== "string") return undefined;
   const passedPeriodType = periodType.toUpperCase();
   if (!isPeriodType(passedPeriodType)) return undefined;
@@ -55,8 +59,13 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
   };
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: Omit<NextApiRequest, "body"> & { body: EventTypeInput },
+  res: NextApiResponse
+) {
   const session = await getSession({ req });
+  /** So we can reuse tRCP queries */
+  const trpcCtx = await createContext({ req, res });
 
   if (!session) {
     res.status(401).json({ message: "Not authenticated" });
@@ -116,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       title: req.body.title,
       slug: req.body.slug.trim(),
       description: req.body.description,
-      length: parseInt(req.body.length),
+      length: typeof req.body.length === "string" ? parseInt(req.body.length) : req.body.length,
       hidden: req.body.hidden,
       requiresConfirmation: req.body.requiresConfirmation,
       disableGuests: req.body.disableGuests,
@@ -141,7 +150,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data.schedulingType = req.body.schedulingType;
     }
 
-    if (req.method == "POST") {
+    if (req.body.destinationCalendar) {
+      req.body.destinationCalendar.userId = session.user.id;
+      data.destinationCalendar = {
+        connectOrCreate: {
+          where: req.body.destinationCalendar,
+          create: req.body.destinationCalendar,
+        },
+      };
+      await viewerRouter
+        .createCaller(trpcCtx)
+        .mutation("setUserDestinationCalendar", req.body.destinationCalendar);
+    }
+
+    if (req.method === "POST") {
       if (req.body.teamId) {
         data.team = {
           connect: {
@@ -161,7 +183,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
       res.status(201).json({ eventType });
-    } else if (req.method == "PATCH") {
+    } else if (req.method === "PATCH") {
       if (req.body.users) {
         data.users = {
           set: [],
@@ -209,19 +231,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  if (req.method == "DELETE") {
-    await prisma.eventTypeCustomInput.deleteMany({
-      where: {
-        eventTypeId: req.body.id,
-      },
-    });
-
-    await prisma.eventType.delete({
-      where: {
-        id: req.body.id,
-      },
-    });
-
-    res.status(200).json({});
+  if (req.method === "DELETE") {
+    await viewerRouter.createCaller(trpcCtx).mutation("eventTypes.delete", { id: req.body.id });
+    res.status(200).json({ id: req.body.id, message: "Event Type deleted" });
   }
 }
