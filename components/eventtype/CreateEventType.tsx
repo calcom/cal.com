@@ -81,18 +81,21 @@ export default function CreateEventTypeButton(props: Props) {
 
   // inject selection data into url for correct router history
   const openModal = (option: EventTypeParent) => {
-    router.push({
-      pathname: router.pathname,
-      query: {
-        ...router.query,
-        new: "1",
-        eventPage: option.slug,
-        ...(option.teamId
-          ? {
-              teamId: option.teamId,
-            }
-          : {}),
-      },
+    // setTimeout fixes a bug where the url query params are removed immediately after opening the modal
+    setTimeout(() => {
+      router.push({
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          new: "1",
+          eventPage: option.slug,
+          ...(option.teamId
+            ? {
+                teamId: option.teamId,
+              }
+            : {}),
+        },
+      });
     });
   };
 
@@ -108,7 +111,6 @@ export default function CreateEventTypeButton(props: Props) {
     <Dialog
       open={modalOpen.isOn}
       onOpenChange={(isOpen) => {
-        router.push(isOpen ? modalOpen.hrefOn : modalOpen.hrefOff);
         if (!isOpen) closeModal();
       }}>
       {!hasTeams || props.isIndividualTeam ? (
