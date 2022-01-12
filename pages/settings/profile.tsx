@@ -3,7 +3,7 @@ import { TrashIcon } from "@heroicons/react/solid";
 // import { Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
-import { signOut } from "next-auth/client";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
