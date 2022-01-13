@@ -40,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           email: true,
           timeZone: true,
           name: true,
+          destinationCalendar: true,
         },
       },
       attendees: true,
@@ -105,6 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
     language: t,
+    destinationCalendar: bookingToDelete?.user.destinationCalendar,
   };
 
   // Hook up the webhook logic here

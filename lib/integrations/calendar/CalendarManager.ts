@@ -178,8 +178,9 @@ export const updateEvent = async (
 
 export const deleteEvent = (installedApp: InstalledApp, uid: string): Promise<unknown> => {
   const calendar = getCalendar(installedApp);
+
   if (calendar) {
-    return calendar.deleteEvent(uid);
+    return calendar.deleteEvent(uid, event);
   }
 
   return Promise.resolve({});

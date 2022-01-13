@@ -128,6 +128,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   ];
   const usernameRef = useRef<HTMLInputElement>(null!);
   const nameRef = useRef<HTMLInputElement>(null!);
+  const emailRef = useRef<HTMLInputElement>(null!);
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
   const brandColorRef = useRef<HTMLInputElement>(null!);
@@ -160,6 +161,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
 
     const enteredUsername = usernameRef.current.value.toLowerCase();
     const enteredName = nameRef.current.value;
+    const enteredEmail = emailRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
     const enteredBrandColor = brandColorRef.current.value;
@@ -173,6 +175,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     mutation.mutate({
       username: enteredUsername,
       name: enteredName,
+      email: enteredEmail,
       bio: enteredDescription,
       avatar: enteredAvatar,
       timeZone: enteredTimeZone,
@@ -226,19 +229,16 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   {t("email")}
                 </label>
                 <input
+                  ref={emailRef}
                   type="text"
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
-                  disabled
-                  className="block w-full px-3 py-2 mt-1 text-gray-500 border border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
+                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
                   defaultValue={props.user.email}
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
-                  {t("change_email_contact")}{" "}
-                  <a className="text-blue-500" href="mailto:help@cal.com">
-                    help@cal.com
-                  </a>
+                  {t("change_email_tip")}
                 </p>
               </div>
             </div>

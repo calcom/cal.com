@@ -1,0 +1,30 @@
+name: Check types
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  types:
+    name: Check types
+
+    strategy:
+      matrix:
+        node: ["14.x"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install deps
+        uses: bahmutov/npm-install@v1
+
+      - run: yarn check-changed-files
