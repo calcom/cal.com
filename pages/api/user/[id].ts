@@ -32,15 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  if (req.method === "DELETE") {
-    await prisma.user.delete({
-      where: {
-        id: authenticatedUser?.id,
-      },
-    });
-    return res.status(204).end();
-  }
-
   if (req.method === "PATCH") {
     const updatedUser = await prisma.user.update({
       where: {

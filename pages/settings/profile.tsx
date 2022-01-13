@@ -116,22 +116,12 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   });
 
   const deleteAccount = async () => {
-    const delPromises = [
-      fetch("/api/user/" + props.user.id, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }),
-    ];
-    if (props.user.plan === "PRO") {
-      delPromises.push(
-        fetch("/api/user/stripe", {
-          method: "DELETE",
-        })
-      );
-    }
-    await Promise.all(delPromises).catch((e) => {
+    await fetch("/api/user/me", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).catch((e) => {
       console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
     });
     // signout;
@@ -435,19 +425,28 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 </div>
               </div>
             </div>
-            <h3 className="font-bold leading-6 text-gray-900 mt-7 text-md">{t("danger_zone")}</h3>
+            <h3 className="font-bold leading-6 text-red-700 mt-7 text-md">{t("danger_zone")}</h3>
             <div>
               <div className="relative flex items-start">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button type="button" color="secondary" StartIcon={TrashIcon}>
+                    <Button
+                      type="button"
+                      color="warn"
+                      StartIcon={TrashIcon}
+                      className="text-red-700 border-2 border-red-700"
+                      data-testid="delete-account">
                       {t("delete_account")}
                     </Button>
                   </DialogTrigger>
                   <ConfirmationDialogContent
                     variety="danger"
                     title={t("delete_account")}
-                    confirmBtnText={t("confirm_delete_account")}
+                    confirmBtn={
+                      <Button color="warn" data-testid="delete-account-confirm">
+                        {t("confirm_delete_account")}
+                      </Button>
+                    }
                     onConfirm={() => deleteAccount()}>
                     {t("delete_account_confirmation_message")}
                   </ConfirmationDialogContent>

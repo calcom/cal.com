@@ -1,7 +1,6 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import stripe from "@ee/lib/stripe/server";
+import stripe, { getStripeCustomerId } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -33,20 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: "User email not found",
       });
 
-    let customerId = "";
-
-    if (user?.metadata && typeof user.metadata === "object" && "stripeCustomerId" in user.metadata) {
-      customerId = (user?.metadata as Prisma.JsonObject).stripeCustomerId as string;
-    } else {
-      /* We fallback to finding the customer by email (which is not optimal) */
-      const customersReponse = await stripe.customers.list({
-        email: user.email,
-        limit: 1,
-      });
-      if (customersReponse.data[0]?.id) {
-        customerId = customersReponse.data[0].id;
-      }
-    }
+    const customerId = await getStripeCustomerId(user);
 
     if (!customerId)
       return res.status(404).json({
