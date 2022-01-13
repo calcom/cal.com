@@ -2,8 +2,8 @@ import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../../../lib/prisma";
 
-const client_id = process.env.ZOOM_CLIENT_ID;
-const client_secret = process.env.ZOOM_CLIENT_SECRET;
+// const client_id = process.env.ZOOM_CLIENT_ID;
+// const client_secret = process.env.ZOOM_CLIENT_SECRET;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
@@ -15,7 +15,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     `${process.env.BASE_URL}/api/amili/integration/zoomvideo/callback?info=${assUserId}*${coachId}*${isCoachUser}*${isSetupPage}`
   );
 
-  const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  // const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  const authHeader = `Bearer ${process.env.ZOOM_JWT_TOKEN}`;
 
   const result = await fetch(
     "https://zoom.us/oauth/token?grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri,
@@ -23,6 +24,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: "POST",
       headers: {
         Authorization: authHeader,
+        "User-Agent": "Zoom-Jwt-Request",
+        "content-type": "application/json",
       },
     }
   ).then((res) => res.json());

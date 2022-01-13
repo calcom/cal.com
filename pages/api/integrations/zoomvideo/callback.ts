@@ -4,8 +4,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/client";
 import prisma from "../../../../lib/prisma";
 
-const client_id = process.env.ZOOM_CLIENT_ID;
-const client_secret = process.env.ZOOM_CLIENT_SECRET;
+// const client_id = process.env.ZOOM_CLIENT_ID;
+// const client_secret = process.env.ZOOM_CLIENT_SECRET;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -19,7 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const redirectUri = encodeURI(process.env.BASE_URL + "/api/integrations/zoomvideo/callback");
-  const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  // const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  const authHeader = `Bearer ${process.env.ZOOM_JWT_TOKEN}`;
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -32,6 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           method: "POST",
           headers: {
             Authorization: authHeader,
+            "User-Agent": "Zoom-Jwt-Request",
+            "content-type": "application/json",
           },
         }
       ).then((res) => res.json());
