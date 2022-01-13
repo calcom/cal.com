@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { v5 as uuidv5 } from "uuid";
+import * as jwt from "jsonwebtoken";
+
 import prisma from "./prisma";
 import { CalendarEvent } from "./calendarClient";
 import VideoEventOrganizerMail from "./emails/VideoEventOrganizerMail";
 import VideoEventAttendeeMail from "./emails/VideoEventAttendeeMail";
-import { v5 as uuidv5 } from "uuid";
 import short from "short-uuid";
 import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail";
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
@@ -66,58 +68,39 @@ const zoomAuth = async (credential) => {
 
   const { expires_in, access_token, refresh_token } = newCredential.key as unknown as IKeyCredentials;
 
-  const authHeader =
-    "Basic " +
-    Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
+  console.log({ isExpired: isExpired(expires_in) });
+  const apiKey = process.env.ZOOM_API_KEY;
+  const apiSecret = process.env.ZOOM_API_SECRET;
 
-  const refreshAccessToken = (refreshToken) =>
-    fetch("https://zoom.us/oauth/token", {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
+  const generateNewToken = async (apiKey, apiSecret, cre) => {
+    const newToken = jwt.sign({ aud: null }, apiSecret, {
+      algorithm: "HS256",
+      expiresIn: "604800000",
+      issuer: apiKey,
+    });
+
+    const payload = jwt.verify(newToken, apiSecret, { algorithms: ["HS256"] });
+
+    await prisma.credential.update({
+      where: {
+        id: cre.id,
       },
-      body: new URLSearchParams({
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
-    })
-      .then(handleErrorsJson)
-      .then(async (responseBody) => {
-        const { access_token } = responseBody;
-        const { exp } = parseTokenPayload(access_token);
+      data: {
+        key: { expires_in: payload.exp, access_token: newToken, refresh_token: newToken },
+      },
+    });
 
-        const isEnabledUsingOneCredential = process.env.ENABLE_ONE_CREDENTIAL;
+    return newToken;
+  };
 
-        if (isEnabledUsingOneCredential && isEnabledUsingOneCredential.toLowerCase() === "true") {
-          await prisma.credential.updateMany({
-            where: {
-              id: {
-                gte: 1,
-              },
-            },
-            data: {
-              key: { ...responseBody, expires_in: exp },
-            },
-          });
-        } else {
-          // Store new tokens in database.
-          await prisma.credential.update({
-            where: {
-              id: newCredential.id,
-            },
-            data: {
-              key: { ...responseBody, expires_in: exp },
-            },
-          });
-        }
+  let token = access_token;
 
-        return responseBody.access_token;
-      });
+  if (isExpired(expires_in)) {
+    token = await generateNewToken(apiKey, apiSecret, newCredential);
+  }
 
   return {
-    getToken: () =>
-      !isExpired(expires_in) ? Promise.resolve(access_token) : refreshAccessToken(refresh_token),
+    getToken: () => Promise.resolve(token),
   };
 };
 

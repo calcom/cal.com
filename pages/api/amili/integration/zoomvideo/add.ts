@@ -11,6 +11,8 @@ const addIntegration = async (req: NextApiRequest, res: NextApiResponse): Promis
 
   // console.log("\n query =", req.query);
 
+  console.log({ client_id });
+
   const redirectUri = encodeURI(
     `${process.env.BASE_URL}/api/amili/integration/zoomvideo/callback?info=${assUserId}*${coachId}*${isCoachUser}*${isSetupPage}`
   );

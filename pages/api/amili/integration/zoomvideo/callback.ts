@@ -16,6 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  // const authHeader = `Bearer ${process.env.ZOOM_JWT_TOKEN}`;
 
   const result = await fetch(
     "https://zoom.us/oauth/token?grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri,
@@ -23,6 +24,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: "POST",
       headers: {
         Authorization: authHeader,
+        // "User-Agent": "Zoom-Jwt-Request",
+        // "content-type": "application/json",
       },
     }
   ).then((res) => res.json());
