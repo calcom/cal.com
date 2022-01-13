@@ -39,5 +39,3 @@ export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
   [IdentityProvider.GOOGLE]: "Google",
   [IdentityProvider.SAML]: "SAML",
 };
-
-export const isGoogleLoginEnabled = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);

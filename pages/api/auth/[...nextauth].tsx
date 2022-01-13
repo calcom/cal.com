@@ -1,17 +1,18 @@
+import { IdentityProvider } from "@prisma/client";
 import NextAuth, { Session } from "next-auth";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { authenticator } from "otplib";
 
-import { ErrorCode, isGoogleLoginEnabled, verifyPassword } from "@lib/auth";
+import { ErrorCode, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
 import { isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
-import { IdentityProvider } from ".prisma/client";
+import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -91,11 +92,11 @@ const providers: Provider[] = [
   }),
 ];
 
-if (isGoogleLoginEnabled) {
+if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
     })
   );
 }
