@@ -1,5 +1,12 @@
 name: Build
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - staging
+  pull_request:
+    branches:
+      - main
 jobs:
   build:
     timeout-minutes: 5
