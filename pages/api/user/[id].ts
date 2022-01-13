@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: authenticatedUser?.id,
       },
     });
-    return res.status(200).json({ message: "User Deleted" });
+    return res.status(204).end();
   }
 
   if (req.method === "PATCH") {

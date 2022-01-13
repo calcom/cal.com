@@ -1,6 +1,5 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { TrashIcon } from "@heroicons/react/solid";
-// import { Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
@@ -9,7 +8,6 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
-// import stripe from "@ee/lib/stripe/server";
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -118,21 +116,24 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   });
 
   const deleteAccount = async () => {
-    // Check if the user is pro ?? and then go ahead with stripe code, else ignore??
-    if (props.user.plan === "PRO") {
-      // remove stripe account
-      await fetch("/api/user/stripe", {
+    const delPromises = [
+      fetch("/api/user/" + props.user.id, {
         method: "DELETE",
-      });
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    ];
+    if (props.user.plan === "PRO") {
+      delPromises.push(
+        fetch("/api/user/stripe", {
+          method: "DELETE",
+        })
+      );
     }
-
-    fetch("/api/user/" + props.user.id, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    await Promise.all(delPromises).catch((e) => {
+      console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
     });
-
     // signout;
     signOut({ callbackUrl: "/auth/logout" });
   };
