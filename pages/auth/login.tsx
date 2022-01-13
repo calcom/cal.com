@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { ErrorCode, getSession, isGoogleLoginEnabled } from "@lib/auth";
+import { ErrorCode, getSession } from "@lib/auth";
 import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
@@ -15,6 +15,7 @@ import Loader from "@components/Loader";
 import { EmailInput } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
 
+import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
 
 export default function Login({
@@ -267,7 +268,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     props: {
       csrfToken: await getCsrfToken(context),
       trpcState: ssr.dehydrate(),
-      isGoogleLoginEnabled,
+      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
       isSAMLLoginEnabled,
       hostedCal,
       samlTenantID,
