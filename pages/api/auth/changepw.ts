@@ -1,14 +1,15 @@
+import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
+import prisma from "@lib/prisma";
 
 import { ErrorCode, hashPassword, verifyPassword } from "../../../lib/auth";
-import prisma from "../../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
 
-  if (!session) {
+  if (!session || !session.user || !session.user.email) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
@@ -20,12 +21,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: {
       id: true,
       password: true,
+      identityProvider: true,
     },
   });
 
   if (!user) {
     res.status(404).json({ message: "User not found" });
     return;
+  }
+
+  if (user.identityProvider !== IdentityProvider.CAL) {
+    return res.status(400).json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled });
   }
 
   const oldPassword = req.body.oldPassword;
