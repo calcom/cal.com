@@ -1,3 +1,4 @@
+import { IdentityProvider } from "@prisma/client";
 import { compare, hash } from "bcryptjs";
 import { Session } from "next-auth";
 import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
@@ -30,4 +31,11 @@ export enum ErrorCode {
   IncorrectTwoFactorCode = "incorrect-two-factor-code",
   InternalServerError = "internal-server-error",
   NewPasswordMatchesOld = "new-password-matches-old",
+  ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
 }
+
+export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
+  [IdentityProvider.CAL]: "Cal",
+  [IdentityProvider.GOOGLE]: "Google",
+  [IdentityProvider.SAML]: "SAML",
+};

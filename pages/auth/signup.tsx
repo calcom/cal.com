@@ -1,11 +1,12 @@
 import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useForm, SubmitHandler, FormProvider } from "react-hook-form";
+import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
+import { isSAMLLoginEnabled } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { EmailField, PasswordField, TextField } from "@components/form/fields";
@@ -13,6 +14,7 @@ import { HeadSeo } from "@components/seo/head-seo";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
+import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -181,6 +183,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   return {
     props: {
+      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+      isSAMLLoginEnabled,
       email: verificationRequest.identifier,
       trpcState: ssr.dehydrate(),
     },

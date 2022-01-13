@@ -31,6 +31,8 @@ jobs:
       STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
       PAYMENT_FEE_PERCENTAGE: 0.005
       PAYMENT_FEE_FIXED: 10
+      SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      SAML_ADMINS: pro@example.com
       # NEXTAUTH_URL: xxx
       # EMAIL_FROM: xxx
       # EMAIL_SERVER_HOST: xxx

@@ -7,16 +7,32 @@ import { useState } from "react";
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
+import { trpc } from "@lib/trpc";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
 import { EmailInput } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
 
+import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
 
-export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideProps>) {
+export default function Login({
+  csrfToken,
+  isGoogleLoginEnabled,
+  isSAMLLoginEnabled,
+  hostedCal,
+  samlTenantID,
+  samlProductID,
+}: {
+  csrfToken: string;
+  isGoogleLoginEnabled: boolean;
+  isSAMLLoginEnabled: boolean;
+  hostedCal: boolean;
+  samlTenantID: string;
+  samlProductID: string;
+}) {
   const { t } = useLocale();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -31,6 +47,7 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
     [ErrorCode.UserNotFound]: t("no_account_exists"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
   const callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
@@ -75,6 +92,15 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
       setIsSubmitting(false);
     }
   }
+
+  const mutation = trpc.useMutation("viewer.samlTenantProduct", {
+    onSuccess: (data) => {
+      signIn("saml", {}, { tenant: data.tenant, product: data.product });
+    },
+    onError: (err) => {
+      setErrorMessage(err.message);
+    },
+  });
 
   return (
     <div className="flex flex-col justify-center min-h-screen py-12 bg-neutral-50 sm:px-6 lg:px-8">
@@ -174,6 +200,42 @@ export default function Login({ csrfToken }: inferSSRProps<typeof getServerSideP
 
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </form>
+          {isGoogleLoginEnabled && (
+            <div style={{ marginTop: "12px" }}>
+              <button
+                data-testid={"google"}
+                onClick={async () => await signIn("google")}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                {t("signin_with_google")}
+              </button>
+            </div>
+          )}
+          {isSAMLLoginEnabled && (
+            <div style={{ marginTop: "12px" }}>
+              <button
+                data-testid={"saml"}
+                onClick={async (event) => {
+                  event.preventDefault();
+
+                  if (!hostedCal) {
+                    await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });
+                  } else {
+                    if (email.length === 0) {
+                      setErrorMessage(t("saml_email_required"));
+                      return;
+                    }
+
+                    // hosted solution, fetch tenant and product from the backend
+                    mutation.mutate({
+                      email,
+                    });
+                  }
+                }}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                {t("signin_with_saml")}
+              </button>
+            </div>
+          )}
         </div>
         <div className="mt-4 text-sm text-center text-neutral-600">
           {t("dont_have_an_account")} {/* replace this with your account creation flow */}
@@ -206,6 +268,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     props: {
       csrfToken: await getCsrfToken(context),
       trpcState: ssr.dehydrate(),
+      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+      isSAMLLoginEnabled,
+      hostedCal,
+      samlTenantID,
+      samlProductID,
     },
   };
 }
