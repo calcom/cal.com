@@ -185,7 +185,7 @@ export default class GoogleCalendarService implements Calendar {
     );
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
     return new Promise((resolve, reject) =>
       this.auth.getToken().then((myGoogleAuth) => {
         const calendar = google.calendar({
@@ -195,7 +195,9 @@ export default class GoogleCalendarService implements Calendar {
         calendar.events.delete(
           {
             auth: myGoogleAuth,
-            calendarId: "primary",
+            calendarId: event.destinationCalendar?.externalId
+              ? event.destinationCalendar.externalId
+              : "primary",
             eventId: uid,
             sendNotifications: true,
             sendUpdates: "all",
