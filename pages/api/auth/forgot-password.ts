@@ -31,16 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "Couldn't find an account for this email" });
     }
 
-    // if (maybeUser.identityProvider !== IdentityProvider.CAL) {
-    //   const { subject, message } = buildForgotIdentityProviderMessage({
-    //     identityProvider: identityProviderNameMap[maybeUser.identityProvider],
-    //   });
-    //   await sendEmail({ to: rawEmail, subject, text: message });
-    //   console.log({ to: rawEmail, subject, text: message });
-
-    //   return res.status(201).json({ message: "Reset Requested" });
-    // }
-
     const maybePreviousRequest = await prisma.resetPasswordRequest.findMany({
       where: {
         email: maybeUser.email,
