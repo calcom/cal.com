@@ -5,12 +5,11 @@ import { z } from "zod";
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
-import getCalendarCredentials from "@server/integrations/getCalendarCredentials";
-import getConnectedCalendars from "@server/integrations/getConnectedCalendars";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -58,6 +57,7 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled,
         brandColor,
         plan,
+        away,
       } = ctx.user;
       const me = {
         id,
@@ -74,8 +74,24 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled,
         brandColor,
         plan,
+        away,
       };
       return me;
+    },
+  })
+  .mutation("away", {
+    input: z.object({
+      away: z.boolean(),
+    }),
+    async resolve({ input, ctx }) {
+      await ctx.prisma.user.update({
+        where: {
+          email: ctx.user.email,
+        },
+        data: {
+          away: input.away,
+        },
+      });
     },
   })
   .query("eventTypes", {
@@ -298,7 +314,10 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         ],
       };
-      const bookingListingOrderby: Record<typeof bookingListingByStatus, Prisma.BookingOrderByInput> = {
+      const bookingListingOrderby: Record<
+        typeof bookingListingByStatus,
+        Prisma.BookingOrderByWithAggregationInput
+      > = {
         upcoming: { startTime: "desc" },
         past: { startTime: "desc" },
         cancelled: { startTime: "desc" },
@@ -501,6 +520,7 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       username: z.string().optional(),
       name: z.string().optional(),
+      email: z.string().optional(),
       bio: z.string().optional(),
       avatar: z.string().optional(),
       timeZone: z.string().optional(),

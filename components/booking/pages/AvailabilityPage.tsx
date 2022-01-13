@@ -61,7 +61,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   }, [telemetry]);
 
   const changeDate = (newDate: Dayjs) => {
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
     router.replace(
       {
         query: {

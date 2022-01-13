@@ -10,6 +10,7 @@ jobs:
       NODE_ENV: test
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
+      PLAYWRIGHT_SECRET: ${{ secrets.CI_PLAYWRIGHT_SECRET }}
     services:
       postgres:
         image: postgres:12.1

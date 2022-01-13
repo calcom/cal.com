@@ -33,7 +33,7 @@ export function TeamAvailabilityPage() {
 
   return (
     <Shell
-      showBackButton={!errorMessage}
+      backPath={!errorMessage ? `/settings/teams/${team?.id}` : undefined}
       heading={!isFreeUser && team?.name}
       flexChildrenContainer
       subtitle={team && !isFreeUser && "Your team's availability at a glance"}

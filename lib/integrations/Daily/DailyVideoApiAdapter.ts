@@ -1,11 +1,12 @@
 import { Credential } from "@prisma/client";
 
-import { CalendarEvent } from "@lib/calendarClient";
 import { BASE_URL } from "@lib/config/constants";
 import { handleErrorsJson } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
+
+import { CalendarEvent } from "../calendar/interfaces/Calendar";
 
 export interface DailyReturnType {
   /** Long UID string ie: 987b5eb5-d116-4a4e-8e2c-14fcb5710966 */
@@ -108,7 +109,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 
     if (scalePlan === "true") {
       return {
-        privacy: "private",
+        privacy: "public",
         properties: {
           enable_new_call_ui: true,
           enable_prejoin_ui: true,
@@ -122,7 +123,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       };
     }
     return {
-      privacy: "private",
+      privacy: "public",
       properties: {
         enable_new_call_ui: true,
         enable_prejoin_ui: true,

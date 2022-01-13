@@ -3,13 +3,13 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
-import { createEvent, DateArray } from "ics";
+import { createEvent, DateArray, Person } from "ics";
 import nodemailer from "nodemailer";
 
 import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
-import { CalendarEvent, Person } from "@lib/calendarClient";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getIntegrationName } from "@lib/integrations";
+import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { serverConfig } from "@lib/serverConfig";
 
 import {
