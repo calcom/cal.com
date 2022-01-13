@@ -15,7 +15,6 @@ import {
 import { EventTypeCustomInput, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import axios from "axios";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -571,13 +570,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     advancedPayload.periodEndDate = values.periodDates.endDate || undefined;
                     advancedPayload.minimumBookingNotice = values.minimumBookingNotice;
                     advancedPayload.slotInterval = values.slotInterval;
-                    advancedPayload.smartContractAddress = values.smartContractAddress;
+                    advancedPayload.smartContractAddress = values.smartContractAddress; // TODO @edward: use new `metadata` here to show/hide
                     // prettier-ignore
-                    advancedPayload.price =
-                      !requirePayment ? undefined :
-                        values.price ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100) :
-                          /* otherwise */   0;
-                    advancedPayload.currency = currency; //
+                    advancedPayload.price = requirePayment
+                      ? Math.round(parseFloat(asStringOrThrow(values.price)) * 100)
+                      : 0;
+                    advancedPayload.currency = currency;
                     advancedPayload.availability = values.scheduler.enteredAvailability || undefined;
                     advancedPayload.customInputs = values.customInputs;
                     advancedPayload.timeZone = values.scheduler.selectedTimezone;

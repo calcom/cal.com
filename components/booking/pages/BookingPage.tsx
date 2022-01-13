@@ -141,18 +141,6 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Daily]: "Daily.co Video",
   };
 
-  type BookingFormValues = {
-    name: string;
-    email: string;
-    notes?: string;
-    locationType?: LocationType;
-    guests?: string[];
-    phone?: string;
-    customInputs?: {
-      [key: string]: string;
-    };
-  };
-
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {

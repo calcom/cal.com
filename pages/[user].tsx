@@ -1,5 +1,4 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { MoonIcon } from "@heroicons/react/solid";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -98,7 +97,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                     />
                   )}
                 </div>
-              )}
+              ))}
               {!user.away &&
                 eventTypes.map((type) => (
                   <div

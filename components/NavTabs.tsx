@@ -17,11 +17,11 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
   const router = useRouter();
   return (
     <>
-      <nav className="-mb-px flex space-x-2 sm:space-x-5" aria-label="Tabs">
+      <nav className="flex -mb-px space-x-2 sm:space-x-5" aria-label="Tabs">
         {tabs.map((tab) => {
           const isCurrent = router.asPath === tab.href;
           return (
-            <Link {...linkProps} key={tab.name} href={tab.href}>
+            <Link key={tab.name} href={tab.href} {...linkProps}>
               <a
                 className={classNames(
                   isCurrent
