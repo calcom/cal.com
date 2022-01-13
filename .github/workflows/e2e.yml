@@ -4,25 +4,16 @@ on:
     branches:
       - main
 jobs:
-  approve:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Approve
-        run: echo For security reasons, all pull requests need to be approved first before running any automated CI.
-
   test:
     timeout-minutes: 10
     name: ${{ matrix.node }} and ${{ matrix.os }}
-    needs: [approve] # Require the first step to finish
-    environment:
-      name: Preview
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
       PLAYWRIGHT_SECRET: ${{ secrets.CI_PLAYWRIGHT_SECRET }}
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
       CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
