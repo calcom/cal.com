@@ -48,7 +48,7 @@ const publicViewerRouter = createRouter()
   })
   .mutation("samlTenantProduct", {
     input: z.object({
-      email: z.string(),
+      email: z.string().email(),
     }),
     async resolve({ input, ctx }) {
       const { prisma } = ctx;
