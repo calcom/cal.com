@@ -53,7 +53,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
           user: {
             select: {
               id: true,
-              credentials: true,
+              installedApps: true,
               timeZone: true,
               email: true,
               name: true,

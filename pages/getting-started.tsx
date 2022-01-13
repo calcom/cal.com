@@ -18,7 +18,7 @@ import TimezoneSelect from "react-timezone-select";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
+import { getCalendarInstalledApps, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -138,7 +138,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       step = 1;
     }
 
-    const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
+    const hasConfigureCalendar = props.integrations.some((integration) => integration.installedApp !== null);
     if (hasConfigureCalendar) {
       step = 2;
     }
@@ -506,7 +506,7 @@ export async function getServerSideProps(context: NextPageContext) {
 
   let integrations = [];
   let connectedCalendars = [];
-  let credentials = [];
+  let installedApps = [];
   let eventTypes = [];
   let schedules = [];
   if (!session?.user?.id) {
@@ -553,7 +553,7 @@ export async function getServerSideProps(context: NextPageContext) {
     };
   }
 
-  credentials = await prisma.credential.findMany({
+  installedApps = await prisma.installedApp.findMany({
     where: {
       userId: user.id,
     },
@@ -564,14 +564,14 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  integrations = getIntegrations(credentials)
+  integrations = getIntegrations(installedApps)
     .filter((item) => item.type.endsWith("_calendar"))
     .map((item) => omit(item, "key"));
 
-  // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(credentials, user.id);
+  // get user's installedApps + their connected integrations
+  const calendarInstalledApps = getCalendarInstalledApps(installedApps, user.id);
   // get all the connected integrations' calendars (from third party)
-  connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+  connectedCalendars = await getConnectedCalendars(calendarInstalledApps, user.selectedCalendars);
 
   eventTypes = await prisma.eventType.findMany({
     where: {

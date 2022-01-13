@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       username: user as string,
     },
     select: {
-      credentials: true,
+      installedApps: true,
       timeZone: true,
       bufferTime: true,
       availability: true,
@@ -63,13 +63,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { selectedCalendars, ...currentUser } = rawUser;
 
   const busyTimes = await getBusyCalendarTimes(
-    currentUser.credentials,
+    currentUser.installedApps,
     dateFrom.format(),
     dateTo.format(),
     selectedCalendars
   );
 
-  // busyTimes.push(...await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format()));
+  // busyTimes.push(...await getBusyVideoTimes(currentUser.installedApps, dateFrom.format(), dateTo.format()));
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),

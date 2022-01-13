@@ -1,4 +1,4 @@
-import { Credential, SelectedCalendar } from "@prisma/client";
+import { InstalledApp, SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 
 import { getUid } from "@lib/CalEventParser";
@@ -25,8 +25,8 @@ const CALENDARS: Record<string, CalendarServiceType> = {
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = (credential: Credential): Calendar | null => {
-  const { type: calendarType } = credential;
+export const getCalendar = (installedApp: InstalledApp): Calendar | null => {
+  const { type: calendarType } = installedApp;
 
   const calendar = CALENDARS[calendarType];
   if (!calendar) {
@@ -34,36 +34,39 @@ export const getCalendar = (credential: Credential): Calendar | null => {
     return null;
   }
 
-  return new calendar(credential);
+  return new calendar(installedApp);
 };
 
-export const getCalendarCredentials = (credentials: Array<Omit<Credential, "userId">>, userId: number) => {
-  const calendarCredentials = credentials
-    .filter((credential) => credential.type.endsWith("_calendar"))
-    .flatMap((credential) => {
-      const integration = ALL_INTEGRATIONS.find((integration) => integration.type === credential.type);
+export const getCalendarInstalledApps = (
+  installedApps: Array<Omit<InstalledApp, "userId">>,
+  userId: number
+) => {
+  const calendarInstalledApps = installedApps
+    .filter((installedApp) => installedApp.type.endsWith("_calendar"))
+    .flatMap((installedApp) => {
+      const integration = ALL_INTEGRATIONS.find((integration) => integration.type === installedApp.type);
 
       const calendar = getCalendar({
-        ...credential,
+        ...installedApp,
         userId,
       });
       return integration && calendar && integration.variant === "calendar"
-        ? [{ integration, credential, calendar }]
+        ? [{ integration, installedApp, calendar }]
         : [];
     });
 
-  return calendarCredentials;
+  return calendarInstalledApps;
 };
 
 export const getConnectedCalendars = async (
-  calendarCredentials: ReturnType<typeof getCalendarCredentials>,
+  calendarInstalledApps: ReturnType<typeof getCalendarInstalledApps>,
   selectedCalendars: { externalId: string }[]
 ) => {
   const connectedCalendars = await Promise.all(
-    calendarCredentials.map(async (item) => {
-      const { calendar, integration, credential } = item;
+    calendarInstalledApps.map(async (item) => {
+      const { calendar, integration, installedApp } = item;
 
-      const credentialId = credential.id;
+      const installedAppId = installedApp.id;
       try {
         const cals = await calendar.listCalendars();
         const calendars = _(cals)
@@ -80,7 +83,7 @@ export const getConnectedCalendars = async (
         }
         return {
           integration,
-          credentialId,
+          installedAppId,
           primary,
           calendars,
         };
@@ -88,7 +91,7 @@ export const getConnectedCalendars = async (
         const error = getErrorFromUnknown(_error);
         return {
           integration,
-          credentialId,
+          installedAppId,
           error: {
             message: error.message,
           },
@@ -101,14 +104,14 @@ export const getConnectedCalendars = async (
 };
 
 export const getBusyCalendarTimes = async (
-  withCredentials: Credential[],
+  installedApps: InstalledApp[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ) => {
-  const calendars = withCredentials
-    .filter((credential) => credential.type.endsWith("_calendar"))
-    .map((credential) => getCalendar(credential))
+  const calendars = installedApps
+    .filter((installedApp) => installedApp.type.endsWith("_calendar"))
+    .map((installedApp) => getCalendar(installedApp))
     .filter(notEmpty);
 
   let results: EventBusyDate[][] = [];
@@ -121,9 +124,12 @@ export const getBusyCalendarTimes = async (
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
-export const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
+export const createEvent = async (
+  installedApp: InstalledApp,
+  calEvent: CalendarEvent
+): Promise<EventResult> => {
   const uid: string = getUid(calEvent);
-  const calendar = getCalendar(credential);
+  const calendar = getCalendar(installedApp);
   let success = true;
 
   const creationResult = calendar
@@ -135,7 +141,7 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
     : undefined;
 
   return {
-    type: credential.type,
+    type: installedApp.type,
     success,
     uid,
     createdEvent: creationResult,
@@ -144,12 +150,12 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
 };
 
 export const updateEvent = async (
-  credential: Credential,
+  installedApp: InstalledApp,
   calEvent: CalendarEvent,
   bookingRefUid: string | null
 ): Promise<EventResult> => {
   const uid = getUid(calEvent);
-  const calendar = getCalendar(credential);
+  const calendar = getCalendar(installedApp);
   let success = true;
 
   const updatedResult =
@@ -162,7 +168,7 @@ export const updateEvent = async (
       : undefined;
 
   return {
-    type: credential.type,
+    type: installedApp.type,
     success,
     uid,
     updatedEvent: updatedResult,
@@ -170,8 +176,9 @@ export const updateEvent = async (
   };
 };
 
-export const deleteEvent = (credential: Credential, uid: string, event: CalendarEvent): Promise<unknown> => {
-  const calendar = getCalendar(credential);
+export const deleteEvent = (installedApp: InstalledApp, uid: string): Promise<unknown> => {
+  const calendar = getCalendar(installedApp);
+
   if (calendar) {
     return calendar.deleteEvent(uid, event);
   }

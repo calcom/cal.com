@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...data,
       });
       await dav?.listCalendars();
-      await prisma.credential.create({
+      await prisma.installedApp.create({
         data,
       });
     } catch (reason) {

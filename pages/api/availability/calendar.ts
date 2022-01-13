@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
+import { getCalendarInstalledApps, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 
@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: session.user.id,
     },
     select: {
-      credentials: true,
+      installedApps: true,
       timeZone: true,
       id: true,
       selectedCalendars: true,
@@ -74,10 +74,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+    // get user's installed apps + their connected integrations
+    const calendarInstalledApps = getCalendarInstalledApps(user.installedApps, user.id);
     // get all the connected integrations' calendars (from third party)
-    const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+    const connectedCalendars = await getConnectedCalendars(calendarInstalledApps, user.selectedCalendars);
     const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
     const selectableCalendars = calendars.map((cal) => {
       return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };

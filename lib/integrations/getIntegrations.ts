@@ -7,11 +7,11 @@ import _ from "lodash";
  */
 import { validJson } from "../../lib/jsonUtils";
 
-const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
+const installedAppData = Prisma.validator<Prisma.InstalledAppArgs>()({
   select: { id: true, type: true },
 });
 
-type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
+type InstalledAppData = Prisma.InstalledAppGetPayload<typeof installedAppData>;
 
 export type Integration = {
   installed: boolean;
@@ -92,20 +92,20 @@ export const ALL_INTEGRATIONS = [
   },
 ] as Integration[];
 
-function getIntegrations(userCredentials: CredentialData[]) {
+function getIntegrations(userInstalledApps: InstalledAppData[]) {
   const integrations = ALL_INTEGRATIONS.map((integration) => {
-    const credentials = userCredentials
-      .filter((credential) => credential.type === integration.type)
-      .map((credential) => _.pick(credential, ["id", "type"])); // ensure we don't leak `key` to frontend
+    const installedApps = userInstalledApps
+      .filter((installedApp) => installedApp.type === integration.type)
+      .map((installedApp) => _.pick(installedApp, ["id", "type"])); // ensure we don't leak `key` to frontend
 
-    const credential: typeof credentials[number] | null = credentials[0] || null;
+    const installedApp: typeof installedApps[number] | null = installedApps[0] || null;
     return {
       ...integration,
       /**
-       * @deprecated use `credentials`
+       * @deprecated use `installedApps`
        */
-      credential,
-      credentials,
+      installedApp,
+      installedApps,
     };
   });
 
@@ -116,7 +116,7 @@ export type IntegrationMeta = ReturnType<typeof getIntegrations>;
 
 export function hasIntegration(integrations: IntegrationMeta, type: string): boolean {
   return !!integrations.find(
-    (i) => i.type === type && !!i.installed && (type === "daily_video" || i.credentials.length > 0)
+    (i) => i.type === type && !!i.installed && (type === "daily_video" || i.installedApps.length > 0)
   );
 }
 export function hasIntegrationInstalled(type: Integration["type"]): boolean {

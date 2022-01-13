@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { InstalledApp } from "@prisma/client";
 
 import { BASE_URL } from "@lib/config/constants";
 import { handleErrorsJson } from "@lib/errors";
@@ -49,15 +49,15 @@ type DailyKey = {
   apikey: string;
 };
 
-export const FAKE_DAILY_CREDENTIAL: Credential = {
+export const FAKE_DAILY_CREDENTIAL: InstalledApp = {
   id: +new Date().getTime(),
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
   userId: +new Date().getTime(),
 };
 
-const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
-  const dailyApiToken = (credential.key as DailyKey).apikey;
+const DailyVideoApiAdapter = (installedApp: InstalledApp): VideoApiAdapter => {
+  const dailyApiToken = (installedApp.key as DailyKey).apikey;
 
   function postToDailyAPI(endpoint: string, body: Record<string, any>) {
     return fetch("https://api.daily.co/v1" + endpoint, {

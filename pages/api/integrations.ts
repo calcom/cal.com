@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "GET") {
-    const credentials = await prisma.credential.findMany({
+    const installedApps = await prisma.installedApp.findMany({
       where: {
         userId: session.user?.id,
       },
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    res.status(200).json(credentials);
+    res.status(200).json(installedApps);
   }
 
   if (req.method == "DELETE") {
@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: session?.user?.id,
       },
       data: {
-        credentials: {
+        installedApps: {
           delete: {
             id,
           },

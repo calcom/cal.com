@@ -1504,7 +1504,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventType.users.push(fallbackUser);
   }
 
-  const credentials = await prisma.credential.findMany({
+  const installedApps = await prisma.installedApp.findMany({
     where: {
       userId: session.user.id,
     },
@@ -1515,7 +1515,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const integrations = getIntegrations(credentials);
+  const integrations = getIntegrations(installedApps);
 
   const locationOptions: OptionTypeBase[] = [];
 
@@ -1530,7 +1530,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     locationOptions.push({ value: LocationType.Daily, label: "Daily.co Video" });
   }
   const currency =
-    (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
+    (installedApps.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
 
   if (hasIntegration(integrations, "office365_calendar")) {
