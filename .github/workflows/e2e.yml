@@ -1,5 +1,12 @@
 name: E2E test
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - staging
+  pull_request:
+    branches:
+      - main
 jobs:
   test:
     timeout-minutes: 10
@@ -10,7 +17,6 @@ jobs:
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
       PLAYWRIGHT_SECRET: ${{ secrets.CI_PLAYWRIGHT_SECRET }}
-      # GOOGLE_API_CREDENTIALS: "{}"
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       # CRON_API_KEY: xxx
       CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
