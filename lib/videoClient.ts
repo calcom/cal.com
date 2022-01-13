@@ -69,17 +69,38 @@ const zoomAuth = async (credential) => {
   const { expires_in, access_token, refresh_token } = newCredential.key as unknown as IKeyCredentials;
 
   console.log({ isExpired: isExpired(expires_in) });
-  const zoomClientId = process.env.ZOOM_CLIENT_ID;
-  const zoomSecretKey = process.env.ZOOM_CLIENT_SECRET;
+  const apiKey = process.env.ZOOM_API_KEY;
+  const apiSecret = process.env.ZOOM_API_SECRET;
 
-  const generateNewToken = (clientId, secretKey) =>
-    jwt.sign({ aud: null }, secretKey, { algorithm: "HS256", expiresIn: "7d", issuer: clientId });
+  const generateNewToken = async (apiKey, apiSecret, cre) => {
+    const newToken = jwt.sign({ aud: null }, apiSecret, {
+      algorithm: "HS256",
+      expiresIn: "604800000",
+      issuer: apiKey,
+    });
+
+    const payload = jwt.verify(newToken, apiSecret, { algorithms: ["HS256"] });
+
+    await prisma.credential.update({
+      where: {
+        id: cre.id,
+      },
+      data: {
+        key: { expires_in: payload.exp, access_token: newToken, refresh_token: newToken },
+      },
+    });
+
+    return newToken;
+  };
+
+  let token = access_token;
+
+  if (isExpired(expires_in)) {
+    token = await generateNewToken(apiKey, apiSecret, newCredential);
+  }
 
   return {
-    getToken: () =>
-      !isExpired(expires_in)
-        ? Promise.resolve(process.env.ZOOM_JWT_TOKEN)
-        : Promise.resolve(generateNewToken(zoomClientId, zoomSecretKey)),
+    getToken: () => Promise.resolve(token),
   };
 };
 
