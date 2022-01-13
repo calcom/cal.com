@@ -9,6 +9,7 @@ import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
 import { trpc } from "@lib/trpc";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import Loader from "@components/Loader";
@@ -25,14 +26,7 @@ export default function Login({
   hostedCal,
   samlTenantID,
   samlProductID,
-}: {
-  csrfToken: string;
-  isGoogleLoginEnabled: boolean;
-  isSAMLLoginEnabled: boolean;
-  hostedCal: boolean;
-  samlTenantID: string;
-  samlProductID: string;
-}) {
+}: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -205,7 +199,7 @@ export default function Login({
               <button
                 data-testid={"google"}
                 onClick={async () => await signIn("google")}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                className="flex justify-center w-full px-4 py-2 text-sm font-medium text-black border border-transparent rounded-sm shadow-sm bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_google")}
               </button>
             </div>
@@ -231,7 +225,7 @@ export default function Login({
                     });
                   }
                 }}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-medium text-black bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                className="flex justify-center w-full px-4 py-2 text-sm font-medium text-black border border-transparent rounded-sm shadow-sm bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_saml")}
               </button>
             </div>
