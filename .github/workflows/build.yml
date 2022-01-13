@@ -1,17 +1,22 @@
 name: Build
 on:
-  push:
-    branches:
-      - main
-      - staging
-  pull_request:
+  pull_request_target:
     branches:
       - main
 jobs:
+  approve:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Approve
+        run: echo For security reasons, all pull requests need to be approved first before running any automated CI.
+
   build:
+    needs: [approve] # Require the first step to finish
     timeout-minutes: 5
     name: Build on Node ${{ matrix.node }} and ${{ matrix.os }}
-
+    environment:
+      name: Preview
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NODE_ENV: test
@@ -35,6 +40,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
@@ -57,28 +65,3 @@ jobs:
       - run: yarn prisma migrate deploy
       - run: yarn test
       - run: yarn build
-
-  types:
-    name: Check types
-
-    strategy:
-      matrix:
-        node: ["14.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Install deps
-        uses: bahmutov/npm-install@v1
-
-      - run: yarn check-changed-files
