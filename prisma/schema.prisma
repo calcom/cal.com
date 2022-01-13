@@ -53,12 +53,12 @@ model EventType {
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
-  smartContractAddress               String?
+  smartContractAddress    String?
 
   @@unique([userId, slug])
 }
 
-model Credential {
+model InstalledApp {
   id     Int    @id @default(autoincrement())
   type   String
   key    Json
@@ -104,7 +104,7 @@ model User {
   theme               String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   eventTypes          EventType[]          @relation("user_eventtype")
-  credentials         Credential[]
+  installedApps       InstalledApp[]
   teams               Membership[]
   bookings            Booking[]
   availability        Availability[]
@@ -196,7 +196,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?
+  bookingId  Int?     @unique
 }
 
 model Booking {

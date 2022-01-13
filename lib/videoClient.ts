@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { InstalledApp } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -36,8 +36,8 @@ export interface VideoApiAdapter {
 }
 
 // factory
-const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
-  withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
+const getVideoAdapters = (installedApps: InstalledApp[]): VideoApiAdapter[] =>
+  installedApps.reduce<VideoApiAdapter[]>((acc, cred) => {
     switch (cred.type) {
       case "zoom_video":
         acc.push(ZoomVideoApiAdapter(cred));
@@ -51,24 +51,24 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     return acc;
   }, []);
 
-const getBusyVideoTimes = (withCredentials: Credential[]) =>
-  Promise.all(getVideoAdapters(withCredentials).map((c) => c.getAvailability())).then((results) =>
+const getBusyVideoTimes = (installedApps: InstalledApp[]) =>
+  Promise.all(getVideoAdapters(installedApps).map((c) => c.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
 const createMeeting = async (
-  credential: Credential,
+  installedApp: InstalledApp,
   calEvent: Ensure<CalendarEvent, "language">
 ): Promise<EventResult> => {
   const uid: string = getUid(calEvent);
 
-  if (!credential) {
+  if (!installedApp) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
     );
   }
 
-  const videoAdapters = getVideoAdapters([credential]);
+  const videoAdapters = getVideoAdapters([installedApp]);
   const [firstVideoAdapter] = videoAdapters;
   const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch((e) => {
     log.error("createMeeting failed", e, calEvent);
@@ -76,7 +76,7 @@ const createMeeting = async (
 
   if (!createdMeeting) {
     return {
-      type: credential.type,
+      type: installedApp.type,
       success: false,
       uid,
       originalEvent: calEvent,
@@ -84,7 +84,7 @@ const createMeeting = async (
   }
 
   return {
-    type: credential.type,
+    type: installedApp.type,
     success: true,
     uid,
     createdEvent: createdMeeting,
@@ -93,7 +93,7 @@ const createMeeting = async (
 };
 
 const updateMeeting = async (
-  credential: Credential,
+  installedApp: InstalledApp,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult> => {
@@ -101,9 +101,9 @@ const updateMeeting = async (
 
   let success = true;
 
-  const [firstVideoAdapter] = getVideoAdapters([credential]);
+  const [firstVideoAdapter] = getVideoAdapters([]);
   const updatedMeeting =
-    credential && bookingRef
+    installedApp && bookingRef
       ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch((e) => {
           log.error("updateMeeting failed", e, calEvent);
           success = false;
@@ -113,7 +113,7 @@ const updateMeeting = async (
 
   if (!updatedMeeting) {
     return {
-      type: credential.type,
+      type: installedApp.type,
       success,
       uid,
       originalEvent: calEvent,
@@ -121,7 +121,7 @@ const updateMeeting = async (
   }
 
   return {
-    type: credential.type,
+    type: installedApp.type,
     success,
     uid,
     updatedEvent: updatedMeeting,
@@ -129,9 +129,9 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> => {
-  if (credential) {
-    return getVideoAdapters([credential])[0].deleteMeeting(uid);
+const deleteMeeting = (installedApp: InstalledApp, uid: string): Promise<unknown> => {
+  if (installedApp) {
+    return getVideoAdapters([installedApp])[0].deleteMeeting(uid);
   }
 
   return Promise.resolve({});

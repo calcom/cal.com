@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     key = token.res?.data;
   }
 
-  await prisma.credential.create({
+  await prisma.installedApp.create({
     data: {
       type: "google_calendar",
       key,

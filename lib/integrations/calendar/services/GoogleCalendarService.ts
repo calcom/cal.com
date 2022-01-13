@@ -1,4 +1,4 @@
-import { Credential, Prisma } from "@prisma/client";
+import { InstalledApp, Prisma } from "@prisma/client";
 import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { Auth, calendar_v3, google } from "googleapis";
 
@@ -19,20 +19,20 @@ export default class GoogleCalendarService implements Calendar {
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
 
-  constructor(credential: Credential) {
+  constructor(installedApp: InstalledApp) {
     this.integrationName = CALENDAR_INTEGRATIONS_TYPES.google;
 
-    this.auth = this.googleAuth(credential);
+    this.auth = this.googleAuth(installedApp);
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private googleAuth = (credential: Credential) => {
+  private googleAuth = (installedApp: InstalledApp) => {
     const { client_secret, client_id, redirect_uris } = JSON.parse(GOOGLE_API_CREDENTIALS).web;
 
     const myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
 
-    const googleCredentials = credential.key as Auth.Credentials;
+    const googleCredentials = installedApp.key as Auth.Credentials;
     myGoogleAuth.setCredentials(googleCredentials);
 
     const isExpired = () => myGoogleAuth.isTokenExpiring();
@@ -44,10 +44,10 @@ export default class GoogleCalendarService implements Calendar {
           const token = res.res?.data;
           googleCredentials.access_token = token.access_token;
           googleCredentials.expiry_date = token.expiry_date;
-          return prisma.credential
+          return prisma.installedApp
             .update({
               where: {
-                id: credential.id,
+                id: installedApp.id,
               },
               data: {
                 key: googleCredentials as Prisma.InputJsonValue,

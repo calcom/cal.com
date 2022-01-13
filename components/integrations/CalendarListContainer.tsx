@@ -106,14 +106,14 @@ function ConnectedCalendarsList(props: Props) {
         return (
           <List>
             {data.connectedCalendars.map((item) => (
-              <Fragment key={item.credentialId}>
+              <Fragment key={item.installedAppId}>
                 {item.calendars ? (
                   <IntegrationListItem
                     {...item.integration}
                     description={item.primary?.externalId || "No external Id"}
                     actions={
                       <DisconnectIntegration
-                        id={item.credentialId}
+                        id={item.installedAppId}
                         render={(btnProps) => (
                           <Button {...btnProps} color="warn" data-testid="integration-connection-button">
                             {t("disconnect")}
@@ -141,7 +141,7 @@ function ConnectedCalendarsList(props: Props) {
                     message={item.error?.message}
                     actions={
                       <DisconnectIntegration
-                        id={item.credentialId}
+                        id={item.installedAppId}
                         render={(btnProps) => (
                           <Button {...btnProps} color="warn" data-testid="integration-connection-button">
                             Disconnect
@@ -189,7 +189,7 @@ function PrimaryCalendarSelector() {
   }
   const options =
     query.data.connectedCalendars.map((selectedCalendar) => ({
-      key: selectedCalendar.credentialId,
+      key: selectedCalendar.installedAppId,
       label: `${selectedCalendar.integration.title} (${selectedCalendar.primary?.name})`,
       options: (selectedCalendar.calendars ?? []).map((cal) => ({
         label: cal.name || "",

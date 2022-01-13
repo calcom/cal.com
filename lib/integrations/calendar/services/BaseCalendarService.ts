@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { InstalledApp } from "@prisma/client";
 import dayjs from "dayjs";
 import ICAL from "ical.js";
 import { createEvent } from "ics";
@@ -28,23 +28,23 @@ const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
-  private credentials: Record<string, string> = {};
+  private installedApps: Record<string, string> = {};
   private headers: Record<string, string> = {};
   protected integrationName = "";
   private log: typeof logger;
 
-  constructor(credential: Credential, integrationName: string, url?: string) {
+  constructor(installedApp: InstalledApp, integrationName: string, url?: string) {
     this.integrationName = integrationName;
 
     const {
       username,
       password,
-      url: credentialURL,
-    } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+      url: installedAppURL,
+    } = JSON.parse(symmetricDecrypt(installedApp.key as string, CALENDSO_ENCRYPTION_KEY));
 
-    this.url = url || credentialURL;
+    this.url = url || installedAppURL;
 
-    this.credentials = { username, password };
+    this.installedApps = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
@@ -322,7 +322,7 @@ export default abstract class BaseCalendarService implements Calendar {
       account: {
         serverUrl: this.url,
         accountType: CALDAV_CALENDAR_TYPE,
-        credentials: this.credentials,
+        installedApps: this.installedApps,
       },
       headers: this.headers,
     });

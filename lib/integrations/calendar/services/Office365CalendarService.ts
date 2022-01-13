@@ -1,5 +1,5 @@
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
-import { Credential } from "@prisma/client";
+import { InstalledApp } from "@prisma/client";
 
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
@@ -20,9 +20,9 @@ export default class Office365CalendarService implements Calendar {
   private log: typeof logger;
   auth: { getToken: () => Promise<string> };
 
-  constructor(credential: Credential) {
+  constructor(installedApp: InstalledApp) {
     this.integrationName = CALENDAR_INTEGRATIONS_TYPES.office365;
-    this.auth = this.o365Auth(credential);
+    this.auth = this.o365Auth(installedApp);
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
@@ -181,10 +181,10 @@ export default class Office365CalendarService implements Calendar {
     );
   }
 
-  private o365Auth = (credential: Credential) => {
+  private o365Auth = (installedApp: InstalledApp) => {
     const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
 
-    const o365AuthCredentials = credential.key as O365AuthCredentials;
+    const o365AuthCredentials = installedApp.key as O365AuthCredentials;
 
     const refreshAccessToken = (refreshToken: string) => {
       return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
@@ -202,10 +202,10 @@ export default class Office365CalendarService implements Calendar {
         .then((responseBody) => {
           o365AuthCredentials.access_token = responseBody.access_token;
           o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
-          return prisma.credential
+          return prisma.installedApp
             .update({
               where: {
-                id: credential.id,
+                id: installedApp.id,
               },
               data: {
                 key: o365AuthCredentials,

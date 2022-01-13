@@ -445,21 +445,21 @@ function IframeEmbedContainer() {
 
 function ConnectOrDisconnectIntegrationButton(props: {
   //
-  credentialIds: number[];
+  installedAppsIds: number[];
   type: string;
   installed: boolean;
 }) {
   const { t } = useLocale();
-  const [credentialId] = props.credentialIds;
+  const [installedApp] = props.installedAppsIds;
   const utils = trpc.useContext();
   const handleOpenChange = () => {
     utils.invalidateQueries(["viewer.integrations"]);
   };
 
-  if (credentialId) {
+  if (installedApp) {
     return (
       <DisconnectIntegration
-        id={credentialId}
+        id={installedApp}
         render={(btnProps) => (
           <Button {...btnProps} color="warn" data-testid="integration-connection-button">
             {t("disconnect")}

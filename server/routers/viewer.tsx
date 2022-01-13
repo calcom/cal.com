@@ -5,7 +5,7 @@ import { z } from "zod";
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
+import { getCalendarInstalledApps, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
@@ -394,11 +394,11 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("connectedCalendars", {
     async resolve({ ctx }) {
       const { user } = ctx;
-      // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      // get user's installed apps + their connected integrations
+      const calendarInstalledApps = getCalendarInstalledApps(user.installedApps, user.id);
 
       // get all the connected integrations' calendars (from third party)
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const connectedCalendars = await getConnectedCalendars(calendarInstalledApps, user.selectedCalendars);
 
       return {
         connectedCalendars,
@@ -414,8 +414,8 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { user } = ctx;
       const userId = ctx.user.id;
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const calendarInstalledApps = getCalendarInstalledApps(user.installedApps, user.id);
+      const connectedCalendars = await getConnectedCalendars(calendarInstalledApps, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
       if (
@@ -441,16 +441,14 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("integrations", {
     async resolve({ ctx }) {
       const { user } = ctx;
-      const { credentials } = user;
+      const { installedApps } = user;
 
-      function countActive(items: { credentialIds: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
+      function countActive(items: { installedAppsIds: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.installedAppsIds.length, 0);
       }
       const integrations = ALL_INTEGRATIONS.map((integration) => ({
         ...integration,
-        credentialIds: credentials
-          .filter((credential) => credential.type === integration.type)
-          .map((credential) => credential.id),
+        installedAppsIds: installedApps.filter((app) => app.type === integration.type).map((app) => app.id),
       }));
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
