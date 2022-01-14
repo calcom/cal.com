@@ -1,6 +1,8 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
+import { TrashIcon } from "@heroicons/react/solid";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
@@ -17,10 +19,11 @@ import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
@@ -111,6 +114,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       await utils.invalidateQueries(["viewer.i18n"]);
     },
   });
+
+  const deleteAccount = async () => {
+    await fetch("/api/user/me", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).catch((e) => {
+      console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
+    });
+    // signout;
+    signOut({ callbackUrl: "/auth/logout" });
+  };
 
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
@@ -409,6 +425,34 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 </div>
               </div>
             </div>
+            <h3 className="font-bold leading-6 text-red-700 mt-7 text-md">{t("danger_zone")}</h3>
+            <div>
+              <div className="relative flex items-start">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      type="button"
+                      color="warn"
+                      StartIcon={TrashIcon}
+                      className="text-red-700 border-2 border-red-700"
+                      data-testid="delete-account">
+                      {t("delete_account")}
+                    </Button>
+                  </DialogTrigger>
+                  <ConfirmationDialogContent
+                    variety="danger"
+                    title={t("delete_account")}
+                    confirmBtn={
+                      <Button color="warn" data-testid="delete-account-confirm">
+                        {t("confirm_delete_account")}
+                      </Button>
+                    }
+                    onConfirm={() => deleteAccount()}>
+                    {t("delete_account_confirmation_message")}
+                  </ConfirmationDialogContent>
+                </Dialog>
+              </div>
+            </div>
           </div>
         </div>
         <hr className="mt-8" />
@@ -460,6 +504,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       theme: true,
       plan: true,
       brandColor: true,
+      metadata: true,
     },
   });
 
