@@ -96,7 +96,7 @@ const BookingPage = (props: BookingPageProps) => {
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
 
-  const [guestToggle, setGuestToggle] = useState(false);
+  const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
   type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
@@ -112,9 +112,6 @@ const BookingPage = (props: BookingPageProps) => {
   }, [router.query.guest]);
 
   const telemetry = useTelemetry();
-  useEffect(() => {
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
-  }, [telemetry]);
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
@@ -139,20 +136,38 @@ const BookingPage = (props: BookingPageProps) => {
     };
   };
 
+  const defaultValues = () => {
+    if (!rescheduleUid) {
+      return {
+        name: (router.query.name as string) || "",
+        email: (router.query.email as string) || "",
+        notes: (router.query.notes as string) || "",
+        guests: ensureArray(router.query.guest) as string[],
+        customInputs: props.eventType.customInputs.reduce(
+          (customInputs, input) => ({
+            ...customInputs,
+            [input.id]: router.query[slugify(input.label)],
+          }),
+          {}
+        ),
+      };
+    }
+    if (!props.booking || !props.booking.attendees.length) {
+      return {};
+    }
+    const primaryAttendee = props.booking.attendees[0];
+    if (!primaryAttendee) {
+      return {};
+    }
+    return {
+      name: primaryAttendee.name || "",
+      email: primaryAttendee.email || "",
+      guests: props.booking.attendees.slice(1).map((attendee) => attendee.email),
+    };
+  };
+
   const bookingForm = useForm<BookingFormValues>({
-    defaultValues: {
-      name: (router.query.name as string) || "",
-      email: (router.query.email as string) || "",
-      notes: (router.query.notes as string) || "",
-      guests: ensureArray(router.query.guest),
-      customInputs: props.eventType.customInputs.reduce(
-        (customInputs, input) => ({
-          ...customInputs,
-          [input.id]: router.query[slugify(input.label)],
-        }),
-        {}
-      ),
-    },
+    defaultValues: defaultValues(),
   });
 
   const selectedLocation = useWatch({

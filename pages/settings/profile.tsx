@@ -1,6 +1,8 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
+import { TrashIcon } from "@heroicons/react/solid";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
@@ -17,10 +19,11 @@ import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
@@ -112,6 +115,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     },
   });
 
+  const deleteAccount = async () => {
+    await fetch("/api/user/me", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).catch((e) => {
+      console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
+    });
+    // signout;
+    signOut({ callbackUrl: "/auth/logout" });
+  };
+
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
       value: locale,
@@ -128,6 +144,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   ];
   const usernameRef = useRef<HTMLInputElement>(null!);
   const nameRef = useRef<HTMLInputElement>(null!);
+  const emailRef = useRef<HTMLInputElement>(null!);
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
   const brandColorRef = useRef<HTMLInputElement>(null!);
@@ -160,6 +177,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
 
     const enteredUsername = usernameRef.current.value.toLowerCase();
     const enteredName = nameRef.current.value;
+    const enteredEmail = emailRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
     const enteredBrandColor = brandColorRef.current.value;
@@ -173,6 +191,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     mutation.mutate({
       username: enteredUsername,
       name: enteredName,
+      email: enteredEmail,
       bio: enteredDescription,
       avatar: enteredAvatar,
       timeZone: enteredTimeZone,
@@ -220,26 +239,22 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 />
               </div>
             </div>
-
             <div className="block sm:flex">
               <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   {t("email")}
                 </label>
                 <input
+                  ref={emailRef}
                   type="text"
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
-                  disabled
-                  className="block w-full px-3 py-2 mt-1 text-gray-500 border border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm"
+                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
                   defaultValue={props.user.email}
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
-                  {t("change_email_contact")}{" "}
-                  <a className="text-blue-500" href="mailto:help@cal.com">
-                    help@cal.com
-                  </a>
+                  {t("change_email_tip")}
                 </p>
               </div>
             </div>
@@ -410,6 +425,34 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 </div>
               </div>
             </div>
+            <h3 className="font-bold leading-6 text-red-700 mt-7 text-md">{t("danger_zone")}</h3>
+            <div>
+              <div className="relative flex items-start">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      type="button"
+                      color="warn"
+                      StartIcon={TrashIcon}
+                      className="text-red-700 border-2 border-red-700"
+                      data-testid="delete-account">
+                      {t("delete_account")}
+                    </Button>
+                  </DialogTrigger>
+                  <ConfirmationDialogContent
+                    variety="danger"
+                    title={t("delete_account")}
+                    confirmBtn={
+                      <Button color="warn" data-testid="delete-account-confirm">
+                        {t("confirm_delete_account")}
+                      </Button>
+                    }
+                    onConfirm={() => deleteAccount()}>
+                    {t("delete_account_confirmation_message")}
+                  </ConfirmationDialogContent>
+                </Dialog>
+              </div>
+            </div>
           </div>
         </div>
         <hr className="mt-8" />
@@ -461,6 +504,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       theme: true,
       plan: true,
       brandColor: true,
+      metadata: true,
     },
   });
 

@@ -67,7 +67,7 @@ model Credential {
   id     Int    @id @default(autoincrement())
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
 }
 
@@ -75,6 +75,12 @@ enum UserPlan {
   FREE
   TRIAL
   PRO
+}
+
+enum IdentityProvider {
+  CAL
+  GOOGLE
+  SAML
 }
 
 model DestinationCalendar {
@@ -118,12 +124,16 @@ model User {
   locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean              @default(false)
+  identityProvider    IdentityProvider     @default(CAL)
+  identityProviderId  String?
+  invitedTo           Int?
   plan                UserPlan             @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
   brandColor          String               @default("#292929")
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
+  away                Boolean              @default(false)
   metadata            Json?
 
   @@map(name: "users")
@@ -152,7 +162,7 @@ model Membership {
   accepted Boolean        @default(false)
   role     MembershipRole
   team     Team           @relation(fields: [teamId], references: [id])
-  user     User           @relation(fields: [userId], references: [id])
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, teamId])
 }
@@ -230,7 +240,7 @@ model Booking {
 
 model Schedule {
   id            Int        @id @default(autoincrement())
-  user          User?      @relation(fields: [userId], references: [id])
+  user          User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int?
   eventType     EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId   Int?
@@ -241,7 +251,7 @@ model Schedule {
 model Availability {
   id          Int        @id @default(autoincrement())
   label       String?
-  user        User?      @relation(fields: [userId], references: [id])
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
@@ -252,7 +262,7 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user        User   @relation(fields: [userId], references: [id])
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   integration String
   externalId  String
@@ -330,5 +340,5 @@ model Webhook {
   createdAt       DateTime               @default(now())
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
-  user            User                   @relation(fields: [userId], references: [id])
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

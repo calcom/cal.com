@@ -170,10 +170,10 @@ export const updateEvent = async (
   };
 };
 
-export const deleteEvent = (credential: Credential, uid: string): Promise<unknown> => {
+export const deleteEvent = (credential: Credential, uid: string, event: CalendarEvent): Promise<unknown> => {
   const calendar = getCalendar(credential);
   if (calendar) {
-    return calendar.deleteEvent(uid);
+    return calendar.deleteEvent(uid, event);
   }
 
   return Promise.resolve({});

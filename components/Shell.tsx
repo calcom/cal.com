@@ -8,6 +8,7 @@ import {
   LinkIcon,
   LogoutIcon,
   PuzzleIcon,
+  MoonIcon,
 } from "@heroicons/react/solid";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -123,7 +124,7 @@ export default function Shell(props: {
   children: ReactNode;
   CTA?: ReactNode;
   HeadingLeftIcon?: ReactNode;
-  showBackButton?: boolean;
+  backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
 }) {
@@ -288,9 +289,12 @@ export default function Shell(props: {
                 props.flexChildrenContainer && "flex flex-col flex-1",
                 "py-8"
               )}>
-              {props.showBackButton && (
+              {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
-                  <Button onClick={() => router.back()} StartIcon={ArrowLeftIcon} color="secondary">
+                  <Button
+                    onClick={() => router.push(props.backPath as string)}
+                    StartIcon={ArrowLeftIcon}
+                    color="secondary">
                     Back
                   </Button>
                 </div>
@@ -356,14 +360,29 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
+  const mutation = trpc.useMutation("viewer.away", {
+    onSettled() {
+      utils.invalidateQueries("viewer.me");
+    },
+  });
+  const utils = trpc.useContext();
 
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
         <div className="flex items-center w-full space-x-2 cursor-pointer group">
           <span
-            className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}>
+            className={classNames(
+              small ? "w-8 h-8" : "w-10 h-10",
+              "bg-gray-300 rounded-full flex-shrink-0 relative"
+            )}>
             <Avatar imageSrc={user?.avatar || ""} alt={user?.username || "Nameless User"} />
+            {!user?.away && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            )}
+            {user?.away && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-500 border-2 border-white rounded-full"></div>
+            )}
           </span>
           {!small && (
             <span className="flex items-center flex-grow truncate">
@@ -384,6 +403,26 @@ function UserDropdown({ small }: { small?: boolean }) {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <DropdownMenuItem>
+          <a
+            onClick={() => {
+              mutation.mutate({ away: !user?.away });
+              utils.invalidateQueries("viewer.me");
+            }}
+            className="flex px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-gray-900">
+            <MoonIcon
+              className={classNames(
+                user?.away
+                  ? "text-purple-500 group-hover:text-purple-700"
+                  : "text-gray-500 group-hover:text-gray-700",
+                "mr-2 flex-shrink-0 h-5 w-5"
+              )}
+              aria-hidden="true"
+            />
+            {user?.away ? t("set_as_free") : t("set_as_away")}
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="h-px bg-gray-200" />
         {user?.username && (
           <DropdownMenuItem>
             <a

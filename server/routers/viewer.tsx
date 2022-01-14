@@ -7,6 +7,16 @@ import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
+import jackson from "@lib/jackson";
+import {
+  isSAMLLoginEnabled,
+  samlTenantID,
+  samlProductID,
+  isSAMLAdmin,
+  hostedCal,
+  tenantPrefix,
+  samlTenantProduct,
+} from "@lib/saml";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
@@ -36,6 +46,17 @@ const publicViewerRouter = createRouter()
         locale,
       };
     },
+  })
+  .mutation("samlTenantProduct", {
+    input: z.object({
+      email: z.string().email(),
+    }),
+    async resolve({ input, ctx }) {
+      const { prisma } = ctx;
+      const { email } = input;
+
+      return await samlTenantProduct(prisma, email);
+    },
   });
 
 // routes only available to authenticated users
@@ -56,8 +77,10 @@ const loggedInViewerRouter = createProtectedRouter()
         createdDate,
         completedOnboarding,
         twoFactorEnabled,
+        identityProvider,
         brandColor,
         plan,
+        away,
       } = ctx.user;
       const me = {
         id,
@@ -72,10 +95,40 @@ const loggedInViewerRouter = createProtectedRouter()
         createdDate,
         completedOnboarding,
         twoFactorEnabled,
+        identityProvider,
         brandColor,
         plan,
+        away,
       };
       return me;
+    },
+  })
+  .mutation("deleteMe", {
+    async resolve({ ctx }) {
+      // Remove me from Stripe
+
+      // Remove my account
+      await ctx.prisma.user.delete({
+        where: {
+          id: ctx.user.id,
+        },
+      });
+      return;
+    },
+  })
+  .mutation("away", {
+    input: z.object({
+      away: z.boolean(),
+    }),
+    async resolve({ input, ctx }) {
+      await ctx.prisma.user.update({
+        where: {
+          email: ctx.user.email,
+        },
+        data: {
+          away: input.away,
+        },
+      });
     },
   })
   .query("eventTypes", {
@@ -467,7 +520,6 @@ const loggedInViewerRouter = createProtectedRouter()
           userId: user.id,
         },
       });
-
       const schedule = availabilityQuery.reduce(
         (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
@@ -506,6 +558,7 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       username: z.string().optional(),
       name: z.string().optional(),
+      email: z.string().optional(),
       bio: z.string().optional(),
       avatar: z.string().optional(),
       timeZone: z.string().optional(),
@@ -633,6 +686,98 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           },
         });
+      }
+    },
+  })
+  .query("showSAMLView", {
+    input: z.object({
+      teamsView: z.boolean(),
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input, ctx }) {
+      const { user } = ctx;
+      const { teamsView, teamId } = input;
+
+      if ((teamsView && !hostedCal) || (!teamsView && hostedCal)) {
+        return {
+          isSAMLLoginEnabled: false,
+          hostedCal,
+        };
+      }
+
+      let enabled = isSAMLLoginEnabled;
+
+      // in teams view we already check for isAdmin
+      if (teamsView) {
+        enabled = enabled && user.plan === "PRO";
+      } else {
+        enabled = enabled && isSAMLAdmin(user.email);
+      }
+
+      let provider;
+      if (enabled) {
+        const { apiController } = await jackson();
+
+        try {
+          const resp = await apiController.getConfig({
+            tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+            product: samlProductID,
+          });
+          provider = resp.provider;
+        } catch (err) {
+          console.error("Error getting SAML config", err);
+          throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration fetch failed" });
+        }
+      }
+
+      return {
+        isSAMLLoginEnabled: enabled,
+        hostedCal,
+        provider,
+      };
+    },
+  })
+  .mutation("updateSAMLConfig", {
+    input: z.object({
+      rawMetadata: z.string(),
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input }) {
+      const { rawMetadata, teamId } = input;
+
+      const { apiController } = await jackson();
+
+      try {
+        return await apiController.config({
+          rawMetadata,
+          defaultRedirectUrl: `${process.env.BASE_URL}/api/auth/saml/idp`,
+          redirectUrl: JSON.stringify([`${process.env.BASE_URL}/*`]),
+          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+          product: samlProductID,
+        });
+      } catch (err) {
+        console.error("Error setting SAML config", err);
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+    },
+  })
+  .mutation("deleteSAMLConfig", {
+    input: z.object({
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input }) {
+      const { teamId } = input;
+
+      const { apiController } = await jackson();
+
+      try {
+        return await apiController.deleteConfig({
+          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+          product: samlProductID,
+        });
+      } catch (err) {
+        console.error("Error deleting SAML configuration", err);
+        throw new TRPCError({ code: "BAD_REQUEST" });
       }
     },
   });

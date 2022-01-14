@@ -205,16 +205,19 @@ export const viewerTeamsRouter = createProtectedRouter()
             message: `Invite failed because there is no corresponding user for ${input.usernameOrEmail}`,
           });
 
-        // valid email given, create User
-        await ctx.prisma.user.create({ data: { email: input.usernameOrEmail } }).then((invitee) =>
-          ctx.prisma.membership.create({
-            data: {
-              teamId: input.teamId,
-              userId: invitee.id,
-              role: input.role as MembershipRole,
+        // valid email given, create User and add to team
+        await ctx.prisma.user.create({
+          data: {
+            email: input.usernameOrEmail,
+            invitedTo: input.teamId,
+            teams: {
+              create: {
+                teamId: input.teamId,
+                role: input.role as MembershipRole,
+              },
             },
-          })
-        );
+          },
+        });
 
         const token: string = randomBytes(32).toString("hex");
 

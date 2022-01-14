@@ -33,6 +33,7 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
+    "@boxyhq/saml-jackson": "0.3.3",
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",

@@ -486,7 +486,7 @@
   "remove_cal_branding_description": "Um die Cal Werbung von Ihren Buchungsseiten zu entfernen, müssen Sie auf ein Pro-Konto upgraden.",
   "to_upgrade_go_to": "Zum Upgrade gehen Sie zu",
   "edit_profile_info_description": "Bearbeiten Sie Ihre Profilinformationen, welche bei Ihrem Cal-Link angezeigt werden.",
-  "change_email_contact": "Um Ihre E-Mail zu ändern, kontaktieren Sie bitte",
+  "change_email_tip": "Möglicherweise müssen Sie sich aus- und einloggen, um die Änderung wirksam zu machen.",
   "little_something_about": "Ein wenig über sich selbst.",
   "profile_updated_successfully": "Profil erfolgreich aktualisiert",
   "your_user_profile_updated_successfully": "Ihr Benutzerprofil wurde erfolgreich aktualisiert.",
@@ -570,5 +570,9 @@
   "error_required_field": "Dieses Feld ist erforderlich.",
   "status": "Status",
   "team_view_user_availability": "Verfügbarkeit des Benutzers anzeigen",
-  "team_view_user_availability_disabled": "Der Benutzer muss die Einladung annehmen, um die Verfügbarkeit zu sehen"
+  "team_view_user_availability_disabled": "Der Benutzer muss die Einladung annehmen, um die Verfügbarkeit zu sehen",
+  "set_as_away": "Stelle deinen Status auf Abwesend",
+  "set_as_free": "Abwesenheitsstatus deaktivieren",
+  "user_away": "Dieser Benutzer ist derzeit abwesend.",
+  "user_away_description": "Dier Person, sie Sie zu Buchen versuchen, ist zur Zeit abwesend und aktzeptiert daher keine neuen Buchungen."
 }

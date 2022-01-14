@@ -2,6 +2,8 @@ import { PlusIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import SAMLConfiguration from "@ee/components/saml/Configuration";
+
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
@@ -33,7 +35,7 @@ export function TeamSettingsPage() {
 
   return (
     <Shell
-      showBackButton={!errorMessage}
+      backPath={!errorMessage ? `/settings/teams` : undefined}
       heading={team?.name}
       subtitle={team && "Manage this team"}
       HeadingLeftIcon={
@@ -77,6 +79,7 @@ export function TeamSettingsPage() {
                 )}
               </div>
               <MemberList team={team} members={team.members || []} />
+              {isAdmin ? <SAMLConfiguration teamsView={true} teamId={team.id} /> : null}
             </div>
             <div className="w-full px-2 mt-8 ml-2 md:w-3/12 sm:mt-0 min-w-32">
               <TeamSettingsRightSidebar role={team.membership.role} team={team} />
