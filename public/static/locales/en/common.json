@@ -594,5 +594,6 @@
   "saml_configuration_placeholder": "Please paste the SAML metadata from your Identity Provider here",
   "saml_configuration_update_failed": "SAML configuration update failed",
   "saml_configuration_delete_failed": "SAML configuration delete failed",
-  "saml_email_required": "Please enter an email so we can find your SAML Identity Provider"
+  "saml_email_required": "Please enter an email so we can find your SAML Identity Provider",
+  "visit_roadmap": "Roadmap"
 }
