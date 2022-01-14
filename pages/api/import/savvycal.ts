@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
     },
   });
-  if (req.method == "POST") {
+  if (req.method === "POST") {
     const userResult = await fetch("https://api.savvycal.com/v1/me", {
       method: "GET",
       headers: {
@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (userResult.status == 200) {
+    if (userResult.status === 200) {
       const userData = await userResult.json();
 
       await prisma.user.update({

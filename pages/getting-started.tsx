@@ -269,7 +269,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 onSubmit={formMethods.handleSubmit(async (values) => {
                   setSubmitting(true);
                   const response = await fetch(
-                    selectedImport === "calendly" ? "/api/import/calendly" : "/api/import/savvycal",
+                    `/api/import/${selectedImport}`,
                     {
                       method: "POST",
                       body: JSON.stringify({
