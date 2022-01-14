@@ -251,21 +251,19 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           {selectedImport == "" && (
             <div className="grid grid-cols-2 mb-4 gap-x-4">
               <Button color="secondary" onClick={() => setSelectedImport("calendly")}>
-                Import from Calendly
+                {t("import from")} Calendly
               </Button>
               <Button color="secondary" onClick={() => setSelectedImport("savvycal")}>
-                Import from SavvyCal
+                {t("import from")} SavvyCal
               </Button>
             </div>
           )}
           {selectedImport && (
             <div>
               <h2 className="text-2xl text-gray-900 font-cal">
-                Import from {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
+                {t("import from")} {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
               </h2>
-              <p className="mb-2 text-sm text-gray-500">
-                You will need to generate an access token from the integrations page.
-              </p>
+              <p className="mb-2 text-sm text-gray-500">{t("you_will_need_to_generate")}</p>
               <form
                 className="flex"
                 onSubmit={formMethods.handleSubmit(async (values) => {
@@ -304,7 +302,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
                 />
                 <Button type="submit" className="h-10 mt-1 ml-4">
-                  Import
+                  {t("import")}
                 </Button>
               </form>
             </div>
