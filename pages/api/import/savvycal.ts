@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (userResult.status == 200) {
+    if (userResult.status === 200) {
       const userData = await userResult.json();
 
       await prisma.user.update({
