@@ -1,4 +1,4 @@
-import { User, UserPlan } from "@prisma/client";
+import { User, IdentityProvider, UserPlan } from "@prisma/client";
 import * as z from "zod";
 
 import {
@@ -51,8 +51,12 @@ export const _UserModel = z.object({
   locale: z.string().nullable(),
   twoFactorSecret: z.string().nullable(),
   twoFactorEnabled: z.boolean(),
+  identityProvider: z.nativeEnum(IdentityProvider),
+  identityProviderId: z.string().nullable(),
+  invitedTo: z.number().int().nullable(),
   plan: z.nativeEnum(UserPlan),
   brandColor: z.string(),
+  away: z.boolean(),
   metadata: jsonSchema.nullable(),
 });
 
