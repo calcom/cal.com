@@ -598,5 +598,6 @@
   "you_will_need_to_generate": "You will need to generate an access token from the integrations page.",
   "import": "Import",
   "import_from": "Import from",
-  "access_token": "Access token"
+  "access_token": "Access token",
+  "visit_roadmap": "Roadmap"
 }
