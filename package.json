@@ -10,7 +10,7 @@
     "db-up": "docker-compose up -d",
     "db-migrate": "yarn prisma migrate dev",
     "db-deploy": "yarn prisma migrate deploy",
-    "db-seed": "ts-node scripts/seed.ts",
+    "db-seed": "yarn prisma db seed",
     "db-nuke": "docker-compose down --volumes --remove-orphans",
     "db-setup": "run-s db-up db-migrate db-seed",
     "db-reset": "run-s db-nuke db-setup",
@@ -154,5 +154,8 @@
     "./prisma/schema.prisma": [
       "prisma format"
     ]
+  },
+  "prisma": {
+    "seed": "ts-node ./prisma/seed.ts"
   }
 }
