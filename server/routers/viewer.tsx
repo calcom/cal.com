@@ -102,6 +102,19 @@ const loggedInViewerRouter = createProtectedRouter()
       return me;
     },
   })
+  .mutation("deleteMe", {
+    async resolve({ ctx }) {
+      // Remove me from Stripe
+
+      // Remove my account
+      await ctx.prisma.user.delete({
+        where: {
+          id: ctx.user.id,
+        },
+      });
+      return;
+    },
+  })
   .mutation("away", {
     input: z.object({
       away: z.boolean(),
