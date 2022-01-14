@@ -592,5 +592,5 @@
   "saml_configuration_update_failed": "SAML configuration update failed",
   "saml_configuration_delete_failed": "SAML configuration delete failed",
   "saml_email_required": "Please enter an email so we can find your SAML Identity Provider",
-  "visit_roadmap": "Visit Roadmap"
+  "visit_roadmap": "Roadmap"
 }
