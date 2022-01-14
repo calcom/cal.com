@@ -9,6 +9,7 @@ import {
   LogoutIcon,
   PuzzleIcon,
   MoonIcon,
+  MapIcon,
 } from "@heroicons/react/solid";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -464,6 +465,15 @@ function UserDropdown({ small }: { small?: boolean }) {
               </g>
             </svg>
             {t("join_our_slack")}
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://cal.com/roadmap"
+            className="flex items-center px-4 py-2 text-sm text-gray-700">
+            <MapIcon className="w-5 h-5 mr-3 text-gray-500" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
         <HelpMenuItemDynamic />
