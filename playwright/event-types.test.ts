@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { randomString } from "./lib/testUtils";
+import { randomString } from "../lib/random";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/event-types");

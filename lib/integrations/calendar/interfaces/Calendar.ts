@@ -66,7 +66,7 @@ export interface Calendar {
 
   updateEvent(uid: string, event: CalendarEvent): Promise<any>;
 
-  deleteEvent(uid: string): Promise<unknown>;
+  deleteEvent(uid: string, event: CalendarEvent): Promise<unknown>;
 
   getAvailability(
     dateFrom: string,

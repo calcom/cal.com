@@ -574,5 +574,22 @@
   "set_as_away": "Set yourself as away",
   "set_as_free": "Disable away status",
   "user_away": "This user is currently away.",
-  "user_away_description": "The person you are trying to book has set themselves to away, and therefore is not accepting new bookings."
+  "user_away_description": "The person you are trying to book has set themselves to away, and therefore is not accepting new bookings.",
+  "saml_config_updated_successfully": "SAML configuration updated successfully",
+  "saml_config_deleted_successfully": "SAML configuration deleted successfully",
+  "account_created_with_identity_provider": "Your account was created using an Identity Provider.",
+  "account_managed_by_identity_provider": "Your account is managed by {{provider}}",
+  "account_managed_by_identity_provider_description": "To change your email, password, enable two-factor authentication and more, please visit your {{provider}} account settings.",
+  "signin_with_google": "Sign in with Google",
+  "signin_with_saml": "Sign in with SAML",
+  "saml_configuration": "SAML configuration",
+  "delete_saml_configuration": "Delete SAML configuration",
+  "delete_saml_configuration_confirmation_message": "Are you sure you want to delete the SAML configuration? Your team members who use SAML login will no longer be able to access Cal.com.",
+  "confirm_delete_saml_configuration": "Yes, delete SAML configuration",
+  "saml_not_configured_yet": "SAML not configured yet",
+  "saml_configuration_description": "Please paste the SAML metadata from your Identity Provider in the textbox below to update your SAML configuration.",
+  "saml_configuration_placeholder": "Please paste the SAML metadata from your Identity Provider here",
+  "saml_configuration_update_failed": "SAML configuration update failed",
+  "saml_configuration_delete_failed": "SAML configuration delete failed",
+  "saml_email_required": "Please enter an email so we can find your SAML Identity Provider"
 }

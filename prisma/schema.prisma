@@ -71,6 +71,12 @@ enum UserPlan {
   PRO
 }
 
+enum IdentityProvider {
+  CAL
+  GOOGLE
+  SAML
+}
+
 model DestinationCalendar {
   id          Int        @id @default(autoincrement())
   integration String
@@ -112,6 +118,9 @@ model User {
   locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean              @default(false)
+  identityProvider    IdentityProvider     @default(CAL)
+  identityProviderId  String?
+  invitedTo           Int?
   plan                UserPlan             @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
