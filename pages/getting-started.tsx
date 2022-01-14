@@ -251,17 +251,17 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           {selectedImport == "" && (
             <div className="grid grid-cols-2 mb-4 gap-x-4">
               <Button color="secondary" onClick={() => setSelectedImport("calendly")}>
-                {t("import from")} Calendly
+                {t("import_from")} Calendly
               </Button>
               <Button color="secondary" onClick={() => setSelectedImport("savvycal")}>
-                {t("import from")} SavvyCal
+                {t("import_from")} SavvyCal
               </Button>
             </div>
           )}
           {selectedImport && (
             <div>
               <h2 className="text-2xl text-gray-900 font-cal">
-                {t("import from")} {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
+                {t("import_from")} {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
               </h2>
               <p className="mb-2 text-sm text-gray-500">{t("you_will_need_to_generate")}</p>
               <form
