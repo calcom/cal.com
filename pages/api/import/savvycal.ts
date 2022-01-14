@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
     },
   });
-  if (req.method == "POST") {
+  if (req.method === "POST") {
     const userResult = await fetch("https://api.savvycal.com/v1/me", {
       method: "GET",
       headers: {
